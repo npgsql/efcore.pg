@@ -4,8 +4,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class ManyToManyQueryNpgsqlFixture : ManyToManyQueryRelationalFixture
+    public class CompositeKeysQueryNpgsqlFixture : CompositeKeysQueryRelationalFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
     }
 }

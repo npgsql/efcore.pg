@@ -17,12 +17,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             modelBuilder.Entity<City>().Property(g => g.Location).HasColumnType("varchar(100)");
         }
-
-        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-        {
-            var optionsBuilder = base.AddOptions(builder);
-            new NpgsqlDbContextOptionsBuilder(optionsBuilder).ReverseNullOrdering();
-            return optionsBuilder;
-        }
     }
 }

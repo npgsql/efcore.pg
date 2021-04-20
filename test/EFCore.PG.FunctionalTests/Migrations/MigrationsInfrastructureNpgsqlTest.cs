@@ -157,7 +157,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 var options = AddOptions(
                         new DbContextOptionsBuilder()
-                            .UseNpgsql(TestStore.ConnectionString, b => b.ApplyConfiguration().CommandTimeout(NpgsqlTestStore.CommandTimeout)))
+                            .UseNpgsql(TestStore.ConnectionString, b => b.ApplyConfiguration()
+                                .CommandTimeout(NpgsqlTestStore.CommandTimeout)
+                                .ReverseNullOrdering()))
                     .UseInternalServiceProvider(ServiceProvider)
                     .Options;
                 return new MigrationsContext(options);
