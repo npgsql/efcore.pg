@@ -216,7 +216,7 @@ FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid=0
 WHERE
-  cls.relkind IN ('r', 'v', 'm') AND
+  cls.relkind IN ('r', 'v', 'm', 'f') AND
   ns.nspname NOT IN ({internalSchemas}) AND
   cls.relname <> '{HistoryRepository.DefaultTableName}'
   {filter}";
@@ -303,7 +303,7 @@ LEFT JOIN pg_collation as coll ON coll.oid = attr.attcollation
 LEFT JOIN pg_depend AS dep ON dep.refobjid = cls.oid AND dep.refobjsubid = attr.attnum AND dep.deptype = 'i'
 {(connection.PostgreSqlVersion >= new Version(10, 0) ? "LEFT JOIN pg_sequence AS seq ON seq.seqrelid = dep.objid" : "")}
 WHERE
-  cls.relkind IN ('r', 'v', 'm') AND
+  cls.relkind IN ('r', 'v', 'm', 'f') AND
   nspname NOT IN ({internalSchemas}) AND
   attnum > 0 AND
   cls.relname <> '{HistoryRepository.DefaultTableName}'
