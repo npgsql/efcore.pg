@@ -22,7 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
-            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         protected override bool AssertDistances
@@ -92,7 +92,7 @@ FROM ""PolygonEntity"" AS p");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncDataAndUseSpheroid))]
-        public async Task DistanceDbFunction(bool async, bool useSpheroid)
+        public async Task Distance_with_spheroid(bool async, bool useSpheroid)
         {
             var point = Fixture.GeometryFactory.CreatePoint(new Coordinate(0, 1));
 
@@ -113,6 +113,31 @@ FROM ""PolygonEntity"" AS p");
 @__useSpheroid_2='{useSpheroid}'
 
 SELECT p.""Id"", ST_Distance(p.""Point"", @__point_1, @__useSpheroid_2) AS ""Distance""
+FROM ""PointEntity"" AS p");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task DistanceKnn(bool async)
+        {
+            var point = Fixture.GeometryFactory.CreatePoint(new Coordinate(0, 1));
+
+            await AssertQuery(
+                async,
+                ss => ss.Set<PointEntity>().Select(e => new { e.Id, Distance = (double?)EF.Functions.DistanceKnn(e.Point, point) }),
+                ss => ss.Set<PointEntity>()
+                    .Select(e => new { e.Id, Distance = (e.Point == null ? (double?)null : e.Point.Distance(point)) }),
+                elementSorter: e => e.Id,
+                elementAsserter: (e, a) =>
+                {
+                    Assert.Equal(e.Id, a.Id);
+                    Assert.Equal(e.Distance == null, a.Distance == null);
+                });
+
+            AssertSql(
+                @"@__point_1='POINT (0 1)' (DbType = Object)
+
+SELECT p.""Id"", p.""Point"" <-> @__point_1 AS ""Distance""
 FROM ""PointEntity"" AS p");
         }
 
@@ -168,7 +193,7 @@ FROM ""PointEntity"" AS p");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncDataAndUseSpheroid))]
-        public async Task IsWithinDistanceDbFunction(bool async, bool useSpheroid)
+        public async Task IsWithinDistance_with_spheroid(bool async, bool useSpheroid)
         {
             var point = Fixture.GeometryFactory.CreatePoint(new Coordinate(0, 1));
 

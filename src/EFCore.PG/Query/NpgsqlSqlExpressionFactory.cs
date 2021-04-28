@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
@@ -18,6 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         private readonly IRelationalTypeMappingSource _typeMappingSource;
         private readonly RelationalTypeMapping _boolTypeMapping;
+        private readonly RelationalTypeMapping _doubleTypeMapping;
 
         private static Type? _nodaTimeDurationType;
         private static Type? _nodaTimePeriodType;
@@ -27,6 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             _typeMappingSource = dependencies.TypeMappingSource;
             _boolTypeMapping = _typeMappingSource.FindMapping(typeof(bool))!;
+            _doubleTypeMapping = _typeMappingSource.FindMapping(typeof(double))!;
         }
 
         #region Expression factory methods
@@ -215,6 +218,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             case PostgresExpressionType.JsonExistsAny:
             case PostgresExpressionType.JsonExistsAll:
                 returnType = typeof(bool);
+                break;
+
+            case PostgresExpressionType.PostgisDistanceKnn:
+                returnType = typeof(double);
                 break;
             }
 
@@ -505,6 +512,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
                 resultType = inferredTypeMapping?.ClrType ?? left.Type;
                 resultTypeMapping = inferredTypeMapping;
+                break;
+            }
+
+            case PostgresExpressionType.PostgisDistanceKnn:
+            {
+                inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
+                resultType = typeof(double);
+                resultTypeMapping = _doubleTypeMapping;
                 break;
             }
 
