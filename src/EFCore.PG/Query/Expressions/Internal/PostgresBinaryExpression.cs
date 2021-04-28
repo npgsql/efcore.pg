@@ -127,6 +127,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                     PostgresExpressionType.JsonExistsAny => "?|",
                     PostgresExpressionType.JsonExistsAll => "?&",
 
+                    PostgresExpressionType.PostgisDistanceKnn => "<->",
+
                     _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
                 })
                 .Append(" ");

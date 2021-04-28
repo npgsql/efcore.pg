@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using NetTopologySuite.Geometries;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
@@ -18,10 +19,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         public NpgsqlNetTopologySuiteMethodCallTranslatorPlugin(
             IRelationalTypeMappingSource typeMappingSource,
             ISqlExpressionFactory sqlExpressionFactory)
-            => Translators = new IMethodCallTranslator[]
+        {
+            if (!(sqlExpressionFactory is NpgsqlSqlExpressionFactory npgsqlSqlExpressionFactory))
             {
-                new NpgsqlGeometryMethodTranslator(sqlExpressionFactory, typeMappingSource),
-            };
+                throw new ArgumentException($"Must be an {nameof(NpgsqlSqlExpressionFactory)}", nameof(sqlExpressionFactory));
+            }
+            Translators = new IMethodCallTranslator[] { new NpgsqlGeometryMethodTranslator(npgsqlSqlExpressionFactory, typeMappingSource), };
+        }
 
         public virtual IEnumerable<IMethodCallTranslator> Translators { get; }
     }
@@ -33,7 +37,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     {
         private static readonly MethodInfo _collectionItem = typeof(GeometryCollection).GetRuntimeProperty("Item")!.GetMethod!;
 
-        private readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         private readonly IRelationalTypeMappingSource _typeMappingSource;
 
         private static readonly bool[][] TrueArrays =
@@ -46,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         };
 
         public NpgsqlGeometryMethodTranslator(
-            ISqlExpressionFactory sqlExpressionFactory,
+            NpgsqlSqlExpressionFactory sqlExpressionFactory,
             IRelationalTypeMappingSource typeMappingSource)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
@@ -77,6 +81,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     argumentsPropagateNullability: TrueArrays[2],
                     method.ReturnType,
                     arguments[1].TypeMapping),
+
+                nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.DistanceKnn) => _sqlExpressionFactory.MakePostgresBinary(
+                    PostgresExpressionType.PostgisDistanceKnn,
+                    arguments[1],
+                    arguments[2]),
 
                 nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Distance) =>
                     TranslateGeometryMethod(arguments[1], method, new[] { arguments[2], arguments[3] }),

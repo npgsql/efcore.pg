@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
@@ -300,8 +301,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     PostgresExpressionType.LTreeFirstMatches
                         when binaryExpression.Right.TypeMapping.StoreType == "ltxtquery" => "?@",
 
-                    _ => throw new ArgumentOutOfRangeException(
-                        $"Unhandled operator type: {binaryExpression.OperatorType}")
+                    PostgresExpressionType.PostgisDistanceKnn => "<->",
+
+                    _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {binaryExpression.OperatorType}")
                 })
                 .Append(" ");
 

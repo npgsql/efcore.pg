@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
@@ -197,9 +198,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             nullable = binaryExpression.OperatorType switch
             {
+                // The following LTree search methods return null for "not found"
                 PostgresExpressionType.LTreeFirstAncestor   => true,
                 PostgresExpressionType.LTreeFirstDescendent => true,
                 PostgresExpressionType.LTreeFirstMatches    => true,
+
                 _                                           => leftNullable || rightNullable
             };
 
