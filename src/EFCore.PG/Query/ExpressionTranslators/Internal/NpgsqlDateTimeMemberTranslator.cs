@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
@@ -17,10 +18,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
     {
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
-        public NpgsqlDateTimeMemberTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
-            => _sqlExpressionFactory = sqlExpressionFactory;
+        public NpgsqlDateTimeMemberTranslator(
+            IRelationalTypeMappingSource typeMappingSource,
+            NpgsqlSqlExpressionFactory sqlExpressionFactory)
+        {
+            _typeMappingSource = typeMappingSource;
+            _sqlExpressionFactory = sqlExpressionFactory;
+        }
 
         /// <inheritdoc />
         public virtual SqlExpression? Translate(
@@ -44,7 +51,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     new SqlExpression[] { _sqlExpressionFactory.Constant("day"), Now() },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
-                    returnType),
+                    returnType,
+                    _typeMappingSource.FindMapping(typeof(DateTime))),
 
                 nameof(DateTime.Year)      => GetDatePartExpression(instance!, "year"),
                 nameof(DateTime.Month)     => GetDatePartExpression(instance!, "month"),
@@ -64,7 +72,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     new[] { _sqlExpressionFactory.Constant("day"), instance! },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
-                    returnType),
+                    returnType,
+                    _typeMappingSource.FindMapping(typeof(DateTime))),
 
                 // TODO: Technically possible simply via casting to PG time, should be better in EF Core 3.0
                 // but ExplicitCastExpression only allows casting to PG types that
@@ -84,7 +93,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     Array.Empty<SqlExpression>(),
                     nullable: false,
                     argumentsPropagateNullability: TrueArrays[0],
-                    returnType);
+                    returnType,
+                    _typeMappingSource.FindMapping(typeof(DateTime)));
         }
 
         /// <summary>
