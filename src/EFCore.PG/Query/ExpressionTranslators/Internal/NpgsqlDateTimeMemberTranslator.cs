@@ -52,7 +52,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
                     returnType,
-                    instance?.TypeMapping),
+                    _timestampTzTypeMapping),
 
                 nameof(DateTime.Year)      => GetDatePartExpression(instance!, "year"),
                 nameof(DateTime.Month)     => GetDatePartExpression(instance!, "month"),
@@ -73,7 +73,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
                     returnType,
-                    instance?.TypeMapping),
+                    instance!.TypeMapping),
 
                 // TODO: Technically possible simply via casting to PG time, should be better in EF Core 3.0
                 // but ExplicitCastExpression only allows casting to PG types that
