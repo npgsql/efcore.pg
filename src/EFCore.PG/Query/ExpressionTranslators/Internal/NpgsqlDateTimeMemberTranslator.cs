@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IRelationalTypeMappingSource typeMappingSource,
             NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
-            _timestampTypeMapping = typeMappingSource.FindMapping("timestamp")!;
+            _timestampTypeMapping = typeMappingSource.FindMapping("timestamp without time zone")!;
             _timestampTzTypeMapping = typeMappingSource.FindMapping("timestamp with time zone")!;
             _sqlExpressionFactory = sqlExpressionFactory;
         }
