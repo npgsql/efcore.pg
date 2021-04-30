@@ -18,6 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
     {
+        private readonly RelationalTypeMapping _timestampTypeMapping;
         private readonly RelationalTypeMapping _timestampTzTypeMapping;
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
@@ -25,6 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IRelationalTypeMappingSource typeMappingSource,
             NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
+            _timestampTypeMapping = typeMappingSource.FindMapping("timestamp")!;
             _timestampTzTypeMapping = typeMappingSource.FindMapping("timestamp with time zone")!;
             _sqlExpressionFactory = sqlExpressionFactory;
         }
@@ -51,7 +53,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     new SqlExpression[] { _sqlExpressionFactory.Constant("day"), Now() },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
-                    returnType),
+                    returnType,
+                    _timestampTypeMapping),
 
                 nameof(DateTime.Year)      => GetDatePartExpression(instance!, "year"),
                 nameof(DateTime.Month)     => GetDatePartExpression(instance!, "month"),
