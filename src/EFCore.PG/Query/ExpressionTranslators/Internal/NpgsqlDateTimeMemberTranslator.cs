@@ -18,14 +18,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
     {
-        private readonly IRelationalTypeMappingSource _typeMappingSource;
+        private readonly RelationalTypeMapping _timestampTzTypeMapping;
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
         public NpgsqlDateTimeMemberTranslator(
             IRelationalTypeMappingSource typeMappingSource,
             NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
-            _typeMappingSource = typeMappingSource;
+            _timestampTzTypeMapping = typeMappingSource.FindMapping("timestamp with time zone")!;
             _sqlExpressionFactory = sqlExpressionFactory;
         }
 
@@ -52,7 +52,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
                     returnType,
-                    _typeMappingSource.FindMapping(typeof(DateTime))),
+                    instance?.TypeMapping),
 
                 nameof(DateTime.Year)      => GetDatePartExpression(instance!, "year"),
                 nameof(DateTime.Month)     => GetDatePartExpression(instance!, "month"),
@@ -73,7 +73,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
                     returnType,
-                    _typeMappingSource.FindMapping(typeof(DateTime))),
+                    instance?.TypeMapping),
 
                 // TODO: Technically possible simply via casting to PG time, should be better in EF Core 3.0
                 // but ExplicitCastExpression only allows casting to PG types that
@@ -94,7 +94,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: false,
                     argumentsPropagateNullability: TrueArrays[0],
                     returnType,
-                    _typeMappingSource.FindMapping(typeof(DateTime)));
+                    _timestampTzTypeMapping);
         }
 
         /// <summary>
