@@ -106,7 +106,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
                     return;
                 }
 
-                if (property.GetDefaultValue() != null)
+                if (property.TryGetDefaultValue(storeObject, out _))
                 {
                     throw new InvalidOperationException(
                         RelationalStrings.ConflictingColumnServerGeneration(

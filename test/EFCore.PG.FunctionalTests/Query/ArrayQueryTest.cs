@@ -691,7 +691,7 @@ WHERE 3 = ANY ((
     SELECT s0.""NullableIntArray""
     FROM ""SomeEntities"" AS s0
     WHERE s.""Id"" = s0.""SomeContainerEntityId""
-    ORDER BY s0.""Id""
+    ORDER BY s0.""Id"" NULLS FIRST
     LIMIT 1)::integer[])
 LIMIT 2");
         }

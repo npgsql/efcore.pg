@@ -30,7 +30,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     new DbContextOptionsBuilder()
                         .UseNpgsql(
                             TestStore.ConnectionString,
-                            b => b.ApplyConfiguration().ExecutionStrategy(c => new NpgsqlExecutionStrategy(c))))
+                            b => b.ApplyConfiguration()
+                                .ExecutionStrategy(c => new NpgsqlExecutionStrategy(c))
+                                .ReverseNullOrdering()))
                 .UseInternalServiceProvider(Fixture.ServiceProvider);
 
             return new DbContext(options.Options);

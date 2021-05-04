@@ -229,7 +229,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-ORDER BY c.""Id""");
+ORDER BY c.""Id"" NULLS FIRST");
         }
 
         [Fact]
@@ -265,7 +265,7 @@ LIMIT 2");
                 @"SELECT dbo.""IdentityString""(c.""FirstName"")
 FROM ""Orders"" AS o
 INNER JOIN ""Customers"" AS c ON o.""CustomerId"" = c.""Id""
-ORDER BY o.""Id""
+ORDER BY o.""Id"" NULLS FIRST
 LIMIT 1");
         }
 
@@ -487,7 +487,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-ORDER BY c.""Id""");
+ORDER BY c.""Id"" NULLS FIRST");
         }
 
         [Fact]
