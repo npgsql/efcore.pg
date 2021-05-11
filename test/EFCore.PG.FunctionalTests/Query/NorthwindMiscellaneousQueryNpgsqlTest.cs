@@ -74,6 +74,22 @@ FROM ""Orders"" AS o
 WHERE (o.""OrderDate"" - INTERVAL '1 00:00:00') = TIMESTAMP '1997-10-08 00:00:00'");
         }
 
+        [Theory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task DateTimeFunction_subtract_DateTime(bool async)
+        {
+            await AssertFirst(
+                async,
+                ss => ss.Set<Order>().Where(o => o.OrderDate != null)
+                    .Select(o => new { Elapsed = (DateTime.Today - ((DateTime)o.OrderDate).Date).Days }));
+
+            AssertSql(
+                @"SELECT floor(date_part('day', date_trunc('day', now()) - date_trunc('day', o.""OrderDate"")))::INT AS ""Elapsed""
+FROM ""Orders"" AS o
+WHERE (o.""OrderDate"" IS NOT NULL)
+LIMIT 1");
+        }
+
         // TODO: Array tests can probably move to the dedicated ArrayQueryTest suite
 
         #region Array contains
