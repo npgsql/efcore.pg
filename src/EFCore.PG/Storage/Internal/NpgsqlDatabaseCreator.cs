@@ -152,11 +152,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             {
                 if (async)
                 {
-                    await unpooledRelationalConnection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                    await unpooledRelationalConnection.OpenAsync(errorsExpected: true, cancellationToken: cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
-                    unpooledRelationalConnection.Open();
+                    unpooledRelationalConnection.Open(errorsExpected: true);
                 }
 
                 return true;
