@@ -1419,12 +1419,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append(DelimitIdentifier(collation));
             }
 
-            builder.Append(operation.IsNullable ? " NULL" : " NOT NULL");
-
-            DefaultValue(operation.DefaultValue, operation.DefaultValueSql, columnType, builder);
-
             if (valueGenerationStrategy.IsIdentity())
+            {
                 IdentityDefinition(operation, builder);
+            }
+            else
+            {
+                builder.Append(operation.IsNullable ? " NULL" : " NOT NULL");
+
+                DefaultValue(operation.DefaultValue, operation.DefaultValueSql, columnType, builder);
+            }
         }
 
         // Note: this definition is only used for creating new identity columns, not for alterations.
