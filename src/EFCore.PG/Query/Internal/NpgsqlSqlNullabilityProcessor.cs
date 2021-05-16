@@ -301,14 +301,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         {
             Check.NotNull(jsonTraversalExpression, nameof(jsonTraversalExpression));
 
-            var expression = Visit(jsonTraversalExpression.Expression, out nullable);
+            var expression = Visit(jsonTraversalExpression.Expression, out _);
 
             List<SqlExpression> newPath = null;
             for (var i = 0; i < jsonTraversalExpression.Path.Count; i++)
             {
                 var pathComponent = jsonTraversalExpression.Path[i];
                 var newPathComponent = Visit(pathComponent, allowOptimizedExpansion, out var nullablePathComponent);
-                nullable |= nullablePathComponent;
                 if (newPathComponent != pathComponent && newPath is null)
                 {
                     newPath = new List<SqlExpression>();
@@ -320,7 +319,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     newPath.Add(newPathComponent);
             }
 
-            nullable = false;
+            // For now, anything inside a JSON document is considered nullable.
+            // See #1851 for optimizing this for JSON POCO mapping.
+            nullable = true;
 
             return jsonTraversalExpression.Update(
                 expression,
