@@ -11,7 +11,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 {
     public class NpgsqlObjectToStringTranslator : IMethodCallTranslator
     {
-        private static readonly List<Type> SupportedTypes = new()
+        private static readonly HashSet<Type> _typeMapping = new()
         {
             typeof(int),
             typeof(long),
@@ -43,12 +43,40 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
-            => method.Name == nameof(ToString)
-               && arguments.Count == 0
-               && instance != null
-               && (SupportedTypes.Contains(instance.Type.UnwrapNullableType()) ||
-                   instance.Type.UnwrapNullableType().IsEnum && instance.TypeMapping is NpgsqlEnumTypeMapping)
-               ? _sqlExpressionFactory.Convert(instance, typeof(string))
-               : null;
+        {
+            if (instance == null || method.Name != nameof(ToString) || arguments.Count != 0)
+            {
+                return null;
+            }
+
+            if (instance.Type == typeof(bool))
+            {
+                return instance is ColumnExpression columnExpression && columnExpression.IsNullable
+                    ? _sqlExpressionFactory.Case(
+                        new[]
+                        {
+                            new CaseWhenClause(
+                                _sqlExpressionFactory.Equal(instance, _sqlExpressionFactory.Constant(false)),
+                                _sqlExpressionFactory.Constant(false.ToString())),
+                            new CaseWhenClause(
+                                _sqlExpressionFactory.Equal(instance, _sqlExpressionFactory.Constant(true)),
+                                _sqlExpressionFactory.Constant(true.ToString()))
+                        },
+                        _sqlExpressionFactory.Constant(null))
+                    : _sqlExpressionFactory.Case(
+                        new[]
+                        {
+                            new CaseWhenClause(
+                                _sqlExpressionFactory.Equal(instance, _sqlExpressionFactory.Constant(false)),
+                                _sqlExpressionFactory.Constant(false.ToString()))
+                        },
+                        _sqlExpressionFactory.Constant(true.ToString()));
+            }
+
+            return _typeMapping.Contains(instance.Type)
+                || instance.Type.UnwrapNullableType().IsEnum && instance.TypeMapping is NpgsqlEnumTypeMapping
+                    ? _sqlExpressionFactory.Convert(instance, typeof(string))
+                    : null;
+        }
     }
 }
