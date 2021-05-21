@@ -78,6 +78,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var clonedDbConnection = DbConnection.CloneWith(connectionString);
 
             var relationalOptions = RelationalOptionsExtension.Extract(Dependencies.ContextOptions)
+                .WithConnectionString(clonedDbConnection.ConnectionString)
                 .WithConnection(clonedDbConnection);
 
             var optionsBuilder = new DbContextOptionsBuilder();
