@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
@@ -16,6 +17,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         // Disabled: PostgreSQL is case-sensitive
         public override void Can_insert_and_read_back_with_case_insensitive_string_key() {}
+
+        public override void Value_conversion_on_enum_collection_contains()
+        {
+            Assert.Contains(
+                CoreStrings.TranslationFailed("").Substring(47),
+                Assert.Throws<InvalidOperationException>(() => base.Value_conversion_on_enum_collection_contains()).Message);
+        }
 
         public class CustomConvertersNpgsqlFixture : CustomConvertersFixtureBase
         {

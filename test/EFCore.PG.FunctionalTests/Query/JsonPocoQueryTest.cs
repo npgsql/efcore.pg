@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text.Json;
@@ -184,6 +185,21 @@ WHERE CAST(j.""Customer""#>>'{Statistics,Nested,SomeNullableInt}' AS integer) = 
 LIMIT 2");
         }
 
+        [Fact] // #1674
+        public void Compare_to_null()
+        {
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.SomeNullableInt == null);
+
+            Assert.Equal("Moe", x.Customer.Name);
+
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+FROM ""JsonbEntities"" AS j
+WHERE (j.""Customer""#>>'{Statistics,Nested,SomeNullableInt}' IS NULL)
+LIMIT 2");
+        }
+
         [Fact]
         public void Nested()
         {
@@ -323,7 +339,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE j.""Customer""->>'Name' LIKE 'J%'
+WHERE (j.""Customer""->>'Name' IS NOT NULL) AND (j.""Customer""->>'Name' LIKE 'J%')
 LIMIT 2");
         }
 

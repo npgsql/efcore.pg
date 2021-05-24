@@ -1,10 +1,8 @@
-﻿using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
@@ -21,13 +19,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             : ComplexNavigationsQueryRelationalFixtureBase
         {
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-
-            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-            {
-                var optionsBuilder = base.AddOptions(builder);
-                new NpgsqlDbContextOptionsBuilder(optionsBuilder).ReverseNullOrdering();
-                return optionsBuilder;
-            }
         }
     }
 }

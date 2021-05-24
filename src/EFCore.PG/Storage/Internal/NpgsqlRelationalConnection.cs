@@ -53,7 +53,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                           ?? "postgres";
             var csb = new NpgsqlConnectionStringBuilder(ConnectionString) {
                 Database = adminDb,
-                Pooling = false
+                Pooling = false,
+                Multiplexing = false
             };
 
             var relationalOptions = RelationalOptionsExtension.Extract(Dependencies.ContextOptions);
@@ -85,6 +86,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var clonedDbConnection = DbConnection.CloneWith(connectionString);
 
             var relationalOptions = RelationalOptionsExtension.Extract(Dependencies.ContextOptions)
+                .WithConnectionString(null)
                 .WithConnection(clonedDbConnection);
 
             var optionsBuilder = new DbContextOptionsBuilder();

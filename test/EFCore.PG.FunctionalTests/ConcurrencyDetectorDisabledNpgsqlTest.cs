@@ -38,7 +38,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 => (TestSqlLoggerFactory)ListLoggerFactory;
 
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-                => builder.DisableConcurrencyDetection();
+                => builder.EnableThreadSafetyChecks(enableChecks: false);
         }
     }
 }

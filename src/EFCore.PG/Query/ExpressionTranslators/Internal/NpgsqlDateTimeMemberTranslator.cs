@@ -64,7 +64,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     new[] { _sqlExpressionFactory.Constant("day"), instance! },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
-                    returnType),
+                    returnType,
+                    instance!.TypeMapping),
 
                 // TODO: Technically possible simply via casting to PG time, should be better in EF Core 3.0
                 // but ExplicitCastExpression only allows casting to PG types that

@@ -232,7 +232,7 @@ namespace Microsoft.EntityFrameworkCore
 
             if (property.ValueGenerated != ValueGenerated.OnAdd
                 || property.IsForeignKey()
-                || property.GetDefaultValue() != null
+                || property.TryGetDefaultValue(out _)
                 || property.GetDefaultValueSql() != null
                 || property.GetComputedColumnSql() != null)
             {
@@ -281,7 +281,7 @@ namespace Microsoft.EntityFrameworkCore
 
             if (property.ValueGenerated != ValueGenerated.OnAdd
                 || property.GetContainingForeignKeys().Any(fk => !fk.IsBaseLinking())
-                || property.GetDefaultValue() != null
+                || property.TryGetDefaultValue(storeObject, out _)
                 || property.GetDefaultValueSql() != null
                 || property.GetComputedColumnSql() != null)
             {
