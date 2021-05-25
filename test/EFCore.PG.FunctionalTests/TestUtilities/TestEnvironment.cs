@@ -40,21 +40,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             }
         }
 
-        private static bool? _postgisAvailable;
+        private static bool? _isPostgisAvailable;
 
-        public static bool PostgisAvailable
+        public static bool IsPostgisAvailable
         {
             get
             {
-                if (_postgisAvailable.HasValue)
-                    return _postgisAvailable.Value;
+                if (_isPostgisAvailable.HasValue)
+                    return _isPostgisAvailable.Value;
                 using var conn = new NpgsqlConnection(NpgsqlTestStore.CreateConnectionString("postgres"));
                 conn.Open();
                 using var cmd = conn.CreateCommand();
 
                 cmd.CommandText = "SELECT 1 FROM pg_available_extensions WHERE \"name\" = 'postgis' LIMIT 1";
-                _postgisAvailable = cmd.ExecuteNonQuery() > 0;
-                return _postgisAvailable.Value;
+                _isPostgisAvailable = (bool)cmd.ExecuteScalar();
+                return _isPostgisAvailable.Value;
             }
         }
     }
