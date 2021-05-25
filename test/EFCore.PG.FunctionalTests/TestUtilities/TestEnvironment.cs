@@ -39,5 +39,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 return _postgresVersion = conn.PostgreSqlVersion;
             }
         }
+
+        private static bool? _postgresIsBetaVersion;
+
+        public static bool PostgresIsBetaVersion
+        {
+            get
+            {
+                if (_postgresIsBetaVersion.HasValue)
+                    return _postgresIsBetaVersion.Value;
+                using var conn = new NpgsqlConnection(NpgsqlTestStore.CreateConnectionString("postgres"));
+                conn.Open();
+                using var cmd = conn.CreateCommand();
+
+                cmd.CommandText = "SELECT version()";
+                _postgresIsBetaVersion = ((string)cmd.ExecuteScalar()).Contains("beta");
+                return _postgresIsBetaVersion.Value;
+            }
+        }
     }
 }

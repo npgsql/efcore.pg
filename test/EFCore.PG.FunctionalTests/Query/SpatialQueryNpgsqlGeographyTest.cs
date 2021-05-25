@@ -8,12 +8,14 @@ using Microsoft.EntityFrameworkCore.TestModels.SpatialModel;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     // ReSharper disable once UnusedMember.Global
+    [IgnoreBetaPostgres]
     public class SpatialQueryNpgsqlGeographyTest
         : SpatialQueryRelationalTestBase<SpatialQueryNpgsqlGeographyTest.SpatialQueryNpgsqlGeographyFixture>
     {
