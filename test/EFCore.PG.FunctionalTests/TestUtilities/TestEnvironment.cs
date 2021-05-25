@@ -40,21 +40,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             }
         }
 
-        private static bool? _postgresIsBetaVersion;
+        private static bool? _postgisAvailable;
 
-        public static bool PostgresIsBetaVersion
+        public static bool PostgisAvailable
         {
             get
             {
-                if (_postgresIsBetaVersion.HasValue)
-                    return _postgresIsBetaVersion.Value;
+                if (_postgisAvailable.HasValue)
+                    return _postgisAvailable.Value;
                 using var conn = new NpgsqlConnection(NpgsqlTestStore.CreateConnectionString("postgres"));
                 conn.Open();
                 using var cmd = conn.CreateCommand();
 
-                cmd.CommandText = "SELECT version()";
-                _postgresIsBetaVersion = ((string)cmd.ExecuteScalar()).Contains("beta");
-                return _postgresIsBetaVersion.Value;
+                cmd.CommandText = "SELECT 1 FROM pg_available_extensions WHERE \"name\" = 'postgis' LIMIT 1";
+                _postgisAvailable = cmd.ExecuteNonQuery() > 0;
+                return _postgisAvailable.Value;
             }
         }
     }

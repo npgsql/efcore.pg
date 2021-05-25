@@ -5,7 +5,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    [IgnoreBetaPostgres]
+    [RequiresPostgis]
     public class SpatialNpgsqlTest : SpatialTestBase<SpatialNpgsqlFixture>
     {
         public SpatialNpgsqlTest(SpatialNpgsqlFixture fixture)

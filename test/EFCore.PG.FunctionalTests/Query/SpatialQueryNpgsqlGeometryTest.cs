@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    [IgnoreBetaPostgres]
+    [RequiresPostgis]
     public class SpatialQueryNpgsqlGeometryTest
         : SpatialQueryRelationalTestBase<SpatialQueryNpgsqlGeometryTest.SpatialQueryNpgsqlGeometryFixture>
     {

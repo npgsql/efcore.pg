@@ -8,10 +8,10 @@ using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-    public sealed class IgnoreBetaPostgresAttribute : Attribute, ITestCondition
+    public sealed class RequiresPostgisAttribute : Attribute, ITestCondition
     {
-        public ValueTask<bool> IsMetAsync() => new(!TestEnvironment.PostgresIsBetaVersion);
+        public ValueTask<bool> IsMetAsync() => new(TestEnvironment.PostgisAvailable);
 
-        public string SkipReason => $"Requires a PostgreSQL release version.";
+        public string SkipReason => $"Requires postgis.";
     }
 }
