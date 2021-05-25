@@ -53,7 +53,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 using var cmd = conn.CreateCommand();
 
                 cmd.CommandText = "SELECT 1 FROM pg_available_extensions WHERE \"name\" = 'postgis' LIMIT 1";
-                _isPostgisAvailable = (bool)cmd.ExecuteScalar();
+                _isPostgisAvailable = (int?)cmd.ExecuteScalar() == 1;
                 return _isPostgisAvailable.Value;
             }
         }
