@@ -15,8 +15,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         {
         }
 
-        public override IEnumerable<IAnnotation> For(ITable table)
+        public override IEnumerable<IAnnotation> For(ITable table, bool designTime)
         {
+            if (!designTime)
+            {
+                yield break;
+            }
+
             // Model validation ensures that these facets are the same on all mapped entity types
             var entityType = table.EntityTypeMappings.First().EntityType;
 
@@ -31,8 +36,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             }
         }
 
-        public override IEnumerable<IAnnotation> For(IColumn column)
+        public override IEnumerable<IAnnotation> For(IColumn column, bool designTime)
         {
+            if (!designTime)
+            {
+                yield break;
+            }
+
             var table = StoreObjectIdentifier.Table(column.Table.Name, column.Table.Schema);
             var valueGeneratedProperty = column.PropertyMappings.Where(
                     m =>
@@ -92,8 +102,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             }
         }
 
-        public override IEnumerable<IAnnotation> For(ITableIndex index)
+        public override IEnumerable<IAnnotation> For(ITableIndex index, bool designTime)
         {
+            if (!designTime)
+            {
+                yield break;
+            }
+
             // Model validation ensures that these facets are the same on all mapped indexes
             var modelIndex = index.MappedIndexes.First();
 
@@ -130,11 +145,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             }
         }
 
-        public override IEnumerable<IAnnotation> For(IRelationalModel model)
-            => model.Model.GetAnnotations().Where(a =>
-                a.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal) ||
-                a.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal) ||
-                a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal) ||
-                a.Name.StartsWith(NpgsqlAnnotationNames.CollationDefinitionPrefix, StringComparison.Ordinal));
+        public override IEnumerable<IAnnotation> For(IRelationalModel model, bool designTime)
+        {
+            if (!designTime)
+            {
+                return Array.Empty<IAnnotation>();
+            }
+
+            return model.Model.GetAnnotations().Where(
+                a =>
+                    a.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal)
+                    || a.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal)
+                    || a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal)
+                    || a.Name.StartsWith(NpgsqlAnnotationNames.CollationDefinitionPrefix, StringComparison.Ordinal));
+        }
     }
 }
