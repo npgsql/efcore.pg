@@ -25,12 +25,12 @@ jobs:
 # Temporarily disable Windows because of PG installation issues
 #        os: [ ubuntu-20.04, windows-2019 ]
         os: [ ubuntu-20.04 ]
-        pg_major: [ 12, 11, 10 ]
+        pg_major: [ 13, 12, 11, 10 ]
 # PostgreSQL 13 is out, but there's no PostGIS binary for Windows yet (http://download.osgeo.org/postgis/windows/)
         include:
           - os: ubuntu-20.04
-            pg_major: 13
-            # pg_prerelease: prerelease
+            pg_major: 14
+            pg_prerelease: prerelease
 
     outputs:
       is_release: ${{ steps.analyze_tag.outputs.is_release }}
@@ -56,9 +56,15 @@ jobs:
           dpkg-query -W --showformat='${Package}\n' 'postgresql-*' | xargs sudo dpkg -P postgresql
 
           wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main 14" >> /etc/apt/sources.list.d/pgdg.list'
           sudo apt-get update -qq
-          sudo apt-get install -qq postgresql-${{ matrix.pg_major  }} postgresql-${{ matrix.pg_major }}-postgis-${{ env.postgis_version }}
+          sudo apt-get install -qq postgresql-${{ matrix.pg_major  }}
+          
+          # To disable PostGIS for prereleases (because it usually isn't available until late), surround with the following:
+          if [ -z "${{ matrix.pg_prerelease }}" ]; then
+            sudo apt-get install -qq postgresql-${{ matrix.pg_major }}-postgis-${{ env.postgis_version }}
+          fi
+          
           sudo sed -i 's/max_connections = 100/max_connections = 200/g' /etc/postgresql/${{ matrix.pg_major }}/main/postgresql.conf
           sudo systemctl restart postgresql
           sudo -u postgres psql -c "CREATE USER npgsql_tests SUPERUSER PASSWORD 'npgsql_tests'"

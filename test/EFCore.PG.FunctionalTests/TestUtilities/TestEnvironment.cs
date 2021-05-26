@@ -39,5 +39,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 return _postgresVersion = conn.PostgreSqlVersion;
             }
         }
+
+        private static bool? _isPostgisAvailable;
+
+        public static bool IsPostgisAvailable
+        {
+            get
+            {
+                if (_isPostgisAvailable.HasValue)
+                    return _isPostgisAvailable.Value;
+                using var conn = new NpgsqlConnection(NpgsqlTestStore.CreateConnectionString("postgres"));
+                conn.Open();
+                using var cmd = conn.CreateCommand();
+
+                cmd.CommandText = "SELECT EXISTS (SELECT 1 FROM pg_available_extensions WHERE \"name\" = 'postgis' LIMIT 1)";
+                _isPostgisAvailable = (bool)cmd.ExecuteScalar();
+                return _isPostgisAvailable.Value;
+            }
+        }
     }
 }
