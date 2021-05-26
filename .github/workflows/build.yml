@@ -11,7 +11,7 @@ on:
   pull_request:
 
 env:
-  dotnet_sdk_version: '6.0.100-preview.6.21355.2'
+  dotnet_sdk_version: '6.0.100-preview.7.21377.35'
   postgis_version: 3
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
@@ -59,12 +59,12 @@ jobs:
           sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main 14" >> /etc/apt/sources.list.d/pgdg.list'
           sudo apt-get update -qq
           sudo apt-get install -qq postgresql-${{ matrix.pg_major  }}
-          
+
           # To disable PostGIS for prereleases (because it usually isn't available until late), surround with the following:
           if [ -z "${{ matrix.pg_prerelease }}" ]; then
             sudo apt-get install -qq postgresql-${{ matrix.pg_major }}-postgis-${{ env.postgis_version }}
           fi
-          
+
           sudo sed -i 's/max_connections = 100/max_connections = 200/g' /etc/postgresql/${{ matrix.pg_major }}/main/postgresql.conf
           sudo systemctl restart postgresql
           sudo -u postgres psql -c "CREATE USER npgsql_tests SUPERUSER PASSWORD 'npgsql_tests'"
