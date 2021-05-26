@@ -12,7 +12,6 @@
     <Copyright>Copyright 2021 © The Npgsql Development Team</Copyright>
     <Company>Npgsql</Company>
     <VersionPrefix>6.0.0-preview5</VersionPrefix>
-    <TargetFramework>net5.0</TargetFramework>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/npgsql/efcore.pg</PackageProjectUrl>

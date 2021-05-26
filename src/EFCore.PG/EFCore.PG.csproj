@@ -1,12 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Authors>Shay Rojansky;Austin Drenski;Yoh Deadfall;</Authors>
-    <Description>PostgreSQL/Npgsql provider for Entity Framework Core.</Description>
-    <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql</PackageTags>
+    <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(DeveloperBuild)' == 'True'">net6.0</TargetFrameworks>
 
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL</RootNamespace>
+
+    <Authors>Shay Rojansky;Austin Drenski;Yoh Deadfall;</Authors>
+    <Description>PostgreSQL/Npgsql provider for Entity Framework Core.</Description>
+    <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

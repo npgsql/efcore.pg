@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,8 +24,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         [Fact]
         public void GenerateSqlLiteral_returns_date_literal()
-            => Assert.Equal("DATE '2015-03-12'",
+        {
+            Assert.Equal(
+                "DATE '2015-03-12'",
                 GetMapping("date").GenerateSqlLiteral(new DateTime(2015, 3, 12)));
+
+#if NET6_0_OR_GREATER
+            Assert.Equal(
+                "DATE '2015-03-12'",
+                GetMapping("date").GenerateSqlLiteral(new DateOnly(2015, 3, 12)));
+#endif
+        }
 
         [Fact]
         public void GenerateSqlLiteral_returns_timestamp_literal()
@@ -75,12 +84,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         public void GenerateSqlLiteral_returns_time_literal()
         {
             var mapping = GetMapping("time");
+
             Assert.Equal("TIME '04:05:06.123456'",
                 mapping.GenerateSqlLiteral(new TimeSpan(0, 4, 5, 6, 123).Add(TimeSpan.FromTicks(4560))));
             Assert.Equal("TIME '04:05:06.000123'",
                 mapping.GenerateSqlLiteral(new TimeSpan(0, 4, 5, 6).Add(TimeSpan.FromTicks(1230))));
             Assert.Equal("TIME '04:05:06.123'", mapping.GenerateSqlLiteral(new TimeSpan(0, 4, 5, 6, 123)));
             Assert.Equal("TIME '04:05:06'", mapping.GenerateSqlLiteral(new TimeSpan(4, 5, 6)));
+
+#if NET6_0_OR_GREATER
+            Assert.Equal("TIME '04:05:06.123456'",
+                mapping.GenerateSqlLiteral(new TimeOnly(4, 5, 6, 123).Add(TimeSpan.FromTicks(4560))));
+            Assert.Equal("TIME '04:05:06.000123'",
+                mapping.GenerateSqlLiteral(new TimeOnly(4, 5, 6).Add(TimeSpan.FromTicks(1230))));
+            Assert.Equal("TIME '04:05:06.123'", mapping.GenerateSqlLiteral(new TimeOnly(4, 5, 6, 123)));
+            Assert.Equal("TIME '04:05:06'", mapping.GenerateSqlLiteral(new TimeOnly(4, 5, 6)));
+            Assert.Equal("TIME '13:05:06'", mapping.GenerateSqlLiteral(new TimeOnly(13, 5, 6)));
+#endif
         }
 
         [Fact]

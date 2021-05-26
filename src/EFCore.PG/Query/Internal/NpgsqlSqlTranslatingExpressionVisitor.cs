@@ -26,6 +26,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         private static readonly ConstructorInfo DateTimeCtor2 =
             typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) })!;
 
+#if NET6_0_OR_GREATER
+        private static readonly ConstructorInfo DateOnlyCtor =
+            typeof(DateOnly).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
+#endif
+
         private static readonly MethodInfo Like2MethodInfo =
             typeof(DbFunctionsExtensions).GetRuntimeMethod(
                 nameof(DbFunctionsExtensions.Like), new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
@@ -431,6 +436,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 return _sqlExpressionFactory.Function(
                     "make_timestamp", sqlArguments, nullable: true, TrueArrays[6], typeof(DateTime));
             }
+
+#if NET6_0_OR_GREATER
+            if (newExpression.Constructor == DateOnlyCtor)
+            {
+                return TryTranslateArguments(out var sqlArguments)
+                    ? _sqlExpressionFactory.Function(
+                        "make_date", sqlArguments, nullable: true, TrueArrays[3], typeof(DateOnly))
+                    : QueryCompilationContext.NotTranslatedExpression;
+            }
+#endif
 
             return QueryCompilationContext.NotTranslatedExpression;
 

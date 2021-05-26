@@ -29,7 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     JsonPocoTranslator,
                     new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory),
                     new NpgsqlStringMemberTranslator(sqlExpressionFactory),
-                    new NpgsqlTimeSpanMemberTranslator(sqlExpressionFactory)
+                    new NpgsqlTimeSpanMemberTranslator(sqlExpressionFactory),
                 });
         }
     }
