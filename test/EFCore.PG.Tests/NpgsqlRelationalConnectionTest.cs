@@ -1,10 +1,12 @@
 ﻿using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.EntityFrameworkCore.TestUtilities.FakeProvider;
 using Microsoft.Extensions.Logging;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
@@ -61,12 +63,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     new DiagnosticListener("FakeDiagnosticListener"),
                     new NpgsqlLoggingDefinitions(),
                     new NullDbContextLogger()),
-                new DiagnosticsLogger<DbLoggerCategory.Database.Connection>(
+                new RelationalConnectionDiagnosticsLogger(
                     new LoggerFactory(),
                     new LoggingOptions(),
                     new DiagnosticListener("FakeDiagnosticListener"),
                     new NpgsqlLoggingDefinitions(),
-                    new NullDbContextLogger()),
+                    new NullDbContextLogger(),
+                    CreateOptions()),
                 new NamedConnectionStringResolver(options),
                 new RelationalTransactionFactory(
                     new RelationalTransactionFactoryDependencies(
@@ -80,6 +83,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                             TestServiceFactory.Instance.Create<RelationalTypeMappingSourceDependencies>(),
                             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                             new NpgsqlOptions()))));
+        }
+
+        private const string ConnectionString = "Fake Connection String";
+
+        private static IDbContextOptions CreateOptions(
+            RelationalOptionsExtension optionsExtension = null)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder();
+
+            ((IDbContextOptionsBuilderInfrastructure)optionsBuilder)
+                .AddOrUpdateExtension(
+                    optionsExtension
+                    ?? new FakeRelationalOptionsExtension().WithConnectionString(ConnectionString));
+
+            return optionsBuilder.Options;
         }
 
         private class FakeDbContext : DbContext

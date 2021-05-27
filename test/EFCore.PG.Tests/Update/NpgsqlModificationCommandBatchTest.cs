@@ -27,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
                 new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                 new NpgsqlOptions());
 
-            var logger = new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>();
+            var logger = new FakeRelationalCommandDiagnosticsLogger();
 
             var batch = new NpgsqlModificationCommandBatch(
                 new ModificationCommandBatchFactoryDependencies(

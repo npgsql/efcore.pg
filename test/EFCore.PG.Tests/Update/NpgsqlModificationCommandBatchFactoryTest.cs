@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
                 new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                 new NpgsqlOptions());
 
-            var logger = new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>();
+            var logger = new FakeRelationalCommandDiagnosticsLogger();
 
             var factory = new NpgsqlModificationCommandBatchFactory(
                 new ModificationCommandBatchFactoryDependencies(
@@ -65,7 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
                 new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                 new NpgsqlOptions());
 
-            var logger = new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>();
+            var logger = new FakeRelationalCommandDiagnosticsLogger();
 
             var factory = new NpgsqlModificationCommandBatchFactory(
                 new ModificationCommandBatchFactoryDependencies(

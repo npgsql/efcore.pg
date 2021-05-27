@@ -22,7 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
         private readonly IUpdateSqlGenerator _sqlGenerator;
         private readonly INpgsqlRelationalConnection _connection;
         private readonly ISequence _sequence;
-        private readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _commandLogger;
+        private readonly IRelationalCommandDiagnosticsLogger _commandLogger;
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
@@ -33,7 +33,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
             IUpdateSqlGenerator sqlGenerator,
             NpgsqlSequenceValueGeneratorState generatorState,
             INpgsqlRelationalConnection connection,
-            IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger)
+            IRelationalCommandDiagnosticsLogger commandLogger)
             : base(generatorState)
         {
             _sequence = generatorState.Sequence;

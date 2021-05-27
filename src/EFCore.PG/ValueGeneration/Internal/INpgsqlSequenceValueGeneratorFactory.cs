@@ -22,6 +22,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
             NpgsqlSequenceValueGeneratorState generatorState,
             INpgsqlRelationalConnection connection,
             IRawSqlCommandBuilder rawSqlCommandBuilder,
-            IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger);
+            IRelationalCommandDiagnosticsLogger commandLogger);
     }
 }
