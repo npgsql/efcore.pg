@@ -1,11 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Authors>Shay Rojansky</Authors>
-    <Description>NodaTime support plugin for PostgreSQL/Npgsql Entity Framework Core provider.</Description>
-    <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql;nodatime</PackageTags>
+    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework Condition="'$(DeveloperBuild)' == 'True'">net6.0</TargetFramework>
 
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime</RootNamespace>
+
+    <Authors>Shay Rojansky</Authors>
+    <Description>NodaTime support plugin for PostgreSQL/Npgsql Entity Framework Core provider.</Description>
+    <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql;nodatime</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

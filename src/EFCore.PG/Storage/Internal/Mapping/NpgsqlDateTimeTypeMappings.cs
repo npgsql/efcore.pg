@@ -59,7 +59,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
     public class NpgsqlDateTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlDateTypeMapping() : base("date", typeof(DateTime), NpgsqlDbType.Date) {}
+        public NpgsqlDateTypeMapping(Type clrType) : base("date", clrType, NpgsqlDbType.Date) {}
 
         protected NpgsqlDateTypeMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.Date) {}
@@ -68,12 +68,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => new NpgsqlDateTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => FormattableString.Invariant($"DATE '{(DateTime)value:yyyy-MM-dd}'");
+            => value switch
+            {
+                DateTime d => FormattableString.Invariant($"DATE '{d:yyyy-MM-dd}'"),
+#if NET6_0_OR_GREATER
+                DateOnly d => FormattableString.Invariant($"DATE '{d:yyyy-MM-dd}'"),
+#endif
+                _ => throw new InvalidCastException($"Can't generate a date SQL literal for CLR type {value.GetType()}")
+            };
     }
 
     public class NpgsqlTimeTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlTimeTypeMapping() : base("time without time zone", typeof(TimeSpan), NpgsqlDbType.Time) {}
+        public NpgsqlTimeTypeMapping(Type clrType) : base("time without time zone", clrType, NpgsqlDbType.Time) {}
 
         protected NpgsqlTimeTypeMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.Time) {}
@@ -82,12 +89,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => new NpgsqlTimeTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
-        {
-            var ts = (TimeSpan)value;
-            return ts.Ticks % 10000000 == 0
-                ? FormattableString.Invariant($@"TIME '{(TimeSpan)value:hh\:mm\:ss}'")
-                : FormattableString.Invariant($@"TIME '{(TimeSpan)value:hh\:mm\:ss\.FFFFFF}'");
-        }
+            => value switch
+            {
+                TimeSpan ts => ts.Ticks % 10000000 == 0
+                    ? FormattableString.Invariant($@"TIME '{value:hh\:mm\:ss}'")
+                    : FormattableString.Invariant($@"TIME '{value:hh\:mm\:ss\.FFFFFF}'"),
+#if NET6_0_OR_GREATER
+                TimeOnly t => t.Ticks % 10000000 == 0
+                    ? FormattableString.Invariant($@"TIME '{value:HH\:mm\:ss}'")
+                    : FormattableString.Invariant($@"TIME '{value:HH\:mm\:ss\.FFFFFF}'"),
+#endif
+                _ => throw new InvalidCastException($"Can't generate a time SQL literal for CLR type {value.GetType()}")
+            };
     }
 
     public class NpgsqlTimeTzTypeMapping : NpgsqlTypeMapping
