@@ -30,7 +30,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             var type = member.DeclaringType;
-            if (type != typeof(DateTime) && type != typeof(NpgsqlDateTime) && type != typeof(NpgsqlDate))
+            if (type != typeof(DateTime) && type != typeof(NpgsqlDateTime) && type != typeof(NpgsqlDate)
+#if NET6_0_OR_GREATER
+                && type != typeof(DateOnly) && type != typeof(TimeOnly)
+#endif
+            )
                 return null;
 
             return member.Name switch
@@ -87,19 +91,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     returnType);
         }
 
-        /// <summary>
-        /// Constructs the DATE_PART expression.
-        /// </summary>
-        /// <param name="instance">The member expression.</param>
-        /// <param name="partName">The name of the DATE_PART to construct.</param>
-        /// <param name="floor">True if the result should be wrapped with FLOOR(...); otherwise, false.</param>
-        /// <returns>
-        /// The DATE_PART expression.
-        /// </returns>
-        /// <remarks>
-        /// DATE_PART returns doubles, which we floor and cast into ints
-        /// This also gets rid of sub-second components when retrieving seconds.
-        /// </remarks>
         private SqlExpression GetDatePartExpression(
             SqlExpression instance,
             string partName,

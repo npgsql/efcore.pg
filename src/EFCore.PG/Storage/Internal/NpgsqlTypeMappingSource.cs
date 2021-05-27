@@ -64,13 +64,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         private readonly NpgsqlJsonTypeMapping         _jsonElement        = new("json", typeof(JsonElement));
 
         // Date/Time types
-        private readonly NpgsqlDateTypeMapping         _date               = new();
+        private readonly NpgsqlDateTypeMapping         _dateDateTime       = new(typeof(DateTime));
         private readonly NpgsqlTimestampTypeMapping    _timestamp          = new();
         private readonly NpgsqlTimestampTzTypeMapping  _timestamptz        = new(typeof(DateTime));
         private readonly NpgsqlTimestampTzTypeMapping  _timestamptzDto     = new(typeof(DateTimeOffset));
         private readonly NpgsqlIntervalTypeMapping     _interval           = new();
-        private readonly NpgsqlTimeTypeMapping         _time               = new();
+        private readonly NpgsqlTimeTypeMapping         _timeTimeSpan       = new(typeof(TimeSpan));
         private readonly NpgsqlTimeTzTypeMapping       _timetz             = new();
+
+#if NET6_0_OR_GREATER
+        private readonly NpgsqlDateTypeMapping         _dateDateOnly       = new(typeof(DateOnly));
+        private readonly NpgsqlTimeTypeMapping         _timeTimeOnly       = new(typeof(TimeOnly));
+#endif
 
         // Network address types
         private readonly NpgsqlMacaddrTypeMapping      _macaddr            = new();
@@ -181,14 +186,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "char",                        new[] { _char                         } },
                 { "char(1)",                     new RelationalTypeMapping[] { _singleChar, _stringAsSingleChar } },
                 { "character(1)",                new RelationalTypeMapping[] { _singleChar, _stringAsSingleChar } },
-                { "date",                        new[] { _date                         } },
                 { "timestamp without time zone", new[] { _timestamp                    } },
                 { "timestamp",                   new[] { _timestamp                    } },
                 { "timestamp with time zone",    new[] { _timestamptz, _timestamptzDto } },
                 { "timestamptz",                 new[] { _timestamptz, _timestamptzDto } },
                 { "interval",                    new[] { _interval                     } },
-                { "time without time zone",      new[] { _time                         } },
-                { "time",                        new[] { _time                         } },
+
+                { "date", new RelationalTypeMapping[]
+#if NET6_0_OR_GREATER
+                    { _dateDateOnly, _dateDateTime }
+#else
+                    { _dateDateTime }
+#endif
+                },
+
+                { "time without time zone", new RelationalTypeMapping[]
+#if NET6_0_OR_GREATER
+                    { _timeTimeOnly, _timeTimeSpan }
+#else
+                    { _timeTimeSpan }
+#endif
+                },
+
+                { "time", new RelationalTypeMapping[]
+#if NET6_0_OR_GREATER
+                    { _timeTimeOnly, _timeTimeSpan }
+#else
+                    { _timeTimeSpan }
+#endif
+                },
+
                 { "time with time zone",         new[] { _timetz                       } },
                 { "timetz",                      new[] { _timetz                       } },
                 { "macaddr",                     new[] { _macaddr                      } },
@@ -258,6 +285,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof(ImmutableDictionary<string, string>), _immutableHstore      },
                 { typeof(Dictionary<string, string>),          _hstore               },
                 { typeof(NpgsqlTid),                           _tid                  },
+
+#if NET6_0_OR_GREATER
+                { typeof(DateOnly),                            _dateDateOnly         },
+                { typeof(TimeOnly),                            _timeTimeOnly         },
+#endif
 
                 { typeof(NpgsqlPoint),                         _point                },
                 { typeof(NpgsqlBox),                           _box                  },

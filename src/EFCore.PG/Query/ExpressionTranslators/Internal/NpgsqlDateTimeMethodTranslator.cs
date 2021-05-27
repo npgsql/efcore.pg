@@ -10,14 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
-    /// <summary>
-    /// Provides expression translation for <see cref="DateTime"/> addition methods.
-    /// </summary>
     public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
     {
-        /// <summary>
-        /// The mapping of supported method translations.
-        /// </summary>
         private static readonly Dictionary<MethodInfo, string> MethodInfoDatePartMapping = new()
         {
             { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddYears), new[] { typeof(int) })!, "years" },
@@ -27,6 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddMinutes), new[] { typeof(double) })!, "mins" },
             { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddSeconds), new[] { typeof(double) })!, "secs" },
             //{ typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddMilliseconds), new[] { typeof(double) })!, "milliseconds" },
+
             { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddYears), new[] { typeof(int) })!, "years" },
             { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddMonths), new[] { typeof(int) })!, "months" },
             { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddDays), new[] { typeof(double) })!, "days" },
@@ -34,15 +29,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddMinutes), new[] { typeof(double) })!, "mins" },
             { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddSeconds), new[] { typeof(double) })!, "secs" },
             //{ typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddMilliseconds), new[] { typeof(double) })!, "milliseconds" }
+
+#if NET6_0_OR_GREATER
+            { typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddYears), new[] { typeof(int) })!, "years" },
+            { typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddMonths), new[] { typeof(int) })!, "months" },
+            { typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddDays), new[] { typeof(int) })!, "days" },
+
+            { typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.AddHours), new[] { typeof(int) })!, "hours" },
+            { typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.AddMinutes), new[] { typeof(int) })!, "mins" },
+#endif
         };
+
+#if NET6_0_OR_GREATER
+        private static readonly MethodInfo TimeOnlyIsBetweenMethod
+            = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.IsBetween), new[] { typeof(TimeOnly), typeof(TimeOnly) })!;
+        private static readonly MethodInfo TimeOnlyAddTimeSpanMethod
+            = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.Add), new[] { typeof(TimeSpan) })!;
+#endif
 
         private readonly ISqlExpressionFactory _sqlExpressionFactory;
         private readonly RelationalTypeMapping _intervalMapping;
         private readonly RelationalTypeMapping _textMapping;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal.NpgsqlDateTimeMethodTranslator"/> class.
-        /// </summary>
         public NpgsqlDateTimeMethodTranslator(
             IRelationalTypeMappingSource typeMappingSource,
             ISqlExpressionFactory sqlExpressionFactory)
@@ -59,12 +67,43 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
+            if (instance is null)
+                return null;
+
+            if (TranslateDatePart(instance, method, arguments) is { } translated)
+            {
+                return translated;
+            }
+
+#if NET6_0_OR_GREATER
+            if (method.DeclaringType == typeof(TimeOnly))
+            {
+                if (method == TimeOnlyIsBetweenMethod)
+                {
+                    return _sqlExpressionFactory.And(
+                        _sqlExpressionFactory.GreaterThanOrEqual(instance, arguments[0]),
+                        _sqlExpressionFactory.LessThan(instance, arguments[1]));
+                }
+
+                if (method == TimeOnlyAddTimeSpanMethod)
+                {
+                    return _sqlExpressionFactory.Add(instance, arguments[0]);
+                }
+            }
+#endif
+
+            return null;
+        }
+
+        private SqlExpression? TranslateDatePart(
+            SqlExpression instance,
+            MethodInfo method,
+            IReadOnlyList<SqlExpression> arguments)
+        {
             if (!MethodInfoDatePartMapping.TryGetValue(method, out var datePart))
                 return null;
 
-            var interval = arguments[0];
-
-            if (instance is null || interval is null)
+            if (arguments[0] is not { } interval)
                 return null;
 
             // Note: ideally we'd simply generate a PostgreSQL interval expression, but the .NET mapping of that is TimeSpan,

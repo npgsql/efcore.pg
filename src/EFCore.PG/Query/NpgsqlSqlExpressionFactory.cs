@@ -287,16 +287,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
                 // DateTime + TimeSpan => DateTime
                 // DateTimeOffset + TimeSpan => DateTimeOffset
-                if (rightType == typeof(TimeSpan) && (
-                        leftType == typeof(DateTime) ||
-                        leftType == typeof(DateTimeOffset)) ||
-                    rightType.FullName == "NodaTime.Period" && (
-                        leftType.FullName == "NodaTime.LocalDateTime" ||
-                        leftType.FullName == "NodaTime.LocalDate" ||
-                        leftType.FullName == "NodaTime.LocalTime") ||
-                    rightType.FullName == "NodaTime.Duration" && (
-                        leftType.FullName == "NodaTime.Instant" ||
-                        leftType.FullName == "NodaTime.ZonedDateTime"))
+                // TimeOnly + TimeSpan => TimeOnly
+                if (rightType == typeof(TimeSpan)
+                    && (
+                        leftType == typeof(DateTime)
+                        || leftType == typeof(DateTimeOffset)
+#if NET6_0_OR_GREATER
+                        || leftType == typeof(TimeOnly)
+#endif
+                    )
+                    || rightType.FullName == "NodaTime.Period"
+                    && (
+                        leftType.FullName == "NodaTime.LocalDateTime"
+                        || leftType.FullName == "NodaTime.LocalDate"
+                        || leftType.FullName == "NodaTime.LocalTime")
+                    || rightType.FullName == "NodaTime.Duration"
+                    && (
+                        leftType.FullName == "NodaTime.Instant"
+                        || leftType.FullName == "NodaTime.ZonedDateTime"))
                 {
                     var newLeft = ApplyTypeMapping(left, typeMapping);
                     var newRight = ApplyDefaultTypeMapping(right);
@@ -307,15 +315,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 {
                     // DateTime - DateTime => TimeSpan
                     // DateTimeOffset - DateTimeOffset => TimeSpan
+                    // DateOnly - DateOnly => TimeSpan
+                    // TimeOnly - TimeOnly => TimeSpan
                     // Instant - Instant => Duration
                     // LocalDateTime - LocalDateTime => Period
-                    if (leftType == typeof(DateTime) && rightType == typeof(DateTime) ||
-                        leftType == typeof(DateTimeOffset) && rightType == typeof(DateTimeOffset) ||
-                        leftType.FullName == "NodaTime.Instant" && rightType.FullName == "NodaTime.Instant" ||
-                        leftType.FullName == "NodaTime.LocalDateTime" && rightType.FullName == "NodaTime.LocalDateTime" ||
-                        leftType.FullName == "NodaTime.ZonedDateTime" && rightType.FullName == "NodaTime.ZonedDateTime" ||
-                        leftType.FullName == "NodaTime.LocalDate" && rightType.FullName == "NodaTime.LocalDate" ||
-                        leftType.FullName == "NodaTime.LocalTime" && rightType.FullName == "NodaTime.LocalTime")
+                    if (leftType == typeof(DateTime) && rightType == typeof(DateTime)
+                        || leftType == typeof(DateTimeOffset) && rightType == typeof(DateTimeOffset)
+#if NET6_0_OR_GREATER
+                        || leftType == typeof(DateOnly) && rightType == typeof(DateOnly)
+                        || leftType == typeof(TimeOnly) && rightType == typeof(TimeOnly)
+#endif
+                        || leftType.FullName == "NodaTime.Instant" && rightType.FullName == "NodaTime.Instant"
+                        || leftType.FullName == "NodaTime.LocalDateTime" && rightType.FullName == "NodaTime.LocalDateTime"
+                        || leftType.FullName == "NodaTime.ZonedDateTime" && rightType.FullName == "NodaTime.ZonedDateTime"
+                        || leftType.FullName == "NodaTime.LocalDate" && rightType.FullName == "NodaTime.LocalDate"
+                        || leftType.FullName == "NodaTime.LocalTime" && rightType.FullName == "NodaTime.LocalTime")
                     {
                         var inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
 
@@ -324,7 +338,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                             ApplyTypeMapping(left, inferredTypeMapping),
                             ApplyTypeMapping(right, inferredTypeMapping),
                             binary.Type,
-                            typeMapping ?? _typeMappingSource.FindMapping(binary.Type));
+                            typeMapping ?? _typeMappingSource.FindMapping(binary.Type, "interval"));
                     }
                 }
             }
