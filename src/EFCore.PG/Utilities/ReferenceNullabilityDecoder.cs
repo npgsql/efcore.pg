@@ -60,7 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
         {
             if (!memberInfo.GetMemberType().TryGetElementType(out var elementType))
             {
-                throw new ArgumentException("Argument isn't an array or generic List", nameof(memberInfo));
+                throw new ArgumentException($"Member {memberInfo.DeclaringType?.Name}.{memberInfo.Name} isn't an array or generic List", nameof(memberInfo));
             }
 
             if (elementType.IsValueType)
