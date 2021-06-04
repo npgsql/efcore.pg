@@ -652,9 +652,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             // We decode NRT annotations here to return the correct type mapping.
             if (mapping is NpgsqlArrayTypeMapping arrayMapping
                 && !arrayMapping.ElementMapping.ClrType.IsValueType
-                && !property.IsShadowProperty())
+                && !property.IsShadowProperty()
+                && property.GetMemberInfo(forMaterialization: false, forSet: false) is MemberInfo memberInfo
+                && memberInfo.GetMemberType().IsArrayOrGenericList())
             {
-                var memberInfo = property.GetMemberInfo(forMaterialization: false, forSet: false);
                 if (_referenceNullabilityDecoder.IsArrayOrListElementNonNullable(memberInfo))
                 {
                     return arrayMapping.MakeNonNullable();
