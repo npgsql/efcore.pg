@@ -47,15 +47,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 TimeSpan.FromMilliseconds(1000.0));
 
         /// <summary>
-        /// Tables and views which are considered to be system tables and should not get scaffolded, e.g. the support table
-        /// created by the PostGIS extension.
-        /// </summary>
-        private static readonly string[] SystemTablesAndViews =
-        {
-            "spatial_ref_sys", "geography_columns", "geometry_columns", "raster_columns", "raster_overviews"
-        };
-
-        /// <summary>
         /// The types used for serial columns.
         /// </summary>
         private static readonly string[] SerialTypes = { "int2", "int4", "int8" };
@@ -146,14 +137,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 {
                     var table = databaseModel.Tables[i];
 
-                    // Remove some tables which shouldn't get scaffolded, unless they're explicitly mentioned
-                    // in the table list
-                    if (SystemTablesAndViews.Contains(table.Name) && !tableList.Contains(table.Name!))
-                    {
-                        databaseModel.Tables.RemoveAt(i--);
-                        continue;
-                    }
-
                     // We may have dropped or skipped columns. We load these because constraints take them into
                     // account when referencing columns, but must now get rid of them before returning
                     // the database model.
@@ -215,7 +198,19 @@ LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid=0
 WHERE
   cls.relkind IN ('r', 'v', 'm', 'f') AND
   ns.nspname NOT IN ({internalSchemas}) AND
-  cls.relname <> '{HistoryRepository.DefaultTableName}'
+  cls.relname <> '{HistoryRepository.DefaultTableName}' AND
+  -- Exclude tables which are members of PG extensions
+  NOT EXISTS (
+    SELECT 1 FROM pg_depend WHERE
+      classid=(
+        SELECT cls.oid
+        FROM pg_class AS cls
+        JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+        WHERE relname='pg_class' AND ns.nspname='pg_catalog'
+      ) AND
+      objid=cls.oid AND
+      deptype IN ('e', 'x')
+  )
   {filter}";
 
             var tables = new List<DatabaseTable>();
@@ -310,7 +305,19 @@ WHERE
   cls.relkind IN ('r', 'v', 'm', 'f') AND
   nspname NOT IN ({internalSchemas}) AND
   attnum > 0 AND
-  cls.relname <> '{HistoryRepository.DefaultTableName}'
+  cls.relname <> '{HistoryRepository.DefaultTableName}' AND
+  -- Exclude tables which are members of PG extensions
+  NOT EXISTS (
+    SELECT 1 FROM pg_depend WHERE
+      classid=(
+        SELECT cls.oid
+        FROM pg_class AS cls
+        JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+        WHERE relname='pg_class' AND ns.nspname='pg_catalog'
+      ) AND
+      objid=cls.oid AND
+      deptype IN ('e', 'x')
+  )
   {tableFilter}
 ORDER BY attnum";
 
@@ -526,7 +533,19 @@ WHERE
   cls.relkind = 'r' AND
   nspname NOT IN ({internalSchemas}) AND
   NOT indisprimary AND
-  cls.relname <> '{HistoryRepository.DefaultTableName}'
+  cls.relname <> '{HistoryRepository.DefaultTableName}' AND
+  -- Exclude tables which are members of PG extensions
+  NOT EXISTS (
+    SELECT 1 FROM pg_depend WHERE
+      classid=(
+        SELECT cls.oid
+        FROM pg_class AS cls
+        JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+        WHERE relname='pg_class' AND ns.nspname='pg_catalog'
+      ) AND
+      objid=cls.oid AND
+      deptype IN ('e', 'x')
+  )
   {tableFilter}";
 
             using (var command = new NpgsqlCommand(commandText, connection))
@@ -699,7 +718,19 @@ WHERE
   cls.relkind = 'r' AND
   ns.nspname NOT IN ({internalSchemas}) AND
   con.contype IN ('p', 'f', 'u') AND
-  cls.relname <> '{HistoryRepository.DefaultTableName}'
+  cls.relname <> '{HistoryRepository.DefaultTableName}' AND
+  -- Exclude tables which are members of PG extensions
+  NOT EXISTS (
+    SELECT 1 FROM pg_depend WHERE
+      classid=(
+        SELECT cls.oid
+        FROM pg_class AS cls
+        JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+        WHERE relname='pg_class' AND ns.nspname='pg_catalog'
+      ) AND
+      objid=cls.oid AND
+      deptype IN ('e', 'x')
+  )
   {tableFilter}";
 
             using var command = new NpgsqlCommand(commandText, connection);
