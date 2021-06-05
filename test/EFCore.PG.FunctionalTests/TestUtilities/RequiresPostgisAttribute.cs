@@ -12,6 +12,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
     {
         public ValueTask<bool> IsMetAsync() => new(TestEnvironment.IsPostgisAvailable);
 
-        public string SkipReason => $"Requires postgis.";
+        public string SkipReason => $"Requires PostGIS";
     }
 }
