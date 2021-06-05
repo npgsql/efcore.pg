@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Scaffolding;
@@ -16,7 +15,6 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.Logging;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -1938,19 +1936,6 @@ CREATE TABLE column_types (
                 dbModel =>
                 {
                     Assert.Empty(dbModel.Tables);
-                },
-                "DROP EXTENSION postgis");
-
-        [ConditionalFact]
-        [RequiresPostgis]
-        public void System_tables_are_not_ignored_if_explicitly_requested()
-            => Test(
-                "CREATE EXTENSION postgis",
-                new[] { "spatial_ref_sys" },
-                Enumerable.Empty<string>(),
-                dbModel =>
-                {
-                    Assert.Equal("spatial_ref_sys", dbModel.Tables.Single().Name);
                 },
                 "DROP EXTENSION postgis");
 
