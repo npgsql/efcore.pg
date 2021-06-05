@@ -1928,7 +1928,8 @@ CREATE TABLE column_types (
                 "DROP TABLE column_types");
         }
 
-        [ConditionalFact, RequiresPostgis]
+        [ConditionalFact]
+        [RequiresPostgis]
         public void System_tables_are_ignored()
             => Test(
                 "CREATE EXTENSION postgis",
@@ -1940,7 +1941,8 @@ CREATE TABLE column_types (
                 },
                 "DROP EXTENSION postgis");
 
-        [ConditionalFact, RequiresPostgis]
+        [ConditionalFact]
+        [RequiresPostgis]
         public void System_tables_are_not_ignored_if_explicitly_requested()
             => Test(
                 "CREATE EXTENSION postgis",

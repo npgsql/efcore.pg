@@ -12,7 +12,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
+// ReSharper disable HeapView.CanAvoidClosure
 // ReSharper disable MethodHasAsyncOverload
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class NpgsqlDatabaseCreatorExistsTest : NpgsqlDatabaseCreatorTest
@@ -311,6 +313,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     using (CreateTransactionScope(ambientTransaction))
                     {
                         Assert.True(async ? await creator.HasTablesAsyncBase() : creator.HasTablesBase());
+                    }
+                });
+        }
+
+        [ConditionalTheory]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [RequiresPostgis]
+        public async Task Returns_false_when_database_exists_and_has_only_postgis_tables(bool async, bool ambientTransaction)
+        {
+            using var testDatabase = NpgsqlTestStore.GetOrCreateInitialized("Empty");
+            testDatabase.ExecuteNonQuery("CREATE EXTENSION IF NOT EXISTS postgis");
+
+            var creator = GetDatabaseCreator(testDatabase);
+
+            await GetExecutionStrategy(testDatabase).ExecuteAsync(
+                async () =>
+                {
+                    using (CreateTransactionScope(ambientTransaction))
+                    {
+                        Assert.False(async ? await creator.HasTablesAsyncBase() : creator.HasTablesBase());
                     }
                 });
         }

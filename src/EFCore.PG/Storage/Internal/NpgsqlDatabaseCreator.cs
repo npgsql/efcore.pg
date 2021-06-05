@@ -112,10 +112,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         private IRelationalCommand CreateHasTablesCommand()
             => _rawSqlCommandBuilder
                 .Build(@"
-                    SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END
-                    FROM information_schema.tables
-                    WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')
-                ");
+SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END
+FROM pg_class AS cls
+JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+WHERE
+        cls.relkind IN ('r', 'v', 'm', 'f', 'p') AND
+        ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
+        -- Exclude tables which are members of PG extensions
+        NOT EXISTS (
+            SELECT 1 FROM pg_depend WHERE
+                classid=(
+                    SELECT cls.oid
+                    FROM pg_class AS cls
+                             JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+                    WHERE relname='pg_class' AND ns.nspname='pg_catalog'
+                ) AND
+                objid=cls.oid AND
+                deptype IN ('e', 'x')
+        )");
 
         private IReadOnlyList<MigrationCommand> CreateCreateOperations()
         {
