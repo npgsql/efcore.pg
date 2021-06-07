@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
 {
