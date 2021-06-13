@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text.Json;
@@ -23,44 +22,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        [Fact]
-        public void Roundtrip()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Roundtrip(bool jsonb)
         {
             using var ctx = CreateContext();
-            var x = ctx.JsonbEntities.Single(e => e.Id == 1);
-            var customer = x.Customer;
+            var customer = jsonb
+                ? ctx.JsonbEntities.Single(e => e.Id == 1).Customer
+                : ctx.JsonEntities.Single(e => e.Id == 1).Customer;
+            var types = customer.VariousTypes;
 
-            Assert.Equal("Joe", customer.Name);
-            Assert.Equal(25, customer.Age);
-
-            var orders = customer.Orders;
-
-            Assert.Equal(99.5m, orders[0].Price);
-            Assert.Equal("Some address 1", orders[0].ShippingAddress);
-            Assert.Equal(new DateTime(2019, 10, 1), orders[0].ShippingDate);
-            Assert.Equal(23, orders[1].Price);
-            Assert.Equal("Some address 2", orders[1].ShippingAddress);
-            Assert.Equal(new DateTime(2019, 10, 10), orders[1].ShippingDate);
-        }
-
-        [Fact]
-        public void Roundtrip_json()
-        {
-            using var ctx = CreateContext();
-            var x = ctx.JsonEntities.Single(e => e.Id == 1);
-            var customer = x.Customer;
-
-            Assert.Equal("Joe", customer.Name);
-            Assert.Equal(25, customer.Age);
-
-            var orders = customer.Orders;
-
-            Assert.Equal(99.5m, orders[0].Price);
-            Assert.Equal("Some address 1", orders[0].ShippingAddress);
-            Assert.Equal(new DateTime(2019, 10, 1), orders[0].ShippingDate);
-            Assert.Equal(23, orders[1].Price);
-            Assert.Equal("Some address 2", orders[1].ShippingAddress);
-            Assert.Equal(new DateTime(2019, 10, 10), orders[1].ShippingDate);
+            Assert.Equal("foo", types.String);
+            Assert.Equal(8, types.Int16);
+            Assert.Equal(8, types.Int32);
+            Assert.Equal(8, types.Int64);
+            Assert.Equal(10m, types.Decimal);
+            Assert.Equal(new DateTime(2020, 1, 1, 10, 30, 45), types.DateTime);
+            Assert.Equal(new DateTimeOffset(2020, 1, 1, 10, 30, 45, TimeSpan.FromHours(2)), types.DateTimeOffset);
         }
 
         [Fact]
@@ -69,10 +48,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using var ctx = CreateContext();
 
             Assert.Empty(ctx.JsonbEntities.Where(e => e.Customer == new Customer { Name = "Test customer", Age = 80 }));
+
             AssertSql(
                 @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""ID"":""00000000-0000-0000-0000-000000000000"",""is_vip"":false,""Statistics"":null,""Orders"":null}'");
+WHERE j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""ID"":""00000000-0000-0000-0000-000000000000"",""is_vip"":false,""Statistics"":null,""Orders"":null,""VariousTypes"":null}'");
         }
 
         [Fact]
@@ -99,8 +79,10 @@ WHERE j.""Customer"" = @__expected_0
 LIMIT 2");
         }
 
+        #region Output
+
         [Fact]
-        public void Text_output()
+        public void Output_string_with_jsonb()
         {
             using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.Customer.Name == "Joe");
@@ -114,7 +96,7 @@ LIMIT 2");
         }
 
         [Fact]
-        public void Text_output_json()
+        public void Output_string_with_json()
         {
             using var ctx = CreateContext();
             var x = ctx.JsonEntities.Single(e => e.Customer.Name == "Joe");
@@ -128,7 +110,7 @@ LIMIT 2");
         }
 
         [Fact]
-        public void Integer_output()
+        public void Output_int()
         {
             using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.Customer.Age < 30);
@@ -142,7 +124,7 @@ LIMIT 2");
         }
 
         [Fact]
-        public void Guid_output()
+        public void Output_Guid()
         {
             using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.Customer.ID == Guid.Empty);
@@ -156,18 +138,54 @@ LIMIT 2");
         }
 
         [Fact]
-        public void Bool_output()
+        public void Output_bool()
         {
             using var ctx = CreateContext();
-            var x = ctx.JsonbEntities.Single(e => e.Customer.IsVip);
+            var x = ctx.JsonbEntities.Single(e => e.Customer.VariousTypes.Bool);
 
             Assert.Equal("Moe", x.Customer.Name);
             AssertSql(
                 @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE CAST(j.""Customer""->>'is_vip' AS boolean)
+WHERE CAST(j.""Customer""#>>'{VariousTypes,Bool}' AS boolean)
 LIMIT 2");
         }
+
+        [Fact]
+        public void Output_DateTime()
+        {
+            using var ctx = CreateContext();
+            var p = new DateTime(1990, 3, 3, 17, 10, 15);
+            var x = ctx.JsonbEntities.Single(e => e.Customer.VariousTypes.DateTime == p);
+
+            Assert.Equal("Moe", x.Customer.Name);
+            AssertSql(
+                @"@__p_0='1990-03-03T17:10:15.0000000' (DbType = DateTime)
+
+SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+FROM ""JsonbEntities"" AS j
+WHERE CAST(j.""Customer""#>>'{VariousTypes,DateTime}' AS timestamp without time zone) = @__p_0
+LIMIT 2");
+        }
+
+        [Fact]
+        public void Output_DateTimeOffset()
+        {
+            using var ctx = CreateContext();
+            var p = new DateTimeOffset(1990, 3, 3, 17, 10, 15, TimeSpan.FromHours(10));
+            var x = ctx.JsonbEntities.Single(e => e.Customer.VariousTypes.DateTimeOffset == p);
+
+            Assert.Equal("Moe", x.Customer.Name);
+            AssertSql(
+                @"@__p_0='1990-03-03T17:10:15.0000000+10:00'
+
+SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+FROM ""JsonbEntities"" AS j
+WHERE CAST(j.""Customer""#>>'{VariousTypes,DateTimeOffset}' AS timestamp with time zone) = @__p_0
+LIMIT 2");
+        }
+
+        #endregion Output
 
         [Fact]
         public void Nullable()
@@ -579,14 +597,23 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                         {
                             Price = 99.5m,
                             ShippingAddress = "Some address 1",
-                            ShippingDate = new DateTime(2019, 10, 1)
                         },
                         new Order
                         {
                             Price = 23,
                             ShippingAddress = "Some address 2",
-                            ShippingDate = new DateTime(2019, 10, 10)
                         }
+                    },
+                    VariousTypes = new()
+                    {
+                        String = "foo",
+                        Int16 = 8,
+                        Int32 = 8,
+                        Int64 = 8,
+                        Bool = false,
+                        Decimal = 10m,
+                        DateTime = new DateTime(2020, 1, 1, 10, 30, 45),
+                        DateTimeOffset = new DateTimeOffset(2020, 1, 1, 10, 30, 45, TimeSpan.FromHours(2))
                     }
                 };
 
@@ -596,7 +623,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                     Age = 35,
                     ID = Guid.Parse("3272b593-bfe2-4ecf-81ae-4242b0632465"),
                     IsVip = true,
-                    Statistics = new Statistics
+                    Statistics = new()
                     {
                         Visits = 20,
                         Purchases = 25,
@@ -614,8 +641,18 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                         {
                             Price = 5,
                             ShippingAddress = "Moe's address",
-                            ShippingDate = new DateTime(2019, 11, 3)
                         }
+                    },
+                    VariousTypes = new()
+                    {
+                        String = "bar",
+                        Int16 = 9,
+                        Int32 = 9,
+                        Int64 = 9,
+                        Bool = true,
+                        Decimal = 20.3m,
+                        DateTime = new DateTime(1990, 3, 3, 17, 10, 15),
+                        DateTimeOffset = new DateTimeOffset(1990, 3, 3, 17, 10, 15, TimeSpan.FromHours(10))
                     }
                 };
             }
@@ -660,6 +697,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
             public bool IsVip { get; set; }
             public Statistics Statistics { get; set; }
             public Order[] Orders { get; set; }
+            public VariousTypes VariousTypes { get; set; }
         }
 
         public class Statistics
@@ -681,7 +719,18 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
         {
             public decimal Price { get; set; }
             public string ShippingAddress { get; set; }
-            public DateTime ShippingDate { get; set; }
+        }
+
+        public class VariousTypes
+        {
+            public string String { get; set; }
+            public int Int16 { get; set; }
+            public int Int32 { get; set; }
+            public int Int64 { get; set; }
+            public bool Bool { get; set; }
+            public decimal Decimal { get; set; }
+            public DateTime DateTime { get; set; }
+            public DateTimeOffset DateTimeOffset { get; set; }
         }
 
         #endregion

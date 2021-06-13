@@ -18,39 +18,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        [Fact]
-        public void Roundtrip()
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public void Roundtrip(bool jsonb, bool viaDocument)
         {
             using var ctx = CreateContext();
 
-            var jsonb = ctx.JsonbEntities.Single(e => e.Id == 1);
-            PerformAsserts(jsonb.CustomerDocument.RootElement);
-            PerformAsserts(jsonb.CustomerElement);
+            var customer = jsonb
+                ? (viaDocument
+                    ? ctx.JsonbEntities.Single(e => e.Id == 1).CustomerDocument.RootElement
+                    : ctx.JsonbEntities.Single(e => e.Id == 1).CustomerElement)
+                : (viaDocument
+                    ? ctx.JsonEntities.Single(e => e.Id == 1).CustomerDocument.RootElement
+                    : ctx.JsonEntities.Single(e => e.Id == 1).CustomerElement);
 
-            var json = ctx.JsonEntities.Single(e => e.Id == 1);
-            PerformAsserts(json.CustomerDocument.RootElement);
-            PerformAsserts(json.CustomerElement);
+            var types = customer.GetProperty("VariousTypes");
 
-            static void PerformAsserts(JsonElement customer)
-            {
-                Assert.Equal("Joe", customer.GetProperty("Name").GetString());
-                Assert.Equal(25, customer.GetProperty("Age").GetInt32());
-
-                var order1 = customer.GetProperty("Orders")[0];
-
-                Assert.Equal(99.5m, order1.GetProperty("Price").GetDecimal());
-                Assert.Equal("Some address 1", order1.GetProperty("ShippingAddress").GetString());
-                Assert.Equal(new DateTime(2019, 10, 1), order1.GetProperty("ShippingDate").GetDateTime());
-
-                var order2 = customer.GetProperty("Orders")[1];
-
-                Assert.Equal(23, order2.GetProperty("Price").GetDecimal());
-                Assert.Equal("Some address 2", order2.GetProperty("ShippingAddress").GetString());
-                Assert.Equal(new DateTime(2019, 10, 10), order2.GetProperty("ShippingDate").GetDateTime());
-            }
+            Assert.Equal("foo", types.GetProperty("String").GetString());
+            Assert.Equal(8, types.GetProperty("Int16").GetInt16());
+            Assert.Equal(8, types.GetProperty("Int32").GetInt32());
+            Assert.Equal(8, types.GetProperty("Int64").GetInt64());
+            Assert.Equal(10m, types.GetProperty("Decimal").GetDecimal());
+            Assert.Equal(new DateTime(2020, 1, 1, 10, 30, 45), types.GetProperty("DateTime").GetDateTime());
+            Assert.Equal(
+                new DateTimeOffset(2020, 1, 1, 10, 30, 45, TimeSpan.FromHours(2)),
+                types.GetProperty("DateTimeOffset").GetDateTimeOffset());
         }
 
         [Fact]
@@ -111,10 +109,8 @@ LIMIT 1",
 ""Name"": ""Joe""
 ""IsVip"": false
 ""Orders"": [{""Price"": 99.5
-""ShippingDate"": ""2019-10-01""
 ""ShippingAddress"": ""Some address 1""}
 {""Price"": 23
-""ShippingDate"": ""2019-10-10""
 ""ShippingAddress"": ""Some address 2""}]
 ""Statistics"": {""Nested"": {""IntArray"": [3
 4]
@@ -122,7 +118,15 @@ LIMIT 1",
 ""SomeNullableInt"": 20
 ""SomeNullableGuid"": ""d5f2685d-e5c4-47e5-97aa-d0266154eb2d""}
 ""Visits"": 4
-""Purchases"": 3}}' (DbType = Object)
+""Purchases"": 3}
+""VariousTypes"": {""Bool"": ""false""
+""Int16"": 8
+""Int32"": 8
+""Int64"": 8
+""String"": ""foo""
+""Decimal"": 10
+""DateTime"": ""2020-01-01T10:30:45""
+""DateTimeOffset"": ""2020-01-01T10:30:45+02:00""}}' (DbType = Object)
 
 SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
@@ -548,15 +552,24 @@ WHERE json_typeof(j.""CustomerElement""#>'{Statistics,Visits}') = 'number'");
                     [
                         {
                             ""Price"": 99.5,
-                            ""ShippingAddress"": ""Some address 1"",
-                            ""ShippingDate"": ""2019-10-01""
+                            ""ShippingAddress"": ""Some address 1""
                         },
                         {
                             ""Price"": 23,
-                            ""ShippingAddress"": ""Some address 2"",
-                            ""ShippingDate"": ""2019-10-10""
+                            ""ShippingAddress"": ""Some address 2""
                         }
-                    ]
+                    ],
+                    ""VariousTypes"":
+                    {
+                        ""String"": ""foo"",
+                        ""Int16"": 8,
+                        ""Int32"": 8,
+                        ""Int64"": 8,
+                        ""Bool"": ""false"",
+                        ""Decimal"": 10,
+                        ""DateTime"": ""2020-01-01T10:30:45"",
+                        ""DateTimeOffset"": ""2020-01-01T10:30:45+02:00""
+                    }
                 }");
 
                 static JsonDocument CreateCustomer2() => JsonDocument.Parse(@"
@@ -581,10 +594,20 @@ WHERE json_typeof(j.""CustomerElement""#>'{Statistics,Visits}') = 'number'");
                     [
                         {
                             ""Price"": 5,
-                            ""ShippingAddress"": ""Moe's address"",
-                            ""ShippingDate"": ""2019-11-03""
+                            ""ShippingAddress"": ""Moe's address""
                         }
-                    ]
+                    ],
+                    ""VariousTypes"":
+                    {
+                        ""String"": ""bar"",
+                        ""Int16"": 9,
+                        ""Int32"": 9,
+                        ""Int64"": 9,
+                        ""Bool"": ""true"",
+                        ""Decimal"": 20.3,
+                        ""DateTime"": ""1990-03-03T17:10:15"",
+                        ""DateTimeOffset"": ""1990-03-03 17:10:15+10:00""
+                    }
                 }");
 
                 static JsonDocument CreateCustomer3() => JsonDocument.Parse(@"""foo""");
