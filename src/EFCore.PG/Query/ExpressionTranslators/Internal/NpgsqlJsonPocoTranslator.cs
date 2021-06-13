@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -126,11 +127,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case TypeCode.UInt32:
             case TypeCode.UInt64:
                 return _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType));
-            default:
-                return unwrappedReturnType == typeof(Guid)
-                    ? _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType))
-                    : expression;
             }
+
+            if (unwrappedReturnType == typeof(Guid) || unwrappedReturnType == typeof(DateTimeOffset))
+                return _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType));
+
+            return expression;
         }
     }
 }
