@@ -1,5 +1,6 @@
 using System;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Query;
 using NpgsqlTypes;
 
 // ReSharper disable once CheckNamespace
@@ -33,7 +34,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-DOCUMENTS
         /// </remarks>
-        public static NpgsqlTsVector ToTsVector(this DbFunctions _, string config, string document)
+        public static NpgsqlTsVector ToTsVector(this DbFunctions _, [NotParameterized] string config, string document)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ToTsVector)));
 
         /// <summary>
@@ -52,7 +53,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery PlainToTsQuery(this DbFunctions _, string config, string query)
+        public static NpgsqlTsQuery PlainToTsQuery(this DbFunctions _, [NotParameterized] string config, string query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(PlainToTsQuery)));
 
         /// <summary>
@@ -71,7 +72,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery PhraseToTsQuery(this DbFunctions _, string config, string query)
+        public static NpgsqlTsQuery PhraseToTsQuery(this DbFunctions _, [NotParameterized] string config, string query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(PhraseToTsQuery)));
 
         /// <summary>
@@ -94,7 +95,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery ToTsQuery(this DbFunctions _, string config, string query)
+        public static NpgsqlTsQuery ToTsQuery(this DbFunctions _, [NotParameterized] string config, string query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ToTsQuery)));
 
         /// <summary>
@@ -113,7 +114,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery WebSearchToTsQuery(this DbFunctions _, string config, string query)
+        public static NpgsqlTsQuery WebSearchToTsQuery(this DbFunctions _, [NotParameterized] string config, string query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(WebSearchToTsQuery)));
 
         /// <summary>

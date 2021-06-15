@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
@@ -19,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         [Fact]
@@ -80,7 +79,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void ToTsVector_With_Config()
+        public void ToTsVector_with_constant_config()
         {
             using var context = CreateContext();
             var tsvector = context.Customers.Select(c => EF.Functions.ToTsVector("english", c.CompanyName)).First();
@@ -93,7 +92,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void ToTsVector_With_Config_From_Variable()
+        public void ToTsVector_with_parameter_config()
         {
             using var context = CreateContext();
             var config = "english";
@@ -101,9 +100,7 @@ LIMIT 1");
 
             Assert.NotNull(tsvector);
             AssertSql(
-                @"@__config_1='english'
-
-SELECT to_tsvector(@__config_1::regconfig, c.""CompanyName"")
+                @"SELECT to_tsvector('english', c.""CompanyName"")
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -135,7 +132,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void PlainToTsQuery_With_Config()
+        public void PlainToTsQuery_with_constant_config()
         {
             using var context = CreateContext();
             var tsquery = context.Customers.Select(c => EF.Functions.PlainToTsQuery("english", "a")).First();
@@ -148,7 +145,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void PlainToTsQuery_With_Config_From_Variable()
+        public void PlainToTsQuery_with_parameter_config()
         {
             using var context = CreateContext();
             var config = "english";
@@ -156,9 +153,7 @@ LIMIT 1");
 
             Assert.NotNull(tsquery);
             AssertSql(
-                @"@__config_1='english'
-
-SELECT plainto_tsquery(@__config_1::regconfig, 'a')
+                @"SELECT plainto_tsquery('english', 'a')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -177,7 +172,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void PhraseToTsQuery_With_Config()
+        public void PhraseToTsQuery_with_constant_config()
         {
             using var context = CreateContext();
             var tsquery = context.Customers.Select(c => EF.Functions.PhraseToTsQuery("english", "a b")).First();
@@ -190,7 +185,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void PhraseToTsQuery_With_Config_From_Variable()
+        public void PhraseToTsQuery_with_parameter_config()
         {
             using var context = CreateContext();
             var config = "english";
@@ -198,9 +193,7 @@ LIMIT 1");
 
             Assert.NotNull(tsquery);
             AssertSql(
-                @"@__config_1='english'
-
-SELECT phraseto_tsquery(@__config_1::regconfig, 'a b')
+                @"SELECT phraseto_tsquery('english', 'a b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -219,7 +212,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void ToTsQuery_With_Config()
+        public void ToTsQuery_with_constant_config()
         {
             using var context = CreateContext();
             var tsquery = context.Customers.Select(c => EF.Functions.ToTsQuery("english", "a & b")).First();
@@ -232,7 +225,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void ToTsQuery_With_Config_From_Variable()
+        public void ToTsQuery_with_parameter_config()
         {
             using var context = CreateContext();
             var config = "english";
@@ -240,9 +233,7 @@ LIMIT 1");
 
             Assert.NotNull(tsquery);
             AssertSql(
-                @"@__config_1='english'
-
-SELECT to_tsquery(@__config_1::regconfig, 'a & b')
+                @"SELECT to_tsquery('english', 'a & b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -263,7 +254,7 @@ LIMIT 1");
 
         [ConditionalFact]
         [MinimumPostgresVersion(11, 0)]
-        public void WebSearchToTsQuery_With_Config()
+        public void WebSearchToTsQuery_with_constant_config()
         {
             using var context = CreateContext();
             var tsquery = context.Customers.Select(c => EF.Functions.WebSearchToTsQuery("english", "a OR b")).First();
@@ -277,7 +268,7 @@ LIMIT 1");
 
         [ConditionalFact]
         [MinimumPostgresVersion(11, 0)]
-        public void WebSearchToTsQuery_With_Config_From_Variable()
+        public void WebSearchToTsQuery_with_parameter_config()
         {
             using var context = CreateContext();
             var config = "english";
@@ -285,15 +276,13 @@ LIMIT 1");
 
             Assert.NotNull(tsquery);
             AssertSql(
-                @"@__config_1='english'
-
-SELECT websearch_to_tsquery(@__config_1::regconfig, 'a OR b')
+                @"SELECT websearch_to_tsquery('english', 'a OR b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
 
         [Fact]
-        public void TsQueryAnd()
+        public void TsQuery_and()
         {
             using var context = CreateContext();
             var tsquery = context.Customers
@@ -308,7 +297,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void TsQueryOr()
+        public void TsQuery_or()
         {
             using var context = CreateContext();
             var tsquery = context.Customers
@@ -323,7 +312,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void TsQueryToNegative()
+        public void TsQuery_ToNegative()
         {
             using var context = CreateContext();
             var tsquery = context.Customers
@@ -338,7 +327,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void TsQueryContains()
+        public void TsQuery_Contains()
         {
             using var context = CreateContext();
             var result = context.Customers
@@ -353,7 +342,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void TsQueryIsContainedIn()
+        public void TsQuery_IsContainedIn()
         {
             using var context = CreateContext();
             var result = context.Customers
@@ -413,7 +402,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void GetResultHeadline_With_Options()
+        public void GetResultHeadline_with_options()
         {
             using var context = CreateContext();
             var headline = context.Customers
@@ -428,7 +417,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void GetResultHeadline_With_Config_And_Options()
+        public void GetResultHeadline_with_constant_config_and_options()
         {
             using var context = CreateContext();
             var headline = context.Customers
@@ -447,7 +436,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void GetResultHeadline_With_Config_From_Variable_And_Options()
+        public void GetResultHeadline_with_parameter_config_and_options()
         {
             using var context = CreateContext();
             var config = "english";
@@ -502,7 +491,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void ToPhrase_With_Distance()
+        public void ToPhrase_with_distance()
         {
             using var context = CreateContext();
             var tsquery = context.Customers
@@ -517,7 +506,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void Matches_With_String()
+        public void Matches_with_string()
         {
             using var context = CreateContext();
             var query = "b";
@@ -535,7 +524,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void Matches_With_Tsquery()
+        public void Matches_with_TsQuery()
         {
             using var context = CreateContext();
             var result = context.Customers
@@ -550,7 +539,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void TsVectorConcat()
+        public void TsVector_Concat()
         {
             using var context = CreateContext();
             var tsVector = context.Customers
@@ -565,7 +554,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void Setweight_With_Enum()
+        public void SetWeight_with_enum()
         {
             using var context = CreateContext();
             var weightedTsVector = context.Customers
@@ -580,7 +569,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void Setweight_With_Enum_And_Lexemes()
+        public void SetWeight_with_enum_and_lexemes()
         {
             using var context = CreateContext();
             var weightedTsVector = context.Customers
@@ -595,7 +584,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void Setweight_With_Char()
+        public void SetWeight_with_char()
         {
             using var context = CreateContext();
             var weightedTsVector = context.Customers
@@ -610,7 +599,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void Setweight_With_Char_And_Lexemes()
+        public void SetWeight_with_char_and_lexemes()
         {
             using var context = CreateContext();
             var weightedTsVector = context.Customers
@@ -625,7 +614,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void Delete_With_Single_Lexeme()
+        public void Delete_with_single_lexeme()
         {
             using var context = CreateContext();
             var tsVector = context.Customers
@@ -640,7 +629,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void Delete_With_Multiple_Lexemes()
+        public void Delete_with_multiple_lexemes()
         {
             using var context = CreateContext();
             var tsVector = context.Customers
@@ -715,7 +704,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void Rank_With_Normalization()
+        public void Rank_with_normalization()
         {
             using var context = CreateContext();
             var rank = context.Customers
@@ -733,7 +722,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void Rank_With_Weights()
+        public void Rank_with_weights()
         {
             using var context = CreateContext();
             var rank = context.Customers
@@ -751,7 +740,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void Rank_With_Weights_And_Normalization()
+        public void Rank_with_weights_and_normalization()
         {
             using var context = CreateContext();
             var rank = context.Customers
@@ -785,7 +774,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void RankCoverDensity_With_Normalization()
+        public void RankCoverDensity_with_normalization()
         {
             using var context = CreateContext();
             var rank = context.Customers
@@ -803,7 +792,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void RankCoverDensity_With_Weights()
+        public void RankCoverDensity_with_weights()
         {
             using var context = CreateContext();
             var rank = context.Customers
@@ -821,7 +810,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void RankCoverDensity_With_Weights_And_Normalization()
+        public void RankCoverDensity_with_weights_and_normalization()
         {
             using var context = CreateContext();
             var rank = context.Customers
