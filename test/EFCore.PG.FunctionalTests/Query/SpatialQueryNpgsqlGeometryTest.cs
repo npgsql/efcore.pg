@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.SpatialModel;
+using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
@@ -209,6 +210,21 @@ FROM ""PolygonEntity"" AS p");
     WHEN (p.""Point"" IS NULL) THEN NULL
     ELSE lower(GeometryType(p.""Point""))
 END AS ""GeometryType""
+FROM ""PointEntity"" AS p");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task Force2D(bool async)
+        {
+            await AssertQuery(
+                async,
+                ss => ss.Set<PointEntity>().Select(e => new { e.Id, Force2D = EF.Functions.Force2D(e.PointZ) }),
+                ss => ss.Set<PointEntity>().Select(e => new { e.Id, Force2D = e.PointZ == null ? null : new Point(e.PointZ.X, e.PointZ.Y) }),
+                x => x.Id);
+
+            AssertSql(
+                @"SELECT p.""Id"", ST_Force2D(p.""PointZ"") AS ""Force2D""
 FROM ""PointEntity"" AS p");
         }
 
