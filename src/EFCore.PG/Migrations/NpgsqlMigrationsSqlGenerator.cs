@@ -1443,8 +1443,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 var sequenceData = IdentitySequenceOptionsData.Deserialize(identitySequenceOptions);
 
-                builder.Append(" (");
-                var spaceNeeded = false;
+                var optionsWritten = false;
 
                 var incrementBy = sequenceData.IncrementBy;
 
@@ -1456,33 +1455,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 var defaultStartValue = incrementBy > 0 ? minValue : maxValue;
                 if (sequenceData.StartValue.HasValue && sequenceData.StartValue != defaultStartValue)
-                    AppendWithSpace("START WITH " + sequenceData.StartValue);
+                    Append("START WITH " + sequenceData.StartValue);
 
                 if (incrementBy != 1)
-                    AppendWithSpace("INCREMENT BY " + incrementBy);
+                    Append("INCREMENT BY " + incrementBy);
 
                 if (minValue != defaultMinValue)
-                    AppendWithSpace("MINVALUE " + minValue);
+                    Append("MINVALUE " + minValue);
                 if (maxValue != defaultMaxValue)
-                    AppendWithSpace("MAXVALUE " + maxValue);
+                    Append("MAXVALUE " + maxValue);
 
                 if (sequenceData.IsCyclic)
-                    AppendWithSpace("CYCLE");
+                    Append("CYCLE");
 
                 if (sequenceData.NumbersToCache != 1)
-                    AppendWithSpace("CACHE " + sequenceData.NumbersToCache);
+                    Append("CACHE " + sequenceData.NumbersToCache);
 
-                builder.Append(")");
+                if (optionsWritten)
+                    builder.Append(")");
 
-                void AppendWithSpace(string s)
+                void Append(string s)
                 {
-                    if (spaceNeeded)
-                    {
-                        builder.Append(" ");
-                    }
-
-                    builder.Append(s);
-                    spaceNeeded = true;
+                    builder
+                        .Append(optionsWritten ? " " : " (")
+                        .Append(s);
+                    optionsWritten = true;
                 }
 
                 // Note: in older versions of PostgreSQL there's a slight variation, see NpgsqlDatabaseModelFactory.
