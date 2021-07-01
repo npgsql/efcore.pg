@@ -191,6 +191,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
         static void PopulateGlobalDatabaseInfo(NpgsqlConnection connection, DatabaseModel databaseModel)
         {
+            if (connection.Settings.ServerCompatibilityMode == ServerCompatibilityMode.Redshift)
+                return;
+
             var commandText = @"SELECT datcollate FROM pg_database WHERE datname=current_database()";
             using var command = new NpgsqlCommand(commandText, connection);
             using var reader = command.ExecuteReader();
@@ -486,10 +489,14 @@ ORDER BY attnum";
             }
 
             var collations = new Dictionary<uint, string>();
-            using (var command = new NpgsqlCommand("SELECT oid, collname FROM pg_collation", connection))
-            using (var reader = command.ExecuteReader())
-                foreach (var collation in reader.Cast<DbDataRecord>())
-                    collations[collation.GetFieldValue<uint>("oid")] = collation.GetFieldValue<string>("collname");
+
+            if (connection.Settings.ServerCompatibilityMode != ServerCompatibilityMode.Redshift)
+            {
+                using (var command = new NpgsqlCommand("SELECT oid, collname FROM pg_collation", connection))
+                using (var reader = command.ExecuteReader())
+                    foreach (var collation in reader.Cast<DbDataRecord>())
+                        collations[collation.GetFieldValue<uint>("oid")] = collation.GetFieldValue<string>("collname");
+            }
 
             var commandText = $@"
 SELECT
@@ -958,6 +965,9 @@ GROUP BY nspname, typname";
             string internalSchemas,
             IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
+            if (connection.Settings.ServerCompatibilityMode == ServerCompatibilityMode.Redshift)
+                return;
+
             var commandText = @$"
 SELECT
     nspname, collname, collprovider, collcollate, collctype,
