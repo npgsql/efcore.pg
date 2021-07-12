@@ -30,22 +30,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddSeconds), new[] { typeof(double) })!, "secs" },
             //{ typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddMilliseconds), new[] { typeof(double) })!, "milliseconds" }
 
-#if NET6_0_OR_GREATER
             { typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddYears), new[] { typeof(int) })!, "years" },
             { typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddMonths), new[] { typeof(int) })!, "months" },
             { typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddDays), new[] { typeof(int) })!, "days" },
 
             { typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.AddHours), new[] { typeof(int) })!, "hours" },
             { typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.AddMinutes), new[] { typeof(int) })!, "mins" },
-#endif
         };
 
-#if NET6_0_OR_GREATER
         private static readonly MethodInfo TimeOnlyIsBetweenMethod
             = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.IsBetween), new[] { typeof(TimeOnly), typeof(TimeOnly) })!;
         private static readonly MethodInfo TimeOnlyAddTimeSpanMethod
             = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.Add), new[] { typeof(TimeSpan) })!;
-#endif
 
         private readonly ISqlExpressionFactory _sqlExpressionFactory;
         private readonly RelationalTypeMapping _intervalMapping;
@@ -75,7 +71,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return translated;
             }
 
-#if NET6_0_OR_GREATER
             if (method.DeclaringType == typeof(TimeOnly))
             {
                 if (method == TimeOnlyIsBetweenMethod)
@@ -90,7 +85,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     return _sqlExpressionFactory.Add(instance, arguments[0]);
                 }
             }
-#endif
 
             return null;
         }

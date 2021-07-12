@@ -98,10 +98,8 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                         DateTimeOffsetAsTimetz = new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2)),
                         TimeSpanAsInterval = new TimeSpan(11, 15, 12),
 
-#if NET6_0_OR_GREATER
                         DateOnlyAsDate = new DateOnly(2015, 1, 2),
                         TimeOnlyAsTime = new TimeOnly(11, 15, 12),
-#endif
 
                         StringAsText = "Gumball Rules!",
                         StringAsVarchar = "Gumball Rules OK",
@@ -205,13 +203,11 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                 TimeSpan? param19 = new TimeSpan(11, 15, 12);
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.TimeSpanAsInterval == param19));
 
-#if NET6_0_OR_GREATER
                 DateOnly? param20 = new DateOnly(2015, 1, 2);
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.DateOnlyAsDate == param20));
 
                 TimeOnly? param21 = new TimeOnly(11, 15, 12);
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.TimeOnlyAsTime == param21));
-#endif
 
                 // ReSharper disable once ConvertToConstant.Local
                 var param22 = "Gumball Rules!";
@@ -380,13 +376,11 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                 TimeSpan? param19 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.TimeSpanAsInterval == param19));
 
-#if NET6_0_OR_GREATER
                 DateOnly? param20 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.DateOnlyAsDate == param20));
 
                 TimeOnly? param21 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.TimeOnlyAsTime == param21));
-#endif
 
                 string param22 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.StringAsText == param22));
@@ -695,10 +689,8 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
             Assert.Null(entity.DateTimeOffsetAsTimetz);
             Assert.Null(entity.TimeSpanAsInterval);
 
-            #if NET6_0_OR_GREATER
             Assert.Null(entity.DateOnlyAsDate);
             Assert.Null(entity.TimeOnlyAsTime);
-            #endif
 
             Assert.Null(entity.StringAsText);
             Assert.Null(entity.StringAsVarchar);
@@ -1307,13 +1299,11 @@ FROM ""MappedDataTypes"" AS m");
             [Column(TypeName = "time")]
             public TimeSpan? TimeSpanAsTime { get; set; }
 
-#if NET6_0_OR_GREATER
             [Column(TypeName = "date")]
             public DateOnly? DateOnlyAsDate { get; set; }
 
             [Column(TypeName = "time")]
             public TimeOnly? TimeOnlyAsTime { get; set; }
-#endif
 
             [Column(TypeName = "timetz")]
             public DateTimeOffset? DateTimeOffsetAsTimetz { get; set; }

@@ -1,8 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <TargetFramework Condition="'$(DeveloperBuild)' == 'True'">net6.0</TargetFramework>
-
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite</RootNamespace>
 

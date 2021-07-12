@@ -71,9 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => value switch
             {
                 DateTime d => FormattableString.Invariant($"DATE '{d:yyyy-MM-dd}'"),
-#if NET6_0_OR_GREATER
                 DateOnly d => FormattableString.Invariant($"DATE '{d:yyyy-MM-dd}'"),
-#endif
                 _ => throw new InvalidCastException($"Can't generate a date SQL literal for CLR type {value.GetType()}")
             };
     }
@@ -94,11 +92,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 TimeSpan ts => ts.Ticks % 10000000 == 0
                     ? FormattableString.Invariant($@"TIME '{value:hh\:mm\:ss}'")
                     : FormattableString.Invariant($@"TIME '{value:hh\:mm\:ss\.FFFFFF}'"),
-#if NET6_0_OR_GREATER
                 TimeOnly t => t.Ticks % 10000000 == 0
                     ? FormattableString.Invariant($@"TIME '{value:HH\:mm\:ss}'")
                     : FormattableString.Invariant($@"TIME '{value:HH\:mm\:ss\.FFFFFF}'"),
-#endif
                 _ => throw new InvalidCastException($"Can't generate a time SQL literal for CLR type {value.GetType()}")
             };
     }

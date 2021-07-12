@@ -34,6 +34,12 @@ WHERE (c.""Region"" IS NULL) OR (btrim(c.""Region"", E' \t\n\r') = '')");
         public override Task Where_math_log_new_base(bool async)
             => Task.CompletedTask; // PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though
 
+        public override Task Where_mathf_log_new_base(bool async)
+            => Task.CompletedTask; // PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though
+
+        public override Task Where_mathf_round2(bool async)
+            => Task.CompletedTask; // PostgreSQL only has round(v, s) over numeric, may be possible to cast back and forth though
+
         public override Task Convert_ToString(bool async)
             => Task.CompletedTask; // Convert on DateTime not yet supported
 

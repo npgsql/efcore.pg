@@ -72,10 +72,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         private readonly NpgsqlTimeTypeMapping         _timeTimeSpan       = new(typeof(TimeSpan));
         private readonly NpgsqlTimeTzTypeMapping       _timetz             = new();
 
-#if NET6_0_OR_GREATER
         private readonly NpgsqlDateTypeMapping         _dateDateOnly       = new(typeof(DateOnly));
         private readonly NpgsqlTimeTypeMapping         _timeTimeOnly       = new(typeof(TimeOnly));
-#endif
 
         // Network address types
         private readonly NpgsqlMacaddrTypeMapping      _macaddr            = new();
@@ -192,31 +190,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "timestamp with time zone",    new[] { _timestamptz, _timestamptzDto } },
                 { "timestamptz",                 new[] { _timestamptz, _timestamptzDto } },
                 { "interval",                    new[] { _interval                     } },
-
-                { "date", new RelationalTypeMapping[]
-#if NET6_0_OR_GREATER
-                    { _dateDateOnly, _dateDateTime }
-#else
-                    { _dateDateTime }
-#endif
-                },
-
-                { "time without time zone", new RelationalTypeMapping[]
-#if NET6_0_OR_GREATER
-                    { _timeTimeOnly, _timeTimeSpan }
-#else
-                    { _timeTimeSpan }
-#endif
-                },
-
-                { "time", new RelationalTypeMapping[]
-#if NET6_0_OR_GREATER
-                    { _timeTimeOnly, _timeTimeSpan }
-#else
-                    { _timeTimeSpan }
-#endif
-                },
-
+                { "date",                        new RelationalTypeMapping[] { _dateDateOnly, _dateDateTime } },
+                { "time without time zone",      new RelationalTypeMapping[] { _timeTimeOnly, _timeTimeSpan } },
+                { "time",                        new RelationalTypeMapping[] { _timeTimeOnly, _timeTimeSpan } },
                 { "time with time zone",         new[] { _timetz                       } },
                 { "timetz",                      new[] { _timetz                       } },
                 { "macaddr",                     new[] { _macaddr                      } },
@@ -277,6 +253,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof(JsonElement),                         _jsonbElement         },
                 { typeof(char),                                _singleChar           },
                 { typeof(DateTime),                            _timestamp            },
+                { typeof(DateOnly),                            _dateDateOnly         },
+                { typeof(TimeOnly),                            _timeTimeOnly         },
                 { typeof(TimeSpan),                            _interval             },
                 { typeof(DateTimeOffset),                      _timestamptzDto       },
                 { typeof(PhysicalAddress),                     _macaddr              },
@@ -286,11 +264,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof(ImmutableDictionary<string, string>), _immutableHstore      },
                 { typeof(Dictionary<string, string>),          _hstore               },
                 { typeof(NpgsqlTid),                           _tid                  },
-
-#if NET6_0_OR_GREATER
-                { typeof(DateOnly),                            _dateDateOnly         },
-                { typeof(TimeOnly),                            _timeTimeOnly         },
-#endif
 
                 { typeof(NpgsqlPoint),                         _point                },
                 { typeof(NpgsqlBox),                           _box                  },
