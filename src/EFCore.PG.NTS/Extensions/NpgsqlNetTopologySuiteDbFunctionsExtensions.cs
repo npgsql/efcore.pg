@@ -19,6 +19,17 @@ namespace Microsoft.EntityFrameworkCore
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Transform)));
 
         /// <summary>
+        /// Forces the geometries into a "2-dimensional mode" so that all output representations will only have the X and Y coordinates.
+        /// Translates to <c>ST_Force2D(geometry)</c>
+        /// </summary>
+        /// <remarks>
+        /// See https://postgis.net/docs/ST_Force2D.html.
+        /// </remarks>
+        public static TGeometry Force2D<TGeometry>(this DbFunctions _, TGeometry geometry)
+            where TGeometry : Geometry
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Force2D)));
+
+        /// <summary>
         /// Tests whether the distance from the origin geometry to another is less than or equal to a specified value.
         /// Translates to <c>ST_DWithin</c>.
         /// </summary>

@@ -82,6 +82,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     method.ReturnType,
                     arguments[1].TypeMapping),
 
+                nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Force2D) => _sqlExpressionFactory.Function(
+                    "ST_Force2D",
+                    new[] { arguments[1] },
+                    nullable: true,
+                    TrueArrays[1],
+                    method.ReturnType,
+                    arguments[1].TypeMapping),
+
                 nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.DistanceKnn) => _sqlExpressionFactory.MakePostgresBinary(
                     PostgresExpressionType.PostgisDistanceKnn,
                     arguments[1],
