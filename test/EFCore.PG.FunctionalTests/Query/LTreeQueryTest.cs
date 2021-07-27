@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -27,6 +28,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using var ctx = CreateContext();
             var entity = ctx.LTreeEntities.Single(l => l.Id == 5);
             Assert.Equal("Top.Science.Astronomy.Cosmology", entity.Path);
+            Assert.Equal("Top.Science.Astronomy.Cosmology", entity.PathAsString);
         }
 
         [ConditionalFact]
@@ -56,6 +58,19 @@ WHERE l.""Path"" = 'Top.Science'");
 SELECT COUNT(*)::INT
 FROM ""LTreeEntities"" AS l
 WHERE l.""Path"" = @__p_0");
+        }
+
+        [ConditionalFact]
+        public void Compare_string_to_string_literal()
+        {
+            using var ctx = CreateContext();
+            var count = ctx.LTreeEntities.Count(l => l.PathAsString == "Top.Science");
+
+            Assert.Equal(1, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""LTreeEntities"" AS l
+WHERE l.""PathAsString"" = 'Top.Science'");
         }
 
         [ConditionalFact]
@@ -105,7 +120,7 @@ WHERE l.""Path"" <@ 'Top.Science'");
 
             Assert.Equal(4, entity.Id);
             AssertSql(
-                @"SELECT l.""Id"", l.""Path""
+                @"SELECT l.""Id"", l.""Path"", l.""PathAsString""
 FROM ""LTreeEntities"" AS l
 WHERE l.""Path"" ~ '*.Astrophysics'
 LIMIT 2");
@@ -122,7 +137,7 @@ LIMIT 2");
             AssertSql(
                 @"@__lqueries_0={ '*.Astrophysics', '*.Geology' } (DbType = Object)
 
-SELECT l.""Id"", l.""Path""
+SELECT l.""Id"", l.""Path"", l.""PathAsString""
 FROM ""LTreeEntities"" AS l
 WHERE l.""Path"" ? @__lqueries_0
 LIMIT 2");
@@ -149,7 +164,7 @@ WHERE l.""Path"" @ 'Astro*'");
 
             Assert.Equal(2, entity.Id);
             AssertSql(
-                @"SELECT l.""Id"", l.""Path""
+                @"SELECT l.""Id"", l.""Path"", l.""PathAsString""
 FROM ""LTreeEntities"" AS l
 WHERE (CAST(l.""Path"" AS text) || '.Astronomy') = 'Top.Science.Astronomy'
 LIMIT 2");
@@ -342,7 +357,7 @@ WHERE subpath(l.""Path"", 0, 2) = 'Top.Science'");
 
             Assert.Equal(4, result.Id);
             AssertSql(
-                @"SELECT l.""Id"", l.""Path""
+                @"SELECT l.""Id"", l.""Path"", l.""PathAsString""
 FROM ""LTreeEntities"" AS l
 WHERE (nlevel(l.""Path"") > 2) AND (subpath(l.""Path"", 2) = 'Astronomy.Astrophysics')
 LIMIT 2");
@@ -422,14 +437,23 @@ WHERE lca(ARRAY[l.""Path"",'Top.Hobbies']::ltree[]) = 'Top'");
 
             public static void Seed(LTreeQueryContext context)
             {
-                context.LTreeEntities.AddRange(
-                    new LTreeEntity { Id = 1, Path = "Top" },
-                    new LTreeEntity { Id = 2, Path = "Top.Science" },
-                    new LTreeEntity { Id = 3, Path = "Top.Science.Astronomy" },
-                    new LTreeEntity { Id = 4, Path = "Top.Science.Astronomy.Astrophysics" },
-                    new LTreeEntity { Id = 5, Path = "Top.Science.Astronomy.Cosmology" },
-                    new LTreeEntity { Id = 6, Path = "Top.Hobbies" },
-                    new LTreeEntity { Id = 7, Path = "Top.Hobbies.Amateurs_Astronomy" });
+                var ltreeEntities = new LTreeEntity[]
+                {
+                    new() { Id = 1, Path = "Top" },
+                    new() { Id = 2, Path = "Top.Science" },
+                    new() { Id = 3, Path = "Top.Science.Astronomy" },
+                    new() { Id = 4, Path = "Top.Science.Astronomy.Astrophysics" },
+                    new() { Id = 5, Path = "Top.Science.Astronomy.Cosmology" },
+                    new() { Id = 6, Path = "Top.Hobbies" },
+                    new() { Id = 7, Path = "Top.Hobbies.Amateurs_Astronomy" }
+                };
+
+                foreach (var ltreeEntity in ltreeEntities)
+                {
+                    ltreeEntity.PathAsString = ltreeEntity.Path;
+                }
+
+                context.LTreeEntities.AddRange(ltreeEntities);
                 context.SaveChanges();
             }
         }
@@ -440,6 +464,10 @@ WHERE lca(ARRAY[l.""Path"",'Top.Hobbies']::ltree[]) = 'Top'");
 
             [Required]
             public LTree Path { get; set; }
+
+            [Required]
+            [Column(TypeName = "ltree")]
+            public string PathAsString { get; set; }
         }
 
         public class LTreeQueryFixture : SharedStoreFixtureBase<LTreeQueryContext>

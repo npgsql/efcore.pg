@@ -125,7 +125,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         private readonly NpgsqlHstoreTypeMapping          _immutableHstore = new(typeof(ImmutableDictionary<string, string>));
         private readonly NpgsqlTidTypeMapping             _tid             = new();
 
-        private readonly LTreeTypeMapping                 _ltree           = new();
+        private readonly NpgsqlLTreeTypeMapping           _ltree           = new();
+        private readonly NpgsqlStringTypeMapping          _ltreeString     = new("ltree", NpgsqlDbType.LTree);
         private readonly NpgsqlStringTypeMapping          _lquery          = new("lquery", NpgsqlDbType.LQuery);
         private readonly NpgsqlStringTypeMapping          _ltxtquery       = new("ltxtquery", NpgsqlDbType.LTxtQuery);
 
@@ -251,7 +252,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "tsvector",                    new[] { _tsvector                     } },
                 { "regconfig",                   new[] { _regconfig                    } },
 
-                { "ltree",                       new[] { _ltree                        } },
+                { "ltree",                       new[] { _ltree, _ltreeString          } },
                 { "lquery",                      new[] { _lquery                       } },
                 { "ltxtquery",                   new[] { _ltxtquery                    } },
 
