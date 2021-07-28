@@ -71,7 +71,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                 && (declaringType == typeof(LocalDateTime)
                     || declaringType == typeof(LocalDate)
                     || declaringType == typeof(LocalTime)
-                    || declaringType == typeof(Period)))
+                    || declaringType == typeof(Period))
+                    || declaringType == typeof(Duration)))
             {
                 return TranslateDateTime(instance, member, returnType);
             }
@@ -152,6 +153,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                 // are default-mapped from CLR types (timespan maps to interval,
                 // which timestamp cannot be cast into)
                 return null;
+
+            case "TotalHours":
+                return sqlExpressionFactory.Divide(GetDatePartExpression(instance, "epoch"), sqlExpressionFactory.Constant(3600));
 
             default:
                 return null;
