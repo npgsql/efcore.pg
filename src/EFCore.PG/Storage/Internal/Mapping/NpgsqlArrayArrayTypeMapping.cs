@@ -137,11 +137,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                     return false;
                 }
 
+                if (ReferenceEquals(a, b))
+                {
+                    return true;
+                }
+
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
                 for (var i = 0; i < a.Length; i++)
+                {
                     if (!elementComparer.Equals(a[i], b[i]))
+                    {
                         return false;
+                    }
+                }
 
                 return true;
             }
@@ -149,22 +158,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             private static int GetHashCode(TElem[] source, ValueComparer<TElem> elementComparer)
             {
                 var hash = new HashCode();
+
                 foreach (var el in source)
+                {
                     hash.Add(el, elementComparer);
+                }
+
                 return hash.ToHashCode();
             }
 
             [return: NotNullIfNotNull("source")]
             private static TElem[]? Snapshot(TElem[]? source, ValueComparer<TElem> elementComparer)
             {
-                if (source == null)
+                if (source is null)
                     return null;
 
                 var snapshot = new TElem[source.Length];
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
                 for (var i = 0; i < source.Length; i++)
+                {
                     snapshot[i] = elementComparer.Snapshot(source[i])!; // TODO: https://github.com/dotnet/efcore/pull/24410
+                }
+
                 return snapshot;
             }
         }
@@ -191,6 +207,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                     return false;
                 }
 
+                if (ReferenceEquals(a, b))
+                {
+                    return true;
+                }
+
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
                 for (var i = 0; i < a.Length; i++)
@@ -199,11 +220,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                     if (el1 is null)
                     {
                         if (el2 is null)
+                        {
                             continue;
+                        }
+
                         return false;
                     }
+
                     if (el2 is null || !elementComparer.Equals(el1, el2))
+                    {
                         return false;
+                    }
                 }
 
                 return true;
@@ -213,22 +240,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             {
                 var nullableEqualityComparer = new NullableEqualityComparer<TElem>(elementComparer);
                 var hash = new HashCode();
+
                 foreach (var el in source)
+                {
                     hash.Add(el, nullableEqualityComparer);
+                }
+
                 return hash.ToHashCode();
             }
 
             [return: NotNullIfNotNull("source")]
             private static TElem?[]? Snapshot(TElem?[]? source, ValueComparer<TElem> elementComparer)
             {
-                if (source == null)
+                if (source is null)
+                {
                     return null;
+                }
 
                 var snapshot = new TElem?[source.Length];
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
                 for (var i = 0; i < source.Length; i++)
-                    snapshot[i] = source[i] is { } value ? elementComparer.Snapshot(value) : (TElem?)null;
+                {
+                    snapshot[i] = source[i] is { } value ? elementComparer.Snapshot(value) : null;
+                }
+
                 return snapshot;
             }
         }
