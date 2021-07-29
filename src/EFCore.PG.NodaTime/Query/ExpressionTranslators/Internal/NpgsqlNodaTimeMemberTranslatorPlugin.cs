@@ -126,7 +126,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                         _sqlExpressionFactory.Constant(1000)
                     ), typeof(int));
                         
-                default: return null;
+                default: 
+                    return null;
             }
         }
 
