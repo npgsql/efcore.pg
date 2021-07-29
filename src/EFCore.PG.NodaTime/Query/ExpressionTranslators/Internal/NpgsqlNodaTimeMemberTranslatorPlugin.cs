@@ -71,13 +71,52 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                 && (declaringType == typeof(LocalDateTime)
                     || declaringType == typeof(LocalDate)
                     || declaringType == typeof(LocalTime)
-                    || declaringType == typeof(Period))
-                    || declaringType == typeof(Duration)))
+                    || declaringType == typeof(Period)))
             {
                 return TranslateDateTime(instance, member, returnType);
             }
 
+            if (instance is not null && declaringType == typeof(Duration))
+            {
+                return TranslateDuration(instance, member);
+            }
+
             return null;
+        }
+
+        /// <summary>
+        /// Translates Duration members
+        /// </summary>
+        /// <param name="instance"></param>
+        /// <param name="member"></param>
+        /// <returns>The translated expression or null</returns>
+        private SqlExpression? TranslateDuration(SqlExpression instance, MemberInfo member)
+        {
+            switch (member.Name)
+            {
+                case nameof(Duration.TotalDays):
+                case nameof(Duration.TotalHours):
+                case nameof(Duration.TotalMinutes):
+                case nameof(Duration.TotalSeconds):
+                    var divisor = member.Name switch
+                    {
+                        nameof(Duration.TotalDays) => 86400,
+                        nameof(Duration.TotalHours) => 3600,
+                        nameof(Duration.TotalMinutes) => 60,
+                        nameof(Duration.TotalSeconds) => 1,
+                        _ => 0 // cannot happen
+                    };
+                    return _sqlExpressionFactory.Divide(GetDatePartExpression(instance, "epoch"), _sqlExpressionFactory.Constant(divisor));
+                case nameof(Duration.Days):
+                    return GetDatePartExpression(instance, "day");
+                case nameof(Duration.Hours):
+                    return GetDatePartExpression(instance, "hour");
+                case nameof(Duration.Minutes):
+                    return GetDatePartExpression(instance, "minute");
+                case nameof(Duration.Seconds):
+                    return GetDatePartExpression(instance, "second", true);
+                default: return null;
+            }
         }
 
         /// <summary>
@@ -153,9 +192,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                 // are default-mapped from CLR types (timespan maps to interval,
                 // which timestamp cannot be cast into)
                 return null;
-
-            case "TotalHours":
-                return sqlExpressionFactory.Divide(GetDatePartExpression(instance, "epoch"), sqlExpressionFactory.Constant(3600));
 
             default:
                 return null;
