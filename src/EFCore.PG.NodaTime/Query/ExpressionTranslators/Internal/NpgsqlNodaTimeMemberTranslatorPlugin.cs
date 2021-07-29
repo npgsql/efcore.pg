@@ -67,18 +67,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                 return _sqlExpressionFactory.Constant(SystemClock.Instance);
 
             var declaringType = member.DeclaringType;
-            if (instance is not null
-                && (declaringType == typeof(LocalDateTime)
+            if (instance is not null)
+            {
+                if (declaringType == typeof(LocalDateTime)
                     || declaringType == typeof(LocalDate)
                     || declaringType == typeof(LocalTime)
-                    || declaringType == typeof(Period)))
-            {
-                return TranslateDateTime(instance, member, returnType);
-            }
+                    || declaringType == typeof(Period))
+                {
+                    return TranslateDateTime(instance, member, returnType);
+                }
 
-            if (instance is not null && declaringType == typeof(Duration))
-            {
-                return TranslateDuration(instance, member);
+                if (declaringType == typeof(Duration))
+                {
+                    return TranslateDuration(instance, member);
+                }
             }
 
             return null;
