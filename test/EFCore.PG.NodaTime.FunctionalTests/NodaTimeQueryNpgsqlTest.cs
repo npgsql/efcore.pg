@@ -519,7 +519,7 @@ LIMIT 2");
             using var ctx = CreateContext();
             var d = ctx.NodaTimeTypes.Select(t => t.Duration.Milliseconds).ToList();
             Assert.Equal(20, d.First());
-            Assert.Contains(@"((DATE_PART('second', n.""Duration"") - FLOOR(DATE_PART('second', n.""Duration""))) * 1000.0)::int", Sql);
+            Assert.Contains(@"CAST(((DATE_PART('second', n.""Duration"") - FLOOR(DATE_PART('second', n.""Duration""))) * 1000.0) AS integer)", Sql);
         }
 
         #endregion
