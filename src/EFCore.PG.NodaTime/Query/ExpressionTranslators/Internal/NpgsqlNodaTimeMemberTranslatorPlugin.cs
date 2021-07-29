@@ -98,15 +98,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                 case nameof(Duration.TotalHours):
                 case nameof(Duration.TotalMinutes):
                 case nameof(Duration.TotalSeconds):
+                case nameof(Duration.TotalMilliseconds):
                     var divisor = member.Name switch
                     {
                         nameof(Duration.TotalDays) => 86400,
                         nameof(Duration.TotalHours) => 3600,
                         nameof(Duration.TotalMinutes) => 60,
                         nameof(Duration.TotalSeconds) => 1,
+                        nameof(Duration.TotalMilliseconds) => 0.001,
                         _ => 0 // cannot happen
                     };
-                    return _sqlExpressionFactory.Divide(GetDatePartExpression(instance, "epoch"), _sqlExpressionFactory.Constant(divisor));
+                    return _sqlExpressionFactory.Divide(GetDatePartExpressionDouble(instance, "epoch"), _sqlExpressionFactory.Constant(divisor));
                 case nameof(Duration.Days):
                     return GetDatePartExpression(instance, "day");
                 case nameof(Duration.Hours):
@@ -115,6 +117,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                     return GetDatePartExpression(instance, "minute");
                 case nameof(Duration.Seconds):
                     return GetDatePartExpression(instance, "second", true);
+                case nameof(Duration.Milliseconds):
+                    return _sqlExpressionFactory.Convert(_sqlExpressionFactory.Multiply(
+                        _sqlExpressionFactory.Subtract(
+                            GetDatePartExpressionDouble(instance, "second", false), GetDatePartExpressionDouble(instance, "second", true)),
+                        _sqlExpressionFactory.Constant(1000)
+                    ), typeof(int));
+                        
                 default: return null;
             }
         }
@@ -216,6 +225,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             string partName,
             bool floor = false)
         {
+            var result = GetDatePartExpressionDouble(instance, partName, floor);
+            return _sqlExpressionFactory.Convert(result, typeof(int));
+        }
+        
+        /// <summary>
+        /// Constructs the DATE_PART expression.
+        /// </summary>
+        /// <param name="e">The member expression.</param>
+        /// <param name="partName">The name of the DATE_PART to construct.</param>
+        /// <param name="floor">True if the result should be wrapped with FLOOR(...); otherwise, false.</param>
+        /// <returns>
+        /// The DATE_PART expression.
+        /// </returns>
+        /// <remarks>
+        /// DATE_PART returns doubles
+        /// </remarks>
+        private SqlExpression GetDatePartExpressionDouble(
+            SqlExpression instance,
+            string partName,
+            bool floor = false)
+        {
             var result = _sqlExpressionFactory.Function(
                 "DATE_PART",
                 new[] { _sqlExpressionFactory.Constant(partName), instance },
@@ -231,7 +261,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(double));
 
-            return _sqlExpressionFactory.Convert(result, typeof(int));
+            return result;
         }
     }
 }
