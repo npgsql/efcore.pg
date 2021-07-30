@@ -514,15 +514,6 @@ LIMIT 2");
             Assert.Contains(@"FLOOR(DATE_PART('second', n.""Duration""))::INT", Sql);
         }
 
-        [Fact]
-        public void Duration_Milliseconds()
-        {
-            using var ctx = CreateContext();
-            var d = ctx.NodaTimeTypes.Select(t => t.Duration.Milliseconds).ToList();
-            Assert.Equal(20, d.First());
-            Assert.Contains(@"CAST(((DATE_PART('second', n.""Duration"") - FLOOR(DATE_PART('second', n.""Duration""))) * 1000.0) AS integer)", Sql);
-        }
-
         #endregion
 
         #region Range

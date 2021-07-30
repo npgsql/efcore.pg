@@ -85,29 +85,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
 
             return null;
         }
-
-        private SqlExpression TranslateDurationTotalMember(SqlExpression instance, double divisor)
-            =>  _sqlExpressionFactory.Divide(GetDatePartExpressionDouble(instance, "epoch"), _sqlExpressionFactory.Constant(divisor));
+        
         
         private SqlExpression? TranslateDuration(SqlExpression instance, MemberInfo member)
-            => member.Name switch
+        {
+            var translateDurationTotalMember = new Func<SqlExpression, double, SqlBinaryExpression>((inst, divisor) =>  
+                _sqlExpressionFactory.Divide(GetDatePartExpressionDouble(inst, "epoch"), _sqlExpressionFactory.Constant(divisor)));
+            
+            return member.Name switch
             {
-                nameof(Duration.TotalDays) => TranslateDurationTotalMember(instance, 86400),
-                nameof(Duration.TotalHours) => TranslateDurationTotalMember(instance, 3600),
-                nameof(Duration.TotalMinutes) => TranslateDurationTotalMember(instance, 60),
-                nameof(Duration.TotalSeconds) => TranslateDurationTotalMember(instance, 1),
-                nameof(Duration.TotalMilliseconds) => TranslateDurationTotalMember(instance, 0.001),
+                nameof(Duration.TotalDays) => translateDurationTotalMember(instance, 86400),
+                nameof(Duration.TotalHours) => translateDurationTotalMember(instance, 3600),
+                nameof(Duration.TotalMinutes) => translateDurationTotalMember(instance, 60),
+                nameof(Duration.TotalSeconds) => translateDurationTotalMember(instance, 1),
+                nameof(Duration.TotalMilliseconds) => translateDurationTotalMember(instance, 0.001),
                 nameof(Duration.Days) => GetDatePartExpression(instance, "day"),
                 nameof(Duration.Hours) => GetDatePartExpression(instance, "hour"),
                 nameof(Duration.Minutes) => GetDatePartExpression(instance, "minute"),
                 nameof(Duration.Seconds) => GetDatePartExpression(instance, "second", true),
-                nameof(Duration.Milliseconds) => _sqlExpressionFactory.Convert(
-                    _sqlExpressionFactory.Multiply(
-                        _sqlExpressionFactory.Subtract(
-                            GetDatePartExpressionDouble(instance, "second", false), GetDatePartExpressionDouble(instance, "second", true)),
-                        _sqlExpressionFactory.Constant(1000)), typeof(int)),
+                nameof(Duration.Milliseconds) => null, // Too annoying, floating point and sub-millisecond handling
                 _ => null
             };
+        }
 
         /// <summary>
         /// Translates date and time members.
