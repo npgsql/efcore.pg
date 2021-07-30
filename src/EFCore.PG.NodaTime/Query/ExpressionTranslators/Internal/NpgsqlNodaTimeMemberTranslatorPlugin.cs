@@ -104,7 +104,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                 nameof(Duration.Minutes) => GetDatePartExpression(instance, "minute"),
                 nameof(Duration.Seconds) => GetDatePartExpression(instance, "second", true),
                 nameof(Duration.Milliseconds) => null, // Too annoying, floating point and sub-millisecond handling
-                _ => null
+                _ => null,
             };
         }
 
