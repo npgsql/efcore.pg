@@ -209,18 +209,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             return _sqlExpressionFactory.Convert(result, typeof(int));
         }
         
-        /// <summary>
-        /// Constructs the DATE_PART expression.
-        /// </summary>
-        /// <param name="e">The member expression.</param>
-        /// <param name="partName">The name of the DATE_PART to construct.</param>
-        /// <param name="floor">True if the result should be wrapped with FLOOR(...); otherwise, false.</param>
-        /// <returns>
-        /// The DATE_PART expression.
-        /// </returns>
-        /// <remarks>
-        /// DATE_PART returns doubles
-        /// </remarks>
         private SqlExpression GetDatePartExpressionDouble(
             SqlExpression instance,
             string partName,
