@@ -88,12 +88,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
 
         private SqlExpression TranslateDurationTotalMember(SqlExpression instance, double divisor) =>  _sqlExpressionFactory.Divide(GetDatePartExpressionDouble(instance, "epoch"), _sqlExpressionFactory.Constant(divisor));
         
-        /// <summary>
-        /// Translates Duration members
-        /// </summary>
-        /// <param name="instance"></param>
-        /// <param name="member"></param>
-        /// <returns>The translated expression or null</returns>
         private SqlExpression? TranslateDuration(SqlExpression instance, MemberInfo member)
             => member.Name switch
             {
