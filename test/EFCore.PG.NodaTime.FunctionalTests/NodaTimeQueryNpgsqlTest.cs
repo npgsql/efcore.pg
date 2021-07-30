@@ -432,6 +432,7 @@ LIMIT 2");
         #endregion Period
 
         #region Duration
+
         [Fact]
         public void Duration_TotalDays()
         {
