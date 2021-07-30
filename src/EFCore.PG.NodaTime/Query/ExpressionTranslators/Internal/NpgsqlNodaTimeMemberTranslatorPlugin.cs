@@ -85,13 +85,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
 
             return null;
         }
-        
-        
+
         private SqlExpression? TranslateDuration(SqlExpression instance, MemberInfo member)
         {
-            var translateDurationTotalMember = new Func<SqlExpression, double, SqlBinaryExpression>((inst, divisor) =>  
-                _sqlExpressionFactory.Divide(GetDatePartExpressionDouble(inst, "epoch"), _sqlExpressionFactory.Constant(divisor)));
-            
+            var translateDurationTotalMember = new Func<SqlExpression, double, SqlBinaryExpression>(
+                (inst, divisor) =>
+                    _sqlExpressionFactory.Divide(GetDatePartExpressionDouble(inst, "epoch"), _sqlExpressionFactory.Constant(divisor)));
+
             return member.Name switch
             {
                 nameof(Duration.TotalDays) => translateDurationTotalMember(instance, 86400),
