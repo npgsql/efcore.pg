@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -430,6 +431,91 @@ LIMIT 2");
 
         #endregion Period
 
+        #region Duration
+
+        [Fact]
+        public void Duration_TotalDays()
+        {
+            using var ctx = CreateContext();
+            var d = ctx.NodaTimeTypes.Select(t => t.Duration.TotalDays).ToList();
+            Assert.Equal(27.3779, Math.Round(d.First(), 4));
+            Assert.Contains(@"DATE_PART('epoch', n.""Duration"") / 86400", Sql);
+        }
+
+        [Fact]
+        public void Duration_TotalHours()
+        {
+            using var ctx = CreateContext();
+            var d = ctx.NodaTimeTypes.Select(t => t.Duration.TotalHours).ToList();
+            Assert.Equal(657.0689, Math.Round(d.First(), 4));
+            Assert.Contains(@"DATE_PART('epoch', n.""Duration"") / 3600", Sql);
+        }
+
+        [Fact]
+        public void Duration_TotalMinutes()
+        {
+            using var ctx = CreateContext();
+            var d = ctx.NodaTimeTypes.Select(t => t.Duration.TotalMinutes).ToList();
+            Assert.Equal(39424.1337, Math.Round(d.First(), 4));
+            Assert.Contains(@"DATE_PART('epoch', n.""Duration"") / 60", Sql);
+        }
+
+        [Fact]
+        public void Duration_TotalSeconds()
+        {
+            using var ctx = CreateContext();
+            var d = ctx.NodaTimeTypes.Select(t => t.Duration.TotalSeconds).ToList();
+            Assert.Equal(2365448.02, d.First());
+            Assert.Contains(@"DATE_PART('epoch', n.""Duration"") / 1", Sql);
+        }
+
+        [Fact]
+        public void Duration_TotalMilliseconds()
+        {
+            using var ctx = CreateContext();
+            var d = ctx.NodaTimeTypes.Select(t => t.Duration.TotalMilliseconds).ToList();
+            Assert.Equal(2365448020, d.First());
+            Assert.Contains(@"DATE_PART('epoch', n.""Duration"") / 0.001", Sql);
+        }
+
+        [Fact]
+        public void Duration_Days()
+        {
+            using var ctx = CreateContext();
+            var d = ctx.NodaTimeTypes.Select(t => t.Duration.Days).ToList();
+            Assert.Equal(27, d.First());
+            Assert.Contains(@"DATE_PART('day', n.""Duration"")::INT", Sql);
+        }
+
+        [Fact]
+        public void Duration_Hours()
+        {
+            using var ctx = CreateContext();
+            var d = ctx.NodaTimeTypes.Select(t => t.Duration.Hours).ToList();
+            Assert.Equal(9, d.First());
+            Assert.Contains(@"DATE_PART('hour', n.""Duration"")::INT", Sql);
+        }
+
+        [Fact]
+        public void Duration_Minutes()
+        {
+            using var ctx = CreateContext();
+            var d = ctx.NodaTimeTypes.Select(t => t.Duration.Minutes).ToList();
+            Assert.Equal(4, d.First());
+            Assert.Contains(@"DATE_PART('minute', n.""Duration"")::INT", Sql);
+        }
+
+        [Fact]
+        public void Duration_Seconds()
+        {
+            using var ctx = CreateContext();
+            var d = ctx.NodaTimeTypes.Select(t => t.Duration.Seconds).ToList();
+            Assert.Equal(8, d.First());
+            Assert.Contains(@"FLOOR(DATE_PART('second', n.""Duration""))::INT", Sql);
+        }
+
+        #endregion
+
         #region Range
 
         [Fact]
@@ -500,6 +586,11 @@ LIMIT 2");
                 var localDateTime = new LocalDateTime(2018, 4, 20, 10, 31, 33, 666);
                 var zonedDateTime = localDateTime.InUtc();
                 var instant = zonedDateTime.ToInstant();
+                var duration = Duration.FromMilliseconds(20)
+                    .Plus(Duration.FromSeconds(8))
+                    .Plus(Duration.FromMinutes(4))
+                    .Plus(Duration.FromHours(9))
+                    .Plus(Duration.FromDays(27));
 
                 _defaultPeriod = Period.FromYears(2018) + Period.FromMonths(4) + Period.FromDays(20) +
                                 Period.FromHours(10) + Period.FromMinutes(31) + Period.FromSeconds(23) +
@@ -515,7 +606,8 @@ LIMIT 2");
                     LocalTime = localDateTime.TimeOfDay,
                     OffsetTime = new OffsetTime(new LocalTime(10, 31, 33, 666), Offset.Zero),
                     Period = _defaultPeriod,
-                    DateRange = new NpgsqlRange<LocalDate>(localDateTime.Date, localDateTime.Date.PlusDays(5))
+                    DateRange = new NpgsqlRange<LocalDate>(localDateTime.Date, localDateTime.Date.PlusDays(5)),
+                    Duration = duration,
                 });
                 context.SaveChanges();
             }
@@ -533,6 +625,7 @@ LIMIT 2");
             public LocalTime LocalTime { get; set; }
             public OffsetTime OffsetTime { get; set; }
             public Period Period { get; set; }
+            public Duration Duration { get; set; }
             public NpgsqlRange<LocalDate> DateRange { get; set; }
             // ReSharper restore UnusedAutoPropertyAccessor.Global
         }

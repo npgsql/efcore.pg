@@ -67,16 +67,45 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                 return _sqlExpressionFactory.Constant(SystemClock.Instance);
 
             var declaringType = member.DeclaringType;
-            if (instance is not null
-                && (declaringType == typeof(LocalDateTime)
+            if (instance is not null)
+            {
+                if (declaringType == typeof(LocalDateTime)
                     || declaringType == typeof(LocalDate)
                     || declaringType == typeof(LocalTime)
-                    || declaringType == typeof(Period)))
-            {
-                return TranslateDateTime(instance, member, returnType);
+                    || declaringType == typeof(Period))
+                {
+                    return TranslateDateTime(instance, member, returnType);
+                }
+
+                if (declaringType == typeof(Duration))
+                {
+                    return TranslateDuration(instance, member);
+                }
             }
 
             return null;
+        }
+
+        private SqlExpression? TranslateDuration(SqlExpression instance, MemberInfo member)
+        {
+            var translateDurationTotalMember = new Func<SqlExpression, double, SqlBinaryExpression>(
+                (inst, divisor) =>
+                    _sqlExpressionFactory.Divide(GetDatePartExpressionDouble(inst, "epoch"), _sqlExpressionFactory.Constant(divisor)));
+
+            return member.Name switch
+            {
+                nameof(Duration.TotalDays) => translateDurationTotalMember(instance, 86400),
+                nameof(Duration.TotalHours) => translateDurationTotalMember(instance, 3600),
+                nameof(Duration.TotalMinutes) => translateDurationTotalMember(instance, 60),
+                nameof(Duration.TotalSeconds) => translateDurationTotalMember(instance, 1),
+                nameof(Duration.TotalMilliseconds) => translateDurationTotalMember(instance, 0.001),
+                nameof(Duration.Days) => GetDatePartExpression(instance, "day"),
+                nameof(Duration.Hours) => GetDatePartExpression(instance, "hour"),
+                nameof(Duration.Minutes) => GetDatePartExpression(instance, "minute"),
+                nameof(Duration.Seconds) => GetDatePartExpression(instance, "second", true),
+                nameof(Duration.Milliseconds) => null, // Too annoying, floating point and sub-millisecond handling
+                _ => null,
+            };
         }
 
         /// <summary>
@@ -176,6 +205,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             string partName,
             bool floor = false)
         {
+            var result = GetDatePartExpressionDouble(instance, partName, floor);
+            return _sqlExpressionFactory.Convert(result, typeof(int));
+        }
+        
+        private SqlExpression GetDatePartExpressionDouble(
+            SqlExpression instance,
+            string partName,
+            bool floor = false)
+        {
             var result = _sqlExpressionFactory.Function(
                 "DATE_PART",
                 new[] { _sqlExpressionFactory.Constant(partName), instance },
@@ -191,7 +229,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(double));
 
-            return _sqlExpressionFactory.Convert(result, typeof(int));
+            return result;
         }
     }
 }
