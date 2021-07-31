@@ -17,7 +17,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
-            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         public override async Task Byte_array_contains_literal(bool async)
@@ -174,7 +174,7 @@ FROM ""Missions"" AS m");
             await base.Where_TimeSpan_Minutes(async);
 
             AssertSql(
-                @"SELECT m.""Id"", m.""CodeName"", m.""Duration"", m.""Rating"", m.""Timeline""
+                @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
 WHERE floor(date_part('minute', m.""Duration""))::INT = 1");
         }
@@ -184,7 +184,7 @@ WHERE floor(date_part('minute', m.""Duration""))::INT = 1");
             await base.Where_TimeSpan_Seconds(async);
 
             AssertSql(
-                @"SELECT m.""Id"", m.""CodeName"", m.""Duration"", m.""Rating"", m.""Timeline""
+                @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
 WHERE floor(date_part('second', m.""Duration""))::INT = 1");
         }
@@ -194,15 +194,13 @@ WHERE floor(date_part('second', m.""Duration""))::INT = 1");
             await base.Where_TimeSpan_Milliseconds(async);
 
             AssertSql(
-                @"SELECT m.""Id"", m.""CodeName"", m.""Duration"", m.""Rating"", m.""Timeline""
+                @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
 WHERE (floor(date_part('millisecond', m.""Duration""))::INT % 1000) = 1");
         }
 
         #endregion TimeSpan
 
-#if DATEONLY_TIMEONLY_TESTS_IMPLEMENTED_UPSTREAM
-#if NET6_0_OR_GREATER
         #region DateOnly
 
         [ConditionalTheory]
@@ -222,7 +220,7 @@ WHERE make_date(date_part('year', m.""Date"")::INT, date_part('month', m.""Date"
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_DateOnly_Year(bool async)
+        public override async Task Where_DateOnly_Year(bool async)
         {
             await AssertQuery(
                 async,
@@ -237,7 +235,7 @@ WHERE date_part('year', m.""Date"")::INT = 1990");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_DateOnly_Month(bool async)
+        public override async Task Where_DateOnly_Month(bool async)
         {
             await AssertQuery(
                 async,
@@ -252,7 +250,7 @@ WHERE date_part('month', m.""Date"")::INT = 11");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_DateOnly_Day(bool async)
+        public override async Task Where_DateOnly_Day(bool async)
         {
             await AssertQuery(
                 async,
@@ -267,7 +265,7 @@ WHERE date_part('day', m.""Date"")::INT = 10");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_DateOnly_DayOfYear(bool async)
+        public override async Task Where_DateOnly_DayOfYear(bool async)
         {
             await AssertQuery(
                 async,
@@ -282,7 +280,7 @@ WHERE date_part('doy', m.""Date"")::INT = 314");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_DateOnly_DayOfWeek(bool async)
+        public override async Task Where_DateOnly_DayOfWeek(bool async)
         {
             await AssertQuery(
                 async,
@@ -297,7 +295,7 @@ WHERE floor(date_part('dow', m.""Date""))::INT = 6");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_DateOnly_AddYears(bool async)
+        public override async Task Where_DateOnly_AddYears(bool async)
         {
             await AssertQuery(
                 async,
@@ -312,7 +310,7 @@ WHERE (m.""Date"" + INTERVAL '3 years') = DATE '1993-11-10'");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_DateOnly_AddMonths(bool async)
+        public override async Task Where_DateOnly_AddMonths(bool async)
         {
             await AssertQuery(
                 async,
@@ -327,7 +325,7 @@ WHERE (m.""Date"" + INTERVAL '3 months') = DATE '1991-02-10'");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_DateOnly_AddDays(bool async)
+        public override async Task Where_DateOnly_AddDays(bool async)
         {
             await AssertQuery(
                 async,
@@ -346,7 +344,7 @@ WHERE (m.""Date"" + INTERVAL '3 days') = DATE '1990-11-13'");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_TimeOnly_Hour(bool async)
+        public override async Task Where_TimeOnly_Hour(bool async)
         {
             await AssertQuery(
                 async,
@@ -361,7 +359,7 @@ WHERE date_part('hour', m.""Time"")::INT = 10");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_TimeOnly_Minute(bool async)
+        public override async Task Where_TimeOnly_Minute(bool async)
         {
             await AssertQuery(
                 async,
@@ -376,7 +374,7 @@ WHERE date_part('minute', m.""Time"")::INT = 15");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_TimeOnly_Second(bool async)
+        public override async Task Where_TimeOnly_Second(bool async)
         {
             await AssertQuery(
                 async,
@@ -389,21 +387,12 @@ FROM ""Missions"" AS m
 WHERE date_part('second', m.""Time"")::INT = 50");
         }
 
-        // [ConditionalTheory]
-        // [MemberData(nameof(IsAsyncData))]
-        // public virtual Task Where_TimeOnly_Millisecond(bool async)
-        // {
-        //     return Task.CompletedTask;
-        //     // SQL translation not implemented, too annoying
-        //     // await AssertQuery(
-        //     //     async,
-        //     //     ss => ss.Set<Mission>().Where(m => m.Time.Millisecond == 500).AsTracking(),
-        //     //     entryCount: 1);
-        // }
+        public override Task Where_TimeOnly_Millisecond(bool async)
+            => Task.CompletedTask; // Translation not implemented
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_TimeOnly_AddHours(bool async)
+        public override async Task Where_TimeOnly_AddHours(bool async)
         {
             await AssertQuery(
                 async,
@@ -418,7 +407,7 @@ WHERE (m.""Time"" + INTERVAL '3 hours') = TIME '13:15:50.5'");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_TimeOnly_AddMinutes(bool async)
+        public override async Task Where_TimeOnly_AddMinutes(bool async)
         {
             await AssertQuery(
                 async,
@@ -433,7 +422,7 @@ WHERE (m.""Time"" + INTERVAL '3 mins') = TIME '10:18:50.5'");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_TimeOnly_Add_TimeSpan(bool async)
+        public override async Task Where_TimeOnly_Add_TimeSpan(bool async)
         {
             await AssertQuery(
                 async,
@@ -448,7 +437,7 @@ WHERE (m.""Time"" + INTERVAL '03:00:00') = TIME '13:15:50.5'");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_TimeOnly_IsBetween(bool async)
+        public override async Task Where_TimeOnly_IsBetween(bool async)
         {
             await AssertQuery(
                 async,
@@ -463,7 +452,7 @@ WHERE (m.""Time"" >= TIME '10:00:00') AND (m.""Time"" < TIME '11:00:00')");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_TimeOnly_subtract_TimeOnly(bool async)
+        public override async Task Where_TimeOnly_subtract_TimeOnly(bool async)
         {
             await AssertQuery(
                 async,
@@ -477,8 +466,7 @@ WHERE (m.""Time"" - TIME '10:00:00') = INTERVAL '00:15:50.5'");
         }
 
         #endregion TimeOnly
-#endif
-#endif
+
         private void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
     }
 }

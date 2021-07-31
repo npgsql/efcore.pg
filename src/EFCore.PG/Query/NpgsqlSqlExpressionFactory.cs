@@ -158,7 +158,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             if (operatorType == ExpressionType.Subtract)
             {
                 if (left.Type == typeof(DateTime) && right.Type == typeof(DateTime) ||
-                    left.Type == typeof(DateTimeOffset) && right.Type == typeof(DateTimeOffset))
+                    left.Type == typeof(DateTimeOffset) && right.Type == typeof(DateTimeOffset) ||
+                    left.Type == typeof(TimeOnly) && right.Type == typeof(TimeOnly))
                 {
                     return (SqlBinaryExpression)ApplyTypeMapping(
                         new SqlBinaryExpression(operatorType, left, right, typeof(TimeSpan), null), typeMapping);
@@ -299,9 +300,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                     && (
                         leftType == typeof(DateTime)
                         || leftType == typeof(DateTimeOffset)
-#if NET6_0_OR_GREATER
                         || leftType == typeof(TimeOnly)
-#endif
                     )
                     || rightType.FullName == "NodaTime.Period"
                     && (
@@ -328,10 +327,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                     // LocalDateTime - LocalDateTime => Period
                     if (leftType == typeof(DateTime) && rightType == typeof(DateTime)
                         || leftType == typeof(DateTimeOffset) && rightType == typeof(DateTimeOffset)
-#if NET6_0_OR_GREATER
                         || leftType == typeof(DateOnly) && rightType == typeof(DateOnly)
                         || leftType == typeof(TimeOnly) && rightType == typeof(TimeOnly)
-#endif
                         || leftType.FullName == "NodaTime.Instant" && rightType.FullName == "NodaTime.Instant"
                         || leftType.FullName == "NodaTime.LocalDateTime" && rightType.FullName == "NodaTime.LocalDateTime"
                         || leftType.FullName == "NodaTime.ZonedDateTime" && rightType.FullName == "NodaTime.ZonedDateTime"

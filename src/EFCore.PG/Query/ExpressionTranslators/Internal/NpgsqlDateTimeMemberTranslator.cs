@@ -31,9 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             var type = member.DeclaringType;
             if (type != typeof(DateTime) && type != typeof(NpgsqlDateTime) && type != typeof(NpgsqlDate)
-#if NET6_0_OR_GREATER
                 && type != typeof(DateOnly) && type != typeof(TimeOnly)
-#endif
             )
                 return null;
 

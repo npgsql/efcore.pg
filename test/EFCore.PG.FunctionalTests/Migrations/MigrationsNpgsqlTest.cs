@@ -57,7 +57,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
     ""SSN"" character varying(11) COLLATE ""POSIX"" NOT NULL,
     CONSTRAINT ""PK_People"" PRIMARY KEY (""CustomId""),
     CONSTRAINT ""AK_People_SSN"" UNIQUE (""SSN""),
-    CONSTRAINT ""CK_EmployerId"" CHECK (""EmployerId"" > 0),
+    CONSTRAINT ""CK_People_EmployerId"" CHECK (""EmployerId"" > 0),
     CONSTRAINT ""FK_People_Employers_EmployerId"" FOREIGN KEY (""EmployerId"") REFERENCES ""Employers"" (""Id"") ON DELETE RESTRICT
 );
 COMMENT ON TABLE dbo2.""People"" IS 'Table comment';
@@ -1974,7 +1974,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
             await base.Add_check_constraint_with_name();
 
             AssertSql(
-                @"ALTER TABLE ""People"" ADD CONSTRAINT ""CK_Foo"" CHECK (""DriverLicense"" > 0);");
+                @"ALTER TABLE ""People"" ADD CONSTRAINT ""CK_People_Foo"" CHECK (""DriverLicense"" > 0);");
         }
 
         public override async Task Drop_check_constraint()
@@ -1982,7 +1982,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
             await base.Drop_check_constraint();
 
             AssertSql(
-                @"ALTER TABLE ""People"" DROP CONSTRAINT ""CK_Foo"";");
+                @"ALTER TABLE ""People"" DROP CONSTRAINT ""CK_People_Foo"";");
         }
 
         #endregion

@@ -29,11 +29,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 "DATE '2015-03-12'",
                 GetMapping("date").GenerateSqlLiteral(new DateTime(2015, 3, 12)));
 
-#if NET6_0_OR_GREATER
             Assert.Equal(
                 "DATE '2015-03-12'",
                 GetMapping("date").GenerateSqlLiteral(new DateOnly(2015, 3, 12)));
-#endif
         }
 
         [Fact]
@@ -92,7 +90,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             Assert.Equal("TIME '04:05:06.123'", mapping.GenerateSqlLiteral(new TimeSpan(0, 4, 5, 6, 123)));
             Assert.Equal("TIME '04:05:06'", mapping.GenerateSqlLiteral(new TimeSpan(4, 5, 6)));
 
-#if NET6_0_OR_GREATER
             Assert.Equal("TIME '04:05:06.123456'",
                 mapping.GenerateSqlLiteral(new TimeOnly(4, 5, 6, 123).Add(TimeSpan.FromTicks(4560))));
             Assert.Equal("TIME '04:05:06.000123'",
@@ -100,7 +97,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             Assert.Equal("TIME '04:05:06.123'", mapping.GenerateSqlLiteral(new TimeOnly(4, 5, 6, 123)));
             Assert.Equal("TIME '04:05:06'", mapping.GenerateSqlLiteral(new TimeOnly(4, 5, 6)));
             Assert.Equal("TIME '13:05:06'", mapping.GenerateSqlLiteral(new TimeOnly(13, 5, 6)));
-#endif
         }
 
         [Fact]
