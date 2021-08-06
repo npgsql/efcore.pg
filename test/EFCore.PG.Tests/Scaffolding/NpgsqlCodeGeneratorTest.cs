@@ -1,6 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Scaffolding;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 using Xunit;
 
@@ -31,7 +35,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding
                 new ProviderCodeGeneratorDependencies(
                     Enumerable.Empty<IProviderCodeGeneratorPlugin>()));
 
-            var providerOptions = new MethodCallCodeFragment("SetProviderOption");
+            var providerOptions = new MethodCallCodeFragment(_setProviderOptionMethodInfo);
 
             var result = codeGenerator.GenerateUseProvider("Server=test;Username=test;Password=test;Database=test", providerOptions);
 
@@ -48,5 +52,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding
                 });
             Assert.Null(result.ChainedCall);
         }
+
+        private static readonly MethodInfo _setProviderOptionMethodInfo
+            = typeof(NpgsqlCodeGeneratorTest).GetRuntimeMethod(nameof(SetProviderOption), new[] { typeof(DbContextOptionsBuilder) });
+
+        public static NpgsqlDbContextOptionsBuilder SetProviderOption(DbContextOptionsBuilder optionsBuilder)
+            => throw new NotSupportedException();
     }
 }
