@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
@@ -150,6 +152,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     .HasDefaultValue();
         }
 
+        public class BlogWithStringKey
+        {
+            public string Id { get; set; }
+            public string Name { get; set; }
+        }
+
         [Fact]
         public void Insert_with_key_default_value_from_sequence()
         {
@@ -191,6 +199,105 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     .Property(e => e.Id)
                     .HasDefaultValueSql("nextval('\"MySequence\"')")
                     .Metadata.SetBeforeSaveBehavior(PropertySaveBehavior.Throw);
+            }
+        }
+
+        [ConditionalFact]
+        public void Insert_uint_to_Identity_column_using_value_converter()
+        {
+            using var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName);
+            using (var context = new BlogContextUIntToIdentityUsingValueConverter(testStore.Name))
+            {
+                context.Database.EnsureCreatedResiliently();
+
+                context.AddRange(
+                    new BlogWithUIntKey { Name = "One Unicorn" }, new BlogWithUIntKey { Name = "Two Unicorns" });
+
+                context.SaveChanges();
+            }
+
+            using (var context = new BlogContextUIntToIdentityUsingValueConverter(testStore.Name))
+            {
+                var blogs = context.UnsignedBlogs.OrderBy(e => e.Id).ToList();
+
+                Assert.Equal((uint)1, blogs[0].Id);
+                Assert.Equal((uint)2, blogs[1].Id);
+            }
+        }
+
+        public class BlogContextUIntToIdentityUsingValueConverter : ContextBase
+        {
+            public BlogContextUIntToIdentityUsingValueConverter(string databaseName)
+                : base(databaseName)
+            {
+            }
+
+            public DbSet<BlogWithUIntKey> UnsignedBlogs { get; set; }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                base.OnModelCreating(modelBuilder);
+
+                modelBuilder
+                    .Entity<BlogWithUIntKey>()
+                    .Property(e => e.Id)
+                    .HasConversion<int>();
+            }
+        }
+
+        public class BlogWithUIntKey
+        {
+            public uint Id { get; set; }
+            public string Name { get; set; }
+        }
+
+        [ConditionalFact]
+        public void Insert_string_to_Identity_column_using_value_converter()
+        {
+            using var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName);
+            using (var context = new BlogContextStringToIdentityUsingValueConverter(testStore.Name))
+            {
+                context.Database.EnsureCreatedResiliently();
+
+                context.AddRange(
+                    new BlogWithStringKey { Name = "One Unicorn" }, new BlogWithStringKey { Name = "Two Unicorns" });
+
+                context.SaveChanges();
+            }
+
+            using (var context = new BlogContextStringToIdentityUsingValueConverter(testStore.Name))
+            {
+                var blogs = context.StringyBlogs.OrderBy(e => e.Id).ToList();
+
+                Assert.Equal("1", blogs[0].Id);
+                Assert.Equal("2", blogs[1].Id);
+            }
+        }
+
+        public class BlogContextStringToIdentityUsingValueConverter : ContextBase
+        {
+            public BlogContextStringToIdentityUsingValueConverter(string databaseName)
+                : base(databaseName)
+            {
+            }
+
+            public DbSet<BlogWithStringKey> StringyBlogs { get; set; }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                base.OnModelCreating(modelBuilder);
+
+                Guid guid;
+                modelBuilder
+                    .Entity<BlogWithStringKey>()
+                    .Property(e => e.Id)
+                    .HasValueGenerator<TemporaryStringValueGenerator>()
+                    .HasConversion(
+                        v => Guid.TryParse(v, out guid)
+                            ? default
+                            : int.Parse(v),
+                        v => v.ToString())
+                    .ValueGeneratedOnAdd();
             }
         }
 
