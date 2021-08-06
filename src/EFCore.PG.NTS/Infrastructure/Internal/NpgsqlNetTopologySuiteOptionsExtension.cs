@@ -72,7 +72,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
             public override bool IsDatabaseProvider => false;
 
-            public override long GetServiceProviderHashCode() => Extension.IsGeographyDefault.GetHashCode();
+            public override int GetServiceProviderHashCode() => Extension.IsGeographyDefault.GetHashCode();
+
+            public override bool ShouldUseSameServiceProvider(DbContextOptionsExtensionInfo other)
+                => true;
 
             public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
             {

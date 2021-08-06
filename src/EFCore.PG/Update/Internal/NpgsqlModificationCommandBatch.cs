@@ -52,12 +52,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 
         protected override int GetParameterCount() => _parameterCount;
 
-        protected override bool CanAddCommand(ModificationCommand modificationCommand)
+        protected override bool CanAddCommand(IReadOnlyModificationCommand modificationCommand)
         {
             if (ModificationCommands.Count >= _maxBatchSize)
                 return false;
 
-            var newParamCount = (long)_parameterCount + (long)modificationCommand.ColumnModifications.Count;
+            var newParamCount = (long)_parameterCount + modificationCommand.ColumnModifications.Count;
             if (newParamCount > int.MaxValue)
                 return false;
 

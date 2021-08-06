@@ -16,13 +16,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 
         public override ResultSetMapping AppendInsertOperation(
             StringBuilder commandStringBuilder,
-            ModificationCommand command,
+            IReadOnlyModificationCommand command,
             int commandPosition)
             => AppendInsertOperation(commandStringBuilder, command, commandPosition, false);
 
         public virtual ResultSetMapping AppendInsertOperation(
             StringBuilder commandStringBuilder,
-            ModificationCommand command,
+            IReadOnlyModificationCommand command,
             int commandPosition,
             bool overridingSystemValue)
         {
@@ -51,7 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 
         public override ResultSetMapping AppendUpdateOperation(
             StringBuilder commandStringBuilder,
-            ModificationCommand command,
+            IReadOnlyModificationCommand command,
             int commandPosition)
         {
             Check.NotNull(commandStringBuilder, nameof(commandStringBuilder));
@@ -78,7 +78,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
         // ReSharper disable once ParameterTypeCanBeEnumerable.Local
         private void AppendReturningClause(
             StringBuilder commandStringBuilder,
-            IReadOnlyList<ColumnModification> operations)
+            IReadOnlyList<IColumnModification> operations)
         {
             commandStringBuilder
                 .AppendLine()
@@ -95,19 +95,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 
         public override void AppendBatchHeader(StringBuilder commandStringBuilder)
         {
-            Check.NotNull(commandStringBuilder, nameof(commandStringBuilder));
-
-            // TODO: Npgsql
         }
 
-        protected override void AppendIdentityWhereCondition(StringBuilder commandStringBuilder, ColumnModification columnModification)
+        protected override void AppendIdentityWhereCondition(StringBuilder commandStringBuilder, IColumnModification columnModification)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         protected override void AppendRowsAffectedWhereCondition(StringBuilder commandStringBuilder, int expectedRowsAffected)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public enum ResultsGrouping

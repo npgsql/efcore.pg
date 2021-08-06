@@ -1491,6 +1491,35 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                 @"ALTER TABLE ""People"" DROP COLUMN ""Id"";");
         }
 
+        [ConditionalFact]
+        public override async Task Drop_column_computed_and_non_computed_with_dependency()
+        {
+            if (TestEnvironment.PostgresVersion.IsUnder(12))
+            {
+                return;
+            }
+
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<int>("X");
+                        e.Property<int>("Y").HasComputedColumnSql($"{DelimitIdentifier("X")} + 1", stored: true);
+                    }),
+                builder => { },
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal("Id", Assert.Single(table.Columns).Name);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" DROP COLUMN ""Y"";",
+                //
+                @"ALTER TABLE ""People"" DROP COLUMN ""X"";");
+        }
+
         [Fact]
         public virtual async Task Drop_column_system()
         {

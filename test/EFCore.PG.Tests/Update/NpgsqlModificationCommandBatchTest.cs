@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Update;
+using Microsoft.EntityFrameworkCore.Update.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
@@ -50,14 +51,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
 
             Assert.True(
                 batch.AddCommand(
-                    new ModificationCommand("T1", null, new ParameterNameGenerator().GenerateNext, false, null, null)));
+                    CreateModificationCommand("T1", null, false)));
             Assert.False(
                 batch.AddCommand(
-                    new ModificationCommand("T1", null, new ParameterNameGenerator().GenerateNext, false, null, null)));
+                    CreateModificationCommand("T1", null, false)));
         }
 
         private class FakeDbContext : DbContext
         {
+        }
+
+        private static IModificationCommand CreateModificationCommand(
+            string name,
+            string schema,
+            bool sensitiveLoggingEnabled)
+        {
+            var modificationCommandParameters = new ModificationCommandParameters(
+                name, schema, sensitiveLoggingEnabled);
+
+            var modificationCommand = new ModificationCommandFactory().CreateModificationCommand(
+                modificationCommandParameters);
+
+            return modificationCommand;
         }
     }
 }

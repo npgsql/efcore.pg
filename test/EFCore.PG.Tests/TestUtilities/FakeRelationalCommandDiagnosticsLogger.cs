@@ -19,7 +19,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             DbContext? context,
             Guid commandId,
             Guid connectionId,
-            DateTimeOffset startTime)
+            DateTimeOffset startTime,
+            CommandSource commandSource)
             => default;
 
         public DbCommand CommandCreated(
@@ -30,6 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid commandId,
             Guid connectionId,
             DateTimeOffset startTime,
+            CommandSource commandSource,
             TimeSpan duration)
             => command;
 
@@ -39,7 +41,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             DbContext? context,
             Guid commandId,
             Guid connectionId,
-            DateTimeOffset startTime)
+            DateTimeOffset startTime,
+            CommandSource commandSource)
             => default;
 
         public InterceptionResult<object> CommandScalarExecuting(
@@ -48,26 +51,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             DbContext? context,
             Guid commandId,
             Guid connectionId,
-            DateTimeOffset startTime)
+            DateTimeOffset startTime,
+            CommandSource commandSource)
             => default;
 
-        /// <summary>
-        ///     Logs for the <see cref="RelationalEventId.CommandExecuting" /> event.
-        /// </summary>
-        /// <param name="connection"> The connection. </param>
-        /// <param name="command"> The database command object. </param>
-        /// <param name="context"> The <see cref="DbContext" /> currently being used, to null if not known. </param>
-        /// <param name="commandId"> The correlation ID associated with the given <see cref="System.Data.Common.DbCommand" />. </param>
-        /// <param name="connectionId"> The correlation ID associated with the <see cref="System.Data.Common.DbConnection" /> being used. </param>
-        /// <param name="startTime"> The time that execution began. </param>
-        /// <returns> An intercepted result. </returns>
         public InterceptionResult<int> CommandNonQueryExecuting(
             IRelationalConnection connection,
             DbCommand command,
             DbContext? context,
             Guid commandId,
             Guid connectionId,
-            DateTimeOffset startTime)
+            DateTimeOffset startTime,
+            CommandSource commandSource)
             => default;
 
         public ValueTask<InterceptionResult<DbDataReader>> CommandReaderExecutingAsync(
@@ -77,6 +72,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid commandId,
             Guid connectionId,
             DateTimeOffset startTime,
+            CommandSource commandSource,
             CancellationToken cancellationToken = default)
             => default;
 
@@ -87,6 +83,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid commandId,
             Guid connectionId,
             DateTimeOffset startTime,
+            CommandSource commandSource,
             CancellationToken cancellationToken = default)
             => default;
 
@@ -97,6 +94,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid commandId,
             Guid connectionId,
             DateTimeOffset startTime,
+            CommandSource commandSource,
             CancellationToken cancellationToken = default)
             => default;
 
@@ -108,6 +106,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             DbDataReader methodResult,
             DateTimeOffset startTime,
+            CommandSource commandSource,
             TimeSpan duration)
             => methodResult;
 
@@ -119,6 +118,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             object? methodResult,
             DateTimeOffset startTime,
+            CommandSource commandSource,
             TimeSpan duration)
             => methodResult;
 
@@ -130,6 +130,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             int methodResult,
             DateTimeOffset startTime,
+            CommandSource commandSource,
             TimeSpan duration)
             => methodResult;
 
@@ -141,6 +142,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             DbDataReader methodResult,
             DateTimeOffset startTime,
+            CommandSource commandSource,
             TimeSpan duration,
             CancellationToken cancellationToken = default)
             => new(methodResult);
@@ -153,6 +155,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             object? methodResult,
             DateTimeOffset startTime,
+            CommandSource commandSource,
             TimeSpan duration,
             CancellationToken cancellationToken = default)
             => new(methodResult);
@@ -165,6 +168,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             int methodResult,
             DateTimeOffset startTime,
+            CommandSource commandSource,
             TimeSpan duration,
             CancellationToken cancellationToken = default)
             => new(methodResult);
@@ -178,6 +182,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             Exception exception,
             DateTimeOffset startTime,
+            CommandSource commandSource,
             TimeSpan duration)
         {
         }
@@ -191,6 +196,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             Exception exception,
             DateTimeOffset startTime,
+            CommandSource commandSource,
             TimeSpan duration,
             CancellationToken cancellationToken = default)
             => Task.CompletedTask;

@@ -242,7 +242,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
         private sealed class ExtensionInfo : RelationalExtensionInfo
         {
-            private long? _serviceProviderHash;
+            private int? _serviceProviderHash;
             private string? _logFragment;
 
             public ExtensionInfo(IDbContextOptionsExtension extension)
@@ -324,26 +324,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
                 }
             }
 
-            public override long GetServiceProviderHashCode()
+            public override int GetServiceProviderHashCode()
             {
-                unchecked
+                if (_serviceProviderHash == null)
                 {
-                    if (_serviceProviderHash == null)
+                    var hashCode = new HashCode();
+
+                    foreach (var userRangeDefinition in Extension._userRangeDefinitions)
                     {
-                        _serviceProviderHash = Extension._userRangeDefinitions.Aggregate(
-                            base.GetServiceProviderHashCode(),
-                            (h, ud) => (h * 397) ^ ud.GetHashCode());
-                        _serviceProviderHash = (_serviceProviderHash * 397) ^ Extension.AdminDatabase?.GetHashCode() ?? 0L;
-                        _serviceProviderHash = (_serviceProviderHash * 397) ^ (Extension.PostgresVersion?.GetHashCode() ?? 0L);
-                        _serviceProviderHash = (_serviceProviderHash * 397) ^ Extension.UseRedshift.GetHashCode();
-                        _serviceProviderHash = (_serviceProviderHash * 397) ^ (Extension.ProvideClientCertificatesCallback?.GetHashCode() ?? 0L);
-                        _serviceProviderHash = (_serviceProviderHash * 397) ^ (Extension.RemoteCertificateValidationCallback?.GetHashCode() ?? 0L);
-                        _serviceProviderHash = (_serviceProviderHash * 397) ^ (Extension.ProvidePasswordCallback?.GetHashCode() ?? 0L);
-                        _serviceProviderHash = (_serviceProviderHash * 397) ^ Extension.ReverseNullOrdering.GetHashCode();
+                        hashCode.Add(userRangeDefinition);
                     }
 
-                    return _serviceProviderHash.Value;
+                    hashCode.Add(Extension.AdminDatabase);
+                    hashCode.Add(Extension.PostgresVersion);
+                    hashCode.Add(Extension.UseRedshift);
+                    hashCode.Add(Extension.ProvideClientCertificatesCallback);
+                    hashCode.Add(Extension.RemoteCertificateValidationCallback);
+                    hashCode.Add(Extension.ProvidePasswordCallback);
+                    hashCode.Add(Extension.ReverseNullOrdering);
+
+                    _serviceProviderHash = hashCode.ToHashCode();
                 }
+
+                return _serviceProviderHash.Value;
             }
 
             /// <inheritdoc />
