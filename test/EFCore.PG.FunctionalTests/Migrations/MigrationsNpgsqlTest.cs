@@ -1004,6 +1004,51 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET DEFAULT '';");
         public override Task Alter_column_change_computed_type()
             => Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_column_change_computed());
 
+        [ConditionalTheory]
+        [InlineData(true)]
+        [InlineData(false)]
+        [InlineData(null)]
+        public virtual async Task Alter_column_make_non_computed(bool? stored)
+        {
+            if (TestEnvironment.PostgresVersion.IsUnder(12))
+            {
+                // await Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_column_make_non_computed());
+                return;
+            }
+
+            if (stored != true)
+            {
+                // Non-stored generated columns aren't yet supported (PG12)
+                // await Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_column_make_non_computed(stored));
+                return;
+            }
+
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<int>("X");
+                        e.Property<int>("Y");
+                    }),
+                builder => builder.Entity("People").Property<int>("Sum")
+                    .HasComputedColumnSql($"{DelimitIdentifier("X")} + {DelimitIdentifier("Y")}", stored: true),
+                builder => builder.Entity("People").Property<int>("Sum"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var sumColumn = Assert.Single(table.Columns, c => c.Name == "Sum");
+                    Assert.Null(sumColumn.ComputedColumnSql);
+                    Assert.NotEqual(true, sumColumn.IsStored);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" DROP COLUMN ""Sum"";",
+                //
+                @"ALTER TABLE ""People"" ADD ""Sum"" integer NOT NULL;");
+
+        }
+
         public override async Task Alter_column_add_comment()
         {
             await base.Alter_column_add_comment();
@@ -1471,6 +1516,63 @@ DROP SEQUENCE ""People_Id_old_seq"";");
 
             AssertSql(
                 @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""C"";");
+        }
+
+        [Fact]
+        public virtual async Task Alter_column_generated_tsvector_change_config()
+        {
+            if (TestEnvironment.PostgresVersion.IsUnder(12))
+                return;
+
+            await Test(
+                builder => builder.Entity(
+                    "Blogs", e =>
+                    {
+                        e.Property<string>("Title").IsRequired();
+                        e.Property<string>("Description");
+                    }),
+                builder => builder.Entity("Blogs").Property<NpgsqlTsVector>("TsVector")
+                    .IsGeneratedTsVectorColumn("german", "Title", "Description"),
+                builder => builder.Entity("Blogs").Property<NpgsqlTsVector>("TsVector")
+                    .IsGeneratedTsVectorColumn("english", "Title", "Description"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "TsVector");
+                    Assert.Equal("tsvector", column.StoreType);
+                    Assert.Equal(@"to_tsvector('english'::regconfig, ((""Title"" || ' '::text) || COALESCE(""Description"", ''::text)))", column.ComputedColumnSql);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""Blogs"" DROP COLUMN ""TsVector"";",
+                //
+                @"ALTER TABLE ""Blogs"" ADD ""TsVector"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""Title"" || ' ' || coalesce(""Description"", ''))) STORED;");
+        }
+
+        [Fact]
+        public virtual async Task Alter_column_computed_set_collation()
+        {
+            if (TestEnvironment.PostgresVersion.IsUnder(12))
+                return;
+
+            await Test(
+                builder => builder.Entity("People", b =>
+                {
+                    b.Property<string>("Name");
+                    b.Property<string>("Name2").HasComputedColumnSql(@"""Name""", stored: true);
+                }),
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name2")
+                    .UseCollation(NonDefaultCollation),
+                model =>
+                {
+                    var computedColumn = Assert.Single(Assert.Single(model.Tables).Columns, c => c.Name == "Name2");
+                    Assert.Equal(@"""Name""", computedColumn.ComputedColumnSql);
+                    Assert.Equal(NonDefaultCollation, computedColumn.Collation);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Name2"" TYPE text COLLATE ""POSIX"";");
         }
 
         public override async Task Drop_column()

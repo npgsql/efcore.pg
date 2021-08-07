@@ -382,7 +382,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             var column = model?.GetRelationalModel().FindTable(operation.Table, operation.Schema)
                 ?.Columns.FirstOrDefault(c => c.Name == operation.Name);
 
-            if (operation.ComputedColumnSql != null)
+            ApplyTsVectorColumnSql(operation, model, operation.Schema, operation.Table);
+            ApplyTsVectorColumnSql(operation.OldColumn, model, operation.OldColumn.Schema, operation.OldColumn.Table);
+
+            if (operation.ComputedColumnSql != operation.OldColumn.ComputedColumnSql
+                || operation.IsStored != operation.OldColumn.IsStored)
             {
                 // TODO: The following will fail if the column being altered is part of an index.
                 // SqlServer recreates indexes, but wait to see if PostgreSQL will introduce a proper ALTER TABLE ALTER COLUMN
@@ -407,14 +411,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     ClrType = operation.ClrType,
                     ColumnType = operation.ColumnType,
                     IsUnicode = operation.IsUnicode,
+                    IsFixedLength = operation.IsFixedLength,
                     MaxLength = operation.MaxLength,
+                    Precision = operation.Precision,
+                    Scale = operation.Scale,
                     IsRowVersion = operation.IsRowVersion,
                     IsNullable = operation.IsNullable,
                     DefaultValue = operation.DefaultValue,
                     DefaultValueSql = operation.DefaultValueSql,
                     ComputedColumnSql = operation.ComputedColumnSql,
-                    IsFixedLength = operation.IsFixedLength,
-                    IsStored = operation.IsStored
+                    IsStored = operation.IsStored,
+                    Comment = operation.Comment,
+                    Collation = operation.Collation
                 };
                 addColumnOperation.AddAnnotations(operation.GetAnnotations());
                 Generate(addColumnOperation, model, builder);
@@ -1384,17 +1392,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 }
             }
 
-            if (operation[NpgsqlAnnotationNames.TsVectorConfig] is string tsVectorConfig)
-            {
-                var tsVectorIncludedColumns = operation[NpgsqlAnnotationNames.TsVectorProperties] as string[];
-                if (tsVectorIncludedColumns == null)
-                    throw new InvalidOperationException(
-                        $"{nameof(NpgsqlAnnotationNames.TsVectorConfig)} is present in a migration but " +
-                        $"{nameof(NpgsqlAnnotationNames.TsVectorProperties)} is absent or empty");
-
-                operation.ComputedColumnSql = ColumnsToTsVector(tsVectorIncludedColumns, tsVectorConfig, model, schema, table);
-                operation.IsStored = true;
-            }
+            ApplyTsVectorColumnSql(operation, model, schema, table);
 
             if (operation.ComputedColumnSql != null)
             {
@@ -1428,6 +1426,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 builder.Append(operation.IsNullable ? " NULL" : " NOT NULL");
 
                 DefaultValue(operation.DefaultValue, operation.DefaultValueSql, columnType, builder);
+            }
+        }
+
+        /// <summary>
+        /// Checks for a <see cref="NpgsqlAnnotationNames.TsVectorConfig"/> annotation on the given column, and if found, assigns
+        /// the appropriate SQL to <see cref="ColumnOperation.ComputedColumnSql"/>.
+        /// </summary>
+        protected virtual void ApplyTsVectorColumnSql(ColumnOperation column, IModel? model, string? schema, string table)
+        {
+            if (column[NpgsqlAnnotationNames.TsVectorConfig] is string tsVectorConfig)
+            {
+                var tsVectorIncludedColumns = column[NpgsqlAnnotationNames.TsVectorProperties] as string[];
+                if (tsVectorIncludedColumns == null)
+                    throw new InvalidOperationException(
+                        $"{nameof(NpgsqlAnnotationNames.TsVectorConfig)} is present in a migration but " +
+                        $"{nameof(NpgsqlAnnotationNames.TsVectorProperties)} is absent or empty");
+
+                column.ComputedColumnSql = ColumnsToTsVector(tsVectorIncludedColumns, tsVectorConfig, model, schema, table);
+                column.IsStored = true;
+
+                column.RemoveAnnotation(NpgsqlAnnotationNames.TsVectorConfig);
             }
         }
 
@@ -1743,6 +1762,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         private string ColumnsToTsVector(IEnumerable<string> columns, string tsVectorConfig, IModel? model, string? schema, string table)
         {
+            return new StringBuilder()
+                .Append("to_tsvector(")
+                .Append(_stringTypeMapping.GenerateSqlLiteral(tsVectorConfig))
+                .Append(", ")
+                .Append(string.Join(" || ' ' || ", columns.Select(GetTsVectorColumnExpression)))
+                .Append(")")
+                .ToString();
+
             string GetTsVectorColumnExpression(string columnName)
             {
                 var delimitedColumnName = DelimitIdentifier(columnName);
@@ -1752,14 +1779,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     ? $"coalesce({delimitedColumnName}, '')"
                     : delimitedColumnName;
             }
-
-            return new StringBuilder()
-                .Append("to_tsvector(")
-                .Append(_stringTypeMapping.GenerateSqlLiteral(tsVectorConfig))
-                .Append(", ")
-                .Append(string.Join(" || ' ' || ", columns.Select(GetTsVectorColumnExpression)))
-                .Append(")")
-                .ToString();
         }
 
         private static bool TryParseSchema(string identifier, out string name, out string? schema)
