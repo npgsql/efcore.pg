@@ -71,7 +71,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
         protected override void Consume(RelationalDataReader reader)
         {
             var npgsqlReader = (NpgsqlDataReader)reader.DbDataReader;
+
+#pragma warning disable 618
             Debug.Assert(npgsqlReader.Statements.Count == ModificationCommands.Count, $"Reader has {npgsqlReader.Statements.Count} statements, expected {ModificationCommands.Count}");
+#pragma warning restore 618
+
             var commandIndex = 0;
 
             try
@@ -89,6 +93,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
                     // make sure they executed
                     for (; commandIndex < nextPropagating; commandIndex++)
                     {
+#pragma warning disable 618
                         if (npgsqlReader.Statements[commandIndex].Rows == 0)
                         {
                             throw new DbUpdateConcurrencyException(
@@ -96,6 +101,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
                                 ModificationCommands[commandIndex].Entries
                             );
                         }
+#pragma warning restore 618
                     }
 
                     if (nextPropagating == ModificationCommands.Count)
@@ -139,7 +145,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
             CancellationToken cancellationToken = default)
         {
             var npgsqlReader = (NpgsqlDataReader)reader.DbDataReader;
+
+#pragma warning disable 618
             Debug.Assert(npgsqlReader.Statements.Count == ModificationCommands.Count, $"Reader has {npgsqlReader.Statements.Count} statements, expected {ModificationCommands.Count}");
+#pragma warning restore 618
+
             var commandIndex = 0;
 
             try
@@ -158,6 +168,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
                     // make sure they executed
                     for (; commandIndex < nextPropagating; commandIndex++)
                     {
+#pragma warning disable 618
                         if (npgsqlReader.Statements[commandIndex].Rows == 0)
                         {
                             throw new DbUpdateConcurrencyException(
@@ -165,6 +176,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
                                 ModificationCommands[commandIndex].Entries
                             );
                         }
+#pragma warning restore 618
                     }
 
                     if (nextPropagating == ModificationCommands.Count)
