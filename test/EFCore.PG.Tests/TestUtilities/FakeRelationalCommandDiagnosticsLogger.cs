@@ -31,8 +31,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid commandId,
             Guid connectionId,
             DateTimeOffset startTime,
-            CommandSource commandSource,
-            TimeSpan duration)
+            TimeSpan duration,
+            CommandSource commandSource)
             => command;
 
         public InterceptionResult<DbDataReader> CommandReaderExecuting(
@@ -106,8 +106,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             DbDataReader methodResult,
             DateTimeOffset startTime,
-            CommandSource commandSource,
-            TimeSpan duration)
+            TimeSpan duration,
+            CommandSource commandSource)
             => methodResult;
 
         public object? CommandScalarExecuted(
@@ -118,8 +118,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             object? methodResult,
             DateTimeOffset startTime,
-            CommandSource commandSource,
-            TimeSpan duration)
+            TimeSpan duration,
+            CommandSource commandSource)
             => methodResult;
 
         public int CommandNonQueryExecuted(
@@ -130,8 +130,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             int methodResult,
             DateTimeOffset startTime,
-            CommandSource commandSource,
-            TimeSpan duration)
+            TimeSpan duration,
+            CommandSource commandSource)
             => methodResult;
 
         public ValueTask<DbDataReader> CommandReaderExecutedAsync(
@@ -142,8 +142,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             DbDataReader methodResult,
             DateTimeOffset startTime,
-            CommandSource commandSource,
             TimeSpan duration,
+            CommandSource commandSource,
             CancellationToken cancellationToken = default)
             => new(methodResult);
 
@@ -155,8 +155,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             object? methodResult,
             DateTimeOffset startTime,
-            CommandSource commandSource,
             TimeSpan duration,
+            CommandSource commandSource,
             CancellationToken cancellationToken = default)
             => new(methodResult);
 
@@ -168,8 +168,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             int methodResult,
             DateTimeOffset startTime,
-            CommandSource commandSource,
             TimeSpan duration,
+            CommandSource commandSource,
             CancellationToken cancellationToken = default)
             => new(methodResult);
 
@@ -182,8 +182,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             Exception exception,
             DateTimeOffset startTime,
-            CommandSource commandSource,
-            TimeSpan duration)
+            TimeSpan duration,
+            CommandSource commandSource)
         {
         }
 
@@ -196,8 +196,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Guid connectionId,
             Exception exception,
             DateTimeOffset startTime,
-            CommandSource commandSource,
             TimeSpan duration,
+            CommandSource commandSource,
             CancellationToken cancellationToken = default)
             => Task.CompletedTask;
 

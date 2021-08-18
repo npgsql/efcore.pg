@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Scaffolding;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 {
@@ -9,6 +12,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
     /// </summary>
     public class NpgsqlCodeGenerator : ProviderCodeGenerator
     {
+        private static readonly MethodInfo _useNpgsqlMethodInfo
+            = typeof(NpgsqlDbContextOptionsBuilderExtensions).GetRequiredRuntimeMethod(
+                nameof(NpgsqlDbContextOptionsBuilderExtensions.UseNpgsql),
+                typeof(DbContextOptionsBuilder),
+                typeof(string),
+                typeof(Action<NpgsqlDbContextOptionsBuilder>));
+
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlCodeGenerator"/> class.
         /// </summary>
@@ -20,7 +30,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
             string connectionString,
             MethodCallCodeFragment? providerOptions)
             => new(
-                nameof(NpgsqlDbContextOptionsBuilderExtensions.UseNpgsql),
+                _useNpgsqlMethodInfo,
                 providerOptions == null
                     ? new object[] { connectionString }
                     : new object[] { connectionString, new NestedClosureCodeFragment("x", providerOptions) });

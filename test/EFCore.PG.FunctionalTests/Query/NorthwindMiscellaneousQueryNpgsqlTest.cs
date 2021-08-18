@@ -266,7 +266,7 @@ WHERE c.""Address"" ILIKE ALL (@__collection_0)");
                 @"SELECT c.""CustomerID"", c0.""ContactName"", c0.""CustomerID""
 FROM ""Customers"" AS c
 LEFT JOIN LATERAL (SELECT * FROM ""Customers"") AS c0 ON TRUE
-ORDER BY c.""CustomerID"" NULLS FIRST, c0.""CustomerID"" NULLS FIRST");
+ORDER BY c.""CustomerID"" NULLS FIRST");
         }
 
         protected override void ClearLog()

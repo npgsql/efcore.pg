@@ -28,10 +28,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="name">The name of the sequence.</param>
         /// <param name="schema">The schema of the sequence.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static ModelBuilder UseHiLo(
-            this ModelBuilder modelBuilder,
-            string? name = null,
-            string? schema = null)
+        public static ModelBuilder UseHiLo(this ModelBuilder modelBuilder, string? name = null, string? schema = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NullButNotEmpty(name, nameof(name));
@@ -145,8 +142,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="modelBuilder">The model builder.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static ModelBuilder UseIdentityAlwaysColumns(
-            this ModelBuilder modelBuilder)
+        public static ModelBuilder UseIdentityAlwaysColumns(this ModelBuilder modelBuilder)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
 
@@ -172,8 +168,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="modelBuilder">The model builder.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static ModelBuilder UseIdentityByDefaultColumns(
-            this ModelBuilder modelBuilder)
+        public static ModelBuilder UseIdentityByDefaultColumns(this ModelBuilder modelBuilder)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
 
@@ -199,8 +194,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="modelBuilder">The model builder.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static ModelBuilder UseIdentityColumns(
-            this ModelBuilder modelBuilder)
+        public static ModelBuilder UseIdentityColumns(this ModelBuilder modelBuilder)
             => modelBuilder.UseIdentityByDefaultColumns();
 
         /// <summary>

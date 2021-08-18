@@ -58,7 +58,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
     CONSTRAINT ""PK_People"" PRIMARY KEY (""CustomId""),
     CONSTRAINT ""AK_People_SSN"" UNIQUE (""SSN""),
     CONSTRAINT ""CK_People_EmployerId"" CHECK (""EmployerId"" > 0),
-    CONSTRAINT ""FK_People_Employers_EmployerId"" FOREIGN KEY (""EmployerId"") REFERENCES ""Employers"" (""Id"") ON DELETE RESTRICT
+    CONSTRAINT ""FK_People_Employers_EmployerId"" FOREIGN KEY (""EmployerId"") REFERENCES ""Employers"" (""Id"")
 );
 COMMENT ON TABLE dbo2.""People"" IS 'Table comment';
 COMMENT ON COLUMN dbo2.""People"".""EmployerId"" IS 'Employer ID comment';");
@@ -1004,22 +1004,11 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET DEFAULT '';");
         public override Task Alter_column_change_computed_type()
             => Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_column_change_computed());
 
-        [ConditionalTheory]
-        [InlineData(true)]
-        [InlineData(false)]
-        [InlineData(null)]
-        public virtual async Task Alter_column_make_non_computed(bool? stored)
+        public override async Task Alter_column_make_non_computed()
         {
             if (TestEnvironment.PostgresVersion.IsUnder(12))
             {
-                // await Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_column_make_non_computed());
-                return;
-            }
-
-            if (stored != true)
-            {
-                // Non-stored generated columns aren't yet supported (PG12)
-                // await Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_column_make_non_computed(stored));
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_column_make_non_computed());
                 return;
             }
 
@@ -1032,7 +1021,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET DEFAULT '';");
                         e.Property<int>("Y");
                     }),
                 builder => builder.Entity("People").Property<int>("Sum")
-                    .HasComputedColumnSql($"{DelimitIdentifier("X")} + {DelimitIdentifier("Y")}", stored: true),
+                    .HasComputedColumnSql(@"""X"" + ""Y""", stored: true),
                 builder => builder.Entity("People").Property<int>("Sum"),
                 model =>
                 {
@@ -1046,7 +1035,6 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET DEFAULT '';");
                 @"ALTER TABLE ""People"" DROP COLUMN ""Sum"";",
                 //
                 @"ALTER TABLE ""People"" ADD ""Sum"" integer NOT NULL;");
-
         }
 
         public override async Task Alter_column_add_comment()
@@ -1055,6 +1043,35 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET DEFAULT '';");
 
             AssertSql(
                 @"COMMENT ON COLUMN ""People"".""Id"" IS 'Some comment';");
+        }
+
+        public override async Task Alter_computed_column_add_comment()
+        {
+            if (TestEnvironment.PostgresVersion.IsUnder(12))
+            {
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_computed_column_add_comment());
+                return;
+            }
+
+            await Test(
+                builder => builder.Entity(
+                    "People", x =>
+                    {
+                        x.Property<int>("Id");
+                        x.Property<int>("SomeColumn").HasComputedColumnSql("42", stored: true);
+                    }),
+                builder => { },
+                builder => builder.Entity("People").Property<int>("SomeColumn").HasComment("Some comment"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns.Where(c => c.Name == "SomeColumn"));
+                    if (AssertComments)
+                        Assert.Equal("Some comment", column.Comment);
+                });
+
+            AssertSql(
+                @"COMMENT ON COLUMN ""People"".""SomeColumn"" IS 'Some comment';");
         }
 
         public override async Task Alter_column_change_comment()
@@ -2065,7 +2082,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
             await base.Add_foreign_key_with_name();
 
             AssertSql(
-                @"ALTER TABLE ""Orders"" ADD CONSTRAINT ""FK_Foo"" FOREIGN KEY (""CustomerId"") REFERENCES ""Customers"" (""Id"") ON DELETE RESTRICT;");
+                @"ALTER TABLE ""Orders"" ADD CONSTRAINT ""FK_Foo"" FOREIGN KEY (""CustomerId"") REFERENCES ""Customers"" (""Id"");");
         }
 
         public override async Task Drop_foreign_key()
