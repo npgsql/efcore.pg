@@ -188,6 +188,42 @@ FROM ""Orders"" AS o
 WHERE make_timestamp(date_part('year', o.""OrderDate"")::INT, date_part('month', o.""OrderDate"")::INT, 1, 0, 0, 0::double precision) = TIMESTAMP '1996-09-11 00:00:00'");
         }
 
+        public override Task Where_collection_navigation_ToList_Contains(bool async)
+        {
+            var order = new Order { OrderID = 10248 };
+
+            return AssertQuery(
+                async,
+                ss => ss.Set<Customer>()
+                    .Select(c => c.Orders.OrderBy(o => o.OrderID).ToList())
+                    .Where(e => e.Contains(order)),
+                entryCount: 5);
+        }
+
+        public override Task Where_collection_navigation_ToArray_Contains(bool async)
+        {
+            var order = new Order { OrderID = 10248 };
+
+            return AssertQuery(
+                async,
+                ss => ss.Set<Customer>()
+                    .Select(c => c.Orders.AsEnumerable().OrderBy(o => o.OrderID).ToArray())
+                    .Where(e => e.Contains(order)),
+                entryCount: 5);
+        }
+
+        public override Task Where_collection_navigation_AsEnumerable_Contains(bool async)
+        {
+            var order = new Order { OrderID = 10248 };
+
+            return AssertQuery(
+                async,
+                ss => ss.Set<Customer>()
+                    .Select(c => c.Orders.OrderBy(o => o.OrderID).AsEnumerable())
+                    .Where(e => e.Contains(order)),
+                entryCount: 5);
+        }
+
         private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
