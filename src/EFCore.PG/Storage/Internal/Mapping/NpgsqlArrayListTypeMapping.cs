@@ -165,20 +165,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return hash.ToHashCode();
             }
 
-            private static List<TElem>? Snapshot(List<TElem>? source, ValueComparer<TElem> elementComparer)
+            private static List<TElem> Snapshot(List<TElem> source, ValueComparer<TElem> elementComparer)
             {
-                if (source is null)
-                {
-                    return null;
-                }
-
                 var snapshot = new List<TElem>(source.Count);
 
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
                 foreach (var e in source)
                 {
-                    snapshot.Add(elementComparer.Snapshot(e)!); // TODO: https://github.com/dotnet/efcore/pull/24410
+                    snapshot.Add(e is null ? default! : elementComparer.Snapshot(e));
                 }
 
                 return snapshot;
@@ -250,13 +245,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return hash.ToHashCode();
             }
 
-            private static List<TElem?>? Snapshot(List<TElem?>? source, ValueComparer<TElem> elementComparer)
+            private static List<TElem?> Snapshot(List<TElem?> source, ValueComparer<TElem> elementComparer)
             {
-                if (source == null)
-                {
-                    return null;
-                }
-
                 var snapshot = new List<TElem?>(source.Count);
 
                 // Note: the following currently boxes every element access because ValueComparer isn't really

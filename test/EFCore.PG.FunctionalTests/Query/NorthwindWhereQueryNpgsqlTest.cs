@@ -188,6 +188,10 @@ FROM ""Orders"" AS o
 WHERE make_timestamp(date_part('year', o.""OrderDate"")::INT, date_part('month', o.""OrderDate"")::INT, 1, 0, 0, 0::double precision) = TIMESTAMP '1996-09-11 00:00:00'");
         }
 
+        [ConditionalTheory(Skip = "#873")]
+        public override Task Where_datetimeoffset_utcnow(bool async)
+            => base.Where_datetimeoffset_utcnow(async);
+
         public override Task Where_collection_navigation_ToList_Contains(bool async)
         {
             var order = new Order { OrderID = 10248 };

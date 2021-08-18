@@ -28,8 +28,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             : base(dependencies)
         {
             _typeMappingSource = dependencies.TypeMappingSource;
-            _boolTypeMapping = _typeMappingSource.FindMapping(typeof(bool))!;
-            _doubleTypeMapping = _typeMappingSource.FindMapping(typeof(double))!;
+            _boolTypeMapping = _typeMappingSource.FindMapping(typeof(bool), dependencies.Model)!;
+            _doubleTypeMapping = _typeMappingSource.FindMapping(typeof(double), dependencies.Model)!;
         }
 
         #region Expression factory methods
@@ -71,7 +71,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             // PostgreSQL AT TIME ZONE flips the given type from timestamptz to timestamp and vice versa
             // See https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT
-            typeMapping ??= FlipTimestampTypeMapping(timestamp.TypeMapping ?? _typeMappingSource.FindMapping(timestamp.Type)!);
+            typeMapping ??= FlipTimestampTypeMapping(
+                timestamp.TypeMapping ?? _typeMappingSource.FindMapping(timestamp.Type, Dependencies.Model)!);
 
             return new PostgresBinaryExpression(
                 PostgresExpressionType.AtTimeZone,
@@ -354,7 +355,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             var inferredTypeMapping = ExpressionExtensions.InferTypeMapping(
                                           postgresRegexMatchExpression.Match, postgresRegexMatchExpression.Pattern)
-                                      ?? _typeMappingSource.FindMapping(postgresRegexMatchExpression.Match.Type);
+                                      ?? _typeMappingSource.FindMapping(postgresRegexMatchExpression.Match.Type, Dependencies.Model);
 
             return new PostgresRegexMatchExpression(
                 ApplyTypeMapping(postgresRegexMatchExpression.Match, inferredTypeMapping),
@@ -386,7 +387,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 (itemExpression is SqlUnaryExpression { OperatorType: ExpressionType.Convert } unary ? unary.Operand.TypeMapping : null) ??
                 // If we couldn't find a type mapping on the item, try inferring it from the array
                 arrayMapping?.ElementMapping ??
-                _typeMappingSource.FindMapping(itemExpression.Type);
+                _typeMappingSource.FindMapping(itemExpression.Type, Dependencies.Model);
 
             if (itemMapping is null)
             {
@@ -411,8 +412,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                     // Note that we provide both the array CLR type *and* an array store type constructed from the element's store type.
                     // If we use only the array CLR type, byte[] will yield bytea which we don't want.
                     arrayMapping = arrayExpression.Type == typeof(object[]) || arrayExpression.Type == typeof(List<object>)
-                        ? (NpgsqlArrayTypeMapping?) _typeMappingSource.FindMapping(itemMapping.StoreType + "[]")
-                        : (NpgsqlArrayTypeMapping?) _typeMappingSource.FindMapping(arrayExpression.Type,
+                        ? (NpgsqlArrayTypeMapping?)_typeMappingSource.FindMapping(itemMapping.StoreType + "[]")
+                        : (NpgsqlArrayTypeMapping?)_typeMappingSource.FindMapping(
+                            arrayExpression.Type,
                             itemMapping.StoreType + "[]");
                 }
             }
@@ -435,7 +437,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 // If the array has a type mapping (i.e. column), prefer that just like we prefer column mappings in general
                 postgresArrayIndexExpression.Array.TypeMapping is NpgsqlArrayTypeMapping arrayMapping
                     ? arrayMapping.ElementMapping
-                    : typeMapping ?? _typeMappingSource.FindMapping(postgresArrayIndexExpression.Type));
+                    : typeMapping ?? _typeMappingSource.FindMapping(postgresArrayIndexExpression.Type, Dependencies.Model));
 
         private SqlExpression ApplyTypeMappingOnILike(PostgresILikeExpression ilikeExpression)
         {
@@ -445,7 +447,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                                           : ExpressionExtensions.InferTypeMapping(
                                               ilikeExpression.Match, ilikeExpression.Pattern,
                                               ilikeExpression.EscapeChar))
-                                      ?? _typeMappingSource.FindMapping(ilikeExpression.Match.Type);
+                                      ?? _typeMappingSource.FindMapping(ilikeExpression.Match.Type, Dependencies.Model);
 
             return new PostgresILikeExpression(
                 ApplyTypeMapping(ilikeExpression.Match, inferredTypeMapping),

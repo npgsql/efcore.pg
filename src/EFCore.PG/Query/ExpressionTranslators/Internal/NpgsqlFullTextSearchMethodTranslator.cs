@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -27,7 +28,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         private readonly IRelationalTypeMappingSource _typeMappingSource;
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        private readonly RelationalTypeMapping _boolMapping;
+        private readonly IModel _model;
         private readonly RelationalTypeMapping _tsQueryMapping;
         private readonly RelationalTypeMapping _tsVectorMapping;
         private readonly RelationalTypeMapping _regconfigMapping;
@@ -35,11 +36,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         public NpgsqlFullTextSearchMethodTranslator(
             IRelationalTypeMappingSource typeMappingSource,
-            NpgsqlSqlExpressionFactory sqlExpressionFactory)
+            NpgsqlSqlExpressionFactory sqlExpressionFactory,
+            IModel model)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
-            _boolMapping = typeMappingSource.FindMapping(typeof(bool))!;
+            _model = model;
             _tsQueryMapping = typeMappingSource.FindMapping("tsquery")!;
             _tsVectorMapping = typeMappingSource.FindMapping("tsvector")!;
             _regconfigMapping = typeMappingSource.FindMapping("regconfig")!;
@@ -83,8 +85,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             if (method.DeclaringType == typeof(NpgsqlFullTextSearchLinqExtensions))
             {
-                if (method.Name == nameof(NpgsqlFullTextSearchLinqExtensions.Rank) ||
-                    method.Name == nameof(NpgsqlFullTextSearchLinqExtensions.RankCoverDensity))
+                if (method.Name is
+                    nameof(NpgsqlFullTextSearchLinqExtensions.Rank) or nameof(NpgsqlFullTextSearchLinqExtensions.RankCoverDensity))
                 {
                     var rankFunctionName = method.Name == nameof(NpgsqlFullTextSearchLinqExtensions.Rank) ? "ts_rank" : "ts_rank_cd";
 
@@ -96,7 +98,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[2],
                             typeof(float),
-                            _typeMappingSource.FindMapping(typeof(float))),
+                            _typeMappingSource.FindMapping(typeof(float), _model)),
 
                         3 => _sqlExpressionFactory.Function(
                             rankFunctionName,
@@ -109,7 +111,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[3],
                             typeof(float),
-                            _typeMappingSource.FindMapping(typeof(float))),
+                            _typeMappingSource.FindMapping(typeof(float), _model)),
 
                         4 => _sqlExpressionFactory.Function(
                             rankFunctionName,
@@ -117,7 +119,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[4],
                             method.ReturnType,
-                            _typeMappingSource.FindMapping(typeof(float))),
+                            _typeMappingSource.FindMapping(typeof(float), _model)),
 
                         _ => throw new ArgumentException($"Invalid method overload for {rankFunctionName}")
                     };
@@ -182,7 +184,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[1],
                         typeof(int),
-                        _typeMappingSource.FindMapping(method.ReturnType)),
+                        _typeMappingSource.FindMapping(method.ReturnType, _model)),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.GetQueryTree)
                     => _sqlExpressionFactory.Function(
@@ -191,7 +193,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[1],
                         typeof(string),
-                        _typeMappingSource.FindMapping(method.ReturnType)),
+                        _typeMappingSource.FindMapping(method.ReturnType, _model)),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.GetResultHeadline) when arguments.Count == 2
                     => _sqlExpressionFactory.Function(
@@ -267,7 +269,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[1],
                         method.ReturnType,
-                        _typeMappingSource.FindMapping(typeof(int))),
+                        _typeMappingSource.FindMapping(typeof(int), _model)),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.ToStripped)
                     => _sqlExpressionFactory.Function(
@@ -298,7 +300,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[arguments.Count],
                     method.ReturnType,
-                    _typeMappingSource.FindMapping(method.ReturnType));
+                    _typeMappingSource.FindMapping(method.ReturnType, _model));
 
             SqlExpression DictionaryAccepting(string functionName)
                 => _sqlExpressionFactory.Function(functionName, new[]
@@ -314,7 +316,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[arguments.Count],
                     method.ReturnType,
-                    _typeMappingSource.FindMapping(method.ReturnType));
+                    _typeMappingSource.FindMapping(method.ReturnType, _model));
 
             SqlExpression NonConfigAccepting(string functionName)
                 => _sqlExpressionFactory.Function(
@@ -323,7 +325,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[arguments.Count],
                     method.ReturnType,
-                    _typeMappingSource.FindMapping(method.ReturnType));
+                    _typeMappingSource.FindMapping(method.ReturnType, _model));
         }
     }
 }

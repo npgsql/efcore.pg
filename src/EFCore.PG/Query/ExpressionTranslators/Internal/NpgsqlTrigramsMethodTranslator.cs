@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -55,11 +56,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         public NpgsqlTrigramsMethodTranslator(
             IRelationalTypeMappingSource typeMappingSource,
-            NpgsqlSqlExpressionFactory sqlExpressionFactory)
+            NpgsqlSqlExpressionFactory sqlExpressionFactory,
+            IModel model)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
-            _boolMapping = typeMappingSource.FindMapping(typeof(bool))!;
-            _floatMapping = typeMappingSource.FindMapping(typeof(float))!;
+            _boolMapping = typeMappingSource.FindMapping(typeof(bool), model)!;
+            _floatMapping = typeMappingSource.FindMapping(typeof(float), model)!;
         }
 
 #pragma warning disable EF1001

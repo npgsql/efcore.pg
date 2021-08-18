@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -42,14 +43,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         private readonly IRelationalTypeMappingSource _typeMappingSource;
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         private readonly RelationalTypeMapping _stringTypeMapping;
+        private readonly IModel _model;
 
         public NpgsqlJsonDomTranslator(
             IRelationalTypeMappingSource typeMappingSource,
-            NpgsqlSqlExpressionFactory sqlExpressionFactory)
+            NpgsqlSqlExpressionFactory sqlExpressionFactory,
+            IModel model)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
-            _stringTypeMapping = typeMappingSource.FindMapping(typeof(string))!;
+            _model = model;
+            _stringTypeMapping = typeMappingSource.FindMapping(typeof(string), model)!;
         }
 
         public virtual SqlExpression? Translate(SqlExpression? instance,
@@ -149,10 +153,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case TypeCode.UInt16:
             case TypeCode.UInt32:
             case TypeCode.UInt64:
-                return _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType));
+                return _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType, _model));
             default:
                 return returnType == typeof(Guid)
-                    ? _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType))
+                    ? _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType, _model))
                     : expression;
             }
         }

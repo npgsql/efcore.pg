@@ -168,17 +168,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             }
 
             [return: NotNullIfNotNull("source")]
-            private static TElem[]? Snapshot(TElem[]? source, ValueComparer<TElem> elementComparer)
+            private static TElem[] Snapshot(TElem[] source, ValueComparer<TElem> elementComparer)
             {
-                if (source is null)
-                    return null;
-
                 var snapshot = new TElem[source.Length];
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
                 for (var i = 0; i < source.Length; i++)
                 {
-                    snapshot[i] = elementComparer.Snapshot(source[i])!; // TODO: https://github.com/dotnet/efcore/pull/24410
+                    var element = source[i];
+                    snapshot[i] = element is null ? default! : elementComparer.Snapshot(element);
                 }
 
                 return snapshot;

@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -19,14 +20,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         private readonly IRelationalTypeMappingSource _typeMappingSource;
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         private readonly RelationalTypeMapping _stringTypeMapping;
+        private readonly IModel _model;
 
         public NpgsqlJsonPocoTranslator(
             IRelationalTypeMappingSource typeMappingSource,
-            NpgsqlSqlExpressionFactory sqlExpressionFactory)
+            NpgsqlSqlExpressionFactory sqlExpressionFactory,
+            IModel model)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
-            _stringTypeMapping = typeMappingSource.FindMapping(typeof(string))!;
+            _model = model;
+            _stringTypeMapping = typeMappingSource.FindMapping(typeof(string), model)!;
         }
 
         public virtual SqlExpression? Translate(SqlExpression? instance,
@@ -92,7 +96,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     traversal.Expression, traversal.Path,
                     returnsText: false,
                     lastPathComponent.Type,
-                    _typeMappingSource.FindMapping(lastPathComponent.Type));
+                    _typeMappingSource.FindMapping(lastPathComponent.Type, _model));
 
                 var jsonMapping = (NpgsqlJsonTypeMapping)traversal.Expression.TypeMapping!;
                 return _sqlExpressionFactory.Function(
@@ -126,11 +130,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case TypeCode.UInt16:
             case TypeCode.UInt32:
             case TypeCode.UInt64:
-                return _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType));
+                return _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType, _model));
             }
 
             if (unwrappedReturnType == typeof(Guid) || unwrappedReturnType == typeof(DateTimeOffset))
-                return _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType));
+                return _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType, _model));
 
             return expression;
         }

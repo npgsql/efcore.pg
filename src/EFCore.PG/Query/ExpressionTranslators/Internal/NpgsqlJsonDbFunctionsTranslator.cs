@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -18,17 +19,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
     {
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        private readonly RelationalTypeMapping _boolTypeMapping;
         private readonly RelationalTypeMapping _stringTypeMapping;
         private readonly RelationalTypeMapping _jsonbTypeMapping;
 
         public NpgsqlJsonDbFunctionsTranslator(
             IRelationalTypeMappingSource typeMappingSource,
-            NpgsqlSqlExpressionFactory sqlExpressionFactory)
+            NpgsqlSqlExpressionFactory sqlExpressionFactory,
+            IModel model)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
-            _boolTypeMapping = typeMappingSource.FindMapping(typeof(bool))!;
-            _stringTypeMapping = typeMappingSource.FindMapping(typeof(string))!;
+            _stringTypeMapping = typeMappingSource.FindMapping(typeof(string), model)!;
             _jsonbTypeMapping = typeMappingSource.FindMapping("jsonb")!;
         }
 

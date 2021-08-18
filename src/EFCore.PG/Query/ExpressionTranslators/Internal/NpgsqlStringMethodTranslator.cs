@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -70,13 +71,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         public NpgsqlStringMethodTranslator(
             NpgsqlTypeMappingSource typeMappingSource,
-            ISqlExpressionFactory sqlExpressionFactory)
+            ISqlExpressionFactory sqlExpressionFactory,
+            IModel model)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _whitespace = _sqlExpressionFactory.Constant(
                 @" \t\n\r",  // TODO: Complete this
                 typeMappingSource.EStringTypeMapping);
-            _textTypeMapping = (RelationalTypeMapping)typeMappingSource.FindMapping(typeof(string))!;
+            _textTypeMapping = (RelationalTypeMapping)typeMappingSource.FindMapping(typeof(string), model)!;
         }
 
         public virtual SqlExpression? Translate(

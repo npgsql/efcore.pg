@@ -80,7 +80,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             public HstoreMutableComparer() : base(
                 (a, b) => Compare(a,b),
                 o => o.GetHashCode(),
-                o => o == null ? null : new Dictionary<string, string>(o))
+                o => new Dictionary<string, string>(o))
             {}
 
             private static bool Compare(Dictionary<string, string>? a, Dictionary<string, string>? b)
