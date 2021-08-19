@@ -54,6 +54,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
                 conventionSet.ModelFinalizingConventions,
                 (SharedTableConvention)new NpgsqlSharedTableConvention(Dependencies, RelationalDependencies));
 
+            ReplaceConvention(
+                conventionSet.ModelFinalizedConventions,
+                (RuntimeModelConvention)new NpgsqlRuntimeModelConvention(Dependencies, RelationalDependencies));
+
             return conventionSet;
         }
 
