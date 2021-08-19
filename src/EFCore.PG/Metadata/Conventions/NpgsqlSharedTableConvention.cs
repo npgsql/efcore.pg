@@ -11,10 +11,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
     public class NpgsqlSharedTableConvention : SharedTableConvention
     {
         /// <summary>
-        ///     Creates a new instance of <see cref="NpgsqlSharedTableConvention" />.
+        /// Creates a new instance of <see cref="NpgsqlSharedTableConvention" />.
         /// </summary>
-        /// <param name="dependencies"> Parameter object containing dependencies for this convention. </param>
-        /// <param name="relationalDependencies">  Parameter object containing relational dependencies for this convention. </param>
+        /// <param name="dependencies">Parameter object containing dependencies for this convention.</param>
+        /// <param name="relationalDependencies">Parameter object containing relational dependencies for this convention.</param>
         public NpgsqlSharedTableConvention(
             ProviderConventionSetBuilderDependencies dependencies,
             RelationalConventionSetBuilderDependencies relationalDependencies)
@@ -26,5 +26,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
         protected override bool AreCompatible(IReadOnlyIndex index, IReadOnlyIndex duplicateIndex, in StoreObjectIdentifier storeObject)
             => base.AreCompatible(index, duplicateIndex, storeObject)
                && index.AreCompatibleForNpgsql(duplicateIndex, storeObject, shouldThrow: false);
+
+        /// <inheritdoc />
+        protected override bool CheckConstraintsUniqueAcrossTables
+            => false;
     }
 }
