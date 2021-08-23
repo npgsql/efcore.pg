@@ -100,44 +100,42 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             Check.NotNull(serviceCollection, nameof(serviceCollection));
 
-            var builder =
-                new EntityFrameworkRelationalServicesBuilder(serviceCollection)
-                    .TryAdd<LoggingDefinitions, NpgsqlLoggingDefinitions>()
-                    .TryAdd<IDatabaseProvider, DatabaseProvider<NpgsqlOptionsExtension>>()
-                    .TryAdd<IValueGeneratorCache>(p => p.GetRequiredService<INpgsqlValueGeneratorCache>())
-                    .TryAdd<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
-                    .TryAdd<ISqlGenerationHelper, NpgsqlSqlGenerationHelper>()
-                    .TryAdd<IRelationalAnnotationProvider, NpgsqlAnnotationProvider>()
-                    .TryAdd<IModelValidator, NpgsqlModelValidator>()
-                    .TryAdd<IProviderConventionSetBuilder, NpgsqlConventionSetBuilder>()
-                    .TryAdd<IRelationalValueBufferFactoryFactory, TypedRelationalValueBufferFactoryFactory>()
-                    .TryAdd<IUpdateSqlGenerator, NpgsqlUpdateSqlGenerator>()
-                    .TryAdd<IModificationCommandBatchFactory, NpgsqlModificationCommandBatchFactory>()
-                    .TryAdd<IValueGeneratorSelector, NpgsqlValueGeneratorSelector>()
-                    .TryAdd<IRelationalConnection>(p => p.GetRequiredService<INpgsqlRelationalConnection>())
-                    .TryAdd<IMigrationsSqlGenerator, NpgsqlMigrationsSqlGenerator>()
-                    .TryAdd<IRelationalDatabaseCreator, NpgsqlDatabaseCreator>()
-                    .TryAdd<IHistoryRepository, NpgsqlHistoryRepository>()
-                    .TryAdd<ICompiledQueryCacheKeyGenerator, NpgsqlCompiledQueryCacheKeyGenerator>()
-                    .TryAdd<IExecutionStrategyFactory, NpgsqlExecutionStrategyFactory>()
-                    .TryAdd<IMethodCallTranslatorProvider, NpgsqlMethodCallTranslatorProvider>()
-                    .TryAdd<IMemberTranslatorProvider, NpgsqlMemberTranslatorProvider>()
-                    .TryAdd<IEvaluatableExpressionFilter, NpgsqlEvaluatableExpressionFilter>()
-                    .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
-                    .TryAdd<IRelationalSqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
-                    .TryAdd<IRelationalParameterBasedSqlProcessorFactory, NpgsqlParameterBasedSqlProcessorFactory>()
-                    .TryAdd<ISqlExpressionFactory, NpgsqlSqlExpressionFactory>()
-                    .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetRequiredService<INpgsqlOptions>())
-                    .TryAdd<IValueConverterSelector, NpgsqlValueConverterSelector>()
-                    .TryAdd<IQueryCompilationContextFactory, NpgsqlQueryCompilationContextFactory>()
-                    .TryAddProviderSpecificServices(
-                        b => b
-                             .TryAddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()
-                             .TryAddSingleton<INpgsqlOptions, NpgsqlOptions>()
-                             .TryAddScoped<INpgsqlSequenceValueGeneratorFactory, NpgsqlSequenceValueGeneratorFactory>()
-                             .TryAddScoped<INpgsqlRelationalConnection, NpgsqlRelationalConnection>());
-
-            builder.TryAddCoreServices();
+            new EntityFrameworkRelationalServicesBuilder(serviceCollection)
+                .TryAdd<LoggingDefinitions, NpgsqlLoggingDefinitions>()
+                .TryAdd<IDatabaseProvider, DatabaseProvider<NpgsqlOptionsExtension>>()
+                .TryAdd<IValueGeneratorCache>(p => p.GetRequiredService<INpgsqlValueGeneratorCache>())
+                .TryAdd<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
+                .TryAdd<ISqlGenerationHelper, NpgsqlSqlGenerationHelper>()
+                .TryAdd<IRelationalAnnotationProvider, NpgsqlAnnotationProvider>()
+                .TryAdd<IModelValidator, NpgsqlModelValidator>()
+                .TryAdd<IProviderConventionSetBuilder, NpgsqlConventionSetBuilder>()
+                .TryAdd<IRelationalValueBufferFactoryFactory, TypedRelationalValueBufferFactoryFactory>()
+                .TryAdd<IUpdateSqlGenerator, NpgsqlUpdateSqlGenerator>()
+                .TryAdd<IModificationCommandBatchFactory, NpgsqlModificationCommandBatchFactory>()
+                .TryAdd<IValueGeneratorSelector, NpgsqlValueGeneratorSelector>()
+                .TryAdd<IRelationalConnection>(p => p.GetRequiredService<INpgsqlRelationalConnection>())
+                .TryAdd<IMigrationsSqlGenerator, NpgsqlMigrationsSqlGenerator>()
+                .TryAdd<IRelationalDatabaseCreator, NpgsqlDatabaseCreator>()
+                .TryAdd<IHistoryRepository, NpgsqlHistoryRepository>()
+                .TryAdd<ICompiledQueryCacheKeyGenerator, NpgsqlCompiledQueryCacheKeyGenerator>()
+                .TryAdd<IExecutionStrategyFactory, NpgsqlExecutionStrategyFactory>()
+                .TryAdd<IMethodCallTranslatorProvider, NpgsqlMethodCallTranslatorProvider>()
+                .TryAdd<IMemberTranslatorProvider, NpgsqlMemberTranslatorProvider>()
+                .TryAdd<IEvaluatableExpressionFilter, NpgsqlEvaluatableExpressionFilter>()
+                .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
+                .TryAdd<IRelationalSqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
+                .TryAdd<IRelationalParameterBasedSqlProcessorFactory, NpgsqlParameterBasedSqlProcessorFactory>()
+                .TryAdd<ISqlExpressionFactory, NpgsqlSqlExpressionFactory>()
+                .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetRequiredService<INpgsqlOptions>())
+                .TryAdd<IValueConverterSelector, NpgsqlValueConverterSelector>()
+                .TryAdd<IQueryCompilationContextFactory, NpgsqlQueryCompilationContextFactory>()
+                .TryAddProviderSpecificServices(
+                    b => b
+                        .TryAddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()
+                        .TryAddSingleton<INpgsqlOptions, NpgsqlOptions>()
+                        .TryAddSingleton<INpgsqlSequenceValueGeneratorFactory, NpgsqlSequenceValueGeneratorFactory>()
+                        .TryAddScoped<INpgsqlRelationalConnection, NpgsqlRelationalConnection>())
+                .TryAddCoreServices();
 
             return serviceCollection;
         }

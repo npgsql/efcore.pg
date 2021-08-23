@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -134,13 +135,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         private readonly IRelationalTypeMappingSource _typeMappingSource;
         private readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly RelationalTypeMapping _intTypeMapping;
+        private readonly RelationalTypeMapping _decimalTypeMapping;
 
         public NpgsqlMathTranslator(
             IRelationalTypeMappingSource typeMappingSource,
-            ISqlExpressionFactory sqlExpressionFactory)
+            ISqlExpressionFactory sqlExpressionFactory,
+            IModel model)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
+            _intTypeMapping = _typeMappingSource.FindMapping(typeof(int), model)!;
+            _decimalTypeMapping = _typeMappingSource.FindMapping(typeof(decimal), model)!;
         }
 
         /// <inheritdoc />
@@ -186,7 +192,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             argumentsPropagateNullability: TrueArrays[1],
                             method.ReturnType),
                         typeof(int),
-                        _typeMappingSource.FindMapping(typeof(int)));
+                        _intTypeMapping);
             }
 
             if (method == RoundDecimalTwoParams)
@@ -199,7 +205,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
                     method.ReturnType,
-                    _typeMappingSource.FindMapping(typeof(decimal)));
+                    _decimalTypeMapping);
             }
 
             // PostgreSQL treats NaN values as equal, against IEEE754

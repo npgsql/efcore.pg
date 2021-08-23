@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -42,13 +43,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         public NpgsqlLTreeTranslator(
             IRelationalTypeMappingSource typeMappingSource,
-            NpgsqlSqlExpressionFactory sqlExpressionFactory)
+            NpgsqlSqlExpressionFactory sqlExpressionFactory,
+            IModel model)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
-            _boolTypeMapping = typeMappingSource.FindMapping(typeof(bool))!;
-            _ltreeTypeMapping = typeMappingSource.FindMapping(typeof(LTree))!;
-            _ltreeArrayTypeMapping = typeMappingSource.FindMapping(typeof(LTree[]))!;
+            _boolTypeMapping = typeMappingSource.FindMapping(typeof(bool), model)!;
+            _ltreeTypeMapping = typeMappingSource.FindMapping(typeof(LTree), model)!;
+            _ltreeArrayTypeMapping = typeMappingSource.FindMapping(typeof(LTree[]), model)!;
             _lqueryTypeMapping = typeMappingSource.FindMapping("lquery")!;
             _lqueryArrayTypeMapping = typeMappingSource.FindMapping("lquery[]")!;
             _ltxtqueryTypeMapping = typeMappingSource.FindMapping("ltxtquery")!;
@@ -186,7 +188,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             _sqlExpressionFactory.ApplyTypeMapping(Visit(predicateInstance), _ltreeTypeMapping),
                             _sqlExpressionFactory.ApplyTypeMapping(Visit(array), _lqueryArrayTypeMapping),
                             typeof(bool),
-                            _typeMappingSource.FindMapping(typeof(bool)));
+                            _boolTypeMapping);
                     }
 
                     // Pattern match: new[] { "t1", "t2" }.Any(t => t.IsAncestorOf(e.SomeLTree))
@@ -198,7 +200,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             _sqlExpressionFactory.ApplyTypeMapping(Visit(array), _ltreeArrayTypeMapping),
                             _sqlExpressionFactory.ApplyTypeMapping(Visit(predicateArguments[0]), _ltreeTypeMapping),
                             typeof(bool),
-                            _typeMappingSource.FindMapping(typeof(bool)));
+                            _boolTypeMapping);
                     }
 
                     // Pattern match: new[] { "t1", "t2" }.Any(t => t.IsDescendantOf(e.SomeLTree))
@@ -210,7 +212,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             _sqlExpressionFactory.ApplyTypeMapping(Visit(array), _ltreeArrayTypeMapping),
                             _sqlExpressionFactory.ApplyTypeMapping(Visit(predicateArguments[0]), _ltreeTypeMapping),
                             typeof(bool),
-                            _typeMappingSource.FindMapping(typeof(bool)));
+                            _boolTypeMapping);
                     }
 
                     // Pattern match: new[] { "t1", "t2" }.Any(t => t.MatchesLQuery(lquery))
@@ -222,7 +224,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             _sqlExpressionFactory.ApplyTypeMapping(Visit(array), _ltreeArrayTypeMapping),
                             _sqlExpressionFactory.ApplyTypeMapping(Visit(predicateArguments[0]), _lqueryTypeMapping),
                             typeof(bool),
-                            _typeMappingSource.FindMapping(typeof(bool)));
+                            _boolTypeMapping);
                     }
 
                     // Pattern match: new[] { "t1", "t2" }.Any(t => t.MatchesLTxtQuery(ltxtquery))
@@ -234,7 +236,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             _sqlExpressionFactory.ApplyTypeMapping(Visit(array), _ltreeArrayTypeMapping),
                             _sqlExpressionFactory.ApplyTypeMapping(Visit(predicateArguments[0]), _ltxtqueryTypeMapping),
                             typeof(bool),
-                            _typeMappingSource.FindMapping(typeof(bool)));
+                            _boolTypeMapping);
                     }
 
                     // Any within Any (i.e. intersection)
@@ -257,7 +259,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                                 _sqlExpressionFactory.ApplyTypeMapping(Visit(array), _ltreeArrayTypeMapping),
                                 _sqlExpressionFactory.ApplyTypeMapping(Visit(predicateArguments[0]), _lqueryArrayTypeMapping),
                                 typeof(bool),
-                                _typeMappingSource.FindMapping(typeof(bool)));
+                                _boolTypeMapping);
                         }
                     }
                 }

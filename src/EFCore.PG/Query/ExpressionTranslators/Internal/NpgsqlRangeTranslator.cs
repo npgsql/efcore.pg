@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -25,15 +26,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     {
         private readonly IRelationalTypeMappingSource _typeMappingSource;
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        private readonly RelationalTypeMapping _boolMapping;
+        private readonly IModel _model;
 
         public NpgsqlRangeTranslator(
             IRelationalTypeMappingSource typeMappingSource,
-            NpgsqlSqlExpressionFactory npgsqlSqlExpressionFactory)
+            NpgsqlSqlExpressionFactory npgsqlSqlExpressionFactory,
+            IModel model)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = npgsqlSqlExpressionFactory;
-            _boolMapping = typeMappingSource.FindMapping(typeof(bool))!;
+            _model = model;
         }
 
         /// <inheritdoc />
@@ -104,7 +106,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             {
                 var typeMapping = instance!.TypeMapping is NpgsqlRangeTypeMapping rangeMapping
                     ? rangeMapping.SubtypeMapping
-                    : _typeMappingSource.FindMapping(returnType);
+                    : _typeMappingSource.FindMapping(returnType, _model);
 
                 var accessorName = member.Name == nameof(NpgsqlRange<int>.LowerBound) ? "lower" : "upper";
                 var accessor = _sqlExpressionFactory.Function(

@@ -6,6 +6,7 @@ using System.Net.NetworkInformation;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -32,21 +33,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         private readonly IRelationalTypeMappingSource _typeMappingSource;
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
-        private readonly RelationalTypeMapping _boolMapping;
         private readonly RelationalTypeMapping _inetMapping;
         private readonly RelationalTypeMapping _cidrMapping;
         private readonly RelationalTypeMapping _macaddr8Mapping;
+        private readonly RelationalTypeMapping _longAddressMapping;
 
         public NpgsqlNetworkTranslator(
             IRelationalTypeMappingSource typeMappingSource,
-            NpgsqlSqlExpressionFactory sqlExpressionFactory)
+            NpgsqlSqlExpressionFactory sqlExpressionFactory,
+            IModel model)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
-            _boolMapping = typeMappingSource.FindMapping(typeof(bool))!;
             _inetMapping = typeMappingSource.FindMapping("inet")!;
             _cidrMapping = typeMappingSource.FindMapping("cidr")!;
             _macaddr8Mapping = typeMappingSource.FindMapping("macaddr8")!;
+            _longAddressMapping = typeMappingSource.FindMapping(typeof(long), model)!;
         }
 
         /// <inheritdoc />
@@ -57,10 +59,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (method == IPAddressParse)
-                return _sqlExpressionFactory.Convert(arguments[0], typeof(IPAddress), _typeMappingSource.FindMapping(typeof(IPAddress)));
+                return _sqlExpressionFactory.Convert(arguments[0], typeof(IPAddress));
 
             if (method == PhysicalAddressParse)
-                return _sqlExpressionFactory.Convert(arguments[0], typeof(PhysicalAddress), _typeMappingSource.FindMapping(typeof(PhysicalAddress)));
+                return _sqlExpressionFactory.Convert(arguments[0], typeof(PhysicalAddress));
 
             if (method.DeclaringType != typeof(NpgsqlNetworkDbFunctionsExtensions))
                 return null;
@@ -120,7 +122,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     _sqlExpressionFactory.ApplyTypeMapping(arguments[1], ExpressionExtensions.InferTypeMapping(arguments[1], arguments[2])),
                     _sqlExpressionFactory.ApplyTypeMapping(arguments[2], ExpressionExtensions.InferTypeMapping(arguments[1], arguments[2])),
                     arguments[1].Type,
-                    _typeMappingSource.FindMapping(typeof(long))),
+                    _longAddressMapping),
 
             nameof(NpgsqlNetworkDbFunctionsExtensions.Abbreviate)    => NullPropagatingFunction("abbrev",           new[] { arguments[1] }, typeof(string)),
             nameof(NpgsqlNetworkDbFunctionsExtensions.Broadcast)     => NullPropagatingFunction("broadcast",        new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
