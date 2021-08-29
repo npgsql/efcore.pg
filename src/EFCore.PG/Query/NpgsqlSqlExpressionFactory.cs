@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
@@ -64,6 +65,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 new PostgresArrayIndexExpression(array, index, elementType, typeMapping: null),
                 typeMapping);
         }
+
+        public virtual PostgresBinaryExpression AtUtc(
+            SqlExpression timestamp,
+            RelationalTypeMapping? typeMapping = null)
+            => AtTimeZone(timestamp, Constant("UTC"), timestamp.Type);
 
         public virtual PostgresBinaryExpression AtTimeZone(
             SqlExpression timestamp,
@@ -261,9 +267,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         [return: NotNullIfNotNull("sqlExpression")]
         public override SqlExpression? ApplyTypeMapping(SqlExpression? sqlExpression, RelationalTypeMapping? typeMapping)
-            => sqlExpression == null || sqlExpression.TypeMapping != null
-                ? sqlExpression
-                : sqlExpression switch
+        {
+            if (sqlExpression is not null && sqlExpression.TypeMapping is null)
+            {
+                sqlExpression = sqlExpression switch
                 {
                     SqlBinaryExpression e => ApplyTypeMappingOnSqlBinary(e, typeMapping),
 
@@ -279,6 +286,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
                     _ => base.ApplyTypeMapping(sqlExpression, typeMapping)
                 };
+            }
+
+            if (!NpgsqlTypeMappingSource.LegacyTimestampBehavior
+                && (typeMapping is NpgsqlTimestampTypeMapping && sqlExpression?.TypeMapping is NpgsqlTimestampTzTypeMapping
+                    || typeMapping is NpgsqlTimestampTzTypeMapping && sqlExpression?.TypeMapping is NpgsqlTimestampTypeMapping))
+            {
+                throw new NotSupportedException(
+                    "Cannot apply binary operation on types 'timestamp with time zone' and 'timestamp without time zone', convert one of the operands first.");
+            }
+
+            return sqlExpression;
+        }
 
         private SqlExpression ApplyTypeMappingOnSqlBinary(SqlBinaryExpression binary, RelationalTypeMapping? typeMapping)
         {

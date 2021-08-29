@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using NodaTime;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-// ReSharper disable once CheckNamespace
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
 {
     /// <summary>
     /// Provides translation services for <see cref="NodaTime"/> members.
@@ -22,30 +22,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         {
             Translators = new IMemberTranslator[]
             {
-                new NpgsqlNodaTimeMemberTranslator(sqlExpressionFactory),
+                new NpgsqlNodaTimeMemberTranslator((NpgsqlSqlExpressionFactory)sqlExpressionFactory),
             };
         }
 
         public virtual IEnumerable<IMemberTranslator> Translators { get; }
     }
 
-    /// <summary>
-    /// Provides translation services for <see cref="NodaTime"/> members.
-    /// </summary>
-    /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/static/functions-datetime.html
-    /// </remarks>
     public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
     {
-        private readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
-        /// <summary>
-        /// The static member info for <see cref="T:SystemClock.Instance"/>.
-        /// </summary>
-        private static readonly MemberInfo Instance =
+        private static readonly MemberInfo SystemClock_Instance =
             typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance))!;
+        private static readonly MemberInfo ZonedDateTime_LocalDateTime =
+            typeof(ZonedDateTime).GetRuntimeProperty(nameof(ZonedDateTime.LocalDateTime))!;
 
-        public NpgsqlNodaTimeMemberTranslator(ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlNodaTimeMemberTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         private static readonly bool[][] TrueArrays =
@@ -63,24 +56,35 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             // This is necessary to allow translation of methods on SystemClock.Instance
-            if (member == Instance)
+            if (member == SystemClock_Instance)
                 return _sqlExpressionFactory.Constant(SystemClock.Instance);
 
-            var declaringType = member.DeclaringType;
-            if (instance is not null)
+            if (instance is null)
             {
-                if (declaringType == typeof(LocalDateTime)
-                    || declaringType == typeof(LocalDate)
-                    || declaringType == typeof(LocalTime)
-                    || declaringType == typeof(Period))
-                {
-                    return TranslateDateTime(instance, member, returnType);
-                }
+                return null;
+            }
 
-                if (declaringType == typeof(Duration))
-                {
-                    return TranslateDuration(instance, member);
-                }
+            var declaringType = member.DeclaringType;
+
+            if (declaringType == typeof(LocalDateTime)
+                || declaringType == typeof(LocalDate)
+                || declaringType == typeof(LocalTime)
+                || declaringType == typeof(Period))
+            {
+                return TranslateDateTime(instance, member, returnType);
+            }
+
+            if (declaringType == typeof(ZonedDateTime))
+            {
+                // date_part, which is used to extract most components, doesn't have an overload for timestamptz, so passing one directly
+                // converts it to the local timezone as per TimeZone. Explicitly convert it to a local timestamp in UTC.
+                return TranslateDateTime(_sqlExpressionFactory.AtUtc(instance), member, returnType)
+                    ?? TranslateZonedDateTime(instance, member);
+            }
+
+            if (declaringType == typeof(Duration))
+            {
+                return TranslateDuration(instance, member);
             }
 
             return null;
@@ -108,13 +112,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             };
         }
 
-        /// <summary>
-        /// Translates date and time members.
-        /// </summary>
-        /// <param name="e">The member expression.</param>
-        /// <returns>
-        /// The translated expression or null.
-        /// </returns>
         private SqlExpression? TranslateDateTime(SqlExpression instance, MemberInfo member, Type returnType)
         {
             switch (member.Name)
@@ -230,6 +227,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                     typeof(double));
 
             return result;
+        }
+
+        private SqlExpression? TranslateZonedDateTime(SqlExpression instance, MemberInfo member)
+        {
+            if (member == ZonedDateTime_LocalDateTime)
+                return _sqlExpressionFactory.AtUtc(instance);
+
+            return null;
         }
     }
 }

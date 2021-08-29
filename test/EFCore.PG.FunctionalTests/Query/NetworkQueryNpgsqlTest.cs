@@ -64,7 +64,7 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             var count = context.NetTestEntities.Count(x => x.Inet.Equals(IPAddress.Parse(x.TextInet)));
 
             Assert.Equal(9, count);
-            AssertContainsSql(@"CAST(n.""TextInet"" AS inet)");
+            AssertContainsSql(@"n.""TextInet""::inet)");
         }
 
         [Fact]
@@ -74,7 +74,7 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             var count = context.NetTestEntities.Count(x => x.Macaddr.Equals(PhysicalAddress.Parse(x.TextMacaddr)));
 
             Assert.Equal(9, count);
-            AssertContainsSql(@"CAST(n.""TextMacaddr"" AS macaddr)");
+            AssertContainsSql(@"n.""TextMacaddr""::macaddr)");
         }
 
         [Fact]

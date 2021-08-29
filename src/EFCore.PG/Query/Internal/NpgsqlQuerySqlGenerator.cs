@@ -344,11 +344,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 {
                 case SqlConstantExpression:
                 case SqlParameterExpression:
+                case SqlUnaryExpression { OperatorType: ExpressionType.Convert }:
+                case ColumnExpression:
                 case SqlFunctionExpression:
                 case ScalarSubqueryExpression:
-                    var storeType = sqlUnaryExpression.TypeMapping.StoreType;
-                    if (storeType == "integer")
-                        storeType = "INT";  // Shorthand that looks better in SQL
+                    var storeType = sqlUnaryExpression.TypeMapping.StoreType switch
+                    {
+                        "integer" => "INT",
+                        "timestamp with time zone" => "timestamptz",
+                        "timestamp without time zone" => "timestamp",
+                        var s => s
+                    };
 
                     Visit(sqlUnaryExpression.Operand);
                     Sql.Append("::");

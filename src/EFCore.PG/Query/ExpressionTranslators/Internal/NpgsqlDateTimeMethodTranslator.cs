@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -38,12 +39,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             { typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.AddMinutes), new[] { typeof(int) })!, "mins" },
         };
 
-        private static readonly MethodInfo TimeOnlyIsBetweenMethod
+        private static readonly MethodInfo DateTime_ToUniversalTime
+            = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.ToUniversalTime), Array.Empty<Type>())!;
+        private static readonly MethodInfo DateTime_ToLocalTime
+            = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.ToLocalTime), Array.Empty<Type>())!;
+
+        private static readonly MethodInfo TimeOnly_IsBetween
             = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.IsBetween), new[] { typeof(TimeOnly), typeof(TimeOnly) })!;
-        private static readonly MethodInfo TimeOnlyAddTimeSpanMethod
+        private static readonly MethodInfo TimeOnly_Add_TimeSpan
             = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.Add), new[] { typeof(TimeSpan) })!;
 
         private readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly RelationalTypeMapping _timestampMapping;
+        private readonly RelationalTypeMapping _timestampTzMapping;
         private readonly RelationalTypeMapping _intervalMapping;
         private readonly RelationalTypeMapping _textMapping;
 
@@ -52,6 +60,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             ISqlExpressionFactory sqlExpressionFactory)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
+            _timestampMapping = typeMappingSource.FindMapping("timestamp without time zone")!;
+            _timestampTzMapping = typeMappingSource.FindMapping("timestamp with time zone")!;
             _intervalMapping = typeMappingSource.FindMapping("interval")!;
             _textMapping = typeMappingSource.FindMapping("text")!;
         }
@@ -64,23 +74,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (instance is null)
+            {
                 return null;
+            }
 
             if (TranslateDatePart(instance, method, arguments) is { } translated)
             {
                 return translated;
             }
 
-            if (method.DeclaringType == typeof(TimeOnly))
+            if (method.DeclaringType == typeof(DateTime))
             {
-                if (method == TimeOnlyIsBetweenMethod)
+                if (method == DateTime_ToUniversalTime)
+                {
+                    return _sqlExpressionFactory.Convert(instance, method.ReturnType, _timestampTzMapping);
+                }
+                if (method == DateTime_ToLocalTime)
+                {
+                    return _sqlExpressionFactory.Convert(instance, method.ReturnType, _timestampMapping);
+                }
+            }
+            else if (method.DeclaringType == typeof(TimeOnly))
+            {
+                if (method == TimeOnly_IsBetween)
                 {
                     return _sqlExpressionFactory.And(
                         _sqlExpressionFactory.GreaterThanOrEqual(instance, arguments[0]),
                         _sqlExpressionFactory.LessThan(instance, arguments[1]));
                 }
 
-                if (method == TimeOnlyAddTimeSpanMethod)
+                if (method == TimeOnly_Add_TimeSpan)
                 {
                     return _sqlExpressionFactory.Add(instance, arguments[0]);
                 }

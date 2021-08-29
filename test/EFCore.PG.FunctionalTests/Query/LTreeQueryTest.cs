@@ -83,7 +83,7 @@ WHERE l.""PathAsString"" = 'Top.Science'");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""LTreeEntities"" AS l
-WHERE CAST(l.""Path"" AS text) LIKE 'Top.Science%'");
+WHERE l.""Path""::text LIKE 'Top.Science%'");
         }
 
         [ConditionalFact]
@@ -166,7 +166,7 @@ WHERE l.""Path"" @ 'Astro*'");
             AssertSql(
                 @"SELECT l.""Id"", l.""Path"", l.""PathAsString""
 FROM ""LTreeEntities"" AS l
-WHERE (CAST(l.""Path"" AS text) || '.Astronomy') = 'Top.Science.Astronomy'
+WHERE (l.""Path""::text || '.Astronomy') = 'Top.Science.Astronomy'
 LIMIT 2");
         }
 

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
@@ -123,12 +125,12 @@ LIMIT 2");
             base.Scalar_Function_Where_Correlated_Static();
 
             AssertSql(
-                @"SELECT lower(CAST(c.""Id"" AS text))
+                @"SELECT lower(c.""Id""::text)
 FROM ""Customers"" AS c
 WHERE ""IsTopCustomer""(c.""Id"")");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/efcore/issues/25980")]
         public override void Scalar_Function_Where_Not_Correlated_Static()
         {
             base.Scalar_Function_Where_Not_Correlated_Static();
@@ -381,12 +383,12 @@ LIMIT 2");
             base.Scalar_Function_Where_Correlated_Instance();
 
             AssertSql(
-                @"SELECT lower(CAST(c.""Id"" AS text))
+                @"SELECT lower(c.""Id""::text)
 FROM ""Customers"" AS c
 WHERE ""IsTopCustomer""(c.""Id"")");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/efcore/issues/25980")]
         public override void Scalar_Function_Where_Not_Correlated_Instance()
         {
             base.Scalar_Function_Where_Not_Correlated_Instance();
@@ -579,6 +581,23 @@ LIMIT 2");
             protected override string StoreName { get; } = "UDFDbFunctionNpgsqlTests";
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             protected override Type ContextType { get; } = typeof(NpgsqlUDFSqlContext);
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
+            {
+                base.OnModelCreating(modelBuilder, context);
+
+                // We default to mapping DateTime to 'timestamp with time zone', but the seeding data has Unspecified DateTimes which aren't
+                // supported.
+                modelBuilder.Entity<Order>().Property(o => o.OrderDate).HasColumnType("timestamp without time zone");
+
+                // The following should make us send 'timestamp without time zone' for these functions, but it doesn't:
+                // https://github.com/dotnet/efcore/issues/25980
+                var typeMappingSource = context.GetService<IRelationalTypeMappingSource>();
+                modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(UDFSqlContext.GetCustomerWithMostOrdersAfterDateStatic)))
+                    .HasParameter("startDate").Metadata.TypeMapping = typeMappingSource.GetMapping("timestamp without time zone");
+                modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(UDFSqlContext.GetCustomerWithMostOrdersAfterDateInstance)))
+                    .HasParameter("startDate").Metadata.TypeMapping = typeMappingSource.GetMapping("timestamp without time zone");
+            }
 
             protected override void Seed(DbContext context)
             {

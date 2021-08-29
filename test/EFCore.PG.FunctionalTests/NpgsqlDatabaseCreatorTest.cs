@@ -227,7 +227,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     "Blogs.George (boolean)",
                     "Blogs.Key1 (text)",
                     "Blogs.Key2 (bytea)",
-                    "Blogs.NotFigTime (timestamp without time zone)",
+                    "Blogs.NotFigTime (timestamp with time zone)",
                     "Blogs.On (real)",
                     "Blogs.OrNothing (double precision)",
                     "Blogs.TheGu (uuid)",
@@ -475,7 +475,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 + _eol
                 + @"    ""TheGu"" uuid NOT NULL,"
                 + _eol
-                + @"    ""NotFigTime"" timestamp without time zone NOT NULL,"
+                + @"    ""NotFigTime"" timestamp with time zone NOT NULL,"
                 + _eol
                 + @"    ""ToEat"" smallint NOT NULL,"
                 + _eol

@@ -40,7 +40,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Assert.Equal(8, types.Int64);
             Assert.Equal(10m, types.Decimal);
             Assert.Equal(new DateTime(2020, 1, 1, 10, 30, 45), types.DateTime);
-            Assert.Equal(new DateTimeOffset(2020, 1, 1, 10, 30, 45, TimeSpan.FromHours(2)), types.DateTimeOffset);
+            Assert.Equal(new DateTimeOffset(2020, 1, 1, 10, 30, 45, TimeSpan.Zero), types.DateTimeOffset);
         }
 
         [Fact]
@@ -156,16 +156,16 @@ LIMIT 2");
         public void Output_DateTime()
         {
             using var ctx = CreateContext();
-            var p = new DateTime(1990, 3, 3, 17, 10, 15);
+            var p = new DateTime(1990, 3, 3, 17, 10, 15, DateTimeKind.Utc);
             var x = ctx.JsonbEntities.Single(e => e.Customer.VariousTypes.DateTime == p);
 
             Assert.Equal("Moe", x.Customer.Name);
             AssertSql(
-                @"@__p_0='1990-03-03T17:10:15.0000000' (DbType = DateTime)
+                @"@__p_0='1990-03-03T17:10:15.0000000Z' (DbType = DateTimeOffset)
 
 SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE CAST(j.""Customer""#>>'{VariousTypes,DateTime}' AS timestamp without time zone) = @__p_0
+WHERE CAST(j.""Customer""#>>'{VariousTypes,DateTime}' AS timestamp with time zone) = @__p_0
 LIMIT 2");
         }
 
@@ -173,12 +173,12 @@ LIMIT 2");
         public void Output_DateTimeOffset()
         {
             using var ctx = CreateContext();
-            var p = new DateTimeOffset(1990, 3, 3, 17, 10, 15, TimeSpan.FromHours(10));
+            var p = new DateTimeOffset(1990, 3, 3, 17, 10, 15, TimeSpan.Zero);
             var x = ctx.JsonbEntities.Single(e => e.Customer.VariousTypes.DateTimeOffset == p);
 
             Assert.Equal("Moe", x.Customer.Name);
             AssertSql(
-                @"@__p_0='1990-03-03T17:10:15.0000000+10:00'
+                @"@__p_0='1990-03-03T17:10:15.0000000+00:00'
 
 SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
@@ -609,8 +609,8 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                         Int64 = 8,
                         Bool = false,
                         Decimal = 10m,
-                        DateTime = new DateTime(2020, 1, 1, 10, 30, 45),
-                        DateTimeOffset = new DateTimeOffset(2020, 1, 1, 10, 30, 45, TimeSpan.FromHours(2))
+                        DateTime = new DateTime(2020, 1, 1, 10, 30, 45, DateTimeKind.Utc),
+                        DateTimeOffset = new DateTimeOffset(2020, 1, 1, 10, 30, 45, TimeSpan.Zero)
                     }
                 };
 
@@ -648,8 +648,8 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                         Int64 = 9,
                         Bool = true,
                         Decimal = 20.3m,
-                        DateTime = new DateTime(1990, 3, 3, 17, 10, 15),
-                        DateTimeOffset = new DateTimeOffset(1990, 3, 3, 17, 10, 15, TimeSpan.FromHours(10))
+                        DateTime = new DateTime(1990, 3, 3, 17, 10, 15, DateTimeKind.Utc),
+                        DateTimeOffset = new DateTimeOffset(1990, 3, 3, 17, 10, 15, TimeSpan.Zero)
                     }
                 };
             }

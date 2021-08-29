@@ -73,7 +73,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
-                => modelBuilder.UseHiLo();
+            {
+                base.OnModelCreating(modelBuilder);
+
+                modelBuilder.UseHiLo();
+            }
         }
 
         [Fact]
@@ -126,6 +130,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
+                base.OnModelCreating(modelBuilder);
+
                 modelBuilder
                     .HasSequence("MySequence")
                     .HasMin(0)
@@ -146,10 +152,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
-                => modelBuilder
+            {
+                base.OnModelCreating(modelBuilder);
+
+                modelBuilder
                     .Entity<Blog>()
                     .Property(e => e.Id)
                     .HasDefaultValue();
+            }
         }
 
         public class BlogWithStringKey
@@ -190,6 +200,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
+                base.OnModelCreating(modelBuilder);
+
                 modelBuilder
                     .HasSequence("MySequence")
                     .StartsAt(77);
@@ -329,10 +341,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public BlogContextNoKeyGeneration(string databaseName) : base(databaseName) {}
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
-                => modelBuilder
+            {
+                base.OnModelCreating(modelBuilder);
+
+                modelBuilder
                     .Entity<Blog>()
                     .Property(e => e.Id)
                     .ValueGeneratedNever();
+            }
         }
 
         [Fact]
@@ -366,10 +382,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
-                => modelBuilder
+            {
+                base.OnModelCreating(modelBuilder);
+
+                modelBuilder
                     .Entity<NullableKeyBlog>()
                     .Property(e => e.Id)
                     .ValueGeneratedNever();
+            }
         }
 
         [Fact]
@@ -421,10 +441,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
-                => modelBuilder.Entity<Blog>()
+            {
+                base.OnModelCreating(modelBuilder);
+
+                modelBuilder.Entity<Blog>()
                     .Property(e => e.CreatedOn)
                     .ValueGeneratedOnAdd()
                     .HasDefaultValueSql("now()");
+            }
         }
 
         [Fact]
@@ -476,10 +500,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
-                => modelBuilder.Entity<Blog>()
+            {
+                base.OnModelCreating(modelBuilder);
+
+                modelBuilder.Entity<Blog>()
                     .Property(e => e.CreatedOn)
                     .HasDefaultValueSql("now()")
                     .Metadata.SetBeforeSaveBehavior(PropertySaveBehavior.Throw);
+            }
         }
 
         [Fact]
@@ -665,6 +693,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     .UseNpgsql(
                         NpgsqlTestStore.CreateConnectionString(_databaseName),
                         b => b.ApplyConfiguration());
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                base.OnModelCreating(modelBuilder);
+
+                // We default to mapping DateTime to 'timestamp with time zone', but the seeding data has Unspecified DateTimes which aren't
+                // supported.
+                modelBuilder.Entity<Blog>().Property(b => b.CreatedOn).HasColumnType("timestamp without time zone");
+                modelBuilder.Entity<NullableKeyBlog>().Property(b => b.CreatedOn).HasColumnType("timestamp without time zone");
+            }
         }
     }
 }

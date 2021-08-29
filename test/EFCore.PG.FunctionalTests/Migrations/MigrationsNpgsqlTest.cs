@@ -482,10 +482,22 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
 
         public override async Task Add_column_with_defaultValue_datetime()
         {
-            await base.Add_column_with_defaultValue_datetime();
+            // We default to mapping DateTime to 'timestamp with time zone', so we need to explicitly specify UTC
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<DateTime>("Birthday")
+                    .HasDefaultValue(new DateTime(2015, 4, 12, 17, 5, 0, DateTimeKind.Utc)),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal(2, table.Columns.Count);
+                    var birthdayColumn = Assert.Single(table.Columns, c => c.Name == "Birthday");
+                    Assert.False(birthdayColumn.IsNullable);
+                });
 
             AssertSql(
-                @"ALTER TABLE ""People"" ADD ""Birthday"" timestamp without time zone NOT NULL DEFAULT TIMESTAMP '2015-04-12 17:05:00';");
+                @"ALTER TABLE ""People"" ADD ""Birthday"" timestamp with time zone NOT NULL DEFAULT TIMESTAMPTZ '2015-04-12 17:05:00Z';");
         }
 
         [Fact]

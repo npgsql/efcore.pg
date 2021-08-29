@@ -53,8 +53,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         private static Dictionary<object, string> CreateValueMapping(Type enumType, INpgsqlNameTranslator nameTranslator)
             => enumType.GetFields(BindingFlags.Static | BindingFlags.Public)
-                       .ToDictionary(
-                           x => x.GetValue(null)!,
-                           x => x.GetCustomAttribute<PgNameAttribute>()?.PgName ?? nameTranslator.TranslateMemberName(x.Name));
+                .ToDictionary(
+                    x => x.GetValue(null)!,
+                    x => x.GetCustomAttribute<PgNameAttribute>()?.PgName ?? nameTranslator.TranslateMemberName(x.Name));
     }
 }

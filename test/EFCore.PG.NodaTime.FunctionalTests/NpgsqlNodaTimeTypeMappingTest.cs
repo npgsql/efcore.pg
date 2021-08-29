@@ -14,14 +14,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
     public class NpgsqlNodaTimeTypeMappingTest
     {
         [Fact]
-        public void GenerateSqlLiteral_returns_instant_literal()
-        {
-            var mapping = GetMapping(typeof(Instant));
-            Assert.Equal("timestamp", mapping.StoreType);
+        public void Timestamp_maps_to_LocalDateTime_by_default()
+            => Assert.Same(typeof(LocalDateTime), GetMapping("timestamp without time zone").ClrType);
 
-            var instant = (new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660)).InUtc().ToInstant();
-            Assert.Equal("TIMESTAMP '2018-04-20T10:31:33.666666Z'", mapping.GenerateSqlLiteral(instant));
-        }
+        [Fact]
+        public void Timestamptz_maps_to_Instant_by_default()
+            => Assert.Same(typeof(Instant), GetMapping("timestamp with time zone").ClrType);
+
+        [Fact]
+        public void Instant_does_not_map_to_timestamp()
+            => Assert.Null(GetMapping(typeof(Instant), "timestamp"));
+
+        [Fact]
+        public void LocalDateTime_does_not_map_to_timestamptz()
+            => Assert.Null(GetMapping(typeof(LocalDateTime), "timestamp with time zone"));
 
         [Fact]
         public void GenerateSqlLiteral_returns_local_date_time_literal()
@@ -46,7 +52,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void GenerateSqlLiteral_returns_timestamptz_instant_literal()
         {
-            var mapping = GetMapping(typeof(Instant), "timestamp with time zone");
+            var mapping = GetMapping(typeof(Instant));
             Assert.Equal(typeof(Instant), mapping.ClrType);
             Assert.Equal("timestamp with time zone", mapping.StoreType);
 

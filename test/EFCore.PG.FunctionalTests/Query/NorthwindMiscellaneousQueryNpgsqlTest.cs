@@ -24,7 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public override async Task Query_expression_with_to_string_and_contains(bool async)
         {
             await base.Query_expression_with_to_string_and_contains(async);
-            AssertContainsSqlFragment(@"strpos(CAST(o.""EmployeeID"" AS text), '10') > 0");
+            AssertContainsSqlFragment(@"strpos(o.""EmployeeID""::text, '10') > 0");
         }
 
         public override async Task Select_expression_date_add_year(bool async)
@@ -86,11 +86,20 @@ WHERE (o.""OrderDate"" - INTERVAL '1 00:00:00') = TIMESTAMP '1997-10-08 00:00:00
                     .Select(o => new { Elapsed = (DateTime.Today - ((DateTime)o.OrderDate).Date).Days }));
 
             AssertSql(
-                @"SELECT floor(date_part('day', date_trunc('day', now()) - date_trunc('day', o.""OrderDate"")))::INT AS ""Elapsed""
+                @"SELECT floor(date_part('day', date_trunc('day', now()::timestamp) - date_trunc('day', o.""OrderDate"")))::INT AS ""Elapsed""
 FROM ""Orders"" AS o
 WHERE (o.""OrderDate"" IS NOT NULL)
 LIMIT 1");
         }
+
+        public override Task Add_minutes_on_constant_value(bool async)
+            => AssertQuery(
+                async,
+                ss => ss.Set<Order>().Where(c => c.OrderID < 10500)
+                    .OrderBy(o => o.OrderID)
+                    .Select(o => new { Test = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMinutes(o.OrderID % 25) }),
+                assertOrder: true,
+                elementAsserter: (e, a) => AssertEqual(e.Test, a.Test));
 
         // TODO: Array tests can probably move to the dedicated ArrayQueryTest suite
 
