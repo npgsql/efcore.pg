@@ -222,7 +222,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 return errorNumber;
             }
 
-            public void PopulateFrom(IRelationalCommand command)
+            public void PopulateFrom(IRelationalCommandTemplate command)
                 => _realRelationalCommand.PopulateFrom(command);
         }
     }
