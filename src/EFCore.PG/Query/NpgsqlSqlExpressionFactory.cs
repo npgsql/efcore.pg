@@ -305,7 +305,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                     // DateTime - DateTime => TimeSpan
                     // DateTimeOffset - DateTimeOffset => TimeSpan
                     // Instant - Instant => Duration
-                    // LocalDateTime - LocalDateTime => Period
+                    // LocalDateTime - LocalDateTime => int (days)
                     if (leftType == typeof(DateTime) && rightType == typeof(DateTime) ||
                         leftType == typeof(DateTimeOffset) && rightType == typeof(DateTimeOffset) ||
                         leftType.FullName == "NodaTime.Instant" && rightType.FullName == "NodaTime.Instant" ||
@@ -314,7 +314,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                         leftType.FullName == "NodaTime.LocalDate" && rightType.FullName == "NodaTime.LocalDate" ||
                         leftType.FullName == "NodaTime.LocalTime" && rightType.FullName == "NodaTime.LocalTime")
                     {
-                        var inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
+                        var inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
 
                         return new SqlBinaryExpression(
                             ExpressionType.Subtract,

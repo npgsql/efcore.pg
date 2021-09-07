@@ -115,6 +115,44 @@ LIMIT 2");
         }
 
         [Fact]
+        public void Subtract_LocalDate_parameter()
+        {
+            using var ctx = CreateContext();
+            var date = new LocalDate(2018, 4, 20);
+            var id = ctx.NodaTimeTypes
+                .Where(t => t.LocalDate2 - date == Period.FromDays(1))
+                .Select(t => t.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"@__date_0='Friday
+20 April 2018' (DbType = Date)
+
+SELECT n.""Id""
+FROM ""NodaTimeTypes"" AS n
+WHERE MAKE_INTERVAL(days => n.""LocalDate2"" - @__date_0) = INTERVAL 'P1D'
+LIMIT 2");
+        }
+
+        [Fact]
+        public void Subtract_LocalDate_constant()
+        {
+            using var ctx = CreateContext();
+            var id = ctx.NodaTimeTypes
+                .Where(t => t.LocalDate2 - new LocalDate(2018, 4, 20) == Period.FromDays(1))
+                .Select(t => t.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"SELECT n.""Id""
+FROM ""NodaTimeTypes"" AS n
+WHERE MAKE_INTERVAL(days => n.""LocalDate2"" - DATE '2018-04-20') = INTERVAL 'P1D'
+LIMIT 2");
+        }
+
+        [Fact]
         public void Subtract_LocalTime()
         {
             using var ctx = CreateContext();
