@@ -174,11 +174,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
             if (connection.Settings.ServerCompatibilityMode == ServerCompatibilityMode.Redshift)
                 return;
 
-            var commandText = @"SELECT datcollate FROM pg_database WHERE datname=current_database()";
+            var commandText = @"
+SELECT datcollate FROM pg_database WHERE datname=current_database() AND
+        datcollate <> (SELECT datcollate FROM pg_database WHERE datname='template1')";
             using var command = new NpgsqlCommand(commandText, connection);
             using var reader = command.ExecuteReader();
             if (reader.Read())
+            {
                 databaseModel.Collation = reader.GetString(0);
+            }
         }
 
         /// <summary>

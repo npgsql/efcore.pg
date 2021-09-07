@@ -1601,6 +1601,17 @@ CREATE TABLE columns_with_collation (
                 },
                 @"DROP TABLE columns_with_collation");
 
+        [ConditionalFact]
+        public void Default_database_collation_is_not_scaffolded()
+        {
+            Test(
+                @"-- Empty database",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel => Assert.Null(dbModel.Collation),
+                @"");
+        }
+
         [Fact]
         public void Index_method()
             => Test(@"
