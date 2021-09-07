@@ -19,6 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         private readonly IRelationalTypeMappingSource _typeMappingSource;
         private readonly RelationalTypeMapping _boolTypeMapping;
+        private readonly RelationalTypeMapping _intTypeMapping;
         private readonly RelationalTypeMapping _doubleTypeMapping;
 
         private static Type? _nodaTimeDurationType;
@@ -29,6 +30,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             _typeMappingSource = dependencies.TypeMappingSource;
             _boolTypeMapping = _typeMappingSource.FindMapping(typeof(bool), dependencies.Model)!;
+            _intTypeMapping = _typeMappingSource.FindMapping(typeof(int), dependencies.Model)!;
             _doubleTypeMapping = _typeMappingSource.FindMapping(typeof(double), dependencies.Model)!;
         }
 
@@ -325,7 +327,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                     // DateOnly - DateOnly => TimeSpan
                     // TimeOnly - TimeOnly => TimeSpan
                     // Instant - Instant => Duration
-                    // LocalDateTime - LocalDateTime => Period
+                    // LocalDateTime - LocalDateTime => int (days)
                     if (leftType == typeof(DateTime) && rightType == typeof(DateTime)
                         || leftType == typeof(DateTimeOffset) && rightType == typeof(DateTimeOffset)
                         || leftType == typeof(DateOnly) && rightType == typeof(DateOnly)
@@ -336,7 +338,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                         || leftType.FullName == "NodaTime.LocalDate" && rightType.FullName == "NodaTime.LocalDate"
                         || leftType.FullName == "NodaTime.LocalTime" && rightType.FullName == "NodaTime.LocalTime")
                     {
-                        var inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
+                        var inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
 
                         return new SqlBinaryExpression(
                             ExpressionType.Subtract,
