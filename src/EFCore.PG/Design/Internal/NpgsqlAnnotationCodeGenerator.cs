@@ -225,6 +225,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 return new MethodCallCodeFragment(_entityTypeIsUnloggedMethodInfo, annotation.Value);
             }
 
+            if (annotation.Name == NpgsqlAnnotationNames.TablePartitioning && annotation.Value is TablePartitioning tablePartitioning)
+                return new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.IsPartitioned), tablePartitioning.Type, tablePartitioning.PartitionKeyProperties.Select(x => x.Name));
+
             return null;
         }
 
