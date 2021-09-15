@@ -1,9 +1,9 @@
 <Project>
   <!-- Package configuration -->
   <PropertyGroup>
-    <Copyright>Copyright 2020 © The Npgsql Development Team</Copyright>
+    <Copyright>Copyright 2021 © The Npgsql Development Team</Copyright>
     <Company>Npgsql</Company>
-    <VersionPrefix>5.0.8</VersionPrefix>
+    <VersionPrefix>5.0.10</VersionPrefix>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>

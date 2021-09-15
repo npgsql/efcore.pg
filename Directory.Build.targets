@@ -1,8 +1,8 @@
 ﻿<Project>
   <PropertyGroup>
-    <EFCoreVersion>5.0.7</EFCoreVersion>
+    <EFCoreVersion>5.0.10</EFCoreVersion>
     <MicrosoftExtensionsVersion>5.0.0</MicrosoftExtensionsVersion>
-    <NpgsqlVersion>5.0.7</NpgsqlVersion>
+    <NpgsqlVersion>5.0.10</NpgsqlVersion>
   </PropertyGroup>
 
   <ItemGroup>
