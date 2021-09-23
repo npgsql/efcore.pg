@@ -1,4 +1,6 @@
 ﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite.Scaffolding.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Scaffolding.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding;
@@ -42,6 +44,52 @@ public class NpgsqlCodeGeneratorTest
 
                 Assert.Equal("x", nestedClosure.Parameter);
                 Assert.Same(providerOptions, nestedClosure.MethodCalls[0]);
+            });
+        Assert.Null(result.ChainedCall);
+    }
+
+    [ConditionalFact]
+    public virtual void Use_provider_method_is_generated_correctly_with_NetTopologySuite()
+    {
+        var codeGenerator = new NpgsqlCodeGenerator(
+            new ProviderCodeGeneratorDependencies(
+                new[] { new NpgsqlNetTopologySuiteCodeGeneratorPlugin() }));
+
+        var result = ((IProviderConfigurationCodeGenerator)codeGenerator).GenerateUseProvider("Data Source=Test");
+
+        Assert.Equal("UseNpgsql", result.Method);
+        Assert.Collection(
+            result.Arguments,
+            a => Assert.Equal("Data Source=Test", a),
+            a =>
+            {
+                var nestedClosure = Assert.IsType<NestedClosureCodeFragment>(a);
+
+                Assert.Equal("x", nestedClosure.Parameter);
+                Assert.Equal("UseNetTopologySuite", nestedClosure.MethodCalls[0].Method);
+            });
+        Assert.Null(result.ChainedCall);
+    }
+
+    [ConditionalFact]
+    public virtual void Use_provider_method_is_generated_correctly_with_NodaTime()
+    {
+        var codeGenerator = new NpgsqlCodeGenerator(
+            new ProviderCodeGeneratorDependencies(
+                new[] { new NpgsqlNodaTimeCodeGeneratorPlugin() }));
+
+        var result = ((IProviderConfigurationCodeGenerator)codeGenerator).GenerateUseProvider("Data Source=Test");
+
+        Assert.Equal("UseNpgsql", result.Method);
+        Assert.Collection(
+            result.Arguments,
+            a => Assert.Equal("Data Source=Test", a),
+            a =>
+            {
+                var nestedClosure = Assert.IsType<NestedClosureCodeFragment>(a);
+
+                Assert.Equal("x", nestedClosure.Parameter);
+                Assert.Equal("UseNodaTime", nestedClosure.MethodCalls[0].Method);
             });
         Assert.Null(result.ChainedCall);
     }
