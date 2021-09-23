@@ -71,6 +71,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             = typeof(NpgsqlPropertyBuilderExtensions).GetRequiredRuntimeMethod(
                 nameof(NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn), typeof(PropertyBuilder));
 
+        private static readonly MethodInfo _propertyUseHiLoMethodInfo
+            = typeof(NpgsqlPropertyBuilderExtensions).GetRequiredRuntimeMethod(
+                nameof(NpgsqlPropertyBuilderExtensions.UseHiLo), typeof(PropertyBuilder), typeof(string), typeof(string));
+
         private static readonly MethodInfo _propertyHasIdentityOptionsMethodInfo
             = typeof(NpgsqlPropertyBuilderExtensions).GetRequiredRuntimeMethod(
                 nameof(NpgsqlPropertyBuilderExtensions.HasIdentityOptions), typeof(PropertyBuilder), typeof(long?), typeof(long?),
@@ -272,7 +276,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 return new List<MethodCallCodeFragment>
                 {
                     new(
-                        _modelUseHiLoMethodInfo,
+                        onModel ? _modelUseHiLoMethodInfo : _propertyUseHiLoMethodInfo,
                         (name, schema) switch
                         {
                             (null, null) => Array.Empty<object>(),

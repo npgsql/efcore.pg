@@ -112,6 +112,72 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
         }
 
         [ConditionalFact]
+        public void GenerateFluentApi_IModel_works_with_IdentityByDefault()
+        {
+            var generator = CreateGenerator();
+            var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+            modelBuilder.UseIdentityByDefaultColumns();
+
+            var annotations = modelBuilder.Model.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            var result = generator.GenerateFluentApiCalls(((IModel)modelBuilder.Model), annotations).Single();
+
+            Assert.Equal("UseIdentityByDefaultColumns", result.Method);
+            Assert.Equal("NpgsqlModelBuilderExtensions", result.DeclaringType);
+
+            Assert.Empty(result.Arguments);
+        }
+
+        [ConditionalFact]
+        public void GenerateFluentApi_IProperty_works_with_IdentityByDefault()
+        {
+            var generator = CreateGenerator();
+            var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+            modelBuilder.Entity("Post", x => x.Property<int>("Id").UseIdentityByDefaultColumn());
+            var property = (IProperty)modelBuilder.Model.FindEntityType("Post").FindProperty("Id");
+
+            var annotations = property.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            var result = generator.GenerateFluentApiCalls(property, annotations).Single();
+
+            Assert.Equal("UseIdentityByDefaultColumn", result.Method);
+            Assert.Equal("NpgsqlPropertyBuilderExtensions", result.DeclaringType);
+
+            Assert.Empty(result.Arguments);
+        }
+
+        [ConditionalFact]
+        public void GenerateFluentApi_IModel_works_with_IdentityAlways()
+        {
+            var generator = CreateGenerator();
+            var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+            modelBuilder.UseIdentityAlwaysColumns();
+
+            var annotations = modelBuilder.Model.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            var result = generator.GenerateFluentApiCalls(((IModel)modelBuilder.Model), annotations).Single();
+
+            Assert.Equal("UseIdentityAlwaysColumns", result.Method);
+            Assert.Equal("NpgsqlModelBuilderExtensions", result.DeclaringType);
+
+            Assert.Empty(result.Arguments);
+        }
+
+        [ConditionalFact]
+        public void GenerateFluentApi_IProperty_works_with_IdentityAlways()
+        {
+            var generator = CreateGenerator();
+            var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+            modelBuilder.Entity("Post", x => x.Property<int>("Id").UseIdentityAlwaysColumn());
+            var property = (IProperty)modelBuilder.Model.FindEntityType("Post").FindProperty("Id");
+
+            var annotations = property.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            var result = generator.GenerateFluentApiCalls(property, annotations).Single();
+
+            Assert.Equal("UseIdentityAlwaysColumn", result.Method);
+            Assert.Equal("NpgsqlPropertyBuilderExtensions", result.DeclaringType);
+
+            Assert.Empty(result.Arguments);
+        }
+
+        [ConditionalFact]
         public void GenerateFluentApi_IModel_works_with_HiLo()
         {
             var generator = CreateGenerator();
@@ -122,6 +188,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             var result = generator.GenerateFluentApiCalls((IModel)modelBuilder.Model, annotations).Single();
 
             Assert.Equal("UseHiLo", result.Method);
+            Assert.Equal("NpgsqlModelBuilderExtensions", result.DeclaringType);
 
             Assert.Collection(
                 result.Arguments,
@@ -141,6 +208,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             var result = generator.GenerateFluentApiCalls(property, annotations).Single();
 
             Assert.Equal("UseHiLo", result.Method);
+            Assert.Equal("NpgsqlPropertyBuilderExtensions", result.DeclaringType);
 
             Assert.Collection(
                 result.Arguments,
