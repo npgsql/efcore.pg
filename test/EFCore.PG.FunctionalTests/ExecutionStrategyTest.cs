@@ -663,7 +663,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             {
                 var options = base.AddOptions(builder);
-                new NpgsqlDbContextOptionsBuilder(options).MaxBatchSize(1);
+
+                new NpgsqlDbContextOptionsBuilder(options)
+                    .MaxBatchSize(1)
+                    .ExecutionStrategy(d => new TestNpgsqlRetryingExecutionStrategy(d));
+
                 return options;
             }
 

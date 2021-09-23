@@ -19,12 +19,22 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using Npgsql.Internal.TypeHandlers;
+using Npgsql.Internal.TypeMapping;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     {
+#if DEBUG
+        internal static bool LegacyTimestampBehavior;
+#else
+        internal static readonly bool LegacyTimestampBehavior;
+#endif
+
+        static NpgsqlTypeMappingSource()
+            => LegacyTimestampBehavior = AppContext.TryGetSwitch("Npgsql.EnableLegacyTimestampBehavior", out var enabled) && enabled;
+
         private readonly ISqlGenerationHelper _sqlGenerationHelper;
         private readonly ReferenceNullabilityDecoder _referenceNullabilityDecoder = new();
 
@@ -32,6 +42,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected virtual ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
 
         private readonly IReadOnlyList<UserRangeDefinition> _userRangeDefinitions;
+
+        private static MethodInfo? _adoUserTypeMappingsGetMethodInfo;
 
         #region Mappings
 
@@ -156,17 +168,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             // https://www.postgresql.org/docs/current/static/datatype.html#DATATYPE-TABLE
             var storeTypeMappings = new Dictionary<string, RelationalTypeMapping[]>(StringComparer.OrdinalIgnoreCase)
             {
-                { "boolean",                     new[] { _bool                         } },
-                { "bool",                        new[] { _bool                         } },
-                { "bytea",                       new[] { _bytea                        } },
-                { "real",                        new[] { _float4                       } },
-                { "float4",                      new[] { _float4                       } },
-                { "double precision",            new[] { _float8                       } },
-                { "float8",                      new[] { _float8                       } },
-                { "numeric",                     new[] { _numeric                      } },
-                { "decimal",                     new[] { _numeric                      } },
-                { "money",                       new[] { _money                        } },
-                { "uuid",                        new[] { _uuid                         } },
                 { "smallint",                    new RelationalTypeMapping[] { _int2, _int2Byte } },
                 { "int2",                        new RelationalTypeMapping[] { _int2, _int2Byte } },
                 { "integer",                     new[] { _int4                         } },
@@ -174,6 +175,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "int4",                        new[] { _int4                         } },
                 { "bigint",                      new[] { _int8                         } },
                 { "int8",                        new[] { _int8                         } },
+                { "real",                        new[] { _float4                       } },
+                { "float4",                      new[] { _float4                       } },
+                { "double precision",            new[] { _float8                       } },
+                { "float8",                      new[] { _float8                       } },
+                { "numeric",                     new[] { _numeric                      } },
+                { "decimal",                     new[] { _numeric                      } },
+                { "money",                       new[] { _money                        } },
+
                 { "text",                        new[] { _text                         } },
                 { "jsonb",                       new RelationalTypeMapping[] { _jsonbString, _jsonbDocument, _jsonbElement } },
                 { "json",                        new RelationalTypeMapping[] { _jsonString, _jsonDocument, _jsonElement } },
@@ -185,24 +194,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "char",                        new[] { _char                         } },
                 { "char(1)",                     new RelationalTypeMapping[] { _singleChar, _stringAsSingleChar } },
                 { "character(1)",                new RelationalTypeMapping[] { _singleChar, _stringAsSingleChar } },
+
                 { "timestamp without time zone", new[] { _timestamp                    } },
-                { "timestamp",                   new[] { _timestamp                    } },
                 { "timestamp with time zone",    new[] { _timestamptz, _timestamptzDto } },
-                { "timestamptz",                 new[] { _timestamptz, _timestamptzDto } },
                 { "interval",                    new[] { _interval                     } },
                 { "date",                        new RelationalTypeMapping[] { _dateDateOnly, _dateDateTime } },
                 { "time without time zone",      new RelationalTypeMapping[] { _timeTimeOnly, _timeTimeSpan } },
-                { "time",                        new RelationalTypeMapping[] { _timeTimeOnly, _timeTimeSpan } },
                 { "time with time zone",         new[] { _timetz                       } },
-                { "timetz",                      new[] { _timetz                       } },
-                { "macaddr",                     new[] { _macaddr                      } },
-                { "macaddr8",                    new[] { _macaddr8                     } },
-                { "inet",                        new[] { _inet                         } },
-                { "cidr",                        new[] { _cidr                         } },
+
+                { "boolean",                     new[] { _bool                         } },
+                { "bool",                        new[] { _bool                         } },
+                { "bytea",                       new[] { _bytea                        } },
+                { "uuid",                        new[] { _uuid                         } },
                 { "bit",                         new[] { _bit                          } },
                 { "bit varying",                 new[] { _varbit                       } },
                 { "varbit",                      new[] { _varbit                       } },
                 { "hstore",                      new RelationalTypeMapping[] { _hstore, _immutableHstore } },
+
+                { "macaddr",                     new[] { _macaddr                      } },
+                { "macaddr8",                    new[] { _macaddr8                     } },
+                { "inet",                        new[] { _inet                         } },
+                { "cidr",                        new[] { _cidr                         } },
+
                 { "point",                       new[] { _point                        } },
                 { "box",                         new[] { _box                          } },
                 { "line",                        new[] { _line                         } },
@@ -210,6 +223,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "path",                        new[] { _path                         } },
                 { "polygon",                     new[] { _polygon                      } },
                 { "circle",                      new[] { _circle                       } },
+
                 { "xid",                         new[] { _xid                          } },
                 { "oid",                         new[] { _oid                          } },
                 { "cid",                         new[] { _cid                          } },
@@ -236,30 +250,41 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             };
 // ReSharper restore CoVariantArrayConversion
 
+            // Set up aliases
+            storeTypeMappings["timestamp"] = storeTypeMappings["timestamp without time zone"];
+            storeTypeMappings["timestamptz"] = storeTypeMappings["timestamp with time zone"];
+            storeTypeMappings["time"] = storeTypeMappings["time without time zone"];
+            storeTypeMappings["timetz"] = storeTypeMappings["time with time zone"];
+
             var clrTypeMappings = new Dictionary<Type, RelationalTypeMapping>
             {
                 { typeof(bool),                                _bool                 },
                 { typeof(byte[]),                              _bytea                },
-                { typeof(float),                               _float4               },
-                { typeof(double),                              _float8               },
-                { typeof(decimal),                             _numeric              },
                 { typeof(Guid),                                _uuid                 },
+
                 { typeof(byte),                                _int2Byte             },
                 { typeof(short),                               _int2                 },
                 { typeof(int),                                 _int4                 },
                 { typeof(long),                                _int8                 },
+                { typeof(float),                               _float4               },
+                { typeof(double),                              _float8               },
+                { typeof(decimal),                             _numeric              },
+
                 { typeof(string),                              _text                 },
                 { typeof(JsonDocument),                        _jsonbDocument        },
                 { typeof(JsonElement),                         _jsonbElement         },
                 { typeof(char),                                _singleChar           },
-                { typeof(DateTime),                            _timestamp            },
+
+                { typeof(DateTime),                            LegacyTimestampBehavior ? _timestamp : _timestamptz },
                 { typeof(DateOnly),                            _dateDateOnly         },
                 { typeof(TimeOnly),                            _timeTimeOnly         },
                 { typeof(TimeSpan),                            _interval             },
                 { typeof(DateTimeOffset),                      _timestamptzDto       },
+
                 { typeof(PhysicalAddress),                     _macaddr              },
                 { typeof(IPAddress),                           _inet                 },
                 { typeof((IPAddress, int)),                    _cidr                 },
+
                 { typeof(BitArray),                            _varbit               },
                 { typeof(ImmutableDictionary<string, string>), _immutableHstore      },
                 { typeof(Dictionary<string, string>),          _hstore               },
@@ -305,25 +330,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// </summary>
         protected virtual void SetupEnumMappings(ISqlGenerationHelper sqlGenerationHelper)
         {
-            foreach (var adoMapping in NpgsqlConnection.GlobalTypeMapper.Mappings.Where(m => m.TypeHandlerFactory is IEnumTypeHandlerFactory).ToArray())
+            _adoUserTypeMappingsGetMethodInfo ??= NpgsqlConnection.GlobalTypeMapper.GetType().GetProperty("UserTypeMappings")?.GetMethod;
+
+            if (_adoUserTypeMappingsGetMethodInfo is null)
             {
-                var storeType = adoMapping.PgTypeName;
-                var clrType = adoMapping.ClrTypes.SingleOrDefault();
-                if (clrType == null)
-                {
-                    // TODO: Log skipping the enum
-                    continue;
-                }
+                return;
+            }
 
-                var nameTranslator = ((IEnumTypeHandlerFactory)adoMapping.TypeHandlerFactory).NameTranslator;
+            var adoUserTypeMappings = (IDictionary<string, IUserTypeMapping>)_adoUserTypeMappingsGetMethodInfo.Invoke(NpgsqlConnection.GlobalTypeMapper, Array.Empty<object>())!;
 
+            foreach (var adoUserTypeMapping in adoUserTypeMappings.Values.OfType<IUserEnumTypeMapping>())
+            {
                 // TODO: update with schema per https://github.com/npgsql/npgsql/issues/2121
-                var components = storeType.Split('.');
+                var components = adoUserTypeMapping.PgTypeName.Split('.');
                 var schema = components.Length > 1 ? components.First() : null;
-                var name = components.Length > 1 ? string.Join(null, components.Skip(1)) : storeType;
+                var name = components.Length > 1 ? string.Join(null, components.Skip(1)) : adoUserTypeMapping.PgTypeName;
 
-                var mapping = new NpgsqlEnumTypeMapping(name, schema, clrType, sqlGenerationHelper, nameTranslator);
-                ClrTypeMappings[clrType] = mapping;
+                var mapping = new NpgsqlEnumTypeMapping(
+                    name, schema, adoUserTypeMapping.ClrType, sqlGenerationHelper, adoUserTypeMapping.NameTranslator);
+                ClrTypeMappings[adoUserTypeMapping.ClrType] = mapping;
                 StoreTypeMappings[mapping.StoreType] = new RelationalTypeMapping[] { mapping };
             }
         }

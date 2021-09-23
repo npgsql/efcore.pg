@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -16,34 +17,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             : base(fixture)
         {
             ClearLog();
-            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         #region Date and time
 
-        public override async Task Where_datetime_now(bool async)
-        {
-            await base.Where_datetime_now(async);
+        public override Task Where_datetime_now(bool async)
+            => Task.CompletedTask; // See TimestampQueryTest
 
-            AssertSql(
-                @"@__myDatetime_0='2015-04-10T00:00:00.0000000' (DbType = DateTime)
-
-SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
-FROM ""Customers"" AS c
-WHERE now() <> @__myDatetime_0");
-        }
-
-        public override async Task Where_datetime_utcnow(bool async)
-        {
-            await base.Where_datetime_utcnow(async);
-
-            AssertSql(
-                @"@__myDatetime_0='2015-04-10T00:00:00.0000000' (DbType = DateTimeOffset)
-
-SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
-FROM ""Customers"" AS c
-WHERE now() AT TIME ZONE 'UTC' <> @__myDatetime_0");
-        }
+        public override Task Where_datetime_utcnow(bool async)
+            => Task.CompletedTask; // See TimestampQueryTest
 
         public override async Task Where_datetime_today(bool async)
         {
@@ -52,7 +35,7 @@ WHERE now() AT TIME ZONE 'UTC' <> @__myDatetime_0");
             AssertSql(
                 @"SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
 FROM ""Employees"" AS e
-WHERE date_trunc('day', now()) = date_trunc('day', now())");
+WHERE date_trunc('day', now()::timestamp) = date_trunc('day', now()::timestamp)");
         }
 
         public override async Task Where_datetime_date_component(bool async)
@@ -157,36 +140,6 @@ WHERE date_part('second', o.""OrderDate"")::INT = 44");
             => Task.CompletedTask; // https://github.com/npgsql/efcore.pg/issues/873
 
         #endregion Date and time
-
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_datetime_ctor1(bool async)
-        {
-            await AssertQuery(
-                async,
-                ss => ss.Set<Order>().Where(o =>
-                    new DateTime(o.OrderDate.Value.Year, o.OrderDate.Value.Month, 1) == new DateTime(1996, 9, 11)));
-
-            AssertSql(
-                @"SELECT o.""OrderID"", o.""CustomerID"", o.""EmployeeID"", o.""OrderDate""
-FROM ""Orders"" AS o
-WHERE make_date(date_part('year', o.""OrderDate"")::INT, date_part('month', o.""OrderDate"")::INT, 1) = TIMESTAMP '1996-09-11 00:00:00'");
-        }
-
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_datetime_ctor2(bool async)
-        {
-            await AssertQuery(
-                async,
-                ss => ss.Set<Order>().Where(o =>
-                    new DateTime(o.OrderDate.Value.Year, o.OrderDate.Value.Month, 1, 0, 0, 0) == new DateTime(1996, 9, 11)));
-
-            AssertSql(
-                @"SELECT o.""OrderID"", o.""CustomerID"", o.""EmployeeID"", o.""OrderDate""
-FROM ""Orders"" AS o
-WHERE make_timestamp(date_part('year', o.""OrderDate"")::INT, date_part('month', o.""OrderDate"")::INT, 1, 0, 0, 0::double precision) = TIMESTAMP '1996-09-11 00:00:00'");
-        }
 
         [ConditionalTheory(Skip = "#873")]
         public override Task Where_datetimeoffset_utcnow(bool async)

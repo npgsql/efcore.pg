@@ -21,6 +21,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 base.OnModelCreating(modelBuilder, context);
 
+                // We default to mapping DateTime to 'timestamp with time zone', but the seeding data has Unspecified DateTimes which aren't
+                // supported.
+                modelBuilder.Entity<PastEmployee>().Property(e => e.TerminationDate).HasColumnType("timestamp without time zone");
+
                 modelBuilder.Entity<Building>()
                     .Property(b => b.Value).HasColumnType("decimal(18,2)");
 

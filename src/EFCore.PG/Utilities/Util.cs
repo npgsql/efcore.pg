@@ -12,7 +12,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
             new[] { true, true, true },
             new[] { true, true, true, true },
             new[] { true, true, true, true, true },
-            new[] { true, true, true, true, true, true }
+            new[] { true, true, true, true, true, true },
+            new[] { true, true, true, true, true, true, true },
+            new[] { true, true, true, true, true, true, true, true }
         };
 
         internal static readonly bool[][] FalseArrays =

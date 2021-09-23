@@ -9,8 +9,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class ManyToManyFieldsLoadNpgsqlTest : ManyToManyFieldsLoadTestBase<
-        ManyToManyFieldsLoadNpgsqlTest.ManyToManyFieldsLoadNpgsqlFixture>
+    public class ManyToManyFieldsLoadNpgsqlTest
+        : ManyToManyFieldsLoadTestBase<ManyToManyFieldsLoadNpgsqlTest.ManyToManyFieldsLoadNpgsqlFixture>
     {
         public ManyToManyFieldsLoadNpgsqlTest(ManyToManyFieldsLoadNpgsqlFixture fixture)
             : base(fixture)
@@ -29,9 +29,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 base.OnModelCreating(modelBuilder, context);
 
+                // We default to mapping DateTime to 'timestamp with time zone', but the seeding data has Unspecified DateTimes which aren't
+                // supported.
+                modelBuilder.Entity<EntityCompositeKey>()
+                    .Property(e => e.Key3)
+                    .HasColumnType("timestamp without time zone");
+
                 modelBuilder
                     .Entity<JoinOneSelfPayload>()
                     .Property(e => e.Payload)
+                    .HasColumnType("timestamp without time zone")
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 modelBuilder

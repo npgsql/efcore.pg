@@ -27,9 +27,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 base.OnModelCreating(modelBuilder, context);
 
+                // We default to mapping DateTime to 'timestamp with time zone', but the seeding data has Unspecified DateTimes which aren't
+                // supported.
+                modelBuilder.Entity<EntityCompositeKey>()
+                    .Property(e => e.Key3)
+                    .HasColumnType("timestamp without time zone");
+
                 modelBuilder
                     .Entity<JoinOneSelfPayload>()
                     .Property(e => e.Payload)
+                    .HasColumnType("timestamp without time zone")
                     .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
 
                 modelBuilder

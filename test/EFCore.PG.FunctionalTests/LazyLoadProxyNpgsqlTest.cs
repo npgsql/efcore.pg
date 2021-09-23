@@ -32,6 +32,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
+            {
+                base.OnModelCreating(modelBuilder, context);
+
+                // We default to mapping DateTime to 'timestamp with time zone', but the seeding data has Unspecified DateTimes which aren't
+                // supported.
+                modelBuilder.Entity<Quest>().Property(q => q.Birthday).HasColumnType("timestamp without time zone");
+                modelBuilder.Entity<Parson>().Property(q => q.Birthday).HasColumnType("timestamp without time zone");
+            }
         }
     }
 }

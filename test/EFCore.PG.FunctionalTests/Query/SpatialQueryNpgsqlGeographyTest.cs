@@ -321,6 +321,8 @@ FROM ""PointEntity"" AS p");
 
         public class SpatialQueryNpgsqlGeographyFixture : SpatialQueryNpgsqlFixture
         {
+            protected override string StoreName => "SpatialQueryGeographyTest";
+
             private NtsGeometryServices _geometryServices;
             private GeometryFactory _geometryFactory;
 
@@ -344,8 +346,6 @@ FROM ""PointEntity"" AS p");
 
                 return optionsBuilder;
             }
-
-            protected override string StoreName => "SpatialQueryGeographyTest";
         }
     }
 }

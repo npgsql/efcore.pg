@@ -9,8 +9,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         {
             optionsBuilder.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
 
-            optionsBuilder.ExecutionStrategy(d => new TestNpgsqlRetryingExecutionStrategy(d));
-
             optionsBuilder.CommandTimeout(NpgsqlTestStore.CommandTimeout);
 
             return optionsBuilder;

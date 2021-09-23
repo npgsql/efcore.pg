@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 
@@ -18,7 +19,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => parameters.Precision is null ? storeType : $"timestamp({parameters.Precision}) without time zone";
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => FormattableString.Invariant($"TIMESTAMP '{(DateTime)value:yyyy-MM-dd HH:mm:ss.FFFFFF}'");
+        {
+            var dateTime = (DateTime)value;
+
+            if (!NpgsqlTypeMappingSource.LegacyTimestampBehavior && dateTime.Kind == DateTimeKind.Utc)
+            {
+                throw new InvalidCastException("'timestamp without time zone' literal cannot be generated for a UTC DateTime");
+            }
+
+            return FormattableString.Invariant($"TIMESTAMP '{dateTime:yyyy-MM-dd HH:mm:ss.FFFFFF}'");
+        }
     }
 
     public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
@@ -36,25 +46,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => parameters.Precision is null ? storeType : $"timestamp({parameters.Precision}) with time zone";
 
         protected override string GenerateNonNullSqlLiteral(object value)
-        {
-            switch (value)
+            => value switch
             {
-            case DateTime dt:
-                var tz = dt.Kind == DateTimeKind.Local
-                    ? $"{dt:zzz}"
-                    : " UTC";
+                DateTime dt => dt.Kind switch
+                {
+                    DateTimeKind.Utc => FormattableString.Invariant($"TIMESTAMPTZ '{dt:yyyy-MM-dd HH:mm:ss.FFFFFF}Z'"),
 
-                return FormattableString.Invariant($"TIMESTAMPTZ '{dt:yyyy-MM-dd HH:mm:ss.FFFFFF}{tz}'");
+                    DateTimeKind.Unspecified => NpgsqlTypeMappingSource.LegacyTimestampBehavior
+                        ? $"TIMESTAMPTZ '{dt:yyyy-MM-dd HH:mm:ss.FFFFFF}Z'"
+                        : throw new InvalidCastException($"'timestamp with time zone' literal cannot be generated for {dt.Kind} DateTime: a UTC DateTime is required"),
 
-            case DateTimeOffset dto:
-                return FormattableString.Invariant($"TIMESTAMPTZ '{dto:yyyy-MM-dd HH:mm:ss.FFFFFFzzz}'");
+                    DateTimeKind.Local => NpgsqlTypeMappingSource.LegacyTimestampBehavior
+                        ? $"TIMESTAMPTZ '{dt:yyyy-MM-dd HH:mm:ss.FFFFFFzzz}'"
+                        : throw new InvalidCastException($"'timestamp with time zone' literal cannot be generated for {dt.Kind} DateTime: a UTC DateTime is required"),
 
-            default:
-                throw new InvalidCastException(
-                    $"Attempted to generate timestamptz literal for type {value.GetType()}, " +
-                    "only DateTime and DateTimeOffset are supported");
-            }
-        }
+                    _ => throw new ArgumentOutOfRangeException()
+                },
+
+                DateTimeOffset dto => FormattableString.Invariant($"TIMESTAMPTZ '{dto:yyyy-MM-dd HH:mm:ss.FFFFFFzzz}'"),
+
+                _ => throw new InvalidCastException(
+                    $"Attempted to generate timestamptz literal for type {value.GetType()}, only DateTime and DateTimeOffset are supported")
+            };
     }
 
     public class NpgsqlDateTypeMapping : NpgsqlTypeMapping

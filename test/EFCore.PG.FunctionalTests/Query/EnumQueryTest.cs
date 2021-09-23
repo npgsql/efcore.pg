@@ -1,5 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using NpgsqlTypes;
@@ -8,16 +12,14 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class EnumQueryTest : IClassFixture<EnumQueryTest.EnumFixture>
+    public class EnumQueryTest : QueryTestBase<EnumQueryTest.EnumFixture>
     {
-        private EnumFixture Fixture { get; }
-
         // ReSharper disable once UnusedParameter.Local
         public EnumQueryTest(EnumFixture fixture, ITestOutputHelper testOutputHelper)
+            : base(fixture)
         {
-            Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         #region Roundtrip
@@ -34,142 +36,177 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region Where
 
-        [Fact]
-        public void Where_with_constant()
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task Where_with_constant(bool async)
         {
             using var ctx = CreateContext();
-            var x = ctx.SomeEntities.Single(e => e.MappedEnum == MappedEnum.Sad);
-            Assert.Equal(MappedEnum.Sad, x.MappedEnum);
 
-            AssertContainsInSql(@"WHERE s.""MappedEnum"" = 'sad'::test.mapped_enum");
-        }
-
-        [Fact]
-        public void Where_with_constant_schema_qualified()
-        {
-            using var ctx = CreateContext();
-            var x = ctx.SomeEntities.Single(e => e.SchemaQualifiedEnum == SchemaQualifiedEnum.Happy);
-            Assert.Equal(SchemaQualifiedEnum.Happy, x.SchemaQualifiedEnum);
-
-            AssertContainsInSql(@"WHERE s.""SchemaQualifiedEnum"" = 'Happy (PgName)'::test.schema_qualified_enum");
-        }
-
-        [Fact]
-        public void Where_with_parameter()
-        {
-            using var ctx = CreateContext();
-            // ReSharper disable once ConvertToConstant.Local
-            var sad = MappedEnum.Sad;
-            var x = ctx.SomeEntities.Single(e => e.MappedEnum == sad);
-            Assert.Equal(MappedEnum.Sad, x.MappedEnum);
-
-            AssertSql(
-                @"@__sad_0='Sad' (DbType = Object)
-
-SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
-FROM test.""SomeEntities"" AS s
-WHERE s.""MappedEnum"" = @__sad_0
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Where_with_unmapped_enum_parameter_downcasts_are_implicit()
-        {
-            using var ctx = CreateContext();
-            // ReSharper disable once ConvertToConstant.Local
-            var sad = UnmappedEnum.Sad;
-            var _ = ctx.SomeEntities.Single(e => e.UnmappedEnum == sad);
-
-            AssertSql(
-                @"@__sad_0='1'
-
-SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
-FROM test.""SomeEntities"" AS s
-WHERE s.""UnmappedEnum"" = @__sad_0
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Where_with_unmapped_enum_parameter_downcasts_do_not_matter()
-        {
-            using var ctx = CreateContext();
-            // ReSharper disable once ConvertToConstant.Local
-            var sad = UnmappedEnum.Sad;
-            var _ = ctx.SomeEntities.Single(e => (int)e.UnmappedEnum == (int)sad);
-
-            AssertSql(
-                @"@__sad_0='1'
-
-SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
-FROM test.""SomeEntities"" AS s
-WHERE s.""UnmappedEnum"" = @__sad_0
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Where_with_mapped_enum_parameter_downcasts_do_not_matter()
-        {
-            using var ctx = CreateContext();
-            // ReSharper disable once ConvertToConstant.Local
-            var sad = MappedEnum.Sad;
-            var _ = ctx.SomeEntities.Single(e => (int)e.MappedEnum == (int)sad);
-
-            AssertSql(
-                @"@__sad_0='Sad' (DbType = Object)
-
-SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
-FROM test.""SomeEntities"" AS s
-WHERE s.""MappedEnum"" = @__sad_0
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Enum_ToString()
-        {
-            using var ctx = CreateContext();
-            // Note we have to specify lower-case since the ADO layer applies naming transformations, not ideal.
-            var _ = ctx.SomeEntities.Single(e => e.MappedEnum.ToString().Contains("sa"));
+            await AssertQuery(
+                async,
+                ss => ss.Set<SomeEnumEntity>().Where(e => e.MappedEnum == MappedEnum.Sad),
+                entryCount: 1);
 
             AssertSql(
                 @"SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
 FROM test.""SomeEntities"" AS s
-WHERE strpos(CAST(s.""MappedEnum"" AS text), 'sa') > 0
-LIMIT 2");
+WHERE s.""MappedEnum"" = 'sad'::test.mapped_enum");
         }
 
-        [Fact]
-        public void Where_byte_enum_array_contains_enum()
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task Where_with_constant_schema_qualified(bool async)
         {
             using var ctx = CreateContext();
+
+            await AssertQuery(
+                async,
+                ss => ss.Set<SomeEnumEntity>().Where(e => e.SchemaQualifiedEnum == SchemaQualifiedEnum.Happy),
+                entryCount: 1);
+
+            AssertSql(
+                @"SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
+FROM test.""SomeEntities"" AS s
+WHERE s.""SchemaQualifiedEnum"" = 'Happy (PgName)'::test.schema_qualified_enum");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task Where_with_parameter(bool async)
+        {
+            using var ctx = CreateContext();
+
+            var sad = MappedEnum.Sad;
+            await AssertQuery(
+                async,
+                ss => ss.Set<SomeEnumEntity>().Where(e => e.MappedEnum == sad),
+                entryCount: 1);
+
+            AssertSql(
+                @"@__sad_0='Sad' (DbType = Object)
+
+SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
+FROM test.""SomeEntities"" AS s
+WHERE s.""MappedEnum"" = @__sad_0");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task Where_with_unmapped_enum_parameter_downcasts_are_implicit(bool async)
+        {
+            using var ctx = CreateContext();
+
+            var sad = UnmappedEnum.Sad;
+            await AssertQuery(
+                async,
+                ss => ss.Set<SomeEnumEntity>().Where(e => e.UnmappedEnum == sad),
+                entryCount: 1);
+
+            AssertSql(
+                @"@__sad_0='1'
+
+SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
+FROM test.""SomeEntities"" AS s
+WHERE s.""UnmappedEnum"" = @__sad_0");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task Where_with_unmapped_enum_parameter_downcasts_do_not_matter(bool async)
+        {
+            using var ctx = CreateContext();
+
+            var sad = UnmappedEnum.Sad;
+            await AssertQuery(
+                async,
+                ss => ss.Set<SomeEnumEntity>().Where(e => (int)e.UnmappedEnum == (int)sad),
+                entryCount: 1);
+
+            AssertSql(
+                @"@__sad_0='1'
+
+SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
+FROM test.""SomeEntities"" AS s
+WHERE s.""UnmappedEnum"" = @__sad_0");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task Where_with_mapped_enum_parameter_downcasts_do_not_matter(bool async)
+        {
+            using var ctx = CreateContext();
+
+            var sad = MappedEnum.Sad;
+            await AssertQuery(
+                async,
+                ss => ss.Set<SomeEnumEntity>().Where(e => (int)e.MappedEnum == (int)sad),
+                entryCount: 1);
+
+            AssertSql(
+                @"@__sad_0='Sad' (DbType = Object)
+
+SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
+FROM test.""SomeEntities"" AS s
+WHERE s.""MappedEnum"" = @__sad_0");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task Enum_ToString(bool async)
+        {
+            using var ctx = CreateContext();
+
+            await AssertQuery(
+                async,
+                ss => ss.Set<SomeEnumEntity>().Where(e => e.MappedEnum.ToString().Contains("sa")),
+                ss => ss.Set<SomeEnumEntity>().Where(e => e.MappedEnum.ToString().Contains("Sa")),
+                entryCount: 1);
+
+            AssertSql(
+                @"SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
+FROM test.""SomeEntities"" AS s
+WHERE strpos(s.""MappedEnum""::text, 'sa') > 0");
+
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task Where_byte_enum_array_contains_enum(bool async)
+        {
+            using var ctx = CreateContext();
+
             var values = new[] { ByteEnum.Sad };
-            var result = ctx.SomeEntities.Single(e => values.Contains(e.ByteEnum));
-            Assert.Equal(2, result.Id);
+            await AssertQuery(
+                async,
+                ss => ss.Set<SomeEnumEntity>().Where(e => values.Contains(e.ByteEnum)),
+                entryCount: 1);
 
             AssertSql(
                 @"@__values_0='0x01' (DbType = Object)
 
 SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
 FROM test.""SomeEntities"" AS s
-WHERE s.""ByteEnum"" = ANY (@__values_0)
-LIMIT 2");
+WHERE s.""ByteEnum"" = ANY (@__values_0)");
         }
 
-        [Fact]
-        public void Where_unmapped_byte_enum_array_contains_enum()
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task Where_unmapped_byte_enum_array_contains_enum(bool async)
         {
             using var ctx = CreateContext();
-            var values = new[] { UnmappedByteEnum.Sad };
-            var result = ctx.SomeEntities.Single(e => values.Contains(e.UnmappedByteEnum));
-            Assert.Equal(2, result.Id);
 
-            // Note: EF Core prints the parameter as a bytea, but it's actually a smallint[] (otherwise ANY would fail)
+             var values = new[] { UnmappedByteEnum.Sad };
+            await AssertQuery(
+                async,
+                ss => ss.Set<SomeEnumEntity>().Where(e => values.Contains(e.UnmappedByteEnum)),
+                entryCount: 1);
+
             AssertSql(
                 @"@__values_0='0x01' (DbType = Object)
 
 SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
 FROM test.""SomeEntities"" AS s
-WHERE s.""UnmappedByteEnum"" = ANY (@__values_0)
-LIMIT 2");
+WHERE s.""UnmappedByteEnum"" = ANY (@__values_0)");
         }
 
         #endregion
@@ -180,13 +217,6 @@ LIMIT 2");
 
         private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
-
-        private void AssertContainsInSql(string expected)
-            => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
-
-        // ReSharper disable once UnusedMember.Local
-        private void AssertDoesNotContainInSql(string expected)
-            => Assert.DoesNotContain(expected, Fixture.TestSqlLoggerFactory.Sql);
 
         public class EnumContext : PoolableDbContext
         {
@@ -212,29 +242,10 @@ LIMIT 2");
 
             public static void Seed(EnumContext context)
             {
+                context.AddRange(EnumData.CreateSomeEnumEntities());
+
                 context.SomeEntities.AddRange(
-                    new SomeEnumEntity
-                    {
-                        Id = 1,
-                        MappedEnum = MappedEnum.Happy,
-                        UnmappedEnum = UnmappedEnum.Happy,
-                        InferredEnum = InferredEnum.Happy,
-                        SchemaQualifiedEnum = SchemaQualifiedEnum.Happy,
-                        ByteEnum = ByteEnum.Happy,
-                        UnmappedByteEnum = UnmappedByteEnum.Happy,
-                        EnumValue = (int)MappedEnum.Happy
-                    },
-                    new SomeEnumEntity
-                    {
-                        Id = 2,
-                        MappedEnum = MappedEnum.Sad,
-                        UnmappedEnum = UnmappedEnum.Sad,
-                        InferredEnum = InferredEnum.Sad,
-                        SchemaQualifiedEnum = SchemaQualifiedEnum.Sad,
-                        ByteEnum = ByteEnum.Sad,
-                        UnmappedByteEnum = UnmappedByteEnum.Sad,
-                        EnumValue = (int)MappedEnum.Sad
-                    });
+);
                 context.SaveChanges();
             }
         }
@@ -289,13 +300,96 @@ LIMIT 2");
         }
 
         // ReSharper disable once ClassNeverInstantiated.Global
-        public class EnumFixture : SharedStoreFixtureBase<EnumContext>
+        public class EnumFixture : SharedStoreFixtureBase<EnumContext>, IQueryFixtureBase
         {
             protected override string StoreName => "EnumQueryTest";
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
 
+            private EnumData _expectedData;
+
             protected override void Seed(EnumContext context) => EnumContext.Seed(context);
+
+            public Func<DbContext> GetContextCreator()
+                => CreateContext;
+
+            public ISetSource GetExpectedData()
+                => _expectedData ??= new EnumData();
+
+            public IReadOnlyDictionary<Type, object> GetEntitySorters()
+                => new Dictionary<Type, Func<object, object>> { { typeof(SomeEnumEntity), e => ((SomeEnumEntity)e)?.Id } }
+                    .ToDictionary(e => e.Key, e => (object)e.Value);
+
+            public IReadOnlyDictionary<Type, object> GetEntityAsserters()
+                => new Dictionary<Type, Action<object, object>>
+                {
+                    {
+                        typeof(SomeEnumEntity), (e, a) =>
+                        {
+                            Assert.Equal(e == null, a == null);
+                            if (a != null)
+                            {
+                                var ee = (SomeEnumEntity)e;
+                                var aa = (SomeEnumEntity)a;
+
+                                Assert.Equal(ee.Id, aa.Id);
+                                Assert.Equal(ee.MappedEnum, aa.MappedEnum);
+                                Assert.Equal(ee.UnmappedEnum, aa.UnmappedEnum);
+                                Assert.Equal(ee.InferredEnum, aa.InferredEnum);
+                                Assert.Equal(ee.SchemaQualifiedEnum, aa.SchemaQualifiedEnum);
+                                Assert.Equal(ee.ByteEnum, aa.ByteEnum);
+                                Assert.Equal(ee.UnmappedByteEnum, aa.UnmappedByteEnum);
+                                Assert.Equal(ee.EnumValue, aa.EnumValue);
+                            }
+                        }
+                    }
+                }.ToDictionary(e => e.Key, e => (object)e.Value);
+        }
+
+        protected class EnumData : ISetSource
+        {
+            public IReadOnlyList<SomeEnumEntity> SomeEnumEntities { get; }
+
+            public EnumData()
+                => SomeEnumEntities = CreateSomeEnumEntities();
+
+            public IQueryable<TEntity> Set<TEntity>()
+                where TEntity : class
+            {
+                if (typeof(TEntity) == typeof(SomeEnumEntity))
+                {
+                    return (IQueryable<TEntity>)SomeEnumEntities.AsQueryable();
+                }
+
+                throw new InvalidOperationException("Invalid entity type: " + typeof(TEntity));
+            }
+
+            public static IReadOnlyList<SomeEnumEntity> CreateSomeEnumEntities()
+                => new List<SomeEnumEntity>
+                {
+                    new()
+                    {
+                        Id = 1,
+                        MappedEnum = MappedEnum.Happy,
+                        UnmappedEnum = UnmappedEnum.Happy,
+                        InferredEnum = InferredEnum.Happy,
+                        SchemaQualifiedEnum = SchemaQualifiedEnum.Happy,
+                        ByteEnum = ByteEnum.Happy,
+                        UnmappedByteEnum = UnmappedByteEnum.Happy,
+                        EnumValue = (int)MappedEnum.Happy
+                    },
+                    new()
+                    {
+                        Id = 2,
+                        MappedEnum = MappedEnum.Sad,
+                        UnmappedEnum = UnmappedEnum.Sad,
+                        InferredEnum = InferredEnum.Sad,
+                        SchemaQualifiedEnum = SchemaQualifiedEnum.Sad,
+                        ByteEnum = ByteEnum.Sad,
+                        UnmappedByteEnum = UnmappedByteEnum.Sad,
+                        EnumValue = (int)MappedEnum.Sad
+                    }
+                };
         }
 
         #endregion

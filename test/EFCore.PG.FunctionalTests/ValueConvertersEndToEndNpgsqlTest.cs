@@ -13,6 +13,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
         }
 
+        [ConditionalTheory(Skip = "DateTime and DateTimeOffset, https://github.com/dotnet/efcore/issues/26068")]
+        public override void Can_insert_and_read_back_with_conversions(int[] valueOrder)
+            => base.Can_insert_and_read_back_with_conversions(valueOrder);
+
         [ConditionalTheory]
         [InlineData(nameof(ConvertingEntity.BoolAsChar), "character(1)", false)]
         [InlineData(nameof(ConvertingEntity.BoolAsNullableChar), "character(1)", false)]
@@ -60,8 +64,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [InlineData(nameof(ConvertingEntity.StringToNullableBytes), "bytea", false)]
         [InlineData(nameof(ConvertingEntity.StringToChar), "character(1)", false)]
         [InlineData(nameof(ConvertingEntity.StringToNullableChar), "character(1)", false)]
-        [InlineData(nameof(ConvertingEntity.StringToDateTime), "timestamp without time zone", false)]
-        [InlineData(nameof(ConvertingEntity.StringToNullableDateTime), "timestamp without time zone", false)]
+        [InlineData(nameof(ConvertingEntity.StringToDateTime), "timestamp with time zone", false)]
+        [InlineData(nameof(ConvertingEntity.StringToNullableDateTime), "timestamp with time zone", false)]
         // [InlineData(nameof(ConvertingEntity.StringToDateTimeOffset), "timestamp with time zone", false)]
         // [InlineData(nameof(ConvertingEntity.StringToNullableDateTimeOffset), "timestamp with time zone", false)]
         [InlineData(nameof(ConvertingEntity.StringToEnum), "integer", false)]
@@ -124,8 +128,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [InlineData(nameof(ConvertingEntity.NullableStringToNullableBytes), "bytea", true)]
         [InlineData(nameof(ConvertingEntity.NullableStringToChar), "character(1)", true)]
         [InlineData(nameof(ConvertingEntity.NullableStringToNullableChar), "character(1)", true)]
-        [InlineData(nameof(ConvertingEntity.NullableStringToDateTime), "timestamp without time zone", true)]
-        [InlineData(nameof(ConvertingEntity.NullableStringToNullableDateTime), "timestamp without time zone", true)]
+        [InlineData(nameof(ConvertingEntity.NullableStringToDateTime), "timestamp with time zone", true)]
+        [InlineData(nameof(ConvertingEntity.NullableStringToNullableDateTime), "timestamp with time zone", true)]
         //[InlineData(nameof(ConvertingEntity.NullableStringToDateTimeOffset), "timestamp with time zone", true)]
         //[InlineData(nameof(ConvertingEntity.NullableStringToNullableDateTimeOffset), "timestamp with time zone", true)]
         [InlineData(nameof(ConvertingEntity.NullableStringToEnum), "integer", true)]

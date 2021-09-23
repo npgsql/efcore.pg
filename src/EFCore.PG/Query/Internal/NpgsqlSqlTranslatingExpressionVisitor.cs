@@ -26,6 +26,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         private static readonly ConstructorInfo DateTimeCtor2 =
             typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) })!;
 
+        private static readonly ConstructorInfo DateTimeCtor3 =
+            typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(DateTimeKind) })!;
+
         private static readonly ConstructorInfo DateOnlyCtor =
             typeof(DateOnly).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
 
@@ -46,6 +49,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         private readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
         private readonly NpgsqlLTreeTranslator _ltreeTranslator;
 
+        private readonly RelationalTypeMapping _timestampMapping;
+        private readonly RelationalTypeMapping _timestampTzMapping;
+
         private static Type? _nodaTimePeriodType;
 
         public NpgsqlSqlTranslatingExpressionVisitor(
@@ -58,6 +64,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             _jsonPocoTranslator = ((NpgsqlMemberTranslatorProvider)Dependencies.MemberTranslatorProvider).JsonPocoTranslator;
             _ltreeTranslator = ((NpgsqlMethodCallTranslatorProvider)Dependencies.MethodCallTranslatorProvider).LTreeTranslator;
             _typeMappingSource = dependencies.TypeMappingSource;
+            _timestampMapping = _typeMappingSource.FindMapping("timestamp without time zone")!;
+            _timestampTzMapping = _typeMappingSource.FindMapping("timestamp with time zone")!;
         }
 
         // PostgreSQL COUNT() always returns bigint, so we need to downcast to int
@@ -415,24 +423,56 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 return visitedNewExpression;
             }
 
-            if (newExpression.Constructor == DateTimeCtor1)
+            if (newExpression.Constructor?.DeclaringType == typeof(DateTime))
             {
-                return TryTranslateArguments(out var sqlArguments)
-                    ? _sqlExpressionFactory.Function(
-                        "make_date", sqlArguments, nullable: true, TrueArrays[3], typeof(DateTime))
-                    : QueryCompilationContext.NotTranslatedExpression;
-            }
+                if (newExpression.Constructor == DateTimeCtor1)
+                {
+                    return TryTranslateArguments(out var sqlArguments)
+                        ? _sqlExpressionFactory.Function(
+                            "make_date", sqlArguments, nullable: true, TrueArrays[3], typeof(DateTime), _timestampMapping)
+                        : QueryCompilationContext.NotTranslatedExpression;
+                }
 
-            if (newExpression.Constructor == DateTimeCtor2)
-            {
-                if (!TryTranslateArguments(out var sqlArguments))
-                    return QueryCompilationContext.NotTranslatedExpression;
+                if (newExpression.Constructor == DateTimeCtor2)
+                {
+                    if (!TryTranslateArguments(out var sqlArguments))
+                    {
+                        return QueryCompilationContext.NotTranslatedExpression;
+                    }
 
-                // DateTime's second component is an int, but PostgreSQL's MAKE_TIMESTAMP accepts a double precision
-                sqlArguments[5] = _sqlExpressionFactory.Convert(sqlArguments[5], typeof(double));
+                    // DateTime's second component is an int, but PostgreSQL's MAKE_TIMESTAMP accepts a double precision
+                    sqlArguments[5] = _sqlExpressionFactory.Convert(sqlArguments[5], typeof(double));
 
-                return _sqlExpressionFactory.Function(
-                    "make_timestamp", sqlArguments, nullable: true, TrueArrays[6], typeof(DateTime));
+                    return _sqlExpressionFactory.Function(
+                        "make_timestamp", sqlArguments, nullable: true, TrueArrays[6], typeof(DateTime), _timestampMapping);
+                }
+
+                if (newExpression.Constructor == DateTimeCtor3 && newExpression.Arguments[6] is ConstantExpression { Value : DateTimeKind kind })
+                {
+                    if (!TryTranslateArguments(out var sqlArguments))
+                    {
+                        return QueryCompilationContext.NotTranslatedExpression;
+                    }
+
+                    // DateTime's second component is an int, but PostgreSQL's make_timestamp/make_timestamptz accepts a double precision.
+                    // Also chop off the last Kind argument which does not get sent to PostgreSQL
+                    var rewrittenArguments = new List<SqlExpression>
+                    {
+                        sqlArguments[0], sqlArguments[1], sqlArguments[2], sqlArguments[3], sqlArguments[4],
+                        _sqlExpressionFactory.Convert(sqlArguments[5], typeof(double))
+                    };
+
+                    if (kind == DateTimeKind.Utc)
+                    {
+                        rewrittenArguments.Add(_sqlExpressionFactory.Constant("UTC"));
+                    }
+
+                    return kind == DateTimeKind.Utc
+                        ? _sqlExpressionFactory.Function(
+                            "make_timestamptz", rewrittenArguments, nullable: true, TrueArrays[8], typeof(DateTime), _timestampTzMapping)
+                        : _sqlExpressionFactory.Function(
+                            "make_timestamp", rewrittenArguments, nullable: true, TrueArrays[7], typeof(DateTime), _timestampMapping);
+                }
             }
 
             if (newExpression.Constructor == DateOnlyCtor)

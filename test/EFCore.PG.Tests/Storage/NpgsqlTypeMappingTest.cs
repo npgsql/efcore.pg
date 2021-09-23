@@ -23,6 +23,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         #region Date/Time
 
         [Fact]
+        public void DateTime_type_maps_to_timestamptz_by_default()
+            => Assert.Equal("timestamp with time zone", GetMapping(typeof(DateTime)).StoreType);
+
+        [Fact]
+        public void Timestamp_maps_to_DateTime_by_default()
+            => Assert.Same(typeof(DateTime), GetMapping("timestamp without time zone").ClrType);
+
+        [Fact]
+        public void Timestamptz_maps_to_DateTime_by_default()
+            => Assert.Same(typeof(DateTime), GetMapping("timestamp with time zone").ClrType);
+
+        [Fact]
         public void GenerateSqlLiteral_returns_date_literal()
         {
             Assert.Equal(
@@ -37,9 +49,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [Fact]
         public void GenerateSqlLiteral_returns_timestamp_literal()
         {
-            var mapping = GetMapping("timestamp");
-            Assert.Equal("TIMESTAMP '1997-12-17 07:37:16'",
-                mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Utc)));
+            var mapping = GetMapping("timestamp without time zone");
             Assert.Equal("TIMESTAMP '1997-12-17 07:37:16'",
                 mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Local)));
             Assert.Equal("TIMESTAMP '1997-12-17 07:37:16'",
@@ -51,22 +61,33 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         }
 
         [Fact]
+        public void GenerateSqlLiteral_timestamp_does_not_support_utc_datetime()
+            => Assert.Throws<InvalidCastException>(() => GetMapping("timestamp without time zone").GenerateSqlLiteral(DateTime.UtcNow));
+
+        [Fact]
+        public void GenerateSqlLiteral_timestamp_does_not_support_datetimeoffset()
+            => Assert.Throws<InvalidCastException>(
+                () => GetMapping("timestamp without time zone").GenerateSqlLiteral(new DateTimeOffset()));
+
+        [Fact]
         public void GenerateSqlLiteral_returns_timestamptz_datetime_literal()
         {
             var mapping = GetMapping("timestamptz");
-            Assert.Equal("TIMESTAMPTZ '1997-12-17 07:37:16 UTC'",
+            Assert.Equal("TIMESTAMPTZ '1997-12-17 07:37:16Z'",
                 mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Utc)));
-            Assert.Equal("TIMESTAMPTZ '1997-12-17 07:37:16 UTC'",
-                mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Unspecified)));
-
-            var offset = TimeZoneInfo.Local.BaseUtcOffset;
-            var offsetStr = (offset < TimeSpan.Zero ? '-' : '+') + offset.ToString(@"hh\:mm");
-            Assert.StartsWith($"TIMESTAMPTZ '1997-12-17 07:37:16{offsetStr}",
-                mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Local)));
-
-            Assert.Equal("TIMESTAMPTZ '1997-12-17 07:37:16.345678 UTC'",
+            Assert.Equal("TIMESTAMPTZ '1997-12-17 07:37:16.345678Z'",
                 mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, 345, DateTimeKind.Utc).AddTicks(6780)));
         }
+
+        [Fact]
+        public void GenerateSqlLiteral_timestamptz_does_not_support_local_datetime()
+            => Assert.Throws<InvalidCastException>(() => GetMapping("timestamp with time zone").GenerateSqlLiteral(DateTime.Now));
+
+        [Fact]
+        public void GenerateSqlLiteral_timestamptz_does_not_support_unspecified_datetime()
+            => Assert.Throws<InvalidCastException>(
+                () => GetMapping("timestamp with time zone")
+                    .GenerateSqlLiteral(DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified)));
 
         [Fact]
         public void GenerateSqlLiteral_returns_timestamptz_datetimeoffset_literal()

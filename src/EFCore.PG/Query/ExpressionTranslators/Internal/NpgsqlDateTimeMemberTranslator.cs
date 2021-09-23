@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using NpgsqlTypes;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
@@ -18,9 +20,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
     {
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly RelationalTypeMapping _timestampMapping;
+        private readonly RelationalTypeMapping _timestampTzMapping;
 
-        public NpgsqlDateTimeMemberTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
-            => _sqlExpressionFactory = sqlExpressionFactory;
+        public NpgsqlDateTimeMemberTranslator(
+            IRelationalTypeMappingSource typeMappingSource,
+            NpgsqlSqlExpressionFactory sqlExpressionFactory)
+        {
+            _timestampMapping = typeMappingSource.FindMapping("timestamp without time zone")!;
+            _timestampTzMapping = typeMappingSource.FindMapping("timestamp with time zone")!;
+            _sqlExpressionFactory = sqlExpressionFactory;
+        }
 
         /// <inheritdoc />
         public virtual SqlExpression? Translate(
@@ -30,20 +40,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             var type = member.DeclaringType;
-            if (type != typeof(DateTime) && type != typeof(NpgsqlDateTime) && type != typeof(NpgsqlDate)
-                && type != typeof(DateOnly) && type != typeof(TimeOnly)
-            )
+            if (type != typeof(DateTime)
+                && type != typeof(DateTimeOffset)
+                && type != typeof(DateOnly)
+                && type != typeof(TimeOnly)
+                && type != typeof(NpgsqlDateTime)
+                && type != typeof(NpgsqlDate))
+            {
                 return null;
+            }
 
             return member.Name switch
             {
-                nameof(DateTime.Now)       => Now(),
-                nameof(DateTime.UtcNow)    =>
-                    _sqlExpressionFactory.AtTimeZone(Now(), _sqlExpressionFactory.Constant("UTC"), returnType),
+                // Legacy behavior
+                nameof(DateTime.Now)    when NpgsqlTypeMappingSource.LegacyTimestampBehavior
+                    => UtcNow(),
+                nameof(DateTime.UtcNow) when NpgsqlTypeMappingSource.LegacyTimestampBehavior
+                    => _sqlExpressionFactory.AtUtc(UtcNow()), // Return a UTC timestamp, but as timestamp without time zone
 
-                nameof(DateTime.Today)     => _sqlExpressionFactory.Function(
+                // We support getting a local DateTime via DateTime.Now (based on PG TimeZone), but there's no way to get a non-UTC
+                // DateTimeOffset.
+                nameof(DateTime.Now) => type == typeof(DateTimeOffset)
+                    ? throw new InvalidOperationException("Cannot translate DateTimeOffset.Now - use UtcNow.")
+                    : LocalNow(),
+                nameof(DateTime.UtcNow) => UtcNow(),
+
+                nameof(DateTime.Today) => _sqlExpressionFactory.Function(
                     "date_trunc",
-                    new SqlExpression[] { _sqlExpressionFactory.Constant("day"), Now() },
+                    new SqlExpression[] { _sqlExpressionFactory.Constant("day"), LocalNow() },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
                     returnType),
@@ -81,13 +105,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 _ => null
             };
 
-            SqlFunctionExpression Now()
+            SqlExpression UtcNow()
                 => _sqlExpressionFactory.Function(
                     "now",
                     Array.Empty<SqlExpression>(),
                     nullable: false,
                     argumentsPropagateNullability: TrueArrays[0],
-                    returnType);
+                    returnType,
+                    _timestampTzMapping);
+
+            SqlExpression LocalNow()
+                => _sqlExpressionFactory.Convert(UtcNow(), returnType, _timestampMapping);
         }
 
         private SqlExpression GetDatePartExpression(
@@ -95,6 +123,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             string partName,
             bool floor = false)
         {
+            if (instance.Type == typeof(DateTimeOffset))
+            {
+                // date_part exists only for timestamp without time zone, so if we pass in a timestamptz it gets converted to a local
+                // timestamp based on TimeZone. Convert to a timestamp without time zone at UTC to get the right values.
+                instance = _sqlExpressionFactory.AtUtc(instance);
+            }
+
             var result = _sqlExpressionFactory.Function(
                 "date_part",
                 new[]
@@ -107,12 +142,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 typeof(double));
 
             if (floor)
+            {
                 result = _sqlExpressionFactory.Function(
                     "floor",
                     new[] { result },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(double));
+            }
 
             return _sqlExpressionFactory.Convert(result, typeof(int));
         }

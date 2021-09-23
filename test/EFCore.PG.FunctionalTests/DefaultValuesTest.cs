@@ -24,18 +24,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 context.Database.EnsureCreated();
 
                 var honeyDijon = context.Add(new KettleChips { Name = "Honey Dijon" }).Entity;
-                var buffaloBleu = context.Add(new KettleChips { Name = "Buffalo Bleu", BestBuyDate = new DateTime(2111, 1, 11) }).Entity;
+                var buffaloBleu = context.Add(new KettleChips { Name = "Buffalo Bleu", BestBuyDate = new DateTime(2111, 1, 11, 0, 0, 0, DateTimeKind.Utc) }).Entity;
 
                 context.SaveChanges();
 
-                Assert.Equal(new DateTime(2035, 9, 25), honeyDijon.BestBuyDate);
-                Assert.Equal(new DateTime(2111, 1, 11), buffaloBleu.BestBuyDate);
+                Assert.Equal(new DateTime(2035, 9, 25, 0, 0, 0, DateTimeKind.Utc), honeyDijon.BestBuyDate);
+                Assert.Equal(new DateTime(2111, 1, 11, 0, 0, 0, DateTimeKind.Utc), buffaloBleu.BestBuyDate);
             }
 
             using (var context = new ChipsContext(_serviceProvider, "DefaultKettleChips"))
             {
-                Assert.Equal(new DateTime(2035, 9, 25), context.Chips.Single(c => c.Name == "Honey Dijon").BestBuyDate);
-                Assert.Equal(new DateTime(2111, 1, 11), context.Chips.Single(c => c.Name == "Buffalo Bleu").BestBuyDate);
+                Assert.Equal(new DateTime(2035, 9, 25, 0, 0, 0, DateTimeKind.Utc), context.Chips.Single(c => c.Name == "Honey Dijon").BestBuyDate);
+                Assert.Equal(new DateTime(2111, 1, 11, 0, 0, 0, DateTimeKind.Utc), context.Chips.Single(c => c.Name == "Buffalo Bleu").BestBuyDate);
             }
         }
 
@@ -68,7 +68,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 => modelBuilder.Entity<KettleChips>()
                     .Property(e => e.BestBuyDate)
                     .ValueGeneratedOnAdd()
-                    .HasDefaultValue(new DateTime(2035, 9, 25));
+                    .HasDefaultValue(new DateTime(2035, 9, 25, 0, 0, 0, DateTimeKind.Utc));
         }
 
         private class KettleChips

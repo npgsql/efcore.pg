@@ -9,6 +9,7 @@ using Xunit.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -473,7 +474,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
             Assert.Equal(
                 @"@p0='77'
 @p1='True'
-@p2='80'
+@p2='80' (DbType = Int16)
 @p3='0x56' (Nullable = false)
 @p4='g' (Nullable = false)
 @p5='h' (Nullable = false)
@@ -887,6 +888,21 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
             }
         }
 
+        [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
+        public override void Can_insert_and_read_back_non_nullable_backed_data_types() {}
+
+        [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
+        public override void Can_insert_and_read_back_nullable_backed_data_types() {}
+
+        [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
+        public override void Can_insert_and_read_back_object_backed_data_types() {}
+
+        [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
+        public override void Can_query_using_any_data_type_nullable_shadow() {}
+
+        [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
+        public override void Can_query_using_any_data_type_shadow() {}
+
         [ConditionalFact]
         public void Sum_Conversions()
         {
@@ -905,7 +921,7 @@ FROM ""MappedDataTypes"" AS m",
                 @"SELECT COALESCE(SUM(m.""Int""), 0)::int
 FROM ""MappedDataTypes"" AS m",
                 //
-                @"SELECT COALESCE(SUM(CAST(m.""ShortAsSmallint"" AS integer)), 0)::INT
+                @"SELECT COALESCE(SUM(m.""ShortAsSmallint""::INT), 0)::INT
 FROM ""MappedDataTypes"" AS m");
         }
 
@@ -959,6 +975,42 @@ FROM ""MappedDataTypes"" AS m");
                 modelBuilder.HasPostgresEnum("mood", new[] { "happy", "sad" });
 
                 MakeRequired<MappedDataTypes>(modelBuilder);
+
+                // We default to mapping DateTime to 'timestamp with time zone', but the seeding data has Unspecified DateTimes which aren't
+                // supported.
+                modelBuilder.Entity<BuiltInDataTypes>().Property(b => b.TestDateTime)
+                    .HasColumnType("timestamp without time zone");
+                modelBuilder.Entity<BuiltInNullableDataTypes>().Property(b => b.TestNullableDateTime)
+                    .HasColumnType("timestamp without time zone");
+                modelBuilder.Entity<BuiltInNullableDataTypesShadow>().Property(nameof(BuiltInNullableDataTypes.TestNullableDateTime))
+                    .HasColumnType("timestamp without time zone");
+                modelBuilder.Entity<ObjectBackedDataTypes>().Property(b => b.DateTime)
+                    .HasColumnType("timestamp without time zone");
+                modelBuilder.Entity<NullableBackedDataTypes>().Property(b => b.DateTime)
+                    .HasColumnType("timestamp without time zone");
+                modelBuilder.Entity<NonNullableBackedDataTypes>().Property(b => b.DateTime)
+                    .HasColumnType("timestamp without time zone");
+
+                // We don't support DateTimeOffset with non-zero offset, so we need to override the seeding data
+                var builtInDataTypes = modelBuilder.Entity<BuiltInDataTypes>().Metadata.GetSeedData().Single();
+                builtInDataTypes[nameof(BuiltInDataTypes.TestDateTimeOffset)]
+                    = new DateTimeOffset(DateTime.Parse("01/01/2000 12:34:56"), TimeSpan.Zero);
+
+                var builtInNullableDataTypes = modelBuilder.Entity<BuiltInNullableDataTypes>().Metadata.GetSeedData().Single();
+                builtInNullableDataTypes[nameof(BuiltInNullableDataTypes.TestNullableDateTimeOffset)]
+                    = new DateTimeOffset(DateTime.Parse("01/01/2000 12:34:56"), TimeSpan.Zero);
+
+                var objectBackedDataTypes = modelBuilder.Entity<ObjectBackedDataTypes>().Metadata.GetSeedData().Single();
+                objectBackedDataTypes[nameof(ObjectBackedDataTypes.DateTimeOffset)]
+                    = new DateTimeOffset(new DateTime(), TimeSpan.Zero);
+
+                var nullableBackedDataTypes = modelBuilder.Entity<NullableBackedDataTypes>().Metadata.GetSeedData().Single();
+                nullableBackedDataTypes[nameof(NullableBackedDataTypes.DateTimeOffset)]
+                    = new DateTimeOffset(DateTime.Parse("01/01/2000 12:34:56"), TimeSpan.Zero);
+
+                var nonNullableBackedDataTypes = modelBuilder.Entity<NonNullableBackedDataTypes>().Metadata.GetSeedData().Single();
+                nonNullableBackedDataTypes[nameof(NonNullableBackedDataTypes.DateTimeOffset)]
+                    = new DateTimeOffset(new DateTime(), TimeSpan.Zero);
 
                 modelBuilder.Entity<BuiltInDataTypes>(b =>
                 {
