@@ -1,7 +1,5 @@
 // ReSharper disable once CheckNamespace
 
-using System;
-using System.Data.Common;
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Storage;
