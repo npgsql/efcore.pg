@@ -27,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         #region TypeMapping
 
         private readonly TimestampLocalDateTimeMapping _timestampLocalDateTime = new();
-        private readonly LegacyTimestampInstantMapping? _legacyTimestampInstant = LegacyTimestampBehavior ? new() : null;
+        private readonly LegacyTimestampInstantMapping _legacyTimestampInstant = new();
 
         private readonly TimestampTzInstantMapping _timestamptzInstant = new();
         private readonly TimestampTzZonedDateTimeMapping _timestamptzZonedDateTime = new();
@@ -57,7 +57,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             _timestampInstantRange = new NpgsqlRangeTypeMapping(
                 "tsrange",
                 typeof(NpgsqlRange<Instant>),
-                LegacyTimestampBehavior ? _legacyTimestampInstant! : _timestampLocalDateTime,
+                LegacyTimestampBehavior ? _legacyTimestampInstant : _timestampLocalDateTime,
                 sqlGenerationHelper);
 
             _timestampLocalDateTimeRange = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<LocalDateTime>), _timestampLocalDateTime, sqlGenerationHelper);
@@ -69,9 +69,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var storeTypeMappings = new Dictionary<string, RelationalTypeMapping[]>(StringComparer.OrdinalIgnoreCase)
             {
                 {
+                    // We currently allow _legacyTimestampInstant even in non-legacy mode, since when upgrading to 6.0 with existing
+                    // migrations, model snapshots still contain old mappings (Instant mapped to timestamp), and EF Core's model differ
+                    // expects type mappings to be found for these. See https://github.com/dotnet/efcore/issues/26168.
                     "timestamp without time zone", LegacyTimestampBehavior
-                        ? new RelationalTypeMapping[] { _legacyTimestampInstant!, _timestampLocalDateTime }
-                        : new RelationalTypeMapping[] { _timestampLocalDateTime }
+                        ? new RelationalTypeMapping[] { _legacyTimestampInstant, _timestampLocalDateTime }
+                        : new RelationalTypeMapping[] { _timestampLocalDateTime, _legacyTimestampInstant }
                 },
                 { "timestamp with time zone", new RelationalTypeMapping[] { _timestamptzInstant, _timestamptzZonedDateTime, _timestamptzOffsetDateTime } },
                 { "date", new RelationalTypeMapping[] { _date } },
@@ -92,7 +95,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             var clrTypeMappings = new Dictionary<Type, RelationalTypeMapping>
             {
-                { typeof(Instant), LegacyTimestampBehavior ? _legacyTimestampInstant! : _timestamptzInstant },
+                { typeof(Instant), LegacyTimestampBehavior ? _legacyTimestampInstant : _timestamptzInstant },
 
                 { typeof(LocalDateTime), _timestampLocalDateTime },
                 { typeof(ZonedDateTime), _timestamptzZonedDateTime },

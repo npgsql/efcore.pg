@@ -58,13 +58,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         }
     }
 
-    // Used only with EnableLegacyTimestampBehavior
+    // Should only be used only with EnableLegacyTimestampBehavior.
+    // However, when upgrading to 6.0 with existing migrations, model snapshots still contain old mappings (Instant mapped to timestamp),
+    // and EF Core's model differ expects type mappings to be found for these. See https://github.com/dotnet/efcore/issues/26168.
     public class LegacyTimestampInstantMapping : NpgsqlTypeMapping
     {
         public LegacyTimestampInstantMapping()
             : base("timestamp", typeof(Instant), NpgsqlDbType.Timestamp)
         {
-            Debug.Assert(NpgsqlNodaTimeTypeMappingSourcePlugin.LegacyTimestampBehavior);
         }
 
         protected LegacyTimestampInstantMapping(RelationalTypeMappingParameters parameters)
