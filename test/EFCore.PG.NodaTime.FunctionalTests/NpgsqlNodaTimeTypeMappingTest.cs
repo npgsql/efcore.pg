@@ -22,9 +22,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         public void Timestamptz_maps_to_Instant_by_default()
             => Assert.Same(typeof(Instant), GetMapping("timestamp with time zone").ClrType);
 
+        // Mapping Instant to timestamp should only be possible in legacy mode.
+        // However, when upgrading to 6.0 with existing migrations, model snapshots still contain old mappings (Instant mapped to timestamp),
+        // and EF Core's model differ expects type mappings to be found for these. See https://github.com/dotnet/efcore/issues/26168.
         [Fact]
-        public void Instant_does_not_map_to_timestamp()
-            => Assert.Null(GetMapping(typeof(Instant), "timestamp"));
+        public void Instant_maps_to_timestamp_legacy()
+        {
+            var mapping = GetMapping(typeof(Instant), "timestamp");
+            Assert.Same(typeof(Instant), mapping.ClrType);
+            Assert.Equal("timestamp", mapping.StoreType);
+        }
 
         [Fact]
         public void LocalDateTime_does_not_map_to_timestamptz()
