@@ -6,44 +6,56 @@ The Npgsql-specific translations are listed below. Some areas, such as [full-tex
 
 ## Binary functions
 
-.NET                         | SQL                             | Added in
+.NET                         | SQL                             | Notes
 ---------------------------- | ------------------------------- | --------
-bytes[i]                     | get_byte(bytes, i)              | EF Core 5.0
-bytes.Contains(value)        | position(value IN bytes) > 0    | EF Core 5.0
-bytes.Length                 | length(@bytes)                  | EF Core 5.0
-bytes1.SequenceEqual(bytes2) | @bytes = @second                | EF Core 5.0
+bytes[i]                     | get_byte(bytes, i)              | Added in 5.0
+bytes.Contains(value)        | position(value IN bytes) > 0    | Added in 5.0
+bytes.Length                 | length(@bytes)                  | Added in 5.0
+bytes1.SequenceEqual(bytes2) | @bytes = @second                | Added in 5.0
 
 ## Date and time functions
 
-.NET                           | SQL
------------------------------- | ---
-DateTime.Now                   | [now()](https://www.postgresql.org/docs/current/functions-datetime.html)
-DateTime.Today                 | [date_trunc('day', now())](https://www.postgresql.org/docs/current/functions-datetime.html)
-DateTime.UtcNow                | [now() AT TIME ZONE 'UTC'](https://www.postgresql.org/docs/current/functions-datetime.html)
-dateTime.AddDays(1)            | [dateTime + INTERVAL '1 days'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)
-dateTime.AddHours(value)       | [dateTime + INTERVAL '1 hours'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)
-dateTime.AddMinutes(1)         | [dateTime + INTERVAL '1 minutes'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)
-dateTime.AddMonths(1)          | [dateTime + INTERVAL '1 months'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)
-dateTime.AddSeconds(1)         | [dateTime + INTERVAL '1 seconds'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)
-dateTime.AddYears(1)           | [dateTime + INTERVAL '1 years'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)
-dateTime.Date                  | [date_trunc('day', dateTime)](https://www.postgresql.org/docs/current/functions-datetime.html)
-dateTime.Day                   | [date_part('day', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
-dateTime.DayOfWeek             | [floor(date_part('dow', dateTime))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
-dateTime.DayOfYear             | [date_part('doy', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
-dateTime.Hour                  | [date_part('hour', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
-dateTime.Minute                | [date_part('minute', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
-dateTime.Month                 | [date_part('month', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
-dateTime.Second                | [date_part('second', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
-dateTime.Year                  | [date_part('year', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
-timeSpan.Days                  | [floor(date_part('day', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
-timeSpan.Hours                 | [floor(date_part('hour', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
-timeSpan.Minutes               | [floor(date_part('minute', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
-timeSpan.Seconds               | [floor(date_part('second', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
-timeSpan.Milliseconds          | [floor(date_part('millisecond', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
-timeSpan.Milliseconds          | [floor(date_part('millisecond', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
-dateTime1 - dateTime2          | [dateTime1 - dateTime2](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)
-new DateTime(year, month, day) | [make_date(year, month, day)](https://www.postgresql.org/docs/current/functions-datetime.html)
-new DateTime(y, m, d, h, m, s) | [make_timestamp(y, m, d, h, m, s)](https://www.postgresql.org/docs/current/functions-datetime.html)
+> [!NOTE]
+> Since version 6.0, many of the below DateTime translations are also supported on DateTimeOffset.
+
+.NET                                 | SQL                                                                                                                         | Notes
+------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- | --------
+DateTime.UtcNow (6.0+)               | [now()](https://www.postgresql.org/docs/current/functions-datetime.html)                                                    | See 6.0 release notes
+DateTime.Now (6.0+)                  | [now()::timestamp](https://www.postgresql.org/docs/current/functions-datetime.html)                                         | See 6.0 release notes
+DateTime.Today (6.0+)                | [date_trunc('day', now()::timestamp)](https://www.postgresql.org/docs/current/functions-datetime.html)                      | See 6.0 release notes
+DateTime.UtcNow (legacy)             | [now() AT TIME ZONE 'UTC'](https://www.postgresql.org/docs/current/functions-datetime.html)                                 | See 6.0 release notes
+DateTime.Now (legacy)                | [now()](https://www.postgresql.org/docs/current/functions-datetime.html)                                                    | See 6.0 release notes
+DateTime.Today (legacy)              | [date_trunc('day', now())](https://www.postgresql.org/docs/current/functions-datetime.html)                                 | See 6.0 release notes
+dateTime.AddDays(1)                  | [dateTime + INTERVAL '1 days'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)    |
+dateTime.AddHours(value)             | [dateTime + INTERVAL '1 hours'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)   |
+dateTime.AddMinutes(1)               | [dateTime + INTERVAL '1 minutes'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE) |
+dateTime.AddMonths(1)                | [dateTime + INTERVAL '1 months'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)  |
+dateTime.AddSeconds(1)               | [dateTime + INTERVAL '1 seconds'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE) |
+dateTime.AddYears(1)                 | [dateTime + INTERVAL '1 years'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)   |
+dateTime.Date                        | [date_trunc('day', dateTime)](https://www.postgresql.org/docs/current/functions-datetime.html)                              |
+dateTime.Day                         | [date_part('day', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                          |
+dateTime.DayOfWeek                   | [floor(date_part('dow', dateTime))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                   |
+dateTime.DayOfYear                   | [date_part('doy', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                          |
+dateTime.Hour                        | [date_part('hour', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                         |
+dateTime.Minute                      | [date_part('minute', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                       |
+dateTime.Month                       | [date_part('month', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                        |
+dateTime.Second                      | [date_part('second', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                       |
+dateTime.Year                        | [date_part('year', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                         |
+dateTime.ToUniversalTime             | [dateTime::timestamptz](https://www.postgresql.org/docs/current/datatype-datetime.html#id-1.5.7.13.18.7)                    | Added in 6.0
+dateTime.ToLocalTime                 | [dateTime::timestamp](https://www.postgresql.org/docs/current/datatype-datetime.html#id-1.5.7.13.18.7)                      | Added in 6.0
+timeSpan.Days                        | [floor(date_part('day', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                   |
+timeSpan.Hours                       | [floor(date_part('hour', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                  |
+timeSpan.Minutes                     | [floor(date_part('minute', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                |
+timeSpan.Seconds                     | [floor(date_part('second', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                |
+timeSpan.Milliseconds                | [floor(date_part('millisecond', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)           |
+timeSpan.Milliseconds                | [floor(date_part('millisecond', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)           |
+dateTime1 - dateTime2                | [dateTime1 - dateTime2](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)           |
+new DateTime(year, month, day)       | [make_date(year, month, day)](https://www.postgresql.org/docs/current/functions-datetime.html)                              |
+new DateTime(y, m, d, h, m, s)       | [make_timestamp(y, m, d, h, m, s)](https://www.postgresql.org/docs/current/functions-datetime.html)                         |
+new DateTime(y, m, d, h, m, s, kind) | [make_timestamp or make_timestamptz](https://www.postgresql.org/docs/current/functions-datetime.html), based on `king`      | Added in 6.0
+
+> [!NOTE]
+> See also Npgsql's [NodaTime support](/efcore/mapping/nodatime.html).
 
 ## Network functions
 
@@ -109,9 +121,9 @@ Math.Truncate(d)        | trunc(d)
 
 ## String functions
 
-.NET                                                          | SQL                                                    | Added in
+.NET                                                          | SQL                                                    | Notes
 ------------------------------------------------------------- | ------------------------------------------------------ | --------
-EF.Functions.Collate(operand, collation)                      | operand COLLATE collation                              | EF Core 5.0
+EF.Functions.Collate(operand, collation)                      | operand COLLATE collation                              | Added in 5.0
 EF.Functions.Like(matchExpression, pattern)                   | matchExpression LIKE pattern
 EF.Functions.Like(matchExpression, pattern, escapeCharacter)  | matchExpression LIKE pattern ESCAPE escapeCharacter
 EF.Functions.ILike(matchExpression, pattern)                  | [matchExpression ILIKE pattern](../misc/collations-and-case-sensitivity.md)
@@ -123,9 +135,9 @@ string.IsNullOrWhiteSpace(value)                              | value IS NULL OR
 stringValue.CompareTo(strB)                                   | CASE WHEN stringValue = strB THEN 0 ... END
 stringValue.Contains(value)                                   | strpos(stringValue, value) > 0
 stringValue.EndsWith(value)                                   | stringValue LIKE '%' \|\| value
-stringValue.FirstOrDefault()                                  | substr(stringValue, 1, 1)                              | EF Core 5.0
+stringValue.FirstOrDefault()                                  | substr(stringValue, 1, 1)                              | Added in 5.0
 stringValue.IndexOf(value)                                    | strpos(stringValue, value) - 1
-stringValue.LastOrDefault()                                   | substr(stringValue, length(stringValue), 1)            | EF Core 5.0
+stringValue.LastOrDefault()                                   | substr(stringValue, length(stringValue), 1)            | Added in 5.0
 stringValue.Length                                            | length(stringValue)
 stringValue.PadLeft(length)                                   | lpad(stringValue, length)
 stringValue.PadLeft(length, char)                             | lpad(stringValue, length, char)

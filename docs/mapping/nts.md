@@ -85,8 +85,8 @@ The following table lists NetTopologySuite operations which are translated to Po
 
 Note that the plugin is far from covering all spatial operations. If an operation you need is missing, please open an issue to request for it.
 
-.NET                                                             | SQL
----------------------------------------------------------------- |-----
+.NET                                                             | SQL                                                                                  | Notes
+---------------------------------------------------------------- |------------------------------------------------------------------------------------- | -----
 geom.Area()                                                      | [ST_Area(geom)](https://postgis.net/docs/ST_Area.html)
 geom.AsBinary()                                                  | [ST_AsBinary(geom)](https://postgis.net/docs/ST_AsBinary.html)
 geom.AsText()                                                    | [ST_AsText(geom)](https://postgis.net/docs/ST_AsText.html)
@@ -104,8 +104,8 @@ geom1.Difference(geom2)                                          | [ST_Differenc
 geom1.Dimension                                                  | [ST_Dimension(geom1)](https://postgis.net/docs/ST_Dimension.html)
 geom1.Disjoint(geom2)                                            | [ST_Disjoint(geom1, geom2)](https://postgis.net/docs/ST_Disjoint.html)
 geom1.Distance(geom2)                                            | [ST_Distance(geom1, geom2)](https://postgis.net/docs/ST_Distance.html)
-EF.Functions.DistanceKnn(geom1, geom2) (v6)                      | [geom1 <-> geom2](https://postgis.net/docs/geometry_distance_knn.html)
-EF.Functions.Distance(geom1, geom2, useSpheriod) (v6)            | [ST_Distance(geom1, geom2, useSpheriod)](https://postgis.net/docs/ST_Distance.html)
+EF.Functions.DistanceKnn(geom1, geom2)                           | [geom1 <-> geom2](https://postgis.net/docs/geometry_distance_knn.html)               | Added in 6.0
+EF.Functions.Distance(geom1, geom2, useSpheriod)                 | [ST_Distance(geom1, geom2, useSpheriod)](https://postgis.net/docs/ST_Distance.html)  | Added in 6.0
 geom1.Envelope                                                   | [ST_Envelope(geom1)](https://postgis.net/docs/ST_Envelope.html)
 geom1.ExactEquals(geom2)                                         | [ST_OrderingEquals(geom1, geom2)](https://postgis.net/docs/ST_OrderingEquals.html)
 lineString.EndPoint                                              | [ST_EndPoint(lineString)](https://postgis.net/docs/ST_EndPoint.html)
@@ -113,6 +113,7 @@ polygon.ExteriorRing                                             | [ST_ExteriorR
 geom1.Equals(geom2)                                              | [geom1 = geom2](https://postgis.net/docs/ST_Geometry_EQ.html)
 geom1.Polygon.EqualsExact(geom2)                                 | [geom1 = geom2](https://postgis.net/docs/ST_Geometry_EQ.html)
 geom1.EqualsTopologically(geom2)                                 | [ST_Equals(geom1, geom2)](https://postgis.net/docs/ST_Equals.html)
+EF.Functions.Force2D                                             | [ST_Force2D(geom)](https://postgis.net/docs/ST_Force2D.html)                         | Added in 6.0
 geom.GeometryType                                                | [GeometryType(geom)](https://postgis.net/docs/GeometryType.html)
 geomCollection.GetGeometryN(i)                                   | [ST_GeometryN(geomCollection, i)](https://postgis.net/docs/ST_GeometryN.html)
 linestring.GetPointN(i)                                          | [ST_PointN(linestring, i)](https://postgis.net/docs/ST_PointN.html)
@@ -123,7 +124,7 @@ lineString.IsClosed()                                            | [ST_IsClosed(
 geomCollection.IsEmpty()                                         | [ST_IsEmpty(geomCollection)](https://postgis.net/docs/ST_IsEmpty.html)
 linestring.IsRing                                                | [ST_IsRing(linestring)](https://postgis.net/docs/ST_IsRing.html)
 geom.IsWithinDistance(geom2,d)                                   | [ST_DWithin(geom1, geom2, d)](https://postgis.net/docs/ST_DWithin.html)
-EF.Functions.IsWithinDistance(geom1, geom2, d, useSpheriod) (v6) | [ST_DWithin(geom1, geom2, d, useSpheriod)](https://postgis.net/docs/ST_DWithin.html)
+EF.Functions.IsWithinDistance(geom1, geom2, d, useSpheriod)      | [ST_DWithin(geom1, geom2, d, useSpheriod)](https://postgis.net/docs/ST_DWithin.html) | Added in 6.0
 geom.IsSimple()                                                  | [ST_IsSimple(geom)](https://postgis.net/docs/ST_IsSimple.html)
 geom.IsValid()                                                   | [ST_IsValid(geom)](https://postgis.net/docs/ST_IsValid.html)
 lineString.Length                                                | [ST_Length(lineString)](https://postgis.net/docs/ST_Length.html)
