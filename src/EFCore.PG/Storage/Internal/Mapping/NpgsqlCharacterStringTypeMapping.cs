@@ -1,20 +1,19 @@
 using System;
 using System.Data.Common;
-using System.Linq;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
+using JetBrains.Annotations;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     /// <summary>
-    /// The type mapping for the PostgreSQL 'character' data type.
+    /// Type mapping for the PostgreSQL 'character' data type. Handles both CLR strings and chars.
     /// </summary>
     /// <remarks>
     /// See: https://www.postgresql.org/docs/current/static/datatype-character.html
     /// </remarks>
     /// <inheritdoc />
-    public class NpgsqlCharacterTypeMapping : StringTypeMapping
+    public class NpgsqlCharacterStringTypeMapping : NpgsqlStringTypeMapping
     {
         /// <summary>
         /// Static <see cref="ValueComparer{T}"/> for fixed-width character types.
@@ -39,23 +38,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         public override ValueComparer KeyComparer => Comparer;
 
-        public NpgsqlCharacterTypeMapping([NotNull] string storeType, int? size = null)
+        public NpgsqlCharacterStringTypeMapping([NotNull] string storeType, int size = 1)
             : this(new RelationalTypeMappingParameters(
                 new CoreTypeMappingParameters(typeof(string)),
                 storeType,
-                size == null ? StoreTypePostfix.None : StoreTypePostfix.Size,
+                StoreTypePostfix.Size,
                 System.Data.DbType.StringFixedLength,
                 unicode: false,
                 size,
                 fixedLength: true)) {}
 
-        protected NpgsqlCharacterTypeMapping(RelationalTypeMappingParameters parameters) : base(parameters) {}
+        protected NpgsqlCharacterStringTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlTypes.NpgsqlDbType.Char)
+        {
+        }
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new NpgsqlCharacterTypeMapping(new RelationalTypeMappingParameters(
+            => new NpgsqlCharacterStringTypeMapping(new RelationalTypeMappingParameters(
                 parameters.CoreParameters,
                 parameters.StoreType,
-                parameters.Size == null ? StoreTypePostfix.None : StoreTypePostfix.Size,
+                StoreTypePostfix.Size,
                 parameters.DbType,
                 parameters.Unicode,
                 parameters.Size,
@@ -66,7 +68,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected override void ConfigureParameter(DbParameter parameter)
         {
             if (parameter.Value is string value)
+            {
                 parameter.Value = value.TrimEnd();
+            }
 
             base.ConfigureParameter(parameter);
         }

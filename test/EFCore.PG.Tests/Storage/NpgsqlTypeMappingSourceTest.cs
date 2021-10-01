@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -152,6 +153,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [Fact]
         public void Unknown_StoreType_with_known_ClrType()
             => Assert.Equal("some_domain", Source.FindMapping(typeof(int), "some_domain").StoreType);
+
+        [Fact]
+        public void Varchar_mapping_sets_NpgsqlDbType()
+        {
+            var mapping = Source.FindMapping("character varying");
+            var parameter = (NpgsqlParameter)mapping.CreateParameter(new NpgsqlCommand(), "p", "foo");
+            Assert.Equal(NpgsqlDbType.Varchar, parameter.NpgsqlDbType);
+        }
+
+        [Fact]
+        public void Single_char_mapping_sets_NpgsqlDbType()
+        {
+            var mapping = (RelationalTypeMapping)Source.FindMapping(typeof(char));
+            var parameter = (NpgsqlParameter)mapping.CreateParameter(new NpgsqlCommand(), "p", "foo");
+            Assert.Equal(NpgsqlDbType.Char, parameter.NpgsqlDbType);
+        }
+
+        [Fact]
+        public void String_as_single_char_mapping_sets_NpgsqlDbType()
+        {
+            var mapping = Source.FindMapping(typeof(string), "char(1)");
+            var parameter = (NpgsqlParameter)mapping.CreateParameter(new NpgsqlCommand(), "p", "foo");
+            Assert.Equal(NpgsqlDbType.Char, parameter.NpgsqlDbType);
+        }
 
         #region Support
 
