@@ -218,7 +218,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 s => Assert.Equal("bar", s));
         }
 
-
         #region Support
 
         public NpgsqlTypeMappingSourceTest()

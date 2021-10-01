@@ -300,7 +300,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof(NpgsqlRange<int>),                    _int4range            },
                 { typeof(NpgsqlRange<long>),                   _int8range            },
                 { typeof(NpgsqlRange<decimal>),                _numrange             },
-                { typeof(NpgsqlRange<DateTime>),               _tsrange              },
+                { typeof(NpgsqlRange<DateTime>),               LegacyTimestampBehavior ? _tsrange : _tstzrange },
+                { typeof(NpgsqlRange<DateTimeOffset>),          _tstzrange           },
 
                 { typeof(NpgsqlTsQuery),                       _tsquery              },
                 { typeof(NpgsqlTsVector),                      _tsvector             },
