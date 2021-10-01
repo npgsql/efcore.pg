@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using NpgsqlTypes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -38,6 +39,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Assert.Equal(
                 "timestamp with time zone",
                 ctx.Model.GetEntityTypes().Single().GetProperty(nameof(Entity.TimestamptzDateTime)).GetColumnType());
+        }
+
+        [ConditionalFact]
+        public void DateTime_array_maps_to_timestamptz_by_default()
+        {
+            using var ctx = CreateContext();
+
+            Assert.Equal(
+                "timestamp with time zone[]",
+                ctx.Model.GetEntityTypes().Single().GetProperty(nameof(Entity.TimestamptzDateTimeArray)).GetColumnType());
+        }
+
+        [ConditionalFact]
+        public void DateTime_range_maps_to_timestamptz_by_default()
+        {
+            using var ctx = CreateContext();
+
+            Assert.Equal(
+                "tstzrange",
+                ctx.Model.GetEntityTypes().Single().GetProperty(nameof(Entity.TimestamptzDateTimeRange)).GetColumnType());
         }
 
         [ConditionalFact]
@@ -83,7 +104,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 entryCount: 1);
 
             AssertSql(
-                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeOffset"", e.""TimestamptzDateTime""
+                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
 FROM ""Entities"" AS e
 WHERE e.""TimestampDateTime"" = TIMESTAMP '1998-04-12 15:26:38'");
         }
@@ -104,7 +125,7 @@ WHERE e.""TimestampDateTime"" = TIMESTAMP '1998-04-12 15:26:38'");
             // The string representation of our local DateTime is generated with the local time zone (by the EF Core test infra),
             // so we can't assert on it.
             Assert.Contains(
-                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeOffset"", e.""TimestamptzDateTime""
+                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
 FROM ""Entities"" AS e
 WHERE e.""TimestampDateTime"" = @__dateTime_0",
                 Fixture.TestSqlLoggerFactory.SqlStatements.Single());
@@ -128,7 +149,7 @@ WHERE e.""TimestampDateTime"" = @__dateTime_0",
             AssertSql(
                 @"@__dateTime_0='1998-04-12T15:26:38.0000000' (DbType = DateTime)
 
-SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeOffset"", e.""TimestamptzDateTime""
+SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
 FROM ""Entities"" AS e
 WHERE e.""TimestampDateTime"" = @__dateTime_0");
         }
@@ -167,7 +188,7 @@ WHERE e.""TimestampDateTime"" = @__dateTime_0");
                 entryCount: 1);
 
             AssertSql(
-                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeOffset"", e.""TimestamptzDateTime""
+                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
 FROM ""Entities"" AS e
 WHERE e.""TimestamptzDateTime"" = TIMESTAMPTZ '1998-04-12 13:26:38Z'");
         }
@@ -188,7 +209,7 @@ WHERE e.""TimestamptzDateTime"" = TIMESTAMPTZ '1998-04-12 13:26:38Z'");
             AssertSql(
                 @"@__dateTime_0='1998-04-12T13:26:38.0000000Z' (DbType = DateTimeOffset)
 
-SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeOffset"", e.""TimestamptzDateTime""
+SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
 FROM ""Entities"" AS e
 WHERE e.""TimestamptzDateTime"" = @__dateTime_0");
         }
@@ -299,7 +320,7 @@ WHERE e.""TimestamptzDateTime""::timestamp = e.""TimestampDateTime""");
             AssertSql(
                 @"@__myDatetime_0='2015-04-10T00:00:00.0000000' (DbType = DateTime)
 
-SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeOffset"", e.""TimestamptzDateTime""
+SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
 FROM ""Entities"" AS e
 WHERE now()::timestamp <> @__myDatetime_0");
         }
@@ -318,7 +339,7 @@ WHERE now()::timestamp <> @__myDatetime_0");
             AssertSql(
                 @"@__myDatetime_0='2015-04-10T00:00:00.0000000Z' (DbType = DateTimeOffset)
 
-SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeOffset"", e.""TimestamptzDateTime""
+SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
 FROM ""Entities"" AS e
 WHERE now() <> @__myDatetime_0");
         }
@@ -333,7 +354,7 @@ WHERE now() <> @__myDatetime_0");
                     new DateTime(e.TimestampDateTime.Year, e.TimestampDateTime.Month, 1) == new DateTime(1998, 4, 12)));
 
             AssertSql(
-                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeOffset"", e.""TimestamptzDateTime""
+                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
 FROM ""Entities"" AS e
 WHERE make_date(date_part('year', e.""TimestampDateTime"")::INT, date_part('month', e.""TimestampDateTime"")::INT, 1) = TIMESTAMP '1998-04-12 00:00:00'");
         }
@@ -348,7 +369,7 @@ WHERE make_date(date_part('year', e.""TimestampDateTime"")::INT, date_part('mont
                     new DateTime(e.TimestampDateTime.Year, e.TimestampDateTime.Month, 1, 0, 0, 0) == new DateTime(1998, 4, 12)));
 
             AssertSql(
-                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeOffset"", e.""TimestamptzDateTime""
+                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
 FROM ""Entities"" AS e
 WHERE make_timestamp(date_part('year', e.""TimestampDateTime"")::INT, date_part('month', e.""TimestampDateTime"")::INT, 1, 0, 0, 0::double precision) = TIMESTAMP '1998-04-12 00:00:00'");
         }
@@ -363,7 +384,7 @@ WHERE make_timestamp(date_part('year', e.""TimestampDateTime"")::INT, date_part(
                     new DateTime(e.TimestampDateTime.Year, e.TimestampDateTime.Month, 1, 0, 0, 0, DateTimeKind.Local) == new DateTime(1996, 9, 11)));
 
             AssertSql(
-                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeOffset"", e.""TimestamptzDateTime""
+                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
 FROM ""Entities"" AS e
 WHERE make_timestamp(date_part('year', e.""TimestampDateTime"")::INT, date_part('month', e.""TimestampDateTime"")::INT, 1, 0, 0, 0::double precision) = TIMESTAMP '1996-09-11 00:00:00'");
         }
@@ -383,7 +404,7 @@ WHERE make_timestamp(date_part('year', e.""TimestampDateTime"")::INT, date_part(
                  entryCount: 1);
 
              AssertSql(
-                 @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeOffset"", e.""TimestamptzDateTime""
+                 @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
 FROM ""Entities"" AS e
 WHERE make_timestamptz(date_part('year', e.""TimestamptzDateTime"")::INT, date_part('month', e.""TimestamptzDateTime"")::INT, 1, 0, 0, 0::double precision, 'UTC') = TIMESTAMPTZ '1998-04-01 00:00:00Z'");
          }
@@ -422,10 +443,20 @@ WHERE make_timestamptz(date_part('year', e.""TimestamptzDateTime"")::INT, date_p
         public class Entity
         {
             public int Id { get; set; }
+
             public DateTime TimestamptzDateTime { get; set; }
             [Column(TypeName = "timestamp without time zone")]
             public DateTime TimestampDateTime { get; set; }
             public DateTimeOffset TimestampDateTimeOffset { get; set; }
+
+            public DateTime[] TimestamptzDateTimeArray { get; set; }
+            [Column(TypeName = "timestamp without time zone[]")]
+            public DateTime[] TimestampDateTimeArray { get; set; }
+            public DateTimeOffset[] TimestampDateTimeOffsetArray { get; set; }
+
+            public NpgsqlRange<DateTime> TimestamptzDateTimeRange { get; set; }
+            [Column(TypeName = "tsrange")]
+            public NpgsqlRange<DateTime> TimestampDateTimeRange { get; set; }
         }
 
         #nullable restore
@@ -463,9 +494,17 @@ WHERE make_timestamptz(date_part('year', e.""TimestamptzDateTime"")::INT, date_p
                                 var aa = (Entity)a;
 
                                 Assert.Equal(ee.Id, aa.Id);
+
                                 Assert.Equal(ee.TimestamptzDateTime, aa.TimestamptzDateTime);
                                 Assert.Equal(ee.TimestampDateTime, aa.TimestampDateTime);
                                 Assert.Equal(ee.TimestampDateTimeOffset, aa.TimestampDateTimeOffset);
+
+                                Assert.Equal(ee.TimestamptzDateTimeArray, aa.TimestamptzDateTimeArray);
+                                Assert.Equal(ee.TimestampDateTimeArray, aa.TimestampDateTimeArray);
+                                Assert.Equal(ee.TimestampDateTimeOffsetArray, aa.TimestampDateTimeOffsetArray);
+
+                                Assert.Equal(ee.TimestamptzDateTimeRange, aa.TimestamptzDateTimeRange);
+                                Assert.Equal(ee.TimestampDateTimeRange, aa.TimestampDateTimeRange);
                             }
                         }
                     }
@@ -497,21 +536,66 @@ WHERE make_timestamptz(date_part('year', e.""TimestamptzDateTime"")::INT, date_p
                 var utcDateTime2 = new DateTime(2015, 1, 27, 8, 45, 12, 345, DateTimeKind.Utc);
                 var unspecifiedDateTime2 = new DateTime(2015, 1, 27, 10, 45, 12, 345, DateTimeKind.Unspecified);
 
+                var utcDateTimeArray1 = new[]
+                {
+                    new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc),
+                    new DateTime(1998, 4, 13, 13, 26, 38, DateTimeKind.Utc)
+                };
+
+                var localDateTimeArray1 = new[]
+                {
+                    new DateTime(1998, 4, 12, 15, 26, 38, DateTimeKind.Local),
+                    new DateTime(1998, 4, 13, 15, 26, 38, DateTimeKind.Local)
+                };
+
+                var utcDateTimeArray2 = new[]
+                {
+                    new DateTime(2015, 1, 27, 8, 45, 12, 345, DateTimeKind.Utc),
+                    new DateTime(2015, 1, 28, 8, 45, 12, 345, DateTimeKind.Utc)
+                };
+
+                var localDateTimeArray2 = new[]
+                {
+                    new DateTime(2015, 1, 27, 10, 45, 12, 345, DateTimeKind.Unspecified),
+                    new DateTime(2015, 1, 28, 10, 45, 12, 345, DateTimeKind.Unspecified)
+                };
+
+                var utcDateTimeRange1 = new NpgsqlRange<DateTime>(utcDateTimeArray1[0], utcDateTimeArray1[1]);
+                var localDateTimeRange1 = new NpgsqlRange<DateTime>(localDateTimeArray1[0], localDateTimeArray1[1]);
+
+                var utcDateTimeRange2 = new NpgsqlRange<DateTime>(utcDateTimeArray2[0], utcDateTimeArray2[1]);
+                var localDateTimeRange2 = new NpgsqlRange<DateTime>(localDateTimeArray2[0], localDateTimeArray2[1]);
+
                 return new List<Entity>
                 {
                     new()
                     {
                         Id = 1,
+
                         TimestamptzDateTime = utcDateTime1,
                         TimestampDateTime = localDateTime1,
-                        TimestampDateTimeOffset = new DateTimeOffset(utcDateTime1)
+                        TimestampDateTimeOffset = new DateTimeOffset(utcDateTime1),
+
+                        TimestamptzDateTimeArray = utcDateTimeArray1,
+                        TimestampDateTimeArray = localDateTimeArray1,
+                        TimestampDateTimeOffsetArray = new DateTimeOffset[] { new(utcDateTimeArray1[0]), new(utcDateTimeArray1[1]) },
+
+                        TimestamptzDateTimeRange = utcDateTimeRange1,
+                        TimestampDateTimeRange = localDateTimeRange1,
                     },
                     new()
                     {
                         Id = 2,
                         TimestamptzDateTime = utcDateTime2,
                         TimestampDateTime = unspecifiedDateTime2,
-                        TimestampDateTimeOffset = new DateTimeOffset(utcDateTime2)
+                        TimestampDateTimeOffset = new DateTimeOffset(utcDateTime2),
+
+                        TimestamptzDateTimeArray = utcDateTimeArray2,
+                        TimestampDateTimeArray = localDateTimeArray2,
+                        TimestampDateTimeOffsetArray = new DateTimeOffset[] { new(utcDateTimeArray2[0]), new(utcDateTimeArray2[1]) },
+
+                        TimestamptzDateTimeRange = utcDateTimeRange2,
+                        TimestampDateTimeRange = localDateTimeRange2,
                     }
                 };
             }
