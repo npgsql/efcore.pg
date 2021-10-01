@@ -45,13 +45,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly LongTypeMapping               _int8               = new LongTypeMapping("bigint", DbType.Int64);
 
         // Character types
-        readonly StringTypeMapping             _text               = new StringTypeMapping("text", DbType.String);
-        readonly StringTypeMapping             _varchar            = new StringTypeMapping("character varying", DbType.String);
-        readonly NpgsqlCharacterTypeMapping    _char               = new NpgsqlCharacterTypeMapping("character");
-        readonly CharTypeMapping               _singleChar         = new CharTypeMapping("character(1)", DbType.String);
-        readonly NpgsqlCharacterTypeMapping    _stringAsSingleChar = new NpgsqlCharacterTypeMapping("character(1)");
-        readonly NpgsqlStringTypeMapping       _xml                = new NpgsqlStringTypeMapping("xml", NpgsqlDbType.Xml);
-        readonly NpgsqlStringTypeMapping       _citext             = new NpgsqlStringTypeMapping("citext", NpgsqlDbType.Citext);
+        readonly StringTypeMapping                _text               = new StringTypeMapping("text", DbType.String);
+        readonly NpgsqlStringTypeMapping          _varchar            = new NpgsqlStringTypeMapping("character varying", NpgsqlDbType.Varchar);
+        readonly NpgsqlCharacterStringTypeMapping _char               = new NpgsqlCharacterStringTypeMapping("character");
+        readonly NpgsqlCharacterCharTypeMapping   _singleChar         = new NpgsqlCharacterCharTypeMapping("character(1)");
+        readonly NpgsqlStringTypeMapping          _xml                = new NpgsqlStringTypeMapping("xml", NpgsqlDbType.Xml);
+        readonly NpgsqlStringTypeMapping          _citext             = new NpgsqlStringTypeMapping("citext", NpgsqlDbType.Citext);
 
         // JSON mappings
         readonly NpgsqlJsonTypeMapping         _jsonbString        = new NpgsqlJsonTypeMapping("jsonb", typeof(string));
@@ -170,10 +169,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "citext",                      new[] { _citext                       } },
                 { "character varying",           new[] { _varchar                      } },
                 { "varchar",                     new[] { _varchar                      } },
-                { "character",                   new[] { _char                         } },
-                { "char",                        new[] { _char                         } },
-                { "char(1)",                     new RelationalTypeMapping[] { _singleChar, _stringAsSingleChar } },
-                { "character(1)",                new RelationalTypeMapping[] { _singleChar, _stringAsSingleChar } },
+                { "character",                   new RelationalTypeMapping[] { _singleChar, _char } },
+                { "char",                        new RelationalTypeMapping[] { _singleChar, _char } },
+                { "character(1)",                new RelationalTypeMapping[] { _singleChar, _char } },
+                { "char(1)",                     new RelationalTypeMapping[] { _singleChar, _char } },
                 { "date",                        new[] { _date                         } },
                 { "timestamp without time zone", new[] { _timestamp                    } },
                 { "timestamp",                   new[] { _timestamp                    } },
