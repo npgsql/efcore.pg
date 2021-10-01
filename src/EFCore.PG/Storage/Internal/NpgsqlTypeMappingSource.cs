@@ -59,13 +59,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         private readonly LongTypeMapping               _int8               = new("bigint", DbType.Int64);
 
         // Character types
-        private readonly StringTypeMapping             _text               = new("text", DbType.String);
-        private readonly StringTypeMapping             _varchar            = new("character varying", DbType.String);
-        private readonly NpgsqlCharacterTypeMapping    _char               = new("character");
-        private readonly CharTypeMapping               _singleChar         = new("character(1)", DbType.String);
-        private readonly NpgsqlCharacterTypeMapping    _stringAsSingleChar = new("character(1)");
-        private readonly NpgsqlStringTypeMapping       _xml                = new("xml", NpgsqlDbType.Xml);
-        private readonly NpgsqlStringTypeMapping       _citext             = new("citext", NpgsqlDbType.Citext);
+        private readonly StringTypeMapping                _text               = new("text", DbType.String);
+        private readonly NpgsqlStringTypeMapping          _varchar            = new("character varying", NpgsqlDbType.Varchar);
+        private readonly NpgsqlCharacterStringTypeMapping _char               = new("character");
+        private readonly NpgsqlCharacterCharTypeMapping   _singleChar         = new("character(1)");
+        private readonly NpgsqlStringTypeMapping          _xml                = new("xml", NpgsqlDbType.Xml);
+        private readonly NpgsqlStringTypeMapping          _citext             = new("citext", NpgsqlDbType.Citext);
 
         // JSON mappings
         private readonly NpgsqlJsonTypeMapping         _jsonbString        = new("jsonb", typeof(string));
@@ -190,10 +189,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "citext",                      new[] { _citext                       } },
                 { "character varying",           new[] { _varchar                      } },
                 { "varchar",                     new[] { _varchar                      } },
-                { "character",                   new[] { _char                         } },
-                { "char",                        new[] { _char                         } },
-                { "char(1)",                     new RelationalTypeMapping[] { _singleChar, _stringAsSingleChar } },
-                { "character(1)",                new RelationalTypeMapping[] { _singleChar, _stringAsSingleChar } },
+                { "character",                   new RelationalTypeMapping[] { _singleChar, _char } },
+                { "char",                        new RelationalTypeMapping[] { _singleChar, _char } },
+                { "character(1)",                new RelationalTypeMapping[] { _singleChar, _char } },
+                { "char(1)",                     new RelationalTypeMapping[] { _singleChar, _char } },
 
                 { "timestamp without time zone", new[] { _timestamp                    } },
                 { "timestamp with time zone",    new[] { _timestamptz, _timestamptzDto } },
