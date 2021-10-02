@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using NpgsqlTypes;
 
 // ReSharper disable once CheckNamespace
 namespace System.Reflection
@@ -21,6 +22,29 @@ namespace System.Reflection
                     ? type.GetGenericArguments()[0]
                     : null;
             return elementType is not null;
+        }
+
+        internal static bool TryGetRangeSubtype(this Type type, [NotNullWhen(true)] out Type? subtypeType)
+        {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NpgsqlRange<>))
+            {
+                subtypeType = type.GetGenericArguments()[0];
+                return true;
+            }
+
+            subtypeType = null;
+            return false;
+        }
+
+        internal static bool TryGetMultirangeSubtype(this Type type, [NotNullWhen(true)] out Type? subtypeType)
+        {
+            if (type.TryGetElementType(out var elementType) && elementType.TryGetRangeSubtype(out subtypeType))
+            {
+                return true;
+            }
+
+            subtypeType = null;
+            return false;
         }
 
         public static PropertyInfo? FindIndexerProperty(this Type type)

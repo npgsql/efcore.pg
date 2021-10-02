@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
@@ -13,14 +14,14 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     {
-        private readonly IRelationalTypeMappingSource _typeMappingSource;
+        private readonly NpgsqlTypeMappingSource _typeMappingSource;
         private readonly RelationalTypeMapping _boolTypeMapping;
-        private readonly RelationalTypeMapping _intTypeMapping;
         private readonly RelationalTypeMapping _doubleTypeMapping;
 
         private static Type? _nodaTimeDurationType;
@@ -29,10 +30,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public NpgsqlSqlExpressionFactory(SqlExpressionFactoryDependencies dependencies)
             : base(dependencies)
         {
-            _typeMappingSource = dependencies.TypeMappingSource;
-            _boolTypeMapping = _typeMappingSource.FindMapping(typeof(bool), dependencies.Model)!;
-            _intTypeMapping = _typeMappingSource.FindMapping(typeof(int), dependencies.Model)!;
-            _doubleTypeMapping = _typeMappingSource.FindMapping(typeof(double), dependencies.Model)!;
+            _typeMappingSource = (NpgsqlTypeMappingSource)dependencies.TypeMappingSource;
+            _boolTypeMapping = (RelationalTypeMapping)_typeMappingSource.FindMapping(typeof(bool), dependencies.Model)!;
+            _doubleTypeMapping = (RelationalTypeMapping)_typeMappingSource.FindMapping(typeof(double), dependencies.Model)!;
         }
 
         #region Expression factory methods
@@ -56,7 +56,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public virtual PostgresArrayIndexExpression ArrayIndex(
             SqlExpression array,
             SqlExpression index,
-             RelationalTypeMapping? typeMapping = null)
+            RelationalTypeMapping? typeMapping = null)
         {
             if (!array.Type.TryGetElementType(out var elementType))
             {
@@ -82,7 +82,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             // PostgreSQL AT TIME ZONE flips the given type from timestamptz to timestamp and vice versa
             // See https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT
             typeMapping ??= FlipTimestampTypeMapping(
-                timestamp.TypeMapping ?? _typeMappingSource.FindMapping(timestamp.Type, Dependencies.Model)!);
+                timestamp.TypeMapping ?? (RelationalTypeMapping?)_typeMappingSource.FindMapping(timestamp.Type, Dependencies.Model)!);
 
             return new PostgresBinaryExpression(
                 PostgresExpressionType.AtTimeZone,
@@ -389,7 +389,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             var inferredTypeMapping = ExpressionExtensions.InferTypeMapping(
                                           postgresRegexMatchExpression.Match, postgresRegexMatchExpression.Pattern)
-                                      ?? _typeMappingSource.FindMapping(postgresRegexMatchExpression.Match.Type, Dependencies.Model);
+                                      ?? (RelationalTypeMapping?)_typeMappingSource.FindMapping(postgresRegexMatchExpression.Match.Type, Dependencies.Model);
 
             return new PostgresRegexMatchExpression(
                 ApplyTypeMapping(postgresRegexMatchExpression.Match, inferredTypeMapping),
@@ -421,7 +421,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 (itemExpression is SqlUnaryExpression { OperatorType: ExpressionType.Convert } unary ? unary.Operand.TypeMapping : null) ??
                 // If we couldn't find a type mapping on the item, try inferring it from the array
                 arrayMapping?.ElementMapping ??
-                _typeMappingSource.FindMapping(itemExpression.Type, Dependencies.Model);
+                (RelationalTypeMapping?)_typeMappingSource.FindMapping(itemExpression.Type, Dependencies.Model);
 
             if (itemMapping is null)
             {
@@ -431,7 +431,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             // If the array's type mapping isn't provided (parameter/constant), attempt to infer it from the item.
             if (arrayMapping is null)
             {
-                if (itemMapping.Converter is { } converter)
+                if (itemMapping.Converter is not null)
                 {
                     // If the item mapping has a value converter, construct an array mapping directly over it - this will build the
                     // corresponding array type converter.
@@ -451,18 +451,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                             arrayExpression.Type,
                             itemMapping.StoreType + "[]");
                 }
-            }
 
-            if (arrayMapping is null)
-            {
-                throw new InvalidOperationException("Couldn't find array type mapping when applying item/array mappings");
+                if (arrayMapping is null)
+                {
+                    throw new InvalidOperationException("Couldn't find array type mapping when applying item/array mappings");
+                }
             }
 
             return (ApplyTypeMapping(itemExpression, itemMapping), ApplyTypeMapping(arrayExpression, arrayMapping));
         }
 
         private SqlExpression ApplyTypeMappingOnArrayIndex(
-            PostgresArrayIndexExpression postgresArrayIndexExpression, RelationalTypeMapping? typeMapping)
+            PostgresArrayIndexExpression postgresArrayIndexExpression,
+            RelationalTypeMapping? typeMapping)
             => new PostgresArrayIndexExpression(
                 // TODO: Infer the array's mapping from the element
                 ApplyDefaultTypeMapping(postgresArrayIndexExpression.Array),
@@ -471,17 +472,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 // If the array has a type mapping (i.e. column), prefer that just like we prefer column mappings in general
                 postgresArrayIndexExpression.Array.TypeMapping is NpgsqlArrayTypeMapping arrayMapping
                     ? arrayMapping.ElementMapping
-                    : typeMapping ?? _typeMappingSource.FindMapping(postgresArrayIndexExpression.Type, Dependencies.Model));
+                    : typeMapping
+                    ?? (RelationalTypeMapping?)_typeMappingSource.FindMapping(postgresArrayIndexExpression.Type, Dependencies.Model));
 
         private SqlExpression ApplyTypeMappingOnILike(PostgresILikeExpression ilikeExpression)
         {
             var inferredTypeMapping = (ilikeExpression.EscapeChar is null
-                                          ? ExpressionExtensions.InferTypeMapping(
-                                              ilikeExpression.Match, ilikeExpression.Pattern)
-                                          : ExpressionExtensions.InferTypeMapping(
-                                              ilikeExpression.Match, ilikeExpression.Pattern,
-                                              ilikeExpression.EscapeChar))
-                                      ?? _typeMappingSource.FindMapping(ilikeExpression.Match.Type, Dependencies.Model);
+                    ? ExpressionExtensions.InferTypeMapping(
+                        ilikeExpression.Match, ilikeExpression.Pattern)
+                    : ExpressionExtensions.InferTypeMapping(
+                        ilikeExpression.Match, ilikeExpression.Pattern,
+                        ilikeExpression.EscapeChar))
+                ?? (RelationalTypeMapping?)_typeMappingSource.FindMapping(ilikeExpression.Match.Type, Dependencies.Model);
 
             return new PostgresILikeExpression(
                 ApplyTypeMapping(ilikeExpression.Match, inferredTypeMapping),
@@ -509,6 +511,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             case PostgresExpressionType.RangeDoesNotExtendLeftOf:
             case PostgresExpressionType.RangeIsAdjacentTo:
             {
+                // These operators are defined also on multirange and range (different types), and so need fancy type mapping inference.
+                if (left.Type != right.Type)
+                {
+                    var (newLeft, newRight) = InferContainmentMappings(left, right);
+
+                    return new PostgresBinaryExpression(operatorType, newLeft, newRight, typeof(bool), _boolTypeMapping);
+                }
+
                 inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
                 resultType = typeof(bool);
                 resultTypeMapping = _boolTypeMapping;
@@ -536,14 +546,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             case PostgresExpressionType.Contains:
             case PostgresExpressionType.ContainedBy:
             {
-                // Containment of array within an array, or range within range, or item within range.
-                // Note that containment of item within an array is expressed via ArrayAnyAllExpression
-                // if (left.Type == right.Type && left.Type.IsArrayOrGenericList())
+                // Containment when both sides have the same type: array within an array, range within range, multirange within multirange.
                 if (left.Type == right.Type)
                 {
-                    goto case PostgresExpressionType.Overlaps;
+                    inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
+                    resultType = typeof(bool);
+                    resultTypeMapping = _boolTypeMapping;
+
+                    break;
                 }
 
+                // Containment when the two sides have different types: value within (multirange), range within multirange.
+                // Note that containment of item within an array is expressed via ArrayAnyAllExpression
                 SqlExpression newLeft, newRight;
                 if (operatorType == PostgresExpressionType.Contains)
                 {
@@ -590,13 +604,68 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             (SqlExpression, SqlExpression) InferContainmentMappings(SqlExpression container, SqlExpression containee)
             {
-                // TODO: We may need container/containee inference for other type, not just range
-                // TODO: Do the other way to - infer the container mapping from the containee
-                var newContainer = ApplyDefaultTypeMapping(container);
-                var newContainee = newContainer.TypeMapping is NpgsqlRangeTypeMapping rangeMapping
-                    ? ApplyTypeMapping(containee, rangeMapping.SubtypeMapping)
-                    : ApplyDefaultTypeMapping(containee);
-                return (newContainer, newContainee);
+                Debug.Assert(
+                    container.Type != containee.Type,
+                    "This method isn't meant for identical types, where type mapping inference is much simpler");
+
+                // Attempt type inference either from the container or from the containee
+                var containerMapping = container.TypeMapping;
+
+                var containeeMapping =
+                    containee.TypeMapping
+                    // If we couldn't find a type mapping on the containee, try inferring it from the container
+                    ?? containerMapping switch
+                    {
+                        NpgsqlRangeTypeMapping rangeTypeMapping => rangeTypeMapping.SubtypeMapping,
+                        NpgsqlMultirangeTypeMapping multirangeTypeMapping
+                            => containee.Type.IsGenericType && containee.Type.GetGenericTypeDefinition() == typeof(NpgsqlRange<>)
+                                ? multirangeTypeMapping.RangeMapping
+                                : multirangeTypeMapping.SubtypeMapping,
+                        _ => null
+                    };
+
+                // Apply the inferred mapping to the containee, or fall back to the default type mapping
+                if (containeeMapping is not null)
+                {
+                    containee = ApplyTypeMapping(containee, containeeMapping);
+                }
+                else
+                {
+                    containee = ApplyDefaultTypeMapping(containee);
+                    containeeMapping = containee.TypeMapping;
+
+                    if (containeeMapping is null)
+                    {
+                        throw new InvalidOperationException(
+                            "Couldn't find containee type mapping when applying container/containee mappings");
+                    }
+                }
+
+                // If the container's type mapping isn't provided (parameter/constant), attempt to infer it from the item.
+                if (containerMapping is null)
+                {
+                    // TODO: FindContainerMapping currently works for range/multirange only, may want to extend it to other types
+                    // (e.g. IP address containment)
+                    containerMapping = _typeMappingSource.FindContainerMapping(container.Type, containeeMapping);
+
+                    // Apply the inferred mapping to the container, or fall back to the default type mapping
+                    if (containerMapping is not null)
+                    {
+                        container = ApplyTypeMapping(container, containerMapping);
+                    }
+                    else
+                    {
+                        container = ApplyDefaultTypeMapping(container);
+
+                        if (container.TypeMapping is null)
+                        {
+                            throw new InvalidOperationException(
+                                "Couldn't find container type mapping when applying container/containee mappings");
+                        }
+                    }
+                }
+
+                return (ApplyTypeMapping(container, containerMapping), ApplyTypeMapping(containee, containeeMapping));
             }
         }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -16,17 +17,15 @@ using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
-    /// <summary>
-    /// Provides translation services for PostgreSQL range operators.
-    /// </summary>
-    /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/static/functions-range.html
-    /// </remarks>
     public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
     {
         private readonly IRelationalTypeMappingSource _typeMappingSource;
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         private readonly IModel _model;
+
+        private static readonly MethodInfo EnumerableAnyWithoutPredicate =
+            typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 1);
 
         public NpgsqlRangeTranslator(
             IRelationalTypeMappingSource typeMappingSource,
@@ -45,24 +44,58 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
-            if (method.DeclaringType != typeof(NpgsqlRangeDbFunctionsExtensions))
+            // Any() over multirange -> NOT isempty(). NpgsqlRange<T> has IsEmpty which is translated below.
+            if (method.IsGenericMethod
+                && method.GetGenericMethodDefinition() == EnumerableAnyWithoutPredicate
+                && arguments[0].Type.TryGetMultirangeSubtype(out _))
+            {
+                return _sqlExpressionFactory.Not(
+                    _sqlExpressionFactory.Function(
+                        "isempty",
+                        new[] { arguments[0] },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(bool)));
+            }
+
+            if (method.DeclaringType != typeof(NpgsqlRangeDbFunctionsExtensions)
+                && method.DeclaringType != typeof(NpgsqlMultirangeDbFunctionsExtensions))
             {
                 return null;
             }
 
             if (method.Name == nameof(NpgsqlRangeDbFunctionsExtensions.Merge))
             {
-                var inferredMapping = ExpressionExtensions.InferTypeMapping(arguments[0], arguments[1]);
-                return _sqlExpressionFactory.Function(
-                    "range_merge",
-                    new[] {
-                        _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(arguments[1], inferredMapping)
-                    },
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[2],
-                    method.ReturnType,
-                    inferredMapping);
+                if (method.DeclaringType == typeof(NpgsqlRangeDbFunctionsExtensions))
+                {
+                    var inferredMapping = ExpressionExtensions.InferTypeMapping(arguments[0], arguments[1]);
+
+                    return _sqlExpressionFactory.Function(
+                        "range_merge",
+                        new[] {
+                            _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping),
+                            _sqlExpressionFactory.ApplyTypeMapping(arguments[1], inferredMapping)
+                        },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[2],
+                        method.ReturnType,
+                        inferredMapping);
+                }
+
+                if (method.DeclaringType == typeof(NpgsqlMultirangeDbFunctionsExtensions))
+                {
+                    var returnTypeMapping = arguments[0].TypeMapping is NpgsqlMultirangeTypeMapping multirangeTypeMapping
+                        ? multirangeTypeMapping.RangeMapping
+                        : null;
+
+                    return _sqlExpressionFactory.Function(
+                        "range_merge",
+                        new[] { arguments[0] },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        method.ReturnType,
+                        returnTypeMapping);
+                }
             }
 
             return method.Name switch
@@ -95,7 +128,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         }
 
         /// <inheritdoc />
-        public virtual SqlExpression? Translate(SqlExpression? instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MemberInfo member,
             Type returnType,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)

@@ -501,7 +501,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         [Fact]
         public void GenerateCodeLiteral_returns_range_inclusive_literal()
-            => Assert.Equal("new NpgsqlTypes.NpgsqlRange<int>(4, true, 7, true)", CodeLiteral(new NpgsqlRange<int>(4, 7)));
+            => Assert.Equal("new NpgsqlTypes.NpgsqlRange<int>(4, 7)", CodeLiteral(new NpgsqlRange<int>(4, 7)));
 
         [Fact]
         public void GenerateSqlLiteral_returns_range_inclusive_exclusive_literal()
@@ -528,6 +528,59 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             => Assert.Equal("new NpgsqlTypes.NpgsqlRange<int>(0, false, true, 7, true, false)", CodeLiteral(new NpgsqlRange<int>(0, false, true, 7, true, false)));
 
         #endregion Ranges
+
+        #region Multiranges
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_multirange_literal()
+        {
+            var value = new NpgsqlRange<int>[]
+            {
+                new(4, 7),
+                new(9, lowerBoundIsInclusive: true, 10, upperBoundIsInclusive: false),
+                new(13, lowerBoundIsInclusive: false, lowerBoundInfinite: false, default, upperBoundIsInclusive: false, upperBoundInfinite: true)
+            };
+            var literal = GetMapping("int4multirange").GenerateSqlLiteral(value);
+            Assert.Equal("'{[4,7], [9,10), (13,)}'::int4multirange", literal);
+        }
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_multirange_array_literal()
+        {
+            var value = new NpgsqlRange<int>[]
+            {
+                new(4, 7),
+                new(9, lowerBoundIsInclusive: true, 10, upperBoundIsInclusive: false),
+                new(13, lowerBoundIsInclusive: false, lowerBoundInfinite: false, default, upperBoundIsInclusive: false, upperBoundInfinite: true)
+            };
+            var literal = CodeLiteral(value);
+            Assert.Equal("new[] { new NpgsqlTypes.NpgsqlRange<int>(4, 7), new NpgsqlTypes.NpgsqlRange<int>(9, true, 10, false), new NpgsqlTypes.NpgsqlRange<int>(13, false, false, 0, false, true) }", literal);
+        }
+
+        [Fact]
+        public void GenerateCodeLiteral_does_not_support_multirange_lists()
+        {
+            var value = new List<NpgsqlRange<int>>();
+            Assert.Throws<NotSupportedException>(() => CodeLiteral(value));
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_multirange_empty_literal()
+        {
+            var value = Array.Empty<NpgsqlRange<int>>();
+            var literal = GetMapping("int4multirange").GenerateSqlLiteral(value);
+            Assert.Equal("'{}'::int4multirange", literal);
+        }
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_multirange_empty_array_literal()
+        {
+            var value = Array.Empty<NpgsqlRange<int>>();
+            var literal = CodeLiteral(value);
+            Assert.Equal("new NpgsqlRange<int>[0]", literal);
+        }
+
+        #endregion Multiranges
 
         #region Full text search
 

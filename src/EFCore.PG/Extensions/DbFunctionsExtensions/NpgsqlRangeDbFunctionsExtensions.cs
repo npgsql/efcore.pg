@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using NpgsqlTypes;
 
@@ -135,7 +134,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="b">The second range.</param>
         /// <typeparam name="T">The type of the elements of <paramref name="a"/>.</typeparam>
         /// <returns>
-        /// The unique elements that appear in either range.
+        /// A range containing the unique elements that appear in either range.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
         public static NpgsqlRange<T> Union<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)
@@ -148,7 +147,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="b">The second range.</param>
         /// <typeparam name="T">The type of the elements of <paramref name="a"/>.</typeparam>
         /// <returns>
-        /// The elements that appear in both ranges.
+        /// A range containing the elements that appear in both ranges.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
         public static NpgsqlRange<T> Intersect<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)
@@ -174,7 +173,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="b">The second range.</param>
         /// <typeparam name="T">The type of the elements of <paramref name="a"/>.</typeparam>
         /// <returns>
-        /// The smallest range which includes both of the given rangesge.
+        /// The smallest range which includes both of the given ranges.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
         public static NpgsqlRange<T> Merge<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)

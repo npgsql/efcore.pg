@@ -8,7 +8,7 @@ using NpgsqlTypes;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     /// <summary>
-    /// The type mapping for the PostgreSQL range types.
+    /// The type mapping for PostgreSQL range types.
     /// </summary>
     /// <remarks>
     /// See: https://www.postgresql.org/docs/current/static/rangetypes.html
@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         // ReSharper disable once MemberCanBePrivate.Global
         /// <summary>
-        /// The relational type mapping used to initialize the bound mapping.
+        /// The relational type mapping of the range's subtype.
         /// </summary>
         public virtual RelationalTypeMapping SubtypeMapping { get; }
 
@@ -35,7 +35,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             Type clrType,
             RelationalTypeMapping subtypeMapping,
             ISqlGenerationHelper sqlGenerationHelper)
-            : this(storeType, null, clrType, subtypeMapping, sqlGenerationHelper) {}
+            : this(storeType, storeTypeSchema: null, clrType, subtypeMapping, sqlGenerationHelper) {}
 
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping"/> class.
@@ -72,31 +72,38 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => new NpgsqlRangeTypeMapping(parameters, NpgsqlDbType, SubtypeMapping, _sqlGenerationHelper);
 
         protected override string GenerateNonNullSqlLiteral(object value)
-        {
-            var sb = new StringBuilder();
-            sb.Append('\'');
-            sb.Append(value);
-            sb.Append("'::");
-            sb.Append(StoreType);
-            return sb.ToString();
-        }
+            => new StringBuilder()
+                .Append('\'')
+                .Append(value)
+                .Append("'::")
+                .Append(StoreType)
+                .ToString();
 
         private static NpgsqlDbType GenerateNpgsqlDbType(RelationalTypeMapping subtypeMapping)
         {
+            NpgsqlDbType subtypeNpgsqlDbType;
             if (subtypeMapping is INpgsqlTypeMapping npgsqlTypeMapping)
-                return NpgsqlDbType.Range | npgsqlTypeMapping.NpgsqlDbType;
+            {
+                subtypeNpgsqlDbType = npgsqlTypeMapping.NpgsqlDbType;
+            }
+            else
+            {
+                // We're using a built-in, non-Npgsql mapping such as IntTypeMapping.
+                // Infer the NpgsqlDbType from the DbType (somewhat hacky but why not).
+                Debug.Assert(subtypeMapping.DbType.HasValue);
+                var p = new NpgsqlParameter { DbType = subtypeMapping.DbType.Value };
+                subtypeNpgsqlDbType = p.NpgsqlDbType;
+            }
 
-            // We're using a built-in, non-Npgsql mapping such as IntTypeMapping.
-            // Infer the NpgsqlDbType from the DbType (somewhat hacky but why not).
-            Debug.Assert(subtypeMapping.DbType.HasValue);
-            var p = new NpgsqlParameter { DbType = subtypeMapping.DbType.Value };
-            return NpgsqlDbType.Range | p.NpgsqlDbType;
+            return NpgsqlDbType.Range | subtypeNpgsqlDbType;
         }
 
         public override Expression GenerateCodeLiteral(object value)
+            => GenerateCodeLiteral(value, ClrType, SubtypeMapping.ClrType);
+
+        internal static Expression GenerateCodeLiteral(object value, Type rangeType, Type subtypeType)
         {
-            var subtypeType = SubtypeMapping.ClrType;
-            var rangeType = typeof(NpgsqlRange<>).MakeGenericType(subtypeType);
+            Debug.Assert(rangeType == typeof(NpgsqlRange<>).MakeGenericType(subtypeType));
 
             var lower = rangeType.GetProperty(nameof(NpgsqlRange<int>.LowerBound))!.GetValue(value);
             var upper = rangeType.GetProperty(nameof(NpgsqlRange<int>.UpperBound))!.GetValue(value);
@@ -106,7 +113,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             var upperInclusive = (bool)rangeType.GetProperty(nameof(NpgsqlRange<int>.UpperBoundIsInclusive))!.GetValue(value)!;
 
             return lowerInfinite || upperInfinite
-               ? Expression.New(
+                ? Expression.New(
                     rangeType.GetConstructor(new[] { subtypeType, typeof(bool), typeof(bool), subtypeType, typeof(bool), typeof(bool) })!,
                     Expression.Constant(lower),
                     Expression.Constant(lowerInclusive),
@@ -114,12 +121,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                     Expression.Constant(upper),
                     Expression.Constant(upperInclusive),
                     Expression.Constant(upperInfinite))
-               : Expression.New(
-                    rangeType.GetConstructor(new[] { subtypeType, typeof(bool), subtypeType, typeof(bool) })!,
-                    Expression.Constant(lower),
-                    Expression.Constant(lowerInclusive),
-                    Expression.Constant(upper),
-                    Expression.Constant(upperInclusive));
+                : lowerInclusive && upperInclusive
+                    ? Expression.New(
+                        rangeType.GetConstructor(new[] { subtypeType, subtypeType })!,
+                        Expression.Constant(lower),
+                        Expression.Constant(upper))
+                    : Expression.New(
+                        rangeType.GetConstructor(new[] { subtypeType, typeof(bool), subtypeType, typeof(bool) })!,
+                        Expression.Constant(lower),
+                        Expression.Constant(lowerInclusive),
+                        Expression.Constant(upper),
+                        Expression.Constant(upperInclusive));
         }
     }
 }

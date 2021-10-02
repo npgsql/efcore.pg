@@ -18,7 +18,6 @@ using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
-using Npgsql.Internal.TypeHandlers;
 using Npgsql.Internal.TypeMapping;
 using NpgsqlTypes;
 
@@ -42,6 +41,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected virtual ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
 
         private readonly IReadOnlyList<UserRangeDefinition> _userRangeDefinitions;
+
+        /// <summary>
+        /// Maps range subtypes to a list of type mappings for those ranges.
+        /// </summary>
+        private readonly Dictionary<Type, List<NpgsqlRangeTypeMapping>> _rangeTypeMapings;
+
+        /// <summary>
+        /// Maps multirange subtypes to a list of type mappings for those multiranges.
+        /// </summary>
+        private readonly Dictionary<Type, List<NpgsqlMultirangeTypeMapping>> _multirangeTypeMapings;
 
         private static MethodInfo? _adoUserTypeMappingsGetMethodInfo;
 
@@ -125,6 +134,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         private readonly NpgsqlRangeTypeMapping        _tstzrange;
         private readonly NpgsqlRangeTypeMapping        _daterange;
 
+        // Built-in multiranges
+        private readonly NpgsqlMultirangeTypeMapping _int4multirangeArray;
+        private readonly NpgsqlMultirangeTypeMapping _int8multirangeArray;
+        private readonly NpgsqlMultirangeTypeMapping _nummultirangeArray;
+        private readonly NpgsqlMultirangeTypeMapping _tsmultirangeArray;
+        private readonly NpgsqlMultirangeTypeMapping _tstzmultirangeArray;
+        private readonly NpgsqlMultirangeTypeMapping _datemultirangeArray;
+
+        private readonly NpgsqlMultirangeTypeMapping _int4multirangeList;
+        private readonly NpgsqlMultirangeTypeMapping _int8multirangeList;
+        private readonly NpgsqlMultirangeTypeMapping _nummultirangeList;
+        private readonly NpgsqlMultirangeTypeMapping _tsmultirangeList;
+        private readonly NpgsqlMultirangeTypeMapping _tstzmultirangeList;
+        private readonly NpgsqlMultirangeTypeMapping _datemultirangeList;
+
         // Other types
         private readonly NpgsqlBoolTypeMapping            _bool            = new();
         private readonly NpgsqlBitTypeMapping             _bit             = new();
@@ -160,6 +184,43 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             _tsrange   = new NpgsqlRangeTypeMapping("tsrange",   typeof(NpgsqlRange<DateTime>), _timestamp,   sqlGenerationHelper);
             _tstzrange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<DateTime>), _timestamptz, sqlGenerationHelper);
             _daterange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<DateTime>), _timestamptz, sqlGenerationHelper);
+
+            _rangeTypeMapings = new()
+            {
+                { typeof(int), new() { _int4range } },
+                { typeof(long), new() { _int8range } },
+                { typeof(decimal), new() { _numrange } },
+                { typeof(DateTime), new() { _tsrange, _tstzrange, _daterange } }
+            };
+
+            _int4multirangeArray = new NpgsqlMultirangeTypeMapping("int4multirange", typeof(NpgsqlRange<int>[]),      _int4range, sqlGenerationHelper);
+            _int8multirangeArray = new NpgsqlMultirangeTypeMapping("int8multirange", typeof(NpgsqlRange<long>[]),     _int8range, sqlGenerationHelper);
+            _nummultirangeArray  = new NpgsqlMultirangeTypeMapping("nummultirange",  typeof(NpgsqlRange<decimal>[]),  _numrange,  sqlGenerationHelper);
+            _tsmultirangeArray   = new NpgsqlMultirangeTypeMapping("tsmultirange",   typeof(NpgsqlRange<DateTime>[]), _tsrange,   sqlGenerationHelper);
+            _tstzmultirangeArray = new NpgsqlMultirangeTypeMapping("tstzmultirange", typeof(NpgsqlRange<DateTime>[]), _tstzrange, sqlGenerationHelper);
+            _datemultirangeArray = new NpgsqlMultirangeTypeMapping("datemultirange", typeof(NpgsqlRange<DateTime>[]), _daterange, sqlGenerationHelper);
+
+            _int4multirangeList = new NpgsqlMultirangeTypeMapping("int4multirange", typeof(List<NpgsqlRange<int>>),      _int4range, sqlGenerationHelper);
+            _int8multirangeList = new NpgsqlMultirangeTypeMapping("int8multirange", typeof(List<NpgsqlRange<long>>),     _int8range, sqlGenerationHelper);
+            _nummultirangeList  = new NpgsqlMultirangeTypeMapping("nummultirange",  typeof(List<NpgsqlRange<decimal>>),  _numrange,  sqlGenerationHelper);
+            _tsmultirangeList   = new NpgsqlMultirangeTypeMapping("tsmultirange",   typeof(List<NpgsqlRange<DateTime>>), _tsrange,   sqlGenerationHelper);
+            _tstzmultirangeList = new NpgsqlMultirangeTypeMapping("tstzmultirange", typeof(List<NpgsqlRange<DateTime>>), _tstzrange, sqlGenerationHelper);
+            _datemultirangeList = new NpgsqlMultirangeTypeMapping("datemultirange", typeof(List<NpgsqlRange<DateTime>>), _daterange, sqlGenerationHelper);
+
+            _multirangeTypeMapings = new()
+            {
+                { typeof(int), new() { _int4multirangeArray, _int4multirangeList } },
+                { typeof(long), new() { _int8multirangeArray, _int8multirangeList } },
+                { typeof(decimal), new() { _nummultirangeArray, _nummultirangeList } },
+                {
+                    typeof(DateTime), new()
+                    {
+                        _tsmultirangeArray, _tsmultirangeList,
+                        _tstzmultirangeArray, _tstzmultirangeList,
+                        _datemultirangeArray, _datemultirangeList
+                    }
+                }
+            };
 
 // ReSharper disable CoVariantArrayConversion
             // Note that PostgreSQL has aliases to some built-in type name aliases (e.g. int4 for integer),
@@ -237,6 +298,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "tstzrange",                   new[] { _tstzrange                    } },
                 { "daterange",                   new[] { _daterange                    } },
 
+                { "int4multirange",              new[] { _int4multirangeArray, _int4multirangeList } },
+                { "int8multirange",              new[] { _int8multirangeArray, _int8multirangeList } },
+                { "nummultirange",               new[] { _nummultirangeArray, _nummultirangeList   } },
+                { "tsmultirange",                new[] { _tsmultirangeArray, _tsmultirangeList     } },
+                { "tstzmultirange",              new[] { _tstzmultirangeArray, _tstzmultirangeList } },
+                { "datemultirange",              new[] { _datemultirangeArray, _datemultirangeList } },
+
                 { "tsquery",                     new[] { _tsquery                      } },
                 { "tsvector",                    new[] { _tsvector                     } },
                 { "regconfig",                   new[] { _regconfig                    } },
@@ -302,6 +370,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof(NpgsqlRange<decimal>),                _numrange             },
                 { typeof(NpgsqlRange<DateTime>),               LegacyTimestampBehavior ? _tsrange : _tstzrange },
                 { typeof(NpgsqlRange<DateTimeOffset>),          _tstzrange           },
+
+                { typeof(NpgsqlRange<int>[]),                  _int4multirangeArray  },
+                { typeof(NpgsqlRange<long>[]),                 _int4multirangeArray  },
+                { typeof(NpgsqlRange<decimal>[]),              _nummultirangeArray   },
+                { typeof(NpgsqlRange<DateTime>[]),             LegacyTimestampBehavior ? _tsmultirangeArray : _tstzmultirangeArray },
+
+                { typeof(List<NpgsqlRange<int>>),              _int4multirangeList   },
+                { typeof(List<NpgsqlRange<long>>),             _int4multirangeList   },
+                { typeof(List<NpgsqlRange<decimal>>),          _nummultirangeList    },
+                { typeof(List<NpgsqlRange<DateTime>>),         LegacyTimestampBehavior ? _tsmultirangeList : _tstzmultirangeList },
 
                 { typeof(NpgsqlTsQuery),                       _tsquery              },
                 { typeof(NpgsqlTsVector),                      _tsvector             },
@@ -592,8 +670,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 return null;
             }
 
-            // We now have a user-defined range definition from the context options. Use it to get the subtype's
-            // mapping
+            // We now have a user-defined range definition from the context options. Use it to get the subtype's mapping
             var subtypeMapping = (RelationalTypeMapping?)(rangeDefinition.SubtypeName is null
                 ? FindMapping(rangeDefinition.SubtypeClrType)
                 : FindMapping(rangeDefinition.SubtypeName));
@@ -604,6 +681,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             }
 
             return new NpgsqlRangeTypeMapping(rangeDefinition.RangeName, rangeDefinition.SchemaName, rangeClrType, subtypeMapping, _sqlGenerationHelper);
+        }
+
+        /// <summary>
+        /// Finds the mapping for a container given its CLR type and its containee's type mapping'; this is currently used to infer type
+        /// mappings for ranges and multiranges from their values.
+        /// </summary>
+        public virtual RelationalTypeMapping? FindContainerMapping(Type containerClrType, RelationalTypeMapping containeeTypeMapping)
+        {
+            if (containerClrType.TryGetRangeSubtype(out var subtypeType))
+            {
+                return _rangeTypeMapings.TryGetValue(subtypeType, out var candidateMappings)
+                    ? candidateMappings.FirstOrDefault(m => m.SubtypeMapping.StoreType == containeeTypeMapping.StoreType)
+                    : null;
+            }
+
+            if (containerClrType.TryGetMultirangeSubtype(out subtypeType))
+            {
+                return _multirangeTypeMapings.TryGetValue(subtypeType, out var candidateMappings)
+                    ? candidateMappings.FirstOrDefault(m => m.SubtypeMapping.StoreType == containeeTypeMapping.StoreType)
+                    : null;
+            }
+
+            return null;
         }
 
         private static bool NameBasesUsesPrecision(ReadOnlySpan<char> span)

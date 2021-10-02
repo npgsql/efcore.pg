@@ -391,23 +391,35 @@ WHERE make_timestamp(date_part('year', e.""TimestampDateTime"")::INT, date_part(
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-         public virtual async Task Where_datetime_ctor3_utc(bool async)
-         {
-             using var ctx = CreateContext();
+        public virtual async Task Where_datetime_ctor3_utc(bool async)
+        {
+            using var ctx = CreateContext();
 
-             await AssertQuery(
-                 async,
-                 ss => ss.Set<Entity>().Where(
-                     o =>
-                         new DateTime(o.TimestamptzDateTime.Year, o.TimestamptzDateTime.Month, 1, 0, 0, 0, DateTimeKind.Utc)
-                         == new DateTime(1998, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-                 entryCount: 1);
+            await AssertQuery(
+                async,
+                ss => ss.Set<Entity>().Where(
+                    o =>
+                        new DateTime(o.TimestamptzDateTime.Year, o.TimestamptzDateTime.Month, 1, 0, 0, 0, DateTimeKind.Utc)
+                        == new DateTime(1998, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+                entryCount: 1);
 
-             AssertSql(
-                 @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
+            AssertSql(
+                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
 FROM ""Entities"" AS e
 WHERE make_timestamptz(date_part('year', e.""TimestamptzDateTime"")::INT, date_part('month', e.""TimestamptzDateTime"")::INT, 1, 0, 0, 0::double precision, 'UTC') = TIMESTAMPTZ '1998-04-01 00:00:00Z'");
-         }
+        }
+
+        [ConditionalFact]
+        public void Range_parameter_contains_timestamp_with_no_time_zone_column()
+        {
+            // This scenario requires that the provider correctly infer the range's type mapping from the subtype's
+            using var ctx = CreateContext();
+
+            var range = new NpgsqlRange<DateTime>(new(1998, 4, 12), new (1998, 4, 13));
+
+            var id = ctx.Entities.Single(e => range.Contains(e.TimestampDateTime)).Id;
+            Assert.Equal(1, id);
+        }
 
         #region Support
 
