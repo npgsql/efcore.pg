@@ -26,9 +26,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             var entityType = table.EntityTypeMappings.First().EntityType;
 
             if (entityType.GetIsUnlogged())
+            {
                 yield return new Annotation(NpgsqlAnnotationNames.UnloggedTable, entityType.GetIsUnlogged());
+            }
+
             if (entityType[CockroachDbAnnotationNames.InterleaveInParent] != null)
+            {
                 yield return new Annotation(CockroachDbAnnotationNames.InterleaveInParent, entityType[CockroachDbAnnotationNames.InterleaveInParent]);
+            }
+
             foreach (var storageParamAnnotation in entityType.GetAnnotations()
                 .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal)))
             {
@@ -113,18 +119,35 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             var modelIndex = index.MappedIndexes.First();
 
             if (modelIndex.GetCollation() is IReadOnlyList<string> collation)
+            {
                 yield return new Annotation(RelationalAnnotationNames.Collation, collation);
+            }
 
             if (modelIndex.GetMethod() is string method)
+            {
                 yield return new Annotation(NpgsqlAnnotationNames.IndexMethod, method);
+            }
+
             if (modelIndex.GetOperators() is IReadOnlyList<string> operators)
+            {
                 yield return new Annotation(NpgsqlAnnotationNames.IndexOperators, operators);
+            }
+
             if (modelIndex.GetSortOrder() is IReadOnlyList<SortOrder> sortOrder)
+            {
                 yield return new Annotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
+            }
+
             if (modelIndex.GetNullSortOrder() is IReadOnlyList<SortOrder> nullSortOrder)
+            {
                 yield return new Annotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
+            }
+
             if (modelIndex.GetTsVectorConfig() is string configName)
+            {
                 yield return new Annotation(NpgsqlAnnotationNames.TsVectorConfig, configName);
+            }
+
             if (modelIndex.GetIncludeProperties() is IReadOnlyList<string> includeProperties)
             {
                 var tableIdentifier = StoreObjectIdentifier.Table(index.Table.Name, index.Table.Schema);

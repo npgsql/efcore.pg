@@ -96,7 +96,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 }
 
                 if (_additionalSql != null)
+                {
                     Execute(Connection, command => command.ExecuteNonQuery(), _additionalSql);
+                }
             }
         }
 
@@ -223,13 +225,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         private static bool DatabaseExists(string name)
         {
             using (var master = new NpgsqlConnection(CreateAdminConnectionString()))
+            {
                 return ExecuteScalar<long>(master, $@"SELECT COUNT(*) FROM pg_database WHERE datname = '{name}'") > 0;
+            }
         }
 
         public void DeleteDatabase()
         {
             if (!DatabaseExists(Name))
+            {
                 return;
+            }
+
             using (var master = new NpgsqlConnection(CreateAdminConnectionString()))
             {
                 ExecuteNonQuery(master, GetDisconnectDatabaseSql(Name));

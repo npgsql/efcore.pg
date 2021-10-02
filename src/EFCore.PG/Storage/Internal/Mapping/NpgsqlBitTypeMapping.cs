@@ -32,7 +32,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             var sb = new StringBuilder();
             sb.Append("B'");
             for (var i = 0; i < bits.Count; i++)
+            {
                 sb.Append(bits[i] ? '1' : '0');
+            }
+
             sb.Append('\'');
             return sb.ToString();
         }
@@ -42,7 +45,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             var bits = (BitArray)value;
             var exprs = new Expression[bits.Count];
             for (var i = 0; i < bits.Count; i++)
+            {
                 exprs[i] = Expression.Constant(bits[i]);
+            }
+
             return Expression.New(Constructor, Expression.NewArrayInit(typeof(bool), exprs));
         }
 

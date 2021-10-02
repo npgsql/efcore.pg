@@ -73,7 +73,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             {
                 // Extension method over an array or list
                 if (method.IsClosedFormOf(SequenceEqual) && arguments[1].Type.IsArray)
+                {
                     return _sqlExpressionFactory.Equal(arguments[0], arguments[1]);
+                }
 
                 return TranslateCommon(arguments[0], arguments.Slice(1));
             }

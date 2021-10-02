@@ -13,7 +13,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             var definition = NpgsqlResources.LogMissingSchema(diagnostics);
 
             if (diagnostics.ShouldLog(definition))
+            {
                 definition.Log(diagnostics, schemaName);
+            }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
@@ -25,7 +27,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             var definition = NpgsqlResources.LogMissingTable(diagnostics);
 
             if (diagnostics.ShouldLog(definition))
+            {
                 definition.Log(diagnostics, tableName);
+            }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
@@ -39,7 +43,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             var definition = NpgsqlResources.LogPrincipalTableNotInSelectionSet(diagnostics);
 
             if (diagnostics.ShouldLog(definition))
+            {
                 definition.Log(diagnostics, foreignKeyName, tableName, principalTableName);
+            }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
@@ -88,7 +94,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             var definition = NpgsqlResources.LogFoundCollation(diagnostics);
 
             if (diagnostics.ShouldLog(definition))
+            {
                 definition.Log(diagnostics, collationName, schema, lcCollate, lcCtype, provider, deterministic);
+            }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
@@ -101,7 +109,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             var definition = NpgsqlResources.LogFoundUniqueConstraint(diagnostics);
 
             if (diagnostics.ShouldLog(definition))
+            {
                 definition.Log(diagnostics, uniqueConstraintName, tableName);
+            }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
@@ -113,7 +123,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             var definition = NpgsqlResources.LogEnumColumnSkipped(diagnostics);
 
             if (diagnostics.ShouldLog(definition))
+            {
                 definition.Log(diagnostics, columnName);
+            }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
@@ -126,7 +138,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             var definition = NpgsqlResources.LogExpressionIndexSkipped(diagnostics);
 
             if (diagnostics.ShouldLog(definition))
+            {
                 definition.Log(diagnostics, indexName, tableName);
+            }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
@@ -139,7 +153,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             var definition = NpgsqlResources.LogUnsupportedColumnIndexSkipped(diagnostics);
 
             if (diagnostics.ShouldLog(definition))
+            {
                 definition.Log(diagnostics, indexName, tableName);
+            }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
@@ -152,7 +168,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             var definition = NpgsqlResources.LogUnsupportedColumnConstraintSkipped(diagnostics);
 
             if (diagnostics.ShouldLog(definition))
+            {
                 definition.Log(diagnostics, indexName, tableName);
+            }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }

@@ -58,11 +58,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             Expression newLocalTimeExpr;
             if (offsetTime.NanosecondOfSecond != 0)
+            {
                 newLocalTimeExpr = ConstantCall(LocalTimeFromHourMinuteSecondNanosecondMethod, offsetTime.Hour, offsetTime.Minute, offsetTime.Second, (long)offsetTime.NanosecondOfSecond);
+            }
             else if (offsetTime.Second != 0)
+            {
                 newLocalTimeExpr = ConstantNew(LocalTimeConstructorWithSeconds, offsetTime.Hour, offsetTime.Minute, offsetTime.Second);
+            }
             else
+            {
                 newLocalTimeExpr = ConstantNew(LocalTimeConstructorWithMinutes, offsetTime.Hour, offsetTime.Minute);
+            }
 
             return Expression.New(OffsetTimeConstructor,
                 newLocalTimeExpr,

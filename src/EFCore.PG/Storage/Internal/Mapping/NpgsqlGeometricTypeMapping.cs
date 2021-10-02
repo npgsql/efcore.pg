@@ -149,7 +149,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 sb.Append(path[i].Y.ToString("G17", CultureInfo.InvariantCulture));
                 sb.Append(')');
                 if (i < path.Count - 1)
+                {
                     sb.Append(',');
+                }
             }
             sb.Append(path.Open ? ']' : ')');
             sb.Append('\'');
@@ -198,7 +200,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 sb.Append(polygon[i].Y.ToString("G17", CultureInfo.InvariantCulture));
                 sb.Append(')');
                 if (i < polygon.Count - 1)
+                {
                     sb.Append(',');
+                }
             }
             sb.Append(")'");
             return sb.ToString();

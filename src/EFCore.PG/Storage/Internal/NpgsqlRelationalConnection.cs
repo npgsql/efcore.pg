@@ -39,11 +39,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         {
             var conn = new NpgsqlConnection(ConnectionString);
             if (ProvideClientCertificatesCallback != null)
+            {
                 conn.ProvideClientCertificatesCallback = ProvideClientCertificatesCallback;
+            }
+
             if (RemoteCertificateValidationCallback != null)
+            {
                 conn.UserCertificateValidationCallback = RemoteCertificateValidationCallback;
+            }
+
             if (ProvidePasswordCallback != null)
+            {
                 conn.ProvidePasswordCallback = ProvidePasswordCallback;
+            }
+
             return conn;
         }
 

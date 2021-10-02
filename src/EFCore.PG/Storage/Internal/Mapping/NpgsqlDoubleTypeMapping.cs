@@ -16,11 +16,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             var doubleValue = Convert.ToDouble(value);
             if (double.IsNaN(doubleValue))
+            {
                 return "'NaN'";
+            }
+
             if (double.IsPositiveInfinity(doubleValue))
+            {
                 return "'Infinity'";
+            }
+
             if (double.IsNegativeInfinity(doubleValue))
+            {
                 return "'-Infinity'";
+            }
+
             return base.GenerateNonNullSqlLiteral(doubleValue);
         }
     }

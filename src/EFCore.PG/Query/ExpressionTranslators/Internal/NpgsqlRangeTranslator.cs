@@ -46,7 +46,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (method.DeclaringType != typeof(NpgsqlRangeDbFunctionsExtensions))
+            {
                 return null;
+            }
 
             if (method.Name == nameof(NpgsqlRangeDbFunctionsExtensions.Merge))
             {
@@ -100,7 +102,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             var type = member.DeclaringType;
             if (type == null || !type.IsGenericType || type.GetGenericTypeDefinition() != typeof(NpgsqlRange<>))
+            {
                 return null;
+            }
 
             if (member.Name == nameof(NpgsqlRange<int>.LowerBound) || member.Name == nameof(NpgsqlRange<int>.UpperBound))
             {

@@ -45,7 +45,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
             : base(dependencies)
         {
             if (maxBatchSize.HasValue && maxBatchSize.Value <= 0)
+            {
                 throw new ArgumentOutOfRangeException(nameof(maxBatchSize), RelationalStrings.InvalidMaxBatchSize(maxBatchSize));
+            }
 
             _maxBatchSize = maxBatchSize ?? DefaultBatchSize;
         }
@@ -55,11 +57,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
         protected override bool CanAddCommand(IReadOnlyModificationCommand modificationCommand)
         {
             if (ModificationCommands.Count >= _maxBatchSize)
+            {
                 return false;
+            }
 
             var newParamCount = (long)_parameterCount + modificationCommand.ColumnModifications.Count;
             if (newParamCount > int.MaxValue)
+            {
                 return false;
+            }
 
             _parameterCount = (int)newParamCount;
             return true;
@@ -87,7 +93,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
                     for (nextPropagating = commandIndex;
                         nextPropagating < ModificationCommands.Count &&
                         !ModificationCommands[nextPropagating].RequiresResultPropagation;
-                        nextPropagating++) ;
+                        nextPropagating++)
+                    {
+                    }
 
                     // Go over all non-propagating commands before the next propagating one,
                     // make sure they executed
@@ -162,7 +170,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
                         nextPropagating < ModificationCommands.Count &&
                         !ModificationCommands[nextPropagating].RequiresResultPropagation;
                         nextPropagating++)
+                    {
                         ;
+                    }
 
                     // Go over all non-propagating commands before the next propagating one,
                     // make sure they executed

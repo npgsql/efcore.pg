@@ -166,7 +166,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 newArguments[0] = _sqlExpressionFactory.ApplyTypeMapping(arguments[0], typeMapping);
 
                 if (arguments.Count == 2)
+                {
                     newArguments[1] = _sqlExpressionFactory.ApplyTypeMapping(arguments[1], typeMapping);
+                }
 
                 // Note: GREATER/LEAST only return NULL if *all* arguments are null, but we currently can't
                 // convey this.
@@ -210,17 +212,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             // PostgreSQL treats NaN values as equal, against IEEE754
             if (method == DoubleIsNanMethodInfo)
+            {
                 return _sqlExpressionFactory.Equal(arguments[0], _sqlExpressionFactory.Constant(double.NaN));
+            }
+
             if (method == FloatIsNanMethodInfo)
+            {
                 return _sqlExpressionFactory.Equal(arguments[0], _sqlExpressionFactory.Constant(float.NaN));
+            }
+
             if (method == DoubleIsPositiveInfinityMethodInfo)
+            {
                 return _sqlExpressionFactory.Equal(arguments[0], _sqlExpressionFactory.Constant(double.PositiveInfinity));
+            }
+
             if (method == FloatIsPositiveInfinityMethodInfo)
+            {
                 return _sqlExpressionFactory.Equal(arguments[0], _sqlExpressionFactory.Constant(float.PositiveInfinity));
+            }
+
             if (method == DoubleIsNegativeInfinityMethodInfo)
+            {
                 return _sqlExpressionFactory.Equal(arguments[0], _sqlExpressionFactory.Constant(double.NegativeInfinity));
+            }
+
             if (method == FloatIsNegativeInfinityMethodInfo)
+            {
                 return _sqlExpressionFactory.Equal(arguments[0], _sqlExpressionFactory.Constant(float.NegativeInfinity));
+            }
 
             return null;
         }

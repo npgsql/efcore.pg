@@ -89,7 +89,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
             var connectionStartedOpen = connection.State == ConnectionState.Open;
 
             if (!connectionStartedOpen)
+            {
                 connection.Open();
+            }
 
             try
             {
@@ -98,7 +100,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 {
                     var longVersion = (string)command.ExecuteScalar()!;
                     if (longVersion.Contains("CockroachDB"))
+                    {
                         internalSchemas += ", 'crdb_internal'";
+                    }
                 }
 
                 databaseModel.DatabaseName = connection.Database;
@@ -153,7 +157,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 {
                     var (schema, name) = Parse(table);
                     if (!databaseModel.Tables.Any(t => !string.IsNullOrEmpty(schema) && t.Schema == schema || t.Name == name))
+                    {
                         _logger.MissingTableWarning(table);
+                    }
                 }
 
                 return databaseModel;
@@ -161,7 +167,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
             finally
             {
                 if (!connectionStartedOpen)
+                {
                     connection.Close();
+                }
             }
         }
 
@@ -172,7 +180,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         private static void PopulateGlobalDatabaseInfo(NpgsqlConnection connection, DatabaseModel databaseModel)
         {
             if (connection.Settings.ServerCompatibilityMode == ServerCompatibilityMode.Redshift)
+            {
                 return;
+            }
 
             var commandText = @"
 SELECT datcollate FROM pg_database WHERE datname=current_database() AND
@@ -433,7 +443,9 @@ ORDER BY attnum";
                     }
 
                     if (column[NpgsqlAnnotationNames.ValueGenerationStrategy] != null)
+                    {
                         column.ValueGenerated = ValueGenerated.OnAdd;
+                    }
 
                     if (isIdentity)
                     {
@@ -450,14 +462,20 @@ ORDER BY attnum";
                         };
 
                         if (!sequenceData.Equals(IdentitySequenceOptionsData.Empty))
+                        {
                             column[NpgsqlAnnotationNames.IdentityOptions] = sequenceData.Serialize();
+                        }
                     }
 
                     if (record.GetValueOrDefault<string>("description") is string comment)
+                    {
                         column.Comment = comment;
+                    }
 
                     if (record.GetValueOrDefault<string>("collname") is string collation && collation != "default")
+                    {
                         column.Collation = collation;
+                    }
 
                     logger.ColumnFound(
                         DisplayName(tableSchema, tableName),
@@ -493,9 +511,11 @@ ORDER BY attnum";
                 using var reader = command.ExecuteReader();
 
                 foreach (var opClass in reader.Cast<DbDataRecord>())
+                {
                     opClasses[opClass.GetFieldValue<uint>("oid")] = (
                         opClass.GetFieldValue<string>("opcname"),
                         opClass.GetFieldValue<bool>("opcdefault"));
+                }
             }
             catch (PostgresException e)
             {
@@ -509,8 +529,12 @@ ORDER BY attnum";
             {
                 using (var command = new NpgsqlCommand("SELECT oid, collname FROM pg_collation", connection))
                 using (var reader = command.ExecuteReader())
+                {
                     foreach (var collation in reader.Cast<DbDataRecord>())
+                    {
                         collations[collation.GetFieldValue<uint>("oid")] = collation.GetFieldValue<string>("collname");
+                    }
+                }
             }
 
             var commandText = $@"
@@ -578,7 +602,9 @@ WHERE
                         // Constraints are detected separately (see GetConstraints), and we don't want their
                         // supporting indexes to appear independently.
                         if (constraintIndexes.Contains(record.GetFieldValue<uint>("idx_oid")))
+                        {
                             continue;
+                        }
 
                         var indexName = record.GetFieldValue<string>("idx_relname");
                         var index = new DatabaseIndex
@@ -610,7 +636,9 @@ WHERE
                         foreach (var i in columnIndices.Take(numKeyColumns))
                         {
                             if (tableColumns[i - 1] is DatabaseColumn indexKeyColumn)
+                            {
                                 index.Columns.Add(indexKeyColumn);
+                            }
                             else
                             {
                                 logger.UnsupportedColumnIndexSkippedWarning(index.Name, DisplayName(tableSchema, tableName));
@@ -625,7 +653,9 @@ WHERE
                             foreach (var i in columnIndices.Skip(numKeyColumns))
                             {
                                 if (tableColumns[i - 1] is DatabaseColumn indexKeyColumn)
+                                {
                                     nonKeyColumns.Add(indexKeyColumn.Name!);
+                                }
                                 else
                                 {
                                     logger.UnsupportedColumnIndexSkippedWarning(index.Name, DisplayName(tableSchema, tableName));
@@ -637,7 +667,9 @@ WHERE
                         }
 
                         if (record.GetValueOrDefault<string>("pred") is string predicate)
+                        {
                             index.Filter = predicate;
+                        }
 
                         // It's cleaner to always output the index method on the database model,
                         // even when it's btree (the default);
@@ -645,7 +677,9 @@ WHERE
                         // However, because of https://github.com/aspnet/EntityFrameworkCore/issues/11846 we omit
                         // the annotation from the model entirely.
                         if (record.GetValueOrDefault<string>("amname") is string indexMethod && indexMethod != "btree")
+                        {
                             index[NpgsqlAnnotationNames.IndexMethod] = indexMethod;
+                        }
 
                         // Handle index operator classes, which we pre-loaded
                         var opClassNames = record
@@ -654,7 +688,9 @@ WHERE
                             .ToArray();
 
                         if (opClassNames.Any(op => op != null))
+                        {
                             index[NpgsqlAnnotationNames.IndexOperators] = opClassNames;
+                        }
 
                         var columnCollations = record
                             .GetFieldValue<uint[]>("indcollation")
@@ -662,7 +698,9 @@ WHERE
                             .ToArray();
 
                         if (columnCollations.Any(coll => coll != null))
+                        {
                             index[RelationalAnnotationNames.Collation] = columnCollations;
+                        }
 
                         if (record.GetValueOrDefault<bool>("amcanorder"))
                         {
@@ -676,7 +714,9 @@ WHERE
                                 .ToArray();
 
                             if (!SortOrderHelper.IsDefaultSortOrder(sortOrders))
+                            {
                                 index[NpgsqlAnnotationNames.IndexSortOrder] = sortOrders;
+                            }
 
                             // The second bit specifies whether NULLs are sorted first instead of last.
                             const ushort indoptionNullsFirstFlag = 0x0002;
@@ -686,7 +726,9 @@ WHERE
                                 .ToArray();
 
                             if (!SortOrderHelper.IsDefaultNullSortOrder(nullSortOrders, sortOrders))
+                            {
                                 index[NpgsqlAnnotationNames.IndexNullSortOrder] = nullSortOrders;
+                            }
                         }
 
                         table.Indexes.Add(index);
@@ -772,7 +814,9 @@ WHERE
                     foreach (var pkColumnIndex in primaryKeyRecord.GetFieldValue<short[]>("conkey"))
                     {
                         if (table.Columns[pkColumnIndex - 1] is DatabaseColumn pkColumn)
+                        {
                             primaryKey.Columns.Add(pkColumn);
+                        }
                         else
                         {
                             logger.UnsupportedColumnConstraintSkippedWarning(primaryKey.Name, DisplayName(tableSchema, tableName));
@@ -821,7 +865,9 @@ WHERE
                     var principalColumnIndices = foreignKeyRecord.GetFieldValue<short[]>("confkey");
 
                     if (columnIndices.Length != principalColumnIndices.Length)
+                    {
                         throw new InvalidOperationException("Found varying lengths for column and principal column indices.");
+                    }
 
                     var principalColumns = (List<DatabaseColumn>)principalTable.Columns;
 
@@ -962,7 +1008,9 @@ GROUP BY nspname, typname";
                 var labels = reader.GetFieldValue<string[]>("labels");
 
                 if (schema == "public")
+                {
                     schema = null;
+                }
 
                 PostgresEnum.GetOrAddPostgresEnum(databaseModel, schema, name, labels);
                 enums.Add(name);
@@ -989,7 +1037,9 @@ JOIN pg_namespace ns ON ns.oid=extnamespace";
                 var version = reader.GetValueOrDefault<string>("extversion");
 
                 if (name == "plpgsql") // Implicitly installed in all PG databases
+                {
                     continue;
+                }
 
                 databaseModel.GetOrAddPostgresExtension(schema, name, version);
             }
@@ -1002,7 +1052,9 @@ JOIN pg_namespace ns ON ns.oid=extnamespace";
             IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
             if (connection.Settings.ServerCompatibilityMode == ServerCompatibilityMode.Redshift)
+            {
                 return;
+            }
 
             var commandText = @$"
 SELECT
@@ -1075,7 +1127,9 @@ WHERE
             }
 
             if (column.IsNullable)
+            {
                 return;
+            }
 
             if (defaultValue == "0")
             {
@@ -1260,7 +1314,9 @@ WHERE
                         if (tablesWithSchema.Any())
                         {
                             if (tablesWithoutSchema.Any())
+                            {
                                 tableFilterBuilder.Append(" OR ");
+                            }
 
                             tableFilterBuilder.Append(t);
                             tableFilterBuilder.Append(" IN (");
@@ -1276,7 +1332,9 @@ WHERE
                     }
 
                     if (openBracket)
+                    {
                         tableFilterBuilder.Append(")");
+                    }
 
                     return tableFilterBuilder.ToString();
                 }
@@ -1293,10 +1351,14 @@ WHERE
         {
             // User-defined types (e.g. enums) with capital letters get formatted with quotes, remove.
             if (formattedTypeName[0] == '"')
+            {
                 formattedTypeName = formattedTypeName.Substring(1, formattedTypeName.Length - 2);
+            }
 
             if (formattedTypeName == "bpchar")
+            {
                 formattedTypeName = "char";
+            }
 
             return formattedTypeName;
         }
@@ -1331,7 +1393,9 @@ WHERE
             var match = SchemaTableNameExtractor.Match(table.Trim());
 
             if (!match.Success)
+            {
                 throw new InvalidOperationException("The table name could not be parsed.");
+            }
 
             var part1 = match.Groups["part1"].Value;
             var part2 = match.Groups["part2"].Value;

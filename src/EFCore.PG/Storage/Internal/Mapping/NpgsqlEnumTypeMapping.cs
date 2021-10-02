@@ -26,7 +26,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             : base(sqlGenerationHelper.DelimitIdentifier(storeType, storeTypeSchema), enumType)
         {
             if (!enumType.IsEnum || !enumType.IsValueType)
+            {
                 throw new ArgumentException($"Enum type mappings require a CLR enum. {enumType.FullName} is not an enum.");
+            }
 
             nameTranslator ??= NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator;
 

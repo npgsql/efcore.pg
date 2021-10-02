@@ -53,7 +53,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Check.NotNull(name, nameof(name));
 
             if (FindPostgresExtension(annotatable, schema, name) is PostgresExtension postgresExtension)
+            {
                 return postgresExtension;
+            }
 
             var annotationName = BuildAnnotationName(schema, name);
 
@@ -158,7 +160,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         private static (string? Schema, string? Name, string? Version) Deserialize(IAnnotation? annotation)
         {
             if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
+            {
                 return (null, null, null);
+            }
 
             // TODO: Can't actually use schema and name...they might not be set when this is first called.
             var schemaNameValue = value.Split(',').Select(x => x.Trim()).Select(x => x == "" || x == "''" ? null : x).ToArray();

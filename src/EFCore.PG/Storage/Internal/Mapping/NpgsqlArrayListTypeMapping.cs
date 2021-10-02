@@ -84,7 +84,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                     isElementNullable))
         {
             if (!parameters.CoreParameters.ClrType.IsGenericList())
+            {
                 throw new ArgumentException("ClrType must be a generic List", nameof(parameters));
+            }
         }
 
         public override NpgsqlArrayTypeMapping MakeNonNullable()

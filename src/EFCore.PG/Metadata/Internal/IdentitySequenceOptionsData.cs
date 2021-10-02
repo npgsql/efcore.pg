@@ -44,7 +44,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             var data = new IdentitySequenceOptionsData();
 
             if (value == null)
+            {
                 return data;
+            }
 
             try
             {

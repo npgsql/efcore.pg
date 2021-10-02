@@ -51,7 +51,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.GraphUpdates
                 protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
                 {
                     if (TestEnvironment.PostgresVersion >= new Version(10, 0))
+                    {
                         modelBuilder.UseIdentityColumns();
+                    }
 
                     base.OnModelCreating(modelBuilder, context);
                 }
@@ -81,7 +83,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.GraphUpdates
                 protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
                 {
                     if (TestEnvironment.PostgresVersion >= new Version(10, 0))
+                    {
                         modelBuilder.UseIdentityColumns();
+                    }
 
                     base.OnModelCreating(modelBuilder, context);
                 }
@@ -111,7 +115,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.GraphUpdates
                 protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
                 {
                     if (TestEnvironment.PostgresVersion >= new Version(10, 0))
+                    {
                         modelBuilder.UseIdentityColumns();
+                    }
 
                     base.OnModelCreating(modelBuilder, context);
                 }

@@ -33,7 +33,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Check.NotEmpty(name, nameof(name));
 
             if (FindCollation(annotatable, schema, name) is PostgresCollation collation)
+            {
                 return collation;
+            }
 
             var annotationName = BuildAnnotationName(schema, name);
 
@@ -112,15 +114,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Deserialize(IAnnotation? annotation)
         {
             if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
+            {
                 return (null, null!, null!, null!, null, null);
+            }
 
             string?[] elements = value.Split(',');
             if (elements.Length != 4)
+            {
                 throw new ArgumentException($"Cannot parse collation annotation value: {value}");
+            }
 
             for (var i = 0; i < 4; i++)
+            {
                 if (elements[i] == "")
+                {
                     elements[i] = null;
+                }
+            }
 
             var isDeterministic = elements[3] is string isDeterminsticString
                 ? bool.Parse(isDeterminsticString)

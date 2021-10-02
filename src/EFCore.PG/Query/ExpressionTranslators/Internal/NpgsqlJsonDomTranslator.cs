@@ -62,7 +62,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (member.DeclaringType != typeof(JsonDocument))
+            {
                 return null;
+            }
 
             if (member == RootElement &&
                 instance is ColumnExpression column &&
@@ -130,7 +132,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             }
 
             if (method.Name.StartsWith("TryGet", StringComparison.Ordinal) && arguments.Count == 0)
+            {
                 throw new InvalidOperationException($"The TryGet* methods on {nameof(JsonElement)} aren't translated yet, use Get* instead.'");
+            }
 
             return null;
         }

@@ -172,7 +172,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 using var ctx = CreateContext();
                 var entities = ctx.CharacterTestEntities.ToArray();
                 foreach (var e in entities)
+                {
                     ctx.CharacterTestEntities.Remove(e);
+                }
 
                 ctx.SaveChanges();
             }

@@ -40,7 +40,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             : base(type, typeMapping)
         {
             if (returnsText && type != typeof(string))
+            {
                 throw new ArgumentException($"{nameof(type)} must be string", nameof(type));
+            }
 
             Expression = expression;
             Path = path;
@@ -66,7 +68,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         {
             var newPath = new SqlExpression[Path.Count + 1];
             for (var i = 0; i < Path.Count(); i++)
+            {
                 newPath[i] = Path[i];
+            }
+
             newPath[newPath.Length - 1] = pathComponent;
             return new PostgresJsonTraversalExpression(Expression, newPath, ReturnsText, Type, TypeMapping);
         }
@@ -95,7 +100,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             {
                 expressionPrinter.Visit(Path[i]);
                 if (i < Path.Count - 1)
+                {
                     expressionPrinter.Append(",");
+                }
             }
             expressionPrinter.Append("}");
         }

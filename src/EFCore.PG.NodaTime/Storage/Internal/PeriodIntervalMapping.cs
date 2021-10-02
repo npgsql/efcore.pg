@@ -49,23 +49,49 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             Expression? e = null;
 
             if (period.Years != 0)
+            {
                 Compose(Expression.Call(FromYears, Expression.Constant(period.Years)));
+            }
+
             if (period.Months != 0)
+            {
                 Compose(Expression.Call(FromMonths, Expression.Constant(period.Months)));
+            }
+
             if (period.Weeks != 0)
+            {
                 Compose(Expression.Call(FromWeeks, Expression.Constant(period.Weeks)));
+            }
+
             if (period.Days != 0)
+            {
                 Compose(Expression.Call(FromDays, Expression.Constant(period.Days)));
+            }
+
             if (period.Hours != 0)
+            {
                 Compose(Expression.Call(FromHours, Expression.Constant(period.Hours)));
+            }
+
             if (period.Minutes != 0)
+            {
                 Compose(Expression.Call(FromMinutes, Expression.Constant(period.Minutes)));
+            }
+
             if (period.Seconds != 0)
+            {
                 Compose(Expression.Call(FromSeconds, Expression.Constant(period.Seconds)));
+            }
+
             if (period.Milliseconds != 0)
+            {
                 Compose(Expression.Call(FromMilliseconds, Expression.Constant(period.Milliseconds)));
+            }
+
             if (period.Nanoseconds != 0)
+            {
                 Compose(Expression.Call(FromNanoseconds, Expression.Constant(period.Nanoseconds)));
+            }
 
             return e ?? Expression.MakeMemberAccess(null, Zero);
 

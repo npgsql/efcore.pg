@@ -894,7 +894,9 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
         public virtual async Task Add_column_generated_tsvector()
         {
             if (TestEnvironment.PostgresVersion.IsUnder(12))
+            {
                 return;
+            }
 
             await Test(
                 builder => builder.Entity(
@@ -1079,7 +1081,9 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET DEFAULT '';");
                     var table = Assert.Single(model.Tables);
                     var column = Assert.Single(table.Columns.Where(c => c.Name == "SomeColumn"));
                     if (AssertComments)
+                    {
                         Assert.Equal("Some comment", column.Comment);
+                    }
                 });
 
             AssertSql(
@@ -1551,7 +1555,9 @@ DROP SEQUENCE ""People_Id_old_seq"";");
         public virtual async Task Alter_column_generated_tsvector_change_config()
         {
             if (TestEnvironment.PostgresVersion.IsUnder(12))
+            {
                 return;
+            }
 
             await Test(
                 builder => builder.Entity(
@@ -1582,7 +1588,9 @@ DROP SEQUENCE ""People_Id_old_seq"";");
         public virtual async Task Alter_column_computed_set_collation()
         {
             if (TestEnvironment.PostgresVersion.IsUnder(12))
+            {
                 return;
+            }
 
             await Test(
                 builder => builder.Entity("People", b =>
@@ -1744,7 +1752,9 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                         Assert.Contains("last_name", includedColumns);
                     }
                     else
+                    {
                         Assert.Null(includedColumns);
+                    }
                 });
 
             AssertSql(TestEnvironment.PostgresVersion.AtLeast(11)
@@ -1782,7 +1792,9 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                         Assert.Contains("LastName", includedColumns);
                     }
                     else
+                    {
                         Assert.Null(includedColumns);
+                    }
                 });
 
             AssertSql(TestEnvironment.PostgresVersion.AtLeast(11)
@@ -1820,7 +1832,9 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                         Assert.Contains("LastName", includedColumns);
                     }
                     else
+                    {
                         Assert.Null(includedColumns);
+                    }
                 });
 
             AssertSql(TestEnvironment.PostgresVersion.AtLeast(11)
@@ -1860,7 +1874,9 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                         Assert.Contains("LastName", includedColumns);
                     }
                     else
+                    {
                         Assert.Null(includedColumns);
+                    }
                 });
 
             AssertSql(TestEnvironment.PostgresVersion.AtLeast(11)

@@ -55,7 +55,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Check.NotNull(labels, nameof(labels));
 
             if (FindPostgresEnum(annotatable, schema, name) is PostgresEnum enumType)
+            {
                 return enumType;
+            }
 
             var annotationName = BuildAnnotationName(schema, name);
 
@@ -158,7 +160,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         private static (string? Schema, string? Name, string[]? Labels) Deserialize(IAnnotation? annotation)
         {
             if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
+            {
                 return (null, null, null);
+            }
 
             var labels = value.Split(',');
 

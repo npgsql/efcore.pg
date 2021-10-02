@@ -88,7 +88,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                     isElementNullable))
         {
             if (!parameters.CoreParameters.ClrType.IsArray)
+            {
                 throw new ArgumentException("ClrType must be an array", nameof(parameters));
+            }
         }
 
         public override NpgsqlArrayTypeMapping MakeNonNullable()
@@ -107,7 +109,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
             // We currently don't support mapping multi-dimensional arrays.
             if (arrayType.GetArrayRank() != 1)
+            {
                 return null;
+            }
 
             return (ValueComparer)Activator.CreateInstance(
                 elementType == unwrappedType

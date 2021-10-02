@@ -94,7 +94,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
                     {
                         var builder = new StringBuilder("using NetTopologySuite");
                         if (Extension.IsGeographyDefault)
+                        {
                             builder.Append(" (geography by default)");
+                        }
+
                         builder.Append(' ');
 
                         _logFragment = builder.ToString();

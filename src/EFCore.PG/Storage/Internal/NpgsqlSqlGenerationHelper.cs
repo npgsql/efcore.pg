@@ -14,7 +14,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         {
             // https://www.postgresql.org/docs/current/static/sql-keywords-appendix.html
             using (var conn = new NpgsqlConnection())
+            {
                 ReservedWords = new HashSet<string>(conn.GetSchema("ReservedWords").Rows.Cast<DataRow>().Select(r => (string)r["ReservedWord"]));
+            }
         }
 
         public NpgsqlSqlGenerationHelper(RelationalSqlGenerationHelperDependencies dependencies)
@@ -26,9 +28,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public override void DelimitIdentifier(StringBuilder builder, string identifier)
         {
             if (RequiresQuoting(identifier))
+            {
                 base.DelimitIdentifier(builder, identifier);
+            }
             else
+            {
                 builder.Append(identifier);
+            }
         }
 
         /// <summary>
@@ -38,14 +44,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         {
             var first = identifier[0];
             if (!char.IsLower(first) && first != '_')
+            {
                 return true;
+            }
 
             for (var i = 1; i < identifier.Length; i++)
             {
                 var c = identifier[i];
 
                 if (char.IsLower(c))
+                {
                     continue;
+                }
 
                 switch (c)
                 {
@@ -68,7 +78,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             }
 
             if (ReservedWords.Contains(identifier.ToUpperInvariant()))
+            {
                 return true;
+            }
 
             return false;
         }

@@ -143,14 +143,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             bool terminate = true)
         {
             if (!terminate && operation.Comment != null)
+            {
                 throw new ArgumentException($"When generating migrations SQL for {nameof(CreateTableOperation)}, can't produce unterminated SQL with comments");
+            }
 
             operation.Columns.RemoveAll(c => IsSystemColumn(c.Name));
 
             builder.Append("CREATE ");
 
             if (operation[NpgsqlAnnotationNames.UnloggedTable] is bool unlogged && unlogged)
+            {
                 builder.Append("UNLOGGED ");
+            }
 
             builder
                 .Append("TABLE ")
@@ -305,7 +309,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             if (madeChanges)
+            {
                 EndStatement(builder);
+            }
         }
 
         protected override void Generate(
@@ -316,7 +322,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         {
             // Never touch system columns
             if (IsSystemColumn(operation.Name))
+            {
                 return;
+            }
 
             base.Generate(operation, model, builder, terminate);
         }
@@ -328,11 +336,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             bool terminate = true)
         {
             if (!terminate && operation.Comment != null)
+            {
                 throw new ArgumentException($"When generating migrations SQL for {nameof(AddColumnOperation)}, can't produce unterminated SQL with comments");
+            }
 
             // Never touch system columns
             if (IsSystemColumn(operation.Name))
+            {
                 return;
+            }
 
             if (operation[NpgsqlAnnotationNames.ValueGenerationStrategy] is NpgsqlValueGenerationStrategy strategy)
             {
@@ -377,7 +389,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             // Never touch system columns
             if (IsSystemColumn(operation.Name))
+            {
                 return;
+            }
 
             var column = model?.GetRelationalModel().FindTable(operation.Table, operation.Schema)
                 ?.Columns.FirstOrDefault(c => c.Name == operation.Name);
@@ -399,7 +413,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 };
 
                 if (column != null)
+                {
                     dropColumnOperation.AddAnnotations(column.GetAnnotations());
+                }
 
                 Generate(dropColumnOperation, model, builder);
 
@@ -456,7 +472,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append(type);
 
                 if (newCollation != oldCollation)
+                {
                     builder.Append(" COLLATE ").Append(DelimitIdentifier(newCollation ?? "default"));
+                }
 
                 builder.AppendLine(";");
             }
@@ -652,7 +670,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     DefaultValue(operation.DefaultValue, operation.DefaultValueSql, type, builder);
                 }
                 else
+                {
                     builder.Append("DROP DEFAULT");
+                }
+
                 builder.AppendLine(";");
             }
 
@@ -759,13 +780,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             builder.Append("CREATE ");
 
             if (operation.IsUnique)
+            {
                 builder.Append("UNIQUE ");
+            }
 
             builder.Append("INDEX ");
 
             var concurrently = operation[NpgsqlAnnotationNames.CreatedConcurrently] as bool? == true;
             if (concurrently)
+            {
                 builder.Append("CONCURRENTLY ");
+            }
 
             builder
                 .Append(DelimitIdentifier(operation.Name))
@@ -774,7 +799,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             var method = operation[NpgsqlAnnotationNames.IndexMethod] as string;
             if (method?.Length > 0)
+            {
                 builder.Append(" USING ").Append(method);
+            }
 
             var indexColumns = GetIndexColumns(operation);
 
@@ -826,7 +853,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             // NOTE: Technically the public schema can be dropped so we should also be ensuring it, but this is a rare case and
             // we want to allow pre-9.3
             if (operation.Name == "public")
+            {
                 return;
+            }
 
             builder
                 .Append("CREATE SCHEMA IF NOT EXISTS ")
@@ -913,14 +942,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(builder, nameof(builder));
 
             if (operation.Collation != operation.OldDatabase.Collation)
+            {
                 throw new NotSupportedException("PostgreSQL does not support altering the collation on an existing database.");
+            }
 
             GenerateCollationStatements(operation, model, builder);
             GenerateEnumStatements(operation, model, builder);
             GenerateRangeStatements(operation, model, builder);
 
             foreach (var extension in operation.GetPostgresExtensions())
+            {
                 GenerateCreateExtension(extension, model, builder);
+            }
 
             builder.EndCommand();
         }
@@ -935,7 +968,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of extensions, so we always ensure schema on enum creation.
             if (schema is not null)
+            {
                 Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
+            }
 
             builder
                 .Append("CREATE EXTENSION IF NOT EXISTS ")
@@ -1004,7 +1039,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of collation, so we always ensure schema on collation creation.
             if (schema != null)
+            {
                 Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
+            }
 
             builder
                 .Append("CREATE COLLATION ")
@@ -1018,14 +1055,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 $"LC_CTYPE = {_stringTypeMapping.GenerateSqlLiteral(collation.LcCtype)}"
             };
             if (collation.Provider != null)
+            {
                 def.Add($"PROVIDER = {collation.Provider}");
+            }
+
             if (collation.IsDeterministic != null)
+            {
                 def.Add($"DETERMINISTIC = {collation.IsDeterministic}");
+            }
 
             for (var i = 0; i < def.Count; i++)
+            {
                 builder
                     .Append(def[i] + (i == def.Count - 1 ? null : ","))
                     .AppendLine();
+            }
 
             builder
                 .DecrementIndent()
@@ -1112,7 +1156,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of enums, so we always ensure schema on enum creation.
             if (schema is not null)
+            {
                 Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
+            }
 
             builder
                 .Append("CREATE TYPE ")
@@ -1124,7 +1170,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder.Append(_stringTypeMapping.GenerateSqlLiteral(labels[i]));
                 if (i < labels.Count - 1)
+                {
                     builder.Append(", ");
+                }
             }
 
             builder.AppendLine(");");
@@ -1169,7 +1217,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             // Adding an enum label cannot be done in a transaction prior to PG12
             if (_postgresVersion.IsUnder(12))
+            {
                 EndStatement(builder, suppressTransaction: true);
+            }
         }
 
         #endregion Enum management
@@ -1211,7 +1261,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of ranges, so we always ensure schema on range creation.
             if (schema is not null)
+            {
                 Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
+            }
 
             builder
                 .Append("CREATE TYPE ")
@@ -1221,18 +1273,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             var def = new List<string> { $"SUBTYPE = {rangeType.Subtype}" };
             if (rangeType.CanonicalFunction != null)
+            {
                 def.Add($"CANONICAL = {rangeType.CanonicalFunction}");
+            }
+
             if (rangeType.SubtypeOpClass != null)
+            {
                 def.Add($"SUBTYPE_OPCLASS = {rangeType.SubtypeOpClass}");
+            }
+
             if (rangeType.CanonicalFunction != null)
+            {
                 def.Add($"COLLATION = {rangeType.Collation}");
+            }
+
             if (rangeType.SubtypeDiff != null)
+            {
                 def.Add($"SUBTYPE_DIFF = {rangeType.SubtypeDiff}");
+            }
 
             for (var i = 0; i < def.Count; i++)
+            {
                 builder
                     .Append(def[i] + (i == def.Count - 1 ? null : ","))
                     .AppendLine();
+            }
 
             builder
                 .DecrementIndent()
@@ -1325,7 +1390,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             builder.Append(sqlBuilder.ToString());
 
             if (terminate)
+            {
                 builder.EndCommand();
+            }
         }
 
         protected override void Generate(CreateSequenceOperation operation, IModel? model, MigrationCommandListBuilder builder)
@@ -1365,14 +1432,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(builder, nameof(builder));
 
             if (operation.ColumnType == null)
+            {
                 operation.ColumnType = GetColumnType(schema, table, name, operation, model);
+            }
 
             CheckForOldValueGenerationAnnotation(operation);
             var valueGenerationStrategy = operation[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
             if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
             {
                 if (operation.IsNullable)
+                {
                     throw new NotSupportedException("SERIAL columns can't be nullable");
+                }
 
                 switch (operation.ColumnType)
                 {
@@ -1439,9 +1510,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 var tsVectorIncludedColumns = column[NpgsqlAnnotationNames.TsVectorProperties] as string[];
                 if (tsVectorIncludedColumns == null)
+                {
                     throw new InvalidOperationException(
                         $"{nameof(NpgsqlAnnotationNames.TsVectorConfig)} is present in a migration but " +
                         $"{nameof(NpgsqlAnnotationNames.TsVectorProperties)} is absent or empty");
+                }
 
                 column.ComputedColumnSql = ColumnsToTsVector(tsVectorIncludedColumns, tsVectorConfig, model, schema, table);
                 column.IsStored = true;
@@ -1485,24 +1558,39 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 var defaultStartValue = incrementBy > 0 ? minValue : maxValue;
                 if (sequenceData.StartValue.HasValue && sequenceData.StartValue != defaultStartValue)
+                {
                     Append("START WITH " + sequenceData.StartValue);
+                }
 
                 if (incrementBy != 1)
+                {
                     Append("INCREMENT BY " + incrementBy);
+                }
 
                 if (minValue != defaultMinValue)
+                {
                     Append("MINVALUE " + minValue);
+                }
+
                 if (maxValue != defaultMaxValue)
+                {
                     Append("MAXVALUE " + maxValue);
+                }
 
                 if (sequenceData.IsCyclic)
+                {
                     Append("CYCLE");
+                }
 
                 if (sequenceData.NumbersToCache != 1)
+                {
                     Append("CACHE " + sequenceData.NumbersToCache);
+                }
 
                 if (optionsWritten)
+                {
                     builder.Append(")");
+                }
 
                 void Append(string s)
                 {
@@ -1517,22 +1605,40 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 long Min(Type type)
                 {
                     if (type == typeof(int))
+                    {
                         return int.MinValue;
+                    }
+
                     if (type == typeof(long))
+                    {
                         return long.MinValue;
+                    }
+
                     if (type == typeof(short))
+                    {
                         return short.MinValue;
+                    }
+
                     throw new ArgumentOutOfRangeException();
                 }
 
                 long Max(Type type)
                 {
                     if (type == typeof(int))
+                    {
                         return int.MaxValue;
+                    }
+
                     if (type == typeof(long))
+                    {
                         return long.MaxValue;
+                    }
+
                     if (type == typeof(short))
+                    {
                         return short.MaxValue;
+                    }
+
                     throw new ArgumentOutOfRangeException();
                 }
             }
@@ -1560,7 +1666,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(builder, nameof(builder));
 
             if (_postgresVersion < new Version(12, 0))
+            {
                 throw new NotSupportedException("Computed/generated columns aren't supported in PostgreSQL prior to version 12");
+            }
 
             if (operation.IsStored != true)
             {
@@ -1593,7 +1701,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         private static void CheckForOldValueGenerationAnnotation(IAnnotatable annotatable)
         {
             if (annotatable.FindAnnotation(NpgsqlAnnotationNames.ValueGeneratedOnAdd) != null)
+            {
                 throw new NotSupportedException("The Npgsql:ValueGeneratedOnAdd annotation has been found in your migrations, but is no longer supported. Please replace it with '.Annotation(\"Npgsql:ValueGenerationStrategy\", NpgsqlValueGenerationStrategy.SerialColumn)' where you want PostgreSQL serial (autoincrement) columns, and remove it in all other cases.");
+            }
         }
 #pragma warning restore 618
 
@@ -1688,9 +1798,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         private static string GenerateStorageParameterValue(object value)
         {
             if (value is bool)
+            {
                 return (bool)value ? "true" : "false";
+            }
+
             if (value is string)
+            {
                 return $"'{value}'";
+            }
+
             return value.ToString()!;
         }
 
@@ -1712,7 +1828,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             for (var i = 0; i < columns.Length; i++)
             {
                 if (!isFirst)
+                {
                     builder.Append(", ");
+                }
 
                 var column = columns[i];
 

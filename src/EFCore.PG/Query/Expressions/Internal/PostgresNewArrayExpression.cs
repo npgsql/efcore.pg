@@ -30,7 +30,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             Check.NotNull(expressions, nameof(expressions));
 
             if (!type.IsArrayOrGenericList())
+            {
                 throw new ArgumentException($"{nameof(PostgresNewArrayExpression)} must have an array type");
+            }
 
             Expressions = expressions;
         }
@@ -54,7 +56,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 {
                     newExpressions = new List<SqlExpression>();
                     for (var j = 0; j < i; j++)
+                    {
                         newExpressions.Add(visitedExpression);
+                    }
                 }
 
                 newExpressions?.Add(visitedExpression);
@@ -121,7 +125,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
             hash.Add(base.GetHashCode());
             for (var i = 0; i < Expressions.Count; i++)
+            {
                 hash.Add(Expressions[i]);
+            }
 
             return hash.ToHashCode();
         }

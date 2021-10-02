@@ -51,18 +51,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (method == LikeWithEscape)
+            {
                 return _sqlExpressionFactory.Like(arguments[1], arguments[2], arguments[3]);
+            }
 
             if (method == ILikeWithEscape)
+            {
                 return _sqlExpressionFactory.ILike(arguments[1], arguments[2], arguments[3]);
+            }
 
             bool sensitive;
             if (method == Like)
+            {
                 sensitive = true;
+            }
             else if (method == ILike)
+            {
                 sensitive = false;
+            }
             else
+            {
                 return null;
+            }
 
             // PostgreSQL has backslash as the default LIKE escape character, but EF Core expects
             // no escape character unless explicitly requested (https://github.com/aspnet/EntityFramework/issues/8696).

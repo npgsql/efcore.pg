@@ -91,7 +91,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             ArgumentSeparators = (argumentSeparators ?? Array.Empty<string>()).ToList();
 
             if (ArgumentNames.SkipWhile(a => a == null).Contains(null))
+            {
                 throw new ArgumentException($"{nameof(argumentNames)} must contain nulls followed by non-nulls", nameof(argumentNames));
+            }
         }
 
         protected override Expression VisitChildren(ExpressionVisitor visitor)
@@ -121,7 +123,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         {
             Check.NotNull(arguments, nameof(arguments));
             if (instance != null)
+            {
                 throw new ArgumentException("Must be null", nameof(instance));
+            }
 
             return !arguments.SequenceEqual(Arguments)
                 ? new PostgresFunctionExpression(
@@ -144,9 +148,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
             foreach (var argumentName in ArgumentNames)
+            {
                 hash.Add(argumentName?.GetHashCode());
+            }
+
             foreach (var argumentSeparator in ArgumentSeparators)
+            {
                 hash.Add(argumentSeparator?.GetHashCode() ?? 0);
+            }
+
             return hash.ToHashCode();
         }
     }

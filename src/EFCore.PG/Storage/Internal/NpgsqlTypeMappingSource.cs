@@ -373,17 +373,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     // We found the user-specified store type. No CLR type was provided - we're probably
                     // scaffolding from an existing database, take the first mapping as the default.
                     if (clrType == null)
+                    {
                         return mappings[0];
+                    }
 
                     // A CLR type was provided - look for a mapping between the store and CLR types. If not found, fail
                     // immediately.
                     foreach (var m in mappings)
+                    {
                         if (m.ClrType == clrType)
+                        {
                             return m;
+                        }
+                    }
 
                     // Map arbitrary user POCOs to JSON
                     if (storeTypeName == "jsonb" || storeTypeName == "json")
+                    {
                         return new NpgsqlJsonTypeMapping(storeTypeName, clrType);
+                    }
 
                     return null;
                 }
@@ -391,11 +399,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (StoreTypeMappings.TryGetValue(storeTypeNameBase!, out mappings))
                 {
                     if (clrType == null)
+                    {
                         return mappings[0].Clone(in mappingInfo);
+                    }
 
                     foreach (var m in mappings)
+                    {
                         if (m.ClrType == clrType)
+                        {
                             return m.Clone(in mappingInfo);
+                        }
+                    }
 
                     return null;
                 }
@@ -440,7 +454,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             Type? elementClrType = null;
 
             if (clrType != null && !clrType.TryGetElementType(out elementClrType))
+            {
                 return null; // Not an array/list
+            }
 
             var storeType = mappingInfo.StoreTypeName;
             var storeTypeNameBase = mappingInfo.StoreTypeNameBase;
@@ -448,7 +464,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             {
                 // PostgreSQL array type names are the element plus []
                 if (!storeType.EndsWith("[]", StringComparison.Ordinal))
+                {
                     return null;
+                }
 
                 var elementStoreType = storeType.Substring(0, storeType.Length - 2);
                 var elementStoreTypeNameBase = storeTypeNameBase!.Substring(0, storeTypeNameBase.Length - 2);
@@ -467,7 +485,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 // If no mapping was found for the element, there's no mapping for the array.
                 // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
                 if (elementMapping == null || elementMapping is NpgsqlArrayTypeMapping)
+                {
                     return null;
+                }
 
                 return clrType is null || clrType.IsArray
                     ? new NpgsqlArrayArrayTypeMapping(storeType, elementMapping)
@@ -475,7 +495,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             }
 
             if (clrType == null)
+            {
                 return null;
+            }
 
             if (clrType.IsArray)
             {
@@ -487,7 +509,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 // If no mapping was found for the element, there's no mapping for the array.
                 // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
                 if (elementMapping == null || elementMapping is NpgsqlArrayTypeMapping)
+                {
                     return null;
+                }
 
                 // Not that the element mapping found above was stripped of nullability
                 // (so we get a mapping for int, not int?).
@@ -505,11 +529,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 // If an element isn't supported, neither is its array
                 var elementMapping = (RelationalTypeMapping?)FindMapping(elementType);
                 if (elementMapping == null)
+                {
                     return null;
+                }
 
                 // Arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
                 if (elementMapping is NpgsqlArrayTypeMapping)
+                {
                     return null;
+                }
 
                 return new NpgsqlArrayListTypeMapping(clrType, elementMapping);
             }
@@ -537,7 +565,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 rangeDefinition = _userRangeDefinitions.SingleOrDefault(m => m.RangeName == rangeStoreType);
 
                 if (rangeDefinition == null)
+                {
                     return null;
+                }
 
                 if (rangeClrType == null)
                 {
@@ -553,10 +583,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 }
             }
             else if (rangeClrType != null)
+            {
                 rangeDefinition = _userRangeDefinitions.SingleOrDefault(m => m.SubtypeClrType == rangeClrType.GetGenericArguments()[0]);
+            }
 
             if (rangeClrType is null || rangeDefinition is null)
+            {
                 return null;
+            }
 
             // We now have a user-defined range definition from the context options. Use it to get the subtype's
             // mapping
@@ -565,7 +599,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 : FindMapping(rangeDefinition.SubtypeName));
 
             if (subtypeMapping == null)
+            {
                 throw new Exception($"Could not map range {rangeDefinition.RangeName}, no mapping was found its subtype");
+            }
 
             return new NpgsqlRangeTypeMapping(rangeDefinition.RangeName, rangeDefinition.SchemaName, rangeClrType, subtypeMapping, _sqlGenerationHelper);
         }
@@ -594,17 +630,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             (unicode, size, precision, scale) = (null, null, null, null);
 
             if (storeTypeName is null)
+            {
                 return null;
+            }
 
             var span = storeTypeName.AsSpan().Trim();
 
             var openParen = span.IndexOf("(", StringComparison.Ordinal);
             if (openParen == -1)
+            {
                 return storeTypeName;
+            }
+
             var afterOpenParen = span.Slice(openParen + 1).TrimStart();
             var closeParen = afterOpenParen.IndexOf(")", StringComparison.Ordinal);
             if (closeParen == -1)
+            {
                 return storeTypeName;
+            }
 
             var preParens = span[..openParen].Trim();
             var inParens = afterOpenParen[..closeParen].Trim();
@@ -615,9 +658,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (comma != -1)
             {
                 if (int.TryParse(inParens[..comma].Trim(), out var parsedPrecision))
+                {
                     precision = parsedPrecision;
+                }
+
                 if (int.TryParse(inParens.Slice(comma + 1), out var parsedScale))
+                {
                     scale = parsedScale;
+                }
             }
             else if (int.TryParse(inParens, out var parsedSize))
             {
@@ -627,10 +675,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     scale = 0;
                 }
                 else
+                {
                     size = parsedSize;
+                }
             }
             else
+            {
                 return storeTypeName;
+            }
 
             if (postParens.Length > 0)
             {

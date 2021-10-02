@@ -229,7 +229,9 @@ namespace Microsoft.EntityFrameworkCore
         public static NpgsqlValueGenerationStrategy GetValueGenerationStrategy(this IReadOnlyProperty property)
         {
             if (property[NpgsqlAnnotationNames.ValueGenerationStrategy] is object annotation)
+            {
                 return (NpgsqlValueGenerationStrategy)annotation;
+            }
 
             if (property.ValueGenerated != ValueGenerated.OnAdd
                 || property.IsForeignKey()
@@ -263,7 +265,9 @@ namespace Microsoft.EntityFrameworkCore
             ITypeMappingSource? typeMappingSource)
         {
             if (property[NpgsqlAnnotationNames.ValueGenerationStrategy] is object annotation)
+            {
                 return (NpgsqlValueGenerationStrategy)annotation;
+            }
 
             if (property.FindSharedStoreObjectRootProperty(storeObject) is IReadOnlyProperty sharedTableRootProperty)
             {

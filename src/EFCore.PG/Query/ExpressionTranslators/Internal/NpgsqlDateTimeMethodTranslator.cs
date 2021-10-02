@@ -118,10 +118,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IReadOnlyList<SqlExpression> arguments)
         {
             if (!MethodInfoDatePartMapping.TryGetValue(method, out var datePart))
+            {
                 return null;
+            }
 
             if (arguments[0] is not { } interval)
+            {
                 return null;
+            }
 
             // Note: ideally we'd simply generate a PostgreSQL interval expression, but the .NET mapping of that is TimeSpan,
             // which does not work for months, years, etc. So we generate special fragments instead.

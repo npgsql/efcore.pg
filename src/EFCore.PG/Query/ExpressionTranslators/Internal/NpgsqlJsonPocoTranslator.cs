@@ -134,7 +134,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             }
 
             if (unwrappedReturnType == typeof(Guid) || unwrappedReturnType == typeof(DateTimeOffset))
+            {
                 return _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType, _model));
+            }
 
             return expression;
         }

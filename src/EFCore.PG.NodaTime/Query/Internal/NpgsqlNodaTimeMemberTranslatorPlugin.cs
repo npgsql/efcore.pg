@@ -75,7 +75,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
         {
             // This is necessary to allow translation of methods on SystemClock.Instance
             if (member == SystemClock_Instance)
+            {
                 return _sqlExpressionFactory.Constant(SystemClock.Instance);
+            }
 
             if (instance is null)
             {
@@ -286,12 +288,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
                 typeof(double));
 
             if (floor)
+            {
                 result = _sqlExpressionFactory.Function(
                     "FLOOR",
                     new[] { result },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(double));
+            }
 
             return result;
         }
@@ -299,7 +303,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
         private SqlExpression? TranslateZonedDateTime(SqlExpression instance, MemberInfo member)
         {
             if (member == ZonedDateTime_LocalDateTime)
+            {
                 return _sqlExpressionFactory.AtUtc(instance);
+            }
 
             return null;
         }

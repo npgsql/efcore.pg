@@ -20,7 +20,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             : base(storeType, clrType, storeType == "jsonb" ? NpgsqlDbType.Jsonb : NpgsqlDbType.Json)
         {
             if (storeType != "json" && storeType != "jsonb")
+            {
                 throw new ArgumentException($"{nameof(storeType)} must be 'json' or 'jsonb'", nameof(storeType));
+            }
         }
 
         protected NpgsqlJsonTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
@@ -46,9 +48,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 using var stream = new MemoryStream();
                 using var writer = new Utf8JsonWriter(stream);
                 if (value is JsonDocument doc)
+                {
                     doc.WriteTo(writer);
+                }
                 else
+                {
                     ((JsonElement)value).WriteTo(writer);
+                }
+
                 writer.Flush();
                 return $"'{EscapeSqlLiteral(Encoding.UTF8.GetString(stream.ToArray()))}'";
             }

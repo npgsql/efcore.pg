@@ -73,7 +73,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 {
                     EscapeAndQuote(builder, interleavePrefix[i]);
                     if (i < interleavePrefix.Count - 1)
+                    {
                         builder.Append(", ");
+                    }
                 }
             }
             return builder.ToString();
@@ -90,7 +92,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 var parentTableName = ExtractValue(value, ref position)!;
                 var interleavePrefix = new List<string>();
                 while (position < value.Length - 1)
+                {
                     interleavePrefix.Add(ExtractValue(value, ref position)!);
+                }
+
                 return (parentTableSchema, parentTableName, interleavePrefix);
             }
             catch (Exception ex)

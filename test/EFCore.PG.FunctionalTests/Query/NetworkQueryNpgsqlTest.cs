@@ -1090,7 +1090,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
                 if (TestEnvironment.PostgresVersion < new Version(10, 0))
+                {
                     modelBuilder.Entity<NetTestEntity>().Ignore(x => x.Macaddr8);
+                }
 
                 base.OnModelCreating(modelBuilder);
             }

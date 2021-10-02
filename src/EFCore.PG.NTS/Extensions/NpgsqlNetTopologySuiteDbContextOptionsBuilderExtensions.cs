@@ -37,7 +37,9 @@ namespace Microsoft.EntityFrameworkCore
                             ?? new NpgsqlNetTopologySuiteOptionsExtension();
 
             if (geographyAsDefault)
+            {
                 extension = extension.WithGeographyDefault();
+            }
 
             ((IDbContextOptionsBuilderInfrastructure)coreOptionsBuilder).AddOrUpdateExtension(extension);
 

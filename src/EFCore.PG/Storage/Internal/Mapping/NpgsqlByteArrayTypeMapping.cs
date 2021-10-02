@@ -24,7 +24,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
             builder.Append("BYTEA E'\\\\x");
             foreach (var b in bytea)
+            {
                 builder.Append(b.ToString("X2", CultureInfo.InvariantCulture));
+            }
+
             builder.Append('\'');
 
             return builder.ToString();

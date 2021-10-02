@@ -44,14 +44,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var isGeography = _options.IsGeographyDefault;
 
             if (clrType != null && !typeof(Geometry).IsAssignableFrom(clrType))
+            {
                 return null;
+            }
 
             if (storeTypeName != null)
             {
                 if (!TryParseStoreTypeName(storeTypeName, out _, out isGeography, out var parsedSubtype, out _, out _))
+                {
                     return null;
+                }
+
                 if (clrType == null)
+                {
                     clrType = parsedSubtype;
+                }
             }
 
             return clrType != null || storeTypeName != null
@@ -86,28 +93,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var baseType = openParen > 0 ? storeTypeName.Substring(0, openParen).Trim() : storeTypeName;
 
             if (baseType.Equals("GEOMETRY", StringComparison.OrdinalIgnoreCase))
+            {
                 isGeography = false;
+            }
             else if (baseType.Equals("GEOGRAPHY", StringComparison.OrdinalIgnoreCase))
+            {
                 isGeography = true;
+            }
             else
+            {
                 return false;
+            }
 
             if (openParen == -1)
+            {
                 return true;
+            }
 
             var closeParen = storeTypeName.IndexOf(")", openParen + 1, StringComparison.Ordinal);
             if (closeParen != storeTypeName.Length - 1)
+            {
                 return false;
+            }
 
             var comma = storeTypeName.IndexOf(",", openParen + 1, StringComparison.Ordinal);
             if (comma == -1)
+            {
                 subtypeName = storeTypeName.Substring(openParen + 1, closeParen - openParen - 1).Trim();
+            }
             else
             {
                 subtypeName = storeTypeName.Substring(openParen + 1, comma - openParen - 1).Trim();
 
                 if (!int.TryParse(storeTypeName.Substring(comma + 1, closeParen - comma - 1).Trim(), out srid))
+                {
                     return false;
+                }
             }
 
             subtypeName = subtypeName.ToUpper(CultureInfo.InvariantCulture);
@@ -115,7 +136,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             // We have geometry(subtype, srid), parse the subtype (POINT, POINTZ, POINTM, POINTZM...)
 
             if (TryGetClrType(subtypeName, out clrType))
+            {
                 return true;
+            }
 
             if (subtypeName.EndsWith("ZM", StringComparison.Ordinal) && TryGetClrType(subtypeName[0..^2], out clrType))
             {

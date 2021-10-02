@@ -103,10 +103,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             // ANY returns NULL if an element isn't found in the array but the array contains NULL, instead of false.
             // So for non-optimized, we compensate by adding a check that NULL isn't returned.
             if (!allowOptimizedExpansion)
+            {
                 updated = _sqlExpressionFactory.And(updated, _sqlExpressionFactory.IsNotNull(updated));
+            }
 
             if (!itemNullable)
+            {
                 return updated;
+            }
 
             // If the item is nullable, add an OR to check for the item being null and the array containing null.
             // The latter check is done with array_position, which returns null when a value was not found, and
@@ -259,11 +263,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 {
                     newInitializers = new List<SqlExpression>();
                     for (var j = 0; j < i; j++)
+                    {
                         newInitializers.Add(newInitializer);
+                    }
                 }
 
                 if (newInitializers != null)
+                {
                     newInitializers.Add(newInitializer);
+                }
             }
 
             nullable = false;
@@ -319,11 +327,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 {
                     newPath = new List<SqlExpression>();
                     for (var j = 0; j < i; j++)
+                    {
                         newPath.Add(newPathComponent);
+                    }
                 }
 
                 if (newPath != null)
+                {
                     newPath.Add(newPathComponent);
+                }
             }
 
             // For now, anything inside a JSON document is considered nullable.
@@ -365,8 +377,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 constantArrayExpression.Value is Array constantArray)
             {
                 for (var i = 0; i < constantArray.Length; i++)
+                {
                     if (constantArray.GetValue(i) is null)
+                    {
                         return true;
+                    }
+                }
+
                 return false;
             }
 

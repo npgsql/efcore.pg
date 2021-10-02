@@ -59,13 +59,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (method == IPAddressParse)
+            {
                 return _sqlExpressionFactory.Convert(arguments[0], typeof(IPAddress));
+            }
 
             if (method == PhysicalAddressParse)
+            {
                 return _sqlExpressionFactory.Convert(arguments[0], typeof(PhysicalAddress));
+            }
 
             if (method.DeclaringType != typeof(NpgsqlNetworkDbFunctionsExtensions))
+            {
                 return null;
+            }
 
             return method.Name switch
             {

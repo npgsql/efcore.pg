@@ -95,6 +95,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             // Note that there is no Sum over short in LINQ
             if (inputType == typeof(int))
+            {
                 return _sqlExpressionFactory.Convert(
                     _sqlExpressionFactory.Function(
                         "SUM",
@@ -104,8 +105,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                         typeof(long)),
                     inputType,
                     sqlExpression.TypeMapping);
+            }
 
             if (inputType == typeof(long))
+            {
                 return _sqlExpressionFactory.Convert(
                     _sqlExpressionFactory.Function(
                         "SUM",
@@ -115,6 +118,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                         typeof(decimal)),
                     inputType,
                     sqlExpression.TypeMapping);
+            }
 
             return _sqlExpressionFactory.Function(
                 "SUM",
@@ -131,7 +135,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             if (unaryExpression.NodeType == ExpressionType.ArrayLength)
             {
                 if (TranslationFailed(unaryExpression.Operand, Visit(unaryExpression.Operand), out var sqlOperand))
+                {
                     return QueryCompilationContext.NotTranslatedExpression;
+                }
 
                 // Translate Length on byte[], but only if the type mapping is for bytea. There's also array of bytes
                 // (mapped to smallint[]), which is handled below with CARDINALITY.

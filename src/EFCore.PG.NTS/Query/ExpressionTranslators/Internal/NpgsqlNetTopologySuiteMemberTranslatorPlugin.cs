@@ -74,7 +74,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             var declaringType = member.DeclaringType;
 
             if (instance is null || !typeof(Geometry).IsAssignableFrom(declaringType))
+            {
                 return null;
+            }
 
             var typeMapping = instance.TypeMapping;
             Debug.Assert(typeMapping != null, "Instance must have typeMapping assigned.");
@@ -92,13 +94,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 };
 
                 if (function != null)
+                {
                     return Function(function, new[] { instance }, typeof(double));
+                }
             }
 
             if (typeof(LineString).IsAssignableFrom(declaringType))
             {
                 if (member.Name == "Count")
+                {
                     return Function("ST_NumPoints", new[] { instance }, typeof(int));
+                }
             }
 
             return member.Name switch

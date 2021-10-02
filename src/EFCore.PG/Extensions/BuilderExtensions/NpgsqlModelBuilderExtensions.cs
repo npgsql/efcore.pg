@@ -370,7 +370,9 @@ namespace Microsoft.EntityFrameworkCore
             where TEnum : struct, Enum
         {
             if (nameTranslator == null)
+            {
                 nameTranslator = NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator;
+            }
 
             return modelBuilder.HasPostgresEnum(
                 schema,

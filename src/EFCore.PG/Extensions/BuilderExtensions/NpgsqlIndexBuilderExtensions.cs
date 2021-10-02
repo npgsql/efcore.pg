@@ -396,7 +396,9 @@ namespace Microsoft.EntityFrameworkCore
             Check.NullButNotEmpty(values, nameof(values));
 
             if (!SortOrderHelper.IsDefaultSortOrder(values))
+            {
                 indexBuilder.Metadata.SetSortOrder(values);
+            }
 
             return indexBuilder;
         }
@@ -436,7 +438,9 @@ namespace Microsoft.EntityFrameworkCore
                 Check.NullButNotEmpty(values, nameof(values));
 
                 if (!SortOrderHelper.IsDefaultSortOrder(values))
+                {
                     indexBuilder.Metadata.SetSortOrder(values, fromDataAnnotation);
+                }
 
                 return indexBuilder;
             }
@@ -487,7 +491,9 @@ namespace Microsoft.EntityFrameworkCore
             var sortOrders = indexBuilder.Metadata.GetSortOrder();
 
             if (!SortOrderHelper.IsDefaultNullSortOrder(values, sortOrders))
+            {
                 indexBuilder.Metadata.SetNullSortOrder(values);
+            }
 
             return indexBuilder;
         }
@@ -526,7 +532,9 @@ namespace Microsoft.EntityFrameworkCore
                 var sortOrders = indexBuilder.Metadata.GetSortOrder();
 
                 if (!SortOrderHelper.IsDefaultNullSortOrder(values, sortOrders))
+                {
                     indexBuilder.Metadata.SetNullSortOrder(values, fromDataAnnotation);
+                }
 
                 return indexBuilder;
             }

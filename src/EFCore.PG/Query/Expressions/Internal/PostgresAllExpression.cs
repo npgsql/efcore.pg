@@ -48,7 +48,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             : base(typeof(bool), typeMapping)
         {
             if (!(array.Type.IsArrayOrGenericList() || array is SqlConstantExpression { Value: null }))
+            {
                 throw new ArgumentException("Array expression must be of type array or List<>", nameof(array));
+            }
 
             Item = item;
             Array = array;

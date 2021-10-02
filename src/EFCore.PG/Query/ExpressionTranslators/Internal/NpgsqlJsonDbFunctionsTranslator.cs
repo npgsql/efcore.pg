@@ -39,7 +39,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (method.DeclaringType != typeof(NpgsqlJsonDbFunctionsExtensions))
+            {
                 return null;
+            }
 
             var args = arguments
                 // Skip useless DbFunctions instance
@@ -55,7 +57,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 .ToArray();
 
             if (!args.Any(a => a.TypeMapping is NpgsqlJsonTypeMapping || a is PostgresJsonTraversalExpression))
+            {
                 throw new InvalidOperationException("The EF JSON methods require a JSON parameter and none was found.");
+            }
 
             if (method.Name == nameof(NpgsqlJsonDbFunctionsExtensions.JsonTypeof))
             {
@@ -69,7 +73,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             // The following are jsonb-only, not support on json
             if (args.Any(a => a.TypeMapping is NpgsqlJsonTypeMapping jsonMapping && !jsonMapping.IsJsonb))
+            {
                 throw new InvalidOperationException("JSON methods on EF.Functions only support the jsonb type, not json.");
+            }
 
             return method.Name switch
             {

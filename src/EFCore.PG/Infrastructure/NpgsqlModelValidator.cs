@@ -44,7 +44,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         protected virtual void ValidateIdentityVersionCompatibility(IModel model)
         {
             if (_postgresVersion.AtLeast(10))
+            {
                 return;
+            }
 
             var strategy = model.GetValueGenerationStrategy();
 

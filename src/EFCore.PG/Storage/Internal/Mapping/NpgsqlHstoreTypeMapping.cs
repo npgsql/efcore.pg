@@ -43,7 +43,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 sb.Append(kv.Key);   // TODO: Escape
                 sb.Append("\"=>");
                 if (kv.Value == null)
+                {
                     sb.Append("NULL");
+                }
                 else
                 {
                     sb.Append('"');
@@ -61,7 +63,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         private static ValueComparer? GetComparer(Type clrType)
         {
             if (clrType == typeof(Dictionary<string, string>))
+            {
                 return MutableComparerInstance;
+            }
 
             if (clrType == typeof(ImmutableDictionary<string, string>))
             {
@@ -96,8 +100,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 }
 
                 foreach (var kv in a)
+                {
                     if (!b.TryGetValue(kv.Key, out var bValue) || kv.Value != bValue)
+                    {
                         return false;
+                    }
+                }
+
                 return true;
             }
         }

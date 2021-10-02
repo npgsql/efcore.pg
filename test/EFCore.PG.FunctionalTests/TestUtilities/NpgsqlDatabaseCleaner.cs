@@ -145,7 +145,9 @@ WHERE
         private void DropCollations(NpgsqlConnection conn)
         {
             if (conn.Settings.ServerCompatibilityMode == ServerCompatibilityMode.Redshift)
+            {
                 return;
+            }
 
             const string getUserCollations = @"SELECT nspname, collname
 FROM pg_collation coll

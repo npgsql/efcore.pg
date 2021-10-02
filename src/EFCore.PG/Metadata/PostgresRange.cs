@@ -63,7 +63,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Check.NotNull(subtype, nameof(subtype));
 
             if (FindPostgresRange(annotatable, schema, name) is PostgresRange postgresRange)
+            {
                 return postgresRange;
+            }
 
             var annotationName = BuildAnnotationName(schema, name);
 
@@ -193,15 +195,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Deserialize(IAnnotation? annotation)
         {
             if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
+            {
                 return (null, null, null, null, null, null, null);
+            }
 
             string?[] elements = value.Split(',');
             if (elements.Length != 5)
+            {
                 throw new ArgumentException($"Cannot parse range annotation value: {value}");
+            }
 
             for (var i = 0; i < 5; i++)
+            {
                 if (elements[i] == "")
+                {
                     elements[i] = null;
+                }
+            }
 
             // TODO: This would be a safer operation if we stored schema and name in the annotation value (see Sequence.cs).
             // Yes, this doesn't support dots in the schema/range name, let somebody complain first.

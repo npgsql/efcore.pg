@@ -33,7 +33,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             get
             {
                 if (_postgresVersion != null)
+                {
                     return _postgresVersion;
+                }
+
                 using var conn = new NpgsqlConnection(NpgsqlTestStore.CreateConnectionString("postgres"));
                 conn.Open();
                 return _postgresVersion = conn.PostgreSqlVersion;
@@ -47,7 +50,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             get
             {
                 if (_isPostgisAvailable.HasValue)
+                {
                     return _isPostgisAvailable.Value;
+                }
+
                 using var conn = new NpgsqlConnection(NpgsqlTestStore.CreateConnectionString("postgres"));
                 conn.Open();
                 using var cmd = conn.CreateCommand();

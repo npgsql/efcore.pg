@@ -1416,13 +1416,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ArrayTests
         protected override Expression VisitMember(MemberExpression node)
         {
             if (node.Member == IntArray)
+            {
                 return Expression.MakeMemberAccess(node.Expression, IntList);
+            }
+
             if (node.Member == NullableIntArray)
+            {
                 return Expression.MakeMemberAccess(node.Expression, NullableIntList);
+            }
+
             if (node.Member == StringArray)
+            {
                 return Expression.MakeMemberAccess(node.Expression, StringList);
+            }
+
             if (node.Member == NullableStringArray)
+            {
                 return Expression.MakeMemberAccess(node.Expression, NullableStringList);
+            }
+
             return node;
         }
     }

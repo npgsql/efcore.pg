@@ -37,7 +37,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (method != IsMatch && method != IsMatchWithRegexOptions)
+            {
                 return null;
+            }
 
             var (input, pattern) = (arguments[0], arguments[1]);
             var typeMapping = ExpressionExtensions.InferTypeMapping(input, pattern);
@@ -45,11 +47,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             RegexOptions options;
 
             if (method == IsMatch)
+            {
                 options = RegexOptions.None;
+            }
             else if (arguments[2] is SqlConstantExpression { Value: RegexOptions regexOptions })
+            {
                 options = regexOptions;
+            }
             else
+            {
                 return null;  // We don't support non-constant regex options
+            }
 
             return (options & UnsupportedRegexOptions) == 0
                 ? _sqlExpressionFactory.RegexMatch(

@@ -56,7 +56,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (method == TsQueryParse || method == TsVectorParse)
+            {
                 return _sqlExpressionFactory.Convert(arguments[0], method.ReturnType);
+            }
 
             if (method.DeclaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions))
             {
@@ -129,9 +131,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 {
                     var newArgs = new List<SqlExpression>(arguments);
                     if (newArgs[1].Type == typeof(NpgsqlTsVector.Lexeme.Weight))
+                    {
                         newArgs[1] = newArgs[1] is SqlConstantExpression weightExpression
                             ? _sqlExpressionFactory.Constant(weightExpression.Value!.ToString()![0])
                             : throw new ArgumentException("Enum 'weight' argument for 'SetWeight' must be a constant expression.");
+                    }
+
                     return _sqlExpressionFactory.Function(
                         "setweight",
                         newArgs,

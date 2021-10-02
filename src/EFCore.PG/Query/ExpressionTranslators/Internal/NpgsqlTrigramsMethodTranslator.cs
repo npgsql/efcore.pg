@@ -73,28 +73,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (Functions.TryGetValue(method, out var function))
+            {
                 return _sqlExpressionFactory.Function(
                     function,
                     arguments.Skip(1),
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[arguments.Count - 1],
                     method.ReturnType);
+            }
 
             if (BoolReturningOperators.TryGetValue(method, out var boolOperator))
+            {
                 return new PostgresUnknownBinaryExpression(
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
                     boolOperator,
                     _boolMapping.ClrType,
                     _boolMapping);
+            }
 
             if (FloatReturningOperators.TryGetValue(method, out var floatOperator))
+            {
                 return new PostgresUnknownBinaryExpression(
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
                     floatOperator,
                     _floatMapping.ClrType,
                     _floatMapping);
+            }
 
             return null;
         }

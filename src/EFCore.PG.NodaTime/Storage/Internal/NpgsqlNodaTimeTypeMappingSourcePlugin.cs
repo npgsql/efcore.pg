@@ -132,11 +132,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (StoreTypeMappings.TryGetValue(storeTypeName, out var mappings))
                 {
                     if (clrType == null)
+                    {
                         return mappings[0];
+                    }
 
                     foreach (var m in mappings)
+                    {
                         if (m.ClrType == clrType)
+                        {
                             return m;
+                        }
+                    }
 
                     return null;
                 }
@@ -144,18 +150,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (StoreTypeMappings.TryGetValue(storeTypeNameBase!, out mappings))
                 {
                     if (clrType == null)
+                    {
                         return mappings[0].Clone(in mappingInfo);
+                    }
 
                     foreach (var m in mappings)
+                    {
                         if (m.ClrType == clrType)
+                        {
                             return m.Clone(in mappingInfo);
+                        }
+                    }
 
                     return null;
                 }
             }
 
             if (clrType == null || !ClrTypeMappings.TryGetValue(clrType, out var mapping))
+            {
                 return null;
+            }
 
             // All PostgreSQL date/time types accept a precision except for date
             // TODO: Cache size/precision/scale mappings?
@@ -171,7 +185,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             Type? elementClrType = null;
 
             if (clrType != null && !clrType.TryGetElementType(out elementClrType))
+            {
                 return null; // Not an array/list
+            }
 
             var storeType = mappingInfo.StoreTypeName;
             var storeTypeNameBase = mappingInfo.StoreTypeNameBase;
@@ -179,7 +195,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             {
                 // PostgreSQL array type names are the element plus []
                 if (!storeType.EndsWith("[]", StringComparison.Ordinal))
+                {
                     return null;
+                }
 
                 var elementStoreType = storeType.Substring(0, storeType.Length - 2);
                 var elementStoreTypeNameBase = storeTypeNameBase!.Substring(0, storeTypeNameBase.Length - 2);
@@ -202,19 +220,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     // If an element mapping was found only with the help of a value converter, return null and EF will
                     // construct the corresponding array mapping with a value converter.
                     if (elementMapping?.Converter != null)
+                    {
                         return null;
+                    }
                 }
 
                 // If no mapping was found for the element, there's no mapping for the array.
                 // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
                 if (elementMapping == null || elementMapping is NpgsqlArrayTypeMapping)
+                {
                     return null;
+                }
 
                 return new NpgsqlArrayArrayTypeMapping(storeType, elementMapping);
             }
 
             if (clrType == null)
+            {
                 return null;
+            }
 
             if (clrType.IsArray)
             {
@@ -225,11 +249,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 // conversion we also don't support it.
                 var elementMapping = FindMapping(new RelationalTypeMappingInfo(elementType));
                 if (elementMapping == null || elementMapping.Converter != null)
+                {
                     return null;
+                }
 
                 // Arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
                 if (elementMapping is NpgsqlArrayTypeMapping)
+                {
                     return null;
+                }
 
                 return new NpgsqlArrayArrayTypeMapping(clrType, elementMapping);
             }
@@ -241,11 +269,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 // If an element isn't supported, neither is its array
                 var elementMapping = FindMapping(new RelationalTypeMappingInfo(elementType));
                 if (elementMapping == null)
+                {
                     return null;
+                }
 
                 // Arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
                 if (elementMapping is NpgsqlArrayTypeMapping)
+                {
                     return null;
+                }
 
                 return new NpgsqlArrayListTypeMapping(clrType, elementMapping);
             }

@@ -26,9 +26,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
             }
 
             if (modelElementType.UnwrapNullableType() != elementConverter.ModelClrType)
+            {
                 throw new ArgumentException($"The element's value converter model type ({elementConverter.ModelClrType}), doesn't match the array's ({modelElementType})");
+            }
+
             if (providerElementType.UnwrapNullableType() != elementConverter.ProviderClrType)
+            {
                 throw new ArgumentException($"The element's value converter provider type ({elementConverter.ProviderClrType}), doesn't match the array's ({providerElementType})");
+            }
 
             ElementConverter = elementConverter;
         }

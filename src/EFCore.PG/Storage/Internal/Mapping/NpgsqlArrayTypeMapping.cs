@@ -2,10 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Diagnostics;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -113,9 +111,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             var type = value.GetType();
 
             if (!type.IsArray && !type.IsGenericList())
+            {
                 throw new ArgumentException("Parameter must be an array or List<>", nameof(value));
+            }
+
             if (value is Array array && array.Rank != 1)
+            {
                 throw new NotSupportedException("Multidimensional array literals aren't supported");
+            }
 
             var list = (IList)value;
 
@@ -125,7 +128,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             {
                 sb.Append(ElementMapping.GenerateSqlLiteral(list[i]));
                 if (i < list.Count - 1)
+                {
                     sb.Append(",");
+                }
             }
 
             sb.Append("]::");
@@ -138,12 +143,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             var npgsqlParameter = parameter as NpgsqlParameter;
             if (npgsqlParameter == null)
+            {
                 throw new ArgumentException($"Npgsql-specific type mapping {GetType()} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+            }
 
             base.ConfigureParameter(parameter);
 
             if (NpgsqlDbType.HasValue)
+            {
                 npgsqlParameter.NpgsqlDbType = NpgsqlDbType.Value;
+            }
         }
 
         private protected static bool CalculateElementNullability(Type elementType, bool? isElementNullable)

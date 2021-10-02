@@ -259,7 +259,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
                 get
                 {
                     if (_logFragment != null)
+                    {
                         return _logFragment;
+                    }
 
                     var builder = new StringBuilder(base.LogFragment);
 
@@ -306,12 +308,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
                             builder.Append(item.SubtypeClrType).Append("=>");
 
                             if (item.SchemaName != null)
+                            {
                                 builder.Append(item.SchemaName).Append(".");
+                            }
 
                             builder.Append(item.RangeName);
 
                             if (item.SubtypeName != null)
+                            {
                                 builder.Append("(").Append(item.SubtypeName).Append(")");
+                            }
 
                             builder.Append(";");
                         }

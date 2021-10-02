@@ -41,15 +41,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             Expression? e = null;
 
             if (duration.Days != 0)
+            {
                 Compose(Expression.Call(FromDays, Expression.Constant(duration.Days)));
+            }
+
             if (duration.Hours != 0)
+            {
                 Compose(Expression.Call(FromHours, Expression.Constant(duration.Hours)));
+            }
+
             if (duration.Minutes != 0)
+            {
                 Compose(Expression.Call(FromMinutes, Expression.Constant((long)duration.Minutes)));
+            }
+
             if (duration.Seconds != 0)
+            {
                 Compose(Expression.Call(FromSeconds, Expression.Constant((long)duration.Seconds)));
+            }
+
             if (duration.Milliseconds != 0)
+            {
                 Compose(Expression.Call(FromMilliseconds, Expression.Constant((long)duration.Milliseconds)));
+            }
 
             return e ?? Expression.MakeMemberAccess(null, Zero);
 

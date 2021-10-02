@@ -59,7 +59,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
              RelationalTypeMapping? typeMapping = null)
         {
             if (!array.Type.TryGetElementType(out var elementType))
+            {
                 throw new ArgumentException("Array expression must be of an array or List<> type", nameof(array));
+            }
 
             return (PostgresArrayIndexExpression)ApplyTypeMapping(
                 new PostgresArrayIndexExpression(array, index, elementType, typeMapping: null),
@@ -93,9 +95,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 var storeType = mapping.StoreType;
                 if (storeType.StartsWith("timestamp with time zone", StringComparison.Ordinal) || storeType.StartsWith("timestamptz", StringComparison.Ordinal))
+                {
                     return _typeMappingSource.FindMapping("timestamp without time zone")!;
+                }
+
                 if (storeType.StartsWith("timestamp without time zone", StringComparison.Ordinal) || storeType.StartsWith("timestamp", StringComparison.Ordinal))
+                {
                     return _typeMappingSource.FindMapping("timestamp with time zone")!;
+                }
+
                 throw new ArgumentException($"timestamp argument to AtTimeZone had unknown store type {storeType}", nameof(timestamp));
             }
         }
@@ -136,7 +144,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             RelationalTypeMapping? typeMapping = null)
         {
             if (!type.TryGetElementType(out var elementType))
+            {
                 throw new ArgumentException($"{type.Name} isn't an array or generic List", nameof(type));
+            }
 
             if (expressions.Any(i => i is not SqlConstantExpression))
             {
@@ -145,7 +155,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             var array = Array.CreateInstance(elementType, expressions.Count);
             for (var i = 0; i < expressions.Count; i++)
+            {
                 array.SetValue(((SqlConstantExpression)expressions[i]).Value, i);
+            }
+
             return Constant(array, typeMapping);
         }
 
@@ -527,13 +540,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 // Note that containment of item within an array is expressed via ArrayAnyAllExpression
                 // if (left.Type == right.Type && left.Type.IsArrayOrGenericList())
                 if (left.Type == right.Type)
+                {
                     goto case PostgresExpressionType.Overlaps;
+                }
 
                 SqlExpression newLeft, newRight;
                 if (operatorType == PostgresExpressionType.Contains)
+                {
                     (newLeft, newRight) = InferContainmentMappings(left, right);
+                }
                 else
+                {
                     (newRight, newLeft) = InferContainmentMappings(right, left);
+                }
+
                 return new PostgresBinaryExpression(operatorType, newLeft, newRight, typeof(bool), _boolTypeMapping);
             }
 
@@ -585,7 +605,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             var arrayTypeMapping = typeMapping as NpgsqlArrayTypeMapping;
             if (arrayTypeMapping is null && typeMapping != null)
+            {
                 throw new ArgumentException($"Type mapping {typeMapping.GetType().Name} isn't an {nameof(NpgsqlArrayTypeMapping)}");
+            }
 
             RelationalTypeMapping? elementTypeMapping = null;
 
@@ -646,7 +668,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 {
                     newExpressions = new List<SqlExpression>();
                     for (var j = 0; j < i; j++)
+                    {
                         newExpressions.Add(postgresNewArrayExpression.Expressions[j]);
+                    }
                 }
 
                 newExpressions?.Add(newExpression);

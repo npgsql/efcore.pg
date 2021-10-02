@@ -43,7 +43,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         internal static Expression GenerateCodeLiteral(LocalDateTime dateTime)
         {
             if (dateTime.Second == 0 && dateTime.NanosecondOfSecond == 0)
+            {
                 return ConstantNew(ConstructorWithMinutes, dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute);
+            }
 
             var newExpr = ConstantNew(ConstructorWithSeconds, dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute, dateTime.Second);
 

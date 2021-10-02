@@ -38,11 +38,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 
             AppendInsertCommandHeader(commandStringBuilder, command.TableName, command.Schema, writeOperations);
             if (overridingSystemValue)
+            {
                 commandStringBuilder.AppendLine().Append("OVERRIDING SYSTEM VALUE");
+            }
+
             AppendValuesHeader(commandStringBuilder, writeOperations);
             AppendValues(commandStringBuilder, name, schema, writeOperations);
             if (readOperations.Length > 0)
+            {
                 AppendReturningClause(commandStringBuilder, readOperations);
+            }
 
             commandStringBuilder.Append(SqlGenerationHelper.StatementTerminator).AppendLine();
 

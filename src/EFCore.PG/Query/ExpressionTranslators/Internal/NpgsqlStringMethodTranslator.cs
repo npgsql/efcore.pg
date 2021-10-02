@@ -186,7 +186,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 {
                     var constantTrimChars = arguments[0] as SqlConstantExpression;
                     if (constantTrimChars == null)
+                    {
                         return null; // Don't translate if trim chars isn't a constant
+                    }
 
                     trimChars = constantTrimChars.Value is char c
                         ? new[] { c }
@@ -303,9 +305,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             }
 
             if (method == StartsWith)
+            {
                 return TranslateStartsEndsWith(instance!, arguments[0], true);
+            }
+
             if (method == EndsWith)
+            {
                 return TranslateStartsEndsWith(instance!, arguments[0], false);
+            }
 
             return null;
         }
@@ -353,7 +360,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             // LEFT/RIGHT of a citext return a text, so for non-default text mappings we apply an explicit cast.
             if (instance.TypeMapping != _textTypeMapping)
+            {
                 leftRight = _sqlExpressionFactory.Convert(leftRight, typeof(string), instance.TypeMapping);
+            }
 
             // Also add an explicit cast on the pattern; this is only required because of
             // The following is only needed because of https://github.com/aspnet/EntityFrameworkCore/issues/19120

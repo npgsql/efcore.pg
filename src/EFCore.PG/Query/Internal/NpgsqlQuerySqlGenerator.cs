@@ -76,9 +76,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             if (selectExpression.Offset != null)
             {
                 if (selectExpression.Limit == null)
+                {
                     Sql.AppendLine();
+                }
                 else
+                {
                     Sql.Append(" ");
+                }
 
                 Sql.Append("OFFSET ");
                 Visit(selectExpression.Offset);
@@ -107,7 +111,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             var result = base.VisitOrdering(ordering);
 
             if (_reverseNullOrderingEnabled)
+            {
                 Sql.Append(ordering.IsAscending ? " NULLS FIRST" : " NULLS LAST");
+            }
 
             return result;
         }
@@ -134,7 +140,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     .Append(_sqlGenerationHelper.DelimitIdentifier(table.Alias));
             }
             else
+            {
                 Visit(crossApplyExpression.Table);
+            }
 
             Sql.Append(" ON TRUE");
             return crossApplyExpression;
@@ -156,7 +164,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     .Append(_sqlGenerationHelper.DelimitIdentifier(table.Alias));
             }
             else
+            {
                 Visit(outerApplyExpression.Table);
+            }
 
             Sql.Append(" ON TRUE");
             return outerApplyExpression;
@@ -177,7 +187,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             case ExpressionType.Add:
             {
                 if (_postgresVersion >= new Version(9, 5))
+                {
                     return base.VisitSqlBinary(binary);
+                }
 
                 // PostgreSQL 9.4 and below has some weird operator precedence fixed in 9.5 and described here:
                 // http://git.postgresql.org/gitweb/?p=postgresql.git&a=commitdiff&h=c6b3c939b7e0f1d35f4ed4996e71420a993810d2
@@ -234,12 +246,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             var requiresBrackets = RequiresBrackets(binaryExpression.Left);
 
             if (requiresBrackets)
+            {
                 Sql.Append("(");
+            }
 
             Visit(binaryExpression.Left);
 
             if (requiresBrackets)
+            {
                 Sql.Append(")");
+            }
 
             Debug.Assert(binaryExpression.Left?.TypeMapping is not null);
             Debug.Assert(binaryExpression.Right?.TypeMapping is not null);
@@ -310,12 +326,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             requiresBrackets = RequiresBrackets(binaryExpression.Right);
 
             if (requiresBrackets)
+            {
                 Sql.Append("(");
+            }
 
             Visit(binaryExpression.Right);
 
             if (requiresBrackets)
+            {
                 Sql.Append(")");
+            }
 
             return binaryExpression;
         }
@@ -509,16 +529,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             Sql.Append("('(?");
             if (options.HasFlag(RegexOptions.IgnoreCase))
+            {
                 Sql.Append("i");
+            }
 
             if (options.HasFlag(RegexOptions.Multiline))
+            {
                 Sql.Append("n");
+            }
             else if (!options.HasFlag(RegexOptions.Singleline))
                 // In .NET's default mode, . doesn't match newlines but PostgreSQL it does.
+            {
                 Sql.Append("p");
+            }
 
             if (options.HasFlag(RegexOptions.IgnorePatternWhitespace))
+            {
                 Sql.Append("x");
+            }
 
             Sql.Append(")' || ");
             Visit(expression.Pattern);
@@ -585,7 +613,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 {
                     Visit(expression.Path[i]);
                     if (i < expression.Path.Count - 1)
+                    {
                         Sql.Append(",");
+                    }
                 }
                 Sql.Append("]::TEXT[]");
             }
@@ -607,12 +637,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             var requiresBrackets = RequiresBrackets(unknownBinaryExpression.Left);
 
             if (requiresBrackets)
+            {
                 Sql.Append("(");
+            }
 
             Visit(unknownBinaryExpression.Left);
 
             if (requiresBrackets)
+            {
                 Sql.Append(")");
+            }
 
             Sql
                 .Append(" ")
@@ -622,12 +656,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             requiresBrackets = RequiresBrackets(unknownBinaryExpression.Right);
 
             if (requiresBrackets)
+            {
                 Sql.Append("(");
+            }
 
             Visit(unknownBinaryExpression.Right);
 
             if (requiresBrackets)
+            {
                 Sql.Append(")");
+            }
 
             return unknownBinaryExpression;
         }
@@ -689,9 +727,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 Visit(e.Arguments[i]);
 
                 if (i < e.Arguments.Count - 1)
+                {
                     Sql.Append(i < e.ArgumentSeparators.Count && e.ArgumentSeparators[i] != null
                         ? $" {e.ArgumentSeparators[i]} "
                         : ", ");
+                }
             }
 
             Sql.Append(")");
