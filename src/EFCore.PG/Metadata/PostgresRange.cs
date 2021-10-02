@@ -102,11 +102,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
             var annotationName = BuildAnnotationName(schema, name);
 
-            return annotatable[annotationName] == null ? null : new PostgresRange(annotatable, annotationName);
+            return annotatable[annotationName] is null ? null : new PostgresRange(annotatable, annotationName);
         }
 
         private static string BuildAnnotationName(string? schema, string name)
-            => schema != null
+            => schema is not null
                 ? $"{NpgsqlAnnotationNames.RangePrefix}{schema}.{name}"
                 : $"{NpgsqlAnnotationNames.RangePrefix}{name}";
 
@@ -194,7 +194,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         private static (string? Schema, string? Name, string? Subtype, string? CanonicalFunction, string? SubtypeOpClass, string? Collation, string? SubtypeDiff)
             Deserialize(IAnnotation? annotation)
         {
-            if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
+            if (annotation is null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
             {
                 return (null, null, null, null, null, null, null);
             }

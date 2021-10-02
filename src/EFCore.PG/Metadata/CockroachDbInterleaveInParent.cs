@@ -51,7 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         private (string? ParentTableSchema, string ParentTableName, List<string> InterleavePrefix) GetData()
         {
             var str = Annotatable[AnnotationName] as string;
-            return str == null
+            return str is null
                 ? (null, null!, null!)
                 : Deserialize(str);
         }
@@ -66,7 +66,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             EscapeAndQuote(builder, parentTableSchema);
             builder.Append(", ");
             EscapeAndQuote(builder, parentTableName);
-            if (interleavePrefix != null && interleavePrefix.Count > 0)
+            if (interleavePrefix is not null && interleavePrefix.Count > 0)
             {
                 builder.Append(", ");
                 for (var i = 0; i < interleavePrefix.Count; i++)
@@ -126,7 +126,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         {
             builder.Append("'");
 
-            if (value != null)
+            if (value is not null)
             {
                 builder.Append(value.ToString()!.Replace("'", "''"));
             }

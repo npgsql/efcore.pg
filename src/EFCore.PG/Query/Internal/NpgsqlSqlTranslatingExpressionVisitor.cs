@@ -142,7 +142,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 // Translate Length on byte[], but only if the type mapping is for bytea. There's also array of bytes
                 // (mapped to smallint[]), which is handled below with CARDINALITY.
                 if (sqlOperand!.Type == typeof(byte[]) &&
-                    (sqlOperand.TypeMapping == null || sqlOperand.TypeMapping is NpgsqlByteArrayTypeMapping))
+                    (sqlOperand.TypeMapping is null || sqlOperand.TypeMapping is NpgsqlByteArrayTypeMapping))
                 {
                     return _sqlExpressionFactory.Function(
                         "length",
@@ -554,7 +554,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         [DebuggerStepThrough]
         private static bool TranslationFailed(Expression? original, Expression? translation, out SqlExpression? castTranslation)
         {
-            if (original != null && !(translation is SqlExpression))
+            if (original is not null && !(translation is SqlExpression))
             {
                 castTranslation = null;
                 return true;

@@ -38,17 +38,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected override DbConnection CreateDbConnection()
         {
             var conn = new NpgsqlConnection(ConnectionString);
-            if (ProvideClientCertificatesCallback != null)
+            if (ProvideClientCertificatesCallback is not null)
             {
                 conn.ProvideClientCertificatesCallback = ProvideClientCertificatesCallback;
             }
 
-            if (RemoteCertificateValidationCallback != null)
+            if (RemoteCertificateValidationCallback is not null)
             {
                 conn.UserCertificateValidationCallback = RemoteCertificateValidationCallback;
             }
 
-            if (ProvidePasswordCallback != null)
+            if (ProvidePasswordCallback is not null)
             {
                 conn.ProvidePasswordCallback = ProvidePasswordCallback;
             }
@@ -69,7 +69,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var relationalOptions = RelationalOptionsExtension.Extract(Dependencies.ContextOptions);
             var connectionString = csb.ToString();
 
-            relationalOptions = relationalOptions.Connection != null
+            relationalOptions = relationalOptions.Connection is not null
                 ? relationalOptions.WithConnection(((NpgsqlConnection)DbConnection).CloneWith(connectionString))
                 : relationalOptions.WithConnectionString(connectionString);
 

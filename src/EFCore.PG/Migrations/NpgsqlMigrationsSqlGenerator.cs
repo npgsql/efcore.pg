@@ -142,7 +142,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             MigrationCommandListBuilder builder,
             bool terminate = true)
         {
-            if (!terminate && operation.Comment != null)
+            if (!terminate && operation.Comment is not null)
             {
                 throw new ArgumentException($"When generating migrations SQL for {nameof(CreateTableOperation)}, can't produce unterminated SQL with comments");
             }
@@ -198,7 +198,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             // Comment on the table
-            if (operation.Comment != null)
+            if (operation.Comment is not null)
             {
                 builder.AppendLine(";");
 
@@ -210,7 +210,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             // Comments on the columns
-            foreach (var columnOp in operation.Columns.Where(c => c.Comment != null))
+            foreach (var columnOp in operation.Columns.Where(c => c.Comment is not null))
             {
                 var columnComment = columnOp.Comment;
                 builder.AppendLine(";");
@@ -335,7 +335,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             MigrationCommandListBuilder builder,
             bool terminate = true)
         {
-            if (!terminate && operation.Comment != null)
+            if (!terminate && operation.Comment is not null)
             {
                 throw new ArgumentException($"When generating migrations SQL for {nameof(AddColumnOperation)}, can't produce unterminated SQL with comments");
             }
@@ -362,7 +362,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             base.Generate(operation, model, builder, terminate: false);
 
-            if (operation.Comment != null)
+            if (operation.Comment is not null)
             {
                 builder.AppendLine(";");
 
@@ -412,7 +412,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     Name = operation.Name
                 };
 
-                if (column != null)
+                if (column is not null)
                 {
                     dropColumnOperation.AddAnnotations(column.GetAnnotations());
                 }
@@ -548,7 +548,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         throw new NotSupportedException($"Don't know how to migrate identity column to {newStrategy}");
                     }
                 }
-                else if (oldStrategy == null)
+                else if (oldStrategy is null)
                 {
                     switch (newStrategy)
                     {
@@ -620,7 +620,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 {
                     builder
                         .Append(alterBase)
-                        .Append(newSequenceOptions.MinValue == null
+                        .Append(newSequenceOptions.MinValue is null
                             ? "SET NO MINVALUE"
                             : "SET MINVALUE " + newSequenceOptions.MinValue)
                         .AppendLine(";");
@@ -630,7 +630,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 {
                     builder
                         .Append(alterBase)
-                        .Append(newSequenceOptions.MaxValue == null
+                        .Append(newSequenceOptions.MaxValue is null
                             ? "SET NO MAXVALUE"
                             : "SET MAXVALUE " + newSequenceOptions.MaxValue)
                         .AppendLine(";");
@@ -659,12 +659,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             // DEFAULT.
             // Note that defaults values for value-generated columns (identity, serial) are managed above. This is
             // only for regular columns with user-specified default settings.
-            if (newStrategy == null &&
+            if (newStrategy is null &&
                 (operation.DefaultValueSql != operation.OldColumn.DefaultValueSql ||
                  !Equals(operation.DefaultValue, operation.OldColumn.DefaultValue)))
             {
                 builder.Append(alterBase);
-                if (operation.DefaultValue != null || operation.DefaultValueSql != null)
+                if (operation.DefaultValue is not null || operation.DefaultValueSql is not null)
                 {
                     builder.Append("SET");
                     DefaultValue(operation.DefaultValue, operation.DefaultValueSql, type, builder);
@@ -679,7 +679,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             // A sequence has been created because this column was altered to be a serial.
             // Change the sequence's ownership.
-            if (newSequenceName != null)
+            if (newSequenceName is not null)
             {
                 builder
                     .Append("ALTER SEQUENCE ")
@@ -712,7 +712,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            if (operation.NewName != null &&
+            if (operation.NewName is not null &&
                 operation.NewName != operation.Name)
             {
                 Rename(operation.Schema, operation.Name, operation.NewName, "INDEX", builder);
@@ -728,7 +728,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(builder, nameof(builder));
 
             var name = operation.Name;
-            if (operation.NewName != null &&
+            if (operation.NewName is not null &&
                 operation.NewName != operation.Name)
             {
                 Rename(operation.Schema, operation.Name, operation.NewName, "SEQUENCE", builder);
@@ -736,7 +736,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 name = operation.NewName;
             }
 
-            if (operation.NewSchema != null &&
+            if (operation.NewSchema is not null &&
                 operation.NewSchema != operation.Schema)
             {
                 Transfer(operation.NewSchema, operation.Schema, name, "SEQUENCE", builder);
@@ -751,7 +751,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(builder, nameof(builder));
 
             var name = operation.Name;
-            if (operation.NewName != null &&
+            if (operation.NewName is not null &&
                 operation.NewName != operation.Name)
             {
                 Rename(operation.Schema, operation.Name, operation.NewName, "TABLE", builder);
@@ -759,7 +759,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 name = operation.NewName;
             }
 
-            if (operation.NewSchema != null &&
+            if (operation.NewSchema is not null &&
                 operation.NewSchema != operation.Schema)
             {
                 Transfer(operation.NewSchema, operation.Schema, name, "TABLE", builder);
@@ -1038,7 +1038,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of collation, so we always ensure schema on collation creation.
-            if (schema != null)
+            if (schema is not null)
             {
                 Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
             }
@@ -1054,12 +1054,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 @$"LC_COLLATE = {_stringTypeMapping.GenerateSqlLiteral(collation.LcCollate)}",
                 $"LC_CTYPE = {_stringTypeMapping.GenerateSqlLiteral(collation.LcCtype)}"
             };
-            if (collation.Provider != null)
+            if (collation.Provider is not null)
             {
                 def.Add($"PROVIDER = {collation.Provider}");
             }
 
-            if (collation.IsDeterministic != null)
+            if (collation.IsDeterministic is not null)
             {
                 def.Add($"DETERMINISTIC = {collation.IsDeterministic}");
             }
@@ -1272,22 +1272,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .IncrementIndent();
 
             var def = new List<string> { $"SUBTYPE = {rangeType.Subtype}" };
-            if (rangeType.CanonicalFunction != null)
+            if (rangeType.CanonicalFunction is not null)
             {
                 def.Add($"CANONICAL = {rangeType.CanonicalFunction}");
             }
 
-            if (rangeType.SubtypeOpClass != null)
+            if (rangeType.SubtypeOpClass is not null)
             {
                 def.Add($"SUBTYPE_OPCLASS = {rangeType.SubtypeOpClass}");
             }
 
-            if (rangeType.CanonicalFunction != null)
+            if (rangeType.CanonicalFunction is not null)
             {
                 def.Add($"COLLATION = {rangeType.Collation}");
             }
 
-            if (rangeType.SubtypeDiff != null)
+            if (rangeType.SubtypeDiff is not null)
             {
                 def.Add($"SUBTYPE_DIFF = {rangeType.SubtypeDiff}");
             }
@@ -1431,7 +1431,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            if (operation.ColumnType == null)
+            if (operation.ColumnType is null)
             {
                 operation.ColumnType = GetColumnType(schema, table, name, operation, model);
             }
@@ -1465,7 +1465,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             ApplyTsVectorColumnSql(operation, model, schema, table);
 
-            if (operation.ComputedColumnSql != null)
+            if (operation.ComputedColumnSql is not null)
             {
                 ComputedColumnDefinition(schema, table, name, operation, model, builder);
 
@@ -1509,7 +1509,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             if (column[NpgsqlAnnotationNames.TsVectorConfig] is string tsVectorConfig)
             {
                 var tsVectorIncludedColumns = column[NpgsqlAnnotationNames.TsVectorProperties] as string[];
-                if (tsVectorIncludedColumns == null)
+                if (tsVectorIncludedColumns is null)
                 {
                     throw new InvalidOperationException(
                         $"{nameof(NpgsqlAnnotationNames.TsVectorConfig)} is present in a migration but " +
@@ -1682,7 +1682,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(" ")
                 .Append(operation.ColumnType ?? GetColumnType(schema, table, name, operation, model)!);
 
-            if (operation.Collation != null)
+            if (operation.Collation is not null)
             {
                 builder
                     .Append(" COLLATE ")
@@ -1700,7 +1700,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         // ValueGeneratedOnAdd annotation. Detect that and throw.
         private static void CheckForOldValueGenerationAnnotation(IAnnotatable annotatable)
         {
-            if (annotatable.FindAnnotation(NpgsqlAnnotationNames.ValueGeneratedOnAdd) != null)
+            if (annotatable.FindAnnotation(NpgsqlAnnotationNames.ValueGeneratedOnAdd) is not null)
             {
                 throw new NotSupportedException("The Npgsql:ValueGeneratedOnAdd annotation has been found in your migrations, but is no longer supported. Please replace it with '.Annotation(\"Npgsql:ValueGenerationStrategy\", NpgsqlValueGenerationStrategy.SerialColumn)' where you want PostgreSQL serial (autoincrement) columns, and remove it in all other cases.");
             }
@@ -1852,7 +1852,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 // Of the built-in access methods, only btree (the default) supports
                 // sorting, thus we only want to emit sort options for btree indexes.
-                if (method == null || method == "btree")
+                if (method is null || method == "btree")
                 {
                     if (column.SortOrder == SortOrder.Descending)
                     {

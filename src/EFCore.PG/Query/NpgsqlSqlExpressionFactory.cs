@@ -453,7 +453,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 }
             }
 
-            if (arrayMapping == null)
+            if (arrayMapping is null)
             {
                 throw new InvalidOperationException("Couldn't find array type mapping when applying item/array mappings");
             }
@@ -475,7 +475,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         private SqlExpression ApplyTypeMappingOnILike(PostgresILikeExpression ilikeExpression)
         {
-            var inferredTypeMapping = (ilikeExpression.EscapeChar == null
+            var inferredTypeMapping = (ilikeExpression.EscapeChar is null
                                           ? ExpressionExtensions.InferTypeMapping(
                                               ilikeExpression.Match, ilikeExpression.Pattern)
                                           : ExpressionExtensions.InferTypeMapping(
@@ -604,7 +604,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             PostgresNewArrayExpression postgresNewArrayExpression, RelationalTypeMapping? typeMapping)
         {
             var arrayTypeMapping = typeMapping as NpgsqlArrayTypeMapping;
-            if (arrayTypeMapping is null && typeMapping != null)
+            if (arrayTypeMapping is null && typeMapping is not null)
             {
                 throw new ArgumentException($"Type mapping {typeMapping.GetType().Name} isn't an {nameof(NpgsqlArrayTypeMapping)}");
             }

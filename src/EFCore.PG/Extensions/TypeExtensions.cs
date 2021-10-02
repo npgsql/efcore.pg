@@ -20,7 +20,7 @@ namespace System.Reflection
                 : type.IsGenericList()
                     ? type.GetGenericArguments()[0]
                     : null;
-            return elementType != null;
+            return elementType is not null;
         }
 
         public static PropertyInfo? FindIndexerProperty(this Type type)

@@ -83,7 +83,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             expressionPrinter.Append(" ILIKE ");
             expressionPrinter.Visit(Pattern);
 
-            if (EscapeChar != null)
+            if (EscapeChar is not null)
             {
                 expressionPrinter.Append(" ESCAPE ");
                 expressionPrinter.Visit(EscapeChar);
@@ -91,6 +91,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{Match} ILIKE {Pattern}{(EscapeChar == null ? "" : $" ESCAPE {EscapeChar}")}";
+        public override string ToString() => $"{Match} ILIKE {Pattern}{(EscapeChar is null ? "" : $" ESCAPE {EscapeChar}")}";
     }
 }

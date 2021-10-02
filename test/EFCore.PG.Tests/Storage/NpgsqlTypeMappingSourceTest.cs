@@ -246,8 +246,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         private class DummyTypeMappingSourcePlugin : IRelationalTypeMappingSourcePlugin
         {
             public RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo)
-                => mappingInfo.StoreTypeName != null
-                   ? mappingInfo.StoreTypeName == "dummy" && (mappingInfo.ClrType == null || mappingInfo.ClrType == typeof(DummyType))
+                => mappingInfo.StoreTypeName is not null
+                   ? mappingInfo.StoreTypeName == "dummy" && (mappingInfo.ClrType is null || mappingInfo.ClrType == typeof(DummyType))
                        ? _dummyMapping
                        : null
                    : mappingInfo.ClrType == typeof(DummyType)

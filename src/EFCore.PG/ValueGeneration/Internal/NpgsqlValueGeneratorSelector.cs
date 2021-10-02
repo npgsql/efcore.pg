@@ -42,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
             Check.NotNull(property, nameof(property));
             Check.NotNull(entityType, nameof(entityType));
 
-            return property.GetValueGeneratorFactory() == null
+            return property.GetValueGeneratorFactory() is null
                    && property.GetValueGenerationStrategy() == NpgsqlValueGenerationStrategy.SequenceHiLo
                 ? _sequenceFactory.Create(
                     property,
@@ -62,7 +62,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
             // generating server-side with uuid-ossp or whatever)
             return property.ClrType.UnwrapNullableType() == typeof(Guid)
                 ? property.ValueGenerated == ValueGenerated.Never
-                  || property.GetDefaultValueSql() != null
+                  || property.GetDefaultValueSql() is not null
                     ? new TemporaryGuidValueGenerator()
                     : new GuidValueGenerator()
                 : base.Create(property, entityType);

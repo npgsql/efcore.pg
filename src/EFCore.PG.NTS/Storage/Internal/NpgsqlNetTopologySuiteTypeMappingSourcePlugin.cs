@@ -30,7 +30,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 _                    => null
             };
 
-            return clrType != null;
+            return clrType is not null;
         }
 
         public NpgsqlNetTopologySuiteTypeMappingSourcePlugin(INpgsqlNetTopologySuiteOptions options)
@@ -43,25 +43,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var storeTypeName = mappingInfo.StoreTypeName;
             var isGeography = _options.IsGeographyDefault;
 
-            if (clrType != null && !typeof(Geometry).IsAssignableFrom(clrType))
+            if (clrType is not null && !typeof(Geometry).IsAssignableFrom(clrType))
             {
                 return null;
             }
 
-            if (storeTypeName != null)
+            if (storeTypeName is not null)
             {
                 if (!TryParseStoreTypeName(storeTypeName, out _, out isGeography, out var parsedSubtype, out _, out _))
                 {
                     return null;
                 }
 
-                if (clrType == null)
+                if (clrType is null)
                 {
                     clrType = parsedSubtype;
                 }
             }
 
-            return clrType != null || storeTypeName != null
+            return clrType is not null || storeTypeName is not null
                 ? (RelationalTypeMapping)Activator.CreateInstance(
                     typeof(NpgsqlGeometryTypeMapping<>).MakeGenericType(clrType ?? typeof(Geometry)),
                     storeTypeName ?? (isGeography ? "geography" : "geometry"),

@@ -101,7 +101,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             var type = member.DeclaringType;
-            if (type == null || !type.IsGenericType || type.GetGenericTypeDefinition() != typeof(NpgsqlRange<>))
+            if (type is null || !type.IsGenericType || type.GetGenericTypeDefinition() != typeof(NpgsqlRange<>))
             {
                 return null;
             }

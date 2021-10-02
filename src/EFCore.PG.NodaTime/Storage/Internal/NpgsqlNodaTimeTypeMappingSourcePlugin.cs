@@ -127,11 +127,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var storeTypeName = mappingInfo.StoreTypeName;
             var storeTypeNameBase = mappingInfo.StoreTypeNameBase;
 
-            if (storeTypeName != null)
+            if (storeTypeName is not null)
             {
                 if (StoreTypeMappings.TryGetValue(storeTypeName, out var mappings))
                 {
-                    if (clrType == null)
+                    if (clrType is null)
                     {
                         return mappings[0];
                     }
@@ -149,7 +149,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 if (StoreTypeMappings.TryGetValue(storeTypeNameBase!, out mappings))
                 {
-                    if (clrType == null)
+                    if (clrType is null)
                     {
                         return mappings[0].Clone(in mappingInfo);
                     }
@@ -166,7 +166,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 }
             }
 
-            if (clrType == null || !ClrTypeMappings.TryGetValue(clrType, out var mapping))
+            if (clrType is null || !ClrTypeMappings.TryGetValue(clrType, out var mapping))
             {
                 return null;
             }
@@ -184,14 +184,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var clrType = mappingInfo.ClrType;
             Type? elementClrType = null;
 
-            if (clrType != null && !clrType.TryGetElementType(out elementClrType))
+            if (clrType is not null && !clrType.TryGetElementType(out elementClrType))
             {
                 return null; // Not an array/list
             }
 
             var storeType = mappingInfo.StoreTypeName;
             var storeTypeNameBase = mappingInfo.StoreTypeNameBase;
-            if (storeType != null)
+            if (storeType is not null)
             {
                 // PostgreSQL array type names are the element plus []
                 if (!storeType.EndsWith("[]", StringComparison.Ordinal))
@@ -204,7 +204,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 RelationalTypeMapping? elementMapping;
 
-                if (elementClrType == null)
+                if (elementClrType is null)
                 {
                     elementMapping = FindMapping(new RelationalTypeMappingInfo(
                         elementStoreType, elementStoreTypeNameBase,
@@ -219,7 +219,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                     // If an element mapping was found only with the help of a value converter, return null and EF will
                     // construct the corresponding array mapping with a value converter.
-                    if (elementMapping?.Converter != null)
+                    if (elementMapping?.Converter is not null)
                     {
                         return null;
                     }
@@ -227,7 +227,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 // If no mapping was found for the element, there's no mapping for the array.
                 // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
-                if (elementMapping == null || elementMapping is NpgsqlArrayTypeMapping)
+                if (elementMapping is null || elementMapping is NpgsqlArrayTypeMapping)
                 {
                     return null;
                 }
@@ -235,7 +235,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 return new NpgsqlArrayArrayTypeMapping(storeType, elementMapping);
             }
 
-            if (clrType == null)
+            if (clrType is null)
             {
                 return null;
             }
@@ -243,12 +243,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (clrType.IsArray)
             {
                 var elementType = clrType.GetElementType();
-                Debug.Assert(elementType != null, "Detected array type but element type is null");
+                Debug.Assert(elementType is not null, "Detected array type but element type is null");
 
                 // If an element isn't supported, neither is its array. If the element is only supported via value
                 // conversion we also don't support it.
                 var elementMapping = FindMapping(new RelationalTypeMappingInfo(elementType));
-                if (elementMapping == null || elementMapping.Converter != null)
+                if (elementMapping is null || elementMapping.Converter is not null)
                 {
                     return null;
                 }
@@ -268,7 +268,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 // If an element isn't supported, neither is its array
                 var elementMapping = FindMapping(new RelationalTypeMappingInfo(elementType));
-                if (elementMapping == null)
+                if (elementMapping is null)
                 {
                     return null;
                 }

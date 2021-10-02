@@ -13,7 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
             IReadOnlyList<NullSortOrder>? nullSortOrders,
             IReadOnlyList<SortOrder>? sortOrders)
         {
-            if (nullSortOrders == null)
+            if (nullSortOrders is null)
             {
                 return true;
             }

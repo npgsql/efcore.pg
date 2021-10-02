@@ -107,7 +107,7 @@ FROM ""PolygonEntity"" AS p");
                 elementAsserter: (e, a) =>
                 {
                     Assert.Equal(e.Id, a.Id);
-                    Assert.Equal(e.Distance == null, a.Distance == null);
+                    Assert.Equal(e.Distance is null, a.Distance is null);
                 });
 
             AssertSql(
@@ -133,7 +133,7 @@ FROM ""PointEntity"" AS p");
                 elementAsserter: (e, a) =>
                 {
                     Assert.Equal(e.Id, a.Id);
-                    Assert.Equal(e.Distance == null, a.Distance == null);
+                    Assert.Equal(e.Distance is null, a.Distance is null);
                 });
 
             AssertSql(
@@ -209,7 +209,7 @@ FROM ""PointEntity"" AS p");
                 {
                     Assert.Equal(e.Id, a.Id);
 
-                    if (e.IsWithinDistance == null)
+                    if (e.IsWithinDistance is null)
                     {
                         Assert.False(a.IsWithinDistance ?? false);
                     }

@@ -108,7 +108,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 var errorNumber = PreExecution(connection);
 
                 var result = _realRelationalCommand.ExecuteNonQuery(parameterObject);
-                if (errorNumber != null)
+                if (errorNumber is not null)
                 {
                     connection.DbConnection.Close();
                     throw new PostgresException("", "", "", errorNumber);
@@ -124,7 +124,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 var errorNumber = PreExecution(connection);
 
                 var result = _realRelationalCommand.ExecuteNonQueryAsync(parameterObject, cancellationToken);
-                if (errorNumber != null)
+                if (errorNumber is not null)
                 {
                     connection.DbConnection.Close();
                     throw new PostgresException("", "", "", errorNumber);
@@ -139,7 +139,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 var errorNumber = PreExecution(connection);
 
                 var result = _realRelationalCommand.ExecuteScalar(parameterObject);
-                if (errorNumber != null)
+                if (errorNumber is not null)
                 {
                     connection.DbConnection.Close();
                     throw new PostgresException("", "", "", errorNumber);
@@ -155,7 +155,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 var errorNumber = PreExecution(connection);
 
                 var result = await _realRelationalCommand.ExecuteScalarAsync(parameterObject, cancellationToken);
-                if (errorNumber != null)
+                if (errorNumber is not null)
                 {
                     connection.DbConnection.Close();
                     throw new PostgresException("", "", "", errorNumber);
@@ -170,7 +170,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 var errorNumber = PreExecution(connection);
 
                 var result = _realRelationalCommand.ExecuteReader(parameterObject);
-                if (errorNumber != null)
+                if (errorNumber is not null)
                 {
                     connection.DbConnection.Close();
                     result.Dispose(); // Normally, in non-test case, reader is disposed by using in caller code
@@ -187,7 +187,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 var errorNumber = PreExecution(connection);
 
                 var result = await _realRelationalCommand.ExecuteReaderAsync(parameterObject, cancellationToken);
-                if (errorNumber != null)
+                if (errorNumber is not null)
                 {
                     connection.DbConnection.Close();
                     result.Dispose(); // Normally, in non-test case, reader is disposed by using in caller code

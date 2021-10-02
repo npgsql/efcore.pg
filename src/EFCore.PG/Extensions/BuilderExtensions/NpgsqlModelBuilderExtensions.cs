@@ -38,7 +38,7 @@ namespace Microsoft.EntityFrameworkCore
 
             name ??= NpgsqlModelExtensions.DefaultHiLoSequenceName;
 
-            if (model.FindSequence(name, schema) == null)
+            if (model.FindSequence(name, schema) is null)
             {
                 modelBuilder.HasSequence(name, schema).IncrementsBy(10);
             }
@@ -73,7 +73,7 @@ namespace Microsoft.EntityFrameworkCore
             modelBuilder.Metadata.SetHiLoSequenceName(name, fromDataAnnotation);
             modelBuilder.Metadata.SetHiLoSequenceSchema(schema, fromDataAnnotation);
 
-            return name == null ? null : modelBuilder.HasSequence(name, schema, fromDataAnnotation);
+            return name is null ? null : modelBuilder.HasSequence(name, schema, fromDataAnnotation);
         }
 
         /// <summary>
@@ -369,7 +369,7 @@ namespace Microsoft.EntityFrameworkCore
             INpgsqlNameTranslator? nameTranslator = null)
             where TEnum : struct, Enum
         {
-            if (nameTranslator == null)
+            if (nameTranslator is null)
             {
                 nameTranslator = NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator;
             }

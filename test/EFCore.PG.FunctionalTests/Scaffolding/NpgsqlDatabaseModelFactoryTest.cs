@@ -1842,7 +1842,7 @@ CREATE TABLE foo (mood mood UNIQUE);",
                     var enums = dbModel.GetPostgresEnums();
                     Assert.Equal(2, enums.Count);
 
-                    var mood = enums.Single(e => e.Schema == null);
+                    var mood = enums.Single(e => e.Schema is null);
                     Assert.Equal("mood", mood.Name);
                     Assert.Equal(new[] { "happy", "sad" }, mood.Labels);
 

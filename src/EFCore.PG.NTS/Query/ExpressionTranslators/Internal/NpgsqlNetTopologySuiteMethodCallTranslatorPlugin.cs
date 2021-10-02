@@ -111,7 +111,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             var typeMapping = ExpressionExtensions.InferTypeMapping(
                 arguments.Prepend(instance).Where(e => typeof(Geometry).IsAssignableFrom(e.Type)).ToArray());
 
-            Debug.Assert(typeMapping != null, "At least one argument must have typeMapping.");
+            Debug.Assert(typeMapping is not null, "At least one argument must have typeMapping.");
             var storeType = typeMapping.StoreType;
 
             instance = _sqlExpressionFactory.ApplyTypeMapping(instance, _typeMappingSource.FindMapping(instance.Type, storeType));

@@ -43,7 +43,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         {
             var data = new IdentitySequenceOptionsData();
 
-            if (value == null)
+            if (value is null)
             {
                 return data;
             }
@@ -87,16 +87,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         }
 
         private static long? AsLong(string? value)
-            => value == null ? null : (long?)long.Parse(value, CultureInfo.InvariantCulture);
+            => value is null ? null : (long?)long.Parse(value, CultureInfo.InvariantCulture);
 
         private static bool AsBool(string? value)
-            => value != null && bool.Parse(value);
+            => value is not null && bool.Parse(value);
 
         private static void EscapeAndQuote(StringBuilder builder, object? value)
         {
             builder.Append("'");
 
-            if (value != null)
+            if (value is not null)
             {
                 builder.Append(value.ToString()!.Replace("'", "''"));
             }

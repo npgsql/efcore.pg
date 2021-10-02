@@ -206,7 +206,7 @@ SELECT datcollate FROM pg_database WHERE datname=current_database() AND
             HashSet<string> enums,
             IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
-            var filter = tableFilter != null ? $"AND {tableFilter("ns.nspname", "cls.relname")}" : null;
+            var filter = tableFilter is not null ? $"AND {tableFilter("ns.nspname", "cls.relname")}" : null;
             var commandText = $@"
 SELECT nspname, relname, relkind, description
 FROM pg_class AS cls
@@ -366,7 +366,7 @@ ORDER BY attnum";
 
                     var formattedTypeName = AdjustFormattedTypeName(record.GetFieldValue<string>("formatted_typname"));
                     var formattedBaseTypeName = record.GetValueOrDefault<string>("formatted_basetypname");
-                    var (storeType, systemTypeName) = formattedBaseTypeName == null
+                    var (storeType, systemTypeName) = formattedBaseTypeName is null
                         ? (formattedTypeName, record.GetFieldValue<string>("typname"))
                         : (formattedBaseTypeName, record.GetFieldValue<string>("basetypname")); // domain type
 
@@ -381,7 +381,7 @@ ORDER BY attnum";
                     // Enum types cannot be scaffolded for now (nor can domains of enum types),
                     // skip with an informative message
                     if (enums.Contains(formattedTypeName) ||
-                        formattedBaseTypeName != null && enums.Contains(formattedBaseTypeName))
+                        formattedBaseTypeName is not null && enums.Contains(formattedBaseTypeName))
                     {
                         logger.EnumColumnSkippedWarning($"{DisplayName(tableSchema, tableName)}.{column.Name}");
                         // We need to know about skipped columns because constraints take them into
@@ -442,7 +442,7 @@ ORDER BY attnum";
                         break;
                     }
 
-                    if (column[NpgsqlAnnotationNames.ValueGenerationStrategy] != null)
+                    if (column[NpgsqlAnnotationNames.ValueGenerationStrategy] is not null)
                     {
                         column.ValueGenerated = ValueGenerated.OnAdd;
                     }
@@ -626,7 +626,7 @@ WHERE
 
                             /*
                             var expressions = record.GetValueOrDefault<string>("exprs");
-                            if (expressions == null)
+                            if (expressions is null)
                                 throw new Exception($"Seen 0 in indkey for index {index.Name} but indexprs is null");
                             index[NpgsqlAnnotationNames.IndexExpression] = expressions;
                             */
@@ -687,7 +687,7 @@ WHERE
                             .Select(oid => opClasses.TryGetValue(oid, out var opc) && !opc.IsDefault ? opc.Name : null)
                             .ToArray();
 
-                        if (opClassNames.Any(op => op != null))
+                        if (opClassNames.Any(op => op is not null))
                         {
                             index[NpgsqlAnnotationNames.IndexOperators] = opClassNames;
                         }
@@ -697,7 +697,7 @@ WHERE
                             .Select(oid => collations.TryGetValue(oid, out var collation) && collation != "default" ? collation : null)
                             .ToArray();
 
-                        if (columnCollations.Any(coll => coll != null))
+                        if (columnCollations.Any(coll => coll is not null))
                         {
                             index[RelationalAnnotationNames.Collation] = columnCollations;
                         }
@@ -843,7 +843,7 @@ WHERE
                             principalTableSchema.Equals(t.Schema, StringComparison.OrdinalIgnoreCase) &&
                             principalTableName.Equals(t.Name, StringComparison.OrdinalIgnoreCase));
 
-                    if (principalTable == null)
+                    if (principalTable is null)
                     {
                         logger.ForeignKeyReferencesMissingPrincipalTableWarning(
                             fkName,
@@ -875,7 +875,7 @@ WHERE
                     {
                         var foreignKeyColumn = table.Columns[columnIndices[i] - 1];
                         var foreignKeyPrincipalColumn = principalColumns[principalColumnIndices[i] - 1];
-                        if (foreignKeyColumn == null || foreignKeyPrincipalColumn == null)
+                        if (foreignKeyColumn is null || foreignKeyPrincipalColumn is null)
                         {
                             logger.UnsupportedColumnConstraintSkippedWarning(foreignKey.Name, DisplayName(tableSchema, tableName));
                             goto ForeignKeyEnd;
@@ -905,7 +905,7 @@ WHERE
                     foreach (var columnIndex in record.GetFieldValue<short[]>("conkey"))
                     {
                         var constraintColumn = table.Columns[columnIndex - 1];
-                        if (constraintColumn == null)
+                        if (constraintColumn is null)
                         {
                             logger.UnsupportedColumnConstraintSkippedWarning(uniqueConstraint.Name, DisplayName(tableSchema, tableName));
                             goto UniqueConstraintEnd;
@@ -953,7 +953,7 @@ WHERE
   /* AND seqtype IN ('integer', 'bigint', 'smallint') */
   /* Filter out owned serial and identity sequences */
   AND NOT EXISTS (SELECT * FROM pg_depend AS dep WHERE dep.objid = cls.oid AND dep.deptype IN ('i', 'I', 'a'))
-  {(schemaFilter != null ? $"AND {schemaFilter("nspname")}" : null)}";
+  {(schemaFilter is not null ? $"AND {schemaFilter("nspname")}" : null)}";
 
             using var command = new NpgsqlCommand(commandText, connection);
             using var reader = command.ExecuteReader();
@@ -1120,7 +1120,7 @@ WHERE
         private static void AdjustDefaults(DatabaseColumn column, string systemTypeName)
         {
             var defaultValue = column.DefaultValueSql;
-            if (defaultValue == null || defaultValue == "(NULL)")
+            if (defaultValue is null || defaultValue == "(NULL)")
             {
                 column.DefaultValueSql = null;
                 return;
@@ -1273,13 +1273,13 @@ WHERE
         private static Func<string, string, string>? GenerateTableFilter(
             IReadOnlyList<(string? Schema, string Table)> tables,
             Func<string, string>? schemaFilter)
-            => schemaFilter != null || tables.Any()
+            => schemaFilter is not null || tables.Any()
                 ? (s, t) =>
                 {
                     var tableFilterBuilder = new StringBuilder();
 
                     var openBracket = false;
-                    if (schemaFilter != null)
+                    if (schemaFilter is not null)
                     {
                         tableFilterBuilder
                             .Append("(")

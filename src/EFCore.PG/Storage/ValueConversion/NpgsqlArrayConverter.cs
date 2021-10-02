@@ -62,7 +62,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
             // we need to sanitize via an external null check.
             if (inputElementType.IsGenericType && inputElementType.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
-                // p => p == null ? null : elementConversionExpression(p)
+                // p => p is null ? null : elementConversionExpression(p)
                 var p = Expression.Parameter(inputElementType, "foo");
                 elementConversionExpression = Expression.Lambda(
                     Expression.Condition(

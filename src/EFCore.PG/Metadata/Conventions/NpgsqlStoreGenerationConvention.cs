@@ -42,8 +42,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
             IConventionAnnotation? oldAnnotation,
             IConventionContext<IConventionAnnotation> context)
         {
-            if (annotation == null
-                || oldAnnotation?.Value != null)
+            if (annotation is null
+                || oldAnnotation?.Value is not null)
             {
                 return;
             }
@@ -53,8 +53,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
             switch (name)
             {
                 case RelationalAnnotationNames.DefaultValue:
-                    if (propertyBuilder.HasValueGenerationStrategy(null, fromDataAnnotation) == null
-                        && propertyBuilder.HasDefaultValue(null, fromDataAnnotation) != null)
+                    if (propertyBuilder.HasValueGenerationStrategy(null, fromDataAnnotation) is null
+                        && propertyBuilder.HasDefaultValue(null, fromDataAnnotation) is not null)
                     {
                         context.StopProcessing();
                         return;
@@ -62,8 +62,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
 
                     break;
                 case RelationalAnnotationNames.DefaultValueSql:
-                    if (propertyBuilder.HasValueGenerationStrategy(null, fromDataAnnotation) == null
-                        && propertyBuilder.HasDefaultValueSql(null, fromDataAnnotation) != null)
+                    if (propertyBuilder.HasValueGenerationStrategy(null, fromDataAnnotation) is null
+                        && propertyBuilder.HasDefaultValueSql(null, fromDataAnnotation) is not null)
                     {
                         context.StopProcessing();
                         return;
@@ -71,8 +71,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
 
                     break;
                 case RelationalAnnotationNames.ComputedColumnSql:
-                    if (propertyBuilder.HasValueGenerationStrategy(null, fromDataAnnotation) == null
-                        && propertyBuilder.HasComputedColumnSql(null, fromDataAnnotation) != null)
+                    if (propertyBuilder.HasValueGenerationStrategy(null, fromDataAnnotation) is null
+                        && propertyBuilder.HasComputedColumnSql(null, fromDataAnnotation) is not null)
                     {
                         context.StopProcessing();
                         return;
@@ -80,10 +80,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
 
                     break;
                 case NpgsqlAnnotationNames.ValueGenerationStrategy:
-                    if ((propertyBuilder.HasDefaultValue(null, fromDataAnnotation) == null
-                         | propertyBuilder.HasDefaultValueSql(null, fromDataAnnotation) == null
-                         | propertyBuilder.HasComputedColumnSql(null, fromDataAnnotation) == null)
-                        && propertyBuilder.HasValueGenerationStrategy(null, fromDataAnnotation) != null)
+                    if ((propertyBuilder.HasDefaultValue(null, fromDataAnnotation) is null
+                         | propertyBuilder.HasDefaultValueSql(null, fromDataAnnotation) is null
+                         | propertyBuilder.HasComputedColumnSql(null, fromDataAnnotation) is null)
+                        && propertyBuilder.HasValueGenerationStrategy(null, fromDataAnnotation) is not null)
                     {
                         context.StopProcessing();
                         return;
@@ -97,7 +97,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
 
         protected override void Validate(IConventionProperty property, in StoreObjectIdentifier storeObject)
         {
-            if (property.GetValueGenerationStrategyConfigurationSource() != null)
+            if (property.GetValueGenerationStrategyConfigurationSource() is not null)
             {
                 var generationStrategy = property.GetValueGenerationStrategy(storeObject);
                 if (generationStrategy == NpgsqlValueGenerationStrategy.None)
@@ -113,14 +113,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
                             "NpgsqlValueGenerationStrategy", property.Name, "DefaultValue"));
                 }
 
-                if(property.GetDefaultValueSql() != null)
+                if(property.GetDefaultValueSql() is not null)
                 {
                     throw new InvalidOperationException(
                         RelationalStrings.ConflictingColumnServerGeneration(
                             "NpgsqlValueGenerationStrategy", property.Name, "DefaultValueSql"));
                 }
 
-                if (property.GetComputedColumnSql() != null)
+                if (property.GetComputedColumnSql() is not null)
                 {
                     throw new InvalidOperationException(
                         RelationalStrings.ConflictingColumnServerGeneration(

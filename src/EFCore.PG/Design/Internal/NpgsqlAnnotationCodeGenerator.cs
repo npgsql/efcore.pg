@@ -195,10 +195,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             {
                 var rangeTypeDef = new PostgresRange(model, annotation.Name);
 
-                if (rangeTypeDef.CanonicalFunction == null &&
-                    rangeTypeDef.SubtypeOpClass == null &&
-                    rangeTypeDef.Collation == null &&
-                    rangeTypeDef.SubtypeDiff == null)
+                if (rangeTypeDef.CanonicalFunction is null &&
+                    rangeTypeDef.SubtypeOpClass is null &&
+                    rangeTypeDef.Collation is null &&
+                    rangeTypeDef.SubtypeDiff is null)
                 {
                     return new MethodCallCodeFragment(_modelHasPostgresRangeMethodInfo,
                         rangeTypeDef.Schema == "public" ? null : rangeTypeDef.Schema,
@@ -348,7 +348,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             [NotNullWhen(true)] out T? annotationValue)
         {
             if (annotations.TryGetValue(annotationName, out var annotation)
-                && annotation.Value != null)
+                && annotation.Value is not null)
             {
                 annotations.Remove(annotationName);
                 annotationValue = (T)annotation.Value;

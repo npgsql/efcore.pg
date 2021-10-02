@@ -53,7 +53,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
                 {
                     NpgsqlValueGenerationStrategy? strategy = null;
                     var table = entityType.GetTableName();
-                    if (table != null)
+                    if (table is not null)
                     {
                         var storeObject = StoreObjectIdentifier.Table(table, entityType.GetSchema());
                         strategy = property.GetValueGenerationStrategy(storeObject, Dependencies.TypeMappingSource);
@@ -66,7 +66,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
                     else
                     {
                         var view = entityType.GetViewName();
-                        if (view != null)
+                        if (view is not null)
                         {
                             var storeObject = StoreObjectIdentifier.View(view, entityType.GetViewSchema());
                             strategy = property.GetValueGenerationStrategy(storeObject, Dependencies.TypeMappingSource);
@@ -79,7 +79,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
                     }
 
                     // Needed for the annotation to show up in the model snapshot
-                    if (strategy != null)
+                    if (strategy is not null)
                     {
                         property.Builder.HasValueGenerationStrategy(strategy);
                     }
@@ -90,8 +90,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
             {
                 if (property.ValueGenerated == ValueGenerated.OnAdd
                     && !property.TryGetDefaultValue(storeObject, out _)
-                    && property.GetDefaultValueSql(storeObject) == null
-                    && property.GetComputedColumnSql(storeObject) == null
+                    && property.GetDefaultValueSql(storeObject) is null
+                    && property.GetComputedColumnSql(storeObject) is null
                     && property.DeclaringEntityType.Model.GetValueGenerationStrategy() != NpgsqlValueGenerationStrategy.None)
                 {
                     var providerClrType = (property.GetValueConverter()
@@ -99,7 +99,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
                                 ?? Dependencies.TypeMappingSource.FindMapping((IProperty)property))?.Converter)
                         ?.ProviderClrType.UnwrapNullableType();
 
-                    return providerClrType != null && (providerClrType.IsInteger());
+                    return providerClrType is not null && (providerClrType.IsInteger());
                 }
 
                 return false;

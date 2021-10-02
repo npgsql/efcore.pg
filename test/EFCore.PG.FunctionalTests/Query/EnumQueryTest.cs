@@ -326,8 +326,8 @@ WHERE s.""UnmappedByteEnum"" = ANY (@__values_0)");
                     {
                         typeof(SomeEnumEntity), (e, a) =>
                         {
-                            Assert.Equal(e == null, a == null);
-                            if (a != null)
+                            Assert.Equal(e is null, a is null);
+                            if (a is not null)
                             {
                                 var ee = (SomeEnumEntity)e;
                                 var aa = (SomeEnumEntity)a;

@@ -148,6 +148,6 @@ namespace Microsoft.EntityFrameworkCore
 
         /// <inheritdocs />
         public override int GetHashCode()
-            => _value != null ? _value.GetHashCode() : 0;
+            => _value is not null ? _value.GetHashCode() : 0;
     }
 }

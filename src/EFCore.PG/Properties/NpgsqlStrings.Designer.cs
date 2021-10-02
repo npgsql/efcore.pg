@@ -147,7 +147,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static EventDefinition<string> LogEnumColumnSkipped(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogEnumColumnSkipped;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogEnumColumnSkipped,
@@ -172,7 +172,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static EventDefinition<string, string> LogExpressionIndexSkipped(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogExpressionIndexSkipped;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogExpressionIndexSkipped,
@@ -197,7 +197,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static EventDefinition<string, string, string, string, string?, bool> LogFoundCollation(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundCollation;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundCollation,
@@ -222,7 +222,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static FallbackEventDefinition LogFoundColumn(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundColumn;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundColumn,
@@ -244,7 +244,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static EventDefinition<string, string, string, string> LogFoundForeignKey(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundForeignKey;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundForeignKey,
@@ -269,7 +269,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static EventDefinition<string, string, bool> LogFoundIndex(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundIndex;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundIndex,
@@ -294,7 +294,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static EventDefinition<string, string> LogFoundPrimaryKey(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundPrimaryKey;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundPrimaryKey,
@@ -319,7 +319,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static FallbackEventDefinition LogFoundSequence(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundSequence;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundSequence,
@@ -341,7 +341,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static EventDefinition<string> LogFoundTable(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundTable;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundTable,
@@ -366,7 +366,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static EventDefinition<string?, string> LogFoundUniqueConstraint(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundUniqueConstraint;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundUniqueConstraint,
@@ -391,7 +391,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static EventDefinition<string?> LogMissingSchema(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogMissingSchema;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogMissingSchema,
@@ -416,7 +416,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static EventDefinition<string?> LogMissingTable(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogMissingTable;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogMissingTable,
@@ -441,7 +441,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static EventDefinition<string, string, string, string> LogPrincipalColumnNotFound(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogPrincipalColumnNotFound;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogPrincipalColumnNotFound,
@@ -466,7 +466,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static EventDefinition<string?, string?, string?> LogPrincipalTableNotInSelectionSet(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogPrincipalTableNotInSelectionSet;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogPrincipalTableNotInSelectionSet,
@@ -491,7 +491,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static EventDefinition<string?, string> LogUnsupportedColumnConstraintSkipped(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogUnsupportedColumnConstraintSkipped;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogUnsupportedColumnConstraintSkipped,
@@ -516,7 +516,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static EventDefinition<string, string> LogUnsupportedColumnIndexSkipped(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogUnsupportedColumnIndexSkipped;
-            if (definition == null)
+            if (definition is null)
             {
                 definition = NonCapturingLazyInitializer.EnsureInitialized(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogUnsupportedColumnIndexSkipped,

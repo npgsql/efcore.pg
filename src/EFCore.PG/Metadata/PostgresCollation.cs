@@ -59,11 +59,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
             var annotationName = BuildAnnotationName(schema, name);
 
-            return annotatable[annotationName] == null ? null : new PostgresCollation(annotatable, annotationName);
+            return annotatable[annotationName] is null ? null : new PostgresCollation(annotatable, annotationName);
         }
 
         private static string BuildAnnotationName(string? schema, string name)
-            => schema != null
+            => schema is not null
                 ? $"{NpgsqlAnnotationNames.CollationDefinitionPrefix}{schema}.{name}"
                 : $"{NpgsqlAnnotationNames.CollationDefinitionPrefix}{name}";
 
@@ -113,7 +113,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         private static (string? Schema, string? Name, string? LcCollate, string? LcCtype, string? Provider, bool? IsDeterministic)
             Deserialize(IAnnotation? annotation)
         {
-            if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
+            if (annotation is null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
             {
                 return (null, null!, null!, null!, null, null);
             }

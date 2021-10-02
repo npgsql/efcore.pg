@@ -32,13 +32,13 @@ namespace Microsoft.EntityFrameworkCore
         public static string? GetHiLoSequenceName(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
         {
             var annotation = property.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceName);
-            if (annotation != null)
+            if (annotation is not null)
             {
                 return (string?)annotation.Value;
             }
 
             var sharedTableRootProperty = property.FindSharedStoreObjectRootProperty(storeObject);
-            return sharedTableRootProperty != null
+            return sharedTableRootProperty is not null
                 ? sharedTableRootProperty.GetHiLoSequenceName(storeObject)
                 : null;
         }
@@ -97,13 +97,13 @@ namespace Microsoft.EntityFrameworkCore
         public static string? GetHiLoSequenceSchema(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
         {
             var annotation = property.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema);
-            if (annotation != null)
+            if (annotation is not null)
             {
                 return (string?)annotation.Value;
             }
 
             var sharedTableRootProperty = property.FindSharedStoreObjectRootProperty(storeObject);
-            return sharedTableRootProperty != null
+            return sharedTableRootProperty is not null
                 ? sharedTableRootProperty.GetHiLoSequenceSchema(storeObject)
                 : null;
         }
@@ -236,8 +236,8 @@ namespace Microsoft.EntityFrameworkCore
             if (property.ValueGenerated != ValueGenerated.OnAdd
                 || property.IsForeignKey()
                 || property.TryGetDefaultValue(out _)
-                || property.GetDefaultValueSql() != null
-                || property.GetComputedColumnSql() != null)
+                || property.GetDefaultValueSql() is not null
+                || property.GetComputedColumnSql() is not null)
             {
                 return NpgsqlValueGenerationStrategy.None;
             }
@@ -287,8 +287,8 @@ namespace Microsoft.EntityFrameworkCore
             if (property.ValueGenerated != ValueGenerated.OnAdd
                 || property.GetContainingForeignKeys().Any(fk => !fk.IsBaseLinking())
                 || property.TryGetDefaultValue(storeObject, out _)
-                || property.GetDefaultValueSql() != null
-                || property.GetComputedColumnSql() != null)
+                || property.GetDefaultValueSql() is not null
+                || property.GetComputedColumnSql() is not null)
             {
                 return NpgsqlValueGenerationStrategy.None;
             }
@@ -372,7 +372,7 @@ namespace Microsoft.EntityFrameworkCore
 
         private static void CheckValueGenerationStrategy(IReadOnlyProperty property, NpgsqlValueGenerationStrategy? value)
         {
-            if (value != null)
+            if (value is not null)
             {
                 var propertyType = property.ClrType;
 

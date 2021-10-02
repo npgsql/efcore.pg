@@ -258,14 +258,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             {
                 get
                 {
-                    if (_logFragment != null)
+                    if (_logFragment is not null)
                     {
                         return _logFragment;
                     }
 
                     var builder = new StringBuilder(base.LogFragment);
 
-                    if (Extension.AdminDatabase != null)
+                    if (Extension.AdminDatabase is not null)
                     {
                         builder.Append(nameof(Extension.AdminDatabase)).Append("=").Append(Extension.AdminDatabase).Append(' ');
                     }
@@ -280,17 +280,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
                         builder.Append(nameof(Extension.UseRedshift)).Append(' ');
                     }
 
-                    if (Extension.ProvideClientCertificatesCallback != null)
+                    if (Extension.ProvideClientCertificatesCallback is not null)
                     {
                         builder.Append(nameof(Extension.ProvideClientCertificatesCallback)).Append(" ");
                     }
 
-                    if (Extension.RemoteCertificateValidationCallback != null)
+                    if (Extension.RemoteCertificateValidationCallback is not null)
                     {
                         builder.Append(nameof(Extension.RemoteCertificateValidationCallback)).Append(" ");
                     }
 
-                    if (Extension.ProvidePasswordCallback != null)
+                    if (Extension.ProvidePasswordCallback is not null)
                     {
                         builder.Append(nameof(Extension.ProvidePasswordCallback)).Append(" ");
                     }
@@ -307,14 +307,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
                         {
                             builder.Append(item.SubtypeClrType).Append("=>");
 
-                            if (item.SchemaName != null)
+                            if (item.SchemaName is not null)
                             {
                                 builder.Append(item.SchemaName).Append(".");
                             }
 
                             builder.Append(item.RangeName);
 
-                            if (item.SubtypeName != null)
+                            if (item.SubtypeName is not null)
                             {
                                 builder.Append("(").Append(item.SubtypeName).Append(")");
                             }
@@ -332,7 +332,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
             public override int GetServiceProviderHashCode()
             {
-                if (_serviceProviderHash == null)
+                if (_serviceProviderHash is null)
                 {
                     var hashCode = new HashCode();
 

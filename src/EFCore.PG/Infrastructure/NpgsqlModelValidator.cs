@@ -81,9 +81,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
                 if (includeProperties?.Count > 0)
                 {
                     var notFound = includeProperties
-                        .FirstOrDefault(i => index.DeclaringEntityType.FindProperty(i) == null);
+                        .FirstOrDefault(i => index.DeclaringEntityType.FindProperty(i) is null);
 
-                    if (notFound != null)
+                    if (notFound is not null)
                     {
                         throw new InvalidOperationException(
                             NpgsqlStrings.IncludePropertyNotFound(index.DeclaringEntityType.DisplayName(), notFound));
@@ -95,7 +95,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
                         .Select(y => y.Key)
                         .FirstOrDefault();
 
-                    if (duplicate != null)
+                    if (duplicate is not null)
                     {
                         throw new InvalidOperationException(
                             NpgsqlStrings.IncludePropertyDuplicated(index.DeclaringEntityType.DisplayName(), duplicate));
@@ -104,7 +104,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
                     var inIndex = includeProperties
                         .FirstOrDefault(i => index.Properties.Any(p => i == p.Name));
 
-                    if (inIndex != null)
+                    if (inIndex is not null)
                     {
                         throw new InvalidOperationException(
                             NpgsqlStrings.IncludePropertyInIndex(index.DeclaringEntityType.DisplayName(), inIndex));

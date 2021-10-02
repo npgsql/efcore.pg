@@ -301,7 +301,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(interleavePrefix, nameof(interleavePrefix));
 
             var parentEntity = entityTypeBuilder.Metadata.Model.FindEntityType(parentTableType);
-            if (parentEntity == null)
+            if (parentEntity is null)
             {
                 throw new ArgumentException($"Entity not found in model for type: {parentEntity}", nameof(parentTableType));
             }

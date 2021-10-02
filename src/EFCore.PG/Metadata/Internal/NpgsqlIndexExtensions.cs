@@ -30,8 +30,8 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         {
             if (index.GetIncludeProperties() != duplicateIndex.GetIncludeProperties())
             {
-                if (index.GetIncludeProperties() == null
-                    || duplicateIndex.GetIncludeProperties() == null
+                if (index.GetIncludeProperties() is null
+                    || duplicateIndex.GetIncludeProperties() is null
                     || !SameColumnNames(index, duplicateIndex, storeObject))
                 {
                     if (shouldThrow)
@@ -97,7 +97,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         }
 
         private static string FormatInclude(IReadOnlyIndex index, StoreObjectIdentifier storeObject)
-            => index.GetIncludeProperties() == null
+            => index.GetIncludeProperties() is null
                 ? "{}"
                 : "{'"
                 + string.Join(

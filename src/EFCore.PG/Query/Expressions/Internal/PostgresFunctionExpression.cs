@@ -90,7 +90,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             ArgumentNames = (argumentNames ?? Array.Empty<string>()).ToList();
             ArgumentSeparators = (argumentSeparators ?? Array.Empty<string>()).ToList();
 
-            if (ArgumentNames.SkipWhile(a => a == null).Contains(null))
+            if (ArgumentNames.SkipWhile(a => a is null).Contains(null))
             {
                 throw new ArgumentException($"{nameof(argumentNames)} must contain nulls followed by non-nulls", nameof(argumentNames));
             }
@@ -122,7 +122,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public override SqlFunctionExpression Update(SqlExpression? instance, IReadOnlyList<SqlExpression>? arguments)
         {
             Check.NotNull(arguments, nameof(arguments));
-            if (instance != null)
+            if (instance is not null)
             {
                 throw new ArgumentException("Must be null", nameof(instance));
             }

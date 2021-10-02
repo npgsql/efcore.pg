@@ -45,7 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             Check.NotNull(options, nameof(options));
 
             var internalServiceProvider = options.FindExtension<CoreOptionsExtension>()?.InternalServiceProvider;
-            if (internalServiceProvider != null)
+            if (internalServiceProvider is not null)
             {
                 using (var scope = internalServiceProvider.CreateScope())
                 {
@@ -90,7 +90,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             {
                 get
                 {
-                    if (_logFragment == null)
+                    if (_logFragment is null)
                     {
                         var builder = new StringBuilder("using NetTopologySuite");
                         if (Extension.IsGeographyDefault)

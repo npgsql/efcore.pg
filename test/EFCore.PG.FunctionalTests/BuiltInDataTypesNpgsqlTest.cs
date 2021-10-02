@@ -813,7 +813,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                     entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.Enum8 == param15).ToList().Single());
 
                 var entityType = context.Model.FindEntityType(typeof(BuiltInNullableDataTypes));
-                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableUnsignedInt16)) != null)
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableUnsignedInt16)) is not null)
                 {
                     ushort? param16 = null;
                     Assert.Same(
@@ -822,7 +822,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                             .Single());
                 }
 
-                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableUnsignedInt32)) != null)
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableUnsignedInt32)) is not null)
                 {
                     uint? param17 = null;
                     Assert.Same(
@@ -831,7 +831,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                             .Single());
                 }
 
-                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableUnsignedInt64)) != null)
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableUnsignedInt64)) is not null)
                 {
                     ulong? param18 = null;
                     Assert.Same(
@@ -840,7 +840,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                             .Single());
                 }
 
-                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableCharacter)) != null)
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableCharacter)) is not null)
                 {
                     char? param19 = null;
                     Assert.Same(
@@ -849,7 +849,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                             .Single());
                 }
 
-                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableSignedByte)) != null)
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableSignedByte)) is not null)
                 {
                     sbyte? param20 = null;
                     Assert.Same(
@@ -858,28 +858,28 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                             .Single());
                 }
 
-                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumU64)) != null)
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumU64)) is not null)
                 {
                     EnumU64? param21 = null;
                     Assert.Same(
                         entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.EnumU64 == param21).ToList().Single());
                 }
 
-                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumU32)) != null)
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumU32)) is not null)
                 {
                     EnumU32? param22 = null;
                     Assert.Same(
                         entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.EnumU32 == param22).ToList().Single());
                 }
 
-                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumU16)) != null)
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumU16)) is not null)
                 {
                     EnumU16? param23 = null;
                     Assert.Same(
                         entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.EnumU16 == param23).ToList().Single());
                 }
 
-                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumS8)) != null)
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumS8)) is not null)
                 {
                     EnumS8? param24 = null;
                     Assert.Same(

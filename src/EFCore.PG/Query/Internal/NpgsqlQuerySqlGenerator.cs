@@ -67,15 +67,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         {
             Check.NotNull(selectExpression, nameof(selectExpression));
 
-            if (selectExpression.Limit != null)
+            if (selectExpression.Limit is not null)
             {
                 Sql.AppendLine().Append("LIMIT ");
                 Visit(selectExpression.Limit);
             }
 
-            if (selectExpression.Offset != null)
+            if (selectExpression.Offset is not null)
             {
-                if (selectExpression.Limit == null)
+                if (selectExpression.Limit is null)
                 {
                     Sql.AppendLine();
                 }
@@ -421,7 +421,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         protected override void GenerateSetOperationOperand(SetOperationBase setOperation, SelectExpression operand)
         {
             // PostgreSQL allows ORDER BY and LIMIT in set operation operands, but requires parentheses
-            if (operand.Orderings.Count > 0 || operand.Limit != null)
+            if (operand.Orderings.Count > 0 || operand.Limit is not null)
             {
                 Sql.AppendLine("(");
                 using (Sql.Indent())
@@ -568,7 +568,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             Sql.Append(" ILIKE ");
             Visit(likeExpression.Pattern);
 
-            if (likeExpression.EscapeChar != null)
+            if (likeExpression.EscapeChar is not null)
             {
                 Sql.Append(" ESCAPE ");
                 Visit(likeExpression.EscapeChar);
@@ -728,7 +728,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
                 if (i < e.Arguments.Count - 1)
                 {
-                    Sql.Append(i < e.ArgumentSeparators.Count && e.ArgumentSeparators[i] != null
+                    Sql.Append(i < e.ArgumentSeparators.Count && e.ArgumentSeparators[i] is not null
                         ? $" {e.ArgumentSeparators[i]} "
                         : ", ");
                 }

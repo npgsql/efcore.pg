@@ -54,7 +54,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             : base(name, shared)
         {
             Name = name;
-            if (scriptPath != null)
+            if (scriptPath is not null)
             {
                 // ReSharper disable once AssignNullToNotNullAttribute
                 _scriptPath = Path.Combine(Path.GetDirectoryName(typeof(NpgsqlTestStore).GetTypeInfo().Assembly.Location), scriptPath);
@@ -82,7 +82,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         {
             if (CreateDatabase(clean))
             {
-                if (_scriptPath != null)
+                if (_scriptPath is not null)
                 {
                     ExecuteScript(_scriptPath);
                 }
@@ -95,7 +95,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                     }
                 }
 
-                if (_additionalSql != null)
+                if (_additionalSql is not null)
                 {
                     Execute(Connection, command => command.ExecuteNonQuery(), _additionalSql);
                 }
@@ -127,7 +127,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             {
                 if (DatabaseExists(Name))
                 {
-                    if (_scriptPath != null)
+                    if (_scriptPath is not null)
                     {
                         return false;
                     }
@@ -407,7 +407,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
             command.CommandText = commandText;
             command.CommandTimeout = CommandTimeout;
 
-            if (parameters != null)
+            if (parameters is not null)
             {
                 for (var i = 0; i < parameters.Count; i++)
                 {

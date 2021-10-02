@@ -79,7 +79,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             }
 
             var typeMapping = instance.TypeMapping;
-            Debug.Assert(typeMapping != null, "Instance must have typeMapping assigned.");
+            Debug.Assert(typeMapping is not null, "Instance must have typeMapping assigned.");
             var storeType = instance.TypeMapping!.StoreType;
 
             if (typeof(Point).IsAssignableFrom(declaringType))
@@ -93,7 +93,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     _ => null
                 };
 
-                if (function != null)
+                if (function is not null)
                 {
                     return Function(function, new[] { instance }, typeof(double));
                 }

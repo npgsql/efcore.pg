@@ -30,7 +30,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                 yield return new Annotation(NpgsqlAnnotationNames.UnloggedTable, entityType.GetIsUnlogged());
             }
 
-            if (entityType[CockroachDbAnnotationNames.InterleaveInParent] != null)
+            if (entityType[CockroachDbAnnotationNames.InterleaveInParent] is not null)
             {
                 yield return new Annotation(CockroachDbAnnotationNames.InterleaveInParent, entityType[CockroachDbAnnotationNames.InterleaveInParent]);
             }
@@ -63,7 +63,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                         _                                                     => false
                     });
 
-            if (valueGeneratedProperty != null)
+            if (valueGeneratedProperty is not null)
             {
                 var valueGenerationStrategy = valueGeneratedProperty.GetValueGenerationStrategy();
                 yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy);
@@ -81,22 +81,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             // If the property has a collation explicitly defined on it via the standard EF mechanism, it will get
             // passed on the Collation property (we don't need to do anything).
             // Otherwise, a model-wide default column collation exists, pass that through our custom annotation.
-            if (column.PropertyMappings.All(m => RelationalPropertyExtensions.GetCollation(m.Property) == null) &&
+            if (column.PropertyMappings.All(m => RelationalPropertyExtensions.GetCollation(m.Property) is null) &&
                 column.PropertyMappings.Select(m => m.Property.GetDefaultCollation())
-                    .FirstOrDefault(c => c != null) is string defaultColumnCollation)
+                    .FirstOrDefault(c => c is not null) is string defaultColumnCollation)
             {
                 yield return new Annotation(NpgsqlAnnotationNames.DefaultColumnCollation, defaultColumnCollation);
             }
 
             if (column.PropertyMappings.Select(m => m.Property.GetTsVectorConfig())
-                .FirstOrDefault(c => c != null) is string tsVectorConfig)
+                .FirstOrDefault(c => c is not null) is string tsVectorConfig)
             {
                 yield return new Annotation(NpgsqlAnnotationNames.TsVectorConfig, tsVectorConfig);
             }
 
             valueGeneratedProperty = column.PropertyMappings.Select(m => m.Property)
-                .FirstOrDefault(p => p.GetTsVectorProperties() != null);
-            if (valueGeneratedProperty != null)
+                .FirstOrDefault(p => p.GetTsVectorProperties() is not null);
+            if (valueGeneratedProperty is not null)
             {
                 var tableIdentifier = StoreObjectIdentifier.Table(column.Table.Name, column.Table.Schema);
 

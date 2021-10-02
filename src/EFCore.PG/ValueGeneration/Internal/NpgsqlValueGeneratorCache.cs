@@ -35,7 +35,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
         {
             var sequence = property.FindHiLoSequence();
 
-            Debug.Assert(sequence != null);
+            Debug.Assert(sequence is not null);
 
             return _sequenceGeneratorCache.GetOrAdd(
                 GetSequenceName(sequence, connection),
@@ -50,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
                    + "::"
                    + dbConnection.DataSource?.ToUpperInvariant()
                    + "::"
-                   + (sequence.Schema == null ? "" : sequence.Schema + ".") + sequence.Name;
+                   + (sequence.Schema is null ? "" : sequence.Schema + ".") + sequence.Name;
         }
     }
 }

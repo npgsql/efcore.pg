@@ -42,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 sb.Append('"');
                 sb.Append(kv.Key);   // TODO: Escape
                 sb.Append("\"=>");
-                if (kv.Value == null)
+                if (kv.Value is null)
                 {
                     sb.Append("NULL");
                 }

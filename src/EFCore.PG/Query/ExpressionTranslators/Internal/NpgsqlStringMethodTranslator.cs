@@ -185,7 +185,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     method == TrimBothWithChars  || method == TrimBothWithSingleChar)
                 {
                     var constantTrimChars = arguments[0] as SqlConstantExpression;
-                    if (constantTrimChars == null)
+                    if (constantTrimChars is null)
                     {
                         return null; // Don't translate if trim chars isn't a constant
                     }
@@ -200,7 +200,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     new[]
                     {
                         instance!,
-                        trimChars == null || trimChars.Length == 0
+                        trimChars is null || trimChars.Length == 0
                             ? _whitespace
                             : _sqlExpressionFactory.Constant(new string(trimChars))
                     },

@@ -147,13 +147,13 @@ namespace System
         {
             var method = type.GetTypeInfo().GetMethod(name, parameters);
 
-            if (method == null
+            if (method is null
                 && parameters.Length == 0)
             {
                 method = type.GetMethod(name);
             }
 
-            if (method == null)
+            if (method is null)
             {
                 throw new InvalidOperationException();
             }
@@ -206,7 +206,7 @@ namespace System
         public static Type GetSequenceType(this Type type)
         {
             var sequenceType = TryGetSequenceType(type);
-            if (sequenceType == null)
+            if (sequenceType is null)
             {
                 // TODO: Add exception message
                 throw new ArgumentException();
@@ -231,7 +231,7 @@ namespace System
             Type? singleImplementation = null;
             foreach (var implementation in types)
             {
-                if (singleImplementation == null)
+                if (singleImplementation is null)
                 {
                     singleImplementation = implementation;
                 }
@@ -258,8 +258,8 @@ namespace System
             var propertyElementType = propertyType.TryGetSequenceType();
             var fieldElementType = fieldType.TryGetSequenceType();
 
-            return propertyElementType != null
-                && fieldElementType != null
+            return propertyElementType is not null
+                && fieldElementType is not null
                 && IsCompatibleWith(propertyElementType, fieldElementType);
         }
 
@@ -292,7 +292,7 @@ namespace System
         {
             type = type.BaseType;
 
-            while (type != null)
+            while (type is not null)
             {
                 yield return type;
 
@@ -302,7 +302,7 @@ namespace System
 
         public static IEnumerable<Type> GetTypesInHierarchy(this Type type)
         {
-            while (type != null)
+            while (type is not null)
             {
                 yield return type;
 
@@ -336,7 +336,7 @@ namespace System
 
                 type = typeInfo.BaseType;
             }
-            while (type != null);
+            while (type is not null);
         }
 
         // Looking up the members through the whole hierarchy allows to find inherited private members.
@@ -357,7 +357,7 @@ namespace System
 
                 type = type.BaseType;
             }
-            while (type != null);
+            while (type is not null);
         }
 
         public static IEnumerable<MemberInfo> GetMembersInHierarchy(this Type type, string name)
@@ -412,7 +412,7 @@ namespace System
             }
             catch (ReflectionTypeLoadException ex)
             {
-                return ex.Types.Where(t => t != null).Select(IntrospectionExtensions.GetTypeInfo);
+                return ex.Types.Where(t => t is not null).Select(IntrospectionExtensions.GetTypeInfo);
             }
         }
 

@@ -9,6 +9,6 @@ namespace System
 
         // Note: a null version is interpreted as the latest version and will always return false.
         internal static bool IsUnder(this Version version, int major, int minor = 0)
-            => version != null && version < new Version(major, minor);
+            => version is not null && version < new Version(major, minor);
     }
 }

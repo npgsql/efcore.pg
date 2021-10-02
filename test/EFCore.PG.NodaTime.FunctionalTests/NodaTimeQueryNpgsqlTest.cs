@@ -1449,8 +1449,8 @@ WHERE n.""Instant"" AT TIME ZONE 'UTC' = TIMESTAMP '2018-04-20T10:31:33.666'");
                     {
                         typeof(NodaTimeTypes), (e, a) =>
                         {
-                            Assert.Equal(e == null, a == null);
-                            if (a != null)
+                            Assert.Equal(e is null, a is null);
+                            if (a is not null)
                             {
                                 var ee = (NodaTimeTypes)e;
                                 var aa = (NodaTimeTypes)a;

@@ -487,8 +487,8 @@ WHERE make_timestamptz(date_part('year', e.""TimestamptzDateTime"")::INT, date_p
                     {
                         typeof(Entity), (e, a) =>
                         {
-                            Assert.Equal(e == null, a == null);
-                            if (a != null)
+                            Assert.Equal(e is null, a is null);
+                            if (a is not null)
                             {
                                 var ee = (Entity)e;
                                 var aa = (Entity)a;

@@ -44,7 +44,7 @@ namespace Microsoft.EntityFrameworkCore
 
             var model = property.DeclaringEntityType.Model;
 
-            if (model.FindSequence(name, schema) == null)
+            if (model.FindSequence(name, schema) is null)
             {
                 model.AddSequence(name, schema).IncrementBy = 10;
             }
@@ -94,7 +94,7 @@ namespace Microsoft.EntityFrameworkCore
             propertyBuilder.Metadata.SetHiLoSequenceName(name, fromDataAnnotation);
             propertyBuilder.Metadata.SetHiLoSequenceSchema(schema, fromDataAnnotation);
 
-            return name == null
+            return name is null
                 ? null
                 : propertyBuilder.Metadata.DeclaringEntityType.Model.Builder.HasSequence(name, schema, fromDataAnnotation);
         }
@@ -336,7 +336,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
 
-            return (valueGenerationStrategy == null
+            return (valueGenerationStrategy is null
                     || NpgsqlPropertyExtensions.IsCompatibleWithValueGeneration(propertyBuilder.Metadata))
                    && propertyBuilder.CanSetAnnotation(
                        NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy, fromDataAnnotation);

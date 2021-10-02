@@ -366,13 +366,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var storeTypeName = mappingInfo.StoreTypeName;
             var storeTypeNameBase = mappingInfo.StoreTypeNameBase;
 
-            if (storeTypeName != null)
+            if (storeTypeName is not null)
             {
                 if (StoreTypeMappings.TryGetValue(storeTypeName, out var mappings))
                 {
                     // We found the user-specified store type. No CLR type was provided - we're probably
                     // scaffolding from an existing database, take the first mapping as the default.
-                    if (clrType == null)
+                    if (clrType is null)
                     {
                         return mappings[0];
                     }
@@ -398,7 +398,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 if (StoreTypeMappings.TryGetValue(storeTypeNameBase!, out mappings))
                 {
-                    if (clrType == null)
+                    if (clrType is null)
                     {
                         return mappings[0].Clone(in mappingInfo);
                     }
@@ -418,10 +418,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 // we proceed with a CLR type lookup (if the type doesn't exist at all the failure will come later).
             }
 
-            if (clrType == null ||
+            if (clrType is null ||
                 !ClrTypeMappings.TryGetValue(clrType, out var mapping) ||
                 // Special case for byte[] mapped as smallint[] - don't return bytea mapping
-                storeTypeName != null && storeTypeName == "smallint[]")
+                storeTypeName is not null && storeTypeName == "smallint[]")
             {
                 return null;
             }
@@ -453,14 +453,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var clrType = mappingInfo.ClrType;
             Type? elementClrType = null;
 
-            if (clrType != null && !clrType.TryGetElementType(out elementClrType))
+            if (clrType is not null && !clrType.TryGetElementType(out elementClrType))
             {
                 return null; // Not an array/list
             }
 
             var storeType = mappingInfo.StoreTypeName;
             var storeTypeNameBase = mappingInfo.StoreTypeNameBase;
-            if (storeType != null)
+            if (storeType is not null)
             {
                 // PostgreSQL array type names are the element plus []
                 if (!storeType.EndsWith("[]", StringComparison.Ordinal))
@@ -473,7 +473,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 RelationalTypeMapping? elementMapping;
 
-                elementMapping = elementClrType == null
+                elementMapping = elementClrType is null
                     ? FindMapping(new RelationalTypeMappingInfo(
                         elementStoreType, elementStoreTypeNameBase,
                         mappingInfo.IsUnicode, mappingInfo.Size, mappingInfo.Precision, mappingInfo.Scale))
@@ -484,7 +484,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 // If no mapping was found for the element, there's no mapping for the array.
                 // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
-                if (elementMapping == null || elementMapping is NpgsqlArrayTypeMapping)
+                if (elementMapping is null || elementMapping is NpgsqlArrayTypeMapping)
                 {
                     return null;
                 }
@@ -494,7 +494,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     : new NpgsqlArrayListTypeMapping(storeType, elementMapping);
             }
 
-            if (clrType == null)
+            if (clrType is null)
             {
                 return null;
             }
@@ -502,13 +502,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (clrType.IsArray)
             {
                 var elementType = clrType.GetElementType();
-                Debug.Assert(elementType != null, "Detected array type but element type is null");
+                Debug.Assert(elementType is not null, "Detected array type but element type is null");
 
                 var elementMapping = (RelationalTypeMapping?)FindMapping(elementType);
 
                 // If no mapping was found for the element, there's no mapping for the array.
                 // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
-                if (elementMapping == null || elementMapping is NpgsqlArrayTypeMapping)
+                if (elementMapping is null || elementMapping is NpgsqlArrayTypeMapping)
                 {
                     return null;
                 }
@@ -528,7 +528,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 // If an element isn't supported, neither is its array
                 var elementMapping = (RelationalTypeMapping?)FindMapping(elementType);
-                if (elementMapping == null)
+                if (elementMapping is null)
                 {
                     return null;
                 }
@@ -552,7 +552,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var rangeClrType = mappingInfo.ClrType;
 
             // If the incoming MappingInfo contains a ClrType, make sure it's an NpgsqlRange<T>, otherwise bail
-            if (rangeClrType != null &&
+            if (rangeClrType is not null &&
                 (!rangeClrType.IsGenericType || rangeClrType.GetGenericTypeDefinition() != typeof(NpgsqlRange<>)))
             {
                 return null;
@@ -560,16 +560,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             // Try to find a user range definition (defined by the user on their context options), based on the
             // incoming MappingInfo's StoreType or ClrType
-            if (rangeStoreType != null)
+            if (rangeStoreType is not null)
             {
                 rangeDefinition = _userRangeDefinitions.SingleOrDefault(m => m.RangeName == rangeStoreType);
 
-                if (rangeDefinition == null)
+                if (rangeDefinition is null)
                 {
                     return null;
                 }
 
-                if (rangeClrType == null)
+                if (rangeClrType is null)
                 {
                     // The incoming MappingInfo does not contain a ClrType, only a StoreType (i.e. scaffolding).
                     // Construct the range ClrType from the range definition's subtype ClrType
@@ -582,7 +582,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     return null;
                 }
             }
-            else if (rangeClrType != null)
+            else if (rangeClrType is not null)
             {
                 rangeDefinition = _userRangeDefinitions.SingleOrDefault(m => m.SubtypeClrType == rangeClrType.GetGenericArguments()[0]);
             }
@@ -594,11 +594,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             // We now have a user-defined range definition from the context options. Use it to get the subtype's
             // mapping
-            var subtypeMapping = (RelationalTypeMapping?)(rangeDefinition.SubtypeName == null
+            var subtypeMapping = (RelationalTypeMapping?)(rangeDefinition.SubtypeName is null
                 ? FindMapping(rangeDefinition.SubtypeClrType)
                 : FindMapping(rangeDefinition.SubtypeName));
 
-            if (subtypeMapping == null)
+            if (subtypeMapping is null)
             {
                 throw new Exception($"Could not map range {rangeDefinition.RangeName}, no mapping was found its subtype");
             }

@@ -11,13 +11,13 @@ namespace System.Reflection
             => (memberInfo as PropertyInfo)?.PropertyType ?? ((FieldInfo)memberInfo).FieldType;
 
         public static bool IsSameAs(this MemberInfo? propertyInfo, MemberInfo? otherPropertyInfo)
-            => propertyInfo == null
-                ? otherPropertyInfo == null
-                : (otherPropertyInfo != null
+            => propertyInfo is null
+                ? otherPropertyInfo is null
+                : (otherPropertyInfo is not null
                     && (Equals(propertyInfo, otherPropertyInfo)
                         || (propertyInfo.Name == otherPropertyInfo.Name
-                            && propertyInfo.DeclaringType != null
-                            && otherPropertyInfo.DeclaringType != null
+                            && propertyInfo.DeclaringType is not null
+                            && otherPropertyInfo.DeclaringType is not null
                             && (propertyInfo.DeclaringType == otherPropertyInfo.DeclaringType
                                 || propertyInfo.DeclaringType.GetTypeInfo().IsSubclassOf(otherPropertyInfo.DeclaringType)
                                 || otherPropertyInfo.DeclaringType.GetTypeInfo().IsSubclassOf(propertyInfo.DeclaringType)

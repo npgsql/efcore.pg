@@ -118,7 +118,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     // Handle either array columns (with an array mapping) or parameters/constants (no mapping). We specifically
                     // don't want to translate if the type mapping is bytea (CLR type is array, but not an array in
                     // the database).
-                    // arrayOrList.TypeMapping == null && _typeMappingSource.FindMapping(arrayOrList.Type) != null ||
+                    // arrayOrList.TypeMapping is null && _typeMappingSource.FindMapping(arrayOrList.Type) is not null ||
                     arrayOrList.TypeMapping is NpgsqlArrayTypeMapping or null
                     && !_useRedshift)
                 {

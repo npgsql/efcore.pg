@@ -109,7 +109,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         /// <inheritdoc />
         public override bool Equals(object? obj)
-            => obj != null
+            => obj is not null
                && (ReferenceEquals(this, obj)
                    || obj is PostgresNewArrayExpression sqlBinaryExpression
                    && Equals(sqlBinaryExpression));

@@ -32,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         {
             get
             {
-                if (_postgresVersion != null)
+                if (_postgresVersion is not null)
                 {
                     return _postgresVersion;
                 }

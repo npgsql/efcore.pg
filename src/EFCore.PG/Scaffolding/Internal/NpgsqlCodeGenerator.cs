@@ -31,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
             MethodCallCodeFragment? providerOptions)
             => new(
                 _useNpgsqlMethodInfo,
-                providerOptions == null
+                providerOptions is null
                     ? new object[] { connectionString }
                     : new object[] { connectionString, new NestedClosureCodeFragment("x", providerOptions) });
     }

@@ -23,7 +23,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public virtual void Validate(IDbContextOptions options)
         {
             var internalServiceProvider = options.FindExtension<CoreOptionsExtension>()?.InternalServiceProvider;
-            if (internalServiceProvider != null)
+            if (internalServiceProvider is not null)
             {
                 using (var scope = internalServiceProvider.CreateScope())
                 {

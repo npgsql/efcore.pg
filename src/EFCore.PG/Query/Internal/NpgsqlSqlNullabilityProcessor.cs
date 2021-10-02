@@ -268,7 +268,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     }
                 }
 
-                if (newInitializers != null)
+                if (newInitializers is not null)
                 {
                     newInitializers.Add(newInitializer);
                 }
@@ -332,7 +332,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     }
                 }
 
-                if (newPath != null)
+                if (newPath is not null)
                 {
                     newPath.Add(newPathComponent);
                 }

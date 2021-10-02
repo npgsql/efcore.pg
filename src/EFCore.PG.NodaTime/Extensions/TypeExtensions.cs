@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 : type.IsGenericList()
                     ? type.GetGenericArguments()[0]
                     : null;
-            return elementType != null;
+            return elementType is not null;
         }
     }
 }

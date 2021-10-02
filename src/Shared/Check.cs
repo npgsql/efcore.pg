@@ -97,7 +97,7 @@ namespace Microsoft.EntityFrameworkCore.Utilities
         {
             NotNull(value, parameterName);
 
-            if (value.Any(e => e == null))
+            if (value.Any(e => e is null))
             {
                 NotEmpty(parameterName, nameof(parameterName));
 

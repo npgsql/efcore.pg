@@ -21,7 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
             var providerElementType = default(Type);
 
             if (modelClrType.TryGetElementType(out var modelElementType) &&
-                (providerClrType == null || providerClrType.TryGetElementType(out providerElementType)))
+                (providerClrType is null || providerClrType.TryGetElementType(out providerElementType)))
             {
                 // For each ValueConverterInfo selected by the superclass for the element type,
                 // return a ValueConverterInfo for its array type

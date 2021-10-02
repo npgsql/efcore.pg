@@ -22,7 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
 
                 var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
-                if (TableSchema != null)
+                if (TableSchema is not null)
                 {
                     builder
                         .Append("n.nspname=")

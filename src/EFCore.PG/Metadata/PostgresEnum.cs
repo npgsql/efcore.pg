@@ -105,11 +105,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
             var annotationName = BuildAnnotationName(schema, name);
 
-            return annotatable[annotationName] == null ? null : new PostgresEnum(annotatable, annotationName);
+            return annotatable[annotationName] is null ? null : new PostgresEnum(annotatable, annotationName);
         }
 
         private static string BuildAnnotationName(string? schema, string name)
-            => schema != null
+            => schema is not null
                 ? $"{NpgsqlAnnotationNames.EnumPrefix}{schema}.{name}"
                 : $"{NpgsqlAnnotationNames.EnumPrefix}{name}";
 
@@ -159,7 +159,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         private static (string? Schema, string? Name, string[]? Labels) Deserialize(IAnnotation? annotation)
         {
-            if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
+            if (annotation is null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
             {
                 return (null, null, null);
             }

@@ -50,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
             }
 
             if (name == NpgsqlAnnotationNames.TsVectorConfig &&
-                propertyBuilder.Metadata.GetTsVectorConfig() != null)
+                propertyBuilder.Metadata.GetTsVectorConfig() is not null)
             {
                 propertyBuilder.ValueGenerated(ValueGenerated.OnAddOrUpdate);
                 return;
@@ -67,7 +67,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
         protected override ValueGenerated? GetValueGenerated(IConventionProperty property)
         {
             var tableName = property.DeclaringEntityType.GetTableName();
-            if (tableName == null)
+            if (tableName is null)
             {
                 return null;
             }

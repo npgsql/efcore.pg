@@ -19,9 +19,9 @@ namespace Microsoft.EntityFrameworkCore.Internal
             where TValue : class
         {
             var tmp = Volatile.Read(ref target);
-            if (tmp != null)
+            if (tmp is not null)
             {
-                Check.DebugAssert(target != null, $"target was null in {nameof(EnsureInitialized)} after check");
+                Check.DebugAssert(target is not null, $"target was null in {nameof(EnsureInitialized)} after check");
                 return tmp;
             }
 
@@ -38,9 +38,9 @@ namespace Microsoft.EntityFrameworkCore.Internal
             where TValue : class
         {
             var tmp = Volatile.Read(ref target);
-            if (tmp != null)
+            if (tmp is not null)
             {
-                Check.DebugAssert(target != null, $"target was null in {nameof(EnsureInitialized)} after check");
+                Check.DebugAssert(target is not null, $"target was null in {nameof(EnsureInitialized)} after check");
                 return tmp;
             }
 
@@ -58,9 +58,9 @@ namespace Microsoft.EntityFrameworkCore.Internal
             where TValue : class
         {
             var tmp = Volatile.Read(ref target);
-            if (tmp != null)
+            if (tmp is not null)
             {
-                Check.DebugAssert(target != null, $"target was null in {nameof(EnsureInitialized)} after check");
+                Check.DebugAssert(target is not null, $"target was null in {nameof(EnsureInitialized)} after check");
                 return tmp;
             }
 
@@ -80,8 +80,8 @@ namespace Microsoft.EntityFrameworkCore.Internal
             if (alreadyInitialized)
             {
                 var value = Volatile.Read(ref target);
-                Check.DebugAssert(target != null, $"target was null in {nameof(EnsureInitialized)} after check");
-                Check.DebugAssert(value != null, $"value was null in {nameof(EnsureInitialized)} after check");
+                Check.DebugAssert(target is not null, $"target was null in {nameof(EnsureInitialized)} after check");
+                Check.DebugAssert(value is not null, $"value was null in {nameof(EnsureInitialized)} after check");
                 return value;
             }
 
@@ -97,9 +97,9 @@ namespace Microsoft.EntityFrameworkCore.Internal
             where TValue : class
         {
             var tmp = Volatile.Read(ref target);
-            if (tmp != null)
+            if (tmp is not null)
             {
-                Check.DebugAssert(target != null, $"target was null in {nameof(EnsureInitialized)} after check");
+                Check.DebugAssert(target is not null, $"target was null in {nameof(EnsureInitialized)} after check");
                 return tmp;
             }
 
@@ -115,16 +115,16 @@ namespace Microsoft.EntityFrameworkCore.Internal
             where TValue : class
         {
             var tmp = Volatile.Read(ref target);
-            if (tmp != null)
+            if (tmp is not null)
             {
-                Check.DebugAssert(target != null, $"target was null in {nameof(EnsureInitialized)} after check");
+                Check.DebugAssert(target is not null, $"target was null in {nameof(EnsureInitialized)} after check");
                 return tmp;
             }
 
             valueFactory(param);
 
             var tmp2 = Volatile.Read(ref target);
-            Check.DebugAssert(target != null && tmp2 != null,
+            Check.DebugAssert(target is not null && tmp2 is not null,
                 $"{nameof(valueFactory)} did not initialize {nameof(target)} in {nameof(EnsureInitialized)}");
             return tmp2;
         }
