@@ -516,7 +516,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         private SqlExpression GenerateOneBasedIndexExpression(SqlExpression expression)
             => expression is SqlConstantExpression constant
                 ? _sqlExpressionFactory.Constant(Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
-                : (SqlExpression)_sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));
+                : _sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));
 
         #region Copied from RelationalSqlTranslatingExpressionVisitor
 
