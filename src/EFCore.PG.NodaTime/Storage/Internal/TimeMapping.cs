@@ -37,7 +37,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             => new TimeMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"TIME '{LocalTimePattern.ExtendedIso.Format((LocalTime)value)}'";
+            => $"TIME '{GenerateEmbeddedNonNullSqlLiteral(value)}'";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
+            => LocalTimePattern.ExtendedIso.Format((LocalTime)value);
 
         public override Expression GenerateCodeLiteral(object value)
         {

@@ -44,5 +44,53 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             base.ConfigureParameter(parameter);
             npgsqlParameter.NpgsqlDbType = NpgsqlDbType;
         }
+
+        /// <summary>
+        /// Generates the SQL representation of a literal value meant to be embedded in another literal value, e.g. in a range.
+        /// </summary>
+        /// <param name="value">The literal value.</param>
+        /// <returns>
+        /// The generated string.
+        /// </returns>
+        public virtual string GenerateEmbeddedSqlLiteral(object? value)
+        {
+            value = ConvertUnderlyingEnumValueToEnum(value);
+
+            if (Converter != null)
+            {
+                value = Converter.ConvertToProvider(value);
+            }
+
+            return GenerateEmbeddedProviderValueSqlLiteral(value);
+        }
+
+        /// <summary>
+        /// Generates the SQL representation of a literal value without conversion, meant to be embedded in another literal value,
+        /// e.g. in a range.
+        /// </summary>
+        /// <param name="value">The literal value.</param>
+        /// <returns>
+        /// The generated string.
+        /// </returns>
+        public virtual string GenerateEmbeddedProviderValueSqlLiteral(object? value)
+            => value == null
+                ? "NULL"
+                : GenerateEmbeddedNonNullSqlLiteral(value);
+
+        /// <summary>
+        /// Generates the SQL representation of a non-null literal value, meant to be embedded in another literal value, e.g. in a range.
+        /// </summary>
+        /// <param name="value">The literal value.</param>
+        /// <returns>
+        /// The generated string.
+        /// </returns>
+        protected virtual string GenerateEmbeddedNonNullSqlLiteral(object value)
+            => GenerateNonNullSqlLiteral(value);
+
+        // Copied from RelationalTypeMapping
+        private object? ConvertUnderlyingEnumValueToEnum(object? value)
+            => value?.GetType().IsInteger() == true && ClrType.UnwrapNullableType().IsEnum
+                ? Enum.ToObject(ClrType.UnwrapNullableType(), value)
+                : value;
     }
 }

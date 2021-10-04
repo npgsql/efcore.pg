@@ -21,7 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         private static readonly MethodInfo PlusNanosecondsMethod =
             typeof(LocalDateTime).GetMethod(nameof(LocalDateTime.PlusNanoseconds), new[] { typeof(long) })!;
 
-        public TimestampLocalDateTimeMapping() : base("timestamp", typeof(LocalDateTime), NpgsqlDbType.Timestamp) {}
+        public TimestampLocalDateTimeMapping() : base("timestamp without time zone", typeof(LocalDateTime), NpgsqlDbType.Timestamp) {}
 
         protected TimestampLocalDateTimeMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.Timestamp) {}
@@ -36,7 +36,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             => new TimestampLocalDateTimeMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"TIMESTAMP '{LocalDateTimePattern.ExtendedIso.Format((LocalDateTime)value)}'";
+            => $"TIMESTAMP '{GenerateLiteralCore(value)}'";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
+            => $@"""{GenerateLiteralCore(value)}""";
+
+        private string GenerateLiteralCore(object value)
+            => LocalDateTimePattern.ExtendedIso.Format((LocalDateTime)value);
 
         public override Expression GenerateCodeLiteral(object value) => GenerateCodeLiteral((LocalDateTime)value);
 

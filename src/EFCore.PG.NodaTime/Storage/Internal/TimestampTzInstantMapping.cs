@@ -26,7 +26,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             => new TimestampTzInstantMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"TIMESTAMPTZ '{InstantPattern.ExtendedIso.Format((Instant)value)}'";
+            => $"TIMESTAMPTZ '{GenerateLiteralCore(value)}'";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
+            => $@"""{GenerateLiteralCore(value)}""";
+
+        private string GenerateLiteralCore(object value)
+            => InstantPattern.ExtendedIso.Format((Instant)value);
 
         internal static Expression GenerateCodeLiteral(Instant instant)
             => Expression.Call(_fromUnixTimeTicks, Expression.Constant(instant.ToUnixTimeTicks()));

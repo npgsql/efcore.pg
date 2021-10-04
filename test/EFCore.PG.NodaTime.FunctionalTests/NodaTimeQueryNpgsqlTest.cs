@@ -15,9 +15,9 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    public class NodaTimeTest : QueryTestBase<NodaTimeTest.NodaTimeFixture>
+    public class NodaTimeQueryNpgsqlTest : QueryTestBase<NodaTimeQueryNpgsqlTest.NodaTimeQueryNpgsqlFixture>
     {
-        public NodaTimeTest(NodaTimeFixture fixture, ITestOutputHelper testOutputHelper)
+        public NodaTimeQueryNpgsqlTest(NodaTimeQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
@@ -1083,7 +1083,7 @@ WHERE n.""DateInterval"" @> @__dateInterval_0");
 
 SELECT n.""Id"", n.""DateInterval"", n.""DateRange"", n.""Duration"", n.""Instant"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE n.""DateInterval"" * @__dateInterval_0 = '[2018-04-22, 2018-04-24]'::daterange");
+WHERE n.""DateInterval"" * @__dateInterval_0 = '[2018-04-22,2018-04-24]'::daterange");
         }
 
         [ConditionalTheory]
@@ -1104,7 +1104,7 @@ WHERE n.""DateInterval"" * @__dateInterval_0 = '[2018-04-22, 2018-04-24]'::dater
 
 SELECT n.""Id"", n.""DateInterval"", n.""DateRange"", n.""Duration"", n.""Instant"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE n.""DateInterval"" + @__dateInterval_0 = '[2018-04-20, 2018-04-26]'::daterange");
+WHERE n.""DateInterval"" + @__dateInterval_0 = '[2018-04-20,2018-04-26]'::daterange");
         }
 
         #endregion DateInterval
@@ -1411,7 +1411,7 @@ WHERE n.""Instant"" AT TIME ZONE 'UTC' = TIMESTAMP '2018-04-20T10:31:33.666'");
             // ReSharper restore UnusedAutoPropertyAccessor.Global
         }
 
-        public class NodaTimeFixture : SharedStoreFixtureBase<NodaTimeContext>, IQueryFixtureBase
+        public class NodaTimeQueryNpgsqlFixture : SharedStoreFixtureBase<NodaTimeContext>, IQueryFixtureBase
         {
             protected override string StoreName => "NodaTimeTest";
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;

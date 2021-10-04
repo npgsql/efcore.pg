@@ -14,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     public class LegacyTimestampInstantMapping : NpgsqlTypeMapping
     {
         public LegacyTimestampInstantMapping()
-            : base("timestamp", typeof(Instant), NpgsqlDbType.Timestamp)
+            : base("timestamp without time zone", typeof(Instant), NpgsqlDbType.Timestamp)
         {
         }
 
@@ -31,7 +31,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             => new LegacyTimestampInstantMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"TIMESTAMP '{InstantPattern.ExtendedIso.Format((Instant)value)}'";
+            => $"TIMESTAMP '{GenerateLiteralCore(value)}'";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
+            => $@"""{GenerateLiteralCore(value)}""";
+
+        private string GenerateLiteralCore(object value)
+            => InstantPattern.ExtendedIso.Format((Instant)value);
 
         public override Expression GenerateCodeLiteral(object value)
             => TimestampTzInstantMapping.GenerateCodeLiteral((Instant)value);

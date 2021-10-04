@@ -31,7 +31,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             => new TimestampTzZonedDateTimeMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"TIMESTAMPTZ '{Pattern.Format((ZonedDateTime)value)}'";
+            => $"TIMESTAMPTZ '{GenerateLiteralCore(value)}'";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
+            => $@"""{GenerateLiteralCore(value)}""";
+
+        private string GenerateLiteralCore(object value)
+            => Pattern.Format((ZonedDateTime)value);
 
         public override Expression GenerateCodeLiteral(object value)
         {

@@ -49,7 +49,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             => new TimeTzMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"TIMETZ '{Pattern.Format((OffsetTime)value)}'";
+            => $"TIMETZ '{GenerateLiteralCore(value)}'";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
+            => $@"""{GenerateLiteralCore(value)}""";
+
+        private string GenerateLiteralCore(object value)
+            => Pattern.Format((OffsetTime)value);
 
         public override Expression GenerateCodeLiteral(object value)
         {
