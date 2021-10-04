@@ -43,7 +43,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var range = (DateInterval)value;
-            return $"'[{LocalDatePattern.Iso.Format(range.Start)}, {LocalDatePattern.Iso.Format(range.End)}]'::daterange";
+            return $"'[{LocalDatePattern.Iso.Format(range.Start)},{LocalDatePattern.Iso.Format(range.End)}]'::daterange";
         }
 
         public override Expression GenerateCodeLiteral(object value)

@@ -41,7 +41,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             => new PeriodIntervalMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"INTERVAL '{PeriodPattern.NormalizingIso.Format((Period)value)}'";
+            => $"INTERVAL '{GenerateLiteralCore(value)}'";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
+            => $@"""{GenerateLiteralCore(value)}""";
+
+        private string GenerateLiteralCore(object value)
+            => PeriodPattern.NormalizingIso.Format((Period)value);
 
         public override Expression GenerateCodeLiteral(object value)
         {

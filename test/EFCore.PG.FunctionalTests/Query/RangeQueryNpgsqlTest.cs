@@ -243,7 +243,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using var context = CreateContext();
             var e = context.RangeTestEntities.Single(x => x.SchemaRange == NpgsqlRange<double>.Parse("(0,10)"));
 
-            AssertContainsSql(@"WHERE r.""SchemaRange"" = '(0,10)'::test.""Schema_Range""");
+            AssertContainsSql(@"WHERE r.""SchemaRange"" = '(0.0,10.0)'::test.""Schema_Range""");
             Assert.Equal(0, e.SchemaRange.LowerBound);
             Assert.Equal(10, e.SchemaRange.UpperBound);
         }

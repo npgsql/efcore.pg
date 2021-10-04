@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using NpgsqlTypes;
 using Xunit;
 
 #if DEBUG
@@ -30,10 +32,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         public void GenerateSqlLiteral_returns_instant_literal_in_legacy_mode()
         {
             var mapping = GetMapping(typeof(Instant));
-            Assert.Equal("timestamp", mapping.StoreType);
+            Assert.Equal("timestamp without time zone", mapping.StoreType);
 
             var instant = (new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660)).InUtc().ToInstant();
             Assert.Equal("TIMESTAMP '2018-04-20T10:31:33.666666Z'", mapping.GenerateSqlLiteral(instant));
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_instant_range_in_legacy_mode()
+        {
+            var mapping = (NpgsqlRangeTypeMapping)GetMapping(typeof(NpgsqlRange<Instant>));
+            Assert.Equal("tsrange", mapping.StoreType);
+            Assert.Equal("timestamp without time zone", mapping.SubtypeMapping.StoreType);
+
+            var value = new NpgsqlRange<Instant>(
+                new LocalDateTime(2020, 1, 1, 12, 0, 0).InUtc().ToInstant(),
+                new LocalDateTime(2020, 1, 2, 12, 0, 0).InUtc().ToInstant());
+            Assert.Equal(@"'[""2020-01-01T12:00:00Z"",""2020-01-02T12:00:00Z""]'::tsrange", mapping.GenerateSqlLiteral(value));
         }
 
         #region Support

@@ -7,6 +7,7 @@ using NodaTime.Calendars;
 using NodaTime.TimeZones;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
 using Xunit;
 
@@ -30,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             var mapping = GetMapping(typeof(Instant), "timestamp");
             Assert.Same(typeof(Instant), mapping.ClrType);
-            Assert.Equal("timestamp", mapping.StoreType);
+            Assert.Equal("timestamp without time zone", mapping.StoreType);
         }
 
         [Fact]
@@ -41,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         public void GenerateSqlLiteral_returns_LocalDateTime_literal()
         {
             var mapping = GetMapping(typeof(LocalDateTime));
-            Assert.Equal("timestamp", mapping.StoreType);
+            Assert.Equal("timestamp without time zone", mapping.StoreType);
 
             var localDateTime = new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660);
             Assert.Equal("TIMESTAMP '2018-04-20T10:31:33.666666'", mapping.GenerateSqlLiteral(localDateTime));
@@ -229,7 +230,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             var mapping = GetMapping(typeof(DateInterval));
 
             var interval = new DateInterval(new(2020, 01, 01), new(2020, 12, 25));
-            Assert.Equal("'[2020-01-01, 2020-12-25]'::daterange", mapping.GenerateSqlLiteral(interval));
+            Assert.Equal("'[2020-01-01,2020-12-25]'::daterange", mapping.GenerateSqlLiteral(interval));
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_tsrange_literal()
+        {
+            var mapping = (NpgsqlRangeTypeMapping)GetMapping(typeof(NpgsqlRange<LocalDateTime>));
+            Assert.Equal("tsrange", mapping.StoreType);
+            Assert.Equal("timestamp without time zone", mapping.SubtypeMapping.StoreType);
+
+            var value = new NpgsqlRange<LocalDateTime>(new(2020, 1, 1, 12, 0, 0), new(2020, 1, 2, 12, 0, 0));
+            Assert.Equal(@"'[""2020-01-01T12:00:00"",""2020-01-02T12:00:00""]'::tsrange", mapping.GenerateSqlLiteral(value));
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_tstzrange_literal()
+        {
+            var mapping = (NpgsqlRangeTypeMapping)GetMapping(typeof(NpgsqlRange<Instant>));
+            Assert.Equal("tstzrange", mapping.StoreType);
+            Assert.Equal("timestamp with time zone", mapping.SubtypeMapping.StoreType);
+
+            var value = new NpgsqlRange<Instant>(
+                new LocalDateTime(2020, 1, 1, 12, 0, 0).InUtc().ToInstant(),
+                new LocalDateTime(2020, 1, 2, 12, 0, 0).InUtc().ToInstant());
+            Assert.Equal(@"'[""2020-01-01T12:00:00Z"",""2020-01-02T12:00:00Z""]'::tstzrange", mapping.GenerateSqlLiteral(value));
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_daterange_LocalDate_literal()
+        {
+            var mapping = (NpgsqlRangeTypeMapping)GetMapping(typeof(NpgsqlRange<LocalDate>));
+            Assert.Equal("daterange", mapping.StoreType);
+            Assert.Equal("date", mapping.SubtypeMapping.StoreType);
+
+            var value = new NpgsqlRange<LocalDate>(new(2020, 1, 1), new(2020, 1, 2));
+            Assert.Equal(@"'[2020-01-01,2020-01-02]'::daterange", mapping.GenerateSqlLiteral(value));
         }
 
         #region Support

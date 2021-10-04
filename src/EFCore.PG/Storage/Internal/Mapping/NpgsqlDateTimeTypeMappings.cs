@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Common;
+using System.Globalization;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 
@@ -19,6 +20,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => parameters.Precision is null ? storeType : $"timestamp({parameters.Precision}) without time zone";
 
         protected override string GenerateNonNullSqlLiteral(object value)
+            => $"TIMESTAMP '{GenerateLiteralCore(value)}'";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
+            => $@"""{GenerateLiteralCore(value)}""";
+
+        private string GenerateLiteralCore(object value)
         {
             var dateTime = (DateTime)value;
 
@@ -27,7 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 throw new InvalidCastException("'timestamp without time zone' literal cannot be generated for a UTC DateTime");
             }
 
-            return FormattableString.Invariant($"TIMESTAMP '{dateTime:yyyy-MM-dd HH:mm:ss.FFFFFF}'");
+            return dateTime.ToString("yyyy-MM-dd HH:mm:ss.FFFFFF", CultureInfo.InvariantCulture);
         }
     }
 
@@ -46,24 +53,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => parameters.Precision is null ? storeType : $"timestamp({parameters.Precision}) with time zone";
 
         protected override string GenerateNonNullSqlLiteral(object value)
+            => $"TIMESTAMPTZ '{GenerateLiteralCore(value)}'";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
+            => @$"""{GenerateLiteralCore(value)}""";
+
+        private string GenerateLiteralCore(object value)
             => value switch
             {
                 DateTime dt => dt.Kind switch
                 {
-                    DateTimeKind.Utc => FormattableString.Invariant($"TIMESTAMPTZ '{dt:yyyy-MM-dd HH:mm:ss.FFFFFF}Z'"),
+                    DateTimeKind.Utc => dt.ToString("yyyy-MM-dd HH:mm:ss.FFFFFF", CultureInfo.InvariantCulture) + 'Z',
 
                     DateTimeKind.Unspecified => NpgsqlTypeMappingSource.LegacyTimestampBehavior
-                        ? $"TIMESTAMPTZ '{dt:yyyy-MM-dd HH:mm:ss.FFFFFF}Z'"
+                        ? dt.ToString("yyyy-MM-dd HH:mm:ss.FFFFFF", CultureInfo.InvariantCulture) + 'Z'
                         : throw new InvalidCastException($"'timestamp with time zone' literal cannot be generated for {dt.Kind} DateTime: a UTC DateTime is required"),
 
                     DateTimeKind.Local => NpgsqlTypeMappingSource.LegacyTimestampBehavior
-                        ? $"TIMESTAMPTZ '{dt:yyyy-MM-dd HH:mm:ss.FFFFFFzzz}'"
+                        ? dt.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFzzz", CultureInfo.InvariantCulture)
                         : throw new InvalidCastException($"'timestamp with time zone' literal cannot be generated for {dt.Kind} DateTime: a UTC DateTime is required"),
 
                     _ => throw new ArgumentOutOfRangeException()
                 },
 
-                DateTimeOffset dto => FormattableString.Invariant($"TIMESTAMPTZ '{dto:yyyy-MM-dd HH:mm:ss.FFFFFFzzz}'"),
+                DateTimeOffset dto => dto.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFzzz", CultureInfo.InvariantCulture),
 
                 _ => throw new InvalidCastException(
                     $"Attempted to generate timestamptz literal for type {value.GetType()}, only DateTime and DateTimeOffset are supported")
@@ -81,10 +94,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => new NpgsqlDateTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
+            => $"DATE '{GenerateEmbeddedNonNullSqlLiteral(value)}'";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
             => value switch
             {
-                DateTime d => FormattableString.Invariant($"DATE '{d:yyyy-MM-dd}'"),
-                DateOnly d => FormattableString.Invariant($"DATE '{d:yyyy-MM-dd}'"),
+                DateTime d => d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                DateOnly d => d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                 _ => throw new InvalidCastException($"Can't generate a date SQL literal for CLR type {value.GetType()}")
             };
     }
@@ -100,14 +116,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => new NpgsqlTimeTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
+            => $"TIME '{GenerateEmbeddedNonNullSqlLiteral(value)}'";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
             => value switch
             {
                 TimeSpan ts => ts.Ticks % 10000000 == 0
-                    ? FormattableString.Invariant($@"TIME '{value:hh\:mm\:ss}'")
-                    : FormattableString.Invariant($@"TIME '{value:hh\:mm\:ss\.FFFFFF}'"),
+                    ? ts.ToString(@"hh\:mm\:ss", CultureInfo.InvariantCulture)
+                    : ts.ToString(@"hh\:mm\:ss\.FFFFFF", CultureInfo.InvariantCulture),
                 TimeOnly t => t.Ticks % 10000000 == 0
-                    ? FormattableString.Invariant($@"TIME '{value:HH\:mm\:ss}'")
-                    : FormattableString.Invariant($@"TIME '{value:HH\:mm\:ss\.FFFFFF}'"),
+                    ? t.ToString(@"HH\:mm\:ss", CultureInfo.InvariantCulture)
+                    : t.ToString(@"HH\:mm\:ss\.FFFFFF", CultureInfo.InvariantCulture),
                 _ => throw new InvalidCastException($"Can't generate a time SQL literal for CLR type {value.GetType()}")
             };
     }
@@ -124,6 +143,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => FormattableString.Invariant($"TIMETZ '{(DateTimeOffset)value:HH:mm:ss.FFFFFFz}'");
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
+            => FormattableString.Invariant(@$"""{(DateTimeOffset)value:HH:mm:ss.FFFFFFz}""");
     }
 
     public class NpgsqlIntervalTypeMapping : NpgsqlTypeMapping
@@ -140,9 +162,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => parameters.Precision is null ? storeType : $"interval({parameters.Precision})";
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => FormatTimeSpanAsInterval((TimeSpan)value);
+            => $"INTERVAL '{FormatTimeSpanAsInterval((TimeSpan)value)}'";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
+            => $@"""{FormatTimeSpanAsInterval((TimeSpan)value)}""";
 
         public static string FormatTimeSpanAsInterval(TimeSpan ts)
-            => FormattableString.Invariant($"INTERVAL '{ts.ToString($@"{(ts < TimeSpan.Zero ? "\\-" : "")}{(ts.Days == 0 ? "" : "d\\ ")}hh\:mm\:ss{(ts.Ticks % 10000000 == 0 ? "" : "\\.FFFFFF")}")}'");
+            => ts.ToString(
+                $@"{(ts < TimeSpan.Zero ? "\\-" : "")}{(ts.Days == 0 ? "" : "d\\ ")}hh\:mm\:ss{(ts.Ticks % 10000000 == 0 ? "" : "\\.FFFFFF")}",
+                CultureInfo.InvariantCulture);
     }
 }

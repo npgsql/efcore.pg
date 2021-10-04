@@ -40,7 +40,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         private readonly DurationIntervalMapping _durationInterval = new();
 
         private readonly NpgsqlRangeTypeMapping _timestampLocalDateTimeRange;
-        private readonly NpgsqlRangeTypeMapping _timestampInstantRange;
+        private readonly NpgsqlRangeTypeMapping _legacyTimestampInstantRange;
         private readonly NpgsqlRangeTypeMapping _timestamptzInstantRange;
         private readonly NpgsqlRangeTypeMapping _timestamptzZonedDateTimeRange;
         private readonly NpgsqlRangeTypeMapping _timestamptzOffsetDateTimeRange;
@@ -54,17 +54,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// </summary>
         public NpgsqlNodaTimeTypeMappingSourcePlugin(ISqlGenerationHelper sqlGenerationHelper)
         {
-            _timestampInstantRange = new NpgsqlRangeTypeMapping(
-                "tsrange",
-                typeof(NpgsqlRange<Instant>),
-                LegacyTimestampBehavior ? _legacyTimestampInstant : _timestampLocalDateTime,
-                sqlGenerationHelper);
-
-            _timestampLocalDateTimeRange = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<LocalDateTime>), _timestampLocalDateTime, sqlGenerationHelper);
-            _timestamptzInstantRange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<Instant>), _timestamptzInstant, sqlGenerationHelper);
-            _timestamptzZonedDateTimeRange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<ZonedDateTime>), _timestamptzZonedDateTime, sqlGenerationHelper);
-            _timestamptzOffsetDateTimeRange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<OffsetDateTime>), _timestamptzOffsetDateTime, sqlGenerationHelper);
-            _dateRange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<LocalDate>), _date, sqlGenerationHelper);
+            _legacyTimestampInstantRange
+                = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<Instant>), _legacyTimestampInstant, sqlGenerationHelper);
+            _timestampLocalDateTimeRange
+                = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<LocalDateTime>), _timestampLocalDateTime, sqlGenerationHelper);
+            _timestamptzInstantRange
+                = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<Instant>), _timestamptzInstant, sqlGenerationHelper);
+            _timestamptzZonedDateTimeRange
+                = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<ZonedDateTime>), _timestamptzZonedDateTime, sqlGenerationHelper);
+            _timestamptzOffsetDateTimeRange
+                = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<OffsetDateTime>), _timestamptzOffsetDateTime, sqlGenerationHelper);
+            _dateRange
+                = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<LocalDate>), _date, sqlGenerationHelper);
 
             var storeTypeMappings = new Dictionary<string, RelationalTypeMapping[]>(StringComparer.OrdinalIgnoreCase)
             {
@@ -82,7 +83,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "time with time zone", new RelationalTypeMapping[] { _timetz } },
                 { "interval", new RelationalTypeMapping[] { _periodInterval } },
 
-                { "tsrange", new RelationalTypeMapping[] { _timestampInstantRange, _timestampLocalDateTimeRange } },
+                { "tsrange", LegacyTimestampBehavior
+                    ? new RelationalTypeMapping[] { _legacyTimestampInstantRange, _timestampLocalDateTimeRange }
+                    : new RelationalTypeMapping[] { _timestampLocalDateTimeRange, _legacyTimestampInstantRange }
+                },
                 { "tstzrange", new RelationalTypeMapping[] { _timestamptzInstantRange, _timestamptzZonedDateTimeRange, _timestamptzOffsetDateTimeRange } },
                 { "daterange", new RelationalTypeMapping[] { _dateInterval, _dateRange } }
             };
@@ -106,7 +110,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof(Period), _periodInterval },
                 { typeof(Duration), _durationInterval },
 
-                { typeof(NpgsqlRange<Instant>), _timestampInstantRange },
+                { typeof(NpgsqlRange<Instant>), LegacyTimestampBehavior ? _legacyTimestampInstantRange : _timestamptzInstantRange },
                 { typeof(NpgsqlRange<LocalDateTime>), _timestampLocalDateTimeRange },
                 { typeof(NpgsqlRange<ZonedDateTime>), _timestamptzZonedDateTimeRange },
                 { typeof(NpgsqlRange<OffsetDateTime>), _timestamptzOffsetDateTimeRange },

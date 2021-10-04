@@ -30,7 +30,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             => new DateMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"DATE '{LocalDatePattern.Iso.Format((LocalDate)value)}'";
+            => $"DATE '{GenerateEmbeddedNonNullSqlLiteral(value)}'";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
+            => LocalDatePattern.Iso.Format((LocalDate)value);
 
         public override Expression GenerateCodeLiteral(object value)
         {

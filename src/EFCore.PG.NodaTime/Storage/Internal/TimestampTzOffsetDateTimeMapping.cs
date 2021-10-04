@@ -36,7 +36,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             => new TimestampTzOffsetDateTimeMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"TIMESTAMPTZ '{OffsetDateTimePattern.ExtendedIso.Format((OffsetDateTime)value)}'";
+            => $"TIMESTAMPTZ '{GenerateLiteralCore(value)}'";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
+            => $@"""{GenerateLiteralCore(value)}""";
+
+        private string GenerateLiteralCore(object value)
+            => OffsetDateTimePattern.ExtendedIso.Format((OffsetDateTime)value);
 
         public override Expression GenerateCodeLiteral(object value)
         {

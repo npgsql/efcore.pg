@@ -556,7 +556,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             Assert.Equal("numeric", mapping.SubtypeMapping.StoreType);
 
             var value = new NpgsqlRange<decimal>(4, 7);
-            Assert.Equal("'[4,7]'::numrange", mapping.GenerateSqlLiteral(value));
+            Assert.Equal("'[4.0,7.0]'::numrange", mapping.GenerateSqlLiteral(value));
         }
 
         [Fact]
@@ -565,7 +565,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             var mapping = (NpgsqlRangeTypeMapping)GetMapping("tsrange");
             Assert.Equal("timestamp without time zone", mapping.SubtypeMapping.StoreType);
 
-            // TODO: the literal representation is currently locale-sensitive, #2021
+            var value = new NpgsqlRange<DateTime>(new(2020, 1, 1, 12, 0, 0), new(2020, 1, 2, 12, 0, 0));
+            Assert.Equal(@"'[""2020-01-01 12:00:00"",""2020-01-02 12:00:00""]'::tsrange", mapping.GenerateSqlLiteral(value));
         }
 
         [Fact]
@@ -574,7 +575,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             var mapping = (NpgsqlRangeTypeMapping)GetMapping("tstzrange");
             Assert.Equal("timestamp with time zone", mapping.SubtypeMapping.StoreType);
 
-            // TODO: the literal representation is currently locale-sensitive, #2021
+            var value = new NpgsqlRange<DateTime>(new(2020, 1, 1, 12, 0, 0, DateTimeKind.Utc), new(2020, 1, 2, 12, 0, 0, DateTimeKind.Utc));
+            Assert.Equal(@"'[""2020-01-01 12:00:00Z"",""2020-01-02 12:00:00Z""]'::tstzrange", mapping.GenerateSqlLiteral(value));
         }
 
         [Fact]
@@ -583,7 +585,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             var mapping = (NpgsqlRangeTypeMapping)GetMapping("daterange");
             Assert.Equal("date", mapping.SubtypeMapping.StoreType);
 
-            // TODO: the literal representation is currently locale-sensitive, #2021
+            var value = new NpgsqlRange<DateTime>(new(2020, 1, 1), new(2020, 1, 2));
+            Assert.Equal(@"'[2020-01-01,2020-01-02]'::daterange", mapping.GenerateSqlLiteral(value));
         }
 
         #endregion Ranges
