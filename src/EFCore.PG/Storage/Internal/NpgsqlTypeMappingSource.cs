@@ -137,7 +137,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             _numrange  = new NpgsqlRangeTypeMapping("numrange",  typeof(NpgsqlRange<decimal>),  _numeric,     sqlGenerationHelper);
             _tsrange   = new NpgsqlRangeTypeMapping("tsrange",   typeof(NpgsqlRange<DateTime>), _timestamp,   sqlGenerationHelper);
             _tstzrange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<DateTime>), _timestamptz, sqlGenerationHelper);
-            _daterange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<DateTime>), _timestamptz, sqlGenerationHelper);
+            _daterange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<DateTime>), _date,        sqlGenerationHelper);
 
             // Note that PostgreSQL has aliases to some built-in type name aliases (e.g. int4 for integer),
             // these are mapped as well.

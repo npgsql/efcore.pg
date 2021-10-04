@@ -490,6 +490,65 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         public void GenerateCodeLiteral_returns_range_infinite_literal()
             => Assert.Equal("new NpgsqlTypes.NpgsqlRange<int>(0, false, true, 7, true, false)", CodeLiteral(new NpgsqlRange<int>(0, false, true, 7, true, false)));
 
+        // Tests for the built-in ranges
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_int4range_literal()
+        {
+            var mapping = (NpgsqlRangeTypeMapping)GetMapping("int4range");
+            Assert.Equal("integer", mapping.SubtypeMapping.StoreType);
+
+            var value = new NpgsqlRange<int>(4, 7);
+            Assert.Equal("'[4,7]'::int4range", mapping.GenerateSqlLiteral(value));
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_int8range_literal()
+        {
+            var mapping = (NpgsqlRangeTypeMapping)GetMapping("int8range");
+            Assert.Equal("bigint", mapping.SubtypeMapping.StoreType);
+
+            var value = new NpgsqlRange<long>(4, 7);
+            Assert.Equal("'[4,7]'::int8range", mapping.GenerateSqlLiteral(value));
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_numrange_literal()
+        {
+            var mapping = (NpgsqlRangeTypeMapping)GetMapping("numrange");
+            Assert.Equal("numeric", mapping.SubtypeMapping.StoreType);
+
+            var value = new NpgsqlRange<decimal>(4, 7);
+            Assert.Equal("'[4,7]'::numrange", mapping.GenerateSqlLiteral(value));
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_tsrange_literal()
+        {
+            var mapping = (NpgsqlRangeTypeMapping)GetMapping("tsrange");
+            Assert.Equal("timestamp without time zone", mapping.SubtypeMapping.StoreType);
+
+            // TODO: the literal representation is currently locale-sensitive, #2021
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_tstzrange_literal()
+        {
+            var mapping = (NpgsqlRangeTypeMapping)GetMapping("tstzrange");
+            Assert.Equal("timestamp with time zone", mapping.SubtypeMapping.StoreType);
+
+            // TODO: the literal representation is currently locale-sensitive, #2021
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_daterange_literal()
+        {
+            var mapping = (NpgsqlRangeTypeMapping)GetMapping("daterange");
+            Assert.Equal("date", mapping.SubtypeMapping.StoreType);
+
+            // TODO: the literal representation is currently locale-sensitive, #2021
+        }
+
         #endregion Ranges
 
         #region Full text search
