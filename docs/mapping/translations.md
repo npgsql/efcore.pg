@@ -187,7 +187,7 @@ EF.Functions.TrigramsStrictWordSimilarityDistanceInverted(s1, s2) | s1 &lt;-&gt;
 The below translations are for working with label trees from the PostgreSQL [`ltree`](https://www.postgresql.org/docs/current/ltree.html) extension. Use the <xref:Microsoft.EntityFrameworkCore.LTree> type to represent ltree and invoke methods on it in EF Core LINQ queries.
 
 > [!NOTE]
-> LTree support was introduced in version 6.0 of the provider.
+> LTree support was introduced in version 6.0 of the provider, and requires PostgreSQL 13 or later.
 
 .NET                                                              | SQL
 ----------------------------------------------------------------- | --------------------
