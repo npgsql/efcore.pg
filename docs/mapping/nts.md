@@ -3,13 +3,13 @@
 > [!NOTE]
 > It's recommended that you start by reading the general [Entity Framework Core docs on spatial support](https://docs.microsoft.com/ef/core/modeling/spatial).
 
-PostgreSQL supports spatial data and operations via [the PostGIS extension](https://postgis.net/), which is a mature and feature-rich database spatial implementation. .NET doesn't provide a standard spatial library, but [NetTopologySuite](https://github.com/NetTopologySuite/NetTopologySuite) is quite a good candidate. The Npgsql EF Core provider has a plugin which allows you to map NetTopologySuite's types PostGIS columns, and even translate many useful spatial operations to SQL. This is the recommended way to interact with spatial types in Npgsql.
+PostgreSQL supports spatial data and operations via [the PostGIS extension](https://postgis.net/), which is a mature and feature-rich database spatial implementation. .NET doesn't provide a standard spatial library, but [NetTopologySuite](https://github.com/NetTopologySuite/NetTopologySuite) is a leading spatial library. The Npgsql EF Core provider has a plugin which allows you to map the NTS types to PostGIS columns, allowing seamless reading and writing. This is the recommended way to interact with spatial types in Npgsql.
 
-Note that the EF Core NetTopologySuite plugin depends on [the Npgsql ADO.NET NetTopology plugin](http://www.npgsql.org/doc/types/nts.html), which provides NetTopologySuite support at the lower level. The EF Core plugin automatically arranged for the ADO.NET plugin to be set up.
+Note that the EF Core NetTopologySuite plugin depends on [the Npgsql ADO.NET NetTopology plugin](http://www.npgsql.org/doc/types/nts.html), which provides NetTopologySuite support at the lower level. The EF Core plugin automatically sets up the ADO.NET plugin.
 
 ## Setup
 
-To set up the NetTopologySuite plugin, add the [Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite nuget](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite) to your project. Then, make the following modification to your `UseNpgsql()` line:
+To use the NetTopologySuite plugin, add the [Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite nuget](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite) to your project. Then, make the following modification to your `UseNpgsql()` line:
 
 ```c#
 protected override void OnConfiguring(DbContextOptionsBuilder builder)
@@ -19,7 +19,7 @@ protected override void OnConfiguring(DbContextOptionsBuilder builder)
 }
 ```
 
-This will set up all the necessary mappings and operation translators. In addition, to make sure that the PostGIS extension is installed in your database, add the following to your DbContext:
+This sets up all the necessary mappings and operation translators. In addition, to make sure that the PostGIS extension is installed in your database, add the following to your DbContext:
 
 ```c#
 protected override void OnModelCreating(ModelBuilder builder)
