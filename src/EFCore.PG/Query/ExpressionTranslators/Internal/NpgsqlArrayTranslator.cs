@@ -22,17 +22,57 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlArrayTranslator : IMethodCallTranslator, IMemberTranslator
     {
-        private static readonly MethodInfo SequenceEqual =
-            typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-                .Single(m => m.Name == nameof(Enumerable.SequenceEqual) && m.GetParameters().Length == 2);
+        #region Methods
 
-        private static readonly MethodInfo EnumerableContains =
+        private static readonly MethodInfo Array_IndexOf1 =
+            typeof(Array).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Single(m => m.Name == nameof(Array.IndexOf) && m.IsGenericMethod && m.GetParameters().Length == 2);
+
+        private static readonly MethodInfo Array_IndexOf2 =
+            typeof(Array).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Single(m => m.Name == nameof(Array.IndexOf) && m.IsGenericMethod && m.GetParameters().Length == 3);
+
+        private static readonly MethodInfo Enumerable_Append =
+            typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Single(m => m.Name == nameof(Enumerable.Append) && m.GetParameters().Length == 2);
+
+        private static readonly MethodInfo Enumerable_AnyWithoutPredicate =
+            typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 1);
+
+        private static readonly MethodInfo Enumerable_Concat =
+            typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Single(m => m.Name == nameof(Enumerable.Concat) && m.GetParameters().Length == 2);
+
+        private static readonly MethodInfo Enumerable_Contains =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
 
-        private static readonly MethodInfo EnumerableAnyWithoutPredicate =
+        private static readonly MethodInfo Enumerable_SequenceEqual =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-                .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 1);
+                .Single(m => m.Name == nameof(Enumerable.SequenceEqual) && m.GetParameters().Length == 2);
+
+        private static readonly MethodInfo String_Join1 =
+            typeof(string).GetMethod(nameof(string.Join), new[] { typeof(string), typeof(object[]) })!;
+
+        private static readonly MethodInfo String_Join2 =
+            typeof(string).GetMethod(nameof(string.Join), new[] { typeof(string), typeof(string[]) })!;
+
+        private static readonly MethodInfo String_Join3 =
+            typeof(string).GetMethod(nameof(string.Join), new[] { typeof(char), typeof(object[]) })!;
+
+        private static readonly MethodInfo String_Join4 =
+            typeof(string).GetMethod(nameof(string.Join), new[] { typeof(char), typeof(string[]) })!;
+
+        private static readonly MethodInfo String_Join_generic1 =
+            typeof(string).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Single(m => m.Name == nameof(string.Join) && m.IsGenericMethod && m.GetParameters().Length == 2 && m.GetParameters()[0].ParameterType == typeof(string));
+
+        private static readonly MethodInfo String_Join_generic2 =
+            typeof(string).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Single(m => m.Name == nameof(string.Join) && m.IsGenericMethod && m.GetParameters().Length == 2 && m.GetParameters()[0].ParameterType == typeof(char));
+
+        #endregion Methods
 
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         private readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
@@ -72,12 +112,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (instance is null && arguments.Count > 0 && arguments[0].Type.IsArrayOrGenericList() && !IsMappedToNonArray(arguments[0]))
             {
                 // Extension method over an array or list
-                if (method.IsClosedFormOf(SequenceEqual) && arguments[1].Type.IsArray)
+                if (method.IsClosedFormOf(Enumerable_SequenceEqual) && arguments[1].Type.IsArray)
                 {
                     return _sqlExpressionFactory.Equal(arguments[0], arguments[1]);
                 }
 
                 return TranslateCommon(arguments[0], arguments.Slice(1));
+            }
+
+            if (method.DeclaringType == typeof(string)
+                && (method == String_Join1
+                    || method == String_Join2
+                    || method == String_Join3
+                    || method == String_Join4
+                    || method.IsClosedFormOf(String_Join_generic1)
+                    || method.IsClosedFormOf(String_Join_generic2))
+                && !IsMappedToNonArray(arguments[0]))
+            {
+                return _sqlExpressionFactory.Function(
+                    "array_to_string",
+                    new[] { arguments[1], arguments[0], _sqlExpressionFactory.Constant("") },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[3],
+                    typeof(string));
             }
 
             // Not an array/list
@@ -92,7 +149,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             SqlExpression? TranslateCommon(SqlExpression arrayOrList, IReadOnlyList<SqlExpression> arguments)
             {
                 // Predicate-less Any - translate to a simple length check.
-                if (method.IsClosedFormOf(EnumerableAnyWithoutPredicate))
+                if (method.IsClosedFormOf(Enumerable_AnyWithoutPredicate))
                 {
                     return _sqlExpressionFactory.GreaterThan(
                         _jsonPocoTranslator.TranslateArrayLength(arrayOrList)
@@ -109,7 +166,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 // is pattern-matched in AllAnyToContainsRewritingExpressionVisitor, which transforms it to
                 // new[] { "a", "b", "c" }.Contains(e.Some Text).
 
-                if ((method.IsClosedFormOf(EnumerableContains)
+                if ((method.IsClosedFormOf(Enumerable_Contains)
                         ||
                         method.Name == nameof(List<int>.Contains)
                         && method.DeclaringType.IsGenericList()
@@ -175,6 +232,77 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
                 // Note: we also translate .Where(e => new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p)))
                 // to LIKE ANY (...). See NpgsqlSqlTranslatingExpressionVisitor.VisitArrayMethodCall.
+
+                if (method.IsClosedFormOf(Enumerable_Append))
+                {
+                    var (item, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(arguments[0], arrayOrList);
+
+                    return _sqlExpressionFactory.Function(
+                        "array_append",
+                        new[] { array, item },
+                        nullable: true,
+                        TrueArrays[2],
+                        arrayOrList.Type,
+                        arrayOrList.TypeMapping);
+                }
+
+                if (method.IsClosedFormOf(Enumerable_Concat))
+                {
+                    var inferredMapping = ExpressionExtensions.InferTypeMapping(arrayOrList, arguments[0]);
+
+                    return _sqlExpressionFactory.Function(
+                        "array_cat",
+                        new[]
+                        {
+                            _sqlExpressionFactory.ApplyTypeMapping(arrayOrList, inferredMapping),
+                            _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping)
+                        },
+                        nullable: true,
+                        TrueArrays[2],
+                        arrayOrList.Type,
+                        inferredMapping);
+                }
+
+                if (method.IsClosedFormOf(Array_IndexOf1)
+                    ||
+                    method.Name == nameof(List<int>.IndexOf)
+                    && method.DeclaringType.IsGenericList()
+                    && method.GetParameters().Length == 1)
+                {
+                    var (item, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(arguments[0], arrayOrList);
+
+                    return _sqlExpressionFactory.Coalesce(
+                        _sqlExpressionFactory.Subtract(
+                            _sqlExpressionFactory.Function(
+                                "array_position",
+                                new[] { array, item },
+                                nullable: true,
+                                TrueArrays[2],
+                                arrayOrList.Type),
+                            _sqlExpressionFactory.Constant(1)),
+                        _sqlExpressionFactory.Constant(-1));
+                }
+
+                if (method.IsClosedFormOf(Array_IndexOf2)
+                    ||
+                    method.Name == nameof(List<int>.IndexOf)
+                    && method.DeclaringType.IsGenericList()
+                    && method.GetParameters().Length == 2)
+                {
+                    var (item, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(arguments[0], arrayOrList);
+                    var startIndex = _sqlExpressionFactory.GenerateOneBasedIndexExpression(arguments[1]);
+
+                    return _sqlExpressionFactory.Coalesce(
+                        _sqlExpressionFactory.Subtract(
+                            _sqlExpressionFactory.Function(
+                                "array_position",
+                                new[] { array, item, startIndex },
+                                nullable: true,
+                                TrueArrays[3],
+                                arrayOrList.Type),
+                            _sqlExpressionFactory.Constant(1)),
+                        _sqlExpressionFactory.Constant(-1));
+                }
 
                 return null;
             }

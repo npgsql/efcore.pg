@@ -1,36 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Query.Internal;
-using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.EntityFrameworkCore.Utilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ArrayTests;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using Microsoft.EntityFrameworkCore.Query;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
 using Xunit;
 using Xunit.Abstractions;
 
+// ReSharper disable ConvertToConstant.Local
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class ArrayQueryTest : IClassFixture<ArrayQueryTest.ArrayArrayQueryFixture>
+    public abstract class ArrayQueryTest<TFixture> : QueryTestBase<TFixture>
+        where TFixture : ArrayQueryFixture, new()
     {
-        private ArrayArrayQueryFixture Fixture { get; }
-
         // ReSharper disable once UnusedParameter.Local
-        public ArrayQueryTest(ArrayArrayQueryFixture fixture, ITestOutputHelper testOutputHelper)
+        public ArrayQueryTest(TFixture fixture, ITestOutputHelper testOutputHelper)
+            : base(fixture)
         {
-            Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         #region Roundtrip
 
-        [Fact]
+        [ConditionalFact]
         public void Roundtrip()
         {
             using var ctx = CreateContext();
@@ -38,189 +32,121 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             Assert.Equal(new[] { 3, 4 }, x.IntArray);
             Assert.Equal(new List<int> { 3, 4 }, x.IntList);
-            Assert.Equal(new int?[] { 3, 4, null}, x.NullableIntArray);
-            Assert.Equal(new List<int?> { 3, 4, null}, x.NullableIntList);
+            Assert.Equal(new int?[] { 3, 4, null }, x.NullableIntArray);
+            Assert.Equal(
+                new List<int?>
+                {
+                    3,
+                    4,
+                    null
+                }, x.NullableIntList);
         }
 
         #endregion
 
         #region Indexers
 
-        [Fact]
-        public void Array_index_with_constant()
+        [Theory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual Task Index_with_constant(bool async)
+            => AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.IntArray[0] == 3),
+                entryCount: 1);
+
+        [Theory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual Task Index_with_parameter(bool async)
         {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.IntArray[0] == 3)
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray""[1] = 3
-LIMIT 2");
-        }
-
-        [Fact]
-        public void List_index_with_constant()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.IntList[0] == 3)
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntList""[1] = 3
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Nullable_array_index_with_constant()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.NullableIntArray[0] == 3)
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableIntArray""[1] = 3
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Nullable_list_index_with_constant()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.NullableIntList[0] == 3)
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableIntList""[1] = 3
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Index_with_non_constant()
-        {
-            using var ctx = CreateContext();
             // ReSharper disable once ConvertToConstant.Local
             var x = 0;
-            var id = ctx.SomeEntities
-                .Where(e => e.IntArray[x] == 3)
-                .Select(e => e.Id)
-                .Single();
 
-            Assert.Equal(1, id);
-            AssertSql(
-                @"@__x_0='0'
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray""[@__x_0 + 1] = 3
-LIMIT 2");
+            return AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.IntArray[x] == 3),
+                entryCount: 1);
         }
 
-        [Fact]
-        public void List_index_with_non_constant()
-        {
-            using var ctx = CreateContext();
-            // ReSharper disable once ConvertToConstant.Local
-            var x = 0;
-            var id = ctx.SomeEntities
-                .Where(e => e.IntList[x] == 3)
-                .Select(e => e.Id)
-                .Single();
+        [Theory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual Task Nullable_index_with_constant(bool async)
+            => AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.NullableIntArray[0] == 3),
+                entryCount: 1);
 
-            Assert.Equal(1, id);
-            AssertSql(
-                @"@__x_0='0'
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual Task Nullable_value_array_index_compare_to_null(bool async)
+            => AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>()
+                    .Where(e => e.NullableIntArray[2] == null),
+                entryCount: 1);
 
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntList""[@__x_0 + 1] = 3
-LIMIT 2");
-        }
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual Task Non_nullable_value_array_index_compare_to_null(bool async)
+            => AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>()
+#pragma warning disable CS0472
+                    .Where(e => e.IntArray[1] == null));
+#pragma warning restore CS0472
 
-        #endregion
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual Task Nullable_reference_array_index_compare_to_null(bool async)
+            => AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>()
+                    .Where(e => e.NullableStringArray[2] == null),
+                entryCount: 1);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual Task Non_nullable_reference_array_index_compare_to_null(bool async)
+            => AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>()
+#pragma warning disable CS0472
+                    .Where(e => e.StringArray[1] == null));
+#pragma warning restore CS0472
+
+        #endregion Indexers
 
         #region SequenceEqual
 
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void SequenceEqual_with_parameter(bool list)
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task SequenceEqual_with_parameter(bool async)
         {
-            using var ctx = CreateContext();
             var arr = new[] { 3, 4 };
-            var id = ctx.SomeEntities
-                .Where(e => e.IntArray.SequenceEqual(arr))
-                .Select(e => e.Id)
-                .OverArrayOrList(list)
-                .Single();
 
-            Assert.Equal(1, id);
-            AssertSql(list,
-                @"@__arr_0={ '3', '4' } (DbType = Object)
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" = @__arr_0
-LIMIT 2");
+            await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.IntArray.SequenceEqual(arr)),
+                entryCount: 1);
         }
 
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void SequenceEqual_with_array_literal(bool list)
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.IntArray.SequenceEqual(new[] { 3, 4 }))
-                .Select(e => e.Id)
-                .OverArrayOrList(list)
-                .Single();
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task SequenceEqual_with_array_literal(bool async)
+            => await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.IntArray.SequenceEqual(new[] { 3, 4 })),
+                entryCount: 1);
 
-            Assert.Equal(1, id);
-            AssertSql(list,
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" = ARRAY[3,4]::integer[]
-LIMIT 2");
-        }
-
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void SequenceEqual_over_nullable_with_parameter(bool list)
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task SequenceEqual_over_nullable_with_parameter(bool async)
         {
-            using var ctx = CreateContext();
             var arr = new int?[] { 3, 4, null };
-            var id = ctx.SomeEntities
-                .Where(e => e.NullableIntArray.SequenceEqual(arr))
-                .Select(e => e.Id)
-                .OverArrayOrList(list)
-                .Single();
 
-            Assert.Equal(1, id);
-            AssertSql(list,
-                @"@__arr_0={ '3', '4', NULL } (DbType = Object)
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableIntArray"" = @__arr_0
-LIMIT 2");
+            await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.NullableIntArray.SequenceEqual(arr)),
+                entryCount: 1);
         }
 
         #endregion
@@ -229,1213 +155,273 @@ LIMIT 2");
 
         // See also tests in NorthwindMiscellaneousQueryNpgsqlTest
 
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void Array_column_Any_equality_operator(bool list)
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Array_column_Any_equality_operator(bool async)
+            => await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.StringArray.Any(p => p == "3")),
+                entryCount: 1);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Array_column_Any_Equals(bool async)
+            => await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.StringArray.Any(p => "3".Equals(p))),
+                entryCount: 1);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Array_column_Contains_literal_item(bool async)
+            => await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.IntArray.Contains(3)),
+                entryCount: 1);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Array_column_Contains_parameter_item(bool async)
         {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.StringArray.Any(p => p == "3"))
-                .OverArrayOrList(list)
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(1, id);
-
-            AssertSql(list,
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""StringArray"" @> ARRAY['3']::text[]
-LIMIT 2");
-        }
-
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void Array_column_Any_Equals(bool list)
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.StringArray.Any(p => "3".Equals(p)))
-                .OverArrayOrList(list)
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(1, id);
-
-            AssertSql(list,
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""StringArray"" @> ARRAY['3']::text[]
-LIMIT 2");
-        }
-
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void Array_column_Contains_literal_item(bool list)
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.IntArray.Contains(3))
-                .Select(e => e.Id)
-                .OverArrayOrList(list)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(list,
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" @> ARRAY[3]::integer[]
-LIMIT 2");
-        }
-
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void Array_column_Contains_parameter_item(bool list)
-        {
-            using var ctx = CreateContext();
-            // ReSharper disable once ConvertToConstant.Local
             var p = 3;
-            var id = ctx.SomeEntities
-                .Where(e => e.IntArray.Contains(p))
-                .Select(e => e.Id)
-                .OverArrayOrList(list)
-                .Single();
 
-            Assert.Equal(1, id);
-            AssertSql(list,
-                @"@__p_0='3'
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" @> ARRAY[@__p_0]::integer[]
-LIMIT 2");
+            await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.IntArray.Contains(p)),
+                entryCount: 1);
         }
 
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void Array_column_Contains_column_item(bool list)
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Array_column_Contains_column_item(bool async)
+            => await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.IntArray.Contains(e.Id + 2)),
+                entryCount: 1);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Array_column_Contains_null_constant(bool async)
+            => await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.NullableStringArray.Contains(null)),
+                entryCount: 1);
+
+        [ConditionalFact]
+        public abstract void Array_column_Contains_null_parameter_does_not_work();
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Nullable_array_column_Contains_literal_item(bool async)
+            => await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.NullableIntArray.Contains(3)),
+                entryCount: 1);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Array_constant_Contains_column(bool async);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Array_param_Contains_nullable_column(bool async);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Array_param_Contains_non_nullable_column(bool async);
+
+        [ConditionalFact]
+        public abstract void Array_param_with_null_Contains_non_nullable_not_found();
+
+        [ConditionalFact]
+        public abstract void Array_param_with_null_Contains_non_nullable_not_found_negated();
+
+        [ConditionalFact]
+        public abstract void Array_param_with_null_Contains_nullable_not_found();
+
+        [ConditionalFact]
+        public abstract void Array_param_with_null_Contains_nullable_not_found_negated();
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Byte_array_parameter_contains_column(bool async);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Array_param_Contains_value_converted_column(bool async);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Array_column_Contains_value_converted_param(bool async)
         {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.IntArray.Contains(e.Id + 2))
-                .Select(e => e.Id)
-                .OverArrayOrList(list)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(list,
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" @> ARRAY[s.""Id"" + 2]::integer[]
-LIMIT 2");
-        }
-
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void Array_column_Contains_null_constant(bool list)
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.NullableStringArray.Contains(null))
-                .Select(e => e.Id)
-                .OverArrayOrList(list)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(list,
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE (array_position(s.""NullableStringArray"", NULL) IS NOT NULL)
-LIMIT 2");
-        }
-
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void Array_column_Contains_null_parameter_does_not_work(bool list)
-        {
-            using var ctx = CreateContext();
-            string p = null;
-            var results = ctx.SomeEntities
-                .Where(e => e.StringArray.Contains(p))
-                .Select(e => e.Id)
-                .OverArrayOrList(list)
-                .ToList();
-
-            // We incorrectly miss arrays containing non-constant nulls, because detecting those
-            // would prevent index use.
-            Assert.Empty(results);
-            AssertSql(list,
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""StringArray"" @> ARRAY[NULL]::text[]");
-        }
-
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void Nullable_array_column_Contains_literal_item(bool list)
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.NullableIntArray.Contains(3))
-                .Select(e => e.Id)
-                .OverArrayOrList(list)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(list,
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableIntArray"" @> ARRAY[3]::integer[]
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Array_constant_Contains()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => new[] { "foo", "xxx" }.Contains(e.NullableText))
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" IN ('foo', 'xxx')
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Array_param_Contains_nullable_column()
-        {
-            using var ctx = CreateContext();
-            var array = new[] { "foo", "xxx" };
-            var id = ctx.SomeEntities
-                .Where(e => array.Contains(e.NullableText))
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(
-                @"@__array_0={ 'foo', 'xxx' } (DbType = Object)
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" = ANY (@__array_0) OR ((s.""NullableText"" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Array_param_Contains_non_nullable_column()
-        {
-            using var ctx = CreateContext();
-            var array = new[] { 1 };
-            var id = ctx.SomeEntities
-                .Where(e => array.Contains(e.Id))
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(
-                @"@__array_0={ '1' } (DbType = Object)
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""Id"" = ANY (@__array_0)
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Array_param_with_null_Contains_non_nullable_not_found()
-        {
-            using var ctx = CreateContext();
-            var array = new[] { "unknown1", "unknown2", null };
-            var count = ctx.SomeEntities.Count(e => array.Contains(e.NonNullableText));
-
-            Assert.Equal(0, count);
-            AssertSql(
-                @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
-
-SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE s.""NonNullableText"" = ANY (@__array_0)");
-        }
-
-        [Fact]
-        public void Array_param_with_null_Contains_non_nullable_not_found_negated()
-        {
-            using var ctx = CreateContext();
-            var array = new[] { "unknown1", "unknown2", null };
-            var count = ctx.SomeEntities.Count(e => !array.Contains(e.NonNullableText));
-
-            Assert.Equal(2, count);
-
-            AssertSql(
-                @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
-
-SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE NOT (s.""NonNullableText"" = ANY (@__array_0) AND (s.""NonNullableText"" = ANY (@__array_0) IS NOT NULL))");
-        }
-
-        [Fact]
-        public void Array_param_with_null_Contains_nullable_not_found()
-        {
-            using var ctx = CreateContext();
-            var array = new[] { "unknown1", "unknown2", null };
-            var count = ctx.SomeEntities.Count(e => array.Contains(e.NullableText));
-
-            Assert.Equal(0, count);
-            AssertSql(
-                @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
-
-SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" = ANY (@__array_0) OR ((s.""NullableText"" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))");
-        }
-
-        [Fact]
-        public void Array_param_with_null_Contains_nullable_not_found_negated()
-        {
-            using var ctx = CreateContext();
-            var array = new[] { "unknown1", "unknown2", null };
-            var count = ctx.SomeEntities.Count(e => !array.Contains(e.NullableText));
-
-            Assert.Equal(2, count);
-            AssertSql(
-                @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
-
-SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE NOT (s.""NullableText"" = ANY (@__array_0) AND (s.""NullableText"" = ANY (@__array_0) IS NOT NULL)) AND ((s.""NullableText"" IS NOT NULL) OR (array_position(@__array_0, NULL) IS NULL))");
-        }
-
-        [Fact]
-        public void List_param_Contains_non_nullable_column()
-        {
-            using var ctx = CreateContext();
-            var list = new List<int> { 1 };
-            var id = ctx.SomeEntities
-                .Where(e => list.Contains(e.Id))
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(
-                @"@__list_0={ '1' } (DbType = Object)
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""Id"" = ANY (@__list_0)
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Byte_array_parameter_contains_column()
-        {
-            using var ctx = CreateContext();
-            var values = new byte[] { 20 };
-            var id = ctx.SomeEntities
-                .Where(e => values.Contains(e.Byte))
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(2, id);
-            // Note: EF Core prints the parameter as a bytea, but it's actually a smallint[] (otherwise ANY would fail)
-            AssertSql(
-                @"@__values_0='0x14' (DbType = Object)
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""Byte"" = ANY (@__values_0)
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Array_param_Contains_value_converted_column()
-        {
-            using var ctx = CreateContext();
-            var array = new[] { SomeEnum.Two, SomeEnum.Three };
-            var id = ctx.SomeEntities
-                .Where(e => array.Contains(e.ValueConvertedScalar))
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(2, id);
-            AssertSql(
-                @"@__array_0={ '-2', '-3' } (DbType = Object)
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""ValueConvertedScalar"" = ANY (@__array_0)
-LIMIT 2");
-        }
-
-        [Fact]
-        public void List_param_Contains_value_converted_column()
-        {
-            using var ctx = CreateContext();
-            var list = new List<SomeEnum> { SomeEnum.Two, SomeEnum.Three };
-            var id = ctx.SomeEntities
-                .Where(e => list.Contains(e.ValueConvertedScalar))
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(2, id);
-            AssertSql(
-                @"@__list_0={ '-2', '-3' } (DbType = Object)
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""ValueConvertedScalar"" = ANY (@__list_0)
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Array_column_Contains_value_converted_param()
-        {
-            using var ctx = CreateContext();
             var item = SomeEnum.Eight;
-            var id = ctx.SomeEntities
-                .Where(e => e.ValueConvertedArray.Contains(item))
-                .Select(e => e.Id)
-                .Single();
 
-            Assert.Equal(1, id);
-            AssertSql(
-                @"@__item_0='-8'
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""ValueConvertedArray"" @> ARRAY[@__item_0]::integer[]
-LIMIT 2");
+            await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.Contains(item)),
+                entryCount: 1);
         }
 
-        [Fact]
-        public void List_column_Contains_value_converted_param()
-        {
-            using var ctx = CreateContext();
-            var item = SomeEnum.Eight;
-            var id = ctx.SomeEntities
-                .Where(e => e.ValueConvertedList.Contains(item))
-                .Select(e => e.Id)
-                .Single();
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Array_param_Contains_value_converted_array_column(bool async);
 
-            Assert.Equal(1, id);
-            AssertSql(
-                @"@__item_0='-8'
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""ValueConvertedList"" @> ARRAY[@__item_0]::integer[]
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Array_param_Contains_value_converted_array_column()
-        {
-            using var ctx = CreateContext();
-            var p = new[] { SomeEnum.Eight, SomeEnum.Nine };
-            var id = ctx.SomeEntities
-                .Where(e => e.ValueConvertedArray.All(x => p.Contains(x)))
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(
-                @"@__p_0={ '-8', '-9' } (DbType = Object)
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""ValueConvertedArray"" <@ @__p_0
-LIMIT 2");
-        }
-
-        [Fact]
-        public void List_param_Contains_value_converted_list_column()
-        {
-            using var ctx = CreateContext();
-            var p = new List<SomeEnum> { SomeEnum.Eight, SomeEnum.Nine };
-            var id = ctx.SomeEntities
-                .Where(e => e.ValueConvertedList.All(x => p.Contains(x)))
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(
-                @"@__p_0={ '-8', '-9' } (DbType = Object)
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""ValueConvertedList"" <@ @__p_0
-LIMIT 2");
-        }
-
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void Array_column_Contains_in_scalar_subquery(bool list)
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntityContainers
-                .Where(c => c.ArrayEntities.OrderBy(e => e.Id).First().NullableIntArray.Contains(3))
-                .Select(e => e.Id)
-                .OverArrayOrList(list)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(list,
-                @"SELECT s.""Id""
-FROM ""SomeEntityContainers"" AS s
-WHERE 3 = ANY ((
-    SELECT s0.""NullableIntArray""
-    FROM ""SomeEntities"" AS s0
-    WHERE s.""Id"" = s0.""SomeContainerEntityId""
-    ORDER BY s0.""Id"" NULLS FIRST
-    LIMIT 1)::integer[])
-LIMIT 2");
-        }
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Array_column_Contains_in_scalar_subquery(bool async)
+            => await AssertQuery(
+                async,
+                ss => ss.Set<ArrayContainerEntity>().Where(c => c.ArrayEntities.OrderBy(e => e.Id).First().NullableIntArray.Contains(3)),
+                entryCount: 1);
 
         #endregion
 
         #region Length/Count
 
-        [Fact]
-        public void ArrayLength()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.IntArray.Length == 2)
-                .Select(e => e.Id)
-                .Single();
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Array_Length(bool async);
 
-            Assert.Equal(1, id);
-            AssertSql(
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE cardinality(s.""IntArray"") = 2
-LIMIT 2");
-        }
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Nullable_array_Length(bool async);
 
-        [Fact]
-        public void NullableArrayLength()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.NullableIntArray.Length == 3)
-                .Select(e => e.Id)
-                .Single();
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Array_Length_on_EF_Property(bool async);
 
-            Assert.Equal(1, id);
-            AssertSql(
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE cardinality(s.""NullableIntArray"") = 3
-LIMIT 2");
-        }
-
-        [Fact]
-        public void ListCount()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.IntList.Count == 2)
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE cardinality(s.""IntList"") = 2
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Array_Length_on_EF_Property()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => EF.Property<int[]>(e, nameof(SomeArrayEntity.IntArray)).Length == 2)
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE cardinality(s.""IntArray"") = 2
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Length_on_literal_not_translated()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => new[] { 1, 2 }.Length == e.Id)
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(2, id);
-            AssertSql(
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE 2 = s.""Id""
-LIMIT 2");
-        }
-
-        #endregion
+        #endregion Length/Count
 
         #region Any/All
 
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void Any_no_predicate(bool list)
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Any_no_predicate(bool async)
+            => await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.IntArray.Any()),
+                entryCount: 2);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Any_like(bool async);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Any_ilike(bool async);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Any_like_anonymous(bool async);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task All_like(bool async);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task All_ilike(bool async);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Any_Contains_on_constant_array(bool async)
+            => await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => new[] { 2, 3 }.Any(p => e.IntArray.Contains(p))),
+                entryCount: 1);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Any_Contains_between_column_and_List(bool async)
         {
-            using var ctx = CreateContext();
-            var count = ctx.SomeEntities
-                .Where(e => e.IntArray.Any())
-                .OverArrayOrList(list)
-                .Count();
-
-            Assert.Equal(2, count);
-            AssertSql(list,
-                @"SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE cardinality(s.""IntArray"") > 0");
-        }
-
-        [Fact]
-        public void Any_like()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.Like(e.NullableText, p)))
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(2, id);
-
-            AssertSql(
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" LIKE ANY (ARRAY['a%','b%','c%']::text[])
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Any_ilike()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.ILike(e.NullableText, p)))
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(2, id);
-
-            AssertSql(
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" ILIKE ANY (ARRAY['a%','b%','c%']::text[])
-LIMIT 2");
-        }
-
-        [Fact]
-        public void Any_like_anonymous()
-        {
-            using var ctx = CreateContext();
-            var patterns = new[] { "a%", "b%", "c%" };
-
-            var _ = ctx.SomeEntities
-                .Select(
-                    x => new
-                    {
-                        Array = x.IntArray,
-                        Text = x.NullableText
-                    })
-                .Where(x => patterns.Any(p => EF.Functions.Like(x.Text, p)))
-                .ToList();
-
-            AssertSql(
-                @"@__patterns_0={ 'a%', 'b%', 'c%' } (DbType = Object)
-
-SELECT s.""IntArray"" AS ""Array"", s.""NullableText"" AS ""Text""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" LIKE ANY (@__patterns_0)");
-        }
-
-        [Fact]
-        public void All_like()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => new[] { "b%", "%r" }.All(p => EF.Functions.Like(e.NullableText, p)))
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(2, id);
-
-            AssertSql(
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" LIKE ALL (ARRAY['b%','%r']::text[])
-LIMIT 2");
-        }
-
-        [Fact]
-        public void All_ilike()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => new[] { "B%", "%r" }.All(p => EF.Functions.ILike(e.NullableText, p)))
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(2, id);
-
-            AssertSql(
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" ILIKE ALL (ARRAY['B%','%r']::text[])
-LIMIT 2");
-        }
-
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void Any_Contains_on_constant_array(bool list)
-        {
-            using var ctx = CreateContext();
-
-            var id = ctx.SomeEntities
-                .Where(e => new[] { 2, 3 }.Any(p => e.IntArray.Contains(p)))
-                .Select(e => e.Id)
-                .OverArrayOrList(list)
-                .Single();
-            Assert.Equal(1, id);
-
-            var count = ctx.SomeEntities
-                .Where(e => new[] { 1, 2 }.Any(p => e.IntArray.Contains(p)))
-                .OverArrayOrList(list)
-                .Count();
-            Assert.Equal(0, count);
-
-            AssertSql(list,
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE ARRAY[2,3]::integer[] && s.""IntArray""
-LIMIT 2",
-                //
-                @"SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE ARRAY[1,2]::integer[] && s.""IntArray""");
-        }
-
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void Any_Contains_between_column_and_List(bool list)
-        {
-            using var ctx = CreateContext();
-
             var ints = new List<int> { 2, 3 };
-            var id = ctx.SomeEntities
-                .Where(e => e.IntArray.Any(i => ints.Contains(i)))
-                .Select(e => e.Id)
-                .OverArrayOrList(list)
-                .Single();
-            Assert.Equal(1, id);
 
-            ints = new List<int> { 1, 2 };
-            var count = ctx.SomeEntities
-                .Where(e => e.IntArray.Any(i => ints.Contains(i)))
-                .OverArrayOrList(list)
-                .Count();
-            Assert.Equal(0, count);
-
-            AssertSql(list,
-                @"@__ints_0={ '2', '3' } (DbType = Object)
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" && @__ints_0
-LIMIT 2",
-                //
-                @"@__ints_0={ '1', '2' } (DbType = Object)
-
-SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" && @__ints_0");
+            await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.IntArray.Any(i => ints.Contains(i))),
+                entryCount: 1);
         }
 
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void Any_Contains_between_column_and_array(bool list)
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Any_Contains_between_column_and_array(bool async)
         {
-            using var ctx = CreateContext();
-
             var ints = new[] { 2, 3 };
-            var id = ctx.SomeEntities
-                .Where(e => e.IntArray.Any(i => ints.Contains(i)))
-                .Select(e => e.Id)
-                .OverArrayOrList(list)
-                .Single();
-            Assert.Equal(1, id);
 
-            ints = new[] { 1, 2 };
-            var count = ctx.SomeEntities
-                .Where(e => e.IntArray.Any(i => ints.Contains(i)))
-                .OverArrayOrList(list)
-                .Count();
-            Assert.Equal(0, count);
-
-            AssertSql(list,
-                @"@__ints_0={ '2', '3' } (DbType = Object)
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" && @__ints_0
-LIMIT 2",
-                //
-                @"@__ints_0={ '1', '2' } (DbType = Object)
-
-SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" && @__ints_0");
+            await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => e.IntArray.Any(i => ints.Contains(i))),
+                entryCount: 1);
         }
 
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public void All_Contains(bool list)
-        {
-            using var ctx = CreateContext();
-
-            var id = ctx.SomeEntities
-                .Where(e => new[] { 5, 6 }.All(p => e.IntArray.Contains(p)))
-                .Select(e => e.Id)
-                .OverArrayOrList(list)
-                .Single();
-            Assert.Equal(2, id);
-
-            var count = ctx.SomeEntities
-                .Where(e => new[] { 4, 5, 6 }.All(p => e.IntArray.Contains(p)))
-                .OverArrayOrList(list)
-                .Count();
-            Assert.Equal(0, count);
-
-            AssertSql(list,
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE ARRAY[5,6]::integer[] <@ s.""IntArray""
-LIMIT 2",
-                //
-                @"SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE ARRAY[4,5,6]::integer[] <@ s.""IntArray""");
-        }
-
-        [Theory]
-        [MemberData(nameof(IsListData))]
-        public Task Any_like_column(bool list)
-        {
-            using var ctx = CreateContext();
-
-            return AssertTranslationFailed(() => ctx.SomeEntities
-                .Where(e => e.StringArray.Any(p => EF.Functions.Like(p, "3")))
-                .OverArrayOrList(list)
-                .ToListAsync());
-        }
-
-        #endregion
-
-        #region bytea
-
-        [Fact]
-        public void Index_bytea_with_constant()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.Bytea[0] == 3)
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(1, id);
-            AssertSql(
-                @"SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE get_byte(s.""Bytea"", 0) = 3
-LIMIT 2");
-        }
-
-        public void Index_text_with_constant()
-        {
-            using var ctx = CreateContext();
-            var actual = ctx.SomeEntities.Where(e => e.NullableText[0] == 'f').ToList();
-
-            Assert.Single(actual);
-            AssertSql(
-                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
-FROM ""SomeEntities"" AS s
-WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT NULL");
-        }
-
-        #endregion
-
-        #region Nullability
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task All_Contains(bool async)
+            => await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Where(e => new[] { 5, 6 }.All(p => e.IntArray.Contains(p))),
+                entryCount: 1);
 
         [ConditionalFact]
-        public void Nullable_value_array_index_compare_to_null()
+        public virtual async Task Any_like_column()
         {
             using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.NullableIntArray[3] == null)
-                .Select(e => e.Id)
-                .Count();
 
-            Assert.Equal(1, id);
-            AssertSql(
-                @"SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE (s.""NullableIntArray""[4] IS NULL)");
+            await AssertTranslationFailed(
+                () => ctx.SomeEntities
+                    .Where(e => e.StringArray.Any(p => EF.Functions.Like(p, "3")))
+                    .ToListAsync());
         }
 
-        [ConditionalFact]
-        public void Non_nullable_value_array_index_compare_to_null()
-        {
-            using var ctx = CreateContext();
-            var count = ctx.SomeEntities
-#pragma warning disable CS0472
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                .Where(e => e.IntArray[1] == null)
-#pragma warning restore CS0472
-                .Select(e => e.Id)
-                .Count();
+        #endregion Any/All
 
-            Assert.Equal(0, count);
-            AssertSql(
-                @"SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE FALSE");
-        }
+        #region Other translations
 
-        [ConditionalFact]
-        public void Nullable_reference_array_index_compare_to_null()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.NullableStringArray[3] == null)
-                .Select(e => e.Id)
-                .Count();
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual Task Append(bool async)
+            => AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>()
+                    .Where(e => e.IntArray.Append(5).SequenceEqual(new[] { 3, 4, 5 })),
+                entryCount: 1);
 
-            Assert.Equal(1, id);
-            AssertSql(
-                @"SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE (s.""NullableStringArray""[4] IS NULL)");
-        }
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual Task Concat(bool async)
+            => AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>()
+                    .Where(e => e.IntArray.Concat(new[] { 5, 6 }).SequenceEqual(new[] { 3, 4, 5, 6 })),
+                entryCount: 1);
 
-        [ConditionalFact]
-        public void Non_nullable_reference_array_index_compare_to_null()
-        {
-            using var ctx = CreateContext();
-            var count = ctx.SomeEntities
-#pragma warning disable CS0472
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                .Where(e => e.StringArray[1] == null)
-#pragma warning restore CS0472
-                .Select(e => e.Id)
-                .Count();
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Array_IndexOf1(bool async);
 
-            Assert.Equal(0, count);
-            AssertSql(
-                @"SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE FALSE");
-        }
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Array_IndexOf2(bool async);
 
-        [ConditionalFact]
-        public void Nullable_value_list_index_compare_to_null()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.NullableIntList[3] == null)
-                .Select(e => e.Id)
-                .Count();
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual Task String_Join(bool async)
+            => AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>()
+                    .Where(e => string.Join(", ", e.IntArray) == "3, 4"),
+                entryCount: 1);
 
-            Assert.Equal(1, id);
-            AssertSql(
-                @"SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE (s.""NullableIntList""[4] IS NULL)");
-        }
-
-        [ConditionalFact]
-        public void Non_nullable_value_list_index_compare_to_null()
-        {
-            using var ctx = CreateContext();
-            var count = ctx.SomeEntities
-#pragma warning disable CS0472
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                .Where(e => e.IntList[1] == null)
-#pragma warning restore CS0472
-                .Select(e => e.Id)
-                .Count();
-
-            Assert.Equal(0, count);
-            AssertSql(
-                @"SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE FALSE");
-        }
-
-        [ConditionalFact]
-        public void Nullable_reference_list_index_compare_to_null()
-        {
-            using var ctx = CreateContext();
-            var id = ctx.SomeEntities
-                .Where(e => e.NullableStringList[3] == null)
-                .Select(e => e.Id)
-                .Count();
-
-            Assert.Equal(1, id);
-            AssertSql(
-                @"SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE (s.""NullableStringList""[4] IS NULL)");
-        }
-
-        [ConditionalFact]
-        public void Non_nullable_reference_list_index_compare_to_null()
-        {
-            using var ctx = CreateContext();
-            var count = ctx.SomeEntities
-#pragma warning disable CS0472
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                .Where(e => e.StringList[1] == null)
-#pragma warning restore CS0472
-                .Select(e => e.Id)
-                .Count();
-
-            Assert.Equal(0, count);
-            AssertSql(
-                @"SELECT COUNT(*)::INT
-FROM ""SomeEntities"" AS s
-WHERE FALSE");
-        }
-
-        #endregion Nullability
+        #endregion Other translations
 
         #region Support
 
-        protected ArrayArrayQueryContext CreateContext() => Fixture.CreateContext();
+        protected ArrayQueryContext CreateContext()
+            => Fixture.CreateContext();
 
-        private void AssertSql(bool list, params string[] expected)
-            => AssertSql(list
-                ? expected.Select(e => e
-                        .Replace(@"""IntArray""", @"""IntList""")
-                        .Replace(@"""NullableIntArray""", @"""NullableIntList""")
-                        .Replace(@"""StringArray""", @"""StringList""")
-                        .Replace(@"""NullableStringArray""", @"""NullableStringList"""))
-                    .ToArray()
-                : expected);
-
-        private void AssertSql(params string[] expected)
+        protected void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-        public static IEnumerable<object[]> IsListData = new[] { new object[] { false }, new object[] { true } };
-
-        public class ArrayArrayQueryContext : PoolableDbContext
-        {
-            public DbSet<SomeArrayEntity> SomeEntities { get; set; }
-            public DbSet<SomeContainerEntity> SomeEntityContainers { get; set; }
-
-            public ArrayArrayQueryContext(DbContextOptions options) : base(options) {}
-
-            protected override void OnModelCreating(ModelBuilder modelBuilder)
-                => modelBuilder.Entity<SomeArrayEntity>(
-                    e =>
-                    {
-                        // We do negative to make sure our value converter is properly used, and not the built-in one
-                        e.Property(ae => ae.ValueConvertedScalar)
-                            .HasConversion(w => -(int)w, v => (SomeEnum)(-v));
-
-                        e.Property(ae => ae.ValueConvertedArray)
-                            .HasPostgresArrayConversion(w => -(int)w, v => (SomeEnum)(-v));
-
-                        e.Property(ae => ae.ValueConvertedList)
-                            .HasPostgresArrayConversion(w => -(int)w, v => (SomeEnum)(-v));
-                    });
-
-            public static void Seed(ArrayArrayQueryContext context)
-            {
-                var arrayEntities = new SomeArrayEntity[]
-                {
-                    new()
-                    {
-                        Id = 1,
-                        IntArray = new[] { 3, 4 },
-                        IntList = new List<int> { 3, 4 },
-                        NullableIntArray = new int?[] { 3, 4, null },
-                        NullableIntList = new List<int?> { 3, 4, null },
-                        Bytea = new byte[] { 3, 4 },
-                        ByteArray = new byte[] { 3, 4 },
-                        StringArray = new[] { "3", "4" },
-                        NullableStringArray = new[] { "3", "4", null },
-                        StringList = new List<string> { "3", "4" },
-                        NullableStringList = new List<string> { "3", "4", null},
-                        NullableText = "foo",
-                        NonNullableText = "foo",
-                        ValueConvertedScalar = SomeEnum.One,
-                        ValueConvertedArray = new[] { SomeEnum.Eight, SomeEnum.Nine },
-                        ValueConvertedList = new List<SomeEnum> { SomeEnum.Eight, SomeEnum.Nine },
-                        Byte = 10
-                    },
-                    new()
-                    {
-                        Id = 2,
-                        IntArray = new[] { 5, 6, 7, 8 },
-                        IntList = new List<int> { 5, 6, 7, 8 },
-                        NullableIntArray = new int?[] { 5, 6, 7, 8 },
-                        NullableIntList = new List<int?> { 5, 6, 7, 8 },
-                        Bytea = new byte[] { 5, 6, 7, 8 },
-                        ByteArray = new byte[] { 5, 6, 7, 8 },
-                        StringArray = new[] { "5", "6", "7", "8" },
-                        NullableStringArray = new[] { "5", "6", "7", "8" },
-                        StringList = new List<string> { "5", "6", "7", "8" },
-                        NullableStringList = new List<string> { "5", "6", "7", "8" },
-                        NullableText = "bar",
-                        NonNullableText = "bar",
-                        ValueConvertedScalar = SomeEnum.Two,
-                        ValueConvertedArray = new[] { SomeEnum.Nine, SomeEnum.Ten },
-                        ValueConvertedList = new List<SomeEnum> { SomeEnum.Nine, SomeEnum.Ten },
-                        Byte = 20
-                    }
-                };
-
-                context.SomeEntities.AddRange(arrayEntities);
-                context.SomeEntityContainers.Add(new SomeContainerEntity
-                {
-                    Id = 1,
-                    ArrayEntities = new List<SomeArrayEntity> { arrayEntities[0], arrayEntities[1] }
-                });
-                context.SaveChanges();
-            }
-        }
-
-        #nullable enable
-
-        public class SomeArrayEntity
-        {
-            public int Id { get; set; }
-            public int[] IntArray { get; set; } = null!;
-            public List<int> IntList { get; set; } = null!;
-            public int?[] NullableIntArray { get; set; } = null!;
-            public List<int?> NullableIntList { get; set; } = null!;
-            public byte[] Bytea { get; set; } = null!;
-            public byte[] ByteArray { get; set; } = null!;
-            public string[] StringArray { get; set; } = null!;
-            public List<string> StringList { get; set; } = null!;
-            public string?[] NullableStringArray { get; set; } = null!;
-            public List<string?> NullableStringList { get; set; } = null!;
-            public string? NullableText { get; set; }
-            public string NonNullableText { get; set; } = null!;
-            public SomeEnum ValueConvertedScalar { get; set; }
-            public SomeEnum[] ValueConvertedArray { get; set; } = null!;
-            public List<SomeEnum> ValueConvertedList { get; set; } = null!;
-            public byte Byte { get; set; }
-        }
-
-        public enum SomeEnum
-        {
-            One = 1,
-            Two = 2,
-            Three = 3,
-            Eight = 8,
-            Nine = 9,
-            Ten = 10
-        }
-
-        public class SomeContainerEntity
-        {
-            public int Id { get; set; }
-            public List<SomeArrayEntity> ArrayEntities { get; set; } = null!;
-        }
-
-        #nullable restore
-
-        public class ArrayArrayQueryFixture : SharedStoreFixtureBase<ArrayArrayQueryContext>
-        {
-            protected override string StoreName => "ArrayArrayQueryTest";
-            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
-
-            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-                => base.AddOptions(builder).ConfigureWarnings(wcb => wcb.Ignore(CoreEventId.CollectionWithoutComparer));
-
-            protected override void Seed(ArrayArrayQueryContext context) => ArrayArrayQueryContext.Seed(context);
-        }
-
-        protected static async Task AssertTranslationFailed(Func<Task> query)
-            => Assert.Contains(
-                CoreStrings.TranslationFailed("").Substring(48),
-                (await Assert.ThrowsAsync<InvalidOperationException>(query))
-                .Message);
-
         #endregion
-    }
-}
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ArrayTests
-{
-    using SomeArrayEntity = ArrayQueryTest.SomeArrayEntity;
-
-    internal static class QueryableExtensions
-    {
-        internal static IQueryable<T> OverArrayOrList<T>(this IQueryable<T> source, bool list)
-        {
-            Check.NotNull(source, nameof(source));
-
-            return source.Provider is EntityQueryProvider && list
-                ? source.Provider.CreateQuery<T>(
-                    new ArrayToListReplacingExpressionVisitor().Visit(source.Expression))
-                : source;
-        }
-    }
-
-    internal class ArrayToListReplacingExpressionVisitor : ExpressionVisitor
-    {
-        private static readonly PropertyInfo IntArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.IntArray));
-        private static readonly PropertyInfo NullableIntArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableIntArray));
-        private static readonly PropertyInfo IntList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.IntList));
-        private static readonly PropertyInfo NullableIntList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableIntList));
-        private static readonly PropertyInfo StringArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.StringArray));
-        private static readonly PropertyInfo NullableStringArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableStringArray));
-        private static readonly PropertyInfo StringList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.StringList));
-        private static readonly PropertyInfo NullableStringList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableStringList));
-
-        protected override Expression VisitMember(MemberExpression node)
-        {
-            if (node.Member == IntArray)
-            {
-                return Expression.MakeMemberAccess(node.Expression, IntList);
-            }
-
-            if (node.Member == NullableIntArray)
-            {
-                return Expression.MakeMemberAccess(node.Expression, NullableIntList);
-            }
-
-            if (node.Member == StringArray)
-            {
-                return Expression.MakeMemberAccess(node.Expression, StringList);
-            }
-
-            if (node.Member == NullableStringArray)
-            {
-                return Expression.MakeMemberAccess(node.Expression, NullableStringList);
-            }
-
-            return node;
-        }
     }
 }
