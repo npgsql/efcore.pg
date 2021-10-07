@@ -113,9 +113,6 @@
 	<s:Boolean x:Key="/Default/CodeStyle/CSharpUsing/QualifiedUsingAtNestedScope/@EntryValue">True</s:Boolean>
 
 
-	<s:String x:Key="/Default/CodeStyle/FileHeader/FileHeaderText/@EntryValue">Copyright (c) .NET Foundation. All rights reserved.&#xD;
-Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.&#xD;
-</s:String>
 	<s:Boolean x:Key="/Default/CodeStyle/Generate/=Constructor/@KeyIndexDefined">True</s:Boolean>
 	<s:String x:Key="/Default/CodeStyle/Generate/=Constructor/Options/=XmlDocumentation/@EntryIndexedValue">True</s:String>
 	<s:Boolean x:Key="/Default/CodeStyle/Generate/=Equality/@KeyIndexDefined">True</s:Boolean>
