@@ -39,7 +39,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 new NpgsqlRandomTranslator(sqlExpressionFactory),
                 new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory, model),
                 new NpgsqlRegexIsMatchTranslator(sqlExpressionFactory),
-                new NpgsqlStringMethodTranslator(typeMappingSource, sqlExpressionFactory, model),
+                new NpgsqlStringMethodTranslator(typeMappingSource, sqlExpressionFactory, model, npgsqlOptions.PostgresVersion),
                 new NpgsqlTrigramsMethodTranslator(typeMappingSource, sqlExpressionFactory, model),
             });
         }
