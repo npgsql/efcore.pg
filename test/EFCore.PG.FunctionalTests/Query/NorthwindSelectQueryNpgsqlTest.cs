@@ -1,9 +1,7 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -18,23 +16,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             ClearLog();
             // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
-        }
-
-        // Remove after https://github.com/dotnet/efcore/pull/26285
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public override Task Projection_AsEnumerable_projection(bool async)
-        {
-            return AssertQuery(
-                async,
-                ss => ss.Set<Customer>()
-                    .Where(c => c.CustomerID.StartsWith("A"))
-                    .OrderBy(c => c.CustomerID)
-                    .Select(c => ss.Set<Order>().Where(o => o.CustomerID == c.CustomerID).OrderBy(o => o.OrderID).AsEnumerable())
-                    .Where(e => e.Where(o => o.OrderID < 11000).Count() > 0)
-                    .Select(e => e.Where(o => o.OrderID < 10750)),
-                assertOrder: true,
-                entryCount: 18);
         }
 
         public override async Task Select_datetime_DayOfWeek_component(bool async)

@@ -83,7 +83,7 @@ WHERE l.""PathAsString"" = 'Top.Science'");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""LTreeEntities"" AS l
-WHERE starts_with(l.""Path""::text, 'Top.Science')");
+WHERE l.""Path""::text LIKE 'Top.Science%'");
         }
 
         [ConditionalFact]
