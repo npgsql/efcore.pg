@@ -410,7 +410,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             return new PostgresAllExpression(item, array, postgresAllExpression.OperatorType, _boolTypeMapping);
         }
 
-        private (SqlExpression, SqlExpression) ApplyTypeMappingsOnItemAndArray(SqlExpression itemExpression, SqlExpression arrayExpression)
+        public virtual (SqlExpression, SqlExpression) ApplyTypeMappingsOnItemAndArray(
+            SqlExpression itemExpression,
+            SqlExpression arrayExpression)
         {
             // Attempt type inference either from the operand to the array or the other way around
             var arrayMapping = (NpgsqlArrayTypeMapping?)arrayExpression.TypeMapping;
@@ -464,9 +466,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         private SqlExpression ApplyTypeMappingOnArrayIndex(
             PostgresArrayIndexExpression postgresArrayIndexExpression,
             RelationalTypeMapping? typeMapping)
-            => new PostgresArrayIndexExpression(
-                // TODO: Infer the array's mapping from the element
-                ApplyDefaultTypeMapping(postgresArrayIndexExpression.Array),
+        {
+            // If a (non-null) type mapping is being applied, it's to the element being indexed.
+            // Infer the array's mapping from that.
+            var (_, array) = typeMapping is not null
+                ? ApplyTypeMappingsOnItemAndArray(Constant(null, typeMapping), postgresArrayIndexExpression.Array)
+                : (null, ApplyDefaultTypeMapping(postgresArrayIndexExpression.Array));
+
+            return new PostgresArrayIndexExpression(
+                array,
                 ApplyDefaultTypeMapping(postgresArrayIndexExpression.Index),
                 postgresArrayIndexExpression.Type,
                 // If the array has a type mapping (i.e. column), prefer that just like we prefer column mappings in general
@@ -474,6 +482,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                     ? arrayMapping.ElementMapping
                     : typeMapping
                     ?? (RelationalTypeMapping?)_typeMappingSource.FindMapping(postgresArrayIndexExpression.Type, Dependencies.Model));
+        }
 
         private SqlExpression ApplyTypeMappingOnILike(PostgresILikeExpression ilikeExpression)
         {
@@ -749,5 +758,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 newExpressions ?? postgresNewArrayExpression.Expressions,
                 postgresNewArrayExpression.Type, arrayTypeMapping);
         }
+
+        /// <summary>
+        /// PostgreSQL array indexing is 1-based. If the index happens to be a constant,
+        /// just increment it. Otherwise, append a +1 in the SQL.
+        /// </summary>
+        public virtual SqlExpression GenerateOneBasedIndexExpression(SqlExpression expression)
+            => expression is SqlConstantExpression constant
+                ? Constant(System.Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
+                : Add(expression, Constant(1));
     }
 }

@@ -415,7 +415,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     // Try translating ArrayIndex inside json column
                     _jsonPocoTranslator.TranslateMemberAccess(sqlLeft!, sqlRight!, binaryExpression.Type) ??
                     // Other types should be subscriptable - but PostgreSQL arrays are 1-based, so adjust the index.
-                    _sqlExpressionFactory.ArrayIndex(sqlLeft!, GenerateOneBasedIndexExpression(sqlRight!));
+                    _sqlExpressionFactory.ArrayIndex(sqlLeft!, _sqlExpressionFactory.GenerateOneBasedIndexExpression(sqlRight!));
             }
 
             return base.VisitBinary(binaryExpression);
@@ -508,15 +508,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 return true;
             }
         }
-
-        /// <summary>
-        /// PostgreSQL array indexing is 1-based. If the index happens to be a constant,
-        /// just increment it. Otherwise, append a +1 in the SQL.
-        /// </summary>
-        private SqlExpression GenerateOneBasedIndexExpression(SqlExpression expression)
-            => expression is SqlConstantExpression constant
-                ? _sqlExpressionFactory.Constant(Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
-                : _sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));
 
         #region Copied from RelationalSqlTranslatingExpressionVisitor
 
