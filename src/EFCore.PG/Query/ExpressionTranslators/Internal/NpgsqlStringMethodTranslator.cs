@@ -28,6 +28,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         private readonly ISqlExpressionFactory _sqlExpressionFactory;
         private readonly SqlConstantExpression _whitespace;
         private readonly RelationalTypeMapping _textTypeMapping;
+        private readonly Version? _postgresVersion;
 
         #region MethodInfo
 
@@ -72,13 +73,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         public NpgsqlStringMethodTranslator(
             NpgsqlTypeMappingSource typeMappingSource,
             ISqlExpressionFactory sqlExpressionFactory,
-            IModel model)
+            IModel model,
+            Version? postgresVersion)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _whitespace = _sqlExpressionFactory.Constant(
                 @" \t\n\r",  // TODO: Complete this
                 typeMappingSource.EStringTypeMapping);
             _textTypeMapping = (RelationalTypeMapping)typeMappingSource.FindMapping(typeof(string), model)!;
+            _postgresVersion = postgresVersion;
         }
 
         public virtual SqlExpression? Translate(
@@ -306,7 +309,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             if (method == StartsWith)
             {
-                return TranslateStartsEndsWith(instance!, arguments[0], true);
+                var typeMapping = ExpressionExtensions.InferTypeMapping(instance!, arguments[0]);
+
+                return _postgresVersion.AtLeast(11) && typeMapping?.StoreType != "citext"
+                    ? _sqlExpressionFactory.Function(
+                        "starts_with",
+                        new[] { instance!, arguments[0] },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[2],
+                        typeof(bool))
+                    : TranslateStartsEndsWith(instance!, arguments[0], true);
             }
 
             if (method == EndsWith)
