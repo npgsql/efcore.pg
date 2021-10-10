@@ -410,7 +410,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             return new PostgresAllExpression(item, array, postgresAllExpression.OperatorType, _boolTypeMapping);
         }
 
-        public virtual (SqlExpression, SqlExpression) ApplyTypeMappingsOnItemAndArray(
+        internal (SqlExpression, SqlExpression) ApplyTypeMappingsOnItemAndArray(
             SqlExpression itemExpression,
             SqlExpression arrayExpression)
         {
@@ -619,11 +619,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
                 // Attempt type inference either from the container or from the containee
                 var containerMapping = container.TypeMapping;
+                var containeeMapping = containee.TypeMapping;
 
-                var containeeMapping =
-                    containee.TypeMapping
+                if (containeeMapping is null)
+                {
                     // If we couldn't find a type mapping on the containee, try inferring it from the container
-                    ?? containerMapping switch
+                    containeeMapping = containerMapping switch
                     {
                         NpgsqlRangeTypeMapping rangeTypeMapping => rangeTypeMapping.SubtypeMapping,
                         NpgsqlMultirangeTypeMapping multirangeTypeMapping
@@ -633,20 +634,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                         _ => null
                     };
 
-                // Apply the inferred mapping to the containee, or fall back to the default type mapping
-                if (containeeMapping is not null)
-                {
-                    containee = ApplyTypeMapping(containee, containeeMapping);
-                }
-                else
-                {
-                    containee = ApplyDefaultTypeMapping(containee);
-                    containeeMapping = containee.TypeMapping;
-
-                    if (containeeMapping is null)
+                    // Apply the inferred mapping to the containee, or fall back to the default type mapping
+                    if (containeeMapping is not null)
                     {
-                        throw new InvalidOperationException(
-                            "Couldn't find containee type mapping when applying container/containee mappings");
+                        containee = ApplyTypeMapping(containee, containeeMapping);
+                    }
+                    else
+                    {
+                        containee = ApplyDefaultTypeMapping(containee);
+                        containeeMapping = containee.TypeMapping;
+
+                        if (containeeMapping is null)
+                        {
+                            throw new InvalidOperationException(
+                                "Couldn't find containee type mapping when applying container/containee mappings");
+                        }
                     }
                 }
 

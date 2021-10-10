@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -8,8 +9,11 @@ using NpgsqlTypes;
 using Xunit;
 using Xunit.Abstractions;
 
+// ReSharper disable InconsistentNaming
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
+    // Note: timestamp range tests are in TimestampQueryTest
     public class RangeQueryNpgsqlTest : IClassFixture<RangeQueryNpgsqlTest.RangeQueryNpgsqlFixture>
     {
         private RangeQueryNpgsqlFixture Fixture { get; }
@@ -19,341 +23,480 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         #region Operators
 
-        [Theory]
-        [MemberData(nameof(IntegerTheoryData))]
-        public void Range_Contains_value(int value)
+        [ConditionalFact]
+        public void Contains_value()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities
-                .Where(x => x.Range.Contains(value))
-                .ToArray();
+            var result = context.RangeTestEntities.Single(x => x.IntRange.Contains(3));
+            Assert.Equal(1, result.Id);
 
-            AssertContainsSql(@"r.""Range"" @> @__value_0");
+            AssertSql(
+                @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE r.""IntRange"" @> 3
+LIMIT 2");
         }
 
-        [Theory]
-        [MemberData(nameof(RangeTheoryData))]
-        public void Range_Contains_range(NpgsqlRange<int> range)
+        [ConditionalFact]
+        public void Contains_range()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities
-                .Where(x => x.Range.Contains(range))
-                .ToArray();
 
-            AssertContainsSql(@"r.""Range"" @> @__range_0");
+            var range = new NpgsqlRange<int>(8, 13);
+            var result = context.RangeTestEntities.Single(x => x.IntRange.Contains(range));
+            Assert.Equal(2, result.Id);
+
+            AssertSql(
+                @"@__range_0='[8,13]' (DbType = Object)
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE r.""IntRange"" @> @__range_0
+LIMIT 2");
         }
 
-        [Theory]
-        [MemberData(nameof(RangeTheoryData))]
-        public void Range_ContainedBy_range(NpgsqlRange<int> range)
+        [ConditionalFact]
+        public void ContainedBy()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities
-                .Where(x => range.ContainedBy(x.Range))
-                .ToArray();
+            var range = new NpgsqlRange<int>(8, 13);
+            var result = context.RangeTestEntities.Single(x => range.ContainedBy(x.IntRange));
+            Assert.Equal(2, result.Id);
 
-            AssertContainsSql(@"@__range_0 <@ r.""Range""");
+            AssertSql(
+                @"@__range_0='[8,13]' (DbType = Object)
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE @__range_0 <@ r.""IntRange""
+LIMIT 2");
         }
 
-        [Theory]
-        [MemberData(nameof(RangeTheoryData))]
-        public void Range_equals_operator(NpgsqlRange<int> range)
+        [ConditionalFact]
+        public void Equals_operator()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities
-                .Where(x => x.Range == range)
-                .ToArray();
+            var range = new NpgsqlRange<int>(1, 10);
+            var result = context.RangeTestEntities.Single(x => x.IntRange == range);
+            Assert.Equal(1, result.Id);
 
-            AssertContainsSql(@"r.""Range"" = @__range_0");
+            AssertSql(
+                @"@__range_0='[1,10]' (DbType = Object)
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE r.""IntRange"" = @__range_0
+LIMIT 2");
         }
 
-        [Theory]
-        [MemberData(nameof(RangeTheoryData))]
-        public void Range_equals_method(NpgsqlRange<int> range)
+        [ConditionalFact]
+        public void Equals_method()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities
-                .Where(x => x.Range.Equals(range))
-                .ToArray();
+            var range = new NpgsqlRange<int>(1, 10);
+            var result = context.RangeTestEntities.Single(x => x.IntRange.Equals(range));
+            Assert.Equal(1, result.Id);
 
-            AssertContainsSql(@"r.""Range"" = @__range_0");
+            AssertSql(
+                @"@__range_0='[1,10]' (DbType = Object)
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE r.""IntRange"" = @__range_0
+LIMIT 2");
         }
 
-        [Theory]
-        [MemberData(nameof(RangeTheoryData))]
-        public void Range_not_equals_operator(NpgsqlRange<int> range)
+        [ConditionalFact]
+        public void Overlaps_range()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities
-                .Where(x => x.Range != range)
-                .ToArray();
+            var range = new NpgsqlRange<int>(-5, 4);
+            var result = context.RangeTestEntities.Single(x => x.IntRange.Overlaps(range));
+            Assert.Equal(1, result.Id);
 
-            AssertContainsSql(@"r.""Range"" <> @__range_0");
+            AssertSql(
+                @"@__range_0='[-5,4]' (DbType = Object)
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE r.""IntRange"" && @__range_0
+LIMIT 2");
         }
 
-        [Theory]
-        [MemberData(nameof(RangeTheoryData))]
-        public void Range_not_equals_method(NpgsqlRange<int> range)
+        [ConditionalFact]
+        public void IsStrictlyLeftOf_range()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities
-                .Where(x => !x.Range.Equals(range))
-                .ToArray();
+            var range = new NpgsqlRange<int>(11, 15);
+            var result = context.RangeTestEntities.Single(x => x.IntRange.IsStrictlyLeftOf(range));
+            Assert.Equal(1, result.Id);
 
-            AssertContainsSql(@"r.""Range"" <> @__range_0");
+            AssertSql(
+                @"@__range_0='[11,15]' (DbType = Object)
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE r.""IntRange"" << @__range_0
+LIMIT 2");
         }
 
-        [Theory]
-        [MemberData(nameof(RangeTheoryData))]
-        public void Range_Overlaps_range(NpgsqlRange<int> range)
+        [ConditionalFact]
+        public void IsStrictlyRightOf_range()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities
-                .Where(x => x.Range.Overlaps(range))
-                .ToArray();
+            var range = new NpgsqlRange<int>(0, 4);
+            var result = context.RangeTestEntities.Single(x => x.IntRange.IsStrictlyRightOf(range));
+            Assert.Equal(2, result.Id);
 
-            AssertContainsSql(@"r.""Range"" && @__range_0");
+            AssertSql(
+                @"@__range_0='[0,4]' (DbType = Object)
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE r.""IntRange"" >> @__range_0
+LIMIT 2");
         }
 
-        [Theory]
-        [MemberData(nameof(RangeTheoryData))]
-        public void Range_IsStrictlyLeftOf_range(NpgsqlRange<int> range)
+        [ConditionalFact]
+        public void DoesNotExtendLeftOf()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities
-                .Where(x => x.Range.IsStrictlyLeftOf(range))
-                .ToArray();
+            var range = new NpgsqlRange<int>(2, 20);
+            var result = context.RangeTestEntities.Single(x => range.DoesNotExtendLeftOf(x.IntRange));
+            Assert.Equal(1, result.Id);
 
-            AssertContainsSql(@"r.""Range"" << @__range_0");
+            AssertSql(
+                @"@__range_0='[2,20]' (DbType = Object)
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE @__range_0 &> r.""IntRange""
+LIMIT 2");
         }
 
-        [Theory]
-        [MemberData(nameof(RangeTheoryData))]
-        public void Range_IsStrictlyRightOf_range(NpgsqlRange<int> range)
+        [ConditionalFact]
+        public void DoesNotExtendRightOf()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities
-                .Where(x => x.Range.IsStrictlyRightOf(range))
-                .ToArray();
+            var range = new NpgsqlRange<int>(1, 13);
+            var result = context.RangeTestEntities.Single(x => range.DoesNotExtendRightOf(x.IntRange));
+            Assert.Equal(2, result.Id);
 
-            AssertContainsSql(@"r.""Range"" >> @__range_0");
+            AssertSql(
+                @"@__range_0='[1,13]' (DbType = Object)
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE @__range_0 &< r.""IntRange""
+LIMIT 2");
         }
 
-        [Theory]
-        [MemberData(nameof(RangeTheoryData))]
-        public void Range_DoesNotExtendLeftOf_range(NpgsqlRange<int> range)
+        [ConditionalFact]
+        public void IsAdjacentTo()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities
-                .Where(x => x.Range.DoesNotExtendLeftOf(range))
-                .ToArray();
+            var range = new NpgsqlRange<int>(2, 4);
+            var result = context.RangeTestEntities.Single(x => range.IsAdjacentTo(x.IntRange));
+            Assert.Equal(2, result.Id);
 
-            AssertContainsSql(@"r.""Range"" &> @__range_0");
+            AssertSql(
+                @"@__range_0='[2,4]' (DbType = Object)
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE @__range_0 -|- r.""IntRange""
+LIMIT 2");
         }
 
-        [Theory]
-        [MemberData(nameof(RangeTheoryData))]
-        public void Range_DoesNotExtendRightOf_range(NpgsqlRange<int> range)
+        [ConditionalFact]
+        public void Union()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities
-                .Where(x => x.Range.DoesNotExtendRightOf(range))
-                .ToArray();
+            var range = new NpgsqlRange<int>(-2, 7);
+            var result = context.RangeTestEntities.Single(x => x.IntRange.Union(range) == new NpgsqlRange<int>(-2, 10));
+            Assert.Equal(1, result.Id);
 
-            AssertContainsSql(@"r.""Range"" &< @__range_0");
+            AssertSql(
+                @"@__range_0='[-2,7]' (DbType = Object)
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE r.""IntRange"" + @__range_0 = '[-2,10]'::int4range
+LIMIT 2");
         }
 
-        [Theory]
-        [MemberData(nameof(RangeTheoryData))]
-        public void Range_IsAdjacentTo_range(NpgsqlRange<int> range)
+        [ConditionalFact]
+        public void Intersect()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities
-                .Where(x => x.Range.IsAdjacentTo(range))
-                .ToArray();
+            var range = new NpgsqlRange<int>(-2, 3);
+            var result = context.RangeTestEntities.Single(x => x.IntRange.Intersect(range) == new NpgsqlRange<int>(1, 3));
+            Assert.Equal(1, result.Id);
 
-            AssertContainsSql(@"r.""Range"" -|- @__range_0");
+            AssertSql(
+                @"@__range_0='[-2,3]' (DbType = Object)
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE r.""IntRange"" * @__range_0 = '[1,3]'::int4range
+LIMIT 2");
         }
 
-        [Theory]
-        [MemberData(nameof(RangeTheoryData))]
-        public void Range_Union_range(NpgsqlRange<int> range)
+        [ConditionalFact]
+        public void Except()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities
-                .Select(x => x.Range.Union(range))
-                .ToArray();
+            var range = new NpgsqlRange<int>(1, 2);
+            var result = context.RangeTestEntities.Single(x => x.IntRange.Except(range) == new NpgsqlRange<int>(3, 10));
+            Assert.Equal(1, result.Id);
 
-            AssertContainsSql(@"r.""Range"" + @__range_0");
+            AssertSql(
+                @"@__range_0='[1,2]' (DbType = Object)
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE r.""IntRange"" - @__range_0 = '[3,10]'::int4range
+LIMIT 2");
         }
 
-        [Theory]
-        [MemberData(nameof(RangeTheoryData))]
-        public void Range_Intersect_range(NpgsqlRange<int> range)
-        {
-            using var context = CreateContext();
-            var _ = context.RangeTestEntities
-                .Select(x => x.Range.Intersect(range))
-                .ToArray();
-
-            AssertContainsSql(@"r.""Range"" * @__range_0");
-        }
-
-        [Theory]
-        [MemberData(nameof(RangeTheoryData))]
-        public void Range_Except_range(NpgsqlRange<int> range)
-        {
-            using var context = CreateContext();
-            try
-            {
-                var _ = context.RangeTestEntities
-                    .Select(x => x.Range.Except(range))
-                    .ToArray();
-            }
-            catch (PostgresException)
-            {
-                // ignore: Npgsql.PostgresException : 22000: result of range difference would not be contiguous.
-            }
-
-            AssertContainsSql(@"r.""Range"" - @__range_0");
-        }
-
-        #endregion
-
-        #region User-defined ranges
-
-        [Fact]
-        public void User_defined()
-        {
-            using var context = CreateContext();
-            var e = context.RangeTestEntities.Single(x => x.FloatRange.UpperBound > 5);
-
-            Assert.Equal(0, e.FloatRange.LowerBound);
-            Assert.Equal(10, e.FloatRange.UpperBound);
-        }
-
-        [Fact]
-        public void User_defined_and_schema_qualified()
-        {
-            using var context = CreateContext();
-            var e = context.RangeTestEntities.Single(x => x.SchemaRange == NpgsqlRange<double>.Parse("(0,10)"));
-
-            AssertContainsSql(@"WHERE r.""SchemaRange"" = '(0.0,10.0)'::test.""Schema_Range""");
-            Assert.Equal(0, e.SchemaRange.LowerBound);
-            Assert.Equal(10, e.SchemaRange.UpperBound);
-        }
-
-        #endregion
+        #endregion Operators
 
         #region Functions
 
-        [Fact]
-        public void Range_LowerBound()
+        [ConditionalFact]
+        public void LowerBound()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities.Where(x => x.Range.LowerBound == 0).ToArray();
+            var result = context.RangeTestEntities.Single(x => x.IntRange.LowerBound == 1);
+            Assert.Equal(1, result.Id);
 
-            AssertContainsSql(@"COALESCE(lower(r.""Range""), 0)");
+            AssertSql(
+                @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE lower(r.""IntRange"") = 1
+LIMIT 2");
         }
 
-        [Fact]
-        public void Range_UpperBound()
+        [ConditionalFact]
+        public void UpperBound()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities.Where(x => x.Range.UpperBound == 10).ToArray();
+            var result = context.RangeTestEntities.Single(x => x.IntRange.UpperBound == 16); // PG normalizes to exclusive
+            Assert.Equal(2, result.Id);
 
-            AssertContainsSql(@"COALESCE(upper(r.""Range""), 0)");
+            AssertSql(
+                @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE upper(r.""IntRange"") = 16
+LIMIT 2");
         }
 
-        [Fact]
-        public void Range_IsEmpty()
+        [ConditionalFact]
+        public void IsEmpty()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities.Where(x => x.Range.IsEmpty).ToArray();
+            var result = context.RangeTestEntities.Single(x => x.IntRange.Intersect(new(1, 2)).IsEmpty);
+            Assert.Equal(2, result.Id);
 
-            AssertContainsSql(@"isempty(r.""Range"")");
+            AssertSql(
+                @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE isempty(r.""IntRange"" * '[1,2]'::int4range)
+LIMIT 2");
         }
 
-        [Fact]
-        public void Range_LowerBoundIsInclusive()
+        [ConditionalFact]
+        public void LowerBoundIsInclusive()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities.Where(x => x.Range.LowerBoundIsInclusive).ToArray();
+            var count = context.RangeTestEntities.Count(x => !x.IntRange.LowerBoundIsInclusive);
+            Assert.Equal(0, count);
 
-            AssertContainsSql(@"lower_inc(r.""Range"")");
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""RangeTestEntities"" AS r
+WHERE NOT (lower_inc(r.""IntRange""))");
         }
 
-        [Fact]
-        public void Range_UpperBoundIsInclusive()
+        [ConditionalFact]
+        public void UpperBoundIsInclusive()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities.Where(x => x.Range.UpperBoundIsInclusive).ToArray();
+            var count = context.RangeTestEntities.Count(x => x.IntRange.UpperBoundIsInclusive);
+            Assert.Equal(0, count);
 
-            AssertContainsSql(@"upper_inc(r.""Range"")");
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""RangeTestEntities"" AS r
+WHERE upper_inc(r.""IntRange"")");
         }
 
-        [Fact]
-        public void Range_LowerBoundInfinite()
+        [ConditionalFact]
+        public void LowerBoundInfinite()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities.Where(x => x.Range.LowerBoundInfinite).ToArray();
+            var count = context.RangeTestEntities.Count(x => x.IntRange.LowerBoundInfinite);
+            Assert.Equal(0, count);
 
-            AssertContainsSql(@"lower_inf(r.""Range"")");
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""RangeTestEntities"" AS r
+WHERE lower_inf(r.""IntRange"")");
         }
 
-        [Fact]
-        public void Range_UpperBoundInfinite()
+        [ConditionalFact]
+        public void UpperBoundInfinite()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities.Where(x => x.Range.UpperBoundInfinite).ToArray();
+            var count = context.RangeTestEntities.Count(x => x.IntRange.UpperBoundInfinite);
+            Assert.Equal(0, count);
 
-            AssertContainsSql(@"upper_inf(r.""Range"")");
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""RangeTestEntities"" AS r
+WHERE upper_inf(r.""IntRange"")");
         }
 
-        [Fact]
-        public void Range_Merge()
+        [ConditionalFact]
+        public void Merge()
         {
             using var context = CreateContext();
-            var _ = context.RangeTestEntities.Select(x => x.Range.Merge(x.Range)).ToArray();
+            var result = context.RangeTestEntities.Single(x => x.IntRange.Merge(new(12, 13)) == new NpgsqlRange<int>(1, 13));
+            Assert.Equal(1, result.Id);
 
-            AssertContainsSql(@"range_merge(r.""Range"", r.""Range"")");
+            AssertSql(
+                @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE range_merge(r.""IntRange"", '[12,13]'::int4range) = '[1,13]'::int4range
+LIMIT 2");
         }
 
-        #endregion
+        #endregion Functions
 
-        #region TheoryData
+        #region Built-in ranges
 
-        /// <summary>
-        /// Provides theory data for integers.
-        /// </summary>
-        public static IEnumerable<object[]> IntegerTheoryData => Enumerable.Range(-10, 10).Select(x => new object[] { x });
+        [ConditionalFact]
+        public void IntRange()
+        {
+            using var context = CreateContext();
+            var result = context.RangeTestEntities.Single(x => x.IntRange.Contains(3));
+            Assert.Equal(1, result.Id);
 
-        /// <summary>
-        /// Provides theory data for ranges.
-        /// </summary>
-        public static IEnumerable<object[]> RangeTheoryData =>
-            new List<object[]>
-            {
-                // (0,5)
-                new object[] { new NpgsqlRange<int>(0, false, false, 5, false, false) },
-                // [0,5]
-                new object[] { new NpgsqlRange<int>(0, true, false, 5, true, false) },
-                // (,)
-                new object[] { new NpgsqlRange<int>(0, false, true, 0, false, true) },
-                // (,)
-                new object[] { new NpgsqlRange<int>(0, false, true, 5, false, true) },
-                // (0,)
-                new object[] { new NpgsqlRange<int>(0, false, false, 0, false, true) },
-                // (0,)
-                new object[] { new NpgsqlRange<int>(0, false, false, 5, false, true) },
-                // (,5)
-                new object[] { new NpgsqlRange<int>(0, false, true, 5, false, false) }
-            };
+            AssertSql(
+                @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE r.""IntRange"" @> 3
+LIMIT 2");
+        }
+
+        [ConditionalFact]
+        public void LongRange()
+        {
+            using var context = CreateContext();
+            var value = 3;
+            var result = context.RangeTestEntities.Single(x => x.LongRange.Contains(value));
+            Assert.Equal(1, result.Id);
+
+            AssertSql(
+                @"@__p_0='3'
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE r.""LongRange"" @> @__p_0
+LIMIT 2");
+        }
+
+        [ConditionalFact]
+        public void DecimalRange()
+        {
+            using var context = CreateContext();
+            var value = 3;
+            var result = context.RangeTestEntities.Single(x => x.DecimalRange.Contains(value));
+            Assert.Equal(1, result.Id);
+
+            AssertSql(
+                @"@__p_0='3'
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE r.""DecimalRange"" @> @__p_0
+LIMIT 2");
+        }
+
+        [ConditionalFact]
+        public void Daterange_DateOnly()
+        {
+            using var context = CreateContext();
+            var value = new DateOnly(2020, 1, 3);
+            var result = context.RangeTestEntities.Single(x => x.DateOnlyDateRange.Contains(value));
+            Assert.Equal(1, result.Id);
+
+            AssertSql(
+                @"@__value_0='01/03/2020' (DbType = Date)
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE r.""DateOnlyDateRange"" @> @__value_0
+LIMIT 2");
+        }
+
+        [ConditionalFact]
+        public void Daterange_DateTime()
+        {
+            using var context = CreateContext();
+            var value = new DateTime(2020, 1, 3);
+            var result = context.RangeTestEntities.Single(x => x.DateTimeDateRange.Contains(value));
+            Assert.Equal(1, result.Id);
+
+            AssertSql(
+                @"@__value_0='2020-01-03T00:00:00.0000000' (DbType = DateTime)
+
+SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE r.""DateTimeDateRange"" @> @__value_0
+LIMIT 2");
+        }
+
+        #endregion Built-in ranges
+
+        #region User-defined ranges
+
+        [ConditionalFact]
+        public void User_defined()
+        {
+            using var context = CreateContext();
+            var result = context.RangeTestEntities.Single(x => x.UserDefinedRange.UpperBound > 12.0);
+            Assert.Equal(2, result.Id);
+            Assert.Equal(5.0, result.UserDefinedRange.LowerBound);
+            Assert.Equal(15.0, result.UserDefinedRange.UpperBound);
+
+            AssertSql(
+                @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE upper(r.""UserDefinedRange"") > 12.0
+LIMIT 2");
+        }
+
+        [ConditionalFact]
+        public void User_defined_and_schema_qualified()
+        {
+            using var context = CreateContext();
+            var result = context.RangeTestEntities.Single(x => x.UserDefinedRangeWithSchema.UpperBound > 12.0);
+            Assert.Equal(2, result.Id);
+            Assert.Equal(5.0, result.UserDefinedRangeWithSchema.LowerBound);
+            Assert.Equal(15.0, result.UserDefinedRangeWithSchema.UpperBound);
+
+            AssertSql(
+                @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
+FROM ""RangeTestEntities"" AS r
+WHERE upper(r.""UserDefinedRangeWithSchema"")::double precision > 12.0
+LIMIT 2");
+        }
 
         #endregion
 
@@ -370,8 +513,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 var optionsBuilder = base.AddOptions(builder);
                 var npgsqlOptionsBuilder = new NpgsqlDbContextOptionsBuilder(optionsBuilder);
-                npgsqlOptionsBuilder.MapRange("floatrange", typeof(float));
-                npgsqlOptionsBuilder.MapRange<double>("Schema_Range", "test");
+                npgsqlOptionsBuilder.MapRange("doublerange", typeof(double));
+                npgsqlOptionsBuilder.MapRange<float>("Schema_Range", "test");
                 return optionsBuilder;
             }
         }
@@ -379,9 +522,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public class RangeTestEntity
         {
             public int Id { get; set; }
-            public NpgsqlRange<int> Range { get; set; }
-            public NpgsqlRange<float> FloatRange { get; set; }
-            public NpgsqlRange<double> SchemaRange { get; set; }
+            public NpgsqlRange<int> IntRange { get; set; }
+            public NpgsqlRange<long> LongRange { get; set; }
+            public NpgsqlRange<decimal> DecimalRange { get; set; }
+            public NpgsqlRange<DateOnly> DateOnlyDateRange { get; set; }
+            [Column(TypeName = "tsrange")]
+            public NpgsqlRange<DateTime> DateTimeDateRange { get; set; }
+            public NpgsqlRange<double> UserDefinedRange { get; set; }
+            public NpgsqlRange<float> UserDefinedRangeWithSchema { get; set; }
         }
 
         public class RangeContext : PoolableDbContext
@@ -391,8 +539,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             public RangeContext(DbContextOptions options) : base(options) {}
 
             protected override void OnModelCreating(ModelBuilder builder)
-                => builder.HasPostgresRange("floatrange", "real")
-                          .HasPostgresRange("test", "Schema_Range", "double precision");
+                => builder.HasPostgresRange("doublerange", "double precision")
+                          .HasPostgresRange("test", "Schema_Range", "real");
 
             public static void Seed(RangeContext context)
             {
@@ -400,46 +548,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                     new RangeTestEntity
                     {
                         Id = 1,
-                        // (0, 10)
-                        Range = new NpgsqlRange<int>(0, false, false, 10, false, false),
-                        FloatRange = new NpgsqlRange<float>(0, false, false, 10, false, false),
-                        SchemaRange = new NpgsqlRange<double>(0, false, false, 10, false, false)
+                        IntRange = new NpgsqlRange<int>(1, 10),
+                        LongRange = new NpgsqlRange<long>(1, 10),
+                        DecimalRange = new NpgsqlRange<decimal>(1, 10),
+                        DateOnlyDateRange = new NpgsqlRange<DateOnly>(new(2020, 1, 1), new(2020, 1, 10)),
+                        DateTimeDateRange = new NpgsqlRange<DateTime>(new(2020, 1, 1), new(2020, 1, 10)),
+                        UserDefinedRange = new NpgsqlRange<double>(1, 10),
+                        UserDefinedRangeWithSchema = new NpgsqlRange<float>(1, 10)
                     },
                     new RangeTestEntity
                     {
                         Id = 2,
-                        // [0, 10)
-                        Range = new NpgsqlRange<int>(0, true, false, 10, false, false)
-                    },
-                    new RangeTestEntity
-                    {
-                        Id = 3,
-                        // [0, 10]
-                        Range = new NpgsqlRange<int>(0, true, false, 10, true, false)
-                    },
-                    new RangeTestEntity
-                    {
-                        Id = 4,
-                        // [0, ∞)
-                        Range = new NpgsqlRange<int>(0, true, false, 0, false, true)
-                    },
-                    new RangeTestEntity
-                    {
-                        Id = 5,
-                        // (-∞, 10]
-                        Range = new NpgsqlRange<int>(0, false, true, 10, true, false)
-                    },
-                    new RangeTestEntity
-                    {
-                        Id = 6,
-                        // (-∞, ∞)
-                        Range = new NpgsqlRange<int>(0, false, true, 0, false, true)
-                    },
-                    new RangeTestEntity
-                    {
-                        Id = 7,
-                        // (-∞, ∞)
-                        Range = new NpgsqlRange<int>(0, false, true, 0, false, true)
+                        IntRange = new NpgsqlRange<int>(5, 15),
+                        LongRange = new NpgsqlRange<long>(5, 15),
+                        DecimalRange = new NpgsqlRange<decimal>(5, 15),
+                        DateOnlyDateRange = new NpgsqlRange<DateOnly>(new(2020, 1, 5), new(2020, 1, 15)),
+                        DateTimeDateRange = new NpgsqlRange<DateTime>(new(2020, 1, 5), new(2020, 1, 15)),
+                        UserDefinedRange = new NpgsqlRange<double>(5, 15),
+                        UserDefinedRangeWithSchema = new NpgsqlRange<float>(5, 15)
                     });
 
                 context.SaveChanges();
@@ -452,7 +578,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         protected RangeContext CreateContext() => Fixture.CreateContext();
 
-        private void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
+        private void AssertSql(params string[] expected)
+            => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         #endregion
     }

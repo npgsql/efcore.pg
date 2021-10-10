@@ -146,21 +146,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     ? rangeMapping.SubtypeMapping
                     : _typeMappingSource.FindMapping(returnType, _model);
 
-                var accessorName = member.Name == nameof(NpgsqlRange<int>.LowerBound) ? "lower" : "upper";
-                var accessor = _sqlExpressionFactory.Function(
-                    accessorName,
+                return _sqlExpressionFactory.Function(
+                    member.Name == nameof(NpgsqlRange<int>.LowerBound) ? "lower" : "upper",
                     new[] { instance },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     returnType,
                     typeMapping);
-
-                return returnType.IsNullableType()
-                    ? accessor
-                    : _sqlExpressionFactory.Coalesce(
-                        accessor,
-                        _sqlExpressionFactory.Constant(GetDefaultValue(returnType)),
-                        typeMapping);
             }
 
             return member.Name switch
