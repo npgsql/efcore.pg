@@ -132,7 +132,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         private readonly NpgsqlRangeTypeMapping        _numrange;
         private readonly NpgsqlRangeTypeMapping        _tsrange;
         private readonly NpgsqlRangeTypeMapping        _tstzrange;
-        private readonly NpgsqlRangeTypeMapping        _daterange;
+        private readonly NpgsqlRangeTypeMapping        _dateOnlyDaterange;
+        private readonly NpgsqlRangeTypeMapping        _dateTimeDaterange;
 
         // Built-in multiranges
         private readonly NpgsqlMultirangeTypeMapping _int4multirangeArray;
@@ -140,14 +141,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         private readonly NpgsqlMultirangeTypeMapping _nummultirangeArray;
         private readonly NpgsqlMultirangeTypeMapping _tsmultirangeArray;
         private readonly NpgsqlMultirangeTypeMapping _tstzmultirangeArray;
-        private readonly NpgsqlMultirangeTypeMapping _datemultirangeArray;
+        private readonly NpgsqlMultirangeTypeMapping _dateTimedatemultirangeArray;
+        private readonly NpgsqlMultirangeTypeMapping _dateOnlyDatemultirangeArray;
 
         private readonly NpgsqlMultirangeTypeMapping _int4multirangeList;
         private readonly NpgsqlMultirangeTypeMapping _int8multirangeList;
         private readonly NpgsqlMultirangeTypeMapping _nummultirangeList;
         private readonly NpgsqlMultirangeTypeMapping _tsmultirangeList;
         private readonly NpgsqlMultirangeTypeMapping _tstzmultirangeList;
-        private readonly NpgsqlMultirangeTypeMapping _datemultirangeList;
+        private readonly NpgsqlMultirangeTypeMapping _dateTimeMultirangeList;
+        private readonly NpgsqlMultirangeTypeMapping _dateOnlyDatemultirangeList;
 
         // Other types
         private readonly NpgsqlBoolTypeMapping            _bool            = new();
@@ -178,46 +181,51 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             _sqlGenerationHelper = Check.NotNull(sqlGenerationHelper, nameof(sqlGenerationHelper));
 
             // Initialize some mappings which depend on other mappings
-            _int4range = new NpgsqlRangeTypeMapping("int4range", typeof(NpgsqlRange<int>),      _int4,         sqlGenerationHelper);
-            _int8range = new NpgsqlRangeTypeMapping("int8range", typeof(NpgsqlRange<long>),     _int8,         sqlGenerationHelper);
-            _numrange  = new NpgsqlRangeTypeMapping("numrange",  typeof(NpgsqlRange<decimal>),  _numeric,      sqlGenerationHelper);
-            _tsrange   = new NpgsqlRangeTypeMapping("tsrange",   typeof(NpgsqlRange<DateTime>), _timestamp,    sqlGenerationHelper);
-            _tstzrange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<DateTime>), _timestamptz,  sqlGenerationHelper);
-            _daterange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<DateTime>), _dateDateTime, sqlGenerationHelper);
+            _int4range         = new NpgsqlRangeTypeMapping("int4range", typeof(NpgsqlRange<int>),      _int4,         sqlGenerationHelper);
+            _int8range         = new NpgsqlRangeTypeMapping("int8range", typeof(NpgsqlRange<long>),     _int8,         sqlGenerationHelper);
+            _numrange          = new NpgsqlRangeTypeMapping("numrange",  typeof(NpgsqlRange<decimal>),  _numeric,      sqlGenerationHelper);
+            _tsrange           = new NpgsqlRangeTypeMapping("tsrange",   typeof(NpgsqlRange<DateTime>), _timestamp,    sqlGenerationHelper);
+            _tstzrange         = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<DateTime>), _timestamptz,  sqlGenerationHelper);
+            _dateOnlyDaterange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<DateOnly>), _dateDateOnly, sqlGenerationHelper);
+            _dateTimeDaterange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<DateTime>), _dateDateTime, sqlGenerationHelper);
 
             _rangeTypeMapings = new()
             {
                 { typeof(int), new() { _int4range } },
                 { typeof(long), new() { _int8range } },
                 { typeof(decimal), new() { _numrange } },
-                { typeof(DateTime), new() { _tsrange, _tstzrange, _daterange } }
+                { typeof(DateOnly), new() { _dateOnlyDaterange } },
+                { typeof(DateTime), new() { _tsrange, _tstzrange, _dateTimeDaterange } }
             };
 
-            _int4multirangeArray = new NpgsqlMultirangeTypeMapping("int4multirange", typeof(NpgsqlRange<int>[]),      _int4range, sqlGenerationHelper);
-            _int8multirangeArray = new NpgsqlMultirangeTypeMapping("int8multirange", typeof(NpgsqlRange<long>[]),     _int8range, sqlGenerationHelper);
-            _nummultirangeArray  = new NpgsqlMultirangeTypeMapping("nummultirange",  typeof(NpgsqlRange<decimal>[]),  _numrange,  sqlGenerationHelper);
-            _tsmultirangeArray   = new NpgsqlMultirangeTypeMapping("tsmultirange",   typeof(NpgsqlRange<DateTime>[]), _tsrange,   sqlGenerationHelper);
-            _tstzmultirangeArray = new NpgsqlMultirangeTypeMapping("tstzmultirange", typeof(NpgsqlRange<DateTime>[]), _tstzrange, sqlGenerationHelper);
-            _datemultirangeArray = new NpgsqlMultirangeTypeMapping("datemultirange", typeof(NpgsqlRange<DateTime>[]), _daterange, sqlGenerationHelper);
+            _int4multirangeArray         = new NpgsqlMultirangeTypeMapping("int4multirange", typeof(NpgsqlRange<int>[]),          _int4range,         sqlGenerationHelper);
+            _int8multirangeArray         = new NpgsqlMultirangeTypeMapping("int8multirange", typeof(NpgsqlRange<long>[]),         _int8range,         sqlGenerationHelper);
+            _nummultirangeArray          = new NpgsqlMultirangeTypeMapping("nummultirange",  typeof(NpgsqlRange<decimal>[]),      _numrange,          sqlGenerationHelper);
+            _tsmultirangeArray           = new NpgsqlMultirangeTypeMapping("tsmultirange",   typeof(NpgsqlRange<DateTime>[]),     _tsrange,           sqlGenerationHelper);
+            _tstzmultirangeArray         = new NpgsqlMultirangeTypeMapping("tstzmultirange", typeof(NpgsqlRange<DateTime>[]),     _tstzrange,         sqlGenerationHelper);
+            _dateOnlyDatemultirangeArray = new NpgsqlMultirangeTypeMapping("datemultirange", typeof(NpgsqlRange<DateOnly>[]),     _dateOnlyDaterange, sqlGenerationHelper);
+            _dateTimedatemultirangeArray = new NpgsqlMultirangeTypeMapping("datemultirange", typeof(NpgsqlRange<DateTime>[]),     _dateTimeDaterange, sqlGenerationHelper);
 
-            _int4multirangeList = new NpgsqlMultirangeTypeMapping("int4multirange", typeof(List<NpgsqlRange<int>>),      _int4range, sqlGenerationHelper);
-            _int8multirangeList = new NpgsqlMultirangeTypeMapping("int8multirange", typeof(List<NpgsqlRange<long>>),     _int8range, sqlGenerationHelper);
-            _nummultirangeList  = new NpgsqlMultirangeTypeMapping("nummultirange",  typeof(List<NpgsqlRange<decimal>>),  _numrange,  sqlGenerationHelper);
-            _tsmultirangeList   = new NpgsqlMultirangeTypeMapping("tsmultirange",   typeof(List<NpgsqlRange<DateTime>>), _tsrange,   sqlGenerationHelper);
-            _tstzmultirangeList = new NpgsqlMultirangeTypeMapping("tstzmultirange", typeof(List<NpgsqlRange<DateTime>>), _tstzrange, sqlGenerationHelper);
-            _datemultirangeList = new NpgsqlMultirangeTypeMapping("datemultirange", typeof(List<NpgsqlRange<DateTime>>), _daterange, sqlGenerationHelper);
+            _int4multirangeList          = new NpgsqlMultirangeTypeMapping("int4multirange", typeof(List<NpgsqlRange<int>>),      _int4range,         sqlGenerationHelper);
+            _int8multirangeList          = new NpgsqlMultirangeTypeMapping("int8multirange", typeof(List<NpgsqlRange<long>>),     _int8range,         sqlGenerationHelper);
+            _nummultirangeList           = new NpgsqlMultirangeTypeMapping("nummultirange",  typeof(List<NpgsqlRange<decimal>>),  _numrange,          sqlGenerationHelper);
+            _tsmultirangeList            = new NpgsqlMultirangeTypeMapping("tsmultirange",   typeof(List<NpgsqlRange<DateTime>>), _tsrange,           sqlGenerationHelper);
+            _tstzmultirangeList          = new NpgsqlMultirangeTypeMapping("tstzmultirange", typeof(List<NpgsqlRange<DateTime>>), _tstzrange,         sqlGenerationHelper);
+            _dateOnlyDatemultirangeList  = new NpgsqlMultirangeTypeMapping("datemultirange", typeof(List<NpgsqlRange<DateOnly>>), _dateOnlyDaterange, sqlGenerationHelper);
+            _dateTimeMultirangeList      = new NpgsqlMultirangeTypeMapping("datemultirange", typeof(List<NpgsqlRange<DateTime>>), _dateTimeDaterange, sqlGenerationHelper);
 
             _multirangeTypeMapings = new()
             {
                 { typeof(int), new() { _int4multirangeArray, _int4multirangeList } },
                 { typeof(long), new() { _int8multirangeArray, _int8multirangeList } },
                 { typeof(decimal), new() { _nummultirangeArray, _nummultirangeList } },
+                { typeof(DateOnly), new() { _dateOnlyDatemultirangeArray, _dateOnlyDatemultirangeList } },
                 {
                     typeof(DateTime), new()
                     {
                         _tsmultirangeArray, _tsmultirangeList,
                         _tstzmultirangeArray, _tstzmultirangeList,
-                        _datemultirangeArray, _datemultirangeList
+                        _dateTimedatemultirangeArray, _dateTimeMultirangeList
                     }
                 }
             };
@@ -296,14 +304,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "numrange",                    new[] { _numrange                     } },
                 { "tsrange",                     new[] { _tsrange                      } },
                 { "tstzrange",                   new[] { _tstzrange                    } },
-                { "daterange",                   new[] { _daterange                    } },
+                { "daterange",                   new[] { _dateOnlyDaterange, _dateTimeDaterange } },
 
                 { "int4multirange",              new[] { _int4multirangeArray, _int4multirangeList } },
                 { "int8multirange",              new[] { _int8multirangeArray, _int8multirangeList } },
                 { "nummultirange",               new[] { _nummultirangeArray, _nummultirangeList   } },
                 { "tsmultirange",                new[] { _tsmultirangeArray, _tsmultirangeList     } },
                 { "tstzmultirange",              new[] { _tstzmultirangeArray, _tstzmultirangeList } },
-                { "datemultirange",              new[] { _datemultirangeArray, _datemultirangeList } },
+                { "datemultirange",              new[] { _dateOnlyDatemultirangeArray, _dateOnlyDatemultirangeList, _dateTimedatemultirangeArray, _dateTimeMultirangeList } },
 
                 { "tsquery",                     new[] { _tsquery                      } },
                 { "tsvector",                    new[] { _tsvector                     } },
@@ -370,16 +378,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof(NpgsqlRange<decimal>),                _numrange             },
                 { typeof(NpgsqlRange<DateTime>),               LegacyTimestampBehavior ? _tsrange : _tstzrange },
                 { typeof(NpgsqlRange<DateTimeOffset>),          _tstzrange           },
+                { typeof(NpgsqlRange<DateOnly>),               _dateOnlyDaterange },
 
                 { typeof(NpgsqlRange<int>[]),                  _int4multirangeArray  },
-                { typeof(NpgsqlRange<long>[]),                 _int4multirangeArray  },
+                { typeof(NpgsqlRange<long>[]),                 _int8multirangeArray  },
                 { typeof(NpgsqlRange<decimal>[]),              _nummultirangeArray   },
                 { typeof(NpgsqlRange<DateTime>[]),             LegacyTimestampBehavior ? _tsmultirangeArray : _tstzmultirangeArray },
+                { typeof(NpgsqlRange<DateOnly>[]),              _dateOnlyDatemultirangeArray },
 
                 { typeof(List<NpgsqlRange<int>>),              _int4multirangeList   },
-                { typeof(List<NpgsqlRange<long>>),             _int4multirangeList   },
+                { typeof(List<NpgsqlRange<long>>),             _int8multirangeList   },
                 { typeof(List<NpgsqlRange<decimal>>),          _nummultirangeList    },
                 { typeof(List<NpgsqlRange<DateTime>>),         LegacyTimestampBehavior ? _tsmultirangeList : _tstzmultirangeList },
+                { typeof(List<NpgsqlRange<DateOnly>>),          _dateOnlyDatemultirangeList },
 
                 { typeof(NpgsqlTsQuery),                       _tsquery              },
                 { typeof(NpgsqlTsVector),                      _tsvector             },

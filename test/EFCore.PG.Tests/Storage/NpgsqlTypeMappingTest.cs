@@ -580,9 +580,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         }
 
         [Fact]
-        public void GenerateSqlLiteral_returns_daterange_literal()
+        public void GenerateSqlLiteral_returns_daterange_DateOnly_literal()
         {
             var mapping = (NpgsqlRangeTypeMapping)GetMapping("daterange");
+            Assert.Equal("date", mapping.SubtypeMapping.StoreType);
+            Assert.Equal("date", ((NpgsqlRangeTypeMapping)GetMapping(typeof(NpgsqlRange<DateOnly>))).SubtypeMapping.StoreType);
+
+            var value = new NpgsqlRange<DateOnly>(new(2020, 1, 1), new(2020, 1, 2));
+            Assert.Equal(@"'[2020-01-01,2020-01-02]'::daterange", mapping.GenerateSqlLiteral(value));
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_daterange_DateTime_literal()
+        {
+            var mapping = (NpgsqlRangeTypeMapping)GetMapping(typeof(NpgsqlRange<DateTime>), "daterange");
             Assert.Equal("date", mapping.SubtypeMapping.StoreType);
 
             var value = new NpgsqlRange<DateTime>(new(2020, 1, 1), new(2020, 1, 2));
@@ -814,9 +825,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             new NpgsqlOptions()
         );
 
-        private static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);
+        private static RelationalTypeMapping GetMapping(string storeType)
+            => Mapper.FindMapping(storeType);
 
-        private static RelationalTypeMapping GetMapping(Type clrType) => (RelationalTypeMapping)Mapper.FindMapping(clrType);
+        private static RelationalTypeMapping GetMapping(Type clrType)
+            => (RelationalTypeMapping)Mapper.FindMapping(clrType);
+
+        private static RelationalTypeMapping GetMapping(Type clrType, string storeType)
+            => Mapper.FindMapping(clrType, storeType);
 
         private static readonly CSharpHelper CsHelper = new(Mapper);
 
