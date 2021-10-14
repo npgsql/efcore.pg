@@ -24,16 +24,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
 
         private static readonly MethodInfo _modelHasPostgresExtensionMethodInfo2
             = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
-                nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension), typeof(ModelBuilder), typeof(string), typeof(string),
-                typeof(string));
+                nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension), typeof(ModelBuilder), typeof(string), typeof(string), typeof(string));
 
-        private static readonly MethodInfo _modelHasPostgresEnumMethodInfo
+        private static readonly MethodInfo _modelHasPostgresEnumMethodInfo1
             = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
                 nameof(NpgsqlModelBuilderExtensions.HasPostgresEnum), typeof(ModelBuilder), typeof(string), typeof(string[]));
+        
+        private static readonly MethodInfo _modelHasPostgresEnumMethodInfo2
+            = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
+                nameof(NpgsqlModelBuilderExtensions.HasPostgresEnum), typeof(ModelBuilder), typeof(string), typeof(string), typeof(string[]));
 
-        private static readonly MethodInfo _modelHasPostgresRangeMethodInfo
+        private static readonly MethodInfo _modelHasPostgresRangeMethodInfo1
             = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
                 nameof(NpgsqlModelBuilderExtensions.HasPostgresRange), typeof(ModelBuilder), typeof(string), typeof(string));
+        
+        private static readonly MethodInfo _modelHasPostgresRangeMethodInfo2
+            = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
+                nameof(NpgsqlModelBuilderExtensions.HasPostgresRange), typeof(ModelBuilder), typeof(string), typeof(string),typeof(string), typeof(string),typeof(string), typeof(string),typeof(string));
 
         private static readonly MethodInfo _modelUseSerialColumnsMethodInfo
             = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
@@ -186,28 +193,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             {
                 var enumTypeDef = new PostgresEnum(model, annotation.Name);
 
-                return enumTypeDef.Schema == "public"
-                    ? new MethodCallCodeFragment(_modelHasPostgresEnumMethodInfo, enumTypeDef.Name, enumTypeDef.Labels)
-                    : new MethodCallCodeFragment(_modelHasPostgresEnumMethodInfo, enumTypeDef.Schema, enumTypeDef.Name, enumTypeDef.Labels);
+                return enumTypeDef.Schema is null
+                    ? new MethodCallCodeFragment(_modelHasPostgresEnumMethodInfo1, enumTypeDef.Name, enumTypeDef.Labels)
+                    : new MethodCallCodeFragment(_modelHasPostgresEnumMethodInfo2, enumTypeDef.Schema, enumTypeDef.Name, enumTypeDef.Labels);
             }
 
             if (annotation.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal))
             {
                 var rangeTypeDef = new PostgresRange(model, annotation.Name);
 
-                if (rangeTypeDef.CanonicalFunction is null &&
+                if (rangeTypeDef.Schema is null &&
+                    rangeTypeDef.CanonicalFunction is null &&
                     rangeTypeDef.SubtypeOpClass is null &&
                     rangeTypeDef.Collation is null &&
                     rangeTypeDef.SubtypeDiff is null)
                 {
-                    return new MethodCallCodeFragment(_modelHasPostgresRangeMethodInfo,
-                        rangeTypeDef.Schema == "public" ? null : rangeTypeDef.Schema,
-                        rangeTypeDef.Name,
-                        rangeTypeDef.Subtype);
+                    return new MethodCallCodeFragment(_modelHasPostgresRangeMethodInfo1, rangeTypeDef.Name, rangeTypeDef.Subtype);
                 }
 
-                return new MethodCallCodeFragment(_modelHasPostgresRangeMethodInfo,
-                    rangeTypeDef.Schema == "public" ? null : rangeTypeDef.Schema,
+                return new MethodCallCodeFragment(_modelHasPostgresRangeMethodInfo2,
+                    rangeTypeDef.Schema,
                     rangeTypeDef.Name,
                     rangeTypeDef.Subtype,
                     rangeTypeDef.CanonicalFunction,
