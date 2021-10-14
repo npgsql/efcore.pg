@@ -263,6 +263,124 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             Assert.Collection(result.Arguments, name => Assert.Equal("postgis", name));
         }
 
+        [ConditionalFact]
+        public void Enum()
+        {
+            var generator = CreateGenerator();
+            var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+
+            var enumLabels = new []{"someValue1", "someValue2"};
+            modelBuilder.HasPostgresEnum("some_enum", enumLabels);
+
+            var model = (IModel)modelBuilder.Model;
+            var annotations = model.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            var result = generator.GenerateFluentApiCalls(model, annotations)
+                .Single(c => c.Method == nameof(NpgsqlModelBuilderExtensions.HasPostgresEnum));
+
+            Assert.Collection(result.Arguments,
+                name => Assert.Equal("some_enum", name),
+                labels => Assert.Equal(enumLabels, labels));
+        }
+
+        [ConditionalFact]
+        public void Enum_with_schema()
+        {
+            var generator = CreateGenerator();
+            var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+
+            var enumLabels = new []{"someValue1", "someValue2"};
+            modelBuilder.HasPostgresEnum("some_schema", "some_enum", enumLabels);
+
+            var model = (IModel)modelBuilder.Model;
+            var annotations = model.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            var result = generator.GenerateFluentApiCalls(model, annotations)
+                .Single(c => c.Method == nameof(NpgsqlModelBuilderExtensions.HasPostgresEnum));
+
+            Assert.Collection(result.Arguments,
+                schema => Assert.Equal("some_schema", schema),
+                name => Assert.Equal("some_enum", name),
+                labels => Assert.Equal(enumLabels, labels));
+        }
+
+        [ConditionalFact]
+        public void Enum_with_null_schema()
+        {
+            var generator = CreateGenerator();
+            var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+
+            var enumLabels = new []{"someValue1", "someValue2"};
+            modelBuilder.HasPostgresEnum(null, "some_enum", enumLabels);
+
+            var model = (IModel)modelBuilder.Model;
+            var annotations = model.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            var result = generator.GenerateFluentApiCalls(model, annotations)
+                .Single(c => c.Method == nameof(NpgsqlModelBuilderExtensions.HasPostgresEnum));
+
+            Assert.Collection(result.Arguments,
+                name => Assert.Equal("some_enum", name),
+                labels => Assert.Equal(enumLabels, labels));
+        }
+
+        [ConditionalFact]
+        public void Range()
+        {
+            var generator = CreateGenerator();
+            var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+
+            modelBuilder.HasPostgresRange("some_range", "some_subtype");
+
+            var model = (IModel)modelBuilder.Model;
+            var annotations = model.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            var result = generator.GenerateFluentApiCalls(model, annotations)
+                .Single(c => c.Method == nameof(NpgsqlModelBuilderExtensions.HasPostgresRange));
+
+            Assert.Collection(result.Arguments,
+                name => Assert.Equal("some_range", name),
+                subtype => Assert.Equal("some_subtype", subtype));
+        }
+
+        [ConditionalFact]
+        public void Range_with_schema()
+        {
+            var generator = CreateGenerator();
+            var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+
+            modelBuilder.HasPostgresRange("some_schema","some_range", "some_subtype");
+
+            var model = (IModel)modelBuilder.Model;
+            var annotations = model.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            var result = generator.GenerateFluentApiCalls(model, annotations)
+                .Single(c => c.Method == nameof(NpgsqlModelBuilderExtensions.HasPostgresRange));
+
+            Assert.Collection(result.Arguments,
+                schema => Assert.Equal("some_schema", schema),
+                name => Assert.Equal("some_range", name),
+                subtype => Assert.Equal("some_subtype", subtype),
+                canonicalFunction => Assert.Null(canonicalFunction),
+                subtypeOpClass => Assert.Null(subtypeOpClass),
+                collation => Assert.Null(collation),
+                subtypeDiff => Assert.Null(subtypeDiff));
+        }
+
+
+        [ConditionalFact]
+        public void Range_with_null_schema()
+        {
+            var generator = CreateGenerator();
+            var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+
+            modelBuilder.HasPostgresRange(null,"some_range", "some_subtype");
+
+            var model = (IModel)modelBuilder.Model;
+            var annotations = model.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            var result = generator.GenerateFluentApiCalls(model, annotations)
+                .Single(c => c.Method == nameof(NpgsqlModelBuilderExtensions.HasPostgresRange));
+
+            Assert.Collection(result.Arguments,
+                name => Assert.Equal("some_range", name),
+                subtype => Assert.Equal("some_subtype", subtype));
+        }
+
         private NpgsqlAnnotationCodeGenerator CreateGenerator()
             => new(new AnnotationCodeGeneratorDependencies(
                 new NpgsqlTypeMappingSource(
