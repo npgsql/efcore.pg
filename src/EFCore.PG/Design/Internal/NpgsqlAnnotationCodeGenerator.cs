@@ -212,7 +212,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 }
 
                 return new MethodCallCodeFragment(_modelHasPostgresRangeMethodInfo2,
-                    rangeTypeDef.Schema == "public" ? null : rangeTypeDef.Schema,
+                    rangeTypeDef.Schema,
                     rangeTypeDef.Name,
                     rangeTypeDef.Subtype,
                     rangeTypeDef.CanonicalFunction,
