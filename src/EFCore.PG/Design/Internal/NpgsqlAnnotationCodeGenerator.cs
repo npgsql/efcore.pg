@@ -193,7 +193,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             {
                 var enumTypeDef = new PostgresEnum(model, annotation.Name);
 
-                return enumTypeDef.Schema is "public" or null
+                return enumTypeDef.Schema is null
                     ? new MethodCallCodeFragment(_modelHasPostgresEnumMethodInfo1, enumTypeDef.Name, enumTypeDef.Labels)
                     : new MethodCallCodeFragment(_modelHasPostgresEnumMethodInfo2, enumTypeDef.Schema, enumTypeDef.Name, enumTypeDef.Labels);
             }
@@ -202,7 +202,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             {
                 var rangeTypeDef = new PostgresRange(model, annotation.Name);
 
-                if (rangeTypeDef.Schema is null or "public" &&
+                if (rangeTypeDef.Schema is null &&
                     rangeTypeDef.CanonicalFunction is null &&
                     rangeTypeDef.SubtypeOpClass is null &&
                     rangeTypeDef.Collation is null &&

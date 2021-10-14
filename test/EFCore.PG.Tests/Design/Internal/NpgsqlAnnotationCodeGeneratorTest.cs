@@ -269,7 +269,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             var generator = CreateGenerator();
             var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
 
-            var enumLabels = new []{"someValue1", "someValue2"};
+            var enumLabels = new[] { "someValue1", "someValue2" };
             modelBuilder.HasPostgresEnum("some_enum", enumLabels);
 
             var model = (IModel)modelBuilder.Model;
@@ -288,7 +288,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             var generator = CreateGenerator();
             var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
 
-            var enumLabels = new []{"someValue1", "someValue2"};
+            var enumLabels = new[] { "someValue1", "someValue2" };
             modelBuilder.HasPostgresEnum("some_schema", "some_enum", enumLabels);
 
             var model = (IModel)modelBuilder.Model;
@@ -308,8 +308,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             var generator = CreateGenerator();
             var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
 
-            var enumLabels = new []{"someValue1", "someValue2"};
-            modelBuilder.HasPostgresEnum(null, "some_enum", enumLabels);
+            var enumLabels = new[] { "someValue1", "someValue2" };
+            modelBuilder.HasPostgresEnum(schema: null, "some_enum", enumLabels);
 
             var model = (IModel)modelBuilder.Model;
             var annotations = model.GetAnnotations().ToDictionary(a => a.Name, a => a);
@@ -345,7 +345,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             var generator = CreateGenerator();
             var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
 
-            modelBuilder.HasPostgresRange("some_schema","some_range", "some_subtype");
+            modelBuilder.HasPostgresRange("some_schema", "some_range", "some_subtype");
 
             var model = (IModel)modelBuilder.Model;
             var annotations = model.GetAnnotations().ToDictionary(a => a.Name, a => a);
@@ -369,7 +369,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             var generator = CreateGenerator();
             var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
 
-            modelBuilder.HasPostgresRange(null,"some_range", "some_subtype");
+            modelBuilder.HasPostgresRange(schema: null, "some_range", "some_subtype");
 
             var model = (IModel)modelBuilder.Model;
             var annotations = model.GetAnnotations().ToDictionary(a => a.Name, a => a);
