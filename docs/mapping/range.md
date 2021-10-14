@@ -1,8 +1,10 @@
-# Range Type Mapping
+# Ranges and Multiranges
 
 PostgreSQL has the unique feature of supporting [*range data types*](https://www.postgresql.org/docs/current/static/rangetypes.html). Ranges represent a range of numbers, dates or other data types, and allow you to easily query ranges which contain a value, perform set operations (e.g. query ranges which contain other ranges), and other similar operations. The range operations supported by PostgreSQL are listed [in this page](https://www.postgresql.org/docs/current/static/functions-range.html). The Npgsql EF Core provider allows you to seamlessly map PostgreSQL ranges, and even perform operations on them that get translated to SQL for server evaluation.
 
-## Mapping ranges
+In addition, PostgreSQL 14 introduced *multiranges*, which are basically sorted arrays of non-overlapping ranges with set-theoretic operations defined over them. Most range operators also work on multiranges, and they have a few functions of their own. Multirange support in the EF Core provider was introduced in version 6.0.0.
+
+## Ranges
 
 Npgsql maps PostgreSQL ranges to the generic CLR type `NpgsqlRange<T>`:
 
@@ -18,9 +20,6 @@ public class Event
 This will create a column of type `daterange` in your database. You can similarly have properties of type `NpgsqlRange<int>`, `NpgsqlRange<long>`, etc.
 
 ## User-defined ranges
-
-> [!NOTE]
-> This feature was introduced in version 2.2
 
 PostgreSQL comes with 6 built-in ranges: `int4range`, `int8range`, `numrange`, `tsrange`, `tstzrange`, `daterange`; these can be used simply by adding the appropriate `NpgsqlRange<T>` property in your entities as shown above. You can also define your own range types over arbitrary types, and use those in EF Core as well.
 
@@ -44,6 +43,22 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 This will cause the appropriate [`CREATE TYPE ... AS RANGE`](https://www.postgresql.org/docs/current/static/sql-createtype.html) statement to be generated in your migrations, ensuring that your range is created and ready for use. Note that `HasPostgresRange()` supports additional parameters as supported by PostgreSQL `CREATE TYPE`.
 
+## Multiranges
+
+> [!NOTE]
+> This feature was introduced in version 6.0
+
+Npgsql maps arrays or lists of `NpgsqlRange<T>` to PostgreSQL multiranges:
+
+```c#
+public class Store
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public NpgsqlRange<DateTime>[] OpeningTimes { get; set; }
+}
+```
+
 ## Operation translation
 
 Ranges can be queried via extensions methods on `NpgsqlRange`:
@@ -54,11 +69,21 @@ var events = context.Events.Where(p => p.Duration.Contains(someDate));
 
 This will translate to an SQL operation using the PostgreSQL `@>` operator, evaluating at the server and saving you from transferring the entire `Events` table to the client. Note that you can (and probably should) create indexes to make this operation more efficient, see the PostgreSQL docs for more info.
 
-The following table lists the range operations that currently get translated. If you run into a missing operation, please open an issue.
+The following table lists the range operations that currently get translated. Most operations work on both ranges and multiranges (starting with version 6.0.0); the multirange version is omitted for brevity.
+
+If you run into a missing operation, please open an issue.
 
 .NET                                  | SQL
 --------------------------------------|-----
-range.Contains(i)                     | [range @> 3](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
+range.LowerBound                      | [lower(range)](https://www.postgresql.org/docs/current/functions-range.html#RANGE-FUNCTIONS-TABLE)
+range.UpperBound                      | [upper(range)](https://www.postgresql.org/docs/current/functions-range.html#RANGE-FUNCTIONS-TABLE)
+range.LowerBoundIsInclusive           | [lower_inc(range)](https://www.postgresql.org/docs/current/functions-range.html#RANGE-FUNCTIONS-TABLE)
+range.UpperBoundIsInclusive           | [upper_inc(range)](https://www.postgresql.org/docs/current/functions-range.html#RANGE-FUNCTIONS-TABLE)
+range.LowerBoundIsInfinite            | [lower_inf(range)](https://www.postgresql.org/docs/current/functions-range.html#RANGE-FUNCTIONS-TABLE)
+range.UpperBoundIsInfinite            | [upper_inf(range)](https://www.postgresql.org/docs/current/functions-range.html#RANGE-FUNCTIONS-TABLE)
+range.IsEmpty                         | [isempty(range)](https://www.postgresql.org/docs/current/functions-range.html#RANGE-FUNCTIONS-TABLE)
+multirange.Any()                      | [NOT is_empty(multirange)](https://www.postgresql.org/docs/current/functions-range.html#MULTIRANGE-FUNCTIONS-TABLE)
+range.Contains(i)                     | [range @> i](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 range1.Contains(range2)               | [range @> range2](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 range1.ContainedBy(range2)            | [range1 <@ range2](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 range1.Overlaps(range2)               | [range1 && range2](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
@@ -70,3 +95,5 @@ range1.IsAdjacentTo(range2)           | [range1 -\|- range2](https://www.postgre
 range1.Union(range2)                  | [range1 + range2](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 range1.Intersect(range2)              | [range1 * range2](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 range1.Except(range2)                 | [range1 - range2](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
+range1.Merge(range2)                  | [range_merge(range1, range2)](https://www.postgresql.org/docs/current/functions-range.html#RANGE-FUNCTIONS-TABLE)
+multirange.Merge()                    | [range_merge(multirange)](https://www.postgresql.org/docs/current/functions-range.html#MULTIRANGE-FUNCTIONS-TABLE)
