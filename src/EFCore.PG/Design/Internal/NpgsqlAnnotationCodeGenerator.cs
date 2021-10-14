@@ -94,7 +94,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             {
                 var enumTypeDef = new PostgresEnum(model, annotation.Name);
 
-                return enumTypeDef.Schema == "public"
+                return enumTypeDef.Schema == null
                     ? new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.HasPostgresEnum),
                         enumTypeDef.Name, enumTypeDef.Labels)
                     : new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.HasPostgresEnum),
@@ -105,19 +105,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             {
                 var rangeTypeDef = new PostgresRange(model, annotation.Name);
 
-                if (rangeTypeDef.CanonicalFunction == null &&
+                if (rangeTypeDef.Schema == null &&
+                    rangeTypeDef.CanonicalFunction == null &&
                     rangeTypeDef.SubtypeOpClass == null &&
                     rangeTypeDef.Collation == null &&
                     rangeTypeDef.SubtypeDiff == null)
                 {
                     return new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.HasPostgresRange),
-                        rangeTypeDef.Schema == "public" ? null : rangeTypeDef.Schema,
                         rangeTypeDef.Name,
                         rangeTypeDef.Subtype);
                 }
 
                 return new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.HasPostgresRange),
-                    rangeTypeDef.Schema == "public" ? null : rangeTypeDef.Schema,
+                    rangeTypeDef.Schema,
                     rangeTypeDef.Name,
                     rangeTypeDef.Subtype,
                     rangeTypeDef.CanonicalFunction,
