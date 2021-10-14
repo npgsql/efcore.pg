@@ -3,7 +3,7 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class ComplexNavigationsCollectionsSharedTypeQueryNpgsqlTest : ComplexNavigationsCollectionsSharedQueryTypeRelationalTestBase<
+    public class ComplexNavigationsCollectionsSharedTypeQueryNpgsqlTest : ComplexNavigationsCollectionsSharedTypeQueryRelationalTestBase<
         ComplexNavigationsSharedTypeQueryNpgsqlFixture>
     {
         public ComplexNavigationsCollectionsSharedTypeQueryNpgsqlTest(

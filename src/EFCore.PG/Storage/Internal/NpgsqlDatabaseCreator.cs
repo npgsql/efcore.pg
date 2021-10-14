@@ -83,8 +83,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         }
 
         public override bool HasTables()
-            => Dependencies.ExecutionStrategyFactory
-                .Create()
+            => Dependencies.ExecutionStrategy
                 .Execute(
                     _connection,
                     connection => (bool)CreateHasTablesCommand()
@@ -97,7 +96,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                                               Dependencies.CommandLogger))!);
 
         public override Task<bool> HasTablesAsync(CancellationToken cancellationToken = default)
-            => Dependencies.ExecutionStrategyFactory.Create().ExecuteAsync(
+            => Dependencies.ExecutionStrategy.ExecuteAsync(
                 _connection,
                 async (connection, ct) => (bool)(await CreateHasTablesCommand()
                                               .ExecuteScalarAsync(

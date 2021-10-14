@@ -5,7 +5,7 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class ManyToManyNoTrackingQueryNpgsqlTest
+    internal class ManyToManyNoTrackingQueryNpgsqlTest
         : ManyToManyNoTrackingQueryRelationalTestBase<ManyToManyQueryNpgsqlFixture>
     {
         // ReSharper disable once UnusedParameter.Local

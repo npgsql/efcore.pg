@@ -2368,9 +2368,9 @@ INSERT INTO ""Person"" (""Id"", ""Name"")
 VALUES (2, 'John Snow');",
                 //
                 @"INSERT INTO ""Person2"" (""Id"", ""Name"")
-VALUES (-10, 'Daenerys Targaryen');
+VALUES (-20, 'John Snow');
 INSERT INTO ""Person2"" (""Id"", ""Name"")
-VALUES (-20, 'John Snow');",
+VALUES (-10, 'Daenerys Targaryen');",
                 //
                 @"SELECT setval(
     pg_get_serial_sequence('""Person""', 'Id'),

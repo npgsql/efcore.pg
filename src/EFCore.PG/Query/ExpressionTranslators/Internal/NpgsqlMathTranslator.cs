@@ -77,14 +77,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             { typeof(Math).GetRuntimeMethod(nameof(Math.Tan), new[] { typeof(double) })!, "tan" },
             { typeof(MathF).GetRuntimeMethod(nameof(MathF.Tan), new[] { typeof(float) })!, "tan" },
 
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Round), new[] { typeof(double) })!, "round" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Round), new[] { typeof(decimal) })!, "round" },
-            { typeof(MathF).GetRuntimeMethod(nameof(MathF.Round), new[] { typeof(float) })!, "round" },
-
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Truncate), new[] { typeof(double) })!, "trunc" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Truncate), new[] { typeof(decimal) })!, "trunc" },
-            { typeof(MathF).GetRuntimeMethod(nameof(MathF.Truncate), new[] { typeof(float) })!, "trunc" },
-
             // https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
             { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(decimal), typeof(decimal) })!, "greatest" },
             { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(double), typeof(double) })!, "greatest" },
@@ -102,6 +94,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(long), typeof(long) })!, "least" },
             { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(short), typeof(short) })!, "least" },
             { typeof(MathF).GetRuntimeMethod(nameof(MathF.Min), new[] { typeof(float), typeof(float) })!, "least" },
+        };
+
+        private static readonly IEnumerable<MethodInfo> TruncateMethodInfos = new[]
+        {
+            typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Truncate), new[] { typeof(decimal) }),
+            typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Truncate), new[] { typeof(double) }),
+            typeof(MathF).GetRequiredRuntimeMethod(nameof(MathF.Truncate), new[] { typeof(float) })
+        };
+
+        private static readonly IEnumerable<MethodInfo> RoundMethodInfos = new[]
+        {
+            typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Round), new[] { typeof(decimal) }),
+            typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Round), new[] { typeof(double) }),
+            typeof(MathF).GetRequiredRuntimeMethod(nameof(MathF.Round), new[] { typeof(float) })
         };
 
         private static readonly IEnumerable<MethodInfo> SignMethodInfos = new[]
@@ -179,6 +185,44 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     argumentsPropagateNullability: TrueArrays[newArguments.Length],
                     method.ReturnType,
                     typeMapping);
+            }
+
+            if (TruncateMethodInfos.Contains(method))
+            {
+                var argument = arguments[0];
+                // Result of trunc for float/double is always double in server side
+                var result = (SqlExpression)_sqlExpressionFactory.Function(
+                    "trunc",
+                    new[] { argument },
+                    nullable: true,
+                    argumentsPropagateNullability: new[] { true, false, false },
+                    typeof(double));
+
+                if (argument.Type == typeof(float))
+                {
+                    result = _sqlExpressionFactory.Convert(result, typeof(float));
+                }
+
+                return _sqlExpressionFactory.ApplyTypeMapping(result, argument.TypeMapping);
+            }
+
+            if (RoundMethodInfos.Contains(method))
+            {
+                var argument = arguments[0];
+                // Result of round for float/double is always double in server side
+                var result = (SqlExpression) _sqlExpressionFactory.Function(
+                    "round",
+                    new[] { argument },
+                    nullable: true,
+                    argumentsPropagateNullability: new[] { true, true },
+                    typeof(double));
+
+                if (argument.Type == typeof(float))
+                {
+                    result = _sqlExpressionFactory.Convert(result, typeof(float));
+                }
+
+                return _sqlExpressionFactory.ApplyTypeMapping(result, argument.TypeMapping);
             }
 
             // PostgreSQL sign() returns 1, 0, -1, but in the same type as the argument, so we need to convert

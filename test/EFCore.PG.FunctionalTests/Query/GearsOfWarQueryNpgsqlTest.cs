@@ -274,7 +274,7 @@ WHERE (floor(date_part('millisecond', m.""Duration""))::INT % 1000) = 1");
 
         #region DateOnly
 
-        [ConditionalTheory]
+        [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/2039")]
         [MemberData(nameof(IsAsyncData))]
         public virtual async Task Where_DateOnly_ctor(bool async)
         {
@@ -289,6 +289,7 @@ FROM ""Missions"" AS m
 WHERE make_date(date_part('year', m.""Date"")::INT, date_part('month', m.""Date"")::INT, 1) = DATE '1996-09-11'");
         }
 
+        [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/2039")]
         public override async Task Where_DateOnly_Year(bool async)
         {
             await AssertQuery(

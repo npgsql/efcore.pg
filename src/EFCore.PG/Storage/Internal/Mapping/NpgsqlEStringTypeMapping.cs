@@ -14,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// </remarks>
     public class NpgsqlEStringTypeMapping : StringTypeMapping
     {
-        public NpgsqlEStringTypeMapping() : base("does_not_exist") {}
+        public NpgsqlEStringTypeMapping() : base("does_not_exist", System.Data.DbType.String) {}
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"E'{EscapeSqlLiteral((string)value)}'";

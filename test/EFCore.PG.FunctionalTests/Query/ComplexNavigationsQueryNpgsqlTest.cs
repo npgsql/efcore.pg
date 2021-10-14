@@ -1,8 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
@@ -13,5 +11,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture.TestSqlLoggerFactory.Clear();
         }
+
+        [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/26353")]
+        public override Task Subquery_with_Distinct_Skip_FirstOrDefault_without_OrderBy(bool async)
+            => base.Subquery_with_Distinct_Skip_FirstOrDefault_without_OrderBy(async);
     }
 }

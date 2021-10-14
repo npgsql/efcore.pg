@@ -663,7 +663,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 => HasTablesAsync(cancellationToken);
 
             public IExecutionStrategyFactory ExecutionStrategyFactory
+#pragma warning disable CS0618 // Type or member is obsolete
                 => Dependencies.ExecutionStrategyFactory;
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
@@ -22,7 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <param name="storeType">The database type to map.</param>
         /// <param name="npgsqlDbType">The database type used by Npgsql.</param>
         public NpgsqlStringTypeMapping(string storeType, NpgsqlDbType npgsqlDbType)
-            : base(storeType)
+            : base(storeType, System.Data.DbType.String)
             => NpgsqlDbType = npgsqlDbType;
 
         protected NpgsqlStringTypeMapping(

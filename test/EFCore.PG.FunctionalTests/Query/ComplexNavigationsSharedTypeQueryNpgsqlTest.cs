@@ -8,7 +8,7 @@ using Xunit.Abstractions;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class ComplexNavigationsSharedTypeQueryNpgsqlTest
-        : ComplexNavigationsSharedQueryTypeRelationalTestBase<ComplexNavigationsSharedTypeQueryNpgsqlFixture>
+        : ComplexNavigationsSharedTypeQueryRelationalTestBase<ComplexNavigationsSharedTypeQueryNpgsqlFixture>
     {
         // ReSharper disable once UnusedParameter.Local
         public ComplexNavigationsSharedTypeQueryNpgsqlTest(
@@ -19,6 +19,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Fixture.TestSqlLoggerFactory.Clear();
             // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
+
+        [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/26353")]
+        public override Task Subquery_with_Distinct_Skip_FirstOrDefault_without_OrderBy(bool async)
+            => base.Subquery_with_Distinct_Skip_FirstOrDefault_without_OrderBy(async);
 
         [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/22532")]
         public override Task Distinct_skip_without_orderby(bool async)

@@ -21,6 +21,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         // TODO: #1232
         // protected override bool CanExecuteQueryString => true;
 
+        [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/2039")]
+        public override Task Where_DateOnly_Year(bool async)
+            => base.Where_DateOnly_Year(async);
+
         // Base implementation uses DateTimeOffset.Now, which we don't translate by design. Use DateTimeOffset.UtcNow instead.
         public override async Task Select_datetimeoffset_comparison_in_projection(bool async)
         {
