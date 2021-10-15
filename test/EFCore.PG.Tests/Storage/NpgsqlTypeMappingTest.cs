@@ -47,6 +47,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         }
 
         [Fact]
+        public void GenerateSqlLiteral_returns_date_infinity_literals()
+        {
+            Assert.Equal(
+                "DATE '-infinity'",
+                GetMapping("date").GenerateSqlLiteral(DateTime.MinValue));
+
+            Assert.Equal(
+                "DATE 'infinity'",
+                GetMapping("date").GenerateSqlLiteral(DateTime.MaxValue));
+
+            Assert.Equal(
+                "DATE '-infinity'",
+                GetMapping("date").GenerateSqlLiteral(DateOnly.MinValue));
+
+            Assert.Equal(
+                "DATE 'infinity'",
+                GetMapping("date").GenerateSqlLiteral(DateOnly.MaxValue));
+        }
+
+        [Fact]
         public void GenerateSqlLiteral_returns_timestamp_literal()
         {
             var mapping = GetMapping("timestamp without time zone");
@@ -56,8 +76,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Unspecified)));
             Assert.Equal("TIMESTAMP '1997-12-17 07:37:16.345'",
                 mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, 345)));
-            Assert.Equal("TIMESTAMP '9999-12-31 23:59:59.999999'",
-                mapping.GenerateSqlLiteral(DateTime.MaxValue));
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_timestamp_infinity_literals()
+        {
+            Assert.Equal(
+                "TIMESTAMP '-infinity'",
+                GetMapping("timestamp without time zone").GenerateSqlLiteral(DateTime.MinValue));
+
+            Assert.Equal(
+                "TIMESTAMP 'infinity'",
+                GetMapping("timestamp without time zone").GenerateSqlLiteral(DateTime.MaxValue));
         }
 
         [Fact]
@@ -77,6 +107,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Utc)));
             Assert.Equal("TIMESTAMPTZ '1997-12-17 07:37:16.345678Z'",
                 mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, 345, DateTimeKind.Utc).AddTicks(6780)));
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_timestamptz_infinity_literals()
+        {
+            Assert.Equal(
+                "TIMESTAMPTZ '-infinity'",
+                GetMapping("timestamptz").GenerateSqlLiteral(DateTime.MinValue));
+
+            Assert.Equal(
+                "TIMESTAMPTZ 'infinity'",
+                GetMapping("timestamptz").GenerateSqlLiteral(DateTime.MaxValue));
         }
 
         [Fact]

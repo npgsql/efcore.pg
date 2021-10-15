@@ -27,12 +27,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     {
 #if DEBUG
         internal static bool LegacyTimestampBehavior;
+        internal static bool DisableDateTimeInfinityConversions;
 #else
         internal static readonly bool LegacyTimestampBehavior;
+        internal static readonly bool DisableDateTimeInfinityConversions;
 #endif
 
         static NpgsqlTypeMappingSource()
-            => LegacyTimestampBehavior = AppContext.TryGetSwitch("Npgsql.EnableLegacyTimestampBehavior", out var enabled) && enabled;
+        {
+            LegacyTimestampBehavior = AppContext.TryGetSwitch("Npgsql.EnableLegacyTimestampBehavior", out var enabled) && enabled;
+            DisableDateTimeInfinityConversions = AppContext.TryGetSwitch("Npgsql.DisableDateTimeInfinityConversions", out enabled) && enabled;
+        }
 
         private readonly ISqlGenerationHelper _sqlGenerationHelper;
         private readonly ReferenceNullabilityDecoder _referenceNullabilityDecoder = new();
