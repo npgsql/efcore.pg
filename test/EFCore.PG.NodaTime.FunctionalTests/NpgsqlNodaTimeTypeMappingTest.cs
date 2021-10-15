@@ -70,6 +70,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
+        public void GenerateSqlLiteral_returns_timestamptz_Instant_infinity_literal()
+        {
+            var mapping = GetMapping(typeof(Instant));
+            Assert.Equal(typeof(Instant), mapping.ClrType);
+            Assert.Equal("timestamp with time zone", mapping.StoreType);
+
+            Assert.Equal("TIMESTAMPTZ '-infinity'", mapping.GenerateSqlLiteral(Instant.MinValue));
+            Assert.Equal("TIMESTAMPTZ 'infinity'", mapping.GenerateSqlLiteral(Instant.MaxValue));
+        }
+
+        [Fact]
         public void GenerateSqlLiteral_returns_ZonedDateTime_literal()
         {
             var mapping = GetMapping(typeof(ZonedDateTime));
@@ -125,6 +136,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             var mapping = GetMapping(typeof(LocalDate));
 
             Assert.Equal("DATE '2018-04-20'", mapping.GenerateSqlLiteral(new LocalDate(2018, 4, 20)));
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_LocalDate_infinity_literal()
+        {
+            var mapping = GetMapping(typeof(LocalDate));
+
+            Assert.Equal("DATE '-infinity'", mapping.GenerateSqlLiteral(LocalDate.MinIsoValue));
+            Assert.Equal("DATE 'infinity'", mapping.GenerateSqlLiteral(LocalDate.MaxIsoValue));
         }
 
         [Fact]

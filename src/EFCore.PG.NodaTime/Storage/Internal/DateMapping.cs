@@ -33,7 +33,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             => $"DATE '{GenerateEmbeddedNonNullSqlLiteral(value)}'";
 
         protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-            => LocalDatePattern.Iso.Format((LocalDate)value);
+        {
+            var date = (LocalDate)value;
+
+            if (!NpgsqlNodaTimeTypeMappingSourcePlugin.DisableDateTimeInfinityConversions)
+            {
+                if (date == LocalDate.MinIsoValue)
+                {
+                    return "-infinity";
+                }
+
+                if (date == LocalDate.MaxIsoValue)
+                {
+                    return "infinity";
+                }
+            }
+
+            return LocalDatePattern.Iso.Format(date);
+        }
 
         public override Expression GenerateCodeLiteral(object value)
         {

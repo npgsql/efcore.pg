@@ -19,11 +19,44 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => $"DATE '{GenerateEmbeddedNonNullSqlLiteral(value)}'";
 
         protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-            => value switch
+        {
+            switch (value)
             {
-                DateTime d => d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-                DateOnly d => d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-                _ => throw new InvalidCastException($"Can't generate a date SQL literal for CLR type {value.GetType()}")
-            };
+                case DateTime dateTime:
+                    if (!NpgsqlTypeMappingSource.DisableDateTimeInfinityConversions)
+                    {
+                        if (dateTime == DateTime.MinValue)
+                        {
+                            return "-infinity";
+                        }
+
+                        if (dateTime == DateTime.MaxValue)
+                        {
+                            return "infinity";
+                        }
+                    }
+
+                    return dateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+                case DateOnly dateOnly:
+                    if (!NpgsqlTypeMappingSource.DisableDateTimeInfinityConversions)
+                    {
+                        if (dateOnly == DateOnly.MinValue)
+                        {
+                            return "-infinity";
+                        }
+
+                        if (dateOnly == DateOnly.MaxValue)
+                        {
+                            return "infinity";
+                        }
+                    }
+
+                    return dateOnly.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+                default:
+                    throw new InvalidCastException($"Can't generate a date SQL literal for CLR type {value.GetType()}");
+            }
+        }
     }
 }

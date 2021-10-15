@@ -29,13 +29,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             => Assert.Null(GetMapping(typeof(LocalDateTime), "timestamp with time zone"));
 
         [Fact]
-        public void GenerateSqlLiteral_returns_instant_literal_in_legacy_mode()
+        public void GenerateSqlLiteral_returns_instant_literal()
         {
             var mapping = GetMapping(typeof(Instant));
             Assert.Equal("timestamp without time zone", mapping.StoreType);
 
             var instant = (new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660)).InUtc().ToInstant();
             Assert.Equal("TIMESTAMP '2018-04-20T10:31:33.666666Z'", mapping.GenerateSqlLiteral(instant));
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_instant_infinity_literal()
+        {
+            var mapping = GetMapping(typeof(Instant));
+            Assert.Equal(typeof(Instant), mapping.ClrType);
+            Assert.Equal("timestamp without time zone", mapping.StoreType);
+
+            Assert.Equal("TIMESTAMP '-infinity'", mapping.GenerateSqlLiteral(Instant.MinValue));
+            Assert.Equal("TIMESTAMP 'infinity'", mapping.GenerateSqlLiteral(Instant.MaxValue));
         }
 
         [Fact]

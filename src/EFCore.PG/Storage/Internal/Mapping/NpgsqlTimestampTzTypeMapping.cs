@@ -26,27 +26,47 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => @$"""{GenerateLiteralCore(value)}""";
 
         private string GenerateLiteralCore(object value)
-            => value switch
+        {
+            switch (value)
             {
-                DateTime dt => dt.Kind switch
-                {
-                    DateTimeKind.Utc => dt.ToString("yyyy-MM-dd HH:mm:ss.FFFFFF", CultureInfo.InvariantCulture) + 'Z',
+                case DateTime dateTime:
+                    if (!NpgsqlTypeMappingSource.DisableDateTimeInfinityConversions)
+                    {
+                        if (dateTime == DateTime.MinValue)
+                        {
+                            return "-infinity";
+                        }
 
-                    DateTimeKind.Unspecified => NpgsqlTypeMappingSource.LegacyTimestampBehavior
-                        ? dt.ToString("yyyy-MM-dd HH:mm:ss.FFFFFF", CultureInfo.InvariantCulture) + 'Z'
-                        : throw new InvalidCastException($"'timestamp with time zone' literal cannot be generated for {dt.Kind} DateTime: a UTC DateTime is required"),
+                        if (dateTime == DateTime.MaxValue)
+                        {
+                            return "infinity";
+                        }
+                    }
 
-                    DateTimeKind.Local => NpgsqlTypeMappingSource.LegacyTimestampBehavior
-                        ? dt.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFzzz", CultureInfo.InvariantCulture)
-                        : throw new InvalidCastException($"'timestamp with time zone' literal cannot be generated for {dt.Kind} DateTime: a UTC DateTime is required"),
+                    return dateTime.Kind switch
+                    {
+                        DateTimeKind.Utc => dateTime.ToString("yyyy-MM-dd HH:mm:ss.FFFFFF", CultureInfo.InvariantCulture) + 'Z',
 
-                    _ => throw new ArgumentOutOfRangeException()
-                },
+                        DateTimeKind.Unspecified => NpgsqlTypeMappingSource.LegacyTimestampBehavior || dateTime == default
+                            ? dateTime.ToString("yyyy-MM-dd HH:mm:ss.FFFFFF", CultureInfo.InvariantCulture) + 'Z'
+                            : throw new InvalidCastException(
+                                $"'timestamp with time zone' literal cannot be generated for {dateTime.Kind} DateTime: a UTC DateTime is required"),
 
-                DateTimeOffset dto => dto.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFzzz", CultureInfo.InvariantCulture),
+                        DateTimeKind.Local => NpgsqlTypeMappingSource.LegacyTimestampBehavior
+                            ? dateTime.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFzzz", CultureInfo.InvariantCulture)
+                            : throw new InvalidCastException(
+                                $"'timestamp with time zone' literal cannot be generated for {dateTime.Kind} DateTime: a UTC DateTime is required"),
 
-                _ => throw new InvalidCastException(
-                    $"Attempted to generate timestamptz literal for type {value.GetType()}, only DateTime and DateTimeOffset are supported")
-            };
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
+
+                case DateTimeOffset dateTimeOffset:
+                    return dateTimeOffset.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFzzz", CultureInfo.InvariantCulture);
+
+                default:
+                    throw new InvalidCastException(
+                        $"Attempted to generate timestamptz literal for type {value.GetType()}, only DateTime and DateTimeOffset are supported");
+            }
+        }
     }
 }

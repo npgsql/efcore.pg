@@ -32,7 +32,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             => $@"""{GenerateLiteralCore(value)}""";
 
         private string GenerateLiteralCore(object value)
-            => InstantPattern.ExtendedIso.Format((Instant)value);
+        {
+            var instant = (Instant)value;
+
+            if (!NpgsqlNodaTimeTypeMappingSourcePlugin.DisableDateTimeInfinityConversions)
+            {
+                if (instant == Instant.MinValue)
+                {
+                    return "-infinity";
+                }
+
+                if (instant == Instant.MaxValue)
+                {
+                    return "infinity";
+                }
+            }
+
+            return InstantPattern.ExtendedIso.Format(instant);
+        }
 
         internal static Expression GenerateCodeLiteral(Instant instant)
             => Expression.Call(_fromUnixTimeTicks, Expression.Constant(instant.ToUnixTimeTicks()));
