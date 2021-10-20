@@ -49,7 +49,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         private static readonly MethodInfo TimeOnly_Add_TimeSpan
             = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.Add), new[] { typeof(TimeSpan) })!;
 
-        private readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private static readonly MethodInfo TimeZoneInfo_ConvertTimeBySystemTimeZoneId
+            = typeof(TimeZoneInfo).GetRuntimeMethod(
+                nameof(TimeZoneInfo.ConvertTimeBySystemTimeZoneId), new[] { typeof(DateTime), typeof(string) })!;
+
+        private static readonly MethodInfo TimeZoneInfo_ConvertTimeToUtc
+            = typeof(TimeZoneInfo).GetRuntimeMethod(nameof(TimeZoneInfo.ConvertTimeToUtc), new[] { typeof(DateTime) })!;
+
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         private readonly RelationalTypeMapping _timestampMapping;
         private readonly RelationalTypeMapping _timestampTzMapping;
         private readonly RelationalTypeMapping _intervalMapping;
@@ -57,7 +64,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         public NpgsqlDateTimeMethodTranslator(
             IRelationalTypeMappingSource typeMappingSource,
-            ISqlExpressionFactory sqlExpressionFactory)
+            NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _timestampMapping = typeMappingSource.FindMapping("timestamp without time zone")!;
@@ -75,6 +82,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             if (instance is null)
             {
+                if (method == TimeZoneInfo_ConvertTimeBySystemTimeZoneId)
+                {
+                    var typeMapping = arguments[0].TypeMapping;
+                    if (typeMapping is null
+                        || (typeMapping.StoreType != "timestamp with time zone" && typeMapping.StoreType != "timestamptz"))
+                    {
+                        throw new InvalidOperationException(
+                            "TimeZoneInfo.ConvertTimeBySystemTimeZoneId is only supported on columns with type 'timestamp with time zone'");
+                    }
+
+                    return _sqlExpressionFactory.AtTimeZone(arguments[0], arguments[1], typeof(DateTime), _timestampMapping);
+                }
+
+                if (method == TimeZoneInfo_ConvertTimeToUtc)
+                {
+                    var typeMapping = arguments[0].TypeMapping;
+                    if (typeMapping is null
+                        || (typeMapping.StoreType != "timestamp without time zone" && typeMapping.StoreType != "timestamp"))
+                    {
+                        throw new InvalidOperationException(
+                            "TimeZoneInfo.ConvertTimeToUtc) is only supported on columns with type 'timestamp without time zone'");
+                    }
+
+                    return _sqlExpressionFactory.Convert(arguments[0], arguments[0].Type, _timestampTzMapping);
+                }
+
                 return null;
             }
 

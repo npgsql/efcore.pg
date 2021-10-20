@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -46,6 +45,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
             typeof(SystemClock).GetRuntimeMethod(nameof(SystemClock.GetCurrentInstant), Type.EmptyTypes)!;
         private static readonly MethodInfo Instant_InUtc =
             typeof(Instant).GetRuntimeMethod(nameof(Instant.InUtc), Type.EmptyTypes)!;
+        private static readonly MethodInfo Instant_ToDateTimeUtc =
+            typeof(Instant).GetRuntimeMethod(nameof(Instant.ToDateTimeUtc), Type.EmptyTypes)!;
 
         private static readonly MethodInfo Period_FromYears   = typeof(Period).GetRuntimeMethod(nameof(Period.FromYears),        new[] { typeof(int) })!;
         private static readonly MethodInfo Period_FromMonths  = typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths),       new[] { typeof(int) })!;
@@ -63,20 +64,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
             = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Intersection), new[] { typeof(DateInterval) })!;
         private static readonly MethodInfo DateInterval_Union
             = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Union), new[] { typeof(DateInterval) })!;
-
-        /// <summary>
-        /// The mapping of supported method translations.
-        /// </summary>
-        private static readonly Dictionary<MethodInfo, string> PeriodMethodMap = new()
-        {
-            { typeof(Period).GetRuntimeMethod(nameof(Period.FromYears),        new[] { typeof(int) })!,  "years" },
-            { typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths),       new[] { typeof(int) })!,  "months" },
-            { typeof(Period).GetRuntimeMethod(nameof(Period.FromWeeks),        new[] { typeof(int) })!,  "weeks" },
-            { typeof(Period).GetRuntimeMethod(nameof(Period.FromDays),         new[] { typeof(int) })!,  "days" },
-            { typeof(Period).GetRuntimeMethod(nameof(Period.FromHours),        new[] { typeof(long) })!, "hours" },
-            { typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes),      new[] { typeof(long) })!, "mins" },
-            { typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds),      new[] { typeof(long) })!, "secs" },
-        };
 
         private static readonly bool[][] TrueArrays =
         {
@@ -125,6 +112,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
             if (method == Instant_InUtc)
             {
                 return instance;
+            }
+
+            if (method == Instant_ToDateTimeUtc)
+            {
+                return _sqlExpressionFactory.Convert(
+                    instance!,
+                    typeof(DateTime),
+                    _typeMappingSource.FindMapping(typeof(DateTime), "timestamp with time zone"));
             }
 
             var declaringType = method.DeclaringType;

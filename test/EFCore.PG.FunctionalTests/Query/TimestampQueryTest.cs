@@ -421,6 +421,66 @@ WHERE make_timestamptz(date_part('year', e.""TimestamptzDateTime"")::INT, date_p
             Assert.Equal(1, id);
         }
 
+        #region Time zone conversions
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Where_ConvertTimeBySystemTimeZoneId_on_DateTime_timestamptz_column(bool async)
+        {
+            await AssertQuery(
+                async,
+                ss => ss.Set<Entity>().Where(
+                    c => TimeZoneInfo.ConvertTimeBySystemTimeZoneId(c.TimestamptzDateTime, "Europe/Berlin")
+                        == new DateTime(1998, 4, 12, 15, 26, 38)),
+                entryCount: 1);
+
+            AssertSql(
+                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
+FROM ""Entities"" AS e
+WHERE e.""TimestamptzDateTime"" AT TIME ZONE 'Europe/Berlin' = TIMESTAMP '1998-04-12 15:26:38'");
+        }
+
+        [ConditionalFact]
+        public virtual async Task Where_ConvertTimeBySystemTimeZoneId_fails_on_DateTime_timestamp_column()
+        {
+            using var ctx = CreateContext();
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => ctx.Set<Entity>().Where(
+                    c => TimeZoneInfo.ConvertTimeBySystemTimeZoneId(c.TimestampDateTime, "Europe/Berlin")
+                        == new DateTime(1998, 4, 12, 15, 26, 38)).ToListAsync());
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Where_ConvertTimeToUtc_on_DateTime_timestamp_column(bool async)
+        {
+            await AssertQuery(
+                async,
+                ss => ss.Set<Entity>().Where(
+                    c => TimeZoneInfo.ConvertTimeToUtc(c.TimestampDateTime) == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc)),
+                entryCount: 1);
+
+            AssertSql(
+                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
+FROM ""Entities"" AS e
+WHERE e.""TimestampDateTime""::timestamptz = TIMESTAMPTZ '1998-04-12 13:26:38Z'");
+        }
+
+        [ConditionalFact]
+        public virtual async Task Where_ConvertTimeToUtc_fails_on_DateTime_timestamptz_column()
+        {
+            using var ctx = CreateContext();
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => ctx.Set<Entity>().Where(
+                        c => TimeZoneInfo.ConvertTimeToUtc(c.TimestamptzDateTime)
+                            == new DateTime(1998, 4, 12, 15, 26, 38, DateTimeKind.Utc))
+                    .ToListAsync());
+        }
+
+        #endregion Time zone conversions
+
         #region Support
 
         private TimestampQueryContext CreateContext()
