@@ -29,18 +29,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             => (NpgsqlTestStore)NpgsqlNorthwindTestStoreFactory.Instance
                 .GetOrCreate(NpgsqlNorthwindTestStoreFactory.Name).Initialize(null, (Func<DbContext>)null, null);
 
-        public static NpgsqlTestStore GetOrCreate(string name)
-             => new(name);
-
         // ReSharper disable once UnusedMember.Global
         public static NpgsqlTestStore GetOrCreateInitialized(string name)
             => new NpgsqlTestStore(name).InitializeNpgsql(null, (Func<DbContext>)null, null);
 
-        public static NpgsqlTestStore GetOrCreate(string name, string scriptPath, string additionalSql = null)
-            => new(name, scriptPath, additionalSql);
+        public static NpgsqlTestStore GetOrCreate(
+            string name,
+            string scriptPath = null,
+            string additionalSql = null,
+            string connectionStringOptions = null)
+            => new(name, scriptPath, additionalSql, connectionStringOptions);
 
-        public static NpgsqlTestStore Create(string name)
-            => new(name, shared: false);
+        public static NpgsqlTestStore Create(string name, string connectionStringOptions = null)
+            => new(name, connectionStringOptions: connectionStringOptions, shared: false);
 
         public static NpgsqlTestStore CreateInitialized(string name)
             => new NpgsqlTestStore(name, shared: false)
@@ -50,10 +51,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             string name,
             string scriptPath = null,
             string additionalSql = null,
+            string connectionStringOptions = null,
             bool shared = true)
             : base(name, shared)
         {
             Name = name;
+
             if (scriptPath is not null)
             {
                 // ReSharper disable once AssignNullToNotNullAttribute
@@ -63,7 +66,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             _additionalSql = additionalSql;
 
             // ReSharper disable VirtualMemberCallInConstructor
-            ConnectionString = CreateConnectionString(Name);
+            ConnectionString = CreateConnectionString(Name, connectionStringOptions);
             Connection = new NpgsqlConnection(ConnectionString);
             // ReSharper restore VirtualMemberCallInConstructor
         }
@@ -418,11 +421,17 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
             return command;
         }
 
-        public static string CreateConnectionString(string name)
-            => new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection)
+        public static string CreateConnectionString(string name, string options = null)
+        {
+            var builder = new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection) { Database = name };
+
+            if (options is not null)
             {
-                Database = name
-            }.ConnectionString;
+                builder.Options = options;
+            }
+
+            return builder.ConnectionString;
+        }
 
         private static string CreateAdminConnectionString() => CreateConnectionString("postgres");
 

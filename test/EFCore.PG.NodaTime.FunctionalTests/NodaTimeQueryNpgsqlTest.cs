@@ -1231,19 +1231,7 @@ WHERE n.""Instant"" AT TIME ZONE 'UTC' = TIMESTAMP '2018-04-20T10:31:33.666'");
         #region Support
 
         private NodaTimeContext CreateContext()
-        {
-            var ctx = Fixture.CreateContext();
-
-            // Set the PostgreSQL TimeZone parameter to something local, to ensure that operations which take TimeZone into account don't
-            // depend on the database's time zone, and also that operations which shouldn't take TimeZone into account indeed don't.
-            ctx.Database.BeginTransaction();
-            ctx.Database.ExecuteSqlRaw("SET TimeZone='Europe/Berlin'");
-            Fixture.TestSqlLoggerFactory.Clear();
-
-            return ctx;
-        }
-
-        private string Sql => Fixture.TestSqlLoggerFactory.Sql;
+            => Fixture.CreateContext();
 
         private static Period _defaultPeriod = Period.FromYears(2018) + Period.FromMonths(4) + Period.FromDays(20) +
             Period.FromHours(10) + Period.FromMinutes(31) + Period.FromSeconds(23) +
@@ -1289,7 +1277,13 @@ WHERE n.""Instant"" AT TIME ZONE 'UTC' = TIMESTAMP '2018-04-20T10:31:33.666'");
         public class NodaTimeQueryNpgsqlFixture : SharedStoreFixtureBase<NodaTimeContext>, IQueryFixtureBase
         {
             protected override string StoreName => "NodaTimeTest";
-            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+            // Set the PostgreSQL TimeZone parameter to something local, to ensure that operations which take TimeZone into account
+            // don't depend on the database's time zone, and also that operations which shouldn't take TimeZone into account indeed
+            // don't.
+            protected override ITestStoreFactory TestStoreFactory
+                => NpgsqlTestStoreFactory.WithConnectionStringOptions("-c TimeZone=Europe/Berlin");
+
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
 
             private NodaTimeData _expectedData;
