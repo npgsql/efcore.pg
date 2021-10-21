@@ -91,5 +91,6 @@ DateInterval.Contains(DateInterval)                     | [daterange @> daterang
 DateInterval.Intersection(DateInterval)                 | [daterange * daterange](https://www.postgresql.org/docs/current/functions-range.html)               | Added in 6.0
 DateInterval.Union(DateInterval)                        | [daterange + daterange](https://www.postgresql.org/docs/current/functions-range.html)               | Added in 6.0
 Instant.InUtc                                           | No PG operation (.NET-side conversion from Instant to ZonedDateTime only)                           | Added in 6.0
+Instant.ToDateTimeUtc                                   | No PG operation (.NET-side conversion from Instant to UTC DateTime only)                            | Added in 6.0
 
 In addition to the above, most arithmetic operators are also translated (e.g. LocalDate + Period).
