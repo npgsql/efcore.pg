@@ -439,18 +439,21 @@ WHERE e.""TimestamptzDateTime"" AT TIME ZONE 'Europe/Berlin' = TIMESTAMP '1998-0
                         == new DateTime(1998, 4, 12, 15, 26, 38)).ToListAsync());
         }
 
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Where_ConvertTimeToUtc_on_DateTime_timestamp_column(bool async)
+        [ConditionalFact]
+        public virtual async Task Where_ConvertTimeToUtc_on_DateTime_timestamp_column()
         {
-            await AssertQuery(
-                async,
-                ss => ss.Set<Entity>().Where(
-                    c => TimeZoneInfo.ConvertTimeToUtc(c.TimestampDateTime) == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc)),
-                entryCount: 1);
+            // We can't use AssertQuery since the local (expected) evaluation is dependent on the machine's timezone, which is out of
+            // our control.
+            using var ctx = CreateContext();
+
+            var count = await ctx.Set<Entity>()
+                .Where(e => TimeZoneInfo.ConvertTimeToUtc(e.TimestampDateTime) == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc))
+                .CountAsync();
+
+            Assert.Equal(1, count);
 
             AssertSql(
-                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
+                @"SELECT COUNT(*)::INT
 FROM ""Entities"" AS e
 WHERE e.""TimestampDateTime""::timestamptz = TIMESTAMPTZ '1998-04-12 13:26:38Z'");
         }
