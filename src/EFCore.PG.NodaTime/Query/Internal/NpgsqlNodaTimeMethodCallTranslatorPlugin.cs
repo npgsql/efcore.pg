@@ -45,8 +45,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
             typeof(SystemClock).GetRuntimeMethod(nameof(SystemClock.GetCurrentInstant), Type.EmptyTypes)!;
         private static readonly MethodInfo Instant_InUtc =
             typeof(Instant).GetRuntimeMethod(nameof(Instant.InUtc), Type.EmptyTypes)!;
+        private static readonly MethodInfo Instant_InZone =
+            typeof(Instant).GetRuntimeMethod(nameof(Instant.InZone), new[] { typeof(DateTimeZone)})!;
         private static readonly MethodInfo Instant_ToDateTimeUtc =
             typeof(Instant).GetRuntimeMethod(nameof(Instant.ToDateTimeUtc), Type.EmptyTypes)!;
+
+        private static readonly MethodInfo ZonedDateTime_ToInstant =
+            typeof(ZonedDateTime).GetRuntimeMethod(nameof(ZonedDateTime.ToInstant), Type.EmptyTypes)!;
+
+        private static readonly MethodInfo LocalDateTime_InZoneLeniently =
+            typeof(LocalDateTime).GetRuntimeMethod(nameof(LocalDateTime.InZoneLeniently), new[] { typeof(DateTimeZone) })!;
 
         private static readonly MethodInfo Period_FromYears   = typeof(Period).GetRuntimeMethod(nameof(Period.FromYears),        new[] { typeof(int) })!;
         private static readonly MethodInfo Period_FromMonths  = typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths),       new[] { typeof(int) })!;
@@ -64,6 +72,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
             = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Intersection), new[] { typeof(DateInterval) })!;
         private static readonly MethodInfo DateInterval_Union
             = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Union), new[] { typeof(DateInterval) })!;
+
+        private static readonly MethodInfo IDateTimeZoneProvider_get_Item
+            = typeof(IDateTimeZoneProvider).GetRuntimeMethod("get_Item", new[] { typeof(string) })!;
 
         private static readonly bool[][] TrueArrays =
         {
@@ -111,7 +122,48 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
 
             if (method == Instant_InUtc)
             {
+                // Instant -> ZonedDateTime is a no-op (different types in .NET but both mapped to timestamptz in PG)
                 return instance;
+            }
+
+            if (method == ZonedDateTime_ToInstant)
+            {
+                // We get here with the expression localDateTime.InZoneLeniently(DateTimeZoneProviders.Tzdb["Europe/Berlin"]).ToInstant()
+                if (instance is PendingZonedDateTimeExpression pendingZonedDateTime)
+                {
+                    return _sqlExpressionFactory.AtTimeZone(
+                        pendingZonedDateTime.Operand,
+                        _sqlExpressionFactory.Constant(pendingZonedDateTime.TimeZoneId),
+                        typeof(Instant),
+                        _typeMappingSource.FindMapping(typeof(Instant)));
+                }
+
+                // Otherwise, ZonedDateTime -> ToInstant is a no-op (different types in .NET but both mapped to timestamptz in PG)
+                return instance;
+            }
+
+            if (method == IDateTimeZoneProvider_get_Item)
+            {
+                // Small hack. We're translating an expression such as 'DateTimeZoneProviders.Tzdb["Europe/Berlin"]'.
+                // In .NET the Type of that expression is DateTimeZone, but just return the string ID for the time zone.
+                return instance is PendingDateTimeZoneProviderExpression
+                    && arguments[0] is SqlConstantExpression { Value: string timeZoneId }
+                        ? _sqlExpressionFactory.Constant(timeZoneId)
+                        : throw new InvalidOperationException("Can only get a constant time zone on DateTimeZoneProviders.TzDb");
+            }
+
+            if (method == Instant_InZone)
+            {
+                return arguments[0] is SqlConstantExpression { Value: string dateTimeZoneId }
+                    ? new PendingZonedDateTimeExpression(instance!, dateTimeZoneId)
+                    : throw new InvalidOperationException("Instant.InZone is only supported with a constant time zone expression such as 'DateTimeZoneProviders.Tzdb[\"Europe/Berlin\"]'");
+            }
+
+            if (method == LocalDateTime_InZoneLeniently)
+            {
+                return arguments[0] is SqlConstantExpression { Value: string dateTimeZoneId }
+                    ? new PendingZonedDateTimeExpression(instance!, dateTimeZoneId)
+                    : throw new InvalidOperationException("LocalDateTime.InZoneLeniently is only supported with a constant time zone expression such as 'DateTimeZoneProviders.Tzdb[\"Europe/Berlin\"]'");
             }
 
             if (method == Instant_ToDateTimeUtc)

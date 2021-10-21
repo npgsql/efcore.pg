@@ -46,9 +46,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
         private static readonly MemberInfo DateInterval_Length =
             typeof(DateInterval).GetRuntimeProperty(nameof(DateInterval.Length))!;
 
+        private static readonly MemberInfo DateTimeZoneProviders_TzDb =
+            typeof(DateTimeZoneProviders).GetRuntimeProperty(nameof(DateTimeZoneProviders.Tzdb))!;
+
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         private readonly RelationalTypeMapping _dateTypeMapping;
         private readonly RelationalTypeMapping _periodTypeMapping;
+        private readonly RelationalTypeMapping _localDateTimeTypeMapping;
 
         public NpgsqlNodaTimeMemberTranslator(
             IRelationalTypeMappingSource typeMappingSource,
@@ -57,6 +61,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
             _sqlExpressionFactory = sqlExpressionFactory;
             _dateTypeMapping = typeMappingSource.FindMapping(typeof(LocalDate))!;
             _periodTypeMapping = typeMappingSource.FindMapping(typeof(Period))!;
+            _localDateTimeTypeMapping = typeMappingSource.FindMapping(typeof(LocalDateTime))!;
         }
 
         private static readonly bool[][] TrueArrays =
@@ -77,6 +82,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
             if (member == SystemClock_Instance)
             {
                 return _sqlExpressionFactory.Constant(SystemClock.Instance);
+            }
+
+            if (member == DateTimeZoneProviders_TzDb)
+            {
+                return PendingDateTimeZoneProviderExpression.Instance;
             }
 
             if (instance is null)
@@ -304,6 +314,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
         {
             if (member == ZonedDateTime_LocalDateTime)
             {
+                if (instance is PendingZonedDateTimeExpression pendingZonedDateTime)
+                {
+                    return _sqlExpressionFactory.AtTimeZone(
+                        pendingZonedDateTime.Operand,
+                        _sqlExpressionFactory.Constant(pendingZonedDateTime.TimeZoneId),
+                        typeof(LocalDateTime),
+                        _localDateTimeTypeMapping);
+                }
+
                 return _sqlExpressionFactory.AtUtc(instance);
             }
 

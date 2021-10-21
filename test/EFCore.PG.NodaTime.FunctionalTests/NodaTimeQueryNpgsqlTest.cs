@@ -307,6 +307,25 @@ WHERE CASE
 END = 5");
         }
 
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task LocalDateTime_InZoneLeniently_ToInstant(bool async)
+        {
+            await AssertQuery(
+                async,
+                ss => ss.Set<NodaTimeTypes>().Where(
+                    t => t.LocalDateTime.InZoneLeniently(DateTimeZoneProviders.Tzdb["Europe/Berlin"]).ToInstant()
+                        == new ZonedDateTime(new LocalDateTime(2018, 4, 20, 8, 31, 33, 666), DateTimeZone.Utc, Offset.Zero).ToInstant()),
+                entryCount: 1);
+
+            AssertSql(
+                @"@__ToInstant_0='2018-04-20T08:31:33Z' (DbType = DateTimeOffset)
+
+SELECT n.""Id"", n.""DateInterval"", n.""DateRange"", n.""Duration"", n.""Instant"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""ZonedDateTime""
+FROM ""NodaTimeTypes"" AS n
+WHERE n.""LocalDateTime"" AT TIME ZONE 'Europe/Berlin' = @__ToInstant_0");
+        }
+
         #endregion LocalDateTime
 
         #region LocalDate
@@ -1039,6 +1058,32 @@ WHERE n.""Instant"" = @__p_0");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
+        public async Task Instance_InZone_LocalDateTime(bool async)
+        {
+            await AssertQuery(
+                async,
+                ss => ss.Set<NodaTimeTypes>().Where(t => t.Instant.InZone(DateTimeZoneProviders.Tzdb["Europe/Berlin"]).LocalDateTime
+                    == new LocalDateTime(2018, 4, 20, 12, 31, 33, 666)),
+                entryCount: 1);
+
+            AssertSql(
+                @"SELECT n.""Id"", n.""DateInterval"", n.""DateRange"", n.""Duration"", n.""Instant"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""ZonedDateTime""
+FROM ""NodaTimeTypes"" AS n
+WHERE n.""Instant"" AT TIME ZONE 'Europe/Berlin' = TIMESTAMP '2018-04-20T12:31:33.666'");
+        }
+
+        [ConditionalFact]
+        public async Task Instance_InZone_without_LocalDateTime_fails()
+        {
+            using var ctx = CreateContext();
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => ctx.Set<NodaTimeTypes>().Where(t => t.Instant.InZone(DateTimeZoneProviders.Tzdb["Europe/Berlin"]) == default)
+                    .ToListAsync());
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
         public async Task Instance_ToDateTimeUtc(bool async)
         {
             await AssertQuery(
@@ -1224,6 +1269,25 @@ END = 5");
                 @"SELECT n.""Id"", n.""DateInterval"", n.""DateRange"", n.""Duration"", n.""Instant"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
 WHERE n.""Instant"" AT TIME ZONE 'UTC' = TIMESTAMP '2018-04-20T10:31:33.666'");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task ZonedDateTime_ToInstant(bool async)
+        {
+            await AssertQuery(
+                async,
+                ss => ss.Set<NodaTimeTypes>().Where(
+                    t => t.ZonedDateTime.ToInstant()
+                        == new ZonedDateTime(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), DateTimeZone.Utc, Offset.Zero).ToInstant()),
+                entryCount: 1);
+
+            AssertSql(
+                @"@__ToInstant_0='2018-04-20T10:31:33Z' (DbType = DateTimeOffset)
+
+SELECT n.""Id"", n.""DateInterval"", n.""DateRange"", n.""Duration"", n.""Instant"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""ZonedDateTime""
+FROM ""NodaTimeTypes"" AS n
+WHERE n.""ZonedDateTime"" = @__ToInstant_0");
         }
 
         #endregion ZonedDateTime
