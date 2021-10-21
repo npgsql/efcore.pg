@@ -28,8 +28,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [MemberData(nameof(IsAsyncData))]
         public async Task Operator(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDate < new LocalDate(2018, 4, 21)),
@@ -48,8 +46,6 @@ WHERE n.""LocalDate"" < DATE '2018-04-21'");
         public async Task Add_LocalDate_Period(bool async)
         {
             // Note: requires some special type inference logic because we're adding things of different types
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDate + Period.FromMonths(1) > t.LocalDate),
@@ -65,8 +61,6 @@ WHERE (n.""LocalDate"" + INTERVAL 'P1M') > n.""LocalDate""");
         [MemberData(nameof(IsAsyncData))]
         public async Task Subtract_Instant(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Instant + Duration.FromDays(1) - t.Instant == Duration.FromDays(1)),
@@ -82,8 +76,6 @@ WHERE ((n.""Instant"" + INTERVAL '1 00:00:00') - n.""Instant"") = INTERVAL '1 00
         [MemberData(nameof(IsAsyncData))]
         public async Task Subtract_LocalDateTime(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDateTime + Period.FromDays(1) - t.LocalDateTime == Period.FromDays(1)),
@@ -99,8 +91,6 @@ WHERE ((n.""LocalDateTime"" + INTERVAL 'P1D') - n.""LocalDateTime"") = INTERVAL 
         [MemberData(nameof(IsAsyncData))]
         public async Task Subtract_ZonedDateTime(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.ZonedDateTime + Duration.FromDays(1) - t.ZonedDateTime == Duration.FromDays(1)),
@@ -116,8 +106,6 @@ WHERE ((n.""ZonedDateTime"" + INTERVAL '1 00:00:00') - n.""ZonedDateTime"") = IN
         [MemberData(nameof(IsAsyncData))]
         public async Task Subtract_LocalDate(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDate2 - t.LocalDate == Period.FromDays(1)),
@@ -133,8 +121,6 @@ WHERE MAKE_INTERVAL(days => n.""LocalDate2"" - n.""LocalDate"") = INTERVAL 'P1D'
         [MemberData(nameof(IsAsyncData))]
         public async Task Subtract_LocalDate_parameter(bool async)
         {
-            using var ctx = CreateContext();
-
             var date = new LocalDate(2018, 4, 20);
             await AssertQuery(
                 async,
@@ -153,8 +139,6 @@ WHERE MAKE_INTERVAL(days => n.""LocalDate2"" - @__date_0) = INTERVAL 'P1D'");
         [MemberData(nameof(IsAsyncData))]
         public async Task Subtract_LocalDate_constant(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDate2 - new LocalDate(2018, 4, 20) == Period.FromDays(1)),
@@ -170,8 +154,6 @@ WHERE MAKE_INTERVAL(days => n.""LocalDate2"" - DATE '2018-04-20') = INTERVAL 'P1
         [MemberData(nameof(IsAsyncData))]
         public async Task Subtract_LocalTime(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalTime + Period.FromHours(1) - t.LocalTime == Period.FromHours(1)),
@@ -185,14 +167,12 @@ WHERE ((n.""LocalTime"" + INTERVAL 'PT1H') - n.""LocalTime"") = INTERVAL 'PT1H'"
 
         #endregion
 
-        #region LocalDateTime members
+        #region LocalDateTime
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalDateTime_Year(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDateTime.Year == 2018),
@@ -208,8 +188,6 @@ WHERE DATE_PART('year', n.""LocalDateTime"")::INT = 2018");
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalDateTime_Month(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDateTime.Month == 4),
@@ -225,8 +203,6 @@ WHERE DATE_PART('month', n.""LocalDateTime"")::INT = 4");
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalDateTime_DayOfYear(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDateTime.DayOfYear == 110),
@@ -242,8 +218,6 @@ WHERE DATE_PART('doy', n.""LocalDateTime"")::INT = 110");
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalDateTime_Day(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDateTime.Day == 20),
@@ -259,8 +233,6 @@ WHERE DATE_PART('day', n.""LocalDateTime"")::INT = 20");
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalDateTime_Hour(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDateTime.Hour == 10),
@@ -276,8 +248,6 @@ WHERE DATE_PART('hour', n.""LocalDateTime"")::INT = 10");
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalDateTime_Minute(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDateTime.Minute == 31),
@@ -293,8 +263,6 @@ WHERE DATE_PART('minute', n.""LocalDateTime"")::INT = 31");
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalDateTime_Second(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDateTime.Second == 33),
@@ -310,8 +278,6 @@ WHERE FLOOR(DATE_PART('second', n.""LocalDateTime""))::INT = 33");
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalDateTime_Date(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDateTime.Date == new LocalDate(2018, 4, 20)),
@@ -327,8 +293,6 @@ WHERE DATE_TRUNC('day', n.""LocalDateTime"") = DATE '2018-04-20'");
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalDateTime_DayOfWeek(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDateTime.DayOfWeek == IsoDayOfWeek.Friday),
@@ -343,16 +307,14 @@ WHERE CASE
 END = 5");
         }
 
-        #endregion LocalDateTime members
+        #endregion LocalDateTime
 
-        #region LocalDate members
+        #region LocalDate
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalDate_Year(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDate.Year == 2018),
@@ -368,8 +330,6 @@ WHERE DATE_PART('year', n.""LocalDate"")::INT = 2018");
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalDate_Month(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDate.Month == 4),
@@ -385,8 +345,6 @@ WHERE DATE_PART('month', n.""LocalDate"")::INT = 4");
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalDate_DayOrYear(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDate.DayOfYear == 110),
@@ -402,8 +360,6 @@ WHERE DATE_PART('doy', n.""LocalDate"")::INT = 110");
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalDate_Day(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDate.Day == 20),
@@ -415,16 +371,14 @@ FROM ""NodaTimeTypes"" AS n
 WHERE DATE_PART('day', n.""LocalDate"")::INT = 20");
         }
 
-        #endregion LocalDate members
+        #endregion LocalDate
 
-        #region LocalTime members
+        #region LocalTime
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalTime_Hour(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalTime.Hour == 10),
@@ -440,8 +394,6 @@ WHERE DATE_PART('hour', n.""LocalTime"")::INT = 10");
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalTime_Minute(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalTime.Minute == 31),
@@ -457,8 +409,6 @@ WHERE DATE_PART('minute', n.""LocalTime"")::INT = 31");
         [MemberData(nameof(IsAsyncData))]
         public async Task LocalTime_Second(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalTime.Second == 33),
@@ -470,7 +420,7 @@ FROM ""NodaTimeTypes"" AS n
 WHERE FLOOR(DATE_PART('second', n.""LocalTime""))::INT = 33");
         }
 
-        #endregion LocalTime members
+        #endregion LocalTime
 
         #region Period
 
@@ -478,8 +428,6 @@ WHERE FLOOR(DATE_PART('second', n.""LocalTime""))::INT = 33");
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_Years(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Period.Years == 2018),
@@ -495,8 +443,6 @@ WHERE DATE_PART('year', n.""Period"")::INT = 2018");
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_Months(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Period.Months == 4),
@@ -512,8 +458,6 @@ WHERE DATE_PART('month', n.""Period"")::INT = 4");
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_Days(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Period.Days == 20),
@@ -529,8 +473,6 @@ WHERE DATE_PART('day', n.""Period"")::INT = 20");
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_Hours(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Period.Hours == 10),
@@ -546,8 +488,6 @@ WHERE DATE_PART('hour', n.""Period"")::INT = 10");
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_Minutes(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Period.Minutes == 31),
@@ -563,8 +503,6 @@ WHERE DATE_PART('minute', n.""Period"")::INT = 31");
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_Seconds(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Period.Seconds == 23),
@@ -617,8 +555,6 @@ WHERE FLOOR(DATE_PART('second', n.""Period""))::INT = 23");
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_FromYears(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => Period.FromYears(t.Id).Years == 1),
@@ -634,8 +570,6 @@ WHERE DATE_PART('year', MAKE_INTERVAL(years => n.""Id""))::INT = 1");
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_FromMonths(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => Period.FromMonths(t.Id).Months == 1),
@@ -651,8 +585,6 @@ WHERE DATE_PART('month', MAKE_INTERVAL(months => n.""Id""))::INT = 1");
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_FromWeeks(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => Period.FromWeeks(t.Id).Days == 7),
@@ -669,8 +601,6 @@ WHERE DATE_PART('day', MAKE_INTERVAL(weeks => n.""Id""))::INT = 7");
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_FromDays(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => Period.FromDays(t.Id).Days == 1),
@@ -686,8 +616,6 @@ WHERE DATE_PART('day', MAKE_INTERVAL(days => n.""Id""))::INT = 1");
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_FromHours_int(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => Period.FromHours(t.Id).Hours == 1),
@@ -703,8 +631,6 @@ WHERE DATE_PART('hour', MAKE_INTERVAL(hours => n.""Id""))::INT = 1");
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_FromHours_long(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => Period.FromHours(t.Long).Hours == 1),
@@ -720,8 +646,6 @@ WHERE DATE_PART('hour', MAKE_INTERVAL(hours => n.""Long""::INT))::INT = 1");
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_FromMinutes_int(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => Period.FromMinutes(t.Id).Minutes == 1),
@@ -737,8 +661,6 @@ WHERE DATE_PART('minute', MAKE_INTERVAL(mins => n.""Id""))::INT = 1");
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_FromMinutes_long(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => Period.FromMinutes(t.Long).Minutes == 1),
@@ -754,8 +676,6 @@ WHERE DATE_PART('minute', MAKE_INTERVAL(mins => n.""Long""::INT))::INT = 1");
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_FromSeconds_int(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => Period.FromSeconds(t.Id).Seconds == 1),
@@ -771,8 +691,6 @@ WHERE FLOOR(DATE_PART('second', MAKE_INTERVAL(secs => n.""Id""::bigint::double p
         [MemberData(nameof(IsAsyncData))]
         public async Task Period_FromSeconds_long(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => Period.FromSeconds(t.Long).Seconds == 1),
@@ -819,8 +737,6 @@ WHERE FLOOR(DATE_PART('second', MAKE_INTERVAL(secs => n.""Long""::double precisi
         [MemberData(nameof(IsAsyncData))]
         public async Task Duration_TotalDays(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Duration.TotalDays > 27),
@@ -836,8 +752,6 @@ WHERE (DATE_PART('epoch', n.""Duration"") / 86400.0) > 27.0");
         [MemberData(nameof(IsAsyncData))]
         public async Task Duration_TotalHours(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Duration.TotalHours < 700),
@@ -853,8 +767,6 @@ WHERE (DATE_PART('epoch', n.""Duration"") / 3600.0) < 700.0");
         [MemberData(nameof(IsAsyncData))]
         public async Task Duration_TotalMinutes(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Duration.TotalMinutes < 40000),
@@ -870,8 +782,6 @@ WHERE (DATE_PART('epoch', n.""Duration"") / 60.0) < 40000.0");
         [MemberData(nameof(IsAsyncData))]
         public async Task Duration_TotalSeconds(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Duration.TotalSeconds == 2365448.02),
@@ -887,8 +797,6 @@ WHERE DATE_PART('epoch', n.""Duration"") = 2365448.02");
         [MemberData(nameof(IsAsyncData))]
         public async Task Duration_TotalMilliseconds(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Duration.TotalMilliseconds == 2365448020),
@@ -904,8 +812,6 @@ WHERE (DATE_PART('epoch', n.""Duration"") / 0.001) = 2365448020.0");
         [MemberData(nameof(IsAsyncData))]
         public async Task Duration_Days(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Duration.Days == 27),
@@ -921,8 +827,6 @@ WHERE DATE_PART('day', n.""Duration"")::INT = 27");
         [MemberData(nameof(IsAsyncData))]
         public async Task Duration_Hours(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Duration.Hours == 9),
@@ -938,8 +842,6 @@ WHERE DATE_PART('hour', n.""Duration"")::INT = 9");
         [MemberData(nameof(IsAsyncData))]
         public async Task Duration_Minutes(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Duration.Minutes == 4),
@@ -955,8 +857,6 @@ WHERE DATE_PART('minute', n.""Duration"")::INT = 4");
         [MemberData(nameof(IsAsyncData))]
         public async Task Duration_Seconds(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Duration.Seconds == 8),
@@ -976,8 +876,6 @@ WHERE FLOOR(DATE_PART('second', n.""Duration""))::INT = 8");
         [MemberData(nameof(IsAsyncData))]
         public async Task DateInterval_Length(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.DateInterval.Length == 5),
@@ -993,8 +891,6 @@ WHERE (upper(n.""DateInterval"") - lower(n.""DateInterval"")) = 5");
         [MemberData(nameof(IsAsyncData))]
         public async Task DateInterval_Start(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.DateInterval.Start == new LocalDate(2018, 4, 20)),
@@ -1010,8 +906,6 @@ WHERE lower(n.""DateInterval"") = DATE '2018-04-20'");
         [MemberData(nameof(IsAsyncData))]
         public async Task DateInterval_End(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.DateInterval.End == new LocalDate(2018, 4, 24)),
@@ -1027,8 +921,6 @@ WHERE (upper(n.""DateInterval"") - INTERVAL 'P1D') = DATE '2018-04-24'");
         [MemberData(nameof(IsAsyncData))]
         public async Task DateInterval_Contains_LocalDate(bool async)
         {
-            using var ctx = CreateContext();
-
             var dateInterval = new DateInterval(new(2018, 01, 01), new(2020, 12, 25));
 
             await AssertQuery(
@@ -1048,8 +940,6 @@ WHERE @__dateInterval_0 @> n.""LocalDate""");
         [MemberData(nameof(IsAsyncData))]
         public async Task DateInterval_Contains_DateInterval(bool async)
         {
-            using var ctx = CreateContext();
-
             var dateInterval = new DateInterval(new(2018, 4, 22), new(2018, 4, 24));
 
             await AssertQuery(
@@ -1069,8 +959,6 @@ WHERE n.""DateInterval"" @> @__dateInterval_0");
         [MemberData(nameof(IsAsyncData))]
         public async Task DateInterval_Intersection(bool async)
         {
-            using var ctx = CreateContext();
-
             var dateInterval = new DateInterval(new(2018, 4, 22), new(2018, 4, 26));
 
             await AssertQuery(
@@ -1090,8 +978,6 @@ WHERE n.""DateInterval"" * @__dateInterval_0 = '[2018-04-22,2018-04-24]'::datera
         [MemberData(nameof(IsAsyncData))]
         public async Task DateInterval_Union(bool async)
         {
-            using var ctx = CreateContext();
-
             var dateInterval = new DateInterval(new(2018, 4, 22), new(2018, 4, 26));
 
             await AssertQuery(
@@ -1115,8 +1001,6 @@ WHERE n.""DateInterval"" + @__dateInterval_0 = '[2018-04-20,2018-04-26]'::datera
         [MemberData(nameof(IsAsyncData))]
         public async Task DateRange_Contains(bool async)
         {
-            using var ctx = CreateContext();
-
             var dateRange = new DateInterval(new(2018, 01, 01), new(2020, 12, 26));
 
             await AssertQuery(
@@ -1140,8 +1024,6 @@ WHERE @__dateRange_0 @> n.""LocalDate""");
         [MemberData(nameof(IsAsyncData))]
         public async Task Instance_InUtc(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Instant.InUtc() == new ZonedDateTime(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), DateTimeZone.Utc, Offset.Zero)),
@@ -1157,10 +1039,23 @@ WHERE n.""Instant"" = @__p_0");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
+        public async Task Instance_ToDateTimeUtc(bool async)
+        {
+            await AssertQuery(
+                async,
+                ss => ss.Set<NodaTimeTypes>().Where(t => t.Instant.ToDateTimeUtc() == new DateTime(2018, 4, 20, 10, 31, 33, 666, DateTimeKind.Utc)),
+                entryCount: 1);
+
+            AssertSql(
+                @"SELECT n.""Id"", n.""DateInterval"", n.""DateRange"", n.""Duration"", n.""Instant"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""ZonedDateTime""
+FROM ""NodaTimeTypes"" AS n
+WHERE n.""Instant""::timestamptz = TIMESTAMPTZ '2018-04-20 10:31:33.666Z'");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
         public async Task GetCurrentInstant_from_Instance(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Instant < SystemClock.Instance.GetCurrentInstant()),
@@ -1180,8 +1075,6 @@ WHERE n.""Instant"" < NOW()");
         [MemberData(nameof(IsAsyncData))]
         public async Task ZonedDateTime_Year(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.ZonedDateTime.Year == 2018),
@@ -1197,8 +1090,6 @@ WHERE DATE_PART('year', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 2018");
         [MemberData(nameof(IsAsyncData))]
         public async Task ZonedDateTime_Month(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.ZonedDateTime.Month == 4),
@@ -1214,8 +1105,6 @@ WHERE DATE_PART('month', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 4");
         [MemberData(nameof(IsAsyncData))]
         public async Task ZonedDateTime_DayOfYear(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.ZonedDateTime.DayOfYear == 110),
@@ -1231,8 +1120,6 @@ WHERE DATE_PART('doy', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 110");
         [MemberData(nameof(IsAsyncData))]
         public async Task ZonedDateTime_Day(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.ZonedDateTime.Day == 20),
@@ -1249,8 +1136,6 @@ WHERE DATE_PART('day', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 20");
         [MemberData(nameof(IsAsyncData))]
         public async Task ZonedDateTime_Hour(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.ZonedDateTime.Hour == 10),
@@ -1267,8 +1152,6 @@ WHERE DATE_PART('hour', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 10");
         [MemberData(nameof(IsAsyncData))]
         public async Task ZonedDateTime_Minute(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.ZonedDateTime.Minute == 31),
@@ -1284,8 +1167,6 @@ WHERE DATE_PART('minute', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 31");
         [MemberData(nameof(IsAsyncData))]
         public async Task ZonedDateTime_Second(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.ZonedDateTime.Second == 33),
@@ -1301,8 +1182,6 @@ WHERE FLOOR(DATE_PART('second', n.""ZonedDateTime"" AT TIME ZONE 'UTC'))::INT = 
         [MemberData(nameof(IsAsyncData))]
         public async Task ZonedDateTime_Date(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.ZonedDateTime.Date == new LocalDate(2018, 4, 20)),
@@ -1318,8 +1197,6 @@ WHERE DATE_TRUNC('day', n.""ZonedDateTime"" AT TIME ZONE 'UTC') = DATE '2018-04-
         [MemberData(nameof(IsAsyncData))]
         public async Task ZonedDateTime_DayOfWeek(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.ZonedDateTime.DayOfWeek == IsoDayOfWeek.Friday),
@@ -1338,8 +1215,6 @@ END = 5");
         [MemberData(nameof(IsAsyncData))]
         public async Task ZonedDateTime_LocalDateTime(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<NodaTimeTypes>().Where(t => t.Instant.InUtc().LocalDateTime == new LocalDateTime(2018, 4, 20, 10, 31, 33, 666)),
@@ -1356,19 +1231,7 @@ WHERE n.""Instant"" AT TIME ZONE 'UTC' = TIMESTAMP '2018-04-20T10:31:33.666'");
         #region Support
 
         private NodaTimeContext CreateContext()
-        {
-            var ctx = Fixture.CreateContext();
-
-            // Set the PostgreSQL TimeZone parameter to something local, to ensure that operations which take TimeZone into account don't
-            // depend on the database's time zone, and also that operations which shouldn't take TimeZone into account indeed don't.
-            ctx.Database.BeginTransaction();
-            ctx.Database.ExecuteSqlRaw("SET TimeZone='Europe/Berlin'");
-            Fixture.TestSqlLoggerFactory.Clear();
-
-            return ctx;
-        }
-
-        private string Sql => Fixture.TestSqlLoggerFactory.Sql;
+            => Fixture.CreateContext();
 
         private static Period _defaultPeriod = Period.FromYears(2018) + Period.FromMonths(4) + Period.FromDays(20) +
             Period.FromHours(10) + Period.FromMinutes(31) + Period.FromSeconds(23) +
@@ -1414,7 +1277,13 @@ WHERE n.""Instant"" AT TIME ZONE 'UTC' = TIMESTAMP '2018-04-20T10:31:33.666'");
         public class NodaTimeQueryNpgsqlFixture : SharedStoreFixtureBase<NodaTimeContext>, IQueryFixtureBase
         {
             protected override string StoreName => "NodaTimeTest";
-            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+            // Set the PostgreSQL TimeZone parameter to something local, to ensure that operations which take TimeZone into account
+            // don't depend on the database's time zone, and also that operations which shouldn't take TimeZone into account indeed
+            // don't.
+            protected override ITestStoreFactory TestStoreFactory
+                => NpgsqlTestStoreFactory.WithConnectionStringOptions("-c TimeZone=Europe/Berlin");
+
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
 
             private NodaTimeData _expectedData;

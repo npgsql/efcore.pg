@@ -95,9 +95,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(IsAsyncData))]
         public async Task Compare_timestamp_column_to_local_DateTime_literal(bool async)
         {
-            using var ctx = CreateContext();
-
-            // Note that we're in the Europe/Berlin timezone (see CreateContext)
+            // Note that we're in the Europe/Berlin timezone (see NpgsqlTestStore below)
             await AssertQuery(
                 async,
                 ss => ss.Set<Entity>().Where(e => e.TimestampDateTime == new DateTime(1998, 4, 12, 15, 26, 38, DateTimeKind.Local)),
@@ -113,8 +111,6 @@ WHERE e.""TimestampDateTime"" = TIMESTAMP '1998-04-12 15:26:38'");
         [MemberData(nameof(IsAsyncData))]
         public async Task Compare_timestamp_column_to_local_DateTime_parameter(bool async)
         {
-            using var ctx = CreateContext();
-
             var dateTime = new DateTime(1998, 4, 12, 15, 26, 38, DateTimeKind.Local);
 
             await AssertQuery(
@@ -137,8 +133,6 @@ WHERE e.""TimestampDateTime"" = @__dateTime_0",
         [MemberData(nameof(IsAsyncData))]
         public async Task Compare_timestamp_column_to_unspecified_DateTime_parameter(bool async)
         {
-            using var ctx = CreateContext();
-
             var dateTime = new DateTime(1998, 4, 12, 15, 26, 38, DateTimeKind.Unspecified);
 
             await AssertQuery(
@@ -180,8 +174,6 @@ WHERE e.""TimestampDateTime"" = @__dateTime_0");
         [MemberData(nameof(IsAsyncData))]
         public async Task Compare_timestamptz_column_to_utc_DateTime_literal(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<Entity>().Where(e => e.TimestamptzDateTime == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc)),
@@ -197,8 +189,6 @@ WHERE e.""TimestamptzDateTime"" = TIMESTAMPTZ '1998-04-12 13:26:38Z'");
         [MemberData(nameof(IsAsyncData))]
         public async Task Compare_timestamptz_column_to_utc_DateTime_parameter(bool async)
         {
-            using var ctx = CreateContext();
-
             var dateTime = new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc);
 
             await AssertQuery(
@@ -393,8 +383,6 @@ WHERE make_timestamp(date_part('year', e.""TimestampDateTime"")::INT, date_part(
         [MemberData(nameof(IsAsyncData))]
         public virtual async Task Where_datetime_ctor3_utc(bool async)
         {
-            using var ctx = CreateContext();
-
             await AssertQuery(
                 async,
                 ss => ss.Set<Entity>().Where(
@@ -421,20 +409,73 @@ WHERE make_timestamptz(date_part('year', e.""TimestamptzDateTime"")::INT, date_p
             Assert.Equal(1, id);
         }
 
+        #region Time zone conversions
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Where_ConvertTimeBySystemTimeZoneId_on_DateTime_timestamptz_column(bool async)
+        {
+            await AssertQuery(
+                async,
+                ss => ss.Set<Entity>().Where(
+                    c => TimeZoneInfo.ConvertTimeBySystemTimeZoneId(c.TimestamptzDateTime, "Europe/Berlin")
+                        == new DateTime(1998, 4, 12, 15, 26, 38)),
+                entryCount: 1);
+
+            AssertSql(
+                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
+FROM ""Entities"" AS e
+WHERE e.""TimestamptzDateTime"" AT TIME ZONE 'Europe/Berlin' = TIMESTAMP '1998-04-12 15:26:38'");
+        }
+
+        [ConditionalFact]
+        public virtual async Task Where_ConvertTimeBySystemTimeZoneId_fails_on_DateTime_timestamp_column()
+        {
+            using var ctx = CreateContext();
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => ctx.Set<Entity>().Where(
+                    c => TimeZoneInfo.ConvertTimeBySystemTimeZoneId(c.TimestampDateTime, "Europe/Berlin")
+                        == new DateTime(1998, 4, 12, 15, 26, 38)).ToListAsync());
+        }
+
+        [ConditionalFact]
+        public virtual async Task Where_ConvertTimeToUtc_on_DateTime_timestamp_column()
+        {
+            // We can't use AssertQuery since the local (expected) evaluation is dependent on the machine's timezone, which is out of
+            // our control.
+            using var ctx = CreateContext();
+
+            var count = await ctx.Set<Entity>()
+                .Where(e => TimeZoneInfo.ConvertTimeToUtc(e.TimestampDateTime) == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc))
+                .CountAsync();
+
+            Assert.Equal(1, count);
+
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""Entities"" AS e
+WHERE e.""TimestampDateTime""::timestamptz = TIMESTAMPTZ '1998-04-12 13:26:38Z'");
+        }
+
+        [ConditionalFact]
+        public virtual async Task Where_ConvertTimeToUtc_fails_on_DateTime_timestamptz_column()
+        {
+            using var ctx = CreateContext();
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => ctx.Set<Entity>().Where(
+                        c => TimeZoneInfo.ConvertTimeToUtc(c.TimestamptzDateTime)
+                            == new DateTime(1998, 4, 12, 15, 26, 38, DateTimeKind.Utc))
+                    .ToListAsync());
+        }
+
+        #endregion Time zone conversions
+
         #region Support
 
         private TimestampQueryContext CreateContext()
-        {
-            var ctx = Fixture.CreateContext();
-
-            // Set the PostgreSQL TimeZone parameter to something local, to ensure that operations which take TimeZone into account don't
-            // depend on the database's time zone, and also that operations which shouldn't take TimeZone into account indeed don't.
-            ctx.Database.BeginTransaction();
-            ctx.Database.ExecuteSqlRaw("SET TimeZone='Europe/Berlin'");
-            Fixture.TestSqlLoggerFactory.Clear();
-
-            return ctx;
-        }
+            => Fixture.CreateContext();
 
         private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
@@ -476,7 +517,13 @@ WHERE make_timestamptz(date_part('year', e.""TimestamptzDateTime"")::INT, date_p
         public class TimestampQueryFixture : SharedStoreFixtureBase<TimestampQueryContext>, IQueryFixtureBase
         {
             protected override string StoreName => "TimestampQueryTest";
-            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+            // Set the PostgreSQL TimeZone parameter to something local, to ensure that operations which take TimeZone into account
+            // don't depend on the database's time zone, and also that operations which shouldn't take TimeZone into account indeed
+            // don't.
+            protected override ITestStoreFactory TestStoreFactory
+                => NpgsqlTestStoreFactory.WithConnectionStringOptions("-c TimeZone=Europe/Berlin");
+
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
 
             private TimestampData _expectedData;
