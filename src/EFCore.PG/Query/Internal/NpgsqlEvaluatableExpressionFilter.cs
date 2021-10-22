@@ -24,20 +24,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         public override bool IsEvaluatableExpression(Expression expression, IModel model)
         {
-            if (expression is MethodCallExpression e)
+            switch (expression)
             {
-                var declaringType = e.Method.DeclaringType;
+                case MethodCallExpression methodCallExpression:
+                    var declaringType = methodCallExpression.Method.DeclaringType;
 
-                if (e.Method == TsQueryParse || e.Method == TsVectorParse ||
-                    declaringType == typeof(NpgsqlDbFunctionsExtensions) ||
-                    declaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions) ||
-                    declaringType == typeof(NpgsqlFullTextSearchLinqExtensions) ||
-                    declaringType == typeof(NpgsqlNetworkDbFunctionsExtensions) ||
-                    declaringType == typeof(NpgsqlJsonDbFunctionsExtensions) ||
-                    declaringType == typeof(NpgsqlRangeDbFunctionsExtensions))
-                {
-                    return false;
-                }
+                    if (methodCallExpression.Method == TsQueryParse
+                        || methodCallExpression.Method == TsVectorParse
+                        || declaringType == typeof(NpgsqlDbFunctionsExtensions)
+                        || declaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions)
+                        || declaringType == typeof(NpgsqlFullTextSearchLinqExtensions)
+                        || declaringType == typeof(NpgsqlNetworkDbFunctionsExtensions)
+                        || declaringType == typeof(NpgsqlJsonDbFunctionsExtensions)
+                        || declaringType == typeof(NpgsqlRangeDbFunctionsExtensions))
+                    {
+                        return false;
+                    }
+
+                    break;
+
+                case MemberExpression memberExpression:
+                    // We support translating certain NodaTime patterns which accept a time zone as a parameter,
+                    // e.g. Instant.InZone(timezone), as long as the timezone is expressed as an access on DateTimeZoneProviders.Tzdb.
+                    // Prevent this from being evaluated locally and so parameterized, so we can access the access tree on
+                    // DateTimeZoneProviders and extract the constant (see NpgsqlNodaTimeMethodCallTranslatorPlugin)
+                    if (memberExpression.Member.DeclaringType?.FullName == "NodaTime.DateTimeZoneProviders")
+                    {
+                        return false;
+                    }
+
+                    break;
             }
 
             return base.IsEvaluatableExpression(expression, model);
