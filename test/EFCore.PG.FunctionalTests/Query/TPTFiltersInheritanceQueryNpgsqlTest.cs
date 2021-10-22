@@ -1,17 +1,16 @@
 using Microsoft.EntityFrameworkCore.Query;
 using Xunit.Abstractions;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+
+public class TPTFiltersInheritanceQuerySqlServerTest : TPTFiltersInheritanceQueryTestBase<TPTFiltersInheritanceQuerySqlServerFixture>
 {
-    public class TPTFiltersInheritanceQuerySqlServerTest : TPTFiltersInheritanceQueryTestBase<TPTFiltersInheritanceQuerySqlServerFixture>
+    // ReSharper disable once UnusedParameter.Local
+    public TPTFiltersInheritanceQuerySqlServerTest(
+        TPTFiltersInheritanceQuerySqlServerFixture fixture, ITestOutputHelper testOutputHelper)
+        : base(fixture)
     {
-        // ReSharper disable once UnusedParameter.Local
-        public TPTFiltersInheritanceQuerySqlServerTest(
-            TPTFiltersInheritanceQuerySqlServerFixture fixture, ITestOutputHelper testOutputHelper)
-            : base(fixture)
-        {
-            Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
-        }
+        Fixture.TestSqlLoggerFactory.Clear();
+        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 }

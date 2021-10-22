@@ -9,15 +9,14 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite.Scaffolding.Interna
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 // ReSharper disable once CheckNamespace
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
-{
-    public class NpgsqlNetTopologySuiteDesignTimeServices : IDesignTimeServices
-    {
-        public virtual void ConfigureDesignTimeServices(IServiceCollection serviceCollection)
-            => serviceCollection
-                .AddSingleton<IRelationalTypeMappingSourcePlugin, NpgsqlNetTopologySuiteTypeMappingSourcePlugin>()
-                .AddSingleton<IProviderCodeGeneratorPlugin, NpgsqlNetTopologySuiteCodeGeneratorPlugin>()
-                .TryAddSingleton<INpgsqlNetTopologySuiteOptions, NpgsqlNetTopologySuiteOptions>();
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal;
 
-    }
+public class NpgsqlNetTopologySuiteDesignTimeServices : IDesignTimeServices
+{
+    public virtual void ConfigureDesignTimeServices(IServiceCollection serviceCollection)
+        => serviceCollection
+            .AddSingleton<IRelationalTypeMappingSourcePlugin, NpgsqlNetTopologySuiteTypeMappingSourcePlugin>()
+            .AddSingleton<IProviderCodeGeneratorPlugin, NpgsqlNetTopologySuiteCodeGeneratorPlugin>()
+            .TryAddSingleton<INpgsqlNetTopologySuiteOptions, NpgsqlNetTopologySuiteOptions>();
+
 }

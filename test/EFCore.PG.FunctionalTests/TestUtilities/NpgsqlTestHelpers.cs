@@ -4,20 +4,19 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+
+public class NpgsqlTestHelpers : TestHelpers
 {
-    public class NpgsqlTestHelpers : TestHelpers
-    {
-        protected NpgsqlTestHelpers() {}
+    protected NpgsqlTestHelpers() {}
 
-        public static NpgsqlTestHelpers Instance { get; } = new();
+    public static NpgsqlTestHelpers Instance { get; } = new();
 
-        public override IServiceCollection AddProviderServices(IServiceCollection services)
-            => services.AddEntityFrameworkNpgsql();
+    public override IServiceCollection AddProviderServices(IServiceCollection services)
+        => services.AddEntityFrameworkNpgsql();
 
-        public override void UseProviderOptions(DbContextOptionsBuilder optionsBuilder)
-            => optionsBuilder.UseNpgsql(new NpgsqlConnection("Host=localhost;Database=DummyDatabase"));
+    public override void UseProviderOptions(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseNpgsql(new NpgsqlConnection("Host=localhost;Database=DummyDatabase"));
 
-        public override LoggingDefinitions LoggingDefinitions { get; } = new NpgsqlLoggingDefinitions();
-    }
+    public override LoggingDefinitions LoggingDefinitions { get; } = new NpgsqlLoggingDefinitions();
 }

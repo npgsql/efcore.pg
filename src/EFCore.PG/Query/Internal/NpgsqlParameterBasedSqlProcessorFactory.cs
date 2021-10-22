@@ -1,16 +1,15 @@
 using Microsoft.EntityFrameworkCore.Query;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
+
+public class NpgsqlParameterBasedSqlProcessorFactory : IRelationalParameterBasedSqlProcessorFactory
 {
-    public class NpgsqlParameterBasedSqlProcessorFactory : IRelationalParameterBasedSqlProcessorFactory
-    {
-        private readonly RelationalParameterBasedSqlProcessorDependencies _dependencies;
+    private readonly RelationalParameterBasedSqlProcessorDependencies _dependencies;
 
-        public NpgsqlParameterBasedSqlProcessorFactory(
-            RelationalParameterBasedSqlProcessorDependencies dependencies)
-            => _dependencies = dependencies;
+    public NpgsqlParameterBasedSqlProcessorFactory(
+        RelationalParameterBasedSqlProcessorDependencies dependencies)
+        => _dependencies = dependencies;
 
-        public virtual RelationalParameterBasedSqlProcessor Create(bool useRelationalNulls)
-            => new NpgsqlParameterBasedSqlProcessor(_dependencies, useRelationalNulls);
-    }
+    public virtual RelationalParameterBasedSqlProcessor Create(bool useRelationalNulls)
+        => new NpgsqlParameterBasedSqlProcessor(_dependencies, useRelationalNulls);
 }

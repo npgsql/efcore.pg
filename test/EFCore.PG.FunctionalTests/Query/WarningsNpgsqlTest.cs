@@ -1,12 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore.Query;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+
+public class WarningsNpgsqlTest : WarningsTestBase<QueryNoClientEvalNpgsqlFixture>
 {
-    public class WarningsNpgsqlTest : WarningsTestBase<QueryNoClientEvalNpgsqlFixture>
+    public WarningsNpgsqlTest(QueryNoClientEvalNpgsqlFixture fixture)
+        : base(fixture)
     {
-        public WarningsNpgsqlTest(QueryNoClientEvalNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
     }
 }

@@ -9,192 +9,192 @@ using Microsoft.EntityFrameworkCore.Storage;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
-{
-    /// <summary>
-    /// Provides translation services for <see cref="NodaTime"/> members.
-    /// </summary>
-    /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/static/functions-datetime.html
-    /// </remarks>
-    public class NpgsqlNodaTimeMemberTranslatorPlugin : IMemberTranslatorPlugin
-    {
-        public NpgsqlNodaTimeMemberTranslatorPlugin(
-            IRelationalTypeMappingSource typeMappingSource,
-            ISqlExpressionFactory sqlExpressionFactory)
-        {
-            Translators = new IMemberTranslator[]
-            {
-                new NpgsqlNodaTimeMemberTranslator(typeMappingSource, (NpgsqlSqlExpressionFactory)sqlExpressionFactory),
-            };
-        }
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal;
 
-        public virtual IEnumerable<IMemberTranslator> Translators { get; }
+/// <summary>
+/// Provides translation services for <see cref="NodaTime"/> members.
+/// </summary>
+/// <remarks>
+/// See: https://www.postgresql.org/docs/current/static/functions-datetime.html
+/// </remarks>
+public class NpgsqlNodaTimeMemberTranslatorPlugin : IMemberTranslatorPlugin
+{
+    public NpgsqlNodaTimeMemberTranslatorPlugin(
+        IRelationalTypeMappingSource typeMappingSource,
+        ISqlExpressionFactory sqlExpressionFactory)
+    {
+        Translators = new IMemberTranslator[]
+        {
+            new NpgsqlNodaTimeMemberTranslator(typeMappingSource, (NpgsqlSqlExpressionFactory)sqlExpressionFactory),
+        };
     }
 
-    public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
+    public virtual IEnumerable<IMemberTranslator> Translators { get; }
+}
+
+public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
+{
+    private static readonly MemberInfo SystemClock_Instance =
+        typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance))!;
+    private static readonly MemberInfo ZonedDateTime_LocalDateTime =
+        typeof(ZonedDateTime).GetRuntimeProperty(nameof(ZonedDateTime.LocalDateTime))!;
+
+    private static readonly MemberInfo DateInterval_Start =
+        typeof(DateInterval).GetRuntimeProperty(nameof(DateInterval.Start))!;
+    private static readonly MemberInfo DateInterval_End =
+        typeof(DateInterval).GetRuntimeProperty(nameof(DateInterval.End))!;
+    private static readonly MemberInfo DateInterval_Length =
+        typeof(DateInterval).GetRuntimeProperty(nameof(DateInterval.Length))!;
+
+    private static readonly MemberInfo DateTimeZoneProviders_TzDb =
+        typeof(DateTimeZoneProviders).GetRuntimeProperty(nameof(DateTimeZoneProviders.Tzdb))!;
+
+    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+    private readonly RelationalTypeMapping _dateTypeMapping;
+    private readonly RelationalTypeMapping _periodTypeMapping;
+    private readonly RelationalTypeMapping _localDateTimeTypeMapping;
+
+    public NpgsqlNodaTimeMemberTranslator(
+        IRelationalTypeMappingSource typeMappingSource,
+        NpgsqlSqlExpressionFactory sqlExpressionFactory)
     {
-        private static readonly MemberInfo SystemClock_Instance =
-            typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance))!;
-        private static readonly MemberInfo ZonedDateTime_LocalDateTime =
-            typeof(ZonedDateTime).GetRuntimeProperty(nameof(ZonedDateTime.LocalDateTime))!;
+        _sqlExpressionFactory = sqlExpressionFactory;
+        _dateTypeMapping = typeMappingSource.FindMapping(typeof(LocalDate))!;
+        _periodTypeMapping = typeMappingSource.FindMapping(typeof(Period))!;
+        _localDateTimeTypeMapping = typeMappingSource.FindMapping(typeof(LocalDateTime))!;
+    }
 
-        private static readonly MemberInfo DateInterval_Start =
-            typeof(DateInterval).GetRuntimeProperty(nameof(DateInterval.Start))!;
-        private static readonly MemberInfo DateInterval_End =
-            typeof(DateInterval).GetRuntimeProperty(nameof(DateInterval.End))!;
-        private static readonly MemberInfo DateInterval_Length =
-            typeof(DateInterval).GetRuntimeProperty(nameof(DateInterval.Length))!;
+    private static readonly bool[][] TrueArrays =
+    {
+        Array.Empty<bool>(),
+        new[] { true },
+        new[] { true, true }
+    };
 
-        private static readonly MemberInfo DateTimeZoneProviders_TzDb =
-            typeof(DateTimeZoneProviders).GetRuntimeProperty(nameof(DateTimeZoneProviders.Tzdb))!;
-
-        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        private readonly RelationalTypeMapping _dateTypeMapping;
-        private readonly RelationalTypeMapping _periodTypeMapping;
-        private readonly RelationalTypeMapping _localDateTimeTypeMapping;
-
-        public NpgsqlNodaTimeMemberTranslator(
-            IRelationalTypeMappingSource typeMappingSource,
-            NpgsqlSqlExpressionFactory sqlExpressionFactory)
+    /// <inheritdoc />
+    public virtual SqlExpression? Translate(
+        SqlExpression? instance,
+        MemberInfo member,
+        Type returnType,
+        IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+    {
+        // This is necessary to allow translation of methods on SystemClock.Instance
+        if (member == SystemClock_Instance)
         {
-            _sqlExpressionFactory = sqlExpressionFactory;
-            _dateTypeMapping = typeMappingSource.FindMapping(typeof(LocalDate))!;
-            _periodTypeMapping = typeMappingSource.FindMapping(typeof(Period))!;
-            _localDateTimeTypeMapping = typeMappingSource.FindMapping(typeof(LocalDateTime))!;
+            return _sqlExpressionFactory.Constant(SystemClock.Instance);
         }
 
-        private static readonly bool[][] TrueArrays =
+        if (member == DateTimeZoneProviders_TzDb)
         {
-            Array.Empty<bool>(),
-            new[] { true },
-            new[] { true, true }
+            return PendingDateTimeZoneProviderExpression.Instance;
+        }
+
+        if (instance is null)
+        {
+            return null;
+        }
+
+        var declaringType = member.DeclaringType;
+
+        if (declaringType == typeof(LocalDateTime)
+            || declaringType == typeof(LocalDate)
+            || declaringType == typeof(LocalTime)
+            || declaringType == typeof(Period))
+        {
+            return TranslateDateTime(instance, member, returnType);
+        }
+
+        if (declaringType == typeof(ZonedDateTime))
+        {
+            // date_part, which is used to extract most components, doesn't have an overload for timestamptz, so passing one directly
+            // converts it to the local timezone as per TimeZone. Explicitly convert it to a local timestamp in UTC.
+            return TranslateDateTime(_sqlExpressionFactory.AtUtc(instance), member, returnType)
+                ?? TranslateZonedDateTime(instance, member);
+        }
+
+        if (declaringType == typeof(Duration))
+        {
+            return TranslateDuration(instance, member);
+        }
+
+        if (declaringType == typeof(DateInterval))
+        {
+            return TranslateDateInterval(instance, member);
+        }
+
+        return null;
+    }
+
+    private SqlExpression? TranslateDuration(SqlExpression instance, MemberInfo member)
+    {
+        var translateDurationTotalMember = new Func<SqlExpression, double, SqlBinaryExpression>(
+            (inst, divisor) =>
+                _sqlExpressionFactory.Divide(GetDatePartExpressionDouble(inst, "epoch"), _sqlExpressionFactory.Constant(divisor)));
+
+        return member.Name switch
+        {
+            nameof(Duration.TotalDays) => translateDurationTotalMember(instance, 86400),
+            nameof(Duration.TotalHours) => translateDurationTotalMember(instance, 3600),
+            nameof(Duration.TotalMinutes) => translateDurationTotalMember(instance, 60),
+            nameof(Duration.TotalSeconds) => GetDatePartExpressionDouble(instance, "epoch"),
+            nameof(Duration.TotalMilliseconds) => translateDurationTotalMember(instance, 0.001),
+            nameof(Duration.Days) => GetDatePartExpression(instance, "day"),
+            nameof(Duration.Hours) => GetDatePartExpression(instance, "hour"),
+            nameof(Duration.Minutes) => GetDatePartExpression(instance, "minute"),
+            nameof(Duration.Seconds) => GetDatePartExpression(instance, "second", true),
+            nameof(Duration.Milliseconds) => null, // Too annoying, floating point and sub-millisecond handling
+            _ => null,
         };
+    }
 
-        /// <inheritdoc />
-        public virtual SqlExpression? Translate(
-            SqlExpression? instance,
-            MemberInfo member,
-            Type returnType,
-            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+    private SqlExpression? TranslateDateInterval(SqlExpression instance, MemberInfo member)
+    {
+        // NodaTime DateInterval is inclusive on both ends.
+        // PostgreSQL daterange is a discrete range type; this means it gets normalized to inclusive lower bound, exclusive upper bound.
+        // So we can translate Start as-is, but need to subtract a day for End.
+        if (member == DateInterval_Start)
         {
-            // This is necessary to allow translation of methods on SystemClock.Instance
-            if (member == SystemClock_Instance)
-            {
-                return _sqlExpressionFactory.Constant(SystemClock.Instance);
-            }
-
-            if (member == DateTimeZoneProviders_TzDb)
-            {
-                return PendingDateTimeZoneProviderExpression.Instance;
-            }
-
-            if (instance is null)
-            {
-                return null;
-            }
-
-            var declaringType = member.DeclaringType;
-
-            if (declaringType == typeof(LocalDateTime)
-                || declaringType == typeof(LocalDate)
-                || declaringType == typeof(LocalTime)
-                || declaringType == typeof(Period))
-            {
-                return TranslateDateTime(instance, member, returnType);
-            }
-
-            if (declaringType == typeof(ZonedDateTime))
-            {
-                // date_part, which is used to extract most components, doesn't have an overload for timestamptz, so passing one directly
-                // converts it to the local timezone as per TimeZone. Explicitly convert it to a local timestamp in UTC.
-                return TranslateDateTime(_sqlExpressionFactory.AtUtc(instance), member, returnType)
-                    ?? TranslateZonedDateTime(instance, member);
-            }
-
-            if (declaringType == typeof(Duration))
-            {
-                return TranslateDuration(instance, member);
-            }
-
-            if (declaringType == typeof(DateInterval))
-            {
-                return TranslateDateInterval(instance, member);
-            }
-
-            return null;
+            return Lower();
         }
 
-        private SqlExpression? TranslateDuration(SqlExpression instance, MemberInfo member)
+        if (member == DateInterval_End)
         {
-            var translateDurationTotalMember = new Func<SqlExpression, double, SqlBinaryExpression>(
-                (inst, divisor) =>
-                    _sqlExpressionFactory.Divide(GetDatePartExpressionDouble(inst, "epoch"), _sqlExpressionFactory.Constant(divisor)));
-
-            return member.Name switch
-            {
-                nameof(Duration.TotalDays) => translateDurationTotalMember(instance, 86400),
-                nameof(Duration.TotalHours) => translateDurationTotalMember(instance, 3600),
-                nameof(Duration.TotalMinutes) => translateDurationTotalMember(instance, 60),
-                nameof(Duration.TotalSeconds) => GetDatePartExpressionDouble(instance, "epoch"),
-                nameof(Duration.TotalMilliseconds) => translateDurationTotalMember(instance, 0.001),
-                nameof(Duration.Days) => GetDatePartExpression(instance, "day"),
-                nameof(Duration.Hours) => GetDatePartExpression(instance, "hour"),
-                nameof(Duration.Minutes) => GetDatePartExpression(instance, "minute"),
-                nameof(Duration.Seconds) => GetDatePartExpression(instance, "second", true),
-                nameof(Duration.Milliseconds) => null, // Too annoying, floating point and sub-millisecond handling
-                _ => null,
-            };
+            return
+                _sqlExpressionFactory.Subtract(
+                    Upper(),
+                    _sqlExpressionFactory.Constant(Period.FromDays(1), _periodTypeMapping));
         }
 
-        private SqlExpression? TranslateDateInterval(SqlExpression instance, MemberInfo member)
+        if (member == DateInterval_Length)
         {
-            // NodaTime DateInterval is inclusive on both ends.
-            // PostgreSQL daterange is a discrete range type; this means it gets normalized to inclusive lower bound, exclusive upper bound.
-            // So we can translate Start as-is, but need to subtract a day for End.
-            if (member == DateInterval_Start)
-            {
-                return Lower();
-            }
-
-            if (member == DateInterval_End)
-            {
-                return
-                    _sqlExpressionFactory.Subtract(
-                        Upper(),
-                        _sqlExpressionFactory.Constant(Period.FromDays(1), _periodTypeMapping));
-            }
-
-            if (member == DateInterval_Length)
-            {
-                return _sqlExpressionFactory.Subtract(Upper(), Lower());
-            }
-
-            return null;
-
-            SqlExpression Lower()
-                => _sqlExpressionFactory.Function(
-                    "lower",
-                    new[] { instance },
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[1],
-                    typeof(LocalDate),
-                    _dateTypeMapping);
-
-            SqlExpression Upper()
-                => _sqlExpressionFactory.Function(
-                    "upper",
-                    new[] { instance },
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[1],
-                    typeof(LocalDate),
-                    _dateTypeMapping);
+            return _sqlExpressionFactory.Subtract(Upper(), Lower());
         }
 
-        private SqlExpression? TranslateDateTime(SqlExpression instance, MemberInfo member, Type returnType)
+        return null;
+
+        SqlExpression Lower()
+            => _sqlExpressionFactory.Function(
+                "lower",
+                new[] { instance },
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[1],
+                typeof(LocalDate),
+                _dateTypeMapping);
+
+        SqlExpression Upper()
+            => _sqlExpressionFactory.Function(
+                "upper",
+                new[] { instance },
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[1],
+                typeof(LocalDate),
+                _dateTypeMapping);
+    }
+
+    private SqlExpression? TranslateDateTime(SqlExpression instance, MemberInfo member, Type returnType)
+    {
+        switch (member.Name)
         {
-            switch (member.Name)
-            {
             case "Year":
             case "Years":
                 return GetDatePartExpression(instance, "year");
@@ -260,73 +260,72 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
 
             default:
                 return null;
-            }
         }
+    }
 
-        /// <summary>
-        /// Constructs the DATE_PART expression.
-        /// </summary>
-        /// <param name="e">The member expression.</param>
-        /// <param name="partName">The name of the DATE_PART to construct.</param>
-        /// <param name="floor">True if the result should be wrapped with FLOOR(...); otherwise, false.</param>
-        /// <returns>
-        /// The DATE_PART expression.
-        /// </returns>
-        /// <remarks>
-        /// DATE_PART returns doubles, which we floor and cast into ints
-        /// This also gets rid of sub-second components when retrieving seconds.
-        /// </remarks>
-        private SqlExpression GetDatePartExpression(
-            SqlExpression instance,
-            string partName,
-            bool floor = false)
-        {
-            var result = GetDatePartExpressionDouble(instance, partName, floor);
-            return _sqlExpressionFactory.Convert(result, typeof(int));
-        }
+    /// <summary>
+    /// Constructs the DATE_PART expression.
+    /// </summary>
+    /// <param name="e">The member expression.</param>
+    /// <param name="partName">The name of the DATE_PART to construct.</param>
+    /// <param name="floor">True if the result should be wrapped with FLOOR(...); otherwise, false.</param>
+    /// <returns>
+    /// The DATE_PART expression.
+    /// </returns>
+    /// <remarks>
+    /// DATE_PART returns doubles, which we floor and cast into ints
+    /// This also gets rid of sub-second components when retrieving seconds.
+    /// </remarks>
+    private SqlExpression GetDatePartExpression(
+        SqlExpression instance,
+        string partName,
+        bool floor = false)
+    {
+        var result = GetDatePartExpressionDouble(instance, partName, floor);
+        return _sqlExpressionFactory.Convert(result, typeof(int));
+    }
         
-        private SqlExpression GetDatePartExpressionDouble(
-            SqlExpression instance,
-            string partName,
-            bool floor = false)
+    private SqlExpression GetDatePartExpressionDouble(
+        SqlExpression instance,
+        string partName,
+        bool floor = false)
+    {
+        var result = _sqlExpressionFactory.Function(
+            "DATE_PART",
+            new[] { _sqlExpressionFactory.Constant(partName), instance },
+            nullable: true,
+            argumentsPropagateNullability: TrueArrays[2],
+            typeof(double));
+
+        if (floor)
         {
-            var result = _sqlExpressionFactory.Function(
-                "DATE_PART",
-                new[] { _sqlExpressionFactory.Constant(partName), instance },
+            result = _sqlExpressionFactory.Function(
+                "FLOOR",
+                new[] { result },
                 nullable: true,
-                argumentsPropagateNullability: TrueArrays[2],
+                argumentsPropagateNullability: TrueArrays[1],
                 typeof(double));
-
-            if (floor)
-            {
-                result = _sqlExpressionFactory.Function(
-                    "FLOOR",
-                    new[] { result },
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[1],
-                    typeof(double));
-            }
-
-            return result;
         }
 
-        private SqlExpression? TranslateZonedDateTime(SqlExpression instance, MemberInfo member)
+        return result;
+    }
+
+    private SqlExpression? TranslateZonedDateTime(SqlExpression instance, MemberInfo member)
+    {
+        if (member == ZonedDateTime_LocalDateTime)
         {
-            if (member == ZonedDateTime_LocalDateTime)
+            if (instance is PendingZonedDateTimeExpression pendingZonedDateTime)
             {
-                if (instance is PendingZonedDateTimeExpression pendingZonedDateTime)
-                {
-                    return _sqlExpressionFactory.AtTimeZone(
-                        pendingZonedDateTime.Operand,
-                        _sqlExpressionFactory.Constant(pendingZonedDateTime.TimeZoneId),
-                        typeof(LocalDateTime),
-                        _localDateTimeTypeMapping);
-                }
-
-                return _sqlExpressionFactory.AtUtc(instance);
+                return _sqlExpressionFactory.AtTimeZone(
+                    pendingZonedDateTime.Operand,
+                    _sqlExpressionFactory.Constant(pendingZonedDateTime.TimeZoneId),
+                    typeof(LocalDateTime),
+                    _localDateTimeTypeMapping);
             }
 
-            return null;
+            return _sqlExpressionFactory.AtUtc(instance);
         }
+
+        return null;
     }
 }

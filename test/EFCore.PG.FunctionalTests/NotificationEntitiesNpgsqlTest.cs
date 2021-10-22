@@ -2,21 +2,20 @@
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL
+namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+
+public class NotificationEntitiesNpgsqlTest
+    : NotificationEntitiesTestBase<NotificationEntitiesNpgsqlTest.NotificationEntitiesNpgsqlFixture>
 {
-    public class NotificationEntitiesNpgsqlTest
-        : NotificationEntitiesTestBase<NotificationEntitiesNpgsqlTest.NotificationEntitiesNpgsqlFixture>
+    public NotificationEntitiesNpgsqlTest(NotificationEntitiesNpgsqlFixture fixture)
+        : base(fixture)
     {
-        public NotificationEntitiesNpgsqlTest(NotificationEntitiesNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
+    }
 
-        public class NotificationEntitiesNpgsqlFixture : NotificationEntitiesFixtureBase
-        {
-            protected override string StoreName { get; } = "NotificationEntities";
+    public class NotificationEntitiesNpgsqlFixture : NotificationEntitiesFixtureBase
+    {
+        protected override string StoreName { get; } = "NotificationEntities";
 
-            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-        }
+        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
     }
 }

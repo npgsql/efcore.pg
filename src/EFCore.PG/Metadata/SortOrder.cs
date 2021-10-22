@@ -1,18 +1,17 @@
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+
+/// <summary>
+/// Options for modifying sort ordering of index values.
+/// </summary>
+public enum SortOrder
 {
     /// <summary>
-    /// Options for modifying sort ordering of index values.
+    /// Specifies ascending sort order, which is the default.
     /// </summary>
-    public enum SortOrder
-    {
-        /// <summary>
-        /// Specifies ascending sort order, which is the default.
-        /// </summary>
-        Ascending = 0,
+    Ascending = 0,
 
-        /// <summary>
-        /// Specifies descending sort order.
-        /// </summary>
-        Descending = 1,
-    }
+    /// <summary>
+    /// Specifies descending sort order.
+    /// </summary>
+    Descending = 1,
 }

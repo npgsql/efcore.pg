@@ -14,86 +14,86 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
+
+/// <summary>
+/// Provides translation services for operators and functions of PostgreSQL network typess (cidr, inet, macaddr, macaddr8).
+/// </summary>
+/// <remarks>
+/// See: https://www.postgresql.org/docs/current/static/functions-net.html
+/// </remarks>
+public class NpgsqlNetworkTranslator : IMethodCallTranslator
 {
-    /// <summary>
-    /// Provides translation services for operators and functions of PostgreSQL network typess (cidr, inet, macaddr, macaddr8).
-    /// </summary>
-    /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/static/functions-net.html
-    /// </remarks>
-    public class NpgsqlNetworkTranslator : IMethodCallTranslator
+    private static readonly MethodInfo IPAddressParse =
+        typeof(IPAddress).GetRuntimeMethod(nameof(IPAddress.Parse), new[] { typeof(string) })!;
+
+    private static readonly MethodInfo PhysicalAddressParse =
+        typeof(PhysicalAddress).GetRuntimeMethod(nameof(PhysicalAddress.Parse), new[] { typeof(string) })!;
+
+    private readonly IRelationalTypeMappingSource _typeMappingSource;
+    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+
+    private readonly RelationalTypeMapping _inetMapping;
+    private readonly RelationalTypeMapping _cidrMapping;
+    private readonly RelationalTypeMapping _macaddr8Mapping;
+    private readonly RelationalTypeMapping _longAddressMapping;
+
+    public NpgsqlNetworkTranslator(
+        IRelationalTypeMappingSource typeMappingSource,
+        NpgsqlSqlExpressionFactory sqlExpressionFactory,
+        IModel model)
     {
-        private static readonly MethodInfo IPAddressParse =
-            typeof(IPAddress).GetRuntimeMethod(nameof(IPAddress.Parse), new[] { typeof(string) })!;
+        _typeMappingSource = typeMappingSource;
+        _sqlExpressionFactory = sqlExpressionFactory;
+        _inetMapping = typeMappingSource.FindMapping("inet")!;
+        _cidrMapping = typeMappingSource.FindMapping("cidr")!;
+        _macaddr8Mapping = typeMappingSource.FindMapping("macaddr8")!;
+        _longAddressMapping = typeMappingSource.FindMapping(typeof(long), model)!;
+    }
 
-        private static readonly MethodInfo PhysicalAddressParse =
-            typeof(PhysicalAddress).GetRuntimeMethod(nameof(PhysicalAddress.Parse), new[] { typeof(string) })!;
-
-        private readonly IRelationalTypeMappingSource _typeMappingSource;
-        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-
-        private readonly RelationalTypeMapping _inetMapping;
-        private readonly RelationalTypeMapping _cidrMapping;
-        private readonly RelationalTypeMapping _macaddr8Mapping;
-        private readonly RelationalTypeMapping _longAddressMapping;
-
-        public NpgsqlNetworkTranslator(
-            IRelationalTypeMappingSource typeMappingSource,
-            NpgsqlSqlExpressionFactory sqlExpressionFactory,
-            IModel model)
+    /// <inheritdoc />
+    public virtual SqlExpression? Translate(
+        SqlExpression? instance,
+        MethodInfo method,
+        IReadOnlyList<SqlExpression> arguments,
+        IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+    {
+        if (method == IPAddressParse)
         {
-            _typeMappingSource = typeMappingSource;
-            _sqlExpressionFactory = sqlExpressionFactory;
-            _inetMapping = typeMappingSource.FindMapping("inet")!;
-            _cidrMapping = typeMappingSource.FindMapping("cidr")!;
-            _macaddr8Mapping = typeMappingSource.FindMapping("macaddr8")!;
-            _longAddressMapping = typeMappingSource.FindMapping(typeof(long), model)!;
+            return _sqlExpressionFactory.Convert(arguments[0], typeof(IPAddress));
         }
 
-        /// <inheritdoc />
-        public virtual SqlExpression? Translate(
-            SqlExpression? instance,
-            MethodInfo method,
-            IReadOnlyList<SqlExpression> arguments,
-            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+        if (method == PhysicalAddressParse)
         {
-            if (method == IPAddressParse)
-            {
-                return _sqlExpressionFactory.Convert(arguments[0], typeof(IPAddress));
-            }
+            return _sqlExpressionFactory.Convert(arguments[0], typeof(PhysicalAddress));
+        }
 
-            if (method == PhysicalAddressParse)
-            {
-                return _sqlExpressionFactory.Convert(arguments[0], typeof(PhysicalAddress));
-            }
+        if (method.DeclaringType != typeof(NpgsqlNetworkDbFunctionsExtensions))
+        {
+            return null;
+        }
 
-            if (method.DeclaringType != typeof(NpgsqlNetworkDbFunctionsExtensions))
-            {
-                return null;
-            }
-
-            return method.Name switch
-            {
+        return method.Name switch
+        {
             nameof(NpgsqlNetworkDbFunctionsExtensions.LessThan)
-            => _sqlExpressionFactory.LessThan(arguments[1], arguments[2]),
+                => _sqlExpressionFactory.LessThan(arguments[1], arguments[2]),
             nameof(NpgsqlNetworkDbFunctionsExtensions.LessThanOrEqual)
-            => _sqlExpressionFactory.LessThanOrEqual(arguments[1], arguments[2]),
+                => _sqlExpressionFactory.LessThanOrEqual(arguments[1], arguments[2]),
             nameof(NpgsqlNetworkDbFunctionsExtensions.GreaterThanOrEqual)
-            => _sqlExpressionFactory.GreaterThanOrEqual(arguments[1], arguments[2]),
+                => _sqlExpressionFactory.GreaterThanOrEqual(arguments[1], arguments[2]),
             nameof(NpgsqlNetworkDbFunctionsExtensions.GreaterThan)
-            => _sqlExpressionFactory.GreaterThan(arguments[1], arguments[2]),
+                => _sqlExpressionFactory.GreaterThan(arguments[1], arguments[2]),
 
             nameof(NpgsqlNetworkDbFunctionsExtensions.ContainedBy)
-            => _sqlExpressionFactory.ContainedBy(arguments[1], arguments[2]),
+                => _sqlExpressionFactory.ContainedBy(arguments[1], arguments[2]),
             nameof(NpgsqlNetworkDbFunctionsExtensions.ContainedByOrEqual)
-            => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.NetworkContainedByOrEqual, arguments[1], arguments[2]),
+                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.NetworkContainedByOrEqual, arguments[1], arguments[2]),
             nameof(NpgsqlNetworkDbFunctionsExtensions.Contains)
-            => _sqlExpressionFactory.Contains(arguments[1], arguments[2]),
+                => _sqlExpressionFactory.Contains(arguments[1], arguments[2]),
             nameof(NpgsqlNetworkDbFunctionsExtensions.ContainsOrEqual)
-            => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.NetworkContainsOrEqual, arguments[1], arguments[2]),
+                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.NetworkContainsOrEqual, arguments[1], arguments[2]),
             nameof(NpgsqlNetworkDbFunctionsExtensions.ContainsOrContainedBy)
-            => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.NetworkContainsOrContainedBy, arguments[1], arguments[2]),
+                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.NetworkContainsOrContainedBy, arguments[1], arguments[2]),
 
             nameof(NpgsqlNetworkDbFunctionsExtensions.BitwiseNot)            => new SqlUnaryExpression(ExpressionType.Not,
                 arguments[1],
@@ -146,20 +146,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             nameof(NpgsqlNetworkDbFunctionsExtensions.Set7BitMac8)   => NullPropagatingFunction("macaddr8_set7bit", new[] { arguments[1] }, typeof(PhysicalAddress), _macaddr8Mapping),
 
             _ => null
-            };
+        };
 
-            SqlFunctionExpression NullPropagatingFunction(
-                string name,
-                SqlExpression[] arguments,
-                Type returnType,
-                RelationalTypeMapping? typeMapping = null)
-                => _sqlExpressionFactory.Function(
-                    name,
-                    arguments,
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[arguments.Length],
-                    returnType,
-                    typeMapping);
-        }
+        SqlFunctionExpression NullPropagatingFunction(
+            string name,
+            SqlExpression[] arguments,
+            Type returnType,
+            RelationalTypeMapping? typeMapping = null)
+            => _sqlExpressionFactory.Function(
+                name,
+                arguments,
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[arguments.Length],
+                returnType,
+                typeMapping);
     }
 }

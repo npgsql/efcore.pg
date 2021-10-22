@@ -3,37 +3,36 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+
+// ReSharper disable once UnusedMember.Global
+public class MappingQueryNpgsqlTest : MappingQueryTestBase<MappingQueryNpgsqlTest.MappingQueryNpgsqlFixture>
 {
-    // ReSharper disable once UnusedMember.Global
-    public class MappingQueryNpgsqlTest : MappingQueryTestBase<MappingQueryNpgsqlTest.MappingQueryNpgsqlFixture>
+    public MappingQueryNpgsqlTest(MappingQueryNpgsqlFixture fixture)
+        : base(fixture)
+        => Fixture.TestSqlLoggerFactory.Clear();
+
+    public class MappingQueryNpgsqlFixture : MappingQueryFixtureBase
     {
-        public MappingQueryNpgsqlTest(MappingQueryNpgsqlFixture fixture)
-            : base(fixture)
-            => Fixture.TestSqlLoggerFactory.Clear();
+        protected override ITestStoreFactory TestStoreFactory => NpgsqlNorthwindTestStoreFactory.Instance;
 
-        public class MappingQueryNpgsqlFixture : MappingQueryFixtureBase
+        protected override string DatabaseSchema { get; } = "public";
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {
-            protected override ITestStoreFactory TestStoreFactory => NpgsqlNorthwindTestStoreFactory.Instance;
+            base.OnModelCreating(modelBuilder, context);
 
-            protected override string DatabaseSchema { get; } = "public";
+            modelBuilder.Entity<MappedCustomer>(
+                e =>
+                {
+                    e.Property(c => c.CompanyName2).Metadata.SetColumnName("CompanyName");
+                    e.Metadata.SetTableName("Customers");
+                    e.Metadata.SetSchema("public");
+                });
 
-            protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
-            {
-                base.OnModelCreating(modelBuilder, context);
-
-                modelBuilder.Entity<MappedCustomer>(
-                    e =>
-                    {
-                        e.Property(c => c.CompanyName2).Metadata.SetColumnName("CompanyName");
-                        e.Metadata.SetTableName("Customers");
-                        e.Metadata.SetSchema("public");
-                    });
-
-                modelBuilder.Entity<MappedEmployee>()
-                    .Property(c => c.EmployeeID)
-                    .HasColumnType("int");
-            }
+            modelBuilder.Entity<MappedEmployee>()
+                .Property(c => c.EmployeeID)
+                .HasColumnType("int");
         }
     }
 }

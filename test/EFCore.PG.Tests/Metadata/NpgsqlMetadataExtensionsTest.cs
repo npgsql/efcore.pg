@@ -4,538 +4,537 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+
+public class NpgsqlMetadataExtensionsTest
 {
-    public class NpgsqlMetadataExtensionsTest
+    [ConditionalFact]
+    public void Can_get_and_set_column_name()
     {
-        [ConditionalFact]
-        public void Can_get_and_set_column_name()
-        {
-            var modelBuilder = GetModelBuilder();
+        var modelBuilder = GetModelBuilder();
 
-            var property = modelBuilder
-                .Entity<Customer>()
-                .Property(e => e.Name)
-                .Metadata;
+        var property = modelBuilder
+            .Entity<Customer>()
+            .Property(e => e.Name)
+            .Metadata;
 
-            Assert.Equal("Name", property.GetColumnBaseName());
-            Assert.Null(((IConventionProperty)property).GetColumnNameConfigurationSource());
+        Assert.Equal("Name", property.GetColumnBaseName());
+        Assert.Null(((IConventionProperty)property).GetColumnNameConfigurationSource());
 
-            ((IConventionProperty)property).SetColumnName("Eman", fromDataAnnotation: true);
+        ((IConventionProperty)property).SetColumnName("Eman", fromDataAnnotation: true);
 
-            Assert.Equal("Eman", property.GetColumnBaseName());
-            Assert.Equal(ConfigurationSource.DataAnnotation, ((IConventionProperty)property).GetColumnNameConfigurationSource());
+        Assert.Equal("Eman", property.GetColumnBaseName());
+        Assert.Equal(ConfigurationSource.DataAnnotation, ((IConventionProperty)property).GetColumnNameConfigurationSource());
 
-            property.SetColumnName("MyNameIs");
+        property.SetColumnName("MyNameIs");
 
-            Assert.Equal("Name", property.Name);
-            Assert.Equal("MyNameIs", property.GetColumnBaseName());
-            Assert.Equal(ConfigurationSource.Explicit, ((IConventionProperty)property).GetColumnNameConfigurationSource());
+        Assert.Equal("Name", property.Name);
+        Assert.Equal("MyNameIs", property.GetColumnBaseName());
+        Assert.Equal(ConfigurationSource.Explicit, ((IConventionProperty)property).GetColumnNameConfigurationSource());
 
-            property.SetColumnName(null);
+        property.SetColumnName(null);
 
-            Assert.Equal("Name", property.GetColumnBaseName());
-            Assert.Null(((IConventionProperty)property).GetColumnNameConfigurationSource());
-        }
+        Assert.Equal("Name", property.GetColumnBaseName());
+        Assert.Null(((IConventionProperty)property).GetColumnNameConfigurationSource());
+    }
 
 
-        [ConditionalFact]
-        public void Can_get_and_set_column_key_name()
-        {
-            var modelBuilder = GetModelBuilder();
+    [ConditionalFact]
+    public void Can_get_and_set_column_key_name()
+    {
+        var modelBuilder = GetModelBuilder();
 
-            var key = modelBuilder
-                .Entity<Customer>()
-                .HasKey(e => e.Id)
-                .Metadata;
+        var key = modelBuilder
+            .Entity<Customer>()
+            .HasKey(e => e.Id)
+            .Metadata;
 
-            Assert.Equal("PK_Customer", key.GetName());
+        Assert.Equal("PK_Customer", key.GetName());
 
-            key.SetName("PrimaryKey");
+        key.SetName("PrimaryKey");
 
-            Assert.Equal("PrimaryKey", key.GetName());
+        Assert.Equal("PrimaryKey", key.GetName());
 
-            key.SetName("PrimarySchool");
+        key.SetName("PrimarySchool");
 
-            Assert.Equal("PrimarySchool", key.GetName());
+        Assert.Equal("PrimarySchool", key.GetName());
 
-            key.SetName(null);
+        key.SetName(null);
 
-            Assert.Equal("PK_Customer", key.GetName());
-        }
+        Assert.Equal("PK_Customer", key.GetName());
+    }
 
-        [ConditionalFact]
-        public void Can_get_and_set_index_method()
-        {
-            var modelBuilder = GetModelBuilder();
+    [ConditionalFact]
+    public void Can_get_and_set_index_method()
+    {
+        var modelBuilder = GetModelBuilder();
 
-            var index = modelBuilder
-                .Entity<Customer>()
-                .HasIndex(e => e.Id)
-                .Metadata;
+        var index = modelBuilder
+            .Entity<Customer>()
+            .HasIndex(e => e.Id)
+            .Metadata;
 
-            Assert.Null(index.GetMethod());
+        Assert.Null(index.GetMethod());
 
-            index.SetMethod("gin");
+        index.SetMethod("gin");
 
-            Assert.Equal("gin", index.GetMethod());
+        Assert.Equal("gin", index.GetMethod());
 
-            index.SetMethod(null);
+        index.SetMethod(null);
 
-            Assert.Null(index.GetMethod());
-        }
+        Assert.Null(index.GetMethod());
+    }
 
-        [ConditionalFact]
-        public void Can_get_and_set_sequence()
-        {
-            var modelBuilder = GetModelBuilder();
-            var model = modelBuilder.Model;
+    [ConditionalFact]
+    public void Can_get_and_set_sequence()
+    {
+        var modelBuilder = GetModelBuilder();
+        var model = modelBuilder.Model;
 
-            Assert.Null(model.FindSequence("Foo"));
-            Assert.Null(model.FindSequence("Foo"));
-            Assert.Null(((IModel)model).FindSequence("Foo"));
-
-            var sequence = model.AddSequence("Foo");
+        Assert.Null(model.FindSequence("Foo"));
+        Assert.Null(model.FindSequence("Foo"));
+        Assert.Null(((IModel)model).FindSequence("Foo"));
 
-            Assert.Equal("Foo", model.FindSequence("Foo").Name);
-            Assert.Equal("Foo", ((IModel)model).FindSequence("Foo").Name);
-            Assert.Equal("Foo", model.FindSequence("Foo").Name);
-            Assert.Equal("Foo", ((IModel)model).FindSequence("Foo").Name);
+        var sequence = model.AddSequence("Foo");
 
-            Assert.Equal("Foo", sequence.Name);
-            Assert.Null(sequence.Schema);
-            Assert.Equal(1, sequence.IncrementBy);
-            Assert.Equal(1, sequence.StartValue);
-            Assert.Null(sequence.MinValue);
-            Assert.Null(sequence.MaxValue);
-            Assert.Same(typeof(long), sequence.Type);
-
-            Assert.NotNull(model.FindSequence("Foo"));
-
-            var sequence2 = model.FindSequence("Foo");
-
-            sequence.StartValue = 1729;
-            sequence.IncrementBy = 11;
-            sequence.MinValue = 2001;
-            sequence.MaxValue = 2010;
-            sequence.Type = typeof(int);
-
-            Assert.Equal("Foo", sequence.Name);
-            Assert.Null(sequence.Schema);
-            Assert.Equal(11, sequence.IncrementBy);
-            Assert.Equal(1729, sequence.StartValue);
-            Assert.Equal(2001, sequence.MinValue);
-            Assert.Equal(2010, sequence.MaxValue);
-            Assert.Same(typeof(int), sequence.Type);
-
-            Assert.Equal(sequence2.Name, sequence.Name);
-            Assert.Equal(sequence2.Schema, sequence.Schema);
-            Assert.Equal(sequence2.IncrementBy, sequence.IncrementBy);
-            Assert.Equal(sequence2.StartValue, sequence.StartValue);
-            Assert.Equal(sequence2.MinValue, sequence.MinValue);
-            Assert.Equal(sequence2.MaxValue, sequence.MaxValue);
-            Assert.Same(sequence2.Type, sequence.Type);
-        }
-
-        [ConditionalFact]
-        public void Can_get_and_set_sequence_with_schema_name()
-        {
-            var modelBuilder = GetModelBuilder();
-            var model = modelBuilder.Model;
-
-            Assert.Null(model.FindSequence("Foo", "Smoo"));
-            Assert.Null(model.FindSequence("Foo", "Smoo"));
-            Assert.Null(((IModel)model).FindSequence("Foo", "Smoo"));
-
-            var sequence = model.AddSequence("Foo", "Smoo");
-
-            Assert.Equal("Foo", model.FindSequence("Foo", "Smoo").Name);
-            Assert.Equal("Foo", ((IModel)model).FindSequence("Foo", "Smoo").Name);
-            Assert.Equal("Foo", model.FindSequence("Foo", "Smoo").Name);
-            Assert.Equal("Foo", ((IModel)model).FindSequence("Foo", "Smoo").Name);
-
-            Assert.Equal("Foo", sequence.Name);
-            Assert.Equal("Smoo", sequence.Schema);
-            Assert.Equal(1, sequence.IncrementBy);
-            Assert.Equal(1, sequence.StartValue);
-            Assert.Null(sequence.MinValue);
-            Assert.Null(sequence.MaxValue);
-            Assert.Same(typeof(long), sequence.Type);
-
-            Assert.NotNull(model.FindSequence("Foo", "Smoo"));
-
-            var sequence2 = model.FindSequence("Foo", "Smoo");
-
-            sequence.StartValue = 1729;
-            sequence.IncrementBy = 11;
-            sequence.MinValue = 2001;
-            sequence.MaxValue = 2010;
-            sequence.Type = typeof(int);
-
-            Assert.Equal("Foo", sequence.Name);
-            Assert.Equal("Smoo", sequence.Schema);
-            Assert.Equal(11, sequence.IncrementBy);
-            Assert.Equal(1729, sequence.StartValue);
-            Assert.Equal(2001, sequence.MinValue);
-            Assert.Equal(2010, sequence.MaxValue);
-            Assert.Same(typeof(int), sequence.Type);
-
-            Assert.Equal(sequence2.Name, sequence.Name);
-            Assert.Equal(sequence2.Schema, sequence.Schema);
-            Assert.Equal(sequence2.IncrementBy, sequence.IncrementBy);
-            Assert.Equal(sequence2.StartValue, sequence.StartValue);
-            Assert.Equal(sequence2.MinValue, sequence.MinValue);
-            Assert.Equal(sequence2.MaxValue, sequence.MaxValue);
-            Assert.Same(sequence2.Type, sequence.Type);
-        }
-
-        [ConditionalFact]
-        public void Can_get_multiple_sequences()
-        {
-            var modelBuilder = GetModelBuilder();
-            var model = modelBuilder.Model;
+        Assert.Equal("Foo", model.FindSequence("Foo").Name);
+        Assert.Equal("Foo", ((IModel)model).FindSequence("Foo").Name);
+        Assert.Equal("Foo", model.FindSequence("Foo").Name);
+        Assert.Equal("Foo", ((IModel)model).FindSequence("Foo").Name);
 
-            model.AddSequence("Fibonacci");
-            model.AddSequence("Golomb");
+        Assert.Equal("Foo", sequence.Name);
+        Assert.Null(sequence.Schema);
+        Assert.Equal(1, sequence.IncrementBy);
+        Assert.Equal(1, sequence.StartValue);
+        Assert.Null(sequence.MinValue);
+        Assert.Null(sequence.MaxValue);
+        Assert.Same(typeof(long), sequence.Type);
 
-            var sequences = model.GetSequences();
+        Assert.NotNull(model.FindSequence("Foo"));
 
-            Assert.Equal(2, sequences.Count());
-            Assert.Contains(sequences, s => s.Name == "Fibonacci");
-            Assert.Contains(sequences, s => s.Name == "Golomb");
-        }
+        var sequence2 = model.FindSequence("Foo");
+
+        sequence.StartValue = 1729;
+        sequence.IncrementBy = 11;
+        sequence.MinValue = 2001;
+        sequence.MaxValue = 2010;
+        sequence.Type = typeof(int);
+
+        Assert.Equal("Foo", sequence.Name);
+        Assert.Null(sequence.Schema);
+        Assert.Equal(11, sequence.IncrementBy);
+        Assert.Equal(1729, sequence.StartValue);
+        Assert.Equal(2001, sequence.MinValue);
+        Assert.Equal(2010, sequence.MaxValue);
+        Assert.Same(typeof(int), sequence.Type);
+
+        Assert.Equal(sequence2.Name, sequence.Name);
+        Assert.Equal(sequence2.Schema, sequence.Schema);
+        Assert.Equal(sequence2.IncrementBy, sequence.IncrementBy);
+        Assert.Equal(sequence2.StartValue, sequence.StartValue);
+        Assert.Equal(sequence2.MinValue, sequence.MinValue);
+        Assert.Equal(sequence2.MaxValue, sequence.MaxValue);
+        Assert.Same(sequence2.Type, sequence.Type);
+    }
+
+    [ConditionalFact]
+    public void Can_get_and_set_sequence_with_schema_name()
+    {
+        var modelBuilder = GetModelBuilder();
+        var model = modelBuilder.Model;
+
+        Assert.Null(model.FindSequence("Foo", "Smoo"));
+        Assert.Null(model.FindSequence("Foo", "Smoo"));
+        Assert.Null(((IModel)model).FindSequence("Foo", "Smoo"));
+
+        var sequence = model.AddSequence("Foo", "Smoo");
+
+        Assert.Equal("Foo", model.FindSequence("Foo", "Smoo").Name);
+        Assert.Equal("Foo", ((IModel)model).FindSequence("Foo", "Smoo").Name);
+        Assert.Equal("Foo", model.FindSequence("Foo", "Smoo").Name);
+        Assert.Equal("Foo", ((IModel)model).FindSequence("Foo", "Smoo").Name);
+
+        Assert.Equal("Foo", sequence.Name);
+        Assert.Equal("Smoo", sequence.Schema);
+        Assert.Equal(1, sequence.IncrementBy);
+        Assert.Equal(1, sequence.StartValue);
+        Assert.Null(sequence.MinValue);
+        Assert.Null(sequence.MaxValue);
+        Assert.Same(typeof(long), sequence.Type);
+
+        Assert.NotNull(model.FindSequence("Foo", "Smoo"));
+
+        var sequence2 = model.FindSequence("Foo", "Smoo");
+
+        sequence.StartValue = 1729;
+        sequence.IncrementBy = 11;
+        sequence.MinValue = 2001;
+        sequence.MaxValue = 2010;
+        sequence.Type = typeof(int);
+
+        Assert.Equal("Foo", sequence.Name);
+        Assert.Equal("Smoo", sequence.Schema);
+        Assert.Equal(11, sequence.IncrementBy);
+        Assert.Equal(1729, sequence.StartValue);
+        Assert.Equal(2001, sequence.MinValue);
+        Assert.Equal(2010, sequence.MaxValue);
+        Assert.Same(typeof(int), sequence.Type);
+
+        Assert.Equal(sequence2.Name, sequence.Name);
+        Assert.Equal(sequence2.Schema, sequence.Schema);
+        Assert.Equal(sequence2.IncrementBy, sequence.IncrementBy);
+        Assert.Equal(sequence2.StartValue, sequence.StartValue);
+        Assert.Equal(sequence2.MinValue, sequence.MinValue);
+        Assert.Equal(sequence2.MaxValue, sequence.MaxValue);
+        Assert.Same(sequence2.Type, sequence.Type);
+    }
+
+    [ConditionalFact]
+    public void Can_get_multiple_sequences()
+    {
+        var modelBuilder = GetModelBuilder();
+        var model = modelBuilder.Model;
 
-        [ConditionalFact]
-        public void Can_get_multiple_sequences_when_overridden()
-        {
-            var modelBuilder = GetModelBuilder();
-            var model = modelBuilder.Model;
+        model.AddSequence("Fibonacci");
+        model.AddSequence("Golomb");
 
-            model.AddSequence("Fibonacci").StartValue = 1;
-            model.FindSequence("Fibonacci").StartValue = 3;
-            model.AddSequence("Golomb");
+        var sequences = model.GetSequences();
 
-            var sequences = model.GetSequences();
+        Assert.Equal(2, sequences.Count());
+        Assert.Contains(sequences, s => s.Name == "Fibonacci");
+        Assert.Contains(sequences, s => s.Name == "Golomb");
+    }
+
+    [ConditionalFact]
+    public void Can_get_multiple_sequences_when_overridden()
+    {
+        var modelBuilder = GetModelBuilder();
+        var model = modelBuilder.Model;
 
-            Assert.Equal(2, sequences.Count());
-            Assert.Contains(sequences, s => s.Name == "Golomb");
+        model.AddSequence("Fibonacci").StartValue = 1;
+        model.FindSequence("Fibonacci").StartValue = 3;
+        model.AddSequence("Golomb");
 
-            var sequence = sequences.FirstOrDefault(s => s.Name == "Fibonacci");
-            Assert.NotNull(sequence);
-            Assert.Equal(3, sequence.StartValue);
-        }
+        var sequences = model.GetSequences();
 
-        [ConditionalFact]
-        public void Can_get_and_set_value_generation_on_model()
-        {
-            var modelBuilder = GetModelBuilder();
-            var model = modelBuilder.Model;
+        Assert.Equal(2, sequences.Count());
+        Assert.Contains(sequences, s => s.Name == "Golomb");
 
-            // TODO for PG9.6 testing: make this conditional
-            Assert.Equal(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, model.GetValueGenerationStrategy());
+        var sequence = sequences.FirstOrDefault(s => s.Name == "Fibonacci");
+        Assert.NotNull(sequence);
+        Assert.Equal(3, sequence.StartValue);
+    }
 
-            model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+    [ConditionalFact]
+    public void Can_get_and_set_value_generation_on_model()
+    {
+        var modelBuilder = GetModelBuilder();
+        var model = modelBuilder.Model;
 
-            Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, model.GetValueGenerationStrategy());
+        // TODO for PG9.6 testing: make this conditional
+        Assert.Equal(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, model.GetValueGenerationStrategy());
 
-            model.SetValueGenerationStrategy(null);
+        model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
 
-            Assert.Null(model.GetValueGenerationStrategy());
-        }
+        Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, model.GetValueGenerationStrategy());
 
-        [ConditionalFact]
-        public void Can_get_and_set_default_sequence_name_on_model()
-        {
-            var modelBuilder = GetModelBuilder();
-            var model = modelBuilder.Model;
+        model.SetValueGenerationStrategy(null);
 
-            model.SetHiLoSequenceName("Tasty.Snook");
+        Assert.Null(model.GetValueGenerationStrategy());
+    }
 
-            Assert.Equal("Tasty.Snook", model.GetHiLoSequenceName());
+    [ConditionalFact]
+    public void Can_get_and_set_default_sequence_name_on_model()
+    {
+        var modelBuilder = GetModelBuilder();
+        var model = modelBuilder.Model;
 
-            model.SetHiLoSequenceName(null);
+        model.SetHiLoSequenceName("Tasty.Snook");
 
-            Assert.Equal(NpgsqlModelExtensions.DefaultHiLoSequenceName, model.GetHiLoSequenceName());
-        }
+        Assert.Equal("Tasty.Snook", model.GetHiLoSequenceName());
 
-        [ConditionalFact]
-        public void Can_get_and_set_default_sequence_schema_on_model()
-        {
-            var modelBuilder = GetModelBuilder();
-            var model = modelBuilder.Model;
+        model.SetHiLoSequenceName(null);
 
-            Assert.Null(model.GetHiLoSequenceSchema());
+        Assert.Equal(NpgsqlModelExtensions.DefaultHiLoSequenceName, model.GetHiLoSequenceName());
+    }
 
-            model.SetHiLoSequenceSchema("Tasty.Snook");
+    [ConditionalFact]
+    public void Can_get_and_set_default_sequence_schema_on_model()
+    {
+        var modelBuilder = GetModelBuilder();
+        var model = modelBuilder.Model;
 
-            Assert.Equal("Tasty.Snook", model.GetHiLoSequenceSchema());
+        Assert.Null(model.GetHiLoSequenceSchema());
 
-            model.SetHiLoSequenceSchema(null);
+        model.SetHiLoSequenceSchema("Tasty.Snook");
 
-            Assert.Null(model.GetHiLoSequenceSchema());
-        }
+        Assert.Equal("Tasty.Snook", model.GetHiLoSequenceSchema());
 
-        [ConditionalFact]
-        public void Can_get_and_set_value_generation_on_property()
-        {
-            var modelBuilder = GetModelBuilder();
-            modelBuilder.Model.SetValueGenerationStrategy(null);
+        model.SetHiLoSequenceSchema(null);
 
-            var property = modelBuilder
-                .Entity<Customer>()
-                .Property(e => e.Id)
-                .Metadata;
+        Assert.Null(model.GetHiLoSequenceSchema());
+    }
 
-            Assert.Equal(NpgsqlValueGenerationStrategy.None, property.GetValueGenerationStrategy());
-            Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
+    [ConditionalFact]
+    public void Can_get_and_set_value_generation_on_property()
+    {
+        var modelBuilder = GetModelBuilder();
+        modelBuilder.Model.SetValueGenerationStrategy(null);
 
-            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+        var property = modelBuilder
+            .Entity<Customer>()
+            .Property(e => e.Id)
+            .Metadata;
 
-            Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, property.GetValueGenerationStrategy());
-            Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
+        Assert.Equal(NpgsqlValueGenerationStrategy.None, property.GetValueGenerationStrategy());
+        Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
 
-            property.SetValueGenerationStrategy(null);
+        property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
 
-            Assert.Equal(NpgsqlValueGenerationStrategy.None, property.GetValueGenerationStrategy());
-            Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
-        }
+        Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, property.GetValueGenerationStrategy());
+        Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
 
-        [ConditionalFact]
-        public void Can_get_and_set_value_generation_on_nullable_property()
-        {
-            var modelBuilder = GetModelBuilder();
+        property.SetValueGenerationStrategy(null);
 
-            var property = modelBuilder
-                .Entity<Customer>()
-                .Property(e => e.NullableInt).ValueGeneratedOnAdd()
-                .Metadata;
+        Assert.Equal(NpgsqlValueGenerationStrategy.None, property.GetValueGenerationStrategy());
+        Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
+    }
 
-            // TODO for PG9.6 testing: make this conditional
-            Assert.Equal(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, property.GetValueGenerationStrategy());
+    [ConditionalFact]
+    public void Can_get_and_set_value_generation_on_nullable_property()
+    {
+        var modelBuilder = GetModelBuilder();
 
-            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+        var property = modelBuilder
+            .Entity<Customer>()
+            .Property(e => e.NullableInt).ValueGeneratedOnAdd()
+            .Metadata;
 
-            Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, property.GetValueGenerationStrategy());
+        // TODO for PG9.6 testing: make this conditional
+        Assert.Equal(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, property.GetValueGenerationStrategy());
 
-            property.SetValueGenerationStrategy(null);
+        property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
 
-            // TODO for PG9.6 testing: make this conditional
-            Assert.Equal(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, property.GetValueGenerationStrategy());
-        }
+        Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, property.GetValueGenerationStrategy());
 
-        [ConditionalFact]
-        public void Can_get_and_set_sequence_name_on_property()
-        {
-            var modelBuilder = GetModelBuilder();
+        property.SetValueGenerationStrategy(null);
 
-            var property = modelBuilder
-                .Entity<Customer>()
-                .Property(e => e.Id)
-                .Metadata;
+        // TODO for PG9.6 testing: make this conditional
+        Assert.Equal(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, property.GetValueGenerationStrategy());
+    }
 
-            Assert.Null(property.GetHiLoSequenceName());
-            Assert.Null(((IProperty)property).GetHiLoSequenceName());
+    [ConditionalFact]
+    public void Can_get_and_set_sequence_name_on_property()
+    {
+        var modelBuilder = GetModelBuilder();
 
-            property.SetHiLoSequenceName("Snook");
+        var property = modelBuilder
+            .Entity<Customer>()
+            .Property(e => e.Id)
+            .Metadata;
 
-            Assert.Equal("Snook", property.GetHiLoSequenceName());
+        Assert.Null(property.GetHiLoSequenceName());
+        Assert.Null(((IProperty)property).GetHiLoSequenceName());
 
-            property.SetHiLoSequenceName(null);
+        property.SetHiLoSequenceName("Snook");
 
-            Assert.Null(property.GetHiLoSequenceName());
-        }
+        Assert.Equal("Snook", property.GetHiLoSequenceName());
 
-        [ConditionalFact]
-        public void Can_get_and_set_sequence_schema_on_property()
-        {
-            var modelBuilder = GetModelBuilder();
+        property.SetHiLoSequenceName(null);
 
-            var property = modelBuilder
-                .Entity<Customer>()
-                .Property(e => e.Id)
-                .Metadata;
+        Assert.Null(property.GetHiLoSequenceName());
+    }
 
-            Assert.Null(property.GetHiLoSequenceSchema());
+    [ConditionalFact]
+    public void Can_get_and_set_sequence_schema_on_property()
+    {
+        var modelBuilder = GetModelBuilder();
 
-            property.SetHiLoSequenceSchema("Tasty");
+        var property = modelBuilder
+            .Entity<Customer>()
+            .Property(e => e.Id)
+            .Metadata;
 
-            Assert.Equal("Tasty", property.GetHiLoSequenceSchema());
+        Assert.Null(property.GetHiLoSequenceSchema());
 
-            property.SetHiLoSequenceSchema(null);
+        property.SetHiLoSequenceSchema("Tasty");
 
-            Assert.Null(property.GetHiLoSequenceSchema());
-        }
+        Assert.Equal("Tasty", property.GetHiLoSequenceSchema());
 
-        [ConditionalFact]
-        public void TryGetSequence_returns_sequence_property_is_marked_for_sequence_generation()
-        {
-            var modelBuilder = GetModelBuilder();
+        property.SetHiLoSequenceSchema(null);
 
-            var property = modelBuilder
-                .Entity<Customer>()
-                .Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .Metadata;
+        Assert.Null(property.GetHiLoSequenceSchema());
+    }
 
-            modelBuilder.Model.AddSequence("DaneelOlivaw");
-            property.SetHiLoSequenceName("DaneelOlivaw");
-            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+    [ConditionalFact]
+    public void TryGetSequence_returns_sequence_property_is_marked_for_sequence_generation()
+    {
+        var modelBuilder = GetModelBuilder();
 
-            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
-        }
+        var property = modelBuilder
+            .Entity<Customer>()
+            .Property(e => e.Id)
+            .ValueGeneratedOnAdd()
+            .Metadata;
 
-        [ConditionalFact]
-        public void TryGetSequence_returns_sequence_property_is_marked_for_default_generation_and_model_is_marked_for_sequence_generation()
-        {
-            var modelBuilder = GetModelBuilder();
+        modelBuilder.Model.AddSequence("DaneelOlivaw");
+        property.SetHiLoSequenceName("DaneelOlivaw");
+        property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
 
-            var property = modelBuilder
-                .Entity<Customer>()
-                .Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .Metadata;
-
-            modelBuilder.Model.AddSequence("DaneelOlivaw");
-            modelBuilder.Model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
-            property.SetHiLoSequenceName("DaneelOlivaw");
-
-            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
-        }
-
-        [ConditionalFact]
-        public void TryGetSequence_returns_sequence_property_is_marked_for_sequence_generation_and_model_has_name()
-        {
-            var modelBuilder = GetModelBuilder();
-
-            var property = modelBuilder
-                .Entity<Customer>()
-                .Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .Metadata;
-
-            modelBuilder.Model.AddSequence("DaneelOlivaw");
-            modelBuilder.Model.SetHiLoSequenceName("DaneelOlivaw");
-            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
-
-            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
-        }
-
-        [ConditionalFact]
-        public void
-            TryGetSequence_returns_sequence_property_is_marked_for_default_generation_and_model_is_marked_for_sequence_generation_and_model_has_name()
-        {
-            var modelBuilder = GetModelBuilder();
-
-            var property = modelBuilder
-                .Entity<Customer>()
-                .Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .Metadata;
-
-            modelBuilder.Model.AddSequence("DaneelOlivaw");
-            modelBuilder.Model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
-            modelBuilder.Model.SetHiLoSequenceName("DaneelOlivaw");
-
-            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
-        }
-
-        [ConditionalFact]
-        public void TryGetSequence_with_schema_returns_sequence_property_is_marked_for_sequence_generation()
-        {
-            var modelBuilder = GetModelBuilder();
-
-            var property = modelBuilder
-                .Entity<Customer>()
-                .Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .Metadata;
-
-            modelBuilder.Model.AddSequence("DaneelOlivaw", "R");
-            property.SetHiLoSequenceName("DaneelOlivaw");
-            property.SetHiLoSequenceSchema("R");
-            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
-
-            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
-            Assert.Equal("R", property.FindHiLoSequence().Schema);
-        }
-
-        [ConditionalFact]
-        public void TryGetSequence_with_schema_returns_sequence_model_is_marked_for_sequence_generation()
-        {
-            var modelBuilder = GetModelBuilder();
-
-            var property = modelBuilder
-                .Entity<Customer>()
-                .Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .Metadata;
-
-            modelBuilder.Model.AddSequence("DaneelOlivaw", "R");
-            modelBuilder.Model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
-            property.SetHiLoSequenceName("DaneelOlivaw");
-            property.SetHiLoSequenceSchema("R");
-
-            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
-            Assert.Equal("R", property.FindHiLoSequence().Schema);
-        }
-
-        [ConditionalFact]
-        public void TryGetSequence_with_schema_returns_sequence_property_is_marked_for_sequence_generation_and_model_has_name()
-        {
-            var modelBuilder = GetModelBuilder();
-
-            var property = modelBuilder
-                .Entity<Customer>()
-                .Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .Metadata;
-
-            modelBuilder.Model.AddSequence("DaneelOlivaw", "R");
-            modelBuilder.Model.SetHiLoSequenceName("DaneelOlivaw");
-            modelBuilder.Model.SetHiLoSequenceSchema("R");
-            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
-
-            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
-            Assert.Equal("R", property.FindHiLoSequence().Schema);
-        }
-
-        [ConditionalFact]
-        public void TryGetSequence_with_schema_returns_sequence_model_is_marked_for_sequence_generation_and_model_has_name()
-        {
-            var modelBuilder = GetModelBuilder();
-
-            var property = modelBuilder
-                .Entity<Customer>()
-                .Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .Metadata;
-
-            modelBuilder.Model.AddSequence("DaneelOlivaw", "R");
-            modelBuilder.Model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
-            modelBuilder.Model.SetHiLoSequenceName("DaneelOlivaw");
-            modelBuilder.Model.SetHiLoSequenceSchema("R");
-
-            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
-            Assert.Equal("R", property.FindHiLoSequence().Schema);
-        }
-
-        private static ModelBuilder GetModelBuilder() => NpgsqlTestHelpers.Instance.CreateConventionBuilder();
-
-        // ReSharper disable once ClassNeverInstantiated.Local
-        private class Customer
-        {
-            public int Id { get; set; }
-            public int? NullableInt { get; set; }
-            public string Name { get; set; }
-            public byte Byte { get; set; }
-            public byte? NullableByte { get; set; }
-            public byte[] ByteArray { get; set; }
-        }
-
-        private class Order
-        {
-            public int OrderId { get; set; }
-            public int CustomerId { get; set; }
-        }
+        Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
+    }
+
+    [ConditionalFact]
+    public void TryGetSequence_returns_sequence_property_is_marked_for_default_generation_and_model_is_marked_for_sequence_generation()
+    {
+        var modelBuilder = GetModelBuilder();
+
+        var property = modelBuilder
+            .Entity<Customer>()
+            .Property(e => e.Id)
+            .ValueGeneratedOnAdd()
+            .Metadata;
+
+        modelBuilder.Model.AddSequence("DaneelOlivaw");
+        modelBuilder.Model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+        property.SetHiLoSequenceName("DaneelOlivaw");
+
+        Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
+    }
+
+    [ConditionalFact]
+    public void TryGetSequence_returns_sequence_property_is_marked_for_sequence_generation_and_model_has_name()
+    {
+        var modelBuilder = GetModelBuilder();
+
+        var property = modelBuilder
+            .Entity<Customer>()
+            .Property(e => e.Id)
+            .ValueGeneratedOnAdd()
+            .Metadata;
+
+        modelBuilder.Model.AddSequence("DaneelOlivaw");
+        modelBuilder.Model.SetHiLoSequenceName("DaneelOlivaw");
+        property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+
+        Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
+    }
+
+    [ConditionalFact]
+    public void
+        TryGetSequence_returns_sequence_property_is_marked_for_default_generation_and_model_is_marked_for_sequence_generation_and_model_has_name()
+    {
+        var modelBuilder = GetModelBuilder();
+
+        var property = modelBuilder
+            .Entity<Customer>()
+            .Property(e => e.Id)
+            .ValueGeneratedOnAdd()
+            .Metadata;
+
+        modelBuilder.Model.AddSequence("DaneelOlivaw");
+        modelBuilder.Model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+        modelBuilder.Model.SetHiLoSequenceName("DaneelOlivaw");
+
+        Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
+    }
+
+    [ConditionalFact]
+    public void TryGetSequence_with_schema_returns_sequence_property_is_marked_for_sequence_generation()
+    {
+        var modelBuilder = GetModelBuilder();
+
+        var property = modelBuilder
+            .Entity<Customer>()
+            .Property(e => e.Id)
+            .ValueGeneratedOnAdd()
+            .Metadata;
+
+        modelBuilder.Model.AddSequence("DaneelOlivaw", "R");
+        property.SetHiLoSequenceName("DaneelOlivaw");
+        property.SetHiLoSequenceSchema("R");
+        property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+
+        Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
+        Assert.Equal("R", property.FindHiLoSequence().Schema);
+    }
+
+    [ConditionalFact]
+    public void TryGetSequence_with_schema_returns_sequence_model_is_marked_for_sequence_generation()
+    {
+        var modelBuilder = GetModelBuilder();
+
+        var property = modelBuilder
+            .Entity<Customer>()
+            .Property(e => e.Id)
+            .ValueGeneratedOnAdd()
+            .Metadata;
+
+        modelBuilder.Model.AddSequence("DaneelOlivaw", "R");
+        modelBuilder.Model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+        property.SetHiLoSequenceName("DaneelOlivaw");
+        property.SetHiLoSequenceSchema("R");
+
+        Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
+        Assert.Equal("R", property.FindHiLoSequence().Schema);
+    }
+
+    [ConditionalFact]
+    public void TryGetSequence_with_schema_returns_sequence_property_is_marked_for_sequence_generation_and_model_has_name()
+    {
+        var modelBuilder = GetModelBuilder();
+
+        var property = modelBuilder
+            .Entity<Customer>()
+            .Property(e => e.Id)
+            .ValueGeneratedOnAdd()
+            .Metadata;
+
+        modelBuilder.Model.AddSequence("DaneelOlivaw", "R");
+        modelBuilder.Model.SetHiLoSequenceName("DaneelOlivaw");
+        modelBuilder.Model.SetHiLoSequenceSchema("R");
+        property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+
+        Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
+        Assert.Equal("R", property.FindHiLoSequence().Schema);
+    }
+
+    [ConditionalFact]
+    public void TryGetSequence_with_schema_returns_sequence_model_is_marked_for_sequence_generation_and_model_has_name()
+    {
+        var modelBuilder = GetModelBuilder();
+
+        var property = modelBuilder
+            .Entity<Customer>()
+            .Property(e => e.Id)
+            .ValueGeneratedOnAdd()
+            .Metadata;
+
+        modelBuilder.Model.AddSequence("DaneelOlivaw", "R");
+        modelBuilder.Model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+        modelBuilder.Model.SetHiLoSequenceName("DaneelOlivaw");
+        modelBuilder.Model.SetHiLoSequenceSchema("R");
+
+        Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
+        Assert.Equal("R", property.FindHiLoSequence().Schema);
+    }
+
+    private static ModelBuilder GetModelBuilder() => NpgsqlTestHelpers.Instance.CreateConventionBuilder();
+
+    // ReSharper disable once ClassNeverInstantiated.Local
+    private class Customer
+    {
+        public int Id { get; set; }
+        public int? NullableInt { get; set; }
+        public string Name { get; set; }
+        public byte Byte { get; set; }
+        public byte? NullableByte { get; set; }
+        public byte[] ByteArray { get; set; }
+    }
+
+    private class Order
+    {
+        public int OrderId { get; set; }
+        public int CustomerId { get; set; }
     }
 }

@@ -8,134 +8,133 @@ using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+
+/// <summary>
+/// The type mapping for PostgreSQL multirange types.
+/// </summary>
+/// <remarks>
+/// See: https://www.postgresql.org/docs/current/static/rangetypes.html
+/// </remarks>
+public class NpgsqlMultirangeTypeMapping : NpgsqlTypeMapping
 {
+    private readonly ISqlGenerationHelper _sqlGenerationHelper;
+
     /// <summary>
-    /// The type mapping for PostgreSQL multirange types.
+    /// The relational type mapping of the ranges contained in this multirange.
     /// </summary>
-    /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/static/rangetypes.html
-    /// </remarks>
-    public class NpgsqlMultirangeTypeMapping : NpgsqlTypeMapping
+    public virtual NpgsqlRangeTypeMapping RangeMapping { get; }
+
+    /// <summary>
+    /// The relational type mapping of the values contained in this multirange.
+    /// </summary>
+    public virtual RelationalTypeMapping SubtypeMapping { get; }
+
+    /// <summary>
+    /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping"/> class.
+    /// </summary>
+    /// <param name="storeType">The database type to map</param>
+    /// <param name="clrType">The CLR type to map.</param>
+    /// <param name="rangeMapping">The type mapping of the ranges contained in this multirange.</param>
+    /// <param name="sqlGenerationHelper">The SQL generation helper to delimit the store name.</param>
+    public NpgsqlMultirangeTypeMapping(
+        string storeType,
+        Type clrType,
+        NpgsqlRangeTypeMapping rangeMapping,
+        ISqlGenerationHelper sqlGenerationHelper)
+        : this(storeType, storeTypeSchema: null, clrType, rangeMapping, sqlGenerationHelper) {}
+
+    /// <summary>
+    /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping"/> class.
+    /// </summary>
+    /// <param name="storeType">The database type to map</param>
+    /// <param name="storeTypeSchema">The schema of the type.</param>
+    /// <param name="clrType">The CLR type to map.</param>
+    /// <param name="rangeMapping">The type mapping of the ranges contained in this multirange.</param>
+    /// <param name="sqlGenerationHelper">The SQL generation helper to delimit the store name.</param>
+    public NpgsqlMultirangeTypeMapping(
+        string storeType,
+        string? storeTypeSchema,
+        Type clrType,
+        NpgsqlRangeTypeMapping rangeMapping,
+        ISqlGenerationHelper sqlGenerationHelper)
+        : base(
+            sqlGenerationHelper.DelimitIdentifier(storeType, storeTypeSchema), clrType,
+            GenerateNpgsqlDbType(rangeMapping.SubtypeMapping))
     {
-        private readonly ISqlGenerationHelper _sqlGenerationHelper;
+        RangeMapping = rangeMapping;
+        SubtypeMapping = rangeMapping.SubtypeMapping;
+        _sqlGenerationHelper = sqlGenerationHelper;
+    }
 
-        /// <summary>
-        /// The relational type mapping of the ranges contained in this multirange.
-        /// </summary>
-        public virtual NpgsqlRangeTypeMapping RangeMapping { get; }
+    protected NpgsqlMultirangeTypeMapping(
+        RelationalTypeMappingParameters parameters,
+        NpgsqlDbType npgsqlDbType,
+        NpgsqlRangeTypeMapping rangeMapping,
+        ISqlGenerationHelper sqlGenerationHelper)
+        : base(parameters, npgsqlDbType)
+    {
+        RangeMapping = rangeMapping;
+        SubtypeMapping = rangeMapping.SubtypeMapping;
+        _sqlGenerationHelper = sqlGenerationHelper;
+    }
 
-        /// <summary>
-        /// The relational type mapping of the values contained in this multirange.
-        /// </summary>
-        public virtual RelationalTypeMapping SubtypeMapping { get; }
+    protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+        => new NpgsqlMultirangeTypeMapping(parameters, NpgsqlDbType, RangeMapping, _sqlGenerationHelper);
 
-        /// <summary>
-        /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping"/> class.
-        /// </summary>
-        /// <param name="storeType">The database type to map</param>
-        /// <param name="clrType">The CLR type to map.</param>
-        /// <param name="rangeMapping">The type mapping of the ranges contained in this multirange.</param>
-        /// <param name="sqlGenerationHelper">The SQL generation helper to delimit the store name.</param>
-        public NpgsqlMultirangeTypeMapping(
-            string storeType,
-            Type clrType,
-            NpgsqlRangeTypeMapping rangeMapping,
-            ISqlGenerationHelper sqlGenerationHelper)
-            : this(storeType, storeTypeSchema: null, clrType, rangeMapping, sqlGenerationHelper) {}
+    protected override string GenerateNonNullSqlLiteral(object value)
+    {
+        var multirange = (IList)value;
 
-        /// <summary>
-        /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping"/> class.
-        /// </summary>
-        /// <param name="storeType">The database type to map</param>
-        /// <param name="storeTypeSchema">The schema of the type.</param>
-        /// <param name="clrType">The CLR type to map.</param>
-        /// <param name="rangeMapping">The type mapping of the ranges contained in this multirange.</param>
-        /// <param name="sqlGenerationHelper">The SQL generation helper to delimit the store name.</param>
-        public NpgsqlMultirangeTypeMapping(
-            string storeType,
-            string? storeTypeSchema,
-            Type clrType,
-            NpgsqlRangeTypeMapping rangeMapping,
-            ISqlGenerationHelper sqlGenerationHelper)
-            : base(
-                sqlGenerationHelper.DelimitIdentifier(storeType, storeTypeSchema), clrType,
-                GenerateNpgsqlDbType(rangeMapping.SubtypeMapping))
+        var sb = new StringBuilder();
+        sb.Append("'{");
+
+        // TODO: We may need to quote here, though that would only need to happen in pretty exotic cases
+        for (var i = 0; i < multirange.Count; i++)
         {
-            RangeMapping = rangeMapping;
-            SubtypeMapping = rangeMapping.SubtypeMapping;
-            _sqlGenerationHelper = sqlGenerationHelper;
-        }
-
-        protected NpgsqlMultirangeTypeMapping(
-            RelationalTypeMappingParameters parameters,
-            NpgsqlDbType npgsqlDbType,
-            NpgsqlRangeTypeMapping rangeMapping,
-            ISqlGenerationHelper sqlGenerationHelper)
-            : base(parameters, npgsqlDbType)
-        {
-            RangeMapping = rangeMapping;
-            SubtypeMapping = rangeMapping.SubtypeMapping;
-            _sqlGenerationHelper = sqlGenerationHelper;
-        }
-
-        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new NpgsqlMultirangeTypeMapping(parameters, NpgsqlDbType, RangeMapping, _sqlGenerationHelper);
-
-        protected override string GenerateNonNullSqlLiteral(object value)
-        {
-            var multirange = (IList)value;
-
-            var sb = new StringBuilder();
-            sb.Append("'{");
-
-            // TODO: We may need to quote here, though that would only need to happen in pretty exotic cases
-            for (var i = 0; i < multirange.Count; i++)
+            sb.Append(SubtypeMapping.GenerateSqlLiteral(multirange[i]));
+            if (i < multirange.Count - 1)
             {
-                sb.Append(SubtypeMapping.GenerateSqlLiteral(multirange[i]));
-                if (i < multirange.Count - 1)
-                {
-                    sb.Append(", ");
-                }
+                sb.Append(", ");
             }
-
-            sb.Append("}'::");
-            sb.Append(StoreType);
-            return sb.ToString();
         }
 
-        private static NpgsqlDbType GenerateNpgsqlDbType(RelationalTypeMapping subtypeMapping)
+        sb.Append("}'::");
+        sb.Append(StoreType);
+        return sb.ToString();
+    }
+
+    private static NpgsqlDbType GenerateNpgsqlDbType(RelationalTypeMapping subtypeMapping)
+    {
+        NpgsqlDbType subtypeNpgsqlDbType;
+        if (subtypeMapping is INpgsqlTypeMapping npgsqlTypeMapping)
         {
-            NpgsqlDbType subtypeNpgsqlDbType;
-            if (subtypeMapping is INpgsqlTypeMapping npgsqlTypeMapping)
-            {
-                subtypeNpgsqlDbType = npgsqlTypeMapping.NpgsqlDbType;
-            }
-            else
-            {
-                // We're using a built-in, non-Npgsql mapping such as IntTypeMapping.
-                // Infer the NpgsqlDbType from the DbType (somewhat hacky but why not).
-                Debug.Assert(subtypeMapping.DbType.HasValue);
-                var p = new NpgsqlParameter { DbType = subtypeMapping.DbType.Value };
-                subtypeNpgsqlDbType = p.NpgsqlDbType;
-            }
-
-            return NpgsqlDbType.Multirange | subtypeNpgsqlDbType;
+            subtypeNpgsqlDbType = npgsqlTypeMapping.NpgsqlDbType;
         }
-
-        public override Expression GenerateCodeLiteral(object value)
+        else
         {
-            // Note that arrays are handled in EF Core's CSharpHelper, so this method doesn't get called for them.
-
-            // Unfortunately, List<NpgsqlRange<T>> requires MemberInit, which CSharpHelper doesn't support
-            var type = value.GetType();
-
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
-            {
-                throw new NotSupportedException("Cannot generate cold literals for List<T>, consider using arrays instead");
-            }
-
-            throw new InvalidCastException();
+            // We're using a built-in, non-Npgsql mapping such as IntTypeMapping.
+            // Infer the NpgsqlDbType from the DbType (somewhat hacky but why not).
+            Debug.Assert(subtypeMapping.DbType.HasValue);
+            var p = new NpgsqlParameter { DbType = subtypeMapping.DbType.Value };
+            subtypeNpgsqlDbType = p.NpgsqlDbType;
         }
+
+        return NpgsqlDbType.Multirange | subtypeNpgsqlDbType;
+    }
+
+    public override Expression GenerateCodeLiteral(object value)
+    {
+        // Note that arrays are handled in EF Core's CSharpHelper, so this method doesn't get called for them.
+
+        // Unfortunately, List<NpgsqlRange<T>> requires MemberInit, which CSharpHelper doesn't support
+        var type = value.GetType();
+
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+        {
+            throw new NotSupportedException("Cannot generate cold literals for List<T>, consider using arrays instead");
+        }
+
+        throw new InvalidCastException();
     }
 }
