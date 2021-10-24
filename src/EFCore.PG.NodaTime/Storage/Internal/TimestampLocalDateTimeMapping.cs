@@ -42,7 +42,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             => $@"""{GenerateLiteralCore(value)}""";
 
         private string GenerateLiteralCore(object value)
-            => LocalDateTimePattern.ExtendedIso.Format((LocalDateTime)value);
+        {
+            var localDateTime = (LocalDateTime)value;
+
+            // TODO: Switch to use LocalDateTime.MinMaxValue when available (#4061)
+            if (!NpgsqlNodaTimeTypeMappingSourcePlugin.DisableDateTimeInfinityConversions)
+            {
+                if (localDateTime == LocalDate.MinIsoValue + LocalTime.MinValue)
+                {
+                    return "-infinity";
+                }
+
+                if (localDateTime == LocalDate.MaxIsoValue + LocalTime.MaxValue)
+                {
+                    return "infinity";
+                }
+            }
+
+            return LocalDateTimePattern.ExtendedIso.Format(localDateTime);
+        }
 
         public override Expression GenerateCodeLiteral(object value) => GenerateCodeLiteral((LocalDateTime)value);
 

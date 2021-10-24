@@ -59,6 +59,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
+        public void GenerateSqlLiteral_returns_LocalDateTime_infinity_literal()
+        {
+            var mapping = GetMapping(typeof(LocalDateTime));
+            Assert.Equal(typeof(LocalDateTime), mapping.ClrType);
+            Assert.Equal("timestamp without time zone", mapping.StoreType);
+
+            // TODO: Switch to use LocalDateTime.MinMaxValue when available (#4061)
+            Assert.Equal("TIMESTAMP '-infinity'", mapping.GenerateSqlLiteral(LocalDate.MinIsoValue + LocalTime.MinValue));
+            Assert.Equal("TIMESTAMP 'infinity'", mapping.GenerateSqlLiteral(LocalDate.MaxIsoValue + LocalTime.MaxValue));
+        }
+
+        [Fact]
         public void GenerateSqlLiteral_returns_timestamptz_Instant_literal()
         {
             var mapping = GetMapping(typeof(Instant));
