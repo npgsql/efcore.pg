@@ -1,5 +1,3 @@
-// ReSharper disable once CheckNamespace
-
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -9,6 +7,7 @@ using NodaTime.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
 
+// ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class DateIntervalMapping : NpgsqlTypeMapping
@@ -19,15 +18,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         private static readonly ConstructorInfo _localDateConstructor =
             typeof(LocalDate).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
 
-        // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
         public DateIntervalMapping()
-            : base("daterange", typeof(DateInterval), NpgsqlDbType.Range |  NpgsqlDbType.Date)
+            : base("daterange", typeof(DateInterval), NpgsqlDbType.DateRange)
         {
         }
 
-        // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
         protected DateIntervalMapping(RelationalTypeMappingParameters parameters)
-            : base(parameters, NpgsqlDbType.Range |  NpgsqlDbType.Date)
+            : base(parameters, NpgsqlDbType.DateRange)
         {
         }
 
@@ -42,8 +39,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
-            var range = (DateInterval)value;
-            return $"'[{LocalDatePattern.Iso.Format(range.Start)},{LocalDatePattern.Iso.Format(range.End)}]'::daterange";
+            var dateInverval = (DateInterval)value;
+            return $"'[{LocalDatePattern.Iso.Format(dateInverval.Start)},{LocalDatePattern.Iso.Format(dateInverval.End)}]'::daterange";
         }
 
         public override Expression GenerateCodeLiteral(object value)

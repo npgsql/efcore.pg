@@ -39,6 +39,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
         private static readonly MemberInfo ZonedDateTime_LocalDateTime =
             typeof(ZonedDateTime).GetRuntimeProperty(nameof(ZonedDateTime.LocalDateTime))!;
 
+        private static readonly MemberInfo Interval_Start =
+            typeof(Interval).GetRuntimeProperty(nameof(Interval.Start))!;
+        private static readonly MemberInfo Interval_End =
+            typeof(Interval).GetRuntimeProperty(nameof(Interval.End))!;
+        private static readonly MemberInfo Interval_HasStart =
+            typeof(Interval).GetRuntimeProperty(nameof(Interval.HasStart))!;
+        private static readonly MemberInfo Interval_HasEnd =
+            typeof(Interval).GetRuntimeProperty(nameof(Interval.HasEnd))!;
+        private static readonly MemberInfo Interval_Duration =
+            typeof(Interval).GetRuntimeProperty(nameof(Interval.Duration))!;
+
         private static readonly MemberInfo DateInterval_Start =
             typeof(DateInterval).GetRuntimeProperty(nameof(DateInterval.Start))!;
         private static readonly MemberInfo DateInterval_End =
@@ -50,6 +61,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
             typeof(DateTimeZoneProviders).GetRuntimeProperty(nameof(DateTimeZoneProviders.Tzdb))!;
 
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
         private readonly RelationalTypeMapping _dateTypeMapping;
         private readonly RelationalTypeMapping _periodTypeMapping;
         private readonly RelationalTypeMapping _localDateTimeTypeMapping;
@@ -58,6 +70,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
             IRelationalTypeMappingSource typeMappingSource,
             NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
+            _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
             _dateTypeMapping = typeMappingSource.FindMapping(typeof(LocalDate))!;
             _periodTypeMapping = typeMappingSource.FindMapping(typeof(Period))!;
@@ -117,6 +130,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
                 return TranslateDuration(instance, member);
             }
 
+            if (declaringType == typeof(Interval))
+            {
+                return TranslateInterval(instance, member);
+            }
+
             if (declaringType == typeof(DateInterval))
             {
                 return TranslateDateInterval(instance, member);
@@ -145,6 +163,66 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
                 nameof(Duration.Milliseconds) => null, // Too annoying, floating point and sub-millisecond handling
                 _ => null,
             };
+        }
+
+        private SqlExpression? TranslateInterval(SqlExpression instance, MemberInfo member)
+        {
+            if (member == Interval_Start)
+            {
+                return Lower();
+            }
+
+            if (member == Interval_End)
+            {
+                return Upper();
+            }
+
+            if (member == Interval_HasStart)
+            {
+                return _sqlExpressionFactory.Not(
+                    _sqlExpressionFactory.Function(
+                        "lower_inf",
+                        new[] { instance },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(bool)));
+            }
+
+            if (member == Interval_HasEnd)
+            {
+                return _sqlExpressionFactory.Not(
+                    _sqlExpressionFactory.Function(
+                        "upper_inf",
+                        new[] { instance },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(bool)));
+            }
+
+            if (member == Interval_Duration)
+            {
+                return _sqlExpressionFactory.Subtract(Upper(), Lower(), _typeMappingSource.FindMapping(typeof(Duration)));
+            }
+
+            return null;
+
+            SqlExpression Lower()
+                => _sqlExpressionFactory.Function(
+                    "lower",
+                    new[] { instance },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[1],
+                    typeof(Interval),
+                    _typeMappingSource.FindMapping(typeof(Instant)));
+
+            SqlExpression Upper()
+                => _sqlExpressionFactory.Function(
+                    "upper",
+                    new[] { instance },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[1],
+                    typeof(Interval),
+                    _typeMappingSource.FindMapping(typeof(Instant)));
         }
 
         private SqlExpression? TranslateDateInterval(SqlExpression instance, MemberInfo member)
