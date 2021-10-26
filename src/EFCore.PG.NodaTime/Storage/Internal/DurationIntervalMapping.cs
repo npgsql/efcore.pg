@@ -6,6 +6,7 @@ using NodaTime;
 using NpgsqlTypes;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
+// ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class DurationIntervalMapping : NpgsqlTypeMapping

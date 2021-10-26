@@ -8,6 +8,7 @@ using NpgsqlTypes;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Utilties.Util;
 
+// ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping

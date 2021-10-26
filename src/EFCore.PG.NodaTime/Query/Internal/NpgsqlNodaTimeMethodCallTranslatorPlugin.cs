@@ -64,6 +64,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
         private static readonly MethodInfo Period_FromMinutes = typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes),      new[] { typeof(long) })!;
         private static readonly MethodInfo Period_FromSeconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds),      new[] { typeof(long) })!;
 
+        private static readonly MethodInfo Interval_Contains
+            = typeof(Interval).GetRuntimeMethod(nameof(Interval.Contains), new[] { typeof(Instant) })!;
+
         private static readonly MethodInfo DateInterval_Contains_LocalDate
             = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Contains), new[] { typeof(LocalDate) })!;
         private static readonly MethodInfo DateInterval_Contains_DateInterval
@@ -181,6 +184,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
                 return TranslatePeriod(instance, method, arguments, logger);
             }
 
+            if (declaringType == typeof(Interval))
+            {
+                return TranslateInterval(instance, method, arguments, logger);
+            }
+
             if (declaringType == typeof(DateInterval))
             {
                 return TranslateDateInterval(instance, method, arguments, logger);
@@ -261,6 +269,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
                 return IntervalPart(
                     datePart, _sqlExpressionFactory.Convert(parameter, typeof(int), _typeMappingSource.FindMapping(typeof(int))));
             }
+        }
+
+        public virtual SqlExpression? TranslateInterval(
+            SqlExpression? instance,
+            MethodInfo method,
+            IReadOnlyList<SqlExpression> arguments,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+        {
+            if (instance is null)
+            {
+                return null;
+            }
+
+            if (method == Interval_Contains)
+            {
+                return _sqlExpressionFactory.Contains(instance, arguments[0]);
+            }
+
+            return null;
         }
 
         public virtual SqlExpression? TranslateDateInterval(
