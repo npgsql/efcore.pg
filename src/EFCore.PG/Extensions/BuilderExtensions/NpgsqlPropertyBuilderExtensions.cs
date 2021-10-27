@@ -698,5 +698,81 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         #endregion Generated tsvector column
+
+        #region Compression method
+
+        /// <summary>
+        /// Sets the compression method for the column.
+        /// </summary>
+        /// <remarks>This feature was introduced in PostgreSQL 14.</remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="compressionMethod">The compression method.</param>
+        /// <returns>A builder to further configure the property.</returns>
+        public static PropertyBuilder UseCompressionMethod(
+            this PropertyBuilder propertyBuilder,
+            string? compressionMethod)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+            Check.NullButNotEmpty(compressionMethod, nameof(compressionMethod));
+
+            propertyBuilder.Metadata.SetCompressionMethod(compressionMethod);
+
+            return propertyBuilder;
+        }
+
+        /// <summary>
+        /// Sets the compression method for the column.
+        /// </summary>
+        /// <remarks>This feature was introduced in PostgreSQL 14.</remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="compressionMethod">The compression method.</param>
+        /// <returns>A builder to further configure the property.</returns>
+        public static PropertyBuilder<TEntity> UseCompressionMethod<TEntity>(
+            this PropertyBuilder<TEntity> propertyBuilder,
+            string? compressionMethod)
+            => (PropertyBuilder<TEntity>)UseCompressionMethod((PropertyBuilder)propertyBuilder, compressionMethod);
+
+        /// <summary>
+        /// Sets the compression method for the column.
+        /// </summary>
+        /// <remarks>This feature was introduced in PostgreSQL 14.</remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="compressionMethod">The compression method.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>A builder to further configure the property.</returns>
+        public static IConventionPropertyBuilder? UseCompressionMethod(
+            this IConventionPropertyBuilder propertyBuilder,
+            string? compressionMethod,
+            bool fromDataAnnotation = false)
+        {
+            if (propertyBuilder.CanSetCompressionMethod(compressionMethod, fromDataAnnotation))
+            {
+                propertyBuilder.Metadata.SetCompressionMethod(compressionMethod, fromDataAnnotation);
+
+                return propertyBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Whether the compression method for the column can be set.
+        /// </summary>
+        /// <remarks>This feature was introduced in PostgreSQL 14.</remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="compressionMethod">The compression method.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the index can be configured with the method</returns>
+        public static bool CanSetCompressionMethod(
+            this IConventionPropertyBuilder propertyBuilder,
+            string? compressionMethod,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+
+            return propertyBuilder.CanSetAnnotation(NpgsqlAnnotationNames.CompressionMethod, compressionMethod, fromDataAnnotation);
+        }
+
+        #endregion Compression method
     }
 }

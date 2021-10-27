@@ -112,5 +112,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
                 }
             }
         }
+
+        /// <inheritdoc />
+        protected override void ValidateCompatible(
+            IProperty property,
+            IProperty duplicateProperty,
+            string columnName,
+            in StoreObjectIdentifier storeObject,
+            IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
+        {
+            base.ValidateCompatible(property, duplicateProperty, columnName, storeObject, logger);
+
+            if (property.GetCompressionMethod(storeObject) != duplicateProperty.GetCompressionMethod(storeObject))
+            {
+                throw new InvalidOperationException(
+                    NpgsqlStrings.DuplicateColumnCompressionMethodMismatch(
+                        duplicateProperty.DeclaringEntityType.DisplayName(),
+                        duplicateProperty.Name,
+                        property.DeclaringEntityType.DisplayName(),
+                        property.Name,
+                        columnName,
+                        storeObject.DisplayName()));
+            }
+        }
     }
 }

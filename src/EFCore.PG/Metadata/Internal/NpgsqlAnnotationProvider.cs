@@ -106,6 +106,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                         .Select(p2 => valueGeneratedProperty.DeclaringEntityType.FindProperty(p2)!.GetColumnName(tableIdentifier))
                         .ToArray());
             }
+
+            // Model validation ensures that these facets are the same on all mapped properties
+            var property = column.PropertyMappings.First().Property;
+
+            if (property.GetCompressionMethod() is string compressionMethod)
+            {
+                yield return new Annotation(NpgsqlAnnotationNames.CompressionMethod, compressionMethod);
+            }
         }
 
         public override IEnumerable<IAnnotation> For(ITableIndex index, bool designTime)
