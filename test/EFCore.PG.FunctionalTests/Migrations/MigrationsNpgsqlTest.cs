@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         #region Table
@@ -920,6 +920,29 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                 @"ALTER TABLE ""Blogs"" ADD ""TsVector"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""Title"" || ' ' || coalesce(""Description"", ''))) STORED;");
         }
 
+        [Fact]
+        public virtual async Task Add_column_with_compression_method()
+        {
+            if (TestEnvironment.PostgresVersion.IsUnder(14))
+            {
+                return;
+            }
+
+            await Test(
+                builder => builder.Entity("Blogs", e => e.Property<int>("Id")),
+                builder => { },
+                builder => builder.Entity("Blogs").Property<string>("Title").UseCompressionMethod("pglz"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "Title");
+                    Assert.Equal("pglz", column[NpgsqlAnnotationNames.CompressionMethod]);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""Blogs"" ADD ""Title"" text COMPRESSION pglz NULL;");
+        }
+
         public override async Task Alter_column_change_type()
         {
             await base.Alter_column_change_type();
@@ -1610,6 +1633,52 @@ DROP SEQUENCE ""People_Id_old_seq"";");
 
             AssertSql(
                 @"ALTER TABLE ""People"" ALTER COLUMN ""Name2"" TYPE text COLLATE ""POSIX"";");
+        }
+
+        [Fact]
+        public virtual async Task Alter_column_set_compression_method()
+        {
+            if (TestEnvironment.PostgresVersion.IsUnder(14))
+            {
+                return;
+            }
+
+            await Test(
+                builder => builder.Entity("Blogs", e => e.Property<string>("Title")),
+                builder => { },
+                builder => builder.Entity("Blogs").Property<string>("Title").UseCompressionMethod("pglz"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "Title");
+                    Assert.Equal("pglz", column[NpgsqlAnnotationNames.CompressionMethod]);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""Blogs"" ALTER COLUMN ""Title"" SET COMPRESSION pglz");
+        }
+
+        [Fact]
+        public virtual async Task Alter_column_set_compression_method_to_default()
+        {
+            if (TestEnvironment.PostgresVersion.IsUnder(14))
+            {
+                return;
+            }
+
+            await Test(
+                builder => { },
+                builder => builder.Entity("Blogs", e => e.Property<string>("Title").UseCompressionMethod("lz4")),
+                builder => builder.Entity("Blogs").Property<string>("Title"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "Title");
+                    Assert.Null(column[NpgsqlAnnotationNames.CompressionMethod]);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""Blogs"" ALTER COLUMN ""Title"" SET COMPRESSION default");
         }
 
         public override async Task Drop_column()

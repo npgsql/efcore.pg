@@ -6,27 +6,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
     {
         public const string Prefix = "Npgsql:";
 
-        public const string ValueGenerationStrategy = Prefix + "ValueGenerationStrategy";
+        public const string CompressionMethod = Prefix + "Compression:";
+        public const string CreatedConcurrently = Prefix + "CreatedConcurrently";
+        public const string DatabaseTemplate = Prefix + "DatabaseTemplate";
+        public const string DefaultColumnCollation = Prefix + "DefaultColumnCollation";
         public const string HiLoSequenceName = Prefix + "HiLoSequenceName";
         public const string HiLoSequenceSchema = Prefix + "HiLoSequenceSchema";
+        public const string IdentityOptions = Prefix + "IdentitySequenceOptions";
         public const string IndexMethod = Prefix + "IndexMethod";
         public const string IndexOperators = Prefix + "IndexOperators";
         public const string IndexSortOrder = Prefix + "IndexSortOrder";
         public const string IndexNullSortOrder = Prefix + "IndexNullSortOrder";
         public const string IndexInclude = Prefix + "IndexInclude";
-        public const string CreatedConcurrently = Prefix + "CreatedConcurrently";
-        public const string PostgresExtensionPrefix = Prefix + "PostgresExtension:";
-        public const string EnumPrefix = Prefix + "Enum:";
-        public const string RangePrefix = Prefix + "Range:";
-        public const string DatabaseTemplate = Prefix + "DatabaseTemplate";
         public const string Tablespace = Prefix + "Tablespace";
-        public const string StorageParameterPrefix = Prefix + "StorageParameter:";
-        public const string UnloggedTable = Prefix + "UnloggedTable";
-        public const string IdentityOptions = Prefix + "IdentitySequenceOptions";
         public const string TsVectorConfig = Prefix + "TsVectorConfig";
         public const string TsVectorProperties = Prefix + "TsVectorProperties";
+        public const string UnloggedTable = Prefix + "UnloggedTable";
+        public const string ValueGenerationStrategy = Prefix + "ValueGenerationStrategy";
+
         public const string CollationDefinitionPrefix = Prefix + "CollationDefinition:";
-        public const string DefaultColumnCollation = Prefix + "DefaultColumnCollation";
+        public const string EnumPrefix = Prefix + "Enum:";
+        public const string PostgresExtensionPrefix = Prefix + "PostgresExtension:";
+        public const string RangePrefix = Prefix + "Range:";
+        public const string StorageParameterPrefix = Prefix + "StorageParameter:";
 
         // Database model annotations
 

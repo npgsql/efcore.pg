@@ -467,7 +467,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             if (type != oldType || newCollation != oldCollation)
             {
-                builder.Append(alterBase)
+                builder
+                    .Append(alterBase)
                     .Append("TYPE ")
                     .Append(type);
 
@@ -481,9 +482,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             if (operation.IsNullable != operation.OldColumn.IsNullable)
             {
-                builder.Append(alterBase)
+                builder
+                    .Append(alterBase)
                     .Append(operation.IsNullable ? "DROP NOT NULL" : "SET NOT NULL")
                     .AppendLine(";");
+            }
+
+            // Compression
+            var oldCompressionMethod = (string?)operation.OldColumn[NpgsqlAnnotationNames.CompressionMethod];
+            var newCompressionMethod = (string?)operation[NpgsqlAnnotationNames.CompressionMethod];
+
+            if (newCompressionMethod != oldCompressionMethod)
+            {
+                builder
+                    .Append(alterBase)
+                    .Append("SET COMPRESSION ")
+                    .Append(newCompressionMethod ?? "default");
             }
 
             CheckForOldValueGenerationAnnotation(operation);
@@ -1477,6 +1491,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(DelimitIdentifier(name))
                 .Append(" ")
                 .Append(columnType);
+
+            if (operation[NpgsqlAnnotationNames.CompressionMethod] is string compressionMethod)
+            {
+                builder
+                    .Append(" COMPRESSION ")
+                    .Append(DelimitIdentifier(compressionMethod));
+            }
 
             // If a collation was defined on the column specifically, via the standard EF mechanism, it will be
             // available in operation.Collation (as usual). If not, there may be a model-wide default column collation,

@@ -289,6 +289,7 @@ SELECT
   attisdropped,
   {(connection.PostgreSqlVersion >= new Version(10, 0) ? "attidentity::text" : "' '::text as attidentity")},
   {(connection.PostgreSqlVersion >= new Version(12, 0) ? "attgenerated::text" : "' '::text as attgenerated")},
+  {(connection.PostgreSqlVersion >= new Version(14, 0) ? "attcompression::text" : "''::text as attcompression")},
   format_type(typ.oid, atttypmod) AS formatted_typname,
   format_type(basetyp.oid, typ.typtypmod) AS formatted_basetypname,
   CASE
@@ -475,6 +476,16 @@ ORDER BY attnum";
                     if (record.GetValueOrDefault<string>("collname") is string collation && collation != "default")
                     {
                         column.Collation = collation;
+                    }
+
+                    if (record.GetValueOrDefault<string>("attcompression") is string compressionMethodChar)
+                    {
+                        column[NpgsqlAnnotationNames.CompressionMethod] = compressionMethodChar switch
+                        {
+                            "p" => "pglz",
+                            "l" => "lz4",
+                            _ => null
+                        };
                     }
 
                     logger.ColumnFound(

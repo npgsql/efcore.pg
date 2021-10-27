@@ -24,6 +24,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             = new ResourceManager("Npgsql.EntityFrameworkCore.PostgreSQL.Properties.NpgsqlStrings", typeof(NpgsqlStrings).Assembly);
 
         /// <summary>
+        ///     '{entityType1}.{property1}' and '{entityType2}.{property2}' are both mapped to column '{columnName}' in '{table}', but are configured with different compression methods.
+        /// </summary>
+        public static string DuplicateColumnCompressionMethodMismatch(object? entityType1, object? property1, object? entityType2, object? property2, object? columnName, object? table)
+            => string.Format(
+                GetString("DuplicateColumnCompressionMethodMismatch", nameof(entityType1), nameof(property1), nameof(entityType2), nameof(property2), nameof(columnName), nameof(table)),
+                entityType1, property1, entityType2, property2, columnName, table);
+
+        /// <summary>
         ///     '{entityType1}.{property1}' and '{entityType2}.{property2}' are both mapped to column '{columnName}' in '{table}' but are configured with different value generation strategies.
         /// </summary>
         public static string DuplicateColumnNameValueGenerationStrategyMismatch(object? entityType1, object? property1, object? entityType2, object? property2, object? columnName, object? table)
