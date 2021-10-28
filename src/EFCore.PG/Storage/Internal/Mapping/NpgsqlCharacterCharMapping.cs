@@ -26,7 +26,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 StoreTypePostfix.Size,
                 System.Data.DbType.StringFixedLength,
                 unicode: false,
-                size: 1,
                 fixedLength: true)) {}
 
         protected NpgsqlCharacterCharTypeMapping(RelationalTypeMappingParameters parameters)
