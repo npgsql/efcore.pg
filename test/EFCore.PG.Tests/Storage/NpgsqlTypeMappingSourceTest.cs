@@ -19,10 +19,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [Theory]
         [InlineData("integer", typeof(int), null, false)]
         [InlineData("integer[]", typeof(int[]), null, false)]
-        [InlineData("int", typeof(int), null, false, "int")]
-        [InlineData("int[]", typeof(int[]), null, false, "int[]")]
+        [InlineData("int", typeof(int), null, false)]
+        [InlineData("int[]", typeof(int[]), null, false)]
         [InlineData("text", typeof(string), null, false)]
-        [InlineData("TEXT", typeof(string), null, false, "TEXT")]
+        [InlineData("TEXT", typeof(string), null, false)]
+        [InlineData("character(8)", typeof(string), 8, true)]
+        [InlineData("char(8)", typeof(string), 8, true)]
+        [InlineData("character(1)", typeof(char), 1, true)]
+        [InlineData("char(1)", typeof(char), 1, true)]
+        [InlineData("character", typeof(char), null, true)]
+        [InlineData("character varying(8)", typeof(string), 8, false)]
+        [InlineData("varchar(8)", typeof(string), 8, false)]
+        [InlineData("varchar", typeof(string), null, false)]
         [InlineData("timestamp with time zone", typeof(DateTime), null, false)]
         [InlineData("dummy", typeof(DummyType), null, false)]
         [InlineData("int4range", typeof(NpgsqlRange<int>), null, false)]
@@ -34,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [InlineData("geometry(pointz, 4326)", typeof(Point), null, false)]
         [InlineData("geography(LineStringZM)", typeof(LineString), null, false)]
         [InlineData("geometry(POLYGONM)", typeof(Polygon), null, false)]
-        public void By_StoreType(string typeName, Type type, int? size, bool fixedLength, string expectedType = null)
+        public void By_StoreType(string typeName, Type type, int? size, bool fixedLength)
         {
             var mapping = Source.FindMapping(typeName);
 
@@ -42,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             Assert.Equal(size, mapping.Size);
             Assert.False(mapping.IsUnicode);
             Assert.Equal(fixedLength, mapping.IsFixedLength);
-            Assert.Equal(expectedType ?? typeName, mapping.StoreType);
+            Assert.Equal(typeName, mapping.StoreType);
         }
 
         [Fact]

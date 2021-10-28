@@ -263,10 +263,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "citext",                      new[] { _citext                       } },
                 { "character varying",           new[] { _varchar                      } },
                 { "varchar",                     new[] { _varchar                      } },
-                { "character",                   new RelationalTypeMapping[] { _singleChar, _char } },
-                { "char",                        new RelationalTypeMapping[] { _singleChar, _char } },
-                { "character(1)",                new RelationalTypeMapping[] { _singleChar, _char } },
-                { "char(1)",                     new RelationalTypeMapping[] { _singleChar, _char } },
+                // See FindBaseMapping below for special treatment of 'character'
 
                 { "timestamp without time zone", new[] { _timestamp                    } },
                 { "timestamp with time zone",    new[] { _timestamptz, _timestamptzDto } },
@@ -506,6 +503,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     }
 
                     return null;
+                }
+
+                // 'character' is special: 'character' (no size) and 'character(1)' map to a single char, whereas 'character(n)' maps
+                // to a string
+                if (storeTypeNameBase == "character" || storeTypeNameBase == "char")
+                {
+                    if (mappingInfo.Size is null or 1 && clrType is null || clrType == typeof(char))
+                    {
+                        return _singleChar.Clone(mappingInfo);
+                    }
+
+                    if (clrType is null || clrType == typeof(string))
+                    {
+                        return _char.Clone(mappingInfo);
+                    }
                 }
 
                 // A store type name was provided, but is unknown. This could be a domain (alias) type, in which case
