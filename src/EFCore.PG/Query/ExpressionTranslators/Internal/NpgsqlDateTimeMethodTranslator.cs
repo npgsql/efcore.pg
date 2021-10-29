@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -43,6 +44,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.ToUniversalTime), Array.Empty<Type>())!;
         private static readonly MethodInfo DateTime_ToLocalTime
             = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.ToLocalTime), Array.Empty<Type>())!;
+        private static readonly MethodInfo DateTime_SpecifyKind
+            = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.SpecifyKind), new[] { typeof(DateTime), typeof(DateTimeKind) })!;
 
         private static readonly MethodInfo TimeOnly_IsBetween
             = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.IsBetween), new[] { typeof(TimeOnly), typeof(TimeOnly) })!;
@@ -106,6 +109,35 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     }
 
                     return _sqlExpressionFactory.Convert(arguments[0], arguments[0].Type, _timestampTzMapping);
+                }
+
+                if (method == DateTime_SpecifyKind)
+                {
+                    if (arguments[1] is not SqlConstantExpression { Value: DateTimeKind kind })
+                    {
+                        throw new InvalidOperationException("Translating SpecifyKind is only supported with a constant Kind argument");
+                    }
+
+                    var typeMapping = arguments[0].TypeMapping;
+
+                    if (typeMapping is not NpgsqlTimestampTypeMapping and not NpgsqlTimestampTzTypeMapping)
+                    {
+                        throw new InvalidOperationException("Translating SpecifyKind is only supported on timestamp/timestamptz columns");
+                    }
+
+                    if (kind == DateTimeKind.Utc)
+                    {
+                        return typeMapping is NpgsqlTimestampTypeMapping
+                            ? _sqlExpressionFactory.AtUtc(arguments[0])
+                            : arguments[0];
+                    }
+
+                    if (kind is DateTimeKind.Unspecified or DateTimeKind.Local)
+                    {
+                        return typeMapping is NpgsqlTimestampTzTypeMapping
+                            ? _sqlExpressionFactory.AtUtc(arguments[0])
+                            : arguments[0];
+                    }
                 }
 
                 return null;

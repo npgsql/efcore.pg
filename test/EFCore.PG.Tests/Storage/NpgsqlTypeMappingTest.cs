@@ -100,6 +100,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 () => GetMapping("timestamp without time zone").GenerateSqlLiteral(new DateTimeOffset()));
 
         [Fact]
+        public void GenerateCodeLiteral_returns_DateTime_utc_literal()
+            => Assert.Equal(@"new DateTime(2020, 1, 1, 12, 30, 4, 567, DateTimeKind.Utc)", CodeLiteral(new DateTime(2020, 1, 1, 12, 30, 4, 567, DateTimeKind.Utc)));
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_DateTime_local_literal()
+            => Assert.Equal(@"new DateTime(2020, 1, 1, 12, 30, 4, 567, DateTimeKind.Local)", CodeLiteral(new DateTime(2020, 1, 1, 12, 30, 4, 567, DateTimeKind.Local)));
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_DateTime_unspecified_literal()
+            => Assert.Equal(@"new DateTime(2020, 1, 1, 12, 30, 4, 567, DateTimeKind.Unspecified)", CodeLiteral(new DateTime(2020, 1, 1, 12, 30, 4, 567, DateTimeKind.Unspecified)));
+
+        [Fact]
         public void GenerateSqlLiteral_returns_timestamptz_datetime_literal()
         {
             var mapping = GetMapping("timestamptz");

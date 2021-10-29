@@ -507,7 +507,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 // 'character' is special: 'character' (no size) and 'character(1)' map to a single char, whereas 'character(n)' maps
                 // to a string
-                if (storeTypeNameBase == "character" || storeTypeNameBase == "char")
+                if (storeTypeNameBase is "character" or "char")
                 {
                     if (mappingInfo.Size is null or 1 && clrType is null || clrType == typeof(char))
                     {
