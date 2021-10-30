@@ -91,6 +91,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Assert.IsType<InvalidCastException>(exception.InnerException);
         }
 
+        #region Comparisons
+
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
         public async Task Compare_timestamp_column_to_local_DateTime_literal(bool async)
@@ -296,6 +298,10 @@ FROM ""Entities"" AS e
 WHERE e.""TimestamptzDateTime""::timestamp = e.""TimestampDateTime""");
         }
 
+        #endregion Comparisons
+
+        #region Now
+
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
         public virtual async Task Where_datetime_now(bool async)
@@ -333,6 +339,10 @@ SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""Time
 FROM ""Entities"" AS e
 WHERE now() <> @__myDatetime_0");
         }
+
+        #endregion Now
+
+        #region DateTime constructors
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
@@ -397,6 +407,8 @@ FROM ""Entities"" AS e
 WHERE make_timestamptz(date_part('year', e.""TimestamptzDateTime"")::INT, date_part('month', e.""TimestamptzDateTime"")::INT, 1, 0, 0, 0::double precision, 'UTC') = TIMESTAMPTZ '1998-04-01 00:00:00Z'");
         }
 
+        #endregion DateTime constructors
+
         [ConditionalFact]
         public void Range_parameter_contains_timestamp_with_no_time_zone_column()
         {
@@ -408,6 +420,68 @@ WHERE make_timestamptz(date_part('year', e.""TimestamptzDateTime"")::INT, date_p
             var id = ctx.Entities.Single(e => range.Contains(e.TimestampDateTime)).Id;
             Assert.Equal(1, id);
         }
+
+        #region SpecifyKind
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task DateTime_SpecifyKind_on_timestamp_to_utc(bool async)
+        {
+            await AssertQuery(
+                async,
+                ss => ss.Set<Entity>().Where(e => DateTime.SpecifyKind(e.TimestampDateTime, DateTimeKind.Utc) == new DateTime(1998, 4, 12, 15, 26, 38, DateTimeKind.Utc)),
+                entryCount: 1);
+
+            AssertSql(
+                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
+FROM ""Entities"" AS e
+WHERE e.""TimestampDateTime"" AT TIME ZONE 'UTC' = TIMESTAMPTZ '1998-04-12 15:26:38Z'");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task DateTime_SpecifyKind_on_timestamptz_to_unspecified(bool async)
+        {
+            await AssertQuery(
+                async,
+                ss => ss.Set<Entity>().Where(e => DateTime.SpecifyKind(e.TimestamptzDateTime, DateTimeKind.Unspecified) == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Unspecified)),
+                entryCount: 1);
+
+            AssertSql(
+                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
+FROM ""Entities"" AS e
+WHERE e.""TimestamptzDateTime"" AT TIME ZONE 'UTC' = TIMESTAMP '1998-04-12 13:26:38'");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task DateTime_SpecifyKind_on_timestamptz_to_local(bool async)
+        {
+            await AssertQuery(
+                async,
+                ss => ss.Set<Entity>().Where(e => DateTime.SpecifyKind(e.TimestamptzDateTime, DateTimeKind.Local) == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Unspecified)),
+                entryCount: 1);
+
+            AssertSql(
+                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
+FROM ""Entities"" AS e
+WHERE e.""TimestamptzDateTime"" AT TIME ZONE 'UTC' = TIMESTAMP '1998-04-12 13:26:38'");
+        }
+
+        [ConditionalFact]
+        public async Task DateTime_SpecifyKind_with_parameter_kind_throws()
+        {
+            using var ctx = CreateContext();
+
+            var kind = DateTimeKind.Local;
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => ctx.Set<Entity>().Where(e => DateTime.SpecifyKind(e.TimestamptzDateTime, kind) == default).ToListAsync());
+
+            Assert.Equal("Translating SpecifyKind is only supported with a constant Kind argument", exception.Message);
+        }
+
+        #endregion SpecifyKind
 
         #region Time zone conversions
 
