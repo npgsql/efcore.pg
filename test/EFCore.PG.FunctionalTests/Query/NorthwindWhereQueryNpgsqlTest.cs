@@ -145,42 +145,6 @@ WHERE date_part('second', o.""OrderDate"")::INT = 44");
         public override Task Where_datetimeoffset_utcnow(bool async)
             => base.Where_datetimeoffset_utcnow(async);
 
-        public override Task Where_collection_navigation_ToList_Contains(bool async)
-        {
-            var order = new Order { OrderID = 10248 };
-
-            return AssertQuery(
-                async,
-                ss => ss.Set<Customer>()
-                    .Select(c => c.Orders.OrderBy(o => o.OrderID).ToList())
-                    .Where(e => e.Contains(order)),
-                entryCount: 5);
-        }
-
-        public override Task Where_collection_navigation_ToArray_Contains(bool async)
-        {
-            var order = new Order { OrderID = 10248 };
-
-            return AssertQuery(
-                async,
-                ss => ss.Set<Customer>()
-                    .Select(c => c.Orders.AsEnumerable().OrderBy(o => o.OrderID).ToArray())
-                    .Where(e => e.Contains(order)),
-                entryCount: 5);
-        }
-
-        public override Task Where_collection_navigation_AsEnumerable_Contains(bool async)
-        {
-            var order = new Order { OrderID = 10248 };
-
-            return AssertQuery(
-                async,
-                ss => ss.Set<Customer>()
-                    .Select(c => c.Orders.OrderBy(o => o.OrderID).AsEnumerable())
-                    .Where(e => e.Contains(order)),
-                entryCount: 5);
-        }
-
         private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 

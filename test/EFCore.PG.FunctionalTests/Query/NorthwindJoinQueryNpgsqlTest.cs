@@ -16,10 +16,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        [ConditionalTheory(Skip = "Test not yet ready")]
-        public override Task SelectMany_with_client_eval_with_constructor(bool async)
-            => base.SelectMany_with_client_eval_with_constructor(async);
-
         protected override void ClearLog()
             => Fixture.TestSqlLoggerFactory.Clear();
     }
