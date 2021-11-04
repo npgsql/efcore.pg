@@ -7,6 +7,7 @@
     <Authors>Shay Rojansky;Austin Drenski;Yoh Deadfall;</Authors>
     <Description>PostgreSQL/Npgsql provider for Entity Framework Core.</Description>
     <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -42,6 +43,10 @@
     <EmbeddedResource Update="Properties\NpgsqlStrings.resx">
       <CustomToolNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.Internal</CustomToolNamespace>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
   
 </Project>

@@ -5,7 +5,8 @@
 
     <Authors>Shay Rojansky</Authors>
     <Description>NodaTime support plugin for PostgreSQL/Npgsql Entity Framework Core provider.</Description>
-    <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql;nodatime</PackageTags>
+    <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql;nodatime;date;time</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,14 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
-
     <Compile Include="..\Shared\*.cs" />
-
+    <None Include="README.md" Pack="true" PackagePath="\"/>
     <None Include="build\**\*">
       <Pack>True</Pack>
       <PackagePath>build</PackagePath>
     </None>
-
   </ItemGroup>
 
 </Project>
