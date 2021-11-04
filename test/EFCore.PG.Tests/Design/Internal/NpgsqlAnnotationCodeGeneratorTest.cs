@@ -16,6 +16,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
 {
     public class NpgsqlAnnotationCodeGeneratorTest
     {
+        #region Identity / sequence / HiLo
+
         [Fact]
         public void GenerateFluentApi_value_generation()
         {
@@ -216,6 +218,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 schema => Assert.Equal("HiLoIndexSchema", schema));
         }
 
+        #endregion Identity / sequence / HiLo
+
+        #region PostgreSQL extensions
+
         [ConditionalFact]
         public void Extension()
         {
@@ -262,6 +268,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
 
             Assert.Collection(result.Arguments, name => Assert.Equal("postgis", name));
         }
+
+        #endregion PostgreSQL extensions
+
+        #region Enum
 
         [ConditionalFact]
         public void Enum()
@@ -320,6 +330,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 name => Assert.Equal("some_enum", name),
                 labels => Assert.Equal(enumLabels, labels));
         }
+
+        #endregion Enum
+
+        #region Range
 
         [ConditionalFact]
         public void Range()
@@ -380,6 +394,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 name => Assert.Equal("some_range", name),
                 subtype => Assert.Equal("some_subtype", subtype));
         }
+
+        #endregion Range
 
         private NpgsqlAnnotationCodeGenerator CreateGenerator()
             => new(new AnnotationCodeGeneratorDependencies(
