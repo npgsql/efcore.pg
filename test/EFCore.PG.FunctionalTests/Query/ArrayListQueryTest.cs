@@ -59,7 +59,7 @@ WHERE s.""NullableIntList""[1] = 3");
             AssertSql(
                 @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""ValueConvertedScalar""
 FROM ""SomeEntities"" AS s
-WHERE (s.""NullableIntList""[3] IS NULL)");
+WHERE s.""NullableIntList""[3] IS NULL");
         }
 
         public override async Task Non_nullable_value_array_index_compare_to_null(bool async)
@@ -79,7 +79,7 @@ WHERE FALSE");
             AssertSql(
                 @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""ValueConvertedScalar""
 FROM ""SomeEntities"" AS s
-WHERE (s.""NullableStringList""[3] IS NULL)");
+WHERE s.""NullableStringList""[3] IS NULL");
         }
 
         public override async Task Non_nullable_reference_array_index_compare_to_null(bool async)
@@ -193,7 +193,7 @@ WHERE s.""IntList"" @> ARRAY[s.""Id"" + 2]::integer[]");
             AssertSql(
                 @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""ValueConvertedScalar""
 FROM ""SomeEntities"" AS s
-WHERE (array_position(s.""NullableStringList"", NULL) IS NOT NULL)");
+WHERE array_position(s.""NullableStringList"", NULL) IS NOT NULL");
         }
 
         public override void Array_column_Contains_null_parameter_does_not_work()
@@ -251,7 +251,7 @@ WHERE s.""NullableText"" IN ('foo', 'xxx')");
 
 SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""ValueConvertedScalar""
 FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" = ANY (@__array_0) OR ((s.""NullableText"" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))");
+WHERE s.""NullableText"" = ANY (@__array_0) OR (s.""NullableText"" IS NULL AND array_position(@__array_0, NULL) IS NOT NULL)");
         }
 
         public override async Task Array_param_Contains_non_nullable_column(bool async)
@@ -310,7 +310,7 @@ WHERE s.""NonNullableText"" = ANY (@__array_0)");
 
 SELECT COUNT(*)::INT
 FROM ""SomeEntities"" AS s
-WHERE NOT (s.""NonNullableText"" = ANY (@__array_0) AND ((s.""NonNullableText"" = ANY (@__array_0) IS NOT NULL)))");
+WHERE NOT (s.""NonNullableText"" = ANY (@__array_0) AND (s.""NonNullableText"" = ANY (@__array_0) IS NOT NULL))");
         }
 
         public override void Array_param_with_null_Contains_nullable_not_found()
@@ -331,7 +331,7 @@ WHERE NOT (s.""NonNullableText"" = ANY (@__array_0) AND ((s.""NonNullableText"" 
 
 SELECT COUNT(*)::INT
 FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" = ANY (@__array_0) OR ((s.""NullableText"" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))");
+WHERE s.""NullableText"" = ANY (@__array_0) OR (s.""NullableText"" IS NULL AND array_position(@__array_0, NULL) IS NOT NULL)");
         }
 
         public override void Array_param_with_null_Contains_nullable_not_found_negated()
@@ -352,7 +352,7 @@ WHERE s.""NullableText"" = ANY (@__array_0) OR ((s.""NullableText"" IS NULL) AND
 
 SELECT COUNT(*)::INT
 FROM ""SomeEntities"" AS s
-WHERE NOT (s.""NullableText"" = ANY (@__array_0) AND ((s.""NullableText"" = ANY (@__array_0) IS NOT NULL))) AND ((s.""NullableText"" IS NOT NULL) OR (array_position(@__array_0, NULL) IS NULL))");
+WHERE NOT (s.""NullableText"" = ANY (@__array_0) AND (s.""NullableText"" = ANY (@__array_0) IS NOT NULL)) AND (s.""NullableText"" IS NOT NULL OR array_position(@__array_0, NULL) IS NULL)");
         }
 
         public override async Task Byte_array_parameter_contains_column(bool async)
