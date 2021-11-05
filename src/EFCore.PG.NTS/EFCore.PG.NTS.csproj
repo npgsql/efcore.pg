@@ -6,6 +6,7 @@
     <Authors>Shay Rojansky</Authors>
     <Description>NetTopologySuite PostGIS spatial support plugin for PostgreSQL/Npgsql Entity Framework Core provider.</Description>
     <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql;spatial;postgis;nts</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,14 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
-
     <Compile Include="..\Shared\*.cs" />
-
+    <None Include="README.md" Pack="true" PackagePath="\"/>
     <None Include="build\**\*">
       <Pack>True</Pack>
       <PackagePath>build</PackagePath>
     </None>
-
   </ItemGroup>
 
 </Project>
