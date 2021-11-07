@@ -155,22 +155,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             }
         }
 
+        // isElementNullable is provided for reference-type properties by decoding NRT information from the property, since that's not
+        // available on the CLR type. Note, however, that because of value conversion we may get a discrepancy between the model property's
+        // nullability and the provider types' (e.g. array of nullable reference property value-converted to array of non-nullable value
+        // type).
         private protected static bool CalculateElementNullability(Type elementType, bool? isElementNullable)
-        {
-            if (elementType.IsValueType)
-            {
-                // If elementType is a value type, we can infer its nullability from the type - make sure isElementNullable wasn't given
-                // externally.
-                if (isElementNullable is not null)
-                {
-                    throw new ArgumentException($"{nameof(isElementNullable)} must be null for arrays over value types");
-                }
-
-                return elementType.IsNullableType();
-            }
-
-            return isElementNullable ?? true;
-        }
+            => elementType.IsValueType
+                ? elementType.IsNullableType()
+                : isElementNullable ?? true;
 
         protected class NullableEqualityComparer<T> : IEqualityComparer<T?>
             where T : struct
