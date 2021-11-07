@@ -1,4 +1,9 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
@@ -6,9 +11,9 @@ using Xunit;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class ValueConvertersEndToEndNpgsqlTest
-        : ValueConvertersEndToEndTestBase<ValueConvertersEndToEndNpgsqlTest.ValueConvertersEndToEndSqlServerFixture>
+        : ValueConvertersEndToEndTestBase<ValueConvertersEndToEndNpgsqlTest.ValueConvertersEndToEndNpgsqlFixture>
     {
-        public ValueConvertersEndToEndNpgsqlTest(ValueConvertersEndToEndSqlServerFixture fixture)
+        public ValueConvertersEndToEndNpgsqlTest(ValueConvertersEndToEndNpgsqlFixture fixture)
             : base(fixture)
         {
         }
@@ -161,7 +166,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.Equal(isNullable, property!.IsNullable);
         }
 
-        public class ValueConvertersEndToEndSqlServerFixture : ValueConvertersEndToEndFixtureBase
+        [ConditionalFact]
+        public async Task Can_insert_and_read_back_with_value_converted_array()
+        {
+            using var ctx = CreateContext();
+
+            var entity = new ValueConvertedArrayEntity { Values = new IntWrapper[] { new(8), new(9) } };
+            ctx.Add(entity);
+            await ctx.SaveChangesAsync();
+
+            var id = entity.Id;
+            ctx.ChangeTracker.Clear();
+
+            entity = await ctx.Set<ValueConvertedArrayEntity>().SingleAsync(v => v.Id == id);
+            Assert.Equal(8, entity.Values[0].Value);
+            Assert.Equal(9, entity.Values[1].Value);
+        }
+
+        public class ValueConvertersEndToEndNpgsqlFixture : ValueConvertersEndToEndFixtureBase
         {
             protected override ITestStoreFactory TestStoreFactory
                 => NpgsqlTestStoreFactory.Instance;
@@ -180,7 +202,45 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                         b.Ignore(e => e.NullableStringToDateTimeOffset);
                         b.Ignore(e => e.NullableStringToNullableDateTimeOffset);
                     });
+
+                // Add some Npgsql-specific value conversion scenarios
+                modelBuilder.Entity<ValueConvertedArrayEntity>()
+                    .Property(x => x.Values)
+                    .HasPostgresArrayConversion(
+                        f => f.Value,
+                        w => new IntWrapper(w))
+                    .Metadata
+                    .SetValueComparer(new ValueComparer<IntWrapper[]>(
+                        (arr1, arr2) => arr1.SequenceEqual(arr2),
+                        arr => arr.Aggregate(0, (arr, v) => HashCode.Combine(arr, v.GetHashCode())),
+                        arr => arr.ToArray()));
             }
         }
+
+#nullable enable
+        public class ValueConvertedArrayEntity
+        {
+            public int Id { get; set; }
+            public IntWrapper[] Values { get; set; } = null!;
+        }
+
+        public class IntWrapper : IEquatable<IntWrapper>
+        {
+            public int Value { get; }
+
+            public IntWrapper(int value)
+            {
+                Value = value;
+            }
+
+            public bool Equals(IntWrapper? other)
+                => other is not null && Value == other.Value;
+
+            public override bool Equals(object? obj)
+                => obj is IntWrapper other && Equals(other);
+
+            public override int GetHashCode() => Value.GetHashCode();
+        }
+#nullable disable
     }
 }
