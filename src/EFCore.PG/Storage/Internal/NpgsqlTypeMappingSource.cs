@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Numerics;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -65,6 +66,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         private readonly NpgsqlFloatTypeMapping        _float4             = new();
         private readonly NpgsqlDoubleTypeMapping       _float8             = new();
         private readonly NpgsqlDecimalTypeMapping      _numeric            = new();
+        private readonly NpgsqlBigIntegerTypeMapping   _bigInteger         = new();
         private readonly NpgsqlMoneyTypeMapping        _money              = new();
         private readonly GuidTypeMapping               _uuid               = new("uuid", DbType.Guid);
         private readonly ShortTypeMapping              _int2               = new("smallint", DbType.Int16);
@@ -252,8 +254,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "float4",                      new[] { _float4                       } },
                 { "double precision",            new[] { _float8                       } },
                 { "float8",                      new[] { _float8                       } },
-                { "numeric",                     new[] { _numeric                      } },
-                { "decimal",                     new[] { _numeric                      } },
+                { "numeric",                     new RelationalTypeMapping[] { _numeric, _bigInteger         } },
+                { "decimal",                     new RelationalTypeMapping[] { _numeric, _bigInteger         } },
                 { "money",                       new[] { _money                        } },
 
                 { "text",                        new[] { _text                         } },
@@ -346,6 +348,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof(float),                               _float4               },
                 { typeof(double),                              _float8               },
                 { typeof(decimal),                             _numeric              },
+                { typeof(BigInteger),                          _bigInteger           },
 
                 { typeof(string),                              _text                 },
                 { typeof(JsonDocument),                        _jsonbDocument        },
