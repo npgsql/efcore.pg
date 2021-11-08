@@ -102,19 +102,72 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 ## Guid/UUID Generation
 
-By default, if you specify `ValueGeneratedOnAdd` on a Guid property, a random Guid value will be generated client-side and sent to the database.
+By default, for Guid key properties (or if you specify `ValueGeneratedOnAdd` on any Guid property), a random `Guid` value will be generated client-side and sent to the database.
 
-If you prefer to generate values in the database instead, you can do so by specifying `HasDefaultValueSql` on your property. Note that PostgreSQL doesn't include any Guid/UUID generation functions, you must add an extension such as `uuid-ossp` or `pgcrypto`. This can be done by placing the following code in your model's `OnModelCreating`:
+If you prefer to generate values in the database instead, you can do so by specifying `HasDefaultValueSql` on your property, and call the function to generate the `Guid` in the SQL expression. Which function to use depends on your PostgreSQL version:
+
+### [PG 13+](#tab/13)
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
-    => modelBuilder.HasPostgresExtension("uuid-ossp")
-                   .Entity<Blog>()
-                   .Property(e => e.SomeGuidProperty)
-                   .HasDefaultValueSql("uuid_generate_v4()");
+{
+    modelBuilder
+        .Entity<Blog>()
+        .Property(e => e.SomeGuidProperty)
+        .HasDefaultValueSql("gen_random_uuid()");
+}
 ```
 
+### [Older](#tab/older)
+
+Versions of PostgreSQL prior to 13 don't include any Guid/UUID generation functions, but extensions such as `uuid-ossp` or `pgcrypto` exist to fill thie gap. This can be done by placing the following code in your model's `OnModelCreating`:
+
+```c#
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.HasPostgresExtension("uuid-ossp");    
+
+    modelBuilder
+        .Entity<Blog>()
+        .Property(e => e.SomeGuidProperty)
+        .HasDefaultValueSql("uuid_generate_v4()");
+}
+```
+
+***
+
 See [the PostgreSQL docs on UUID for more details](https://www.postgresql.org/docs/current/static/datatype-uuid.html).
+
+## Timestamp generation
+
+In many scenarios, it's useful to have a column containing the timestamp when the row was originally created. To do this, add a `DateTime` property to your entity type (or `Instant` if using NodaTime) , and configure its default with `HasDefaultValueSql` as follows:
+
+```c#
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder
+        .Entity<Blog>()
+        .Property(e => e.SomeDateTimeProperty)
+        .HasDefaultValueSql("now()");
+}
+```
+
+In other scenarios, a "last updated" is needed, which is automatically updated every time is modified. Unfortunately, while PostgreSQL supports [generated columns](https://www.postgresql.org/docs/current/ddl-generated-columns.html), the use of functions such as `now()` isn't supported. It's still possible to use database trigger to set this up; triggers can be managed by [adding raw SQL to your migrations](https://docs.microsoft.com/ef/core/managing-schemas/migrations/managing#adding-raw-sql), as follows:
+
+```sql
+CREATE FUNCTION "Blogs_Update_Timestamp_Function"() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
+BEGIN
+    NEW."Timestamp" := now();
+    RETURN NEW;
+END;
+$$
+
+CREATE TRIGGER "UpdateTimestamp"
+    BEFORE INSERT OR UPDATE
+    ON "Blogs"
+    FOR EACH ROW
+    EXECUTE FUNCTION "Blogs_Update_Timestamp_Function"();
+```
 
 ## Computed Columns
 
