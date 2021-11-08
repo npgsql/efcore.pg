@@ -9,7 +9,6 @@ using Xunit.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -89,6 +88,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                         DecimalAsMoney = 81.1m,
                         Decimal = 101.7m,
                         DecimalAsNumeric = 103.9m,
+                        BigIntegerAsNumeric = 105.4m,
                         FloatAsReal = 84.4f,
                         DoubleAsDoublePrecision = 85.5,
 
@@ -179,6 +179,9 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
 
                 decimal? param11 = 103.9m;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.DecimalAsNumeric == param11));
+
+                decimal? param12a = 105.4m;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.BigIntegerAsNumeric == param12a));
 
                 float? param12 = 84.4f;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.FloatAsReal == param12));
@@ -352,6 +355,9 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
 
                 decimal? param11 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.DecimalAsNumeric == param11));
+
+                decimal? param111 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.BigIntegerAsNumeric == param111));
 
                 float? param12 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.FloatAsReal == param12));
@@ -1332,6 +1338,9 @@ FROM ""MappedDataTypes"" AS m");
 
             [Column(TypeName = "money")]
             public decimal? DecimalAsMoney { get; set; }
+
+            [Column(TypeName = "numeric")]
+            public decimal? BigIntegerAsNumeric { get; set; }
 
             [Column(TypeName = "double precision")]
             public double? DoubleAsDoublePrecision { get; set; }

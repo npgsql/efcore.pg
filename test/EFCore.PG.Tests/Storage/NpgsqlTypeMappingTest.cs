@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Numerics;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design.Internal;
@@ -374,6 +375,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                     { "k1", "v1" },
                     { "k2", "v2" }
                 }));
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_BigInteger_literal()
+        {
+            var mapping = GetMapping(typeof(BigInteger));
+
+            Assert.Equal(@"0", mapping.GenerateSqlLiteral(BigInteger.Zero));
+            Assert.Equal(int.MaxValue.ToString(), mapping.GenerateSqlLiteral(new BigInteger(int.MaxValue)));
+            Assert.Equal(int.MinValue.ToString(), mapping.GenerateSqlLiteral(new BigInteger(int.MinValue)));
+        }
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_BigInteger_literal()
+            => Assert.Equal(
+                @"BigInteger.Parse(""18446744073709551615"", NumberFormatInfo.InvariantInfo)",
+                CodeLiteral(new BigInteger(ulong.MaxValue)));
 
         [Fact]
         public void ValueComparer_hstore_as_Dictionary()
