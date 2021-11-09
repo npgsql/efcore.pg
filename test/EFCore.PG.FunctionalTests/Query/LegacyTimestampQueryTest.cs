@@ -52,7 +52,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             _ = await ctx.Entities.Where(c => DateTime.Now != myDatetime).ToListAsync();
 
             AssertSql(
-                @"@__myDatetime_0='2015-04-10T00:00:00.0000000Z' (DbType = DateTimeOffset)
+                @"@__myDatetime_0='2015-04-10T00:00:00.0000000Z' (DbType = DateTime)
 
 SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeOffset"", e.""TimestamptzDateTime""
 FROM ""Entities"" AS e

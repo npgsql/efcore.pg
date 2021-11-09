@@ -486,7 +486,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
 @p5='h' (Nullable = false)
 @p6='2015-01-02T00:00:00.0000000' (DbType = Date)
 @p7='2015-01-02T10:11:12.0000000' (DbType = DateTime)
-@p8='2016-01-02T11:11:12.0000000Z' (DbType = DateTimeOffset)
+@p8='2016-01-02T11:11:12.0000000Z' (DbType = DateTime)
 @p9='0001-01-01T12:00:00.0000000+02:00' (DbType = Object)
 @p10='101.7'
 @p11='81.1' (DbType = Currency)

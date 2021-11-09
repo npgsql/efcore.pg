@@ -50,8 +50,8 @@ FROM ""Missions"" AS m");
                     m => start <= m.Timeline.Date && m.Timeline < end && dates.Contains(m.Timeline)));
 
             AssertSql(
-                @"@__start_0='1902-01-01T10:00:00.1234567+00:00'
-@__end_1='1902-01-03T10:00:00.1234567+00:00'
+                @"@__start_0='1902-01-01T10:00:00.1234567+00:00' (DbType = DateTime)
+@__end_1='1902-01-03T10:00:00.1234567+00:00' (DbType = DateTime)
 @__dates_2={ '1902-01-02T10:00:00.1234567+00:00' } (DbType = Object)
 
 SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""

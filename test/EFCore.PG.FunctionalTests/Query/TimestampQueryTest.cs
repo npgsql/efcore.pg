@@ -199,7 +199,7 @@ WHERE e.""TimestamptzDateTime"" = TIMESTAMPTZ '1998-04-12 13:26:38Z'");
                 entryCount: 1);
 
             AssertSql(
-                @"@__dateTime_0='1998-04-12T13:26:38.0000000Z' (DbType = DateTimeOffset)
+                @"@__dateTime_0='1998-04-12T13:26:38.0000000Z' (DbType = DateTime)
 
 SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
 FROM ""Entities"" AS e
@@ -333,7 +333,7 @@ WHERE now()::timestamp <> @__myDatetime_0");
                 entryCount: 2);
 
             AssertSql(
-                @"@__myDatetime_0='2015-04-10T00:00:00.0000000Z' (DbType = DateTimeOffset)
+                @"@__myDatetime_0='2015-04-10T00:00:00.0000000Z' (DbType = DateTime)
 
 SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
 FROM ""Entities"" AS e

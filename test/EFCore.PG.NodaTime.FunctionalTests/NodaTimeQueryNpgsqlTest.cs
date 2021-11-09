@@ -319,7 +319,7 @@ END = 5");
                 entryCount: 1);
 
             AssertSql(
-                @"@__ToInstant_0='2018-04-20T08:31:33Z' (DbType = DateTimeOffset)
+                @"@__ToInstant_0='2018-04-20T08:31:33Z' (DbType = DateTime)
 
 SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
@@ -1149,7 +1149,7 @@ WHERE @__dateRange_0 @> n.""LocalDate""");
                 entryCount: 1);
 
             AssertSql(
-                @"@__p_0='2018-04-20T10:31:33 UTC (+00)' (DbType = DateTimeOffset)
+                @"@__p_0='2018-04-20T10:31:33 UTC (+00)' (DbType = DateTime)
 
 SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
@@ -1383,7 +1383,7 @@ WHERE n.""Instant"" AT TIME ZONE 'UTC' = TIMESTAMP '2018-04-20T10:31:33.666'");
                 entryCount: 1);
 
             AssertSql(
-                @"@__ToInstant_0='2018-04-20T10:31:33Z' (DbType = DateTimeOffset)
+                @"@__ToInstant_0='2018-04-20T10:31:33Z' (DbType = DateTime)
 
 SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n

@@ -161,7 +161,7 @@ LIMIT 2");
 
             Assert.Equal("Moe", x.Customer.Name);
             AssertSql(
-                @"@__p_0='1990-03-03T17:10:15.0000000Z' (DbType = DateTimeOffset)
+                @"@__p_0='1990-03-03T17:10:15.0000000Z' (DbType = DateTime)
 
 SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
@@ -178,7 +178,7 @@ LIMIT 2");
 
             Assert.Equal("Moe", x.Customer.Name);
             AssertSql(
-                @"@__p_0='1990-03-03T17:10:15.0000000+00:00'
+                @"@__p_0='1990-03-03T17:10:15.0000000+00:00' (DbType = DateTime)
 
 SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
