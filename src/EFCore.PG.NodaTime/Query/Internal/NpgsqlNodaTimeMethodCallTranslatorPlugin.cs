@@ -136,7 +136,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
                 {
                     return _sqlExpressionFactory.AtTimeZone(
                         pendingZonedDateTime.Operand,
-                        _sqlExpressionFactory.Constant(pendingZonedDateTime.TimeZoneId),
+                        pendingZonedDateTime.TimeZoneId,
                         typeof(Instant),
                         _typeMappingSource.FindMapping(typeof(Instant)));
                 }
@@ -145,28 +145,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
                 return instance;
             }
 
-            if (method == IDateTimeZoneProvider_get_Item)
+            if (method == IDateTimeZoneProvider_get_Item && instance is PendingDateTimeZoneProviderExpression)
             {
-                // Small hack. We're translating an expression such as 'DateTimeZoneProviders.Tzdb["Europe/Berlin"]'.
-                // In .NET the Type of that expression is DateTimeZone, but just return the string ID for the time zone.
-                return instance is PendingDateTimeZoneProviderExpression
-                    && arguments[0] is SqlConstantExpression { Value: string timeZoneId }
-                        ? _sqlExpressionFactory.Constant(timeZoneId)
-                        : throw new InvalidOperationException("Can only get a constant time zone on DateTimeZoneProviders.TzDb");
+                // We're translating an expression such as 'DateTimeZoneProviders.Tzdb["Europe/Berlin"]'.
+                // Note that the .NET ype of that expression is DateTimeZone, but we just return the string ID for the time zone.
+                return arguments[0];
             }
 
             if (method == Instant_InZone)
             {
-                return arguments[0] is SqlConstantExpression { Value: string dateTimeZoneId }
-                    ? new PendingZonedDateTimeExpression(instance!, dateTimeZoneId)
-                    : throw new InvalidOperationException("Instant.InZone is only supported with a constant time zone expression such as 'DateTimeZoneProviders.Tzdb[\"Europe/Berlin\"]'");
+                return new PendingZonedDateTimeExpression(instance!, arguments[0]);
             }
 
             if (method == LocalDateTime_InZoneLeniently)
             {
-                return arguments[0] is SqlConstantExpression { Value: string dateTimeZoneId }
-                    ? new PendingZonedDateTimeExpression(instance!, dateTimeZoneId)
-                    : throw new InvalidOperationException("LocalDateTime.InZoneLeniently is only supported with a constant time zone expression such as 'DateTimeZoneProviders.Tzdb[\"Europe/Berlin\"]'");
+                return new PendingZonedDateTimeExpression(instance!, arguments[0]);
             }
 
             if (method == Instant_ToDateTimeUtc)
