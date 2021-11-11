@@ -396,7 +396,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
                 {
                     return _sqlExpressionFactory.AtTimeZone(
                         pendingZonedDateTime.Operand,
-                        _sqlExpressionFactory.Constant(pendingZonedDateTime.TimeZoneId),
+                        pendingZonedDateTime.TimeZoneId,
                         typeof(LocalDateTime),
                         _localDateTimeTypeMapping);
                 }
