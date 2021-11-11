@@ -16,6 +16,9 @@ bytes1.SequenceEqual(bytes2) | @bytes = @second                | Added in 5.0
 ## Date and time functions
 
 > [!NOTE]
+> Some of the operations below depend on the concept of a "local time zone" (e.g. `DateTime.Today`). While in .NET this is the machine time zone where .NET is running, the corresponding PostgreSQL translations use the [`TimeZone`](https://www.postgresql.org/docs/current/runtime-config-client.html#GUC-TIMEZONE) connection parameter as the local time zone.
+
+> [!NOTE]
 > Since version 6.0, many of the below DateTime translations are also supported on DateTimeOffset.
 
 .NET                                                              | SQL                                                                                                                                    | Notes
