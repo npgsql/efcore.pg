@@ -1038,6 +1038,54 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET DEFAULT '';");
                 @"ALTER TABLE ""People"" ADD ""Sum"" integer GENERATED ALWAYS AS (""X"" - ""Y"") STORED;");
         }
 
+        [ConditionalFact]
+        public virtual async Task Alter_column_change_computed_recreates_indexes()
+        {
+            if (TestEnvironment.PostgresVersion.IsUnder(12))
+            {
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_column_change_computed());
+                return;
+            }
+
+            // Non-stored generated columns aren't yet supported (PG12), so we override to used stored
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<int>("X");
+                        e.Property<int>("Y");
+                        e.Property<int>("Sum");
+
+                        e.HasIndex("Sum");
+                    }),
+                builder => builder.Entity("People").Property<int>("Sum")
+                    .HasComputedColumnSql($"{DelimitIdentifier("X")} + {DelimitIdentifier("Y")}", stored: true),
+                builder => builder.Entity("People").Property<int>("Sum")
+                    .HasComputedColumnSql($"{DelimitIdentifier("X")} - {DelimitIdentifier("Y")}", stored: true),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var sumColumn = Assert.Single(table.Columns, c => c.Name == "Sum");
+                    if (AssertComputedColumns)
+                    {
+                        Assert.Contains("X", sumColumn.ComputedColumnSql);
+                        Assert.Contains("Y", sumColumn.ComputedColumnSql);
+                        Assert.Contains("-", sumColumn.ComputedColumnSql);
+                    }
+
+                    var sumIndex = Assert.Single(table.Indexes);
+                    Assert.Collection(sumIndex.Columns, c => Assert.Equal("Sum", c.Name));
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" DROP COLUMN ""Sum"";",
+                //
+                @"ALTER TABLE ""People"" ADD ""Sum"" integer GENERATED ALWAYS AS (""X"" - ""Y"") STORED;",
+                //
+                @"CREATE INDEX ""IX_People_Sum"" ON ""People"" (""Sum"");");
+        }
+
         public override Task Alter_column_change_computed_type()
             => Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_column_change_computed());
 

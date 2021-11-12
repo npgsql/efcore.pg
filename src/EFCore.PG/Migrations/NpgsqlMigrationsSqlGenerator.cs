@@ -20,6 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 {
     public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     {
+        private IReadOnlyList<MigrationOperation> _operations = null!;
         private readonly RelationalTypeMapping _stringTypeMapping;
 
         /// <summary>
@@ -42,39 +43,64 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             IModel? model = null,
             MigrationsSqlGenerationOptions options = MigrationsSqlGenerationOptions.Default)
         {
-            var results = base.Generate(operations, model, options);
+            IReadOnlyList<MigrationCommand> results;
+            _operations = operations;
 
-            // For all tables where we had data seeding insertions, get any identity/serial columns for those tables.
-            var seededGeneratedColumns = operations
-                .OfType<InsertDataOperation>()
-                .Select(o => new { o.Schema, o.Table })
-                .Distinct()
-                .Select(t => new
-                {
-                    t.Schema,
-                    t.Table,
-                    Columns = (model?.GetRelationalModel().FindTable(t.Table, t.Schema)
-                            ?.EntityTypeMappings.Select(m => m.EntityType) ?? Enumerable.Empty<IEntityType>())
-                        .SelectMany(e => e.GetDeclaredProperties()
-                            .Where(p => p.GetValueGenerationStrategy() switch
-                            {
-                                NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => true,
-                                NpgsqlValueGenerationStrategy.IdentityAlwaysColumn => true,
-                                NpgsqlValueGenerationStrategy.SerialColumn => true,
-                                _ => false
-                            })
-                            .Select(p => p.GetColumnName(StoreObjectIdentifier.Table(t.Table, t.Schema))))
-                })
-                .SelectMany(t => t.Columns.Select(p => new
-                {
-                    t.Schema,
-                    t.Table,
-                    Column = p!,
-                }))
-                .ToArray();
-
-            if (seededGeneratedColumns.Any())
+            try
             {
+                results = base.Generate(operations, model, options);
+
+                AddSequenceBumpingForSeeding();
+
+                return results;
+            }
+            finally
+            {
+                _operations = null!;
+            }
+
+            void AddSequenceBumpingForSeeding()
+            {
+                // For all tables where we had data seeding insertions, get any identity/serial columns for those tables.
+                var seededGeneratedColumns = operations
+                    .OfType<InsertDataOperation>()
+                    .Select(o => new { o.Schema, o.Table })
+                    .Distinct()
+                    .Select(
+                        t => new
+                        {
+                            t.Schema,
+                            t.Table,
+                            Columns = (model?.GetRelationalModel().FindTable(t.Table, t.Schema)
+                                        ?.EntityTypeMappings.Select(m => m.EntityType)
+                                    ?? Enumerable.Empty<IEntityType>())
+                                .SelectMany(
+                                    e => e.GetDeclaredProperties()
+                                        .Where(
+                                            p => p.GetValueGenerationStrategy() switch
+                                            {
+                                                NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => true,
+                                                NpgsqlValueGenerationStrategy.IdentityAlwaysColumn => true,
+                                                NpgsqlValueGenerationStrategy.SerialColumn => true,
+                                                _ => false
+                                            })
+                                        .Select(p => p.GetColumnName(StoreObjectIdentifier.Table(t.Table, t.Schema))))
+                        })
+                    .SelectMany(
+                        t => t.Columns.Select(
+                            p => new
+                            {
+                                t.Schema,
+                                t.Table,
+                                Column = p!,
+                            }))
+                    .ToArray();
+
+                if (!seededGeneratedColumns.Any())
+                {
+                    return;
+                }
+
                 var builder = new MigrationCommandListBuilder(Dependencies);
 
                 foreach (var c in seededGeneratedColumns)
@@ -108,10 +134,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 builder.EndCommand();
 
-                return results.Concat(builder.GetCommandList()).ToArray();
+                results = results.Concat(builder.GetCommandList()).ToArray();
             }
-
-            return results;
         }
 
         protected override void Generate(MigrationOperation operation, IModel? model, MigrationCommandListBuilder builder)
@@ -442,6 +466,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 };
                 addColumnOperation.AddAnnotations(operation.GetAnnotations());
                 Generate(addColumnOperation, model, builder);
+                RecreateIndexes(column, operation, builder);
+                builder.EndCommand();
 
                 return;
             }
@@ -1786,6 +1812,45 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(" SET SCHEMA ")
                 .Append(DelimitIdentifier(newSchema))
                 .AppendLine(";");
+        }
+
+        protected virtual void RecreateIndexes(IColumn? column, MigrationOperation currentOperation, MigrationCommandListBuilder builder)
+        {
+            foreach (var index in GetIndexesToRebuild())
+            {
+                Generate(CreateIndexOperation.CreateFrom(index), index.Table.Model.Model, builder, terminate: false);
+                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+            }
+
+            IEnumerable<ITableIndex> GetIndexesToRebuild()
+            {
+                if (column == null)
+                {
+                    yield break;
+                }
+
+                var table = column.Table;
+                var createIndexOperations = _operations.SkipWhile(o => o != currentOperation).Skip(1)
+                    .OfType<CreateIndexOperation>().Where(o => o.Table == table.Name && o.Schema == table.Schema).ToList();
+                foreach (var index in table.Indexes)
+                {
+                    var indexName = index.Name;
+                    if (createIndexOperations.Any(o => o.Name == indexName))
+                    {
+                        continue;
+                    }
+
+                    if (index.Columns.Any(c => c == column))
+                    {
+                        yield return index;
+                    }
+                    else if (index[NpgsqlAnnotationNames.IndexInclude] is IReadOnlyList<string> includeColumns
+                             && includeColumns.Contains(column.Name))
+                    {
+                        yield return index;
+                    }
+                }
+            }
         }
 
         #endregion Utilities
