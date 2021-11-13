@@ -160,7 +160,7 @@ BEGIN
     NEW."Timestamp" := now();
     RETURN NEW;
 END;
-$$
+$$;
 
 CREATE TRIGGER "UpdateTimestamp"
     BEFORE INSERT OR UPDATE
