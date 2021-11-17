@@ -20,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         [Fact]
@@ -33,7 +33,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertSql(
                 @"SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE s.""CaseInsensitiveText"" IS NOT NULL AND (s.""CaseInsensitiveText"" LIKE 'some%')
+WHERE (s.""CaseInsensitiveText"" IS NOT NULL) AND (s.""CaseInsensitiveText"" LIKE 'some%')
 LIMIT 2");
         }
 
@@ -50,7 +50,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (@__param_0 = '') OR (s.""CaseInsensitiveText"" IS NOT NULL AND ((s.""CaseInsensitiveText"" LIKE @__param_0 || '%' ESCAPE '') AND (left(s.""CaseInsensitiveText"", length(@__param_0))::citext = @__param_0::citext)))
+WHERE (@__param_0 = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND ((s.""CaseInsensitiveText"" LIKE @__param_0 || '%' ESCAPE '') AND (left(s.""CaseInsensitiveText"", length(@__param_0))::citext = @__param_0::citext)))
 LIMIT 2");
         }
 
@@ -67,7 +67,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (s.""CaseInsensitiveText"" = '') OR (s.""CaseInsensitiveText"" IS NOT NULL AND ((@__param_0 LIKE s.""CaseInsensitiveText"" || '%' ESCAPE '') AND (left(@__param_0, length(s.""CaseInsensitiveText""))::citext = s.""CaseInsensitiveText""::citext)))
+WHERE (s.""CaseInsensitiveText"" = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND ((@__param_0 LIKE s.""CaseInsensitiveText"" || '%' ESCAPE '') AND (left(@__param_0, length(s.""CaseInsensitiveText""))::citext = s.""CaseInsensitiveText""::citext)))
 LIMIT 2");
         }
 
@@ -81,7 +81,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE s.""CaseInsensitiveText"" IS NOT NULL AND (s.""CaseInsensitiveText"" LIKE '%sometext')
+WHERE (s.""CaseInsensitiveText"" IS NOT NULL) AND (s.""CaseInsensitiveText"" LIKE '%sometext')
 LIMIT 2");
         }
 
@@ -98,7 +98,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (@__param_0 = '') OR (s.""CaseInsensitiveText"" IS NOT NULL AND (right(s.""CaseInsensitiveText"", length(@__param_0))::citext = @__param_0::citext))
+WHERE (@__param_0 = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND (right(s.""CaseInsensitiveText"", length(@__param_0))::citext = @__param_0::citext))
 LIMIT 2");
         }
 
@@ -115,7 +115,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (s.""CaseInsensitiveText"" = '') OR (s.""CaseInsensitiveText"" IS NOT NULL AND (right(@__param_0, length(s.""CaseInsensitiveText""))::citext = s.""CaseInsensitiveText""::citext))
+WHERE (s.""CaseInsensitiveText"" = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND (right(@__param_0, length(s.""CaseInsensitiveText""))::citext = s.""CaseInsensitiveText""::citext))
 LIMIT 2");
         }
 
