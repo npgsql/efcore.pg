@@ -356,49 +356,64 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             switch (sqlUnaryExpression.OperatorType)
             {
-            case ExpressionType.Convert:
-            {
-                // PostgreSQL supports the standard CAST(x AS y), but also a lighter x::y which we use
-                // where there's no precedence issues
-                switch (sqlUnaryExpression.Operand)
+                case ExpressionType.Convert:
                 {
-                case SqlConstantExpression:
-                case SqlParameterExpression:
-                case SqlUnaryExpression { OperatorType: ExpressionType.Convert }:
-                case ColumnExpression:
-                case SqlFunctionExpression:
-                case ScalarSubqueryExpression:
-                    var storeType = sqlUnaryExpression.TypeMapping.StoreType switch
+                    // PostgreSQL supports the standard CAST(x AS y), but also a lighter x::y which we use
+                    // where there's no precedence issues
+                    switch (sqlUnaryExpression.Operand)
                     {
-                        "integer" => "INT",
-                        "timestamp with time zone" => "timestamptz",
-                        "timestamp without time zone" => "timestamp",
-                        var s => s
-                    };
+                        case SqlConstantExpression:
+                        case SqlParameterExpression:
+                        case SqlUnaryExpression { OperatorType: ExpressionType.Convert }:
+                        case ColumnExpression:
+                        case SqlFunctionExpression:
+                        case ScalarSubqueryExpression:
+                            var storeType = sqlUnaryExpression.TypeMapping.StoreType switch
+                            {
+                                "integer" => "INT",
+                                "timestamp with time zone" => "timestamptz",
+                                "timestamp without time zone" => "timestamp",
+                                var s => s
+                            };
 
-                    Visit(sqlUnaryExpression.Operand);
-                    Sql.Append("::");
-                    Sql.Append(storeType);
-                    return sqlUnaryExpression;
+                            Visit(sqlUnaryExpression.Operand);
+                            Sql.Append("::");
+                            Sql.Append(storeType);
+                            return sqlUnaryExpression;
+                    }
+
+                    break;
                 }
 
-                break;
-            }
+                // Bitwise complement on networking types
+                case ExpressionType.Not when
+                    sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof(IPAddress)
+                    || sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof((IPAddress, int))
+                    || sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof(PhysicalAddress):
+                    Sql.Append("~");
+                    Visit(sqlUnaryExpression.Operand);
+                    return sqlUnaryExpression;
 
-            // Bitwise complement on networking types
-            case ExpressionType.Not when
-                sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof(IPAddress) ||
-                sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof((IPAddress, int)) ||
-                sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof(PhysicalAddress):
-                Sql.Append("~");
-                Visit(sqlUnaryExpression.Operand);
-                return sqlUnaryExpression;
+                // Not operation on full-text queries
+                case ExpressionType.Not when sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof(NpgsqlTsQuery):
+                    Sql.Append("!!");
+                    Visit(sqlUnaryExpression.Operand);
+                    return sqlUnaryExpression;
 
-            // Not operation on full-text queries
-            case ExpressionType.Not when sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof(NpgsqlTsQuery):
-                Sql.Append("!!");
-                Visit(sqlUnaryExpression.Operand);
-                return sqlUnaryExpression;
+                // EF uses unary Equal and NotEqual to represent is-null checking.
+                // These need to be surrounded in parentheses in various cases (e.g. where TRUE = x IS NOT NULL),
+                // see
+                case ExpressionType.Equal:
+                    Sql.Append("(");
+                    Visit(sqlUnaryExpression.Operand);
+                    Sql.Append(" IS NULL)");
+                    return sqlUnaryExpression;
+
+                case ExpressionType.NotEqual:
+                    Sql.Append("(");
+                    Visit(sqlUnaryExpression.Operand);
+                    Sql.Append(" IS NOT NULL)");
+                    return sqlUnaryExpression;
             }
 
             return base.VisitSqlUnary(sqlUnaryExpression);
