@@ -28,38 +28,35 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         /// <inheritdoc />
         protected override SqlExpression VisitCustomSqlExpression(
-            SqlExpression sqlExpression, bool allowOptimizedExpansion, out bool nullable)
+            SqlExpression sqlExpression,
+            bool allowOptimizedExpansion,
+            out bool nullable)
             => sqlExpression switch
             {
                 PostgresAnyExpression postgresAnyExpression
-                => VisitAny(postgresAnyExpression, allowOptimizedExpansion, out nullable),
+                    => VisitAny(postgresAnyExpression, allowOptimizedExpansion, out nullable),
                 PostgresAllExpression postgresAllExpression
-                => VisitAll(postgresAllExpression, allowOptimizedExpansion, out nullable),
+                    => VisitAll(postgresAllExpression, allowOptimizedExpansion, out nullable),
                 PostgresArrayIndexExpression arrayIndexExpression
-                => VisitArrayIndex(arrayIndexExpression, allowOptimizedExpansion, out nullable),
+                    => VisitArrayIndex(arrayIndexExpression, allowOptimizedExpansion, out nullable),
                 PostgresBinaryExpression binaryExpression
-                => VisitBinary(binaryExpression, allowOptimizedExpansion, out nullable),
+                    => VisitBinary(binaryExpression, allowOptimizedExpansion, out nullable),
                 PostgresILikeExpression ilikeExpression
-                => VisitILike(ilikeExpression, allowOptimizedExpansion, out nullable),
+                    => VisitILike(ilikeExpression, allowOptimizedExpansion, out nullable),
                 PostgresNewArrayExpression newArrayExpression
-                => VisitNewArray(newArrayExpression, allowOptimizedExpansion, out nullable),
+                    => VisitNewArray(newArrayExpression, allowOptimizedExpansion, out nullable),
                 PostgresRegexMatchExpression regexMatchExpression
-                => VisitRegexMatch(regexMatchExpression, allowOptimizedExpansion, out nullable),
+                    => VisitRegexMatch(regexMatchExpression, allowOptimizedExpansion, out nullable),
                 PostgresJsonTraversalExpression postgresJsonTraversalExpression
-                => VisitJsonTraversal(postgresJsonTraversalExpression, allowOptimizedExpansion, out nullable),
+                    => VisitJsonTraversal(postgresJsonTraversalExpression, allowOptimizedExpansion, out nullable),
+                PostgresRowValueExpression postgresRowValueExpression
+                    => VisitRowValueExpression(postgresRowValueExpression, allowOptimizedExpansion, out nullable),
                 PostgresUnknownBinaryExpression postgresUnknownBinaryExpression
-                => VisitUnknownBinary(postgresUnknownBinaryExpression, allowOptimizedExpansion, out nullable),
+                    => VisitUnknownBinary(postgresUnknownBinaryExpression, allowOptimizedExpansion, out nullable),
 
                 _ => base.VisitCustomSqlExpression(sqlExpression, allowOptimizedExpansion, out nullable)
             };
 
-        /// <summary>
-        /// Visits a <see cref="PostgresAnyExpression" /> and computes its nullability.
-        /// </summary>
-        /// <param name="anyExpression">A <see cref="PostgresAnyExpression" /> expression to visit.</param>
-        /// <param name="allowOptimizedExpansion">A bool value indicating if optimized expansion which considers null value as false value is allowed.</param>
-        /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
-        /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitAny(
             PostgresAnyExpression anyExpression, bool allowOptimizedExpansion, out bool nullable)
         {
@@ -128,13 +125,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                             typeof(int)))));
         }
 
-        /// <summary>
-        /// Visits a <see cref="PostgresAnyExpression" /> and computes its nullability.
-        /// </summary>
-        /// <param name="allExpression">A <see cref="PostgresAnyExpression" /> expression to visit.</param>
-        /// <param name="allowOptimizedExpansion">A bool value indicating if optimized expansion which considers null value as false value is allowed.</param>
-        /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
-        /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitAll(
             PostgresAllExpression allExpression, bool allowOptimizedExpansion, out bool nullable)
         {
@@ -157,15 +147,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return updated;
         }
 
-        /// <summary>
-        /// Visits an <see cref="PostgresArrayIndexExpression" /> and computes its nullability.
-        /// </summary>
-        /// <remarks>
-        /// </remarks>
-        /// <param name="arrayIndexExpression">A <see cref="PostgresArrayIndexExpression" /> expression to visit.</param>
-        /// <param name="allowOptimizedExpansion">A bool value indicating if optimized expansion which considers null value as false value is allowed.</param>
-        /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
-        /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitArrayIndex(
             PostgresArrayIndexExpression arrayIndexExpression, bool allowOptimizedExpansion, out bool nullable)
         {
@@ -179,15 +160,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return arrayIndexExpression.Update(array, index);
         }
 
-        /// <summary>
-        /// Visits a <see cref="PostgresBinaryExpression" /> and computes its nullability.
-        /// </summary>
-        /// <remarks>
-        /// </remarks>
-        /// <param name="binaryExpression">A <see cref="PostgresBinaryExpression" /> expression to visit.</param>
-        /// <param name="allowOptimizedExpansion">A bool value indicating if optimized expansion which considers null value as false value is allowed.</param>
-        /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
-        /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitBinary(
             PostgresBinaryExpression binaryExpression, bool allowOptimizedExpansion, out bool nullable)
         {
@@ -213,13 +185,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return binaryExpression.Update(left, right);
         }
 
-        /// <summary>
-        /// Visits a <see cref="PostgresILikeExpression" /> and computes its nullability.
-        /// </summary>
-        /// <param name="iLikeExpression">A <see cref="PostgresILikeExpression" /> expression to visit.</param>
-        /// <param name="allowOptimizedExpansion">A bool value indicating if optimized expansion which considers null value as false value is allowed.</param>
-        /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
-        /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitILike(
             PostgresILikeExpression iLikeExpression, bool allowOptimizedExpansion, out bool nullable)
         {
@@ -240,15 +205,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     : visited;
         }
 
-        /// <summary>
-        /// Visits a <see cref="PostgresNewArrayExpression" /> and computes its nullability.
-        /// </summary>
-        /// <remarks>
-        /// </remarks>
-        /// <param name="newArrayExpression">A <see cref="PostgresNewArrayExpression" /> expression to visit.</param>
-        /// <param name="allowOptimizedExpansion">A bool value indicating if optimized expansion which considers null value as false value is allowed.</param>
-        /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
-        /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitNewArray(
             PostgresNewArrayExpression newArrayExpression, bool allowOptimizedExpansion, out bool nullable)
         {
@@ -280,15 +236,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 : new PostgresNewArrayExpression(newInitializers, newArrayExpression.Type, newArrayExpression.TypeMapping);
         }
 
-        /// <summary>
-        /// Visits a <see cref="PostgresRegexMatchExpression" /> and computes its nullability.
-        /// </summary>
-        /// <remarks>
-        /// </remarks>
-        /// <param name="regexMatchExpression">A <see cref="PostgresRegexMatchExpression" /> expression to visit.</param>
-        /// <param name="allowOptimizedExpansion">A bool value indicating if optimized expansion which considers null value as false value is allowed.</param>
-        /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
-        /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitRegexMatch(
             PostgresRegexMatchExpression regexMatchExpression, bool allowOptimizedExpansion, out bool nullable)
         {
@@ -302,15 +249,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return regexMatchExpression.Update(match, pattern);
         }
 
-        /// <summary>
-        /// Visits a <see cref="PostgresJsonTraversalExpression" /> and computes its nullability.
-        /// </summary>
-        /// <remarks>
-        /// </remarks>
-        /// <param name="jsonTraversalExpression">A <see cref="PostgresJsonTraversalExpression" /> expression to visit.</param>
-        /// <param name="allowOptimizedExpansion">A bool value indicating if optimized expansion which considers null value as false value is allowed.</param>
-        /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
-        /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitJsonTraversal(
             PostgresJsonTraversalExpression jsonTraversalExpression, bool allowOptimizedExpansion, out bool nullable)
         {
@@ -342,11 +280,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             // See #1851 for optimizing this for JSON POCO mapping.
             nullable = true;
 
-            return jsonTraversalExpression.Update(
-                expression,
-                newPath is null
-                    ? jsonTraversalExpression.Path
-                    : newPath.ToArray());
+            return jsonTraversalExpression.Update(expression, newPath?.ToArray() ?? jsonTraversalExpression.Path);
+        }
+
+        protected virtual SqlExpression VisitRowValueExpression(
+            PostgresRowValueExpression rowValueExpression, bool allowOptimizedExpansion, out bool nullable)
+        {
+            nullable = false;
+
+            return rowValueExpression;
         }
 
         /// <summary>

@@ -418,7 +418,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     _sqlExpressionFactory.ArrayIndex(sqlLeft!, _sqlExpressionFactory.GenerateOneBasedIndexExpression(sqlRight!));
             }
 
-            return base.VisitBinary(binaryExpression);
+            var translated = base.VisitBinary(binaryExpression);
+
+            // Translate x > 5 || (x == 5 && y > 6) -> (x, y) > (5, 6) to SQL standard
+            // https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON
+
+            if (translated is SqlBinaryExpression { OperatorType: ExpressionType.Or })
+            {
+
+            }
+
+            return translated;
         }
 
         protected override Expression VisitNew(NewExpression newExpression)
