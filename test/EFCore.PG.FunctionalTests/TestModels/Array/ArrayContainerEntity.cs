@@ -2,11 +2,10 @@ using System.Collections.Generic;
 
 #nullable enable
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
+
+public class ArrayContainerEntity
 {
-    public class ArrayContainerEntity
-    {
-        public int Id { get; set; }
-        public List<ArrayEntity> ArrayEntities { get; set; } = null!;
-    }
+    public int Id { get; set; }
+    public List<ArrayEntity> ArrayEntities { get; set; } = null!;
 }

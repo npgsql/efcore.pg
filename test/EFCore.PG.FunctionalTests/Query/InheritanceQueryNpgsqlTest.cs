@@ -4,13 +4,12 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
 using Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+
+public class InheritanceQueryNpgsqlTest : InheritanceRelationalQueryTestBase<InheritanceQueryNpgsqlFixture>
 {
-    public class InheritanceQueryNpgsqlTest : InheritanceRelationalQueryTestBase<InheritanceQueryNpgsqlFixture>
+    public InheritanceQueryNpgsqlTest(InheritanceQueryNpgsqlFixture fixture)
+        : base(fixture)
     {
-        public InheritanceQueryNpgsqlTest(InheritanceQueryNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
     }
 }

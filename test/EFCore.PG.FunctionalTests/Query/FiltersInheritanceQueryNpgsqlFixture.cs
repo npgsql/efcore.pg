@@ -1,7 +1,6 @@
-﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+
+public class FiltersInheritanceQueryNpgsqlFixture : InheritanceQueryNpgsqlFixture
 {
-    public class FiltersInheritanceQueryNpgsqlFixture : InheritanceQueryNpgsqlFixture
-    {
-        protected override bool EnableFilters => true;
-    }
+    protected override bool EnableFilters => true;
 }
