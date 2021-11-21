@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Update;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
 public class NpgsqlComplianceTest : RelationalComplianceTestBase
 {

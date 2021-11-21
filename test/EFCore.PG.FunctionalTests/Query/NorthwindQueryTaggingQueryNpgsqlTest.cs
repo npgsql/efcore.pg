@@ -1,7 +1,3 @@
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.TestUtilities;
-using Xunit.Abstractions;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class NorthwindQueryTaggingQueryNpgsqlTest : NorthwindQueryTaggingQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>

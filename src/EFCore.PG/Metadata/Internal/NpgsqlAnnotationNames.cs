@@ -1,5 +1,3 @@
-using System;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
 public static class NpgsqlAnnotationNames

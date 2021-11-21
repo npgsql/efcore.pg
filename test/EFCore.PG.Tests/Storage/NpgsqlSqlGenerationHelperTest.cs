@@ -22,9 +22,7 @@
 #endregion
 
 using System.Text;
-using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage;
 

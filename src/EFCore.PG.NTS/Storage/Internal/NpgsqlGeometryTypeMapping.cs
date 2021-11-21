@@ -1,12 +1,8 @@
-using System;
 using System.Data.Common;
 using System.Text;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Storage;
-using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
-using NpgsqlTypes;
 
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;

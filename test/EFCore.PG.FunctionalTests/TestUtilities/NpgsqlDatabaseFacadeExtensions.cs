@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 public static class NpgsqlDatabaseFacadeExtensions
 {

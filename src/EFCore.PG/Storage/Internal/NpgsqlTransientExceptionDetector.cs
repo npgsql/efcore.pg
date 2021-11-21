@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 /// <summary>
 ///     Detects the exceptions caused by PostgreSQL or network transient failures.

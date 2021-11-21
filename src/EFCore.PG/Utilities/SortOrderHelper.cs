@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;

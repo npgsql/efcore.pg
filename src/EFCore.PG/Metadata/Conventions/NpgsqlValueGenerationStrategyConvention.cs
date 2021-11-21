@@ -1,11 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 
 /// <summary>
 /// A convention that configures the default model <see cref="NpgsqlValueGenerationStrategy"/> as

@@ -1,7 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations;
-using Xunit;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
 public class NpgsqlMigrationBuilderTest

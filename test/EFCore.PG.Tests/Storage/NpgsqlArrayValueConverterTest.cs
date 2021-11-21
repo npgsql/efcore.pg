@@ -1,6 +1,4 @@
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
-using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage;
 

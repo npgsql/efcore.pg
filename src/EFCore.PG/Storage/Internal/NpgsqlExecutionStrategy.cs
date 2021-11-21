@@ -1,10 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 public class NpgsqlExecutionStrategy : IExecutionStrategy
 {

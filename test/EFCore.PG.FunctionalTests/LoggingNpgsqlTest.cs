@@ -1,12 +1,5 @@
-using System;
-using System.Net.Security;
-using System.Reflection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
-using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 

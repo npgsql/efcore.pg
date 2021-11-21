@@ -1,15 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.TestUtilities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using NpgsqlTypes;
-using Xunit;
-using Xunit.Abstractions;
 
 // The EF Core specification test suite has:
 //

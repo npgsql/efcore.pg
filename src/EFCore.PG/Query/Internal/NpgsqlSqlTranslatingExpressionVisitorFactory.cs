@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Query;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 public class NpgsqlSqlTranslatingExpressionVisitorFactory : IRelationalSqlTranslatingExpressionVisitorFactory
 {

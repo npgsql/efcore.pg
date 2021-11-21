@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore.Query;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 public class NpgsqlQueryTranslationPostprocessorFactory : IQueryTranslationPostprocessorFactory

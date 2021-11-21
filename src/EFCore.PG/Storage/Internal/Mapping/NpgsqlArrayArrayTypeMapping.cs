@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore.Storage;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+﻿using System.Diagnostics.CodeAnalysis;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;

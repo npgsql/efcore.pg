@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Utilities;
-
-#pragma warning disable 8632
+﻿#pragma warning disable 8632
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 

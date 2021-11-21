@@ -1,9 +1,5 @@
-using System.Linq.Expressions;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Reflection;
-using Microsoft.EntityFrameworkCore.Storage;
-using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 

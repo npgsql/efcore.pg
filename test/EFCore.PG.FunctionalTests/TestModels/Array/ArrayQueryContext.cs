@@ -1,7 +1,3 @@
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.TestUtilities;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
 
 public class ArrayQueryContext : PoolableDbContext

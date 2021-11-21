@@ -1,8 +1,3 @@
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Utilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 

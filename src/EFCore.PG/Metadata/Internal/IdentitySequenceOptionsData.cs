@@ -1,8 +1,5 @@
-using System;
 using System.Globalization;
 using System.Text;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 

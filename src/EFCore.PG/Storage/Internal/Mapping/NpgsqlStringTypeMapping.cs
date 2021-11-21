@@ -1,7 +1,4 @@
-﻿using System;
-using System.Data.Common;
-using Microsoft.EntityFrameworkCore.Storage;
-using NpgsqlTypes;
+﻿using System.Data.Common;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 

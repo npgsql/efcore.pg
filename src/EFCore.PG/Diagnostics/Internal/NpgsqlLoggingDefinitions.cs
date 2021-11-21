@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore.Diagnostics;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 
 public class NpgsqlLoggingDefinitions : RelationalLoggingDefinitions

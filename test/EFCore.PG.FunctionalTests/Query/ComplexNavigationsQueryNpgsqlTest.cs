@@ -1,8 +1,4 @@
-﻿using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Query;
-using Xunit;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class ComplexNavigationsQueryNpgsqlTest : ComplexNavigationsQueryRelationalTestBase<ComplexNavigationsQueryNpgsqlFixture>
 {

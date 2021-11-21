@@ -1,7 +1,3 @@
-using System;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]

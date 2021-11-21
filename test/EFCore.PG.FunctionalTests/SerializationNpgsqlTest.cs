@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
 public class SerializationNpgsqlTest : SerializationTestBase<F1NpgsqlFixture>

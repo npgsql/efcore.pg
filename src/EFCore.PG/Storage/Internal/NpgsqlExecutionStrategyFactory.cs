@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Storage;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 public class NpgsqlExecutionStrategyFactory : RelationalExecutionStrategyFactory
 {

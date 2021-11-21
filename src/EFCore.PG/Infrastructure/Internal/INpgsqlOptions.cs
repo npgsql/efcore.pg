@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 /// <summary>
 /// Represents options for Npgsql that can only be set at the <see cref="IServiceProvider"/> singleton level.

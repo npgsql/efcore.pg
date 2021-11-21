@@ -18,6 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Using Include="NetTopologySuite" />
+    <Using Include="NetTopologySuite.Geometries" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="..\Shared\*.cs" />
     <None Include="README.md" Pack="true" PackagePath="\"/>
     <None Include="build\**\*">

@@ -1,11 +1,7 @@
 #if DEBUG
 
-using System;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 {

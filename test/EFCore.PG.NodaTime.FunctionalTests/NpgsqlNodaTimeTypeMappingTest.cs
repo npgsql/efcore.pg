@@ -1,15 +1,10 @@
-using System;
 using Microsoft.EntityFrameworkCore.Design.Internal;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NodaTime;
 using NodaTime.Calendars;
 using NodaTime.TimeZones;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
-using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 

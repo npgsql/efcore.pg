@@ -1,10 +1,3 @@
-using System;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using Microsoft.EntityFrameworkCore.Query;
-using NodaTime;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal;
 
 public class NpgsqlNodaTimeEvaluatableExpressionFilterPlugin : IEvaluatableExpressionFilterPlugin

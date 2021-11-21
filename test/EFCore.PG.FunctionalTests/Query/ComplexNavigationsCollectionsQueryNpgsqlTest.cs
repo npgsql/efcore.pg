@@ -1,6 +1,3 @@
-using Microsoft.EntityFrameworkCore.Query;
-using Xunit.Abstractions;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class ComplexNavigationsCollectionsQueryNpgsqlTest : ComplexNavigationsCollectionsQueryRelationalTestBase<ComplexNavigationsQueryNpgsqlFixture>

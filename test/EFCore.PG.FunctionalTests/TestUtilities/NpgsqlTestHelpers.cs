@@ -1,8 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 

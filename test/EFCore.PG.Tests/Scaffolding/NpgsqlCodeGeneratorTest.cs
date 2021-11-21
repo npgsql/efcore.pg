@@ -1,12 +1,5 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.EntityFrameworkCore.Scaffolding;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
-using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding;
 
