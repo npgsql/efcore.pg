@@ -5,13 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
-{
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-    public sealed class RequiresPostgisAttribute : Attribute, ITestCondition
-    {
-        public ValueTask<bool> IsMetAsync() => new(TestEnvironment.IsPostgisAvailable);
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-        public string SkipReason => $"Requires PostGIS";
-    }
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+public sealed class RequiresPostgisAttribute : Attribute, ITestCondition
+{
+    public ValueTask<bool> IsMetAsync() => new(TestEnvironment.IsPostgisAvailable);
+
+    public string SkipReason => $"Requires PostGIS";
 }

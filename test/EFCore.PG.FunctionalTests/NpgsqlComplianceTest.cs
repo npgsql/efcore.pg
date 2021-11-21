@@ -5,22 +5,21 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Update;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL
+namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+
+public class NpgsqlComplianceTest : RelationalComplianceTestBase
 {
-    public class NpgsqlComplianceTest : RelationalComplianceTestBase
+    protected override ICollection<Type> IgnoredTestBases { get; } = new HashSet<Type>
     {
-        protected override ICollection<Type> IgnoredTestBases { get; } = new HashSet<Type>
-        {
-            // Not implemented
-            typeof(FromSqlSprocQueryTestBase<>),
-            typeof(UdfDbFunctionTestBase<>),
-            typeof(UpdateSqlGeneratorTestBase),
+        // Not implemented
+        typeof(FromSqlSprocQueryTestBase<>),
+        typeof(UdfDbFunctionTestBase<>),
+        typeof(UpdateSqlGeneratorTestBase),
 
-            // Disabled
-            typeof(GraphUpdatesTestBase<>),
-            typeof(ProxyGraphUpdatesTestBase<>)
-        };
+        // Disabled
+        typeof(GraphUpdatesTestBase<>),
+        typeof(ProxyGraphUpdatesTestBase<>)
+    };
 
-        protected override Assembly TargetAssembly { get; } = typeof(NpgsqlComplianceTest).Assembly;
-    }
+    protected override Assembly TargetAssembly { get; } = typeof(NpgsqlComplianceTest).Assembly;
 }

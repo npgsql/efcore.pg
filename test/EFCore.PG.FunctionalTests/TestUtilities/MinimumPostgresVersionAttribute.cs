@@ -2,17 +2,16 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+public sealed class MinimumPostgresVersionAttribute : Attribute, ITestCondition
 {
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-    public sealed class MinimumPostgresVersionAttribute : Attribute, ITestCondition
-    {
-        private readonly Version _version;
+    private readonly Version _version;
 
-        public MinimumPostgresVersionAttribute(int major, int minor) => _version = new Version(major, minor);
+    public MinimumPostgresVersionAttribute(int major, int minor) => _version = new Version(major, minor);
 
-        public ValueTask<bool> IsMetAsync() => new(TestEnvironment.PostgresVersion >= _version);
+    public ValueTask<bool> IsMetAsync() => new(TestEnvironment.PostgresVersion >= _version);
 
-        public string SkipReason => $"Requires PostgreSQL version {_version} or later.";
-    }
+    public string SkipReason => $"Requires PostgreSQL version {_version} or later.";
 }

@@ -1,17 +1,16 @@
 using Microsoft.EntityFrameworkCore.Query;
 using Xunit.Abstractions;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+
+public class ComplexNavigationsCollectionsSplitQueryNpgsqlTest : ComplexNavigationsCollectionsSplitQueryRelationalTestBase<ComplexNavigationsQueryNpgsqlFixture>
 {
-    public class ComplexNavigationsCollectionsSplitQueryNpgsqlTest : ComplexNavigationsCollectionsSplitQueryRelationalTestBase<ComplexNavigationsQueryNpgsqlFixture>
+    public ComplexNavigationsCollectionsSplitQueryNpgsqlTest(
+        ComplexNavigationsQueryNpgsqlFixture fixture,
+        ITestOutputHelper testOutputHelper)
+        : base(fixture)
     {
-        public ComplexNavigationsCollectionsSplitQueryNpgsqlTest(
-            ComplexNavigationsQueryNpgsqlFixture fixture,
-            ITestOutputHelper testOutputHelper)
-            : base(fixture)
-        {
-            Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
-        }
+        Fixture.TestSqlLoggerFactory.Clear();
+        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 }

@@ -6,108 +6,107 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL
+namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+
+public class ExistingConnectionTest
 {
-    public class ExistingConnectionTest
+    // See aspnet/Data#135
+    [Fact]
+    public async Task Can_use_an_existing_closed_connection()
+        => await Can_use_an_existing_closed_connection_test(openConnection: false);
+
+    [Fact]
+    public async Task Can_use_an_existing_open_connection()
+        => await Can_use_an_existing_closed_connection_test(openConnection: true);
+
+    private static async Task Can_use_an_existing_closed_connection_test(bool openConnection)
     {
-        // See aspnet/Data#135
-        [Fact]
-        public async Task Can_use_an_existing_closed_connection()
-            => await Can_use_an_existing_closed_connection_test(openConnection: false);
+        var serviceProvider = new ServiceCollection()
+            .AddEntityFrameworkNpgsql()
+            .BuildServiceProvider();
 
-        [Fact]
-        public async Task Can_use_an_existing_open_connection()
-            => await Can_use_an_existing_closed_connection_test(openConnection: true);
-
-        private static async Task Can_use_an_existing_closed_connection_test(bool openConnection)
+        using (var store = NpgsqlTestStore.GetNorthwindStore())
         {
-            var serviceProvider = new ServiceCollection()
-                .AddEntityFrameworkNpgsql()
-                .BuildServiceProvider();
+            store.CloseConnection();
 
-            using (var store = NpgsqlTestStore.GetNorthwindStore())
+            var openCount = 0;
+            var closeCount = 0;
+
+            using (var connection = new NpgsqlConnection(store.ConnectionString))
             {
-                store.CloseConnection();
-
-                var openCount = 0;
-                var closeCount = 0;
-
-                using (var connection = new NpgsqlConnection(store.ConnectionString))
+                if (openConnection)
                 {
-                    if (openConnection)
-                    {
-                        await connection.OpenAsync();
-                    }
+                    await connection.OpenAsync();
+                }
 
-                    connection.StateChange += (_, a) =>
+                connection.StateChange += (_, a) =>
+                {
+                    if (a.CurrentState == ConnectionState.Open)
                     {
-                        if (a.CurrentState == ConnectionState.Open)
-                        {
-                            openCount++;
-                        }
-                        else if (a.CurrentState == ConnectionState.Closed)
-                        {
-                            closeCount++;
-                        }
-                    };
+                        openCount++;
+                    }
+                    else if (a.CurrentState == ConnectionState.Closed)
+                    {
+                        closeCount++;
+                    }
+                };
 
-                    using (var context = new NorthwindContext(serviceProvider, connection))
-                    {
-                        Assert.Equal(91, await context.Customers.CountAsync());
-                    }
+                using (var context = new NorthwindContext(serviceProvider, connection))
+                {
+                    Assert.Equal(91, await context.Customers.CountAsync());
+                }
 
-                    if (openConnection)
-                    {
-                        Assert.Equal(ConnectionState.Open, connection.State);
-                        Assert.Equal(0, openCount);
-                        Assert.Equal(0, closeCount);
-                    }
-                    else
-                    {
-                        Assert.Equal(ConnectionState.Closed, connection.State);
-                        Assert.Equal(1, openCount);
-                        Assert.Equal(1, closeCount);
-                    }
+                if (openConnection)
+                {
+                    Assert.Equal(ConnectionState.Open, connection.State);
+                    Assert.Equal(0, openCount);
+                    Assert.Equal(0, closeCount);
+                }
+                else
+                {
+                    Assert.Equal(ConnectionState.Closed, connection.State);
+                    Assert.Equal(1, openCount);
+                    Assert.Equal(1, closeCount);
                 }
             }
         }
+    }
 
-        private class NorthwindContext : DbContext
+    private class NorthwindContext : DbContext
+    {
+        private readonly IServiceProvider _serviceProvider;
+        private readonly NpgsqlConnection _connection;
+
+        public NorthwindContext(IServiceProvider serviceProvider, NpgsqlConnection connection)
         {
-            private readonly IServiceProvider _serviceProvider;
-            private readonly NpgsqlConnection _connection;
+            _serviceProvider = serviceProvider;
+            _connection = connection;
+        }
 
-            public NorthwindContext(IServiceProvider serviceProvider, NpgsqlConnection connection)
+        // ReSharper disable once UnusedAutoPropertyAccessor.Local
+        public DbSet<Customer> Customers { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+            => optionsBuilder
+                .UseNpgsql(_connection)
+                .UseInternalServiceProvider(_serviceProvider);
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+            => modelBuilder.Entity<Customer>(b =>
             {
-                _serviceProvider = serviceProvider;
-                _connection = connection;
-            }
+                b.HasKey(c => c.CustomerId);
+                b.ToTable("Customers");
+            });
+    }
 
-            // ReSharper disable once UnusedAutoPropertyAccessor.Local
-            public DbSet<Customer> Customers { get; set; }
-
-            protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-                => optionsBuilder
-                    .UseNpgsql(_connection)
-                    .UseInternalServiceProvider(_serviceProvider);
-
-            protected override void OnModelCreating(ModelBuilder modelBuilder)
-                => modelBuilder.Entity<Customer>(b =>
-                {
-                    b.HasKey(c => c.CustomerId);
-                    b.ToTable("Customers");
-                });
-        }
-
-        // ReSharper disable once ClassNeverInstantiated.Local
-        private class Customer
-        {
-            // ReSharper disable once UnusedAutoPropertyAccessor.Local
-            public string CustomerId { get; set; }
-            // ReSharper disable once UnusedMember.Local
-            public string CompanyName { get; set; }
-            // ReSharper disable once UnusedMember.Local
-            public string Fax { get; set; }
-        }
+    // ReSharper disable once ClassNeverInstantiated.Local
+    private class Customer
+    {
+        // ReSharper disable once UnusedAutoPropertyAccessor.Local
+        public string CustomerId { get; set; }
+        // ReSharper disable once UnusedMember.Local
+        public string CompanyName { get; set; }
+        // ReSharper disable once UnusedMember.Local
+        public string Fax { get; set; }
     }
 }

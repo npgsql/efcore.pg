@@ -5,33 +5,32 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 // ReSharper disable once CheckNamespace
-namespace Microsoft.EntityFrameworkCore
+namespace Microsoft.EntityFrameworkCore;
+
+/// <summary>
+/// NodaTime specific extension methods for <see cref="NpgsqlDbContextOptionsBuilder"/>.
+/// </summary>
+public static class NpgsqlNodaTimeDbContextOptionsBuilderExtensions
 {
     /// <summary>
-    /// NodaTime specific extension methods for <see cref="NpgsqlDbContextOptionsBuilder"/>.
+    /// Use NetTopologySuite to access SQL Server spatial data.
     /// </summary>
-    public static class NpgsqlNodaTimeDbContextOptionsBuilderExtensions
+    /// <returns> The options builder so that further configuration can be chained. </returns>
+    public static NpgsqlDbContextOptionsBuilder UseNodaTime(
+        this NpgsqlDbContextOptionsBuilder optionsBuilder)
     {
-        /// <summary>
-        /// Use NetTopologySuite to access SQL Server spatial data.
-        /// </summary>
-        /// <returns> The options builder so that further configuration can be chained. </returns>
-        public static NpgsqlDbContextOptionsBuilder UseNodaTime(
-            this NpgsqlDbContextOptionsBuilder optionsBuilder)
-        {
-            Check.NotNull(optionsBuilder, nameof(optionsBuilder));
+        Check.NotNull(optionsBuilder, nameof(optionsBuilder));
 
-            // TODO: Global-only setup at the ADO.NET level for now, optionally allow per-connection?
-            NpgsqlConnection.GlobalTypeMapper.UseNodaTime();
+        // TODO: Global-only setup at the ADO.NET level for now, optionally allow per-connection?
+        NpgsqlConnection.GlobalTypeMapper.UseNodaTime();
 
-            var coreOptionsBuilder = ((IRelationalDbContextOptionsBuilderInfrastructure)optionsBuilder).OptionsBuilder;
+        var coreOptionsBuilder = ((IRelationalDbContextOptionsBuilderInfrastructure)optionsBuilder).OptionsBuilder;
 
-            var extension = coreOptionsBuilder.Options.FindExtension<NpgsqlNodaTimeOptionsExtension>()
-                            ?? new NpgsqlNodaTimeOptionsExtension();
+        var extension = coreOptionsBuilder.Options.FindExtension<NpgsqlNodaTimeOptionsExtension>()
+            ?? new NpgsqlNodaTimeOptionsExtension();
 
-            ((IDbContextOptionsBuilderInfrastructure)coreOptionsBuilder).AddOrUpdateExtension(extension);
+        ((IDbContextOptionsBuilderInfrastructure)coreOptionsBuilder).AddOrUpdateExtension(extension);
 
-            return optionsBuilder;
-        }
+        return optionsBuilder;
     }
 }

@@ -1,17 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+
+public class NpgsqlUintTypeMapping : NpgsqlTypeMapping
 {
-    public class NpgsqlUintTypeMapping : NpgsqlTypeMapping
-    {
-        public NpgsqlUintTypeMapping(string storeType, NpgsqlDbType npgsqlDbType)
-            : base(storeType, typeof(uint), npgsqlDbType) {}
+    public NpgsqlUintTypeMapping(string storeType, NpgsqlDbType npgsqlDbType)
+        : base(storeType, typeof(uint), npgsqlDbType) {}
 
-        protected NpgsqlUintTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+    protected NpgsqlUintTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
+        : base(parameters, npgsqlDbType) {}
 
-        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new NpgsqlUintTypeMapping(parameters, NpgsqlDbType);
-    }
+    protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+        => new NpgsqlUintTypeMapping(parameters, NpgsqlDbType);
 }

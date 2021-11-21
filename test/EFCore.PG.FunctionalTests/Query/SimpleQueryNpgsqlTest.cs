@@ -2,10 +2,9 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+
+public class SimpleQueryNpgsqlTest : SimpleQueryRelationalTestBase
 {
-    public class SimpleQueryNpgsqlTest : SimpleQueryRelationalTestBase
-    {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-    }
+    protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
 }
