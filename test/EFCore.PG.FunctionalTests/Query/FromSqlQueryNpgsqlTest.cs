@@ -1,13 +1,5 @@
-﻿using System;
-using System.Data.Common;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
+﻿using System.Data.Common;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
-using Microsoft.EntityFrameworkCore.TestUtilities;
-using NpgsqlTypes;
-using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 

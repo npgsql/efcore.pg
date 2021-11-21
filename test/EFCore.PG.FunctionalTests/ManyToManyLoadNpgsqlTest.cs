@@ -1,12 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.ManyToManyModel;
-using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 

@@ -1,11 +1,7 @@
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Net.Security;
 using System.Transactions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;

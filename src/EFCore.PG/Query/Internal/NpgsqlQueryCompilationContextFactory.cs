@@ -1,6 +1,3 @@
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Utilities;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 public class NpgsqlQueryCompilationContextFactory : IQueryCompilationContextFactory

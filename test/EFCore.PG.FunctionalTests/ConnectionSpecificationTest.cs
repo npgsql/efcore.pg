@@ -1,12 +1,5 @@
-﻿using System;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using Xunit;
 
 // ReSharper disable StringLiteralTypo
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;

@@ -1,7 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Logging;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 
 public static class NpgsqlLoggerExtensions

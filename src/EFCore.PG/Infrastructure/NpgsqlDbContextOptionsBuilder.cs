@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Net.Security;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
-using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 

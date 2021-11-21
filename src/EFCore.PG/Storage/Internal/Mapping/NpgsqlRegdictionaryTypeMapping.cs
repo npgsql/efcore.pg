@@ -1,7 +1,3 @@
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Utilities;
-using NpgsqlTypes;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 public class NpgsqlRegdictionaryTypeMapping : NpgsqlTypeMapping

@@ -1,5 +1,3 @@
-using NpgsqlTypes;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 public interface INpgsqlTypeMapping

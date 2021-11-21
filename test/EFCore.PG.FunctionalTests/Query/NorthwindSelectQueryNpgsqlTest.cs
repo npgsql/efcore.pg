@@ -1,11 +1,3 @@
-using System;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.TestUtilities;
-using Xunit;
-using Xunit.Abstractions;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class NorthwindSelectQueryNpgsqlTest : NorthwindSelectQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>

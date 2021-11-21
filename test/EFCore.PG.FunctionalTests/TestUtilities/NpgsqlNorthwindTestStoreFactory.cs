@@ -1,7 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 public class NpgsqlNorthwindTestStoreFactory : NpgsqlTestStoreFactory
 {

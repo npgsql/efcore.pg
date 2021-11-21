@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;

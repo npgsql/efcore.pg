@@ -1,7 +1,3 @@
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using NodaTime;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal;
 
 internal class PendingDateTimeZoneProviderExpression : SqlExpression

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 #nullable enable
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;

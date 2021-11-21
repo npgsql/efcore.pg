@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text;
-using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.EntityFrameworkCore.Storage;
+﻿using System.Text;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal;
 

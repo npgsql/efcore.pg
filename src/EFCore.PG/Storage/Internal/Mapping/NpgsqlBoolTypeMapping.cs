@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Storage;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 public class NpgsqlBoolTypeMapping : RelationalTypeMapping
 {

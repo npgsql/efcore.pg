@@ -1,9 +1,4 @@
-﻿using System;
-using System.Data;
-using System.Threading.Tasks;
-using Xunit;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+﻿using System.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;

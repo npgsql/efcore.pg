@@ -1,10 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.TestUtilities;
-using Xunit;
-using Xunit.Abstractions;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 

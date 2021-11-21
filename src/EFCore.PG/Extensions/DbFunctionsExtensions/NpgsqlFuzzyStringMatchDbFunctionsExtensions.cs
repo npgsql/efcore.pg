@@ -1,7 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-
-namespace Microsoft.EntityFrameworkCore;
+﻿namespace Microsoft.EntityFrameworkCore;
 
 public static class NpgsqlFuzzyStringMatchDbFunctionsExtensions
 {

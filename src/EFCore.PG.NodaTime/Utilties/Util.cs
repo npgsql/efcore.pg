@@ -1,7 +1,3 @@
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Utilties;
 
 internal static class Util

@@ -1,17 +1,7 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.ValueGeneration;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
-using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
-using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 

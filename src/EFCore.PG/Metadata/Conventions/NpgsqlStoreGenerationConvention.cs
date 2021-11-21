@@ -1,10 +1,3 @@
-using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;

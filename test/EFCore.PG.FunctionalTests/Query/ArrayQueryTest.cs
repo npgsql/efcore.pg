@@ -1,11 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
-using Xunit;
-using Xunit.Abstractions;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
 
 // ReSharper disable ConvertToConstant.Local
 

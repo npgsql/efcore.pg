@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Utilities;
+﻿using System.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;

@@ -1,9 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.ValueGeneration;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
 

@@ -1,5 +1,3 @@
-using System;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 internal static class Statics

@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using Microsoft.EntityFrameworkCore.Utilities;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 /// <summary>

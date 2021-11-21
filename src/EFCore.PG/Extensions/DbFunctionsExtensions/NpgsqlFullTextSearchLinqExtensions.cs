@@ -1,6 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using NpgsqlTypes;
+﻿
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore;

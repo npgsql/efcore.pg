@@ -1,8 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Utilities;
-using Microsoft.EntityFrameworkCore.ValueGeneration;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
 
 /// <summary>
 ///     This API supports the Entity Framework Core infrastructure and is not intended to be used

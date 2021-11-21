@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.Extensions.DependencyInjection;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 public class NpgsqlTestStoreFactory : RelationalTestStoreFactory
 {

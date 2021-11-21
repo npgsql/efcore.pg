@@ -1,9 +1,5 @@
-﻿using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.TestModels.NullSemanticsModel;
-using Microsoft.EntityFrameworkCore.Query;
+﻿using Microsoft.EntityFrameworkCore.TestModels.NullSemanticsModel;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
-using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 

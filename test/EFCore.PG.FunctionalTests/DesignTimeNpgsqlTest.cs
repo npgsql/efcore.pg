@@ -1,6 +1,3 @@
-using System.Reflection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 

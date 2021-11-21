@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.ManyToManyFieldsModel;
-using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;

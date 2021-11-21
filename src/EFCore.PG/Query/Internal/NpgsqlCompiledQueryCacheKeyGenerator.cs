@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore.Query;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 

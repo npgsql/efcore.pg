@@ -15,4 +15,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="NodaTime" />
+  </ItemGroup>
+
 </Project>

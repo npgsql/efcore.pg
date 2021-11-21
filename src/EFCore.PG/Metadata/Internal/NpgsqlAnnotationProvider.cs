@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using RelationalPropertyExtensions = Microsoft.EntityFrameworkCore.RelationalPropertyExtensions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;

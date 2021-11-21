@@ -1,8 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.EntityFrameworkCore.Scaffolding;
-using Microsoft.EntityFrameworkCore.Utilities;
-using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal;
 

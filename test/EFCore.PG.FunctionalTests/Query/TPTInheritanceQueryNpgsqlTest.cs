@@ -1,7 +1,3 @@
-using Microsoft.EntityFrameworkCore.Query;
-using Xunit;
-using Xunit.Abstractions;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class TPTInheritanceQueryNpgsqlTest : TPTInheritanceQueryTestBase<TPTInheritanceQueryNpgsqlFixture>

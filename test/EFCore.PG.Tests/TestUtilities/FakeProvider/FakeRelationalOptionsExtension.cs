@@ -1,13 +1,3 @@
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.EntityFrameworkCore.Update;
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.FakeProvider;
 
 public class FakeRelationalOptionsExtension : RelationalOptionsExtension

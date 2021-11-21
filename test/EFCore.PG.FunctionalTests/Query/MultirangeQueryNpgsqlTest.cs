@@ -1,12 +1,5 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.TestUtilities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using NpgsqlTypes;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 

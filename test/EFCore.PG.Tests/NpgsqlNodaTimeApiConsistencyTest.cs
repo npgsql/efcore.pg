@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
 public class NpgsqlNodaTimeApiConsistencyTest : ApiConsistencyTestBase<NpgsqlNodaTimeApiConsistencyTest.NpgsqlNodaTimeApiConsistencyFixture>

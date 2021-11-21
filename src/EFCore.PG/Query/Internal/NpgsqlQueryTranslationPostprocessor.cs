@@ -1,6 +1,3 @@
-using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore.Query;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 /// <summary>

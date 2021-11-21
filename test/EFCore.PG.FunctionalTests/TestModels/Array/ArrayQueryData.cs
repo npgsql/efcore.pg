@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.EntityFrameworkCore.TestUtilities;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
 
 public class ArrayQueryData : ISetSource

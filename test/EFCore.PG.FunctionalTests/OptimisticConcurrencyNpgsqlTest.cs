@@ -1,11 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Xunit;
-using Microsoft.EntityFrameworkCore.Storage;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
 public class OptimisticConcurrencyNpgsqlTest : OptimisticConcurrencyRelationalTestBase<F1UIntNpgsqlFixture, uint?>
 {

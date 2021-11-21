@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore;

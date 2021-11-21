@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations.Operations;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
 
 public class NpgsqlDropDatabaseOperation : MigrationOperation
 {

@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using Microsoft.EntityFrameworkCore.Storage;
-using NodaTime;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal;
 

@@ -1,9 +1,5 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Utilities;
-using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 // ReSharper disable once CheckNamespace

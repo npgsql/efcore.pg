@@ -1,7 +1,5 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.NetworkInformation;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore;

@@ -1,7 +1,4 @@
-using System;
 using System.Globalization;
-using Microsoft.EntityFrameworkCore.Storage;
-using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 

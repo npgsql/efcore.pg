@@ -1,10 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Internal;
-using Xunit;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
 public class NpgsqlDatabaseFacadeTest
 {

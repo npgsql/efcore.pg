@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using Microsoft.EntityFrameworkCore.Design;
 
 [assembly: DesignTimeProviderServices("Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal.NpgsqlDesignTimeServices")]
 

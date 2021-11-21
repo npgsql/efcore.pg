@@ -19,4 +19,11 @@
     <None Include="$(MSBuildThisFileDirectory)xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Xunit.Abstractions" />
+    <Using Include="Microsoft.EntityFrameworkCore.TestUtilities" />
+    <Using Include="Microsoft.EntityFrameworkCore.TestUtilities.Xunit" />
+  </ItemGroup>
+
 </Project>

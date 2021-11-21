@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Northwind;

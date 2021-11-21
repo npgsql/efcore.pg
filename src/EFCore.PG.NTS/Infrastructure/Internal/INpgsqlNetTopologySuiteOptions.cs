@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore.Infrastructure;
+
 
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;

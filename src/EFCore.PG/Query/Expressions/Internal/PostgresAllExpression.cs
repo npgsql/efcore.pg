@@ -1,11 +1,4 @@
-﻿using System;
-using System.Linq.Expressions;
-using System.Reflection;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using Microsoft.EntityFrameworkCore.Storage;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 /// <summary>
 /// Represents a PostgreSQL array ALL expression.

@@ -1,8 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.TestModels.UpdatesModel;
-using System.Linq;
-using Xunit;
-using Xunit.Abstractions;
+﻿using Microsoft.EntityFrameworkCore.TestModels.UpdatesModel;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 

@@ -1,8 +1,4 @@
-using System;
-using System.Reflection;
-using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using Microsoft.EntityFrameworkCore.Utilities;
+
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore;

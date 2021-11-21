@@ -1,8 +1,4 @@
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 

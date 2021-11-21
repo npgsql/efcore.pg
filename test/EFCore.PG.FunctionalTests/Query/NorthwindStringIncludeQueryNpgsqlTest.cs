@@ -1,11 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.TestUtilities;
-using Xunit;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class NorthwindStringIncludeQueryNpgsqlTest
