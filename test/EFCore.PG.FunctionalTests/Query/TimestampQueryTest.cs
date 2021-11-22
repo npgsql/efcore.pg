@@ -346,6 +346,66 @@ WHERE now() <> @__myDatetime_0");
 
         #endregion Now
 
+        #region DateTimeOffset
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task DateTimeOffset_DateTime(bool async)
+        {
+            // We only support UTC DateTimeOffset, so DateTimeOffset.DateTime is just a matter of converting to timestamp without time zone
+            await AssertQuery(
+                async,
+                ss => ss.Set<Entity>().Where(
+                    e => e.TimestampDateTimeOffset.DateTime == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Unspecified)),
+                entryCount: 1);
+
+            AssertSql(
+                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
+FROM ""Entities"" AS e
+WHERE e.""TimestampDateTimeOffset"" AT TIME ZONE 'UTC' = TIMESTAMP '1998-04-12 13:26:38'");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task DateTimeOffset_UtcDateTime(bool async)
+        {
+            // We only support UTC DateTimeOffset, so DateTimeOffset.UtcDateTime does nothing (type change on CLR change, no change on the
+            // PG side.
+            await AssertQuery(
+                async,
+                ss => ss.Set<Entity>().Where(
+                    e => e.TimestampDateTimeOffset.UtcDateTime == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc)),
+                entryCount: 1);
+
+            AssertSql(
+                @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
+FROM ""Entities"" AS e
+WHERE e.""TimestampDateTimeOffset"" = TIMESTAMPTZ '1998-04-12 13:26:38Z'");
+        }
+
+        [ConditionalFact]
+        public async Task DateTimeOffset_LocalDateTime()
+        {
+            // Note that we're in the Europe/Berlin timezone (see NpgsqlTestStore below)
+
+            // We can't use AssertQuery since the local (expected) evaluation is dependent on the machine's timezone, which is out of
+            // our control.
+            await using var ctx = CreateContext();
+
+            var count = await ctx.Set<Entity>()
+                .Where(e => e.TimestampDateTimeOffset.LocalDateTime == new DateTime(1998, 4, 12, 15, 26, 38, DateTimeKind.Local))
+                .CountAsync();
+
+            Assert.Equal(1, count);
+
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""Entities"" AS e
+WHERE e.""TimestampDateTimeOffset""::timestamp = TIMESTAMP '1998-04-12 15:26:38'");
+        }
+
+        #endregion DateTimeOffset
+
         #region DateTime constructors
 
         [ConditionalTheory]

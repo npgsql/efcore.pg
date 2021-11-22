@@ -40,6 +40,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             var type = member.DeclaringType;
+
+            if (type == typeof(DateTimeOffset)
+                && instance is not null
+                && TranslateDateTimeOffset(instance, member, returnType) is { } translated)
+            {
+                return translated;
+            }
+
             if (type != typeof(DateTime)
                 && type != typeof(DateTimeOffset)
                 && type != typeof(DateOnly)
@@ -155,5 +163,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             return _sqlExpressionFactory.Convert(result, typeof(int));
         }
+
+        public virtual SqlExpression? TranslateDateTimeOffset(
+            SqlExpression instance,
+            MemberInfo member,
+            Type returnType)
+            => member.Name switch
+            {
+                // We only support UTC DateTimeOffset, so DateTimeOffset.DateTime is just a matter of converting to timestamp without time zone
+                nameof(DateTimeOffset.DateTime) => _sqlExpressionFactory.AtUtc(instance),
+
+                // We only support UTC DateTimeOffset, so DateTimeOffset.UtcDateTime does nothing (type change on CLR change, no change on the
+                // PG side.
+                nameof(DateTimeOffset.UtcDateTime) => instance,
+
+                // Convert to timestamp without time zone, applying a time zone conversion based on the TimeZone connection parameter.
+                nameof(DateTimeOffset.LocalDateTime) => _sqlExpressionFactory.Convert(instance, typeof(DateTime), _timestampMapping),
+                _ => null
+            };
     }
 }
