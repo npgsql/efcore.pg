@@ -408,12 +408,14 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         var arrayMapping = (NpgsqlArrayTypeMapping?)arrayExpression.TypeMapping;
 
         var itemMapping =
-            itemExpression.TypeMapping ??
+            itemExpression.TypeMapping
             // Unwrap convert-to-object nodes - these get added for object[].Contains(x)
-            (itemExpression is SqlUnaryExpression { OperatorType: ExpressionType.Convert } unary ? unary.Operand.TypeMapping : null) ??
+            ?? (itemExpression is SqlUnaryExpression { OperatorType: ExpressionType.Convert } unary && unary.Type == typeof(object)
+                ? unary.Operand.TypeMapping
+                : null)
             // If we couldn't find a type mapping on the item, try inferring it from the array
-            arrayMapping?.ElementMapping ??
-            (RelationalTypeMapping?)_typeMappingSource.FindMapping(itemExpression.Type, Dependencies.Model);
+            ?? arrayMapping?.ElementMapping
+            ?? (RelationalTypeMapping?)_typeMappingSource.FindMapping(itemExpression.Type, Dependencies.Model);
 
         if (itemMapping is null)
         {

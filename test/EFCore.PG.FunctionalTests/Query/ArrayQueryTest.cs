@@ -235,6 +235,10 @@ public abstract class ArrayQueryTest<TFixture> : QueryTestBase<TFixture>
     [ConditionalFact]
     public abstract void Array_param_with_null_Contains_nullable_not_found_negated();
 
+    [ConditionalTheory] // #2123
+    [MemberData(nameof(IsAsyncData))]
+    public abstract Task Array_param_Contains_column_with_ToString(bool async);
+
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public abstract Task Byte_array_parameter_contains_column(bool async);
