@@ -341,6 +341,23 @@ FROM ""SomeEntities"" AS s
 WHERE NOT (s.""NullableText"" = ANY (@__array_0) AND ((s.""NullableText"" = ANY (@__array_0) IS NOT NULL))) AND ((s.""NullableText"" IS NOT NULL) OR (array_position(@__array_0, NULL) IS NULL))");
     }
 
+    public override async Task Array_param_Contains_column_with_ToString(bool async)
+    {
+        var values = new[] { "1", "999" };
+
+        await AssertQuery(
+            async,
+            ss => ss.Set<ArrayEntity>().Where(e => values.Contains(e.Id.ToString())),
+            entryCount: 1);
+
+        AssertSql(
+            @"@__values_0={ '1', '999' } (DbType = Object)
+
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""ValueConvertedScalar""
+FROM ""SomeEntities"" AS s
+WHERE s.""Id""::text = ANY (@__values_0)");
+    }
+
     public override async Task Byte_array_parameter_contains_column(bool async)
     {
         var values = new byte[] { 20 };
