@@ -188,15 +188,12 @@ WHERE
             return false;
         }
         catch (NpgsqlException e) when (
-            // This happens when Npgsql attempts to connect to multiple hosts.
-            e.InnerException is AggregateException &&
-            // We only check the InnerException property of the AggregateException.
-            // While we could do some Linq magic with InnerExceptions.All() or Any(),
-            // doing so seems like overkill at this point.
-            e.InnerException.InnerException is NpgsqlException &&
-            e.InnerException.InnerException.InnerException is PostgresException pe &&
-            IsDoesNotExist(pe)
-        )
+            // This can happen when Npgsql attempts to connect to multiple hosts
+            e.InnerException is AggregateException ae &&
+            ae.InnerExceptions.Any(
+                ie => ie is NpgsqlException &&
+                ie.InnerException is PostgresException pe
+                && IsDoesNotExist(pe)))
         {
             return false;
         }
