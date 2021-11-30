@@ -21,7 +21,7 @@ which will be copied as the basis for the new one. This can be useful for includ
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
-    => modelBuilder.HasDatabaseTemplate("my_template_db");
+    => modelBuilder.UseDatabaseTemplate("my_template_db");
 ```
 
 ## Setting a tablespace
