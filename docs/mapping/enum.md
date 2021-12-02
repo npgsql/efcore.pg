@@ -75,7 +75,7 @@ using (var ctx = new MyDbContext())
 
 ## Altering enum definitions
 
-Although PostgreSQL allows [altering enum types](https://www.postgresql.org/docs/current/static/sql-altertype.html), the Npgsql provider currently does not generate SQL for those operations (beyond creating and dropping the entire type). If you to add, remove or rename enum values, you'll have to include raw SQL in your migrations (this is quite easy to do). As always, test your migrations carefully before running them on production databases.
+Although PostgreSQL allows [altering enum types](https://www.postgresql.org/docs/current/static/sql-altertype.html), the Npgsql provider currently does not generate SQL for those operations (beyond creating and dropping the entire type). If you to add or rename enum values (removal is not supported by PostgreSQL), you'll have to include raw SQL in your migrations (this is quite easy to do). As always, test your migrations carefully before running them on production databases.
 
 ## Scaffolding from an existing database
 
