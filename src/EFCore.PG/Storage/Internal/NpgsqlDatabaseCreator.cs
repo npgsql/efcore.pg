@@ -181,9 +181,7 @@ WHERE
         catch (NpgsqlException e) when (
             // This can happen when Npgsql attempts to connect to multiple hosts
             e.InnerException is AggregateException ae &&
-            ae.InnerExceptions.Any(
-                ie => ie is PostgresException pe
-                && IsDoesNotExist(pe)))
+            ae.InnerExceptions.Any(ie => ie is PostgresException pe && IsDoesNotExist(pe)))
         {
             return false;
         }
