@@ -447,7 +447,7 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__value_0='2020-01-03T00:00:00.0000000' (DbType = DateTime)
+            @"@__value_0='2020-01-03T00:00:00.0000000'
 
 SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
 FROM ""RangeTestEntities"" AS r
