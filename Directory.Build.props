@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
+    <VersionPrefix>6.0.2</VersionPrefix>
     <TargetFramework>net6.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -12,7 +13,6 @@
 
     <Copyright>Copyright 2021 © The Npgsql Development Team</Copyright>
     <Company>Npgsql</Company>
-    <VersionPrefix>6.0.1</VersionPrefix>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/npgsql/efcore.pg</PackageProjectUrl>
