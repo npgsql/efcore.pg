@@ -43,11 +43,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
         if (type != typeof(DateTime)
             && type != typeof(DateTimeOffset)
             && type != typeof(DateOnly)
-            && type != typeof(TimeOnly)
-#pragma warning disable 618 // NpgsqlDateTime and NpgsqlDate have been obsoleted
-            && type != typeof(NpgsqlDateTime)
-            && type != typeof(NpgsqlDate))
-#pragma warning restore 618
+            && type != typeof(TimeOnly))
         {
             return null;
         }
