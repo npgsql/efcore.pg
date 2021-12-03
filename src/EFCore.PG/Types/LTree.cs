@@ -146,4 +146,8 @@ public readonly struct LTree : IEquatable<LTree>
     /// <inheritdocs />
     public override int GetHashCode()
         => _value is not null ? _value.GetHashCode() : 0;
+
+    /// <inheritdocs />
+    public override string ToString()
+        => _value;
 }
