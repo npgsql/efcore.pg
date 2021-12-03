@@ -69,7 +69,7 @@ WHERE now() <> @__myDatetime_0");
             _ = await ctx.Entities.Where(c => DateTime.UtcNow != myDatetime).ToListAsync();
 
             AssertSql(
-                @"@__myDatetime_0='2015-04-10T00:00:00.0000000' (DbType = DateTime)
+                @"@__myDatetime_0='2015-04-10T00:00:00.0000000'
 
 SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeOffset"", e.""TimestamptzDateTime""
 FROM ""Entities"" AS e

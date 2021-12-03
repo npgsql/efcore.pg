@@ -68,7 +68,7 @@ WHERE ((@__start_0 <= date_trunc('day', m.""Timeline"")::timestamptz) AND (m.""T
                 ss => ss.Set<Mission>().Where(m => m.Timeline.Date.ToLocalTime() >= dateTimeOffset.Date));
 
             AssertSql(
-                @"@__dateTimeOffset_Date_0='0002-03-01T00:00:00.0000000' (DbType = DateTime)
+                @"@__dateTimeOffset_Date_0='0002-03-01T00:00:00.0000000'
 
 SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m

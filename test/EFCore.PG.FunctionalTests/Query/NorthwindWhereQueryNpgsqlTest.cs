@@ -43,7 +43,7 @@ WHERE date_trunc('day', now()::timestamp) = date_trunc('day', now()::timestamp)"
             await base.Where_datetime_date_component(async);
 
             AssertSql(
-                @"@__myDatetime_0='1998-05-04T00:00:00.0000000' (DbType = DateTime)
+                @"@__myDatetime_0='1998-05-04T00:00:00.0000000'
 
 SELECT o.""OrderID"", o.""CustomerID"", o.""EmployeeID"", o.""OrderDate""
 FROM ""Orders"" AS o
