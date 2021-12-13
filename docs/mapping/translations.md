@@ -62,7 +62,7 @@ DateTime.SpecifyKind(utcDateTime, DateTimeKind.Unspecified)       | [utcDateTime
 DateTime.SpecifyKind(nonUtcDateTime, DateTimeKind.Utc)            | [nonUtcDateTime AT TIME ZONE 'UTC'](https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT)    | Added in 6.0, only for timestamp columns
 new DateTime(year, month, day)                                    | [make_date(year, month, day)](https://www.postgresql.org/docs/current/functions-datetime.html)                                         |
 new DateTime(y, m, d, h, m, s)                                    | [make_timestamp(y, m, d, h, m, s)](https://www.postgresql.org/docs/current/functions-datetime.html)                                    |
-new DateTime(y, m, d, h, m, s, kind)                              | [make_timestamp or make_timestamptz](https://www.postgresql.org/docs/current/functions-datetime.html), based on `king`                 | Added in 6.0
+new DateTime(y, m, d, h, m, s, kind)                              | [make_timestamp or make_timestamptz](https://www.postgresql.org/docs/current/functions-datetime.html), based on `kind`                 | Added in 6.0
 
 > [!NOTE]
 > See also Npgsql's [NodaTime support](/efcore/mapping/nodatime.html).
