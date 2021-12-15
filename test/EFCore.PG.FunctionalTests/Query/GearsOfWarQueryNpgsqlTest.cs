@@ -498,6 +498,37 @@ FROM ""Missions"" AS m
 WHERE (m.""Time"" - TIME '10:00:00') = INTERVAL '00:15:50.5'");
     }
 
+    [ConditionalFact]
+    public virtual async Task TimeOnly_FromTimeSpan()
+    {
+        // We cannot evaluate TimeOnly.FromTimeSpan in .NET since there are some rows were the result is a day or more.
+        using var ctx = CreateContext();
+
+        var id = (await ctx.Set<Mission>().Where(m => TimeOnly.FromTimeSpan(m.Duration) == new TimeOnly(1, 2, 3)).SingleAsync()).Id;
+        Assert.Equal(1, id);
+
+        AssertSql(
+            @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
+FROM ""Missions"" AS m
+WHERE m.""Duration""::time without time zone = TIME '01:02:03'
+LIMIT 2");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Where_TimeOnly_ToTimeSpan(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Mission>().Where(m => m.Time.ToTimeSpan() == new TimeSpan(15, 30, 10)).AsTracking(),
+            entryCount: 1);
+
+        AssertSql(
+            @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
+FROM ""Missions"" AS m
+WHERE m.""Time""::interval = INTERVAL '15:30:10'");
+    }
+
     #endregion TimeOnly
 
     private void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
