@@ -146,7 +146,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                 yield return new Annotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
             }
 
-            if (modelIndex.GetNullSortOrder() is IReadOnlyList<SortOrder> nullSortOrder)
+            if (modelIndex.GetNullSortOrder() is IReadOnlyList<NullSortOrder> nullSortOrder)
             {
                 yield return new Annotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
             }
