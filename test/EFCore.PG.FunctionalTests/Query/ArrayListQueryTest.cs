@@ -533,7 +533,7 @@ WHERE s.""NullableText"" ILIKE ANY (ARRAY['a%','b%','c%']::text[])");
 
     public override async Task Any_like_anonymous(bool async)
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         var patternsActual = new List<string> { "a%", "b%", "c%" };
         var patternsExpected = new List<string> { "a", "b", "c" };
@@ -705,7 +705,7 @@ WHERE array_to_string(s.""IntList"", ', ', '') = '3, 4'");
     protected override Expression RewriteServerQueryExpression(Expression serverQueryExpression)
         => new ArrayToListReplacingExpressionVisitor().Visit(serverQueryExpression);
 
-    internal class ArrayToListReplacingExpressionVisitor : ExpressionVisitor
+    private class ArrayToListReplacingExpressionVisitor : ExpressionVisitor
     {
         private static readonly PropertyInfo IntArray
             = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.IntArray));

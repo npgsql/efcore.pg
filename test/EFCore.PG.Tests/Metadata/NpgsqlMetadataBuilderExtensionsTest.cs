@@ -42,7 +42,7 @@ public class NpgsqlInternalMetadataBuilderExtensionsTest
         Assert.NotNull(typeBuilder.IsUnlogged(false, fromDataAnnotation: true));
         Assert.False(typeBuilder.Metadata.GetIsUnlogged());
 
-        Assert.Null(typeBuilder.IsUnlogged(true));
+        Assert.Null(typeBuilder.IsUnlogged());
         Assert.False(typeBuilder.Metadata.GetIsUnlogged());
 
         Assert.Equal(

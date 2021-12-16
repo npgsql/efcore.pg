@@ -59,7 +59,7 @@ public static class NpgsqlServiceCollectionExtensions
         Check.NotNull(serviceCollection, nameof(serviceCollection));
         Check.NotEmpty(connectionString, nameof(connectionString));
 
-        return serviceCollection.AddDbContext<TContext>((serviceProvider, options) =>
+        return serviceCollection.AddDbContext<TContext>((_, options) =>
         {
             optionsAction?.Invoke(options);
             options.UseNpgsql(connectionString, npgsqlOptionsAction);

@@ -65,7 +65,7 @@ public class PostgresAllExpression : SqlExpression, IEquatable<PostgresAllExpres
     /// <inheritdoc />
     public virtual bool Equals(PostgresAllExpression? other)
         => ReferenceEquals(this, other) ||
-            other is object &&
+            other is not null &&
             base.Equals(other) &&
             Item.Equals(other.Item) &&
             Array.Equals(other.Array) &&

@@ -1,4 +1,5 @@
-﻿namespace Microsoft.EntityFrameworkCore;
+﻿// ReSharper disable once CheckNamespace
+namespace Microsoft.EntityFrameworkCore;
 
 public static class NpgsqlFuzzyStringMatchDbFunctionsExtensions
 {

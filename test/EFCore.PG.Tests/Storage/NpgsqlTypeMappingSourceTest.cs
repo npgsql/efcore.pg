@@ -119,7 +119,7 @@ public class NpgsqlTypeMappingSourceTest
     [InlineData(typeof(int[]), "integer[]")]
     public void By_ClrType_and_precision(Type clrType, string expectedStoreType)
     {
-        var mapping = (RelationalTypeMapping)Source.FindMapping(clrType, null, precision: 5);
+        var mapping = Source.FindMapping(clrType, null, precision: 5);
         Assert.Equal(expectedStoreType, mapping.StoreType);
         Assert.Same(clrType, mapping.ClrType);
     }

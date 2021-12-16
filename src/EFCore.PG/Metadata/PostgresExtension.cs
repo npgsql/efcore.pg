@@ -46,7 +46,7 @@ public class PostgresExtension
         Check.NullButNotEmpty(schema, nameof(schema));
         Check.NotNull(name, nameof(name));
 
-        if (FindPostgresExtension(annotatable, schema, name) is PostgresExtension postgresExtension)
+        if (FindPostgresExtension(annotatable, schema, name) is { } postgresExtension)
         {
             return postgresExtension;
         }

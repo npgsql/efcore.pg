@@ -84,7 +84,7 @@ public class IdentitySequenceOptionsData : IEquatable<IdentitySequenceOptionsDat
     }
 
     private static long? AsLong(string? value)
-        => value is null ? null : (long?)long.Parse(value, CultureInfo.InvariantCulture);
+        => value is null ? null : long.Parse(value, CultureInfo.InvariantCulture);
 
     private static bool AsBool(string? value)
         => value is not null && bool.Parse(value);

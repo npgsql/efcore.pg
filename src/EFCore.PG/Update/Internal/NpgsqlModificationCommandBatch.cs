@@ -24,11 +24,6 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
     /// <summary>
     /// Constructs an instance of the <see cref="NpgsqlModificationCommandBatch"/> class.
     /// </summary>
-    /// <param name="commandBuilderFactory">The builder to build commands.</param>
-    /// <param name="sqlGenerationHelper">A helper for SQL generation.</param>
-    /// <param name="updateSqlGenerator">A SQL generator for insert, update, and delete commands.</param>
-    /// <param name="valueBufferFactoryFactory">A factory for creating <see cref="ValueBuffer" /> factories.</param>
-    /// <param name="maxBatchSize">The maximum count of commands to batch.</param>
     public NpgsqlModificationCommandBatch(
         ModificationCommandBatchFactoryDependencies dependencies,
         int? maxBatchSize)
@@ -161,7 +156,6 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
                      !ModificationCommands[nextPropagating].RequiresResultPropagation;
                      nextPropagating++)
                 {
-                    ;
                 }
 
                 // Go over all non-propagating commands before the next propagating one,

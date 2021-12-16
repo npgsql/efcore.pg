@@ -123,28 +123,28 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
 
         await Test_commit_failure_async(
             realFailure, (e, db) => e.ExecuteInTransactionAsync(
-                async ct => { await db.SaveChangesAsync(false); },
-                ct => db.Products.AsNoTracking().AnyAsync(),
+                async _ => { await db.SaveChangesAsync(false); },
+                _ => db.Products.AsNoTracking().AnyAsync(),
                 CancellationToken.None));
 
         await Test_commit_failure_async(
             realFailure, (e, db) => e.ExecuteInTransactionAsync(
                 ct => db.SaveChangesAsync(false, ct),
-                ct => db.Products.AsNoTracking().AnyAsync(),
+                _ => db.Products.AsNoTracking().AnyAsync(),
                 CancellationToken.None));
 
         await Test_commit_failure_async(
             realFailure, (e, db) => e.ExecuteInTransactionAsync(
                 db,
                 async (c, ct) => { await c.SaveChangesAsync(false, ct); },
-                (c, ct) => c.Products.AsNoTracking().AnyAsync(),
+                (c, _) => c.Products.AsNoTracking().AnyAsync(),
                 CancellationToken.None));
 
         await Test_commit_failure_async(
             realFailure, (e, db) => e.ExecuteInTransactionAsync(
                 db,
                 (c, ct) => c.SaveChangesAsync(false, ct),
-                (c, ct) => c.Products.AsNoTracking().AnyAsync(),
+                (c, _) => c.Products.AsNoTracking().AnyAsync(),
                 CancellationToken.None));
 
         await Test_commit_failure_async(
@@ -300,7 +300,7 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
                     await new TestNpgsqlRetryingExecutionStrategy(context).ExecuteInTransactionAsync(
                         context,
                         (c, ct) => c.SaveChangesAsync(false, ct),
-                        (c, _) =>
+                        (_, _) =>
                         {
                             Assert.True(false);
                             return Task.FromResult(false);
@@ -320,7 +320,7 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
                     new TestNpgsqlRetryingExecutionStrategy(context).ExecuteInTransaction(
                         context,
                         c => c.SaveChanges(false),
-                        c =>
+                        _ =>
                         {
                             Assert.True(false);
                             return false;
@@ -553,7 +553,7 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
         {
             var transaction = await new TestNpgsqlRetryingExecutionStrategy(context).ExecuteAsync(
                 context,
-                c => context.Database.BeginTransactionAsync());
+                _ => context.Database.BeginTransactionAsync());
 
             transaction.Dispose();
         }
@@ -561,7 +561,7 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
         {
             var transaction = new TestNpgsqlRetryingExecutionStrategy(context).Execute(
                 context,
-                c => context.Database.BeginTransaction());
+                _ => context.Database.BeginTransaction());
 
             transaction.Dispose();
         }
@@ -590,7 +590,7 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
                         .ExecuteInTransaction(
                             context,
                             c => c.SaveChanges(false),
-                            c => false));
+                            _ => false));
             context.ChangeTracker.AcceptAllChanges();
 
             Assert.Equal(7, connection.OpenCount);

@@ -57,7 +57,7 @@ public class PostgresUnknownBinaryExpression : SqlExpression, IEquatable<Postgre
 
     public virtual bool Equals(PostgresUnknownBinaryExpression? other)
         => ReferenceEquals(this, other) ||
-            other is object &&
+            other is not null &&
             Left.Equals(other.Left) &&
             Right.Equals(other.Right) &&
             Operator == other.Operator;

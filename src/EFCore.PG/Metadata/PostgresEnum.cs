@@ -48,7 +48,7 @@ public class PostgresEnum
         Check.NotEmpty(name, nameof(name));
         Check.NotNull(labels, nameof(labels));
 
-        if (FindPostgresEnum(annotatable, schema, name) is PostgresEnum enumType)
+        if (FindPostgresEnum(annotatable, schema, name) is { } enumType)
         {
             return enumType;
         }

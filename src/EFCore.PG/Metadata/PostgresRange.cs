@@ -56,7 +56,7 @@ public class PostgresRange
         Check.NotEmpty(name, nameof(name));
         Check.NotNull(subtype, nameof(subtype));
 
-        if (FindPostgresRange(annotatable, schema, name) is PostgresRange postgresRange)
+        if (FindPostgresRange(annotatable, schema, name) is { } postgresRange)
         {
             return postgresRange;
         }

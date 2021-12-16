@@ -52,7 +52,7 @@ public class PostgresRegexMatchExpression : SqlExpression, IEquatable<PostgresRe
 
     public virtual bool Equals(PostgresRegexMatchExpression? other)
         => ReferenceEquals(this, other) ||
-            other is object &&
+            other is not null &&
             base.Equals(other) &&
             Match.Equals(other.Match) &&
             Pattern.Equals(other.Pattern) &&

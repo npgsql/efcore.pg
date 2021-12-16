@@ -66,7 +66,7 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
         var connectionString = csb.ToString();
 
         relationalOptions = relationalOptions.Connection is not null
-            ? relationalOptions.WithConnection(((NpgsqlConnection)DbConnection).CloneWith(connectionString))
+            ? relationalOptions.WithConnection(DbConnection.CloneWith(connectionString))
             : relationalOptions.WithConnectionString(connectionString);
 
         var optionsBuilder = new DbContextOptionsBuilder();

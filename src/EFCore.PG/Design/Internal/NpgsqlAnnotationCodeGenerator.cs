@@ -313,7 +313,7 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
                 identityOptions.IncrementBy == 1 ? null : (long?) identityOptions.IncrementBy,
                 identityOptions.MinValue,
                 identityOptions.MaxValue,
-                identityOptions.IsCyclic ? true : (bool?) null,
+                identityOptions.IsCyclic ? true : null,
                 identityOptions.NumbersToCache == 1 ? null : (long?) identityOptions.NumbersToCache)
         };
     }

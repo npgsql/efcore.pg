@@ -28,7 +28,7 @@ internal class ReferenceNullabilityDecoder
             FieldInfo f
                 => f.CustomAttributes.Any(a => a.AttributeType == typeof(MaybeNullAttribute)),
             PropertyInfo p
-                => p.GetMethod?.ReturnParameter?.CustomAttributes?.Any(a => a.AttributeType == typeof(MaybeNullAttribute)) == true,
+                => p.GetMethod?.ReturnParameter.CustomAttributes.Any(a => a.AttributeType == typeof(MaybeNullAttribute)) == true,
             _ => false
         };
 
@@ -83,8 +83,7 @@ internal class ReferenceNullabilityDecoder
 
     private bool TryGetNullableFlags(MemberInfo memberInfo, [NotNullWhen(true)] out byte[]? flags)
     {
-        if (memberInfo.GetCustomAttributes().FirstOrDefault(a => a.GetType().FullName == NullableAttributeFullName) is Attribute
-            attribute)
+        if (memberInfo.GetCustomAttributes().FirstOrDefault(a => a.GetType().FullName == NullableAttributeFullName) is { } attribute)
         {
             var attributeType = attribute.GetType();
 
@@ -110,7 +109,7 @@ internal class ReferenceNullabilityDecoder
         }
 
         if (Attribute.GetCustomAttributes(type)
-                .FirstOrDefault(a => a.GetType().FullName == NullableContextAttributeFullName) is Attribute contextAttr)
+                .FirstOrDefault(a => a.GetType().FullName == NullableContextAttributeFullName) is { } contextAttr)
         {
             var attributeType = contextAttr.GetType();
 

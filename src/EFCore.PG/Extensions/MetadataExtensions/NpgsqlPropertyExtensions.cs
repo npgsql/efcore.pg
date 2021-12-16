@@ -221,7 +221,7 @@ public static class NpgsqlPropertyExtensions
     /// <returns>The strategy, or <see cref="NpgsqlValueGenerationStrategy.None"/> if none was set.</returns>
     public static NpgsqlValueGenerationStrategy GetValueGenerationStrategy(this IReadOnlyProperty property)
     {
-        if (property[NpgsqlAnnotationNames.ValueGenerationStrategy] is object annotation)
+        if (property[NpgsqlAnnotationNames.ValueGenerationStrategy] is { } annotation)
         {
             return (NpgsqlValueGenerationStrategy)annotation;
         }
@@ -257,12 +257,12 @@ public static class NpgsqlPropertyExtensions
         in StoreObjectIdentifier storeObject,
         ITypeMappingSource? typeMappingSource)
     {
-        if (property[NpgsqlAnnotationNames.ValueGenerationStrategy] is object annotation)
+        if (property[NpgsqlAnnotationNames.ValueGenerationStrategy] is { } annotation)
         {
             return (NpgsqlValueGenerationStrategy)annotation;
         }
 
-        if (property.FindSharedStoreObjectRootProperty(storeObject) is IReadOnlyProperty sharedTableRootProperty)
+        if (property.FindSharedStoreObjectRootProperty(storeObject) is { } sharedTableRootProperty)
         {
             return sharedTableRootProperty.GetValueGenerationStrategy(storeObject) is var valueGenerationStrategy &&
                 valueGenerationStrategy switch

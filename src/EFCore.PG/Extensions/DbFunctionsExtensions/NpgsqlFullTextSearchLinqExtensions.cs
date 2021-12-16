@@ -1,9 +1,9 @@
-﻿
+﻿using System.Diagnostics.CodeAnalysis;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore;
 
-[System.Diagnostics.CodeAnalysis.SuppressMessage("ReSharper", "UnusedParameter.Global")]
+[SuppressMessage("ReSharper", "UnusedParameter.Global")]
 public static class NpgsqlFullTextSearchLinqExtensions
 {
     /// <summary>

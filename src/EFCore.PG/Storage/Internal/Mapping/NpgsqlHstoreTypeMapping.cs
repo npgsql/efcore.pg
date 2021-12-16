@@ -32,7 +32,7 @@ public class NpgsqlHstoreTypeMapping : NpgsqlTypeMapping
     protected override string GenerateNonNullSqlLiteral(object value)
     {
         var sb = new StringBuilder("HSTORE '");
-        foreach (var kv in (IReadOnlyDictionary<string, string>)value)
+        foreach (var kv in (IReadOnlyDictionary<string, string?>)value)
         {
             sb.Append('"');
             sb.Append(kv.Key);   // TODO: Escape

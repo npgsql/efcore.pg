@@ -28,7 +28,7 @@ public class NpgsqlTimeSpanMemberTranslator : IMemberTranslator
                 nameof(TimeSpan.Minutes)      => Floor(DatePart("minute", instance)),
                 nameof(TimeSpan.Seconds)      => Floor(DatePart("second", instance)),
                 nameof(TimeSpan.Milliseconds) => _sqlExpressionFactory.Modulo(
-                    Floor(DatePart("millisecond", instance!)),
+                    Floor(DatePart("millisecond", instance)),
                     _sqlExpressionFactory.Constant(1000)),
                 _ => null
             };

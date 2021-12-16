@@ -124,7 +124,7 @@ be found in the docs.';");
     public virtual async Task Create_table_with_identity_by_default()
     {
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int>("Id")
                 .UseIdentityByDefaultColumn(),
             model =>
@@ -145,7 +145,7 @@ be found in the docs.';");
     public virtual async Task Create_table_with_identity_always()
     {
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int>("Id")
                 .UseIdentityAlwaysColumn(),
             model =>
@@ -166,7 +166,7 @@ be found in the docs.';");
     public virtual async Task Create_table_with_identity_always_with_options()
     {
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int>("Id")
                 .UseIdentityAlwaysColumn()
                 .HasIdentityOptions(startValue: 10, incrementBy: 2, maxValue: 2000),
@@ -194,7 +194,7 @@ be found in the docs.';");
     public virtual async Task Create_table_with_serial()
     {
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int>("Id")
                 .UseSerialColumn(),
             model =>
@@ -218,7 +218,7 @@ be found in the docs.';");
         // System columns (e.g. xmin) are implicitly always present. If an xmin property is present,
         // nothing should happen.
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.Entity(
                 "People", e =>
                 {
@@ -243,7 +243,7 @@ be found in the docs.';");
     public virtual async Task Create_table_with_storage_parameter()
     {
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.Entity(
                 "People", e =>
                 {
@@ -266,7 +266,7 @@ WITH (fillfactor=70, user_catalog_table=true);");
     public virtual async Task Create_table_with_unlogged()
     {
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.Entity(
                 "People", e =>
                 {
@@ -368,7 +368,7 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
                     e.Property<int>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").IsUnlogged(),
             asserter: null);  // We don't scaffold unlogged
 
@@ -387,7 +387,7 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
                     e.HasKey("Id");
                 }),
             builder => builder.Entity("People").IsUnlogged(),
-            builder => { },
+            _ => { },
             asserter: null);  // We don't scaffold unlogged
 
         AssertSql(
@@ -444,7 +444,7 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
     public virtual async Task Create_schema_public_is_ignored()
     {
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.Entity("People")
                 .ToTable("People", "public")
                 .Property<int>("Id"),
@@ -473,7 +473,7 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
         // We default to mapping DateTime to 'timestamp with time zone', so we need to explicitly specify UTC
         await Test(
             builder => builder.Entity("People").Property<int>("Id"),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<DateTime>("Birthday")
                 .HasDefaultValue(new DateTime(2015, 4, 12, 17, 5, 0, DateTimeKind.Utc)),
             model =>
@@ -587,7 +587,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
         // Non-stored generated columns aren't yet supported (PG12), so we override to used stored
         await Test(
             builder => builder.Entity("People").Property<int>("Id"),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<string>("Name")
                 .HasComputedColumnSql("'hello'", stored: true)
                 .UseCollation(NonDefaultCollation),
@@ -613,7 +613,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                 builder.UseDefaultColumnCollation("POSIX");
                 builder.Entity("People").Property<int>("Id");
             },
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<string>("Name"),
             model =>
             {
@@ -636,7 +636,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                 builder.UseDefaultColumnCollation("POSIX");
                 builder.Entity("People").Property<int>("Id");
             },
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<string>("Name")
                 .UseCollation("C"),
             model =>
@@ -664,7 +664,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
         // At least for now, it's the user's responsibility to quote store type name when needed,
         // because it seems standard for people to specify either text or TEXT, and both should work.
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<string>("Name").HasColumnType("TEXT"),
             model =>
             {
@@ -689,7 +689,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                     e.Property<int>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int?>("SomeColumn")
                 .UseIdentityByDefaultColumn(),
             model =>
@@ -714,7 +714,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                     e.Property<int>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int?>("SomeColumn")
                 .UseIdentityAlwaysColumn(),
             model =>
@@ -739,7 +739,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                     e.Property<int>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int?>("SomeColumn")
                 .UseIdentityByDefaultColumn()
                 .HasIdentityOptions(
@@ -776,7 +776,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                     e.Property<int>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int?>("SomeColumn")
                 .UseSerialColumn());
 
@@ -790,7 +790,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                     e.Property<int>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int>("SomeColumn")
                 .UseSerialColumn(),
             model =>
@@ -815,7 +815,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                     e.Property<int>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int>("SomeColumn")
                 .UseIdentityByDefaultColumn(),
             model =>
@@ -842,7 +842,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                     e.Property<int>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<uint>("xmin"),
             model =>
             {
@@ -865,7 +865,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                     e.Property<int>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<string>("Name").HasMaxLength(10485761),
             model =>
             {
@@ -893,7 +893,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                     e.Property<string>("Title").IsRequired();
                     e.Property<string>("Description");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("Blogs").Property<NpgsqlTsVector>("TsVector")
                 .IsGeneratedTsVectorColumn("english", "Title", "Description"),
             model =>
@@ -918,7 +918,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
 
         await Test(
             builder => builder.Entity("Blogs", e => e.Property<int>("Id")),
-            builder => { },
+            _ => { },
             builder => builder.Entity("Blogs").Property<string>("Title").UseCompressionMethod("pglz"),
             model =>
             {
@@ -1133,7 +1133,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET DEFAULT '';");
                     x.Property<int>("Id");
                     x.Property<int>("SomeColumn").HasComputedColumnSql("42", stored: true);
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int>("SomeColumn").HasComment("Some comment"),
             model =>
             {
@@ -1175,7 +1175,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET DEFAULT '';");
                     e.Property<int>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int>("Id")
                 .UseIdentityByDefaultColumn(),
             model =>
@@ -1201,7 +1201,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED BY DEFAULT AS IDENTITY;
                     e.Property<int>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int>("Id")
                 .UseIdentityAlwaysColumn(),
             model =>
@@ -1227,7 +1227,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED ALWAYS AS IDENTITY;");
                     e.Property<int>("Id").HasDefaultValue(8);
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int>("Id")
                 .UseIdentityAlwaysColumn(),
             model =>
@@ -1253,7 +1253,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED ALWAYS AS IDENTITY;");
                     e.Property<int>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int>("Id")
                 .UseIdentityByDefaultColumn()
                 .HasIdentityOptions(startValue: 10, incrementBy: 2, maxValue: 2000),
@@ -1286,7 +1286,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED BY DEFAULT AS IDENTITY 
                     e.Property<int>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int>("Id")
                 .UseIdentityByDefaultColumn()
                 .HasIdentityOptions(startValue: 1, incrementBy: 1, minValue: 1, maxValue: null),
@@ -1351,7 +1351,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET CYCLE;");
                 }),
             builder => builder.Entity("People").Property<int>("Id")
                 .HasIdentityOptions(startValue: 5, incrementBy: 2, cyclic: true, numbersToCache: 5),
-            builder => { },
+            _ => { },
             model =>
             {
                 var table = Assert.Single(model.Tables);
@@ -1381,7 +1381,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET CACHE 1;");
                     e.Property<int>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int>("Id")
                 .UseSerialColumn(),
             model =>
@@ -1412,7 +1412,7 @@ ALTER SEQUENCE ""People_Id_seq"" OWNED BY ""People"".""Id"";");
                     e.Property<int>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<int>("Id")
                 .UseSerialColumn(),
             model =>
@@ -1442,7 +1442,7 @@ ALTER SEQUENCE some_schema.""People_Id_seq"" OWNED BY some_schema.""People"".""I
                     e.Property<long>("Id");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<long>("Id")
                 .UseSerialColumn(),
             model =>
@@ -1598,7 +1598,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
             }),
             builder => builder.UseDefaultColumnCollation("POSIX"),
             builder => builder.UseDefaultColumnCollation("C"),
-            model =>
+            _ =>
             {
                 // var table = Assert.Single(model.Tables);
                 // Assert.Equal(2, table.Columns.Count);
@@ -1657,7 +1657,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                 b.Property<string>("Name");
                 b.Property<string>("Name2").HasComputedColumnSql(@"""Name""", stored: true);
             }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").Property<string>("Name2")
                 .UseCollation(NonDefaultCollation),
             model =>
@@ -1681,7 +1681,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
 
         await Test(
             builder => builder.Entity("Blogs", e => e.Property<string>("Title")),
-            builder => { },
+            _ => { },
             builder => builder.Entity("Blogs").Property<string>("Title").UseCompressionMethod("pglz"),
             model =>
             {
@@ -1703,7 +1703,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
         }
 
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.Entity("Blogs", e => e.Property<string>("Title").UseCompressionMethod("lz4")),
             builder => builder.Entity("Blogs").Property<string>("Title"),
             model =>
@@ -1751,7 +1751,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     e.Property<int>("X");
                     e.Property<int>("Y").HasComputedColumnSql($"{DelimitIdentifier("X")} + 1", stored: true);
                 }),
-            builder => { },
+            _ => { },
             model =>
             {
                 var table = Assert.Single(model.Tables);
@@ -1777,7 +1777,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     e.Property<uint>("xmin");
                     e.HasKey("Id");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity(
                 "People", e =>
                 {
@@ -1841,7 +1841,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     e.Property<string>("LastName").HasColumnName("last_name");
                     e.Property<string>("Name");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").HasIndex("Name")
                 .IncludeProperties("FirstName", "LastName"),
             model =>
@@ -1879,7 +1879,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     e.Property<string>("LastName");
                     e.Property<string>("Name");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").HasIndex("Name")
                 .IncludeProperties("FirstName", "LastName")
                 .HasFilter(@"""Name"" IS NOT NULL"),
@@ -1919,7 +1919,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     e.Property<string>("LastName");
                     e.Property<string>("Name").IsRequired();
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").HasIndex("Name")
                 .IsUnique()
                 .IncludeProperties("FirstName", "LastName"),
@@ -1959,7 +1959,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     e.Property<string>("LastName");
                     e.Property<string>("Name").IsRequired();
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").HasIndex("Name")
                 .IsUnique()
                 .IncludeProperties("FirstName", "LastName")
@@ -1999,7 +1999,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     e.Property<int>("Id");
                     e.Property<int>("Age");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").HasIndex("Age")
                 .IsCreatedConcurrently(),
             asserter: null); // No scaffolding for IsCreatedConcurrently
@@ -2018,7 +2018,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     e.Property<int>("Id");
                     e.Property<int>("Age");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").HasIndex("Age")
                 .HasMethod("hash"),
             model =>
@@ -2043,7 +2043,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     e.Property<string>("FirstName");
                     e.Property<string>("LastName");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").HasIndex("FirstName", "LastName")
                 .HasOperators("text_pattern_ops"),
             model =>
@@ -2072,7 +2072,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     e.Property<string>("FirstName");
                     e.Property<string>("LastName");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").HasIndex("FirstName", "LastName")
                 .HasSortOrder(SortOrder.Descending, SortOrder.Ascending),
             model =>
@@ -2099,7 +2099,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     e.Property<string>("MiddleName");
                     e.Property<string>("LastName");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("People").HasIndex("FirstName", "MiddleName", "LastName")
                 .HasNullSortOrder(NullSortOrder.NullsFirst, NullSortOrder.Unspecified, NullSortOrder.NullsLast),
             model =>
@@ -2124,11 +2124,11 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     e.Property<string>("Title").IsRequired();
                     e.Property<string>("Description");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("Blogs")
                 .HasIndex("Title", "Description")
                 .IsTsVectorExpressionIndex("simple"),
-            model => { });
+            _ => { });
 
         AssertSql(
             @"CREATE INDEX ""IX_Blogs_Title_Description"" ON ""Blogs"" (to_tsvector('simple', ""Title"" || ' ' || coalesce(""Description"", '')));");
@@ -2144,12 +2144,12 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     e.Property<string>("Title").IsRequired();
                     e.Property<string>("Description");
                 }),
-            builder => { },
+            _ => { },
             builder => builder.Entity("Blogs")
                 .HasIndex("Title", "Description")
                 .HasMethod("GIN")
                 .IsTsVectorExpressionIndex("simple"),
-            model => { });
+            _ => { });
 
         AssertSql(
             @"CREATE INDEX ""IX_Blogs_Title_Description"" ON ""Blogs"" USING GIN (to_tsvector('simple', ""Title"" || ' ' || coalesce(""Description"", '')));");
@@ -2292,7 +2292,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
     public virtual async Task Create_sequence_smallint()
     {
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.HasSequence<short>("TestSequence"),
             model =>
             {
@@ -2310,7 +2310,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
     {
         await Test(
             builder => builder.HasSequence<int>("foo"),
-            builder => { },
+            _ => { },
             builder => builder.HasSequence<int>("foo")
                 .StartsAt(-3)
                 .IncrementsBy(2)
@@ -2454,7 +2454,7 @@ WHERE ""Id"" = 2;");
                         e.HasKey("Id");
                     });
             },
-            builder => { },
+            _ => { },
             builder =>
             {
                 builder.Entity("Person").HasData(
@@ -2464,7 +2464,7 @@ WHERE ""Id"" = 2;");
                     new { Id = -10, Name = "Daenerys Targaryen" },
                     new { Id = -20, Name = "John Snow"});
             },
-            model => { });
+            _ => { });
 
         AssertSql(
             @"INSERT INTO ""Person"" (""Id"", ""Name"")
@@ -2499,7 +2499,7 @@ SELECT setval(
     public virtual async Task Ensure_postgres_extension()
     {
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.HasPostgresExtension("citext"),
             model =>
             {
@@ -2539,7 +2539,7 @@ SELECT setval(
     public virtual async Task Create_enum()
     {
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.HasPostgresEnum("Mood", new[] { "Happy", "Sad" }),
             model =>
             {
@@ -2559,7 +2559,7 @@ SELECT setval(
     public virtual async Task Create_enum_with_schema()
     {
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.HasPostgresEnum("some_schema", "Mood", new[] { "Happy", "Sad" }),
             model =>
             {
@@ -2582,7 +2582,7 @@ SELECT setval(
     {
         await Test(
             builder => builder.HasPostgresEnum("Mood", new[] { "Happy", "Sad" }),
-            builder => { },
+            _ => { },
             model => Assert.Empty(model.GetPostgresEnums()));
 
         AssertSql(
@@ -2594,7 +2594,7 @@ SELECT setval(
     {
         await Test(
             builder => builder.HasPostgresEnum("Enum1", new[] { "A", "B" }),
-            builder => { },
+            _ => { },
             builder => builder.HasPostgresEnum("Enum2", new[] { "X", "Y" }),
             model => Assert.Equal(2, model.GetPostgresEnums().Count()));
 
@@ -2660,7 +2660,7 @@ SELECT setval(
     public virtual async Task Create_collation()
     {
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.HasCollation("dummy", locale: "POSIX", provider: "libc"),
             model =>
             {
@@ -2685,7 +2685,7 @@ SELECT setval(
     public virtual async Task Create_collation_non_deterministic()
     {
         await Test(
-            builder => { },
+            _ => { },
             builder => builder.HasCollation("some_collation", locale: "en-u-ks-primary", provider: "icu", deterministic: false),
             model =>
             {
@@ -2711,7 +2711,7 @@ SELECT setval(
     {
         await Test(
             builder => builder.HasCollation("dummy", locale: "POSIX", provider: "libc"),
-            builder => { },
+            _ => { },
             model => Assert.Empty(PostgresCollation.GetCollations(model)));
 
         AssertSql(

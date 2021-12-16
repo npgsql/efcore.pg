@@ -1,15 +1,14 @@
 using System.Collections.ObjectModel;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
 {
-    private readonly IRelationalTypeMappingSource _typeMappingSource;
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
     private readonly RelationalTypeMapping _boolTypeMapping;
     private readonly RelationalTypeMapping _ltreeTypeMapping;
@@ -35,7 +34,6 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
         NpgsqlSqlExpressionFactory sqlExpressionFactory,
         IModel model)
     {
-        _typeMappingSource = typeMappingSource;
         _sqlExpressionFactory = sqlExpressionFactory;
         _boolTypeMapping = typeMappingSource.FindMapping(typeof(bool), model)!;
         _ltreeTypeMapping = typeMappingSource.FindMapping(typeof(LTree), model)!;

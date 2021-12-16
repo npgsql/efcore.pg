@@ -1,6 +1,3 @@
-
-// ReSharper disable once CheckNamespace
-
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 
 // ReSharper disable once CheckNamespace

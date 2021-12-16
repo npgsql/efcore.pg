@@ -76,7 +76,7 @@ public class PostgresAnyExpression : SqlExpression, IEquatable<PostgresAnyExpres
     /// <inheritdoc />
     public virtual bool Equals(PostgresAnyExpression? other)
         => ReferenceEquals(this, other) ||
-            other is object &&
+            other is not null &&
             base.Equals(other) &&
             Item.Equals(other.Item) &&
             Array.Equals(other.Array) &&

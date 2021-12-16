@@ -1,5 +1,3 @@
-using RelationalPropertyExtensions = Microsoft.EntityFrameworkCore.RelationalPropertyExtensions;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
 public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
@@ -75,15 +73,15 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
         // If the property has a collation explicitly defined on it via the standard EF mechanism, it will get
         // passed on the Collation property (we don't need to do anything).
         // Otherwise, a model-wide default column collation exists, pass that through our custom annotation.
-        if (column.PropertyMappings.All(m => RelationalPropertyExtensions.GetCollation(m.Property) is null) &&
+        if (column.PropertyMappings.All(m => m.Property.GetCollation() is null) &&
             column.PropertyMappings.Select(m => m.Property.GetDefaultCollation())
-                .FirstOrDefault(c => c is not null) is string defaultColumnCollation)
+                .FirstOrDefault(c => c is not null) is { } defaultColumnCollation)
         {
             yield return new Annotation(NpgsqlAnnotationNames.DefaultColumnCollation, defaultColumnCollation);
         }
 
         if (column.PropertyMappings.Select(m => m.Property.GetTsVectorConfig())
-                .FirstOrDefault(c => c is not null) is string tsVectorConfig)
+                .FirstOrDefault(c => c is not null) is { } tsVectorConfig)
         {
             yield return new Annotation(NpgsqlAnnotationNames.TsVectorConfig, tsVectorConfig);
         }
@@ -104,7 +102,7 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
         // Model validation ensures that these facets are the same on all mapped properties
         var property = column.PropertyMappings.First().Property;
 
-        if (property.GetCompressionMethod() is string compressionMethod)
+        if (property.GetCompressionMethod() is { } compressionMethod)
         {
             yield return new Annotation(NpgsqlAnnotationNames.CompressionMethod, compressionMethod);
         }
@@ -120,37 +118,37 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
         // Model validation ensures that these facets are the same on all mapped indexes
         var modelIndex = index.MappedIndexes.First();
 
-        if (modelIndex.GetCollation() is IReadOnlyList<string> collation)
+        if (modelIndex.GetCollation() is { } collation)
         {
             yield return new Annotation(RelationalAnnotationNames.Collation, collation);
         }
 
-        if (modelIndex.GetMethod() is string method)
+        if (modelIndex.GetMethod() is { } method)
         {
             yield return new Annotation(NpgsqlAnnotationNames.IndexMethod, method);
         }
 
-        if (modelIndex.GetOperators() is IReadOnlyList<string> operators)
+        if (modelIndex.GetOperators() is { } operators)
         {
             yield return new Annotation(NpgsqlAnnotationNames.IndexOperators, operators);
         }
 
-        if (modelIndex.GetSortOrder() is IReadOnlyList<SortOrder> sortOrder)
+        if (modelIndex.GetSortOrder() is { } sortOrder)
         {
             yield return new Annotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
         }
 
-        if (modelIndex.GetNullSortOrder() is IReadOnlyList<NullSortOrder> nullSortOrder)
+        if (modelIndex.GetNullSortOrder() is { } nullSortOrder)
         {
             yield return new Annotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
         }
 
-        if (modelIndex.GetTsVectorConfig() is string configName)
+        if (modelIndex.GetTsVectorConfig() is { } configName)
         {
             yield return new Annotation(NpgsqlAnnotationNames.TsVectorConfig, configName);
         }
 
-        if (modelIndex.GetIncludeProperties() is IReadOnlyList<string> includeProperties)
+        if (modelIndex.GetIncludeProperties() is { } includeProperties)
         {
             var tableIdentifier = StoreObjectIdentifier.Table(index.Table.Name, index.Table.Schema);
 

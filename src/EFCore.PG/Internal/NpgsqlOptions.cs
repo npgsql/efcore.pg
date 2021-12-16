@@ -19,7 +19,7 @@ public class NpgsqlOptions : INpgsqlOptions
     public virtual IReadOnlyList<UserRangeDefinition> UserRangeDefinitions { get; private set; }
 
     public NpgsqlOptions()
-        => UserRangeDefinitions = new UserRangeDefinition[0];
+        => UserRangeDefinitions = Array.Empty<UserRangeDefinition>();
 
     /// <inheritdoc />
     public virtual void Initialize(IDbContextOptions options)

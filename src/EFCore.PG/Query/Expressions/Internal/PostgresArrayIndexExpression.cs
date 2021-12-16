@@ -59,7 +59,7 @@ public class PostgresArrayIndexExpression : SqlExpression, IEquatable<PostgresAr
 
     public virtual bool Equals(PostgresArrayIndexExpression? other)
         => ReferenceEquals(this, other) ||
-            other is object &&
+            other is not null &&
             base.Equals(other) &&
             Array.Equals(other.Array) &&
             Index.Equals(other.Index);

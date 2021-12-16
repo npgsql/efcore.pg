@@ -1,3 +1,4 @@
+// ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore.Diagnostics;
 
 /// <summary>

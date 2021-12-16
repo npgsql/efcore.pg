@@ -449,7 +449,7 @@ public class NpgsqlTypeMappingTest
         // ReSharper disable once UnusedMember.Local
         Happy,
         Sad
-    };
+    }
 
     [Fact]
     public void GenerateSqlLiteral_returns_tid_literal()
@@ -465,7 +465,7 @@ public class NpgsqlTypeMappingTest
 
     [Fact]
     public void GenerateSqlLiteral_returns_array_empty_literal()
-        => Assert.Equal("ARRAY[]::smallint[]", GetMapping(typeof(short[])).GenerateSqlLiteral(new short[0]));
+        => Assert.Equal("ARRAY[]::smallint[]", GetMapping(typeof(short[])).GenerateSqlLiteral(Array.Empty<short>()));
 
     [Fact]
     public void ValueComparer_int_array()

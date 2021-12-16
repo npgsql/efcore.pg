@@ -284,7 +284,7 @@ public static class NpgsqlModelBuilderExtensions
     public static ModelBuilder HasPostgresExtension(
         this ModelBuilder modelBuilder,
         string name)
-        => modelBuilder.HasPostgresExtension(null, name, null);
+        => modelBuilder.HasPostgresExtension(null, name);
 
     #endregion
 

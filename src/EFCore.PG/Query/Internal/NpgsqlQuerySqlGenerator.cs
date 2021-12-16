@@ -249,8 +249,8 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             Sql.Append(")");
         }
 
-        Debug.Assert(binaryExpression.Left?.TypeMapping is not null);
-        Debug.Assert(binaryExpression.Right?.TypeMapping is not null);
+        Debug.Assert(binaryExpression.Left.TypeMapping is not null);
+        Debug.Assert(binaryExpression.Right.TypeMapping is not null);
 
         Sql
             .Append(" ")
@@ -685,19 +685,6 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
 
-    /// <inheritdoc />
-//        protected override Expression VisitDefault(DefaultExpression e)
-//        {
-//            // LOWER(range) and UPPER(range) return null on empty or infinite bounds.
-//            // When this happens, we need to ensure the database null is coalesced
-//            // back to the CLR default bound value (e.g. NpgsqlRange<int>.LowerBound is `int` not `int?`).
-//            var instance = e.Type.IsNullableType() ? null : Activator.CreateInstance(e.Type);
-//
-//            Sql.Append(TypeMappingSource.FindMapping(e.Type).GenerateSqlLiteral(instance));
-//
-//            return e;
-//        }
-
     /// <summary>
     /// Visits the children of a <see cref="PostgresFunctionExpression"/>.
     /// </summary>
@@ -731,7 +718,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
         for (var i = 0; i < e.Arguments.Count; i++)
         {
-            if (i < e.ArgumentNames.Count && e.ArgumentNames[i] is string argumentName)
+            if (i < e.ArgumentNames.Count && e.ArgumentNames[i] is { } argumentName)
             {
                 Sql
                     .Append(argumentName)

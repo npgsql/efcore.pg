@@ -290,7 +290,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
 
                 if (Extension.ReverseNullOrdering)
                 {
-                    builder.Append(nameof(Extension.ReverseNullOrdering)).Append(" ");;
+                    builder.Append(nameof(Extension.ReverseNullOrdering)).Append(" ");
                 }
 
                 if (Extension.UserRangeDefinitions.Count > 0)
@@ -355,7 +355,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
                 = (Extension.AdminDatabase?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
 
             debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.SetPostgresVersion)]
-                = (Extension.PostgresVersion?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
+                = Extension.PostgresVersion.GetHashCode().ToString(CultureInfo.InvariantCulture);
 
             debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.UseRedshift)]
                 = Extension.UseRedshift.GetHashCode().ToString(CultureInfo.InvariantCulture);

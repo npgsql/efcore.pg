@@ -129,7 +129,7 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
 
     public virtual bool Equals(PostgresFunctionExpression? other)
         => ReferenceEquals(this, other) ||
-            other is object &&
+            other is not null &&
             base.Equals(other) &&
             ArgumentNames.SequenceEqual(other.ArgumentNames) &&
             ArgumentSeparators.SequenceEqual(other.ArgumentSeparators);

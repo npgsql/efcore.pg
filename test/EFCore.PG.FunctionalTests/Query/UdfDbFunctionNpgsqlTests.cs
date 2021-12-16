@@ -527,7 +527,7 @@ LIMIT 2");
                     "IsDate",
                     args,
                     nullable: true,
-                    argumentsPropagateNullability: args.Select(a => true).ToList(),
+                    argumentsPropagateNullability: args.Select(_ => true).ToList(),
                     isDateMethodInfo.ReturnType,
                     typeMapping: null));
 
@@ -538,7 +538,7 @@ LIMIT 2");
                     "IsDate",
                     args,
                     nullable: true,
-                    argumentsPropagateNullability: args.Select(a => true).ToList(),
+                    argumentsPropagateNullability: args.Select(_ => true).ToList(),
                     isDateMethodInfo2.ReturnType,
                     typeMapping: null));
 
@@ -549,7 +549,7 @@ LIMIT 2");
                     "length",
                     args,
                     nullable: true,
-                    argumentsPropagateNullability: args.Select(a => true).ToList(),
+                    argumentsPropagateNullability: args.Select(_ => true).ToList(),
                     methodInfo.ReturnType,
                     typeMapping: null));
 
@@ -559,7 +559,7 @@ LIMIT 2");
                     "length",
                     args,
                     nullable: true,
-                    argumentsPropagateNullability: args.Select(a => true).ToList(),
+                    argumentsPropagateNullability: args.Select(_ => true).ToList(),
                     methodInfo2.ReturnType,
                     typeMapping: null));
         }

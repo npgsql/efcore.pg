@@ -17,7 +17,7 @@ public class NpgsqlTestStore : RelationalTestStore
 
     public static NpgsqlTestStore GetNorthwindStore()
         => (NpgsqlTestStore)NpgsqlNorthwindTestStoreFactory.Instance
-            .GetOrCreate(NpgsqlNorthwindTestStoreFactory.Name).Initialize(null, (Func<DbContext>)null, null);
+            .GetOrCreate(NpgsqlNorthwindTestStoreFactory.Name).Initialize(null, (Func<DbContext>)null);
 
     // ReSharper disable once UnusedMember.Global
     public static NpgsqlTestStore GetOrCreateInitialized(string name)

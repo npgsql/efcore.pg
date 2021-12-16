@@ -20,7 +20,6 @@ public class NpgsqlNetworkTranslator : IMethodCallTranslator
     private static readonly MethodInfo PhysicalAddressParse =
         typeof(PhysicalAddress).GetRuntimeMethod(nameof(PhysicalAddress.Parse), new[] { typeof(string) })!;
 
-    private readonly IRelationalTypeMappingSource _typeMappingSource;
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
     private readonly RelationalTypeMapping _inetMapping;
@@ -33,7 +32,6 @@ public class NpgsqlNetworkTranslator : IMethodCallTranslator
         NpgsqlSqlExpressionFactory sqlExpressionFactory,
         IModel model)
     {
-        _typeMappingSource = typeMappingSource;
         _sqlExpressionFactory = sqlExpressionFactory;
         _inetMapping = typeMappingSource.FindMapping("inet")!;
         _cidrMapping = typeMappingSource.FindMapping("cidr")!;
