@@ -136,19 +136,19 @@ public class NpgsqlNetTopologySuiteTypeMappingSourcePlugin : IRelationalTypeMapp
             return true;
         }
 
-        if (subtypeName.EndsWith("ZM", StringComparison.Ordinal) && TryGetClrType(subtypeName[0..^2], out clrType))
+        if (subtypeName.EndsWith("ZM", StringComparison.Ordinal) && TryGetClrType(subtypeName[..^2], out clrType))
         {
             ordinates = Ordinates.XYZM;
             return true;
         }
 
-        if (subtypeName.EndsWith("M", StringComparison.Ordinal) && TryGetClrType(subtypeName[0..^1], out clrType))
+        if (subtypeName.EndsWith("M", StringComparison.Ordinal) && TryGetClrType(subtypeName[..^1], out clrType))
         {
             ordinates = Ordinates.XYM;
             return true;
         }
 
-        if (subtypeName.EndsWith("Z", StringComparison.Ordinal) && TryGetClrType(subtypeName[0..^1], out clrType))
+        if (subtypeName.EndsWith("Z", StringComparison.Ordinal) && TryGetClrType(subtypeName[..^1], out clrType))
         {
             ordinates = Ordinates.XYZ;
             return true;

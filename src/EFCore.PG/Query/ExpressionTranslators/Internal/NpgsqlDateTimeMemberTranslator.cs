@@ -65,7 +65,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
 
             nameof(DateTime.Today) => _sqlExpressionFactory.Function(
                 "date_trunc",
-                new SqlExpression[] { _sqlExpressionFactory.Constant("day"), LocalNow() },
+                new[] { _sqlExpressionFactory.Constant("day"), LocalNow() },
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[2],
                 returnType),

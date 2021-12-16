@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
@@ -163,9 +162,4 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(bool));
     }
-
-    private static readonly ConcurrentDictionary<Type, object> _defaults = new();
-
-    private static object? GetDefaultValue(Type type)
-        => type.IsValueType ? _defaults.GetOrAdd(type, Activator.CreateInstance!) : null;
 }

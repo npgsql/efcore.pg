@@ -34,7 +34,7 @@ public class NpgsqlValueGeneratorCache : ValueGeneratorCache, INpgsqlValueGenera
 
         return _sequenceGeneratorCache.GetOrAdd(
             GetSequenceName(sequence, connection),
-            sequenceName => new NpgsqlSequenceValueGeneratorState(sequence));
+            _ => new NpgsqlSequenceValueGeneratorState(sequence));
     }
 
     private static string GetSequenceName(ISequence sequence, IRelationalConnection connection)
@@ -43,7 +43,7 @@ public class NpgsqlValueGeneratorCache : ValueGeneratorCache, INpgsqlValueGenera
 
         return dbConnection.Database.ToUpperInvariant()
             + "::"
-            + dbConnection.DataSource?.ToUpperInvariant()
+            + dbConnection.DataSource.ToUpperInvariant()
             + "::"
             + (sequence.Schema is null ? "" : sequence.Schema + ".") + sequence.Name;
     }

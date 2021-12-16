@@ -457,17 +457,17 @@ ORDER BY attnum";
                     }
                 }
 
-                if (record.GetValueOrDefault<string>("description") is string comment)
+                if (record.GetValueOrDefault<string>("description") is { } comment)
                 {
                     column.Comment = comment;
                 }
 
-                if (record.GetValueOrDefault<string>("collname") is string collation && collation != "default")
+                if (record.GetValueOrDefault<string>("collname") is { } collation && collation != "default")
                 {
                     column.Collation = collation;
                 }
 
-                if (record.GetValueOrDefault<string>("attcompression") is string compressionMethodChar)
+                if (record.GetValueOrDefault<string>("attcompression") is { } compressionMethodChar)
                 {
                     column[NpgsqlAnnotationNames.CompressionMethod] = compressionMethodChar switch
                     {
@@ -635,7 +635,7 @@ WHERE
                     // Key columns come before non-key (included) columns, process them first
                     foreach (var i in columnIndices.Take(numKeyColumns))
                     {
-                        if (tableColumns[i - 1] is DatabaseColumn indexKeyColumn)
+                        if (tableColumns[i - 1] is { } indexKeyColumn)
                         {
                             index.Columns.Add(indexKeyColumn);
                         }
@@ -652,9 +652,9 @@ WHERE
                         var nonKeyColumns = new List<string>();
                         foreach (var i in columnIndices.Skip(numKeyColumns))
                         {
-                            if (tableColumns[i - 1] is DatabaseColumn indexKeyColumn)
+                            if (tableColumns[i - 1] is { } indexKeyColumn)
                             {
-                                nonKeyColumns.Add(indexKeyColumn.Name!);
+                                nonKeyColumns.Add(indexKeyColumn.Name);
                             }
                             else
                             {
@@ -666,7 +666,7 @@ WHERE
                         index[NpgsqlAnnotationNames.IndexInclude] = nonKeyColumns.ToArray();
                     }
 
-                    if (record.GetValueOrDefault<string>("pred") is string predicate)
+                    if (record.GetValueOrDefault<string>("pred") is { } predicate)
                     {
                         index.Filter = predicate;
                     }
@@ -676,7 +676,7 @@ WHERE
                     // NpgsqlAnnotationCodeGenerator can then omit it as by-convention.
                     // However, because of https://github.com/aspnet/EntityFrameworkCore/issues/11846 we omit
                     // the annotation from the model entirely.
-                    if (record.GetValueOrDefault<string>("amname") is string indexMethod && indexMethod != "btree")
+                    if (record.GetValueOrDefault<string>("amname") is { } indexMethod && indexMethod != "btree")
                     {
                         index[NpgsqlAnnotationNames.IndexMethod] = indexMethod;
                     }
@@ -813,7 +813,7 @@ WHERE
 
                 foreach (var pkColumnIndex in primaryKeyRecord.GetFieldValue<short[]>("conkey"))
                 {
-                    if (table.Columns[pkColumnIndex - 1] is DatabaseColumn pkColumn)
+                    if (table.Columns[pkColumnIndex - 1] is { } pkColumn)
                     {
                         primaryKey.Columns.Add(pkColumn);
                     }
@@ -847,7 +847,7 @@ WHERE
                 {
                     logger.ForeignKeyReferencesMissingPrincipalTableWarning(
                         fkName,
-                        DisplayName(table.Schema, table.Name!),
+                        DisplayName(table.Schema, table.Name),
                         DisplayName(principalTableSchema, principalTableName));
 
                     continue;
@@ -1234,12 +1234,12 @@ WHERE
 
         return new SequenceInfo(storeType)
         {
-            StartValue = startValue == defaultStart ? null : (long?)startValue,
-            MinValue = minValue == defaultMin ? null : (long?)minValue,
-            MaxValue = maxValue == defaultMax ? null : (long?)maxValue,
-            IncrementBy = incrementBy == 1 ? null : (long?)incrementBy,
-            IsCyclic = isCyclic == false ? null : (bool?)true,
-            NumbersToCache = numbersToCache == 1 ? null : (long?)numbersToCache
+            StartValue = startValue == defaultStart ? null : startValue,
+            MinValue = minValue == defaultMin ? null : minValue,
+            MaxValue = maxValue == defaultMax ? null : maxValue,
+            IncrementBy = incrementBy == 1 ? null : incrementBy,
+            IsCyclic = isCyclic == false ? null : true,
+            NumbersToCache = numbersToCache == 1 ? null : numbersToCache
         };
     }
 
@@ -1265,7 +1265,7 @@ WHERE
     private static Func<string, string>? GenerateSchemaFilter(IReadOnlyList<string> schemas)
         => schemas.Any()
             ? s => $"{s} IN ({string.Join(", ", schemas.Select(EscapeLiteral))})"
-            : (Func<string, string>?)null;
+            : null;
 
     /// <summary>
     /// Builds a delegate to generate a table filter fragment.
@@ -1338,7 +1338,7 @@ WHERE
 
                 return tableFilterBuilder.ToString();
             }
-            : (Func<string, string, string>?)null;
+            : null;
 
     #endregion
 

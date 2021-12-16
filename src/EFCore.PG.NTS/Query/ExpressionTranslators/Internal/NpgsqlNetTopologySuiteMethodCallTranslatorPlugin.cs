@@ -175,7 +175,7 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
         SqlExpression OneBased(SqlExpression arg)
             => arg is SqlConstantExpression constant
                 ? _sqlExpressionFactory.Constant((int)constant.Value! + 1, constant.TypeMapping)
-                : (SqlExpression)_sqlExpressionFactory.Add(arg, _sqlExpressionFactory.Constant(1));
+                : _sqlExpressionFactory.Add(arg, _sqlExpressionFactory.Constant(1));
 
         RelationalTypeMapping ResultGeometryMapping()
         {

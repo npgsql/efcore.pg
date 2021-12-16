@@ -91,7 +91,7 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
             ?? TranslateDateTime(instance, method, arguments)
             ?? TranslateDateOnly(instance, method, arguments)
             ?? TranslateTimeOnly(instance, method, arguments)
-            ?? TranslateTimeZoneInfo(instance, method, arguments);
+            ?? TranslateTimeZoneInfo(method, arguments);
 
     private SqlExpression? TranslateDatePart(
         SqlExpression? instance,
@@ -286,7 +286,6 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
     }
 
     private SqlExpression? TranslateTimeZoneInfo(
-        SqlExpression? instance,
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments)
     {

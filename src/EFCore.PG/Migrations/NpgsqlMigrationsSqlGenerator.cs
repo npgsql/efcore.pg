@@ -1152,7 +1152,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             // go into rename detection heuristics (users can do that in raw SQL).
             // See https://www.postgresql.org/docs/current/sql-altertype.html
 
-            if (oldLabels.Except(newLabels).FirstOrDefault() is string removedLabel)
+            if (oldLabels.Except(newLabels).FirstOrDefault() is { } removedLabel)
             {
                 throw new NotSupportedException(
                     $"Can't remove enum label '{removedLabel}' from enum type '{newEnum}'. " +
@@ -1275,7 +1275,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
         if (operation.GetPostgresRanges().FirstOrDefault(nr =>
                 operation.GetOldPostgresRanges().Any(or => or.Name == nr.Name)
-            ) is PostgresRange rangeTypeToAlter)
+            ) is { } rangeTypeToAlter)
         {
             throw new NotSupportedException($"Altering range type ${rangeTypeToAlter} isn't supported.");
         }
@@ -1429,7 +1429,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     {
         Check.NotNull(operation, nameof(operation));
 
-        if (_postgresVersion.AtLeast(10, 0))
+        if (_postgresVersion.AtLeast(10))
         {
             base.Generate(operation, model, builder);
         }

@@ -135,7 +135,7 @@ public class NpgsqlArrayTranslator : IMethodCallTranslator, IMemberTranslator
         // The array/list CLR type may be mapped to a non-array database type (e.g. byte[] to bytea, or just
         // value converters) - we don't want to translate for those cases.
         static bool IsMappedToNonArray(SqlExpression arrayOrList)
-            => arrayOrList.TypeMapping is RelationalTypeMapping typeMapping &&
+            => arrayOrList.TypeMapping is { } typeMapping &&
                 typeMapping is not (NpgsqlArrayTypeMapping or NpgsqlJsonTypeMapping);
 
         SqlExpression? TranslateCommon(SqlExpression arrayOrList, IReadOnlyList<SqlExpression> arguments)
@@ -328,5 +328,5 @@ public class NpgsqlArrayTranslator : IMethodCallTranslator, IMemberTranslator
     private SqlExpression GenerateOneBasedIndexExpression(SqlExpression expression)
         => expression is SqlConstantExpression constant
             ? _sqlExpressionFactory.Constant(Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
-            : (SqlExpression)_sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));
+            : _sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));
 }

@@ -296,7 +296,7 @@ public static class NpgsqlEntityTypeBuilderExtensions
             throw new ArgumentException($"Entity not found in model for type: {parentEntity}", nameof(parentTableType));
         }
 
-        if (StoreObjectIdentifier.Create(parentEntity, StoreObjectType.Table) is not StoreObjectIdentifier tableIdentifier)
+        if (StoreObjectIdentifier.Create(parentEntity, StoreObjectType.Table) is not { } tableIdentifier)
         {
             throw new ArgumentException($"Entity {parentEntity.DisplayName()} is not mapped to a database table");
         }

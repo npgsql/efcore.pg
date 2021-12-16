@@ -91,7 +91,7 @@ public class NpgsqlDbContextOptionsExtensionsTest
             },
             dbContextOption =>
             {
-                dbContextOption.EnableDetailedErrors(true);
+                dbContextOption.EnableDetailedErrors();
             });
 
         var services = serviceCollection.BuildServiceProvider();

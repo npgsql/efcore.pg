@@ -13,11 +13,9 @@ public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConventi
     /// Creates a new instance of <see cref="NpgsqlValueGenerationStrategyConvention" />.
     /// </summary>
     /// <param name="dependencies">Parameter object containing dependencies for this convention.</param>
-    /// <param name="relationalDependencies">Parameter object containing relational dependencies for this convention.</param>
     /// <param name="postgresVersion">The PostgreSQL version being targeted. This affects the default value generation strategy.</param>
     public NpgsqlValueGenerationStrategyConvention(
         ProviderConventionSetBuilderDependencies dependencies,
-        RelationalConventionSetBuilderDependencies relationalDependencies,
         Version? postgresVersion)
     {
         Dependencies = dependencies;

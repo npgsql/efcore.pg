@@ -1425,7 +1425,7 @@ CREATE TABLE ""DependentTable"" (
 );",
             new[] { "DependentTable" },
             Enumerable.Empty<string>(),
-            dbModel =>
+            _ =>
             {
                 var (_, Id, Message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log.Where(t => t.Level == LogLevel.Warning));
 

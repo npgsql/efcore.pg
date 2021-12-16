@@ -165,7 +165,7 @@ public static class NpgsqlDbContextOptionsBuilderExtensions
     /// An existing instance of <see cref="NpgsqlOptionsExtension"/>, or a new instance if one does not exist.
     /// </returns>
     private static NpgsqlOptionsExtension GetOrCreateExtension(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.Options.FindExtension<NpgsqlOptionsExtension>() is NpgsqlOptionsExtension existing
+        => optionsBuilder.Options.FindExtension<NpgsqlOptionsExtension>() is { } existing
             ? new NpgsqlOptionsExtension(existing)
             : new NpgsqlOptionsExtension();
 

@@ -94,16 +94,16 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
 
     private static readonly IEnumerable<MethodInfo> TruncateMethodInfos = new[]
     {
-        typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Truncate), new[] { typeof(decimal) }),
-        typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Truncate), new[] { typeof(double) }),
-        typeof(MathF).GetRequiredRuntimeMethod(nameof(MathF.Truncate), new[] { typeof(float) })
+        typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Truncate), typeof(decimal)),
+        typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Truncate), typeof(double)),
+        typeof(MathF).GetRequiredRuntimeMethod(nameof(MathF.Truncate), typeof(float))
     };
 
     private static readonly IEnumerable<MethodInfo> RoundMethodInfos = new[]
     {
-        typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Round), new[] { typeof(decimal) }),
-        typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Round), new[] { typeof(double) }),
-        typeof(MathF).GetRequiredRuntimeMethod(nameof(MathF.Round), new[] { typeof(float) })
+        typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Round), typeof(decimal)),
+        typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Round), typeof(double)),
+        typeof(MathF).GetRequiredRuntimeMethod(nameof(MathF.Round), typeof(float))
     };
 
     private static readonly IEnumerable<MethodInfo> SignMethodInfos = new[]
@@ -135,7 +135,6 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
     private static readonly MethodInfo FloatIsNegativeInfinityMethodInfo
         = typeof(float).GetRuntimeMethod(nameof(float.IsNegativeInfinity), new[] { typeof(float) })!;
 
-    private readonly IRelationalTypeMappingSource _typeMappingSource;
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
     private readonly RelationalTypeMapping _intTypeMapping;
     private readonly RelationalTypeMapping _decimalTypeMapping;
@@ -145,10 +144,9 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
         ISqlExpressionFactory sqlExpressionFactory,
         IModel model)
     {
-        _typeMappingSource = typeMappingSource;
         _sqlExpressionFactory = sqlExpressionFactory;
-        _intTypeMapping = _typeMappingSource.FindMapping(typeof(int), model)!;
-        _decimalTypeMapping = _typeMappingSource.FindMapping(typeof(decimal), model)!;
+        _intTypeMapping = typeMappingSource.FindMapping(typeof(int), model)!;
+        _decimalTypeMapping = typeMappingSource.FindMapping(typeof(decimal), model)!;
     }
 
     /// <inheritdoc />

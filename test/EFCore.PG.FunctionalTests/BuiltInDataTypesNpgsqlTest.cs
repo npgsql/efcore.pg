@@ -311,11 +311,11 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
 
             short? param2 = null;
             Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.ShortAsSmallint == param2));
-            Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && (long?)(int?)e.ShortAsSmallint == param2));
+            Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && (long?)e.ShortAsSmallint == param2));
 
             byte? param2a = null;
             Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.ByteAsSmallint == param2a));
-            Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && (long?)(int?)e.ByteAsSmallint == param2a));
+            Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && (long?)e.ByteAsSmallint == param2a));
 
             uint? param3 = null;
             Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.UintAsInt == param3));
@@ -743,7 +743,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                 context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableInt16 == param1).ToList().Single());
             Assert.Same(
                 entity,
-                context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && (long?)(int?)e.TestNullableInt16 == param1).ToList()
+                context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && (long?)e.TestNullableInt16 == param1).ToList()
                     .Single());
 
             int? param2 = null;
@@ -1431,4 +1431,4 @@ FROM ""MappedDataTypes"" AS m");
 }
 
 // ReSharper disable once UnusedMember.Global
-public enum Mood { Happy, Sad };
+public enum Mood { Happy, Sad }

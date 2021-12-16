@@ -74,7 +74,7 @@ public class PostgresJsonTraversalExpression : SqlExpression, IEquatable<Postgre
     /// <inheritdoc />
     public virtual bool Equals(PostgresJsonTraversalExpression? other)
         => ReferenceEquals(this, other) ||
-            other is object &&
+            other is not null &&
             base.Equals(other) &&
             Equals(Expression, other.Expression) &&
             Path.Count == other.Path.Count &&

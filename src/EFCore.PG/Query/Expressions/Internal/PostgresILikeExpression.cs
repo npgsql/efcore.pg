@@ -27,6 +27,7 @@ public class PostgresILikeExpression : SqlExpression, IEquatable<PostgresILikeEx
     /// <param name="match">The expression to match.</param>
     /// <param name="pattern">The pattern to match.</param>
     /// <param name="escapeChar">The escape character to use in <paramref name="pattern"/>.</param>
+    /// <param name="typeMapping">The <see cref="RelationalTypeMapping"/> associated with the expression.</param>
     /// <exception cref="ArgumentNullException" />
     public PostgresILikeExpression(
         SqlExpression match,
@@ -61,7 +62,7 @@ public class PostgresILikeExpression : SqlExpression, IEquatable<PostgresILikeEx
     /// <inheritdoc />
     public virtual bool Equals(PostgresILikeExpression? other)
         => ReferenceEquals(this, other) ||
-            other is object &&
+            other is not null &&
             base.Equals(other) &&
             Equals(Match, other.Match) &&
             Equals(Pattern, other.Pattern) &&

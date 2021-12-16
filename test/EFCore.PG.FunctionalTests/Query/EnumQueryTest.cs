@@ -256,19 +256,19 @@ WHERE s.""UnmappedByteEnum"" = ANY (@__values_0)");
     {
         Happy,
         Sad
-    };
+    }
 
     public enum UnmappedEnum
     {
         Happy,
         Sad
-    };
+    }
 
     public enum InferredEnum
     {
         Happy,
         Sad
-    };
+    }
 
     public enum SchemaQualifiedEnum
     {

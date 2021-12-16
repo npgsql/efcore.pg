@@ -35,7 +35,7 @@ public abstract class ConnectionInterceptionNpgsqlTestBase : ConnectionIntercept
         public override void ChangeDatabase(string databaseName) => throw new NotImplementedException();
         public override void Close() => throw new NotImplementedException();
         public override void Open() => throw new NotImplementedException();
-        protected override DbTransaction BeginDbTransaction(System.Data.IsolationLevel isolationLevel) => throw new NotImplementedException();
+        protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => throw new NotImplementedException();
         protected override DbCommand CreateDbCommand() => throw new NotImplementedException();
     }
 

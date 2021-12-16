@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
@@ -28,7 +29,7 @@ public class QueryBugsTest : IClassFixture<NpgsqlFixture>
     }
 
     private NpgsqlTestStore CreateDatabase920()
-        => CreateTestStore(() => new Bug920Context(_options), context => ClearLog());
+        => CreateTestStore(() => new Bug920Context(_options), _ => ClearLog());
 
     public enum Bug920Enum { One, Two }
 

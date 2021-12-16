@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Globalization;
+using Microsoft.Extensions.Configuration;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
@@ -17,7 +18,7 @@ public static class TestEnvironment
         Config = configBuilder.Build()
             .GetSection("Test:Npgsql");
 
-        System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+        Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
     }
 
     private const string DefaultConnectionString = "Server=localhost;Username=npgsql_tests;Password=npgsql_tests;Port=5432";

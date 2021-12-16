@@ -82,11 +82,11 @@ public class NpgsqlLikeTranslator : IMethodCallTranslator
         {
             return sensitive
                 ? _sqlExpressionFactory.Like(match, pattern)
-                : (SqlExpression)_sqlExpressionFactory.ILike(match, pattern);
+                : _sqlExpressionFactory.ILike(match, pattern);
         }
 
         return sensitive
             ? _sqlExpressionFactory.Like(match, pattern, _sqlExpressionFactory.Constant(string.Empty))
-            : (SqlExpression)_sqlExpressionFactory.ILike(match, pattern, _sqlExpressionFactory.Constant(string.Empty));
+            : _sqlExpressionFactory.ILike(match, pattern, _sqlExpressionFactory.Constant(string.Empty));
     }
 }

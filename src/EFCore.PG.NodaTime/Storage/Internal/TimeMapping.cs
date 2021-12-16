@@ -42,8 +42,8 @@ public class TimeMapping : NpgsqlTypeMapping
         var time = (LocalTime)value;
         return time.NanosecondOfSecond != 0
             ? ConstantCall(FromHourMinuteSecondNanosecondMethod, time.Hour, time.Minute, time.Second, (long)time.NanosecondOfSecond)
-            : (Expression)(time.Second != 0
+            : time.Second != 0
                 ? ConstantNew(ConstructorWithSeconds, time.Hour, time.Minute, time.Second)
-                : ConstantNew(ConstructorWithMinutes, time.Hour, time.Minute));
+                : ConstantNew(ConstructorWithMinutes, time.Hour, time.Minute);
     }
 }

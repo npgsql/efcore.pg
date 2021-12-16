@@ -82,7 +82,7 @@ public class NpgsqlValueGenerationConvention : RelationalValueGenerationConventi
         => RelationalValueGenerationConvention.GetValueGenerated(property, storeObject)
             ?? (property.GetValueGenerationStrategy(storeObject) != NpgsqlValueGenerationStrategy.None
                 ? ValueGenerated.OnAdd
-                : (ValueGenerated?)null);
+                : null);
 
     private ValueGenerated? GetValueGenerated(
         IReadOnlyProperty property,
@@ -91,5 +91,5 @@ public class NpgsqlValueGenerationConvention : RelationalValueGenerationConventi
         => RelationalValueGenerationConvention.GetValueGenerated(property, storeObject)
             ?? (property.GetValueGenerationStrategy(storeObject, typeMappingSource) != NpgsqlValueGenerationStrategy.None
                 ? ValueGenerated.OnAdd
-                : (ValueGenerated?)null);
+                : null);
 }

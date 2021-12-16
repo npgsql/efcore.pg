@@ -44,7 +44,7 @@ public class NpgsqlArrayListTypeMapping : NpgsqlArrayTypeMapping
 
         if (elementMapping.Converter is { } elementConverter)
         {
-            var isNullable = listType.TryGetElementType(out var elementType) && elementType!.IsNullableValueType();
+            var isNullable = listType.TryGetElementType(out var elementType) && elementType.IsNullableValueType();
 
             // We construct the list's ProviderClrType and ModelClrType from the element's, but nullability has been unwrapped on the
             // element mapping. So we look at the given listType for that.

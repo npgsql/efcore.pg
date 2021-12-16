@@ -26,7 +26,7 @@ public class PostgresCollation
         Check.NullButNotEmpty(schema, nameof(schema));
         Check.NotEmpty(name, nameof(name));
 
-        if (FindCollation(annotatable, schema, name) is PostgresCollation collation)
+        if (FindCollation(annotatable, schema, name) is { } collation)
         {
             return collation;
         }
@@ -126,7 +126,7 @@ public class PostgresCollation
             }
         }
 
-        var isDeterministic = elements[3] is string isDeterminsticString
+        var isDeterministic = elements[3] is { } isDeterminsticString
             ? bool.Parse(isDeterminsticString)
             : (bool?)null;
 

@@ -38,7 +38,7 @@ public class ConnectionSpecificationTest
     public void Can_specify_connection_in_OnConfiguring()
     {
         var serviceProvider = new ServiceCollection()
-            .AddScoped(p => new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString))
+            .AddScoped(_ => new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString))
             .AddDbContext<ConnectionInOnConfiguringContext>().BuildServiceProvider();
 
         using var _ = NpgsqlTestStore.GetNorthwindStore();
@@ -114,7 +114,7 @@ public class ConnectionSpecificationTest
     public void Can_depend_on_DbContextOptions()
     {
         var serviceProvider = new ServiceCollection()
-            .AddScoped(p => new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString))
+            .AddScoped(_ => new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString))
             .AddDbContext<OptionsContext>()
             .BuildServiceProvider();
 

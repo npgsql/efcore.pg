@@ -45,7 +45,7 @@ public class NpgsqlCharacterStringTypeMapping : NpgsqlStringTypeMapping
             fixedLength: true)) {}
 
     protected NpgsqlCharacterStringTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlTypes.NpgsqlDbType.Char)
+        : base(parameters, NpgsqlDbType.Char)
     {
     }
 

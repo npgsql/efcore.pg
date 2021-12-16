@@ -255,7 +255,7 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         for (var i = 0; i < jsonTraversalExpression.Path.Count; i++)
         {
             var pathComponent = jsonTraversalExpression.Path[i];
-            var newPathComponent = Visit(pathComponent, allowOptimizedExpansion, out var nullablePathComponent);
+            var newPathComponent = Visit(pathComponent, allowOptimizedExpansion, out _);
             if (newPathComponent != pathComponent && newPath is null)
             {
                 newPath = new List<SqlExpression>();
