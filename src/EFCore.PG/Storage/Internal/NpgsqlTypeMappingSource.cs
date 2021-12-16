@@ -7,6 +7,7 @@ using System.Net.NetworkInformation;
 using System.Numerics;
 using System.Text;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
@@ -32,7 +33,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     }
 
     private readonly ISqlGenerationHelper _sqlGenerationHelper;
-    private readonly ReferenceNullabilityDecoder _referenceNullabilityDecoder = new();
+    private readonly NullabilityInfoContext _nullabilityInfoContext = new();
 
     protected virtual ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
     protected virtual ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
@@ -827,11 +828,21 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         // We decode NRT annotations here to return the correct type mapping.
         if (mapping is NpgsqlArrayTypeMapping arrayMapping
             && !arrayMapping.ElementMapping.ClrType.IsValueType
-            && !property.IsShadowProperty()
-            && property.GetMemberInfo(forMaterialization: false, forSet: false) is { } memberInfo
-            && memberInfo.GetMemberType().IsArrayOrGenericList())
+            && !property.IsShadowProperty())
         {
-            if (_referenceNullabilityDecoder.IsArrayOrListElementNonNullable(memberInfo))
+            var nullabilityInfo =
+                property.PropertyInfo is { } propertyInfo
+                    ? _nullabilityInfoContext.Create(propertyInfo)
+                    : property.FieldInfo is { } fieldInfo
+                        ? _nullabilityInfoContext.Create(fieldInfo)
+                        : null;
+
+            // We already know from the mapping check above that the member is either an array or a generic list
+            var elementNullabilityInfo = nullabilityInfo?.ElementType
+                ?? (nullabilityInfo?.GenericTypeArguments.Length > 0 ? nullabilityInfo.GenericTypeArguments[0] : null);
+
+            if (elementNullabilityInfo?.ReadState == NullabilityState.NotNull
+                && elementNullabilityInfo.WriteState == NullabilityState.NotNull)
             {
                 return arrayMapping.MakeNonNullable();
             }
