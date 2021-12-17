@@ -5,15 +5,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 [EntityFrameworkInternal]
 public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
 {
+    private readonly IRelationalTypeMappingSource _typeMappingSource;
     private readonly Version _postgresVersion;
 
     [EntityFrameworkInternal]
     public NpgsqlConventionSetBuilder(
         ProviderConventionSetBuilderDependencies dependencies,
         RelationalConventionSetBuilderDependencies relationalDependencies,
+        IRelationalTypeMappingSource typeMappingSource,
         INpgsqlOptions npgsqlOptions)
         : base(dependencies, relationalDependencies)
-        => _postgresVersion = npgsqlOptions.PostgresVersion;
+    {
+        _typeMappingSource = typeMappingSource;
+        _postgresVersion = npgsqlOptions.PostgresVersion;
+    }
 
     [EntityFrameworkInternal]
     public override ConventionSet CreateConventionSet()
@@ -43,6 +48,7 @@ public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
             conventionSet.PropertyAnnotationChangedConventions, (RelationalValueGenerationConvention)valueGenerationConvention);
 
         conventionSet.ModelFinalizingConventions.Add(valueGenerationStrategyConvention);
+        conventionSet.ModelFinalizingConventions.Add(new NpgsqlPostgresExtensionDiscoveryConvention(_typeMappingSource));
         ReplaceConvention(conventionSet.ModelFinalizingConventions, storeGenerationConvention);
         ReplaceConvention(
             conventionSet.ModelFinalizingConventions,

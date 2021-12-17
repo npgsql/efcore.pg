@@ -24,7 +24,6 @@ public class SpatialNpgsqlFixture : SpatialFixtureBase
     {
         base.OnModelCreating(modelBuilder, context);
 
-        modelBuilder.HasPostgresExtension("postgis")
-            .HasPostgresExtension("uuid-ossp");
+        modelBuilder.HasPostgresExtension("uuid-ossp");
     }
 }

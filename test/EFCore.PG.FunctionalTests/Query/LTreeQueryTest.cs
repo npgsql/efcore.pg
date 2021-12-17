@@ -427,9 +427,6 @@ WHERE lca(ARRAY[l.""Path"",'Top.Hobbies']::ltree[]) = 'Top'");
 
         public LTreeQueryContext(DbContextOptions options) : base(options) {}
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-            => modelBuilder.HasPostgresExtension("ltree");
-
         public static void Seed(LTreeQueryContext context)
         {
             var ltreeEntities = new LTreeEntity[]
@@ -471,8 +468,6 @@ WHERE lca(ARRAY[l.""Path"",'Top.Hobbies']::ltree[]) = 'Top'");
         protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
         public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
         protected override void Seed(LTreeQueryContext context) => LTreeQueryContext.Seed(context);
-        protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
-            => modelBuilder.HasPostgresExtension("ltree");
     }
 
     #endregion

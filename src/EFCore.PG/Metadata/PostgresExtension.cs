@@ -60,6 +60,39 @@ public class PostgresExtension
     /// Gets or adds a <see cref="PostgresExtension"/> from or to the <see cref="IMutableAnnotatable"/>.
     /// </summary>
     /// <param name="annotatable">The annotatable from which to get or add the extension.</param>
+    /// <param name="schema">The extension schema or null to use the model's default schema.</param>
+    /// <param name="name">The extension name.</param>
+    /// <param name="version">The extension version.</param>
+    /// <returns>
+    /// The <see cref="PostgresExtension"/> from the <see cref="IMutableAnnotatable"/>.
+    /// </returns>
+    /// <exception cref="ArgumentException"><paramref name="schema"/></exception>
+    /// <exception cref="ArgumentNullException"><paramref name="annotatable"/></exception>
+    /// <exception cref="ArgumentNullException"><paramref name="name"/></exception>
+    public static PostgresExtension GetOrAddPostgresExtension(
+        IConventionAnnotatable annotatable,
+        string? schema,
+        string name,
+        string? version)
+    {
+        Check.NotNull(annotatable, nameof(annotatable));
+        Check.NullButNotEmpty(schema, nameof(schema));
+        Check.NotNull(name, nameof(name));
+
+        if (FindPostgresExtension(annotatable, schema, name) is { } postgresExtension)
+        {
+            return postgresExtension;
+        }
+
+        var annotationName = BuildAnnotationName(schema, name);
+
+        return new PostgresExtension(annotatable, annotationName) { Version = version };
+    }
+
+    /// <summary>
+    /// Gets or adds a <see cref="PostgresExtension"/> from or to the <see cref="IMutableAnnotatable"/>.
+    /// </summary>
+    /// <param name="annotatable">The annotatable from which to get or add the extension.</param>
     /// <param name="name">The extension name.</param>
     /// <param name="version">The extension version.</param>
     /// <returns>
@@ -99,7 +132,7 @@ public class PostgresExtension
         return annotatable[annotationName] is null ? null : new PostgresExtension(annotatable, annotationName);
     }
 
-    private static string BuildAnnotationName(string? schema, string name)
+    internal static string BuildAnnotationName(string? schema, string name)
         => schema is not null
             ? $"{NpgsqlAnnotationNames.PostgresExtensionPrefix}{schema}.{name}"
             : $"{NpgsqlAnnotationNames.PostgresExtensionPrefix}{name}";
