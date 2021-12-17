@@ -997,11 +997,11 @@ WHERE
         /// </summary>
         private static HashSet<string> GetEnums(NpgsqlConnection connection, DatabaseModel databaseModel)
         {
-            const string commandText = @"
+            var commandText = $@"
 SELECT
   nspname,
   typname,
-  array_agg(enumlabel ORDER BY enumsortorder) AS labels
+  array_agg(enumlabel{(connection.PostgreSqlVersion >= new Version(9, 1) ? " ORDER BY enumsortorder" : "")}) AS labels
 FROM pg_enum
 JOIN pg_type ON pg_type.oid = enumtypid
 JOIN pg_namespace ON pg_namespace.oid = pg_type.typnamespace
