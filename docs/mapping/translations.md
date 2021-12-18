@@ -105,29 +105,30 @@ EF.Functions.Set7BitMac8(macaddr8)               | [macaddr8_set7bit(macaddr8)](
 
 ## Numeric functions
 
-.NET                    | SQL
------------------------ | --------------------
-Math.Abs(value)         | abs(value)
-Math.Acos(d)            | acos(d)
-Math.Asin(d)            | asin(d)
-Math.Atan(d)            | atan(d)
-Math.Atan2(y, x)        | atan2(y, x)
-Math.Ceiling(d)         | ceiling(d)
-Math.Cos(d)             | cos(d)
-Math.Exp(d)             | exp(d)
-Math.Floor(d)           | floor(d)
-Math.Log(d)             | ln(d)
-Math.Log10(d)           | log(d)
-Math.Max(x, y)          | greatest(x, y)
-Math.Min(x, y)          | least(x, y)
-Math.Pow(x, y)          | power(x, y)
-Math.Round(d)           | round(d)
-Math.Round(d, decimals) | round(d, decimals)
-Math.Sin(a)             | sin(a)
-Math.Sign(value)        | sign(value)::int
-Math.Sqrt(d)            | sqrt(d)
-Math.Tan(a)             | tan(a)
-Math.Truncate(d)        | trunc(d)
+.NET                    | SQL                | Notes
+----------------------- | ------------------ | -----
+Math.Abs(value)         | abs(value)         |
+Math.Acos(d)            | acos(d)            |
+Math.Asin(d)            | asin(d)            |
+Math.Atan(d)            | atan(d)            |
+Math.Atan2(y, x)        | atan2(y, x)        |
+Math.Ceiling(d)         | ceiling(d)         |
+Math.Cos(d)             | cos(d)             |
+Math.Exp(d)             | exp(d)             |
+Math.Floor(d)           | floor(d)           |
+Math.Log(d)             | ln(d)              |
+Math.Log10(d)           | log(d)             |
+Math.Max(x, y)          | greatest(x, y)     |
+Math.Min(x, y)          | least(x, y)        |
+Math.Pow(x, y)          | power(x, y)        |
+Math.Round(d)           | round(d)           |
+Math.Round(d, decimals) | round(d, decimals) |
+Math.Sin(a)             | sin(a)             |
+Math.Sign(value)        | sign(value)::int   |
+Math.Sqrt(d)            | sqrt(d)            |
+Math.Tan(a)             | tan(a)             |
+Math.Truncate(d)        | trunc(d)           |
+EF.Functions.Random()   | random()           | Added in 6.0
 
 ## String functions
 
