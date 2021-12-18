@@ -455,6 +455,10 @@ public class NpgsqlTypeMappingTest
     public void GenerateSqlLiteral_returns_tid_literal()
         => Assert.Equal(@"TID '(0,1)'", GetMapping("tid").GenerateSqlLiteral(new NpgsqlTid(0, 1)));
 
+    [Fact]
+    public void GenerateSqlLiteral_returns_pg_lsn_literal()
+        => Assert.Equal(@"PG_LSN '12345/67890'", GetMapping("pg_lsn").GenerateSqlLiteral(NpgsqlLogSequenceNumber.Parse("12345/67890")));
+
     #endregion Misc
 
     #region Array
