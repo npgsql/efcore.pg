@@ -1,8 +1,8 @@
 # Npgsql Entity Framework Core provider for PostgreSQL
 
 [![stable](https://img.shields.io/nuget/v/Npgsql.EntityFrameworkCore.PostgreSQL.svg?label=stable)](https://www.nuget.org/packages/Npgsql/)
-[![next patch](https://img.shields.io/myget/npgsql/v/npgsql.svg?label=next%20patch)](https://www.myget.org/feed/npgsql/package/nuget/Npgsql)
-[![daily builds (vnext)](https://img.shields.io/myget/npgsql-unstable/v/npgsql.svg?label=unstable)](https://www.myget.org/feed/npgsql-unstable/package/nuget/Npgsql)
+[![next patch](https://img.shields.io/myget/npgsql/v/Npgsql.EntityFrameworkCore.PostgreSQL.svg?label=next%20patch)](https://www.myget.org/feed/npgsql/package/nuget/Npgsql.EntityFrameworkCore.PostgreSQL)
+[![daily builds (vnext)](https://img.shields.io/myget/npgsql-vnext/v/Npgsql.EntityFrameworkCore.PostgreSQL.svg?label=vNext)](https://www.myget.org/feed/npgsql-vnext/package/nuget/Npgsql.EntityFrameworkCore.PostgreSQL)
 [![build](https://img.shields.io/github/workflow/status/npgsql/efcore.pg/Build)](https://github.com/npgsql/efcore.pg/actions)
 [![gitter](https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg)](https://gitter.im/npgsql/npgsql)
 
