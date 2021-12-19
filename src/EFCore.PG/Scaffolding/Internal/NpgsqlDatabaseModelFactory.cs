@@ -278,7 +278,7 @@ SELECT
   basetyp.typname AS basetypname,
   attname,
   description,
-  collname,
+  {(connection.PostgreSqlVersion >= new Version(9, 1) ? "collname" : "''::text as collname")},
   attisdropped,
   {(connection.PostgreSqlVersion >= new Version(10, 0) ? "attidentity::text" : "' '::text as attidentity")},
   {(connection.PostgreSqlVersion >= new Version(12, 0) ? "attgenerated::text" : "' '::text as attgenerated")},
@@ -308,7 +308,7 @@ LEFT JOIN pg_proc ON pg_proc.oid = typ.typreceive
 LEFT JOIN pg_type AS elemtyp ON (elemtyp.oid = typ.typelem)
 LEFT JOIN pg_type AS basetyp ON (basetyp.oid = typ.typbasetype)
 LEFT JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid = attnum
-LEFT JOIN pg_collation as coll ON coll.oid = attr.attcollation
+{(connection.PostgreSqlVersion >= new Version(9, 1) ? "LEFT JOIN pg_collation as coll ON coll.oid = attr.attcollation" : "")}
 -- Bring in identity sequences the depend on this column
 LEFT JOIN pg_depend AS dep ON dep.refobjid = cls.oid AND dep.refobjsubid = attr.attnum AND dep.deptype = 'i'
 {(connection.PostgreSqlVersion >= new Version(10, 0) ? "LEFT JOIN pg_sequence AS seq ON seq.seqrelid = dep.objid" : "")}
@@ -529,7 +529,7 @@ ORDER BY attnum";
 
         var collations = new Dictionary<uint, string>();
 
-        if (connection.Settings.ServerCompatibilityMode != ServerCompatibilityMode.Redshift)
+        if (connection.PostgreSqlVersion >= new Version(9, 1))
         {
             using (var command = new NpgsqlCommand("SELECT oid, collname FROM pg_collation", connection))
             using (var reader = command.ExecuteReader())
