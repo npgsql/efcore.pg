@@ -135,7 +135,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 }
 
                 GetExtensions(connection, databaseModel);
-                GetCollations(connection, databaseModel, internalSchemas, _logger);
+
+                if (connection.PostgreSqlVersion >= new Version(9, 1))
+                {
+                    GetCollations(connection, databaseModel, internalSchemas, _logger);
+                }
 
                 for (var i = 0; i < databaseModel.Tables.Count; i++)
                 {
