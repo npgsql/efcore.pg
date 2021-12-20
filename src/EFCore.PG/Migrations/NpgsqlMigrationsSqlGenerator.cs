@@ -874,23 +874,21 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
 
-        // PostgreSQL 9.2 and below unfortunately doesn't have CREATE SCHEMA IF NOT EXISTS.
-        // An attempted workaround by creating a function which checks and creates the schema, and then invoking it, failed because
-        // of #641 (pg_temp doesn't exist yet).
-        // So the only workaround for pre-9.3 PostgreSQL, at least for now, is to define all tables in the public schema.
-        // TODO: Since Npgsql 3.1 we can now ensure schema with a function in pg_temp
-
-        // NOTE: Technically the public schema can be dropped so we should also be ensuring it, but this is a rare case and
-        // we want to allow pre-9.3
         if (operation.Name == "public")
         {
             return;
         }
 
-        builder
-            .Append("CREATE SCHEMA IF NOT EXISTS ")
-            .Append(DelimitIdentifier(operation.Name))
-            .AppendLine(";");
+        // PostgreSQL has CREATE SCHEMA IF NOT EXISTS, but that requires CREATE privileges on the database even if the schema already
+        // exists. This blocks multi-tenant scenarios where the user has no database privileges.
+        // So we procedurally check if the schema exists instead, and create it if not.
+        var schemaName = operation.Name.Replace("'", "''");
+        builder.Append($@"DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = '{schemaName}') THEN
+        CREATE SCHEMA {DelimitIdentifier(operation.Name)};
+    END IF;
+END $EF$;");
 
         EndStatement(builder);
     }
