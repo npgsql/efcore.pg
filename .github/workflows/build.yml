@@ -30,10 +30,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2.4.0
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v1.9.0
         with:
           dotnet-version: ${{ env.dotnet_sdk_version }}
 
@@ -120,10 +120,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2.4.0
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v1.9.0
         with:
           dotnet-version: ${{ env.dotnet_sdk_version }}
 
@@ -154,10 +154,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2.4.0
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v1.9.0
         with:
           dotnet-version: ${{ env.dotnet_sdk_version }}
 
