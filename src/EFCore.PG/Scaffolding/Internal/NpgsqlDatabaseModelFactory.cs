@@ -123,10 +123,9 @@ public class NpgsqlDatabaseModelFactory : DatabaseModelFactory
                 databaseModel.Sequences.Add(sequence);
             }
 
-            GetExtensions(connection, databaseModel);
-
             if (connection.PostgreSqlVersion >= new Version(9, 1))
             {
+                GetExtensions(connection, databaseModel);
                 GetCollations(connection, databaseModel, internalSchemas, _logger);
             }
 
@@ -554,7 +553,7 @@ SELECT
   amname,
   indclass,
   indoption,
-  indcollation,
+  {(connection.PostgreSqlVersion >= new Version(9, 1) ? "indcollation" : "''::text AS indcollation")},
   CASE
     WHEN indexprs IS NULL THEN NULL
     ELSE pg_get_expr(indexprs, cls.oid)
@@ -940,7 +939,7 @@ WHERE
 SELECT
   sequence_schema, sequence_name,
   data_type AS seqtype,
-  start_value::bigint AS seqstart,
+  {(connection.PostgreSqlVersion >= new Version(9, 1) ? "start_value" : "1")}::bigint AS seqstart,
   minimum_value::bigint AS seqmin,
   maximum_value::bigint AS seqmax,
   increment::bigint AS seqincrement,
