@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
-            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         #region Table
@@ -49,7 +49,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             await base.Create_table_all_settings();
 
             AssertSql(
-                @"CREATE SCHEMA IF NOT EXISTS dbo2;",
+                @"DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'dbo2') THEN
+        CREATE SCHEMA dbo2;
+    END IF;
+END $EF$;",
                 //
                 @"CREATE TABLE dbo2.""People"" (
     ""CustomId"" integer NOT NULL,
@@ -431,7 +436,12 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
             await base.Move_table();
 
             AssertSql(
-                @"CREATE SCHEMA IF NOT EXISTS ""TestTableSchema"";",
+                @"DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'TestTableSchema') THEN
+        CREATE SCHEMA ""TestTableSchema"";
+    END IF;
+END $EF$;",
                 //
                 @"ALTER TABLE ""TestTable"" SET SCHEMA ""TestTableSchema"";");
         }
@@ -445,7 +455,12 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
             await base.Create_schema();
 
             AssertSql(
-                @"CREATE SCHEMA IF NOT EXISTS ""SomeOtherSchema"";",
+                @"DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'SomeOtherSchema') THEN
+        CREATE SCHEMA ""SomeOtherSchema"";
+    END IF;
+END $EF$;",
                 //
                 @"CREATE TABLE ""SomeOtherSchema"".""People"" (
     ""Id"" integer NOT NULL
@@ -2295,7 +2310,12 @@ DROP SEQUENCE ""People_Id_old_seq"";");
             await base.Create_sequence_all_settings();
 
             AssertSql(
-                @"CREATE SCHEMA IF NOT EXISTS dbo2;",
+                @"DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'dbo2') THEN
+        CREATE SCHEMA dbo2;
+    END IF;
+END $EF$;",
                 //
                 @"CREATE SEQUENCE dbo2.""TestSequence"" START WITH 3 INCREMENT BY 2 MINVALUE 2 MAXVALUE 916 CYCLE;");
         }
@@ -2374,7 +2394,12 @@ DROP SEQUENCE ""People_Id_old_seq"";");
             await base.Move_sequence();
 
             AssertSql(
-                @"CREATE SCHEMA IF NOT EXISTS ""TestSequenceSchema"";",
+                @"DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'TestSequenceSchema') THEN
+        CREATE SCHEMA ""TestSequenceSchema"";
+    END IF;
+END $EF$;",
                 //
                 @"ALTER SEQUENCE ""TestSequence"" SET SCHEMA ""TestSequenceSchema"";");
         }
@@ -2538,7 +2563,12 @@ SELECT setval(
                 });
 
             AssertSql(
-                @"CREATE SCHEMA IF NOT EXISTS some_schema;",
+                @"DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'some_schema') THEN
+        CREATE SCHEMA some_schema;
+    END IF;
+END $EF$;",
                 //
                 @"CREATE EXTENSION IF NOT EXISTS citext SCHEMA some_schema;");
         }
@@ -2584,7 +2614,12 @@ SELECT setval(
                 });
 
             AssertSql(
-                @"CREATE SCHEMA IF NOT EXISTS some_schema;",
+                @"DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'some_schema') THEN
+        CREATE SCHEMA some_schema;
+    END IF;
+END $EF$;",
                 //
                 @"CREATE TYPE some_schema.""Mood"" AS ENUM ('Happy', 'Sad');");
         }
