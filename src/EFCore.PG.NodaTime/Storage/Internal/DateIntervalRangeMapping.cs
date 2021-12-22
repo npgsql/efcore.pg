@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
-public class DateIntervalMapping : NpgsqlTypeMapping
+public class DateIntervalRangeMapping : NpgsqlTypeMapping
 {
     private static readonly ConstructorInfo _constructorWithDates =
         typeof(DateInterval).GetConstructor(new[] { typeof(LocalDate), typeof(LocalDate) })!;
@@ -12,29 +12,32 @@ public class DateIntervalMapping : NpgsqlTypeMapping
     private static readonly ConstructorInfo _localDateConstructor =
         typeof(LocalDate).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
 
-    public DateIntervalMapping()
+    public DateIntervalRangeMapping()
         : base("daterange", typeof(DateInterval), NpgsqlDbType.DateRange)
     {
     }
 
-    protected DateIntervalMapping(RelationalTypeMappingParameters parameters)
+    protected DateIntervalRangeMapping(RelationalTypeMappingParameters parameters)
         : base(parameters, NpgsqlDbType.DateRange)
     {
     }
 
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-        => new DateIntervalMapping(parameters);
+        => new DateIntervalRangeMapping(parameters);
 
     public override RelationalTypeMapping Clone(string storeType, int? size)
-        => new DateIntervalMapping(Parameters.WithStoreTypeAndSize(storeType, size));
+        => new DateIntervalRangeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
     public override CoreTypeMapping Clone(ValueConverter? converter)
-        => new DateIntervalMapping(Parameters.WithComposedConverter(converter));
+        => new DateIntervalRangeMapping(Parameters.WithComposedConverter(converter));
 
     protected override string GenerateNonNullSqlLiteral(object value)
+        => $"'{GenerateEmbeddedNonNullSqlLiteral(value)}'::daterange";
+
+    protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
     {
-        var dateInverval = (DateInterval)value;
-        return $"'[{LocalDatePattern.Iso.Format(dateInverval.Start)},{LocalDatePattern.Iso.Format(dateInverval.End)}]'::daterange";
+        var dateInterval = (DateInterval)value;
+        return $"[{LocalDatePattern.Iso.Format(dateInterval.Start)},{LocalDatePattern.Iso.Format(dateInterval.End)}]";
     }
 
     public override Expression GenerateCodeLiteral(object value)

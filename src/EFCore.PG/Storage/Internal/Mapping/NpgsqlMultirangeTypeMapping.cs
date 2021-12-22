@@ -76,6 +76,9 @@ public class NpgsqlMultirangeTypeMapping : NpgsqlTypeMapping
         => new NpgsqlMultirangeTypeMapping(parameters, NpgsqlDbType, RangeMapping, _sqlGenerationHelper);
 
     protected override string GenerateNonNullSqlLiteral(object value)
+        => GenerateNonNullSqlLiteral(value, RangeMapping, StoreType);
+
+    public static string GenerateNonNullSqlLiteral(object value, RelationalTypeMapping rangeMapping, string multirangeStoreType)
     {
         var multirange = (IList)value;
 
@@ -84,7 +87,7 @@ public class NpgsqlMultirangeTypeMapping : NpgsqlTypeMapping
 
         for (var i = 0; i < multirange.Count; i++)
         {
-            sb.Append(RangeMapping.GenerateEmbeddedSqlLiteral(multirange[i]));
+            sb.Append(rangeMapping.GenerateEmbeddedSqlLiteral(multirange[i]));
             if (i < multirange.Count - 1)
             {
                 sb.Append(", ");
@@ -92,7 +95,7 @@ public class NpgsqlMultirangeTypeMapping : NpgsqlTypeMapping
         }
 
         sb.Append("}'::");
-        sb.Append(StoreType);
+        sb.Append(multirangeStoreType);
         return sb.ToString();
     }
 
