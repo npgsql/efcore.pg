@@ -82,10 +82,9 @@ public class NpgsqlMultirangeTypeMapping : NpgsqlTypeMapping
         var sb = new StringBuilder();
         sb.Append("'{");
 
-        // TODO: We may need to quote here, though that would only need to happen in pretty exotic cases
         for (var i = 0; i < multirange.Count; i++)
         {
-            sb.Append(SubtypeMapping.GenerateSqlLiteral(multirange[i]));
+            sb.Append(RangeMapping.GenerateEmbeddedSqlLiteral(multirange[i]));
             if (i < multirange.Count - 1)
             {
                 sb.Append(", ");
@@ -125,7 +124,7 @@ public class NpgsqlMultirangeTypeMapping : NpgsqlTypeMapping
 
         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
         {
-            throw new NotSupportedException("Cannot generate cold literals for List<T>, consider using arrays instead");
+            throw new NotSupportedException("Cannot generate code literals for List<T>, consider using arrays instead");
         }
 
         throw new InvalidCastException();

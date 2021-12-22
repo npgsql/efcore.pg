@@ -16,7 +16,7 @@ public class RangeQueryNpgsqlTest : IClassFixture<RangeQueryNpgsqlTest.RangeQuer
     {
         Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();
-        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     #region Operators
