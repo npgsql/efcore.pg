@@ -82,10 +82,13 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
         => new NpgsqlRangeTypeMapping(parameters, NpgsqlDbType, SubtypeMapping, _sqlGenerationHelper);
 
     protected override string GenerateNonNullSqlLiteral(object value)
+        => $"'{GenerateEmbeddedNonNullSqlLiteral(value)}'::{StoreType}";
+
+    protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
     {
         InitializeAccessors(ClrType, SubtypeMapping.ClrType);
 
-        var builder = new StringBuilder("'");
+        var builder = new StringBuilder();
 
         if ((bool)_isEmptyProperty.GetValue(value)!)
         {
@@ -110,10 +113,7 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
             builder.Append((bool)_upperInclusiveProperty.GetValue(value)! ? ']' : ')');
         }
 
-        return builder
-            .Append("'::")
-            .Append(StoreType)
-            .ToString();
+        return builder.ToString();
     }
 
     private static NpgsqlDbType GenerateNpgsqlDbType(RelationalTypeMapping subtypeMapping)
