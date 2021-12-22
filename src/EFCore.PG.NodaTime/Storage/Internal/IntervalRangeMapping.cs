@@ -1,18 +1,17 @@
-// ReSharper disable once CheckNamespace
-
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using NodaTime.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
-using NpgsqlTypes;
+using NpgsqlDbType = NpgsqlTypes.NpgsqlDbType;
 
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
-    public class IntervalMapping : NpgsqlTypeMapping
+    public class IntervalRangeMapping : NpgsqlTypeMapping
     {
         private static readonly ConstructorInfo _constructor =
             typeof(Interval).GetConstructor(new[] { typeof(Instant), typeof(Instant) })!;
@@ -20,37 +19,49 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         private static readonly ConstructorInfo _constructorWithNulls =
             typeof(Interval).GetConstructor(new[] { typeof(Instant?), typeof(Instant?) })!;
 
-        public IntervalMapping()
+        public IntervalRangeMapping()
             : base("tstzrange", typeof(Interval), NpgsqlDbType.TimestampTzRange)
         {
         }
 
-        protected IntervalMapping(RelationalTypeMappingParameters parameters)
+        protected IntervalRangeMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.TimestampTzRange)
         {
         }
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new IntervalMapping(parameters);
+            => new IntervalRangeMapping(parameters);
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new IntervalMapping(Parameters.WithStoreTypeAndSize(storeType, size));
+            => new IntervalRangeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
         public override CoreTypeMapping Clone(ValueConverter? converter)
-            => new IntervalMapping(Parameters.WithComposedConverter(converter));
+            => new IntervalRangeMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
+            => $"'{GenerateEmbeddedNonNullSqlLiteral(value)}'::tstzrange";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
         {
             var interval = (Interval)value;
 
-            var start = interval.HasStart
-                ? InstantPattern.ExtendedIso.Format(interval.Start)
-                : "";
-            var end = interval.HasEnd
-                ? InstantPattern.ExtendedIso.Format(interval.End)
-                : "";
+            var stringBuilder = new StringBuilder("[");
 
-            return $"'[{start},{end})'::tstzrange";
+            if (interval.HasStart)
+            {
+                stringBuilder.Append(InstantPattern.ExtendedIso.Format(interval.Start));
+            }
+
+            stringBuilder.Append(',');
+
+            if (interval.HasEnd)
+            {
+                stringBuilder.Append(InstantPattern.ExtendedIso.Format(interval.End));
+            }
+
+            stringBuilder.Append(')');
+
+            return stringBuilder.ToString();
         }
 
         public override Expression GenerateCodeLiteral(object value)
