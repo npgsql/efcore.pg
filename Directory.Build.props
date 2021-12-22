@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <VersionPrefix>6.0.2</VersionPrefix>
+    <VersionPrefix>6.0.3</VersionPrefix>
     <TargetFramework>net6.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
