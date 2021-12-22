@@ -38,15 +38,34 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
     private readonly PeriodIntervalMapping _periodInterval = new();
     private readonly DurationIntervalMapping _durationInterval = new();
 
+    // Built-in ranges
     private readonly NpgsqlRangeTypeMapping _timestampLocalDateTimeRange;
     private readonly NpgsqlRangeTypeMapping _legacyTimestampInstantRange;
     private readonly NpgsqlRangeTypeMapping _timestamptzInstantRange;
     private readonly NpgsqlRangeTypeMapping _timestamptzZonedDateTimeRange;
     private readonly NpgsqlRangeTypeMapping _timestamptzOffsetDateTimeRange;
     private readonly NpgsqlRangeTypeMapping _dateRange;
+    private readonly DateIntervalRangeMapping _dateIntervalRange = new();
+    private readonly IntervalRangeMapping _intervalRange = new();
 
-    private readonly DateIntervalMapping _dateInterval = new();
-    private readonly IntervalMapping _interval = new();
+    // Built-in multiranges
+    private readonly NpgsqlMultirangeTypeMapping _timestampLocalDateTimeMultirangeArray;
+    private readonly NpgsqlMultirangeTypeMapping _legacyTimestampInstantMultirangeArray;
+    private readonly NpgsqlMultirangeTypeMapping _timestamptzInstantMultirangeArray;
+    private readonly NpgsqlMultirangeTypeMapping _timestamptzZonedDateTimeMultirangeArray;
+    private readonly NpgsqlMultirangeTypeMapping _timestamptzOffsetDateTimeMultirangeArray;
+    private readonly NpgsqlMultirangeTypeMapping _dateRangeMultirangeArray;
+    private readonly DateIntervalMultirangeMapping _dateIntervalMultirangeArray;
+    private readonly IntervalMultirangeMapping _intervalMultirangeArray;
+
+    private readonly NpgsqlMultirangeTypeMapping _timestampLocalDateTimeMultirangeList;
+    private readonly NpgsqlMultirangeTypeMapping _legacyTimestampInstantMultirangeList;
+    private readonly NpgsqlMultirangeTypeMapping _timestamptzInstantMultirangeList;
+    private readonly NpgsqlMultirangeTypeMapping _timestamptzZonedDateTimeMultirangeList;
+    private readonly NpgsqlMultirangeTypeMapping _timestamptzOffsetDateTimeMultirangeList;
+    private readonly NpgsqlMultirangeTypeMapping _dateRangeMultirangeList;
+    private readonly DateIntervalMultirangeMapping _dateIntervalMultirangeList;
+    private readonly IntervalMultirangeMapping _intervalMultirangeList;
 
     #endregion
 
@@ -55,10 +74,10 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
     /// </summary>
     public NpgsqlNodaTimeTypeMappingSourcePlugin(ISqlGenerationHelper sqlGenerationHelper)
     {
-        _legacyTimestampInstantRange
-            = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<Instant>), _legacyTimestampInstant, sqlGenerationHelper);
         _timestampLocalDateTimeRange
             = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<LocalDateTime>), _timestampLocalDateTime, sqlGenerationHelper);
+        _legacyTimestampInstantRange
+            = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<Instant>), _legacyTimestampInstant, sqlGenerationHelper);
         _timestamptzInstantRange
             = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<Instant>), _timestamptzInstant, sqlGenerationHelper);
         _timestamptzZonedDateTimeRange
@@ -67,6 +86,36 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
             = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<OffsetDateTime>), _timestamptzOffsetDateTime, sqlGenerationHelper);
         _dateRange
             = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<LocalDate>), _date, sqlGenerationHelper);
+
+        _timestampLocalDateTimeMultirangeArray = new NpgsqlMultirangeTypeMapping(
+            "tsmultirange", typeof(NpgsqlRange<LocalDateTime>[]), _timestampLocalDateTimeRange, sqlGenerationHelper);
+        _legacyTimestampInstantMultirangeArray = new NpgsqlMultirangeTypeMapping(
+            "tsmultirange", typeof(NpgsqlRange<Instant>[]), _legacyTimestampInstantRange, sqlGenerationHelper);
+        _timestamptzInstantMultirangeArray = new NpgsqlMultirangeTypeMapping(
+            "tstzmultirange", typeof(NpgsqlRange<Instant>[]), _timestamptzInstantRange, sqlGenerationHelper);
+        _timestamptzZonedDateTimeMultirangeArray = new NpgsqlMultirangeTypeMapping(
+            "tstzmultirange", typeof(NpgsqlRange<ZonedDateTime>[]), _timestamptzZonedDateTimeRange, sqlGenerationHelper);
+        _timestamptzOffsetDateTimeMultirangeArray = new NpgsqlMultirangeTypeMapping(
+            "tstzmultirange", typeof(NpgsqlRange<OffsetDateTime>[]), _timestamptzOffsetDateTimeRange, sqlGenerationHelper);
+        _dateRangeMultirangeArray = new NpgsqlMultirangeTypeMapping(
+            "datemultirange", typeof(NpgsqlRange<LocalDate>[]), _dateRange, sqlGenerationHelper);
+        _dateIntervalMultirangeArray = new DateIntervalMultirangeMapping(typeof(DateInterval[]), _dateIntervalRange);
+        _intervalMultirangeArray = new IntervalMultirangeMapping(typeof(Interval[]), _intervalRange);
+
+        _timestampLocalDateTimeMultirangeList = new NpgsqlMultirangeTypeMapping(
+            "tsmultirange", typeof(List<NpgsqlRange<LocalDateTime>>), _timestampLocalDateTimeRange, sqlGenerationHelper);
+        _legacyTimestampInstantMultirangeList = new NpgsqlMultirangeTypeMapping(
+            "tsmultirange", typeof(List<NpgsqlRange<Instant>>), _legacyTimestampInstantRange, sqlGenerationHelper);
+        _timestamptzInstantMultirangeList = new NpgsqlMultirangeTypeMapping(
+            "tstzmultirange", typeof(List<NpgsqlRange<Instant>>), _timestamptzInstantRange, sqlGenerationHelper);
+        _timestamptzZonedDateTimeMultirangeList = new NpgsqlMultirangeTypeMapping(
+            "tstzmultirange", typeof(List<NpgsqlRange<ZonedDateTime>>), _timestamptzZonedDateTimeRange, sqlGenerationHelper);
+        _timestamptzOffsetDateTimeMultirangeList = new NpgsqlMultirangeTypeMapping(
+            "tstzmultirange", typeof(List<NpgsqlRange<OffsetDateTime>>), _timestamptzOffsetDateTimeRange, sqlGenerationHelper);
+        _dateRangeMultirangeList = new NpgsqlMultirangeTypeMapping(
+            "datemultirange", typeof(List<NpgsqlRange<LocalDate>>), _dateRange, sqlGenerationHelper);
+        _dateIntervalMultirangeList = new DateIntervalMultirangeMapping(typeof(List<DateInterval>), _dateIntervalRange);
+        _intervalMultirangeList = new IntervalMultirangeMapping(typeof(List<Interval>), _intervalRange);
 
         var storeTypeMappings = new Dictionary<string, RelationalTypeMapping[]>(StringComparer.OrdinalIgnoreCase)
         {
@@ -88,8 +137,29 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
                 ? new RelationalTypeMapping[] { _legacyTimestampInstantRange, _timestampLocalDateTimeRange }
                 : new RelationalTypeMapping[] { _timestampLocalDateTimeRange, _legacyTimestampInstantRange }
             },
-            { "tstzrange", new RelationalTypeMapping[] { _interval, _timestamptzInstantRange, _timestamptzZonedDateTimeRange, _timestamptzOffsetDateTimeRange } },
-            { "daterange", new RelationalTypeMapping[] { _dateInterval, _dateRange } }
+            { "tstzrange", new RelationalTypeMapping[] { _intervalRange, _timestamptzInstantRange, _timestamptzZonedDateTimeRange, _timestamptzOffsetDateTimeRange } },
+            { "daterange", new RelationalTypeMapping[] { _dateIntervalRange, _dateRange } },
+
+            { "tsmultirange", LegacyTimestampBehavior
+                ? new RelationalTypeMapping[] { _legacyTimestampInstantMultirangeArray, _legacyTimestampInstantMultirangeList, _timestampLocalDateTimeMultirangeArray, _timestampLocalDateTimeMultirangeList }
+                : new RelationalTypeMapping[] { _timestampLocalDateTimeMultirangeArray, _timestampLocalDateTimeMultirangeList, _legacyTimestampInstantMultirangeArray, _legacyTimestampInstantMultirangeList }
+            },
+            {
+                "tstzmultirange", new RelationalTypeMapping[]
+                {
+                    _intervalMultirangeArray, _intervalMultirangeList,
+                    _timestamptzInstantMultirangeArray, _timestamptzInstantMultirangeList,
+                    _timestamptzZonedDateTimeMultirangeArray, _timestamptzZonedDateTimeMultirangeList,
+                    _timestamptzOffsetDateTimeMultirangeArray, _timestamptzOffsetDateTimeMultirangeList
+                }
+            },
+            {
+                "datemultirange", new RelationalTypeMapping[]
+                {
+                    _dateIntervalMultirangeArray, _dateIntervalMultirangeList,
+                    _dateRangeMultirangeArray, _dateRangeMultirangeList
+                }
+            }
         };
 
         // Set up aliases
@@ -116,8 +186,24 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
             { typeof(NpgsqlRange<ZonedDateTime>), _timestamptzZonedDateTimeRange },
             { typeof(NpgsqlRange<OffsetDateTime>), _timestamptzOffsetDateTimeRange },
             { typeof(NpgsqlRange<LocalDate>), _dateRange },
-            { typeof(DateInterval), _dateInterval },
-            { typeof(Interval), _interval }
+            { typeof(DateInterval), _dateIntervalRange },
+            { typeof(Interval), _intervalRange },
+
+            { typeof(NpgsqlRange<Instant>[]), LegacyTimestampBehavior ? _legacyTimestampInstantMultirangeArray : _timestamptzInstantMultirangeArray },
+            { typeof(NpgsqlRange<LocalDateTime>[]), _timestampLocalDateTimeMultirangeArray },
+            { typeof(NpgsqlRange<ZonedDateTime>[]), _timestamptzZonedDateTimeMultirangeArray },
+            { typeof(NpgsqlRange<OffsetDateTime>[]), _timestamptzOffsetDateTimeMultirangeArray },
+            { typeof(NpgsqlRange<LocalDate>[]), _dateRangeMultirangeArray },
+            { typeof(DateInterval[]), _dateIntervalMultirangeArray },
+            { typeof(Interval[]), _intervalMultirangeArray },
+
+            { typeof(List<NpgsqlRange<Instant>>), LegacyTimestampBehavior ? _legacyTimestampInstantMultirangeList : _timestamptzInstantMultirangeList },
+            { typeof(List<NpgsqlRange<LocalDateTime>>), _timestampLocalDateTimeMultirangeList },
+            { typeof(List<NpgsqlRange<ZonedDateTime>>), _timestamptzZonedDateTimeMultirangeList },
+            { typeof(List<NpgsqlRange<OffsetDateTime>>), _timestamptzOffsetDateTimeMultirangeList },
+            { typeof(List<NpgsqlRange<LocalDate>>), _dateRangeMultirangeList },
+            { typeof(List<DateInterval>), _dateIntervalMultirangeList },
+            { typeof(List<Interval>), _intervalMultirangeList }
         };
 
         StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
