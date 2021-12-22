@@ -277,7 +277,7 @@ SELECT
   basetyp.typname AS basetypname,
   attname,
   description,
-  {(connection.PostgreSqlVersion >= new Version(9, 1) ? "collname" : "''::text as collname")},
+  {(connection.PostgreSqlVersion >= new Version(9, 1) ? "collname" : "NULL::text as collname")},
   attisdropped,
   {(connection.PostgreSqlVersion >= new Version(10, 0) ? "attidentity::text" : "' '::text as attidentity")},
   {(connection.PostgreSqlVersion >= new Version(12, 0) ? "attgenerated::text" : "' '::text as attgenerated")},
@@ -553,7 +553,7 @@ SELECT
   amname,
   indclass,
   indoption,
-  {(connection.PostgreSqlVersion >= new Version(9, 1) ? "indcollation" : "''::text AS indcollation")},
+  {(connection.PostgreSqlVersion >= new Version(9, 1) ? "indcollation" : "''::oidvector AS indcollation")},
   CASE
     WHEN indexprs IS NULL THEN NULL
     ELSE pg_get_expr(indexprs, cls.oid)
