@@ -88,10 +88,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => new NpgsqlRangeTypeMapping(parameters, NpgsqlDbType, SubtypeMapping, _sqlGenerationHelper);
 
         protected override string GenerateNonNullSqlLiteral(object value)
+            => $"'{GenerateEmbeddedNonNullSqlLiteral(value)}'::{StoreType}";
+
+        protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
         {
             InitializeAccessors(ClrType, SubtypeMapping.ClrType);
 
-            var builder = new StringBuilder("'");
+            var builder = new StringBuilder();
 
             if ((bool)_isEmptyProperty.GetValue(value)!)
             {
@@ -116,10 +119,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 builder.Append((bool)_upperInclusiveProperty.GetValue(value)! ? ']' : ')');
             }
 
-            return builder
-                .Append("'::")
-                .Append(StoreType)
-                .ToString();
+            return builder.ToString();
         }
 
         private static NpgsqlDbType GenerateNpgsqlDbType(RelationalTypeMapping subtypeMapping)
