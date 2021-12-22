@@ -963,6 +963,8 @@ FROM ""MappedDataTypes"" AS m");
 
             public override bool SupportsDecimalComparisons => true;
 
+            public override bool PreservesDateTimeKind => false;
+
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
 
             protected override bool ShouldLogCategory(string logCategory)
@@ -985,8 +987,6 @@ FROM ""MappedDataTypes"" AS m");
                 // We default to mapping DateTime to 'timestamp with time zone', but the seeding data has Unspecified DateTimes which aren't
                 // supported.
                 modelBuilder.Entity<BuiltInDataTypes>().Property(b => b.TestDateTime)
-                    .HasColumnType("timestamp without time zone");
-                modelBuilder.Entity<BuiltInNullableDataTypes>().Property(b => b.TestNullableDateTime)
                     .HasColumnType("timestamp without time zone");
                 modelBuilder.Entity<BuiltInNullableDataTypesShadow>().Property(nameof(BuiltInNullableDataTypes.TestNullableDateTime))
                     .HasColumnType("timestamp without time zone");
