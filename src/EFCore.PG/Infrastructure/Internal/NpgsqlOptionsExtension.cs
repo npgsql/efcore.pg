@@ -68,8 +68,9 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     public NpgsqlOptionsExtension(NpgsqlOptionsExtension copyFrom) : base(copyFrom)
     {
         AdminDatabase = copyFrom.AdminDatabase;
-        _userRangeDefinitions = new List<UserRangeDefinition>(copyFrom._userRangeDefinitions);
         PostgresVersion = copyFrom.PostgresVersion;
+        UseRedshift = copyFrom.UseRedshift;
+        _userRangeDefinitions = new List<UserRangeDefinition>(copyFrom._userRangeDefinitions);
         ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
         RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
         ProvidePasswordCallback = copyFrom.ProvidePasswordCallback;
