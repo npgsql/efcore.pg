@@ -677,7 +677,8 @@ WHERE
                                 }
                             }
 
-                            index[NpgsqlAnnotationNames.IndexInclude] = nonKeyColumns.ToArray();
+                            // Scaffolding included/covered properties is currently blocked, see #2194
+                            // index[NpgsqlAnnotationNames.IndexInclude] = nonKeyColumns.ToArray();
                         }
 
                         if (record.GetValueOrDefault<string>("pred") is string predicate)
