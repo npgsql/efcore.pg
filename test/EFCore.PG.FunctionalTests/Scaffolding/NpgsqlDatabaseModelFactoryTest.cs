@@ -1728,7 +1728,9 @@ CREATE INDEX ix_without ON ""IndexCovering"" (a, b, c);",
 
                 var indexWith = table.Indexes.Single(i => i.Name == "ix_with");
                 Assert.Equal("a", indexWith.Columns.Single().Name);
-                Assert.Equal(new[] { "b", "c" }, indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexInclude).Value);
+                // Scaffolding included/covered properties is currently blocked, see #2194
+                Assert.Null(indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexInclude));
+                // Assert.Equal(new[] { "b", "c" }, indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexInclude).Value);
 
                 var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
                 Assert.Equal(new[] { "a", "b", "c" }, indexWithout.Columns.Select(i => i.Name).ToArray());
