@@ -1865,16 +1865,20 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                 var index = Assert.Single(table.Indexes);
                 Assert.Equal(1, index.Columns.Count);
                 Assert.Contains(table.Columns.Single(c => c.Name == "Name"), index.Columns);
+
+                // Scaffolding included/covered properties is currently blocked, see #2194
                 var includedColumns = (string[])index[NpgsqlAnnotationNames.IndexInclude]!;
-                if (TestEnvironment.PostgresVersion.AtLeast(11))
-                {
-                    Assert.Contains("FirstName", includedColumns);
-                    Assert.Contains("last_name", includedColumns);
-                }
-                else
-                {
-                    Assert.Null(includedColumns);
-                }
+                Assert.Null(includedColumns);
+
+                // if (TestEnvironment.PostgresVersion.AtLeast(11))
+                // {
+                //     Assert.Contains("FirstName", includedColumns);
+                //     Assert.Contains("last_name", includedColumns);
+                // }
+                // else
+                // {
+                //     Assert.Null(includedColumns);
+                // }
             });
 
         AssertSql(TestEnvironment.PostgresVersion.AtLeast(11)
@@ -1905,16 +1909,20 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                 Assert.Equal(@"(""Name"" IS NOT NULL)", index.Filter);
                 Assert.Equal(1, index.Columns.Count);
                 Assert.Contains(table.Columns.Single(c => c.Name == "Name"), index.Columns);
+
+                // Scaffolding included/covered properties is currently blocked, see #2194
                 var includedColumns = (string[])index[NpgsqlAnnotationNames.IndexInclude]!;
-                if (TestEnvironment.PostgresVersion.AtLeast(11))
-                {
-                    Assert.Contains("FirstName", includedColumns);
-                    Assert.Contains("LastName", includedColumns);
-                }
-                else
-                {
-                    Assert.Null(includedColumns);
-                }
+                Assert.Null(includedColumns);
+
+                // if (TestEnvironment.PostgresVersion.AtLeast(11))
+                // {
+                //     Assert.Contains("FirstName", includedColumns);
+                //     Assert.Contains("LastName", includedColumns);
+                // }
+                // else
+                // {
+                //     Assert.Null(includedColumns);
+                // }
             });
 
         AssertSql(TestEnvironment.PostgresVersion.AtLeast(11)
@@ -1945,16 +1953,20 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                 Assert.True(index.IsUnique);
                 Assert.Equal(1, index.Columns.Count);
                 Assert.Contains(table.Columns.Single(c => c.Name == "Name"), index.Columns);
+
+                // Scaffolding included/covered properties is currently blocked, see #2194
                 var includedColumns = (string[])index[NpgsqlAnnotationNames.IndexInclude]!;
-                if (TestEnvironment.PostgresVersion.AtLeast(11))
-                {
-                    Assert.Contains("FirstName", includedColumns);
-                    Assert.Contains("LastName", includedColumns);
-                }
-                else
-                {
-                    Assert.Null(includedColumns);
-                }
+                Assert.Null(includedColumns);
+
+                // if (TestEnvironment.PostgresVersion.AtLeast(11))
+                // {
+                //     Assert.Contains("FirstName", includedColumns);
+                //     Assert.Contains("LastName", includedColumns);
+                // }
+                // else
+                // {
+                //     Assert.Null(includedColumns);
+                // }
             });
 
         AssertSql(TestEnvironment.PostgresVersion.AtLeast(11)
@@ -1987,16 +1999,20 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                 Assert.Equal(@"(""Name"" IS NOT NULL)", index.Filter);
                 Assert.Equal(1, index.Columns.Count);
                 Assert.Contains(table.Columns.Single(c => c.Name == "Name"), index.Columns);
+
+                // Scaffolding included/covered properties is currently blocked, see #2194
                 var includedColumns = (string[])index[NpgsqlAnnotationNames.IndexInclude]!;
-                if (TestEnvironment.PostgresVersion.AtLeast(11))
-                {
-                    Assert.Contains("FirstName", includedColumns);
-                    Assert.Contains("LastName", includedColumns);
-                }
-                else
-                {
-                    Assert.Null(includedColumns);
-                }
+                Assert.Null(includedColumns);
+
+                // if (TestEnvironment.PostgresVersion.AtLeast(11))
+                // {
+                //     Assert.Contains("FirstName", includedColumns);
+                //     Assert.Contains("LastName", includedColumns);
+                // }
+                // else
+                // {
+                //     Assert.Null(includedColumns);
+                // }
             });
 
         AssertSql(TestEnvironment.PostgresVersion.AtLeast(11)
