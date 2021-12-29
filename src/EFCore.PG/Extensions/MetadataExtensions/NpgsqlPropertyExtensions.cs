@@ -221,9 +221,10 @@ public static class NpgsqlPropertyExtensions
     /// <returns>The strategy, or <see cref="NpgsqlValueGenerationStrategy.None"/> if none was set.</returns>
     public static NpgsqlValueGenerationStrategy GetValueGenerationStrategy(this IReadOnlyProperty property)
     {
-        if (property[NpgsqlAnnotationNames.ValueGenerationStrategy] is { } annotation)
+        var annotation = property.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy);
+        if (annotation != null)
         {
-            return (NpgsqlValueGenerationStrategy)annotation;
+            return (NpgsqlValueGenerationStrategy?)annotation.Value ?? NpgsqlValueGenerationStrategy.None;
         }
 
         if (property.ValueGenerated != ValueGenerated.OnAdd
