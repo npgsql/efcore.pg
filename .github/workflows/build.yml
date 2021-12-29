@@ -25,17 +25,17 @@ jobs:
 # Temporarily disable Windows because of PG installation issues
 #        os: [ ubuntu-20.04, windows-2019 ]
         os: [ ubuntu-20.04 ]
-        pg_major: [ 13, 12, 11, 10 ]
+        pg_major: [ 14, 13, 12, 11, 10 ]
         config: [Release]
 # PostgreSQL 14 is out, but there's no PostGIS binary for Windows yet (http://download.osgeo.org/postgis/windows/)
         include:
           - os: ubuntu-20.04
-            pg_major: 13
-            config: Debug
-          - os: ubuntu-20.04
             pg_major: 14
-            config: Release
-            pg_prerelease: 'PG Prerelease'
+            config: Debug
+#          - os: ubuntu-20.04
+#            pg_major: 15
+#            config: Release
+#            pg_prerelease: 'PG Prerelease'
 
     outputs:
       is_release: ${{ steps.analyze_tag.outputs.is_release }}
