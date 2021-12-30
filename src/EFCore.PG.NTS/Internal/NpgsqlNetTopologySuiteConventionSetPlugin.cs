@@ -6,18 +6,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 
 public class NpgsqlNetTopologySuiteConventionSetPlugin : IConventionSetPlugin
 {
-    private readonly IRelationalTypeMappingSource _typeMappingSource;
-    private readonly IDbContextOptions _options;
-
-    public NpgsqlNetTopologySuiteConventionSetPlugin(IRelationalTypeMappingSource typeMappingSource, IDbContextOptions options)
-    {
-        _typeMappingSource = typeMappingSource;
-        _options = options;
-    }
-
     public virtual ConventionSet ModifyConventions(ConventionSet conventionSet)
     {
-        conventionSet.ModelFinalizingConventions.Add(new NpgsqlNetTopologySuiteExtensionDiscoveryConvention(_typeMappingSource));
+        conventionSet.ModelFinalizingConventions.Add(new NpgsqlNetTopologySuiteExtensionAddingConvention());
 
         return conventionSet;
     }
