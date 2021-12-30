@@ -26,6 +26,7 @@ public static class NpgsqlNetTopologySuiteServiceCollectionExtensions
             .TryAdd<IRelationalTypeMappingSourcePlugin, NpgsqlNetTopologySuiteTypeMappingSourcePlugin>()
             .TryAdd<IMethodCallTranslatorPlugin, NpgsqlNetTopologySuiteMethodCallTranslatorPlugin>()
             .TryAdd<IMemberTranslatorPlugin, NpgsqlNetTopologySuiteMemberTranslatorPlugin>()
+            .TryAdd<IConventionSetPlugin, NpgsqlNetTopologySuiteConventionSetPlugin>()
             .TryAddProviderSpecificServices(
                 x => x.TryAddSingleton<INpgsqlNetTopologySuiteOptions, NpgsqlNetTopologySuiteOptions>());
 

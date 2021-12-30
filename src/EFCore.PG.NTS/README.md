@@ -30,9 +30,6 @@ public class BlogContext : DbContext
         => optionsBuilder.UseNpgsql(
             @"Host=myserver;Username=mylogin;Password=mypass;Database=mydatabase",
             o => o.UseNetTopologySuite());
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-        => modelBuilder.HasPostgresExtension("postgis");
 }
 
 public class City

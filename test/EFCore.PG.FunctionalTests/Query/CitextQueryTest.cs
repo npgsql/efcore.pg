@@ -269,9 +269,6 @@ LIMIT 2");
 
         public CitextQueryContext(DbContextOptions options) : base(options) {}
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-            => modelBuilder.HasPostgresExtension("citext");
-
         public static void Seed(CitextQueryContext context)
         {
             context.SomeEntities.AddRange(

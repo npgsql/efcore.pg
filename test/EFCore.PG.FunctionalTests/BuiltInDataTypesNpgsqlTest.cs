@@ -965,7 +965,6 @@ FROM ""MappedDataTypes"" AS m");
             NpgsqlConnection.GlobalTypeMapper.MapEnum<Mood>();
             ((NpgsqlTypeMappingSource)context.GetService<ITypeMappingSource>()).LoadUserDefinedTypeMappings(context.GetService<ISqlGenerationHelper>());
 
-            modelBuilder.HasPostgresExtension("hstore");
             modelBuilder.HasPostgresEnum("mood", new[] { "happy", "sad" });
 
             MakeRequired<MappedDataTypes>(modelBuilder);

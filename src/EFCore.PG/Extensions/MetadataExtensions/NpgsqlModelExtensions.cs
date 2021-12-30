@@ -161,6 +161,13 @@ public static class NpgsqlModelExtensions
     public static IReadOnlyList<PostgresExtension> GetPostgresExtensions(this IReadOnlyModel model)
         => PostgresExtension.GetPostgresExtensions(model).ToArray();
 
+    public static PostgresExtension GetOrAddPostgresExtension(
+        this IConventionModel model,
+        string? schema,
+        string name,
+        string? version)
+        => PostgresExtension.GetOrAddPostgresExtension(model, schema, name, version);
+
     #endregion
 
     #region Enum types
