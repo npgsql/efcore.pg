@@ -62,7 +62,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                             Assert.Equal(ee.NullableStringList, ee.NullableStringList);
                             Assert.Equal(ee.NullableText, ee.NullableText);
                             Assert.Equal(ee.NonNullableText, ee.NonNullableText);
-                            Assert.Equal(ee.ValueConvertedScalar, ee.ValueConvertedScalar);
+                            Assert.Equal(ee.EnumConvertedToInt, ee.EnumConvertedToInt);
                             Assert.Equal(ee.ValueConvertedArray, ee.ValueConvertedArray);
                             Assert.Equal(ee.ValueConvertedList, ee.ValueConvertedList);
                             Assert.Equal(ee.Byte, ee.Byte);

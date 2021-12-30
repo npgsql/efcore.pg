@@ -47,7 +47,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array
                     NullableStringList = new List<string> { "3", "4", null},
                     NullableText = "foo",
                     NonNullableText = "foo",
-                    ValueConvertedScalar = SomeEnum.One,
+                    EnumConvertedToInt = SomeEnum.One,
+                    EnumConvertedToString = SomeEnum.One,
+                    NullableEnumConvertedToString = SomeEnum.One,
+                    NullableEnumConvertedToStringWithNonNullableLambda = SomeEnum.One,
                     ValueConvertedArray = new[] { SomeEnum.Eight, SomeEnum.Nine },
                     ValueConvertedList = new List<SomeEnum> { SomeEnum.Eight, SomeEnum.Nine },
                     Byte = 10
@@ -67,7 +70,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array
                     NullableStringList = new List<string> { "5", "6", "7", "8" },
                     NullableText = "bar",
                     NonNullableText = "bar",
-                    ValueConvertedScalar = SomeEnum.Two,
+                    EnumConvertedToInt = SomeEnum.Two,
+                    EnumConvertedToString = SomeEnum.Two,
+                    NullableEnumConvertedToString = SomeEnum.Two,
+                    NullableEnumConvertedToStringWithNonNullableLambda = SomeEnum.Two,
                     ValueConvertedArray = new[] { SomeEnum.Nine, SomeEnum.Ten },
                     ValueConvertedList = new List<SomeEnum> { SomeEnum.Nine, SomeEnum.Ten },
                     Byte = 20

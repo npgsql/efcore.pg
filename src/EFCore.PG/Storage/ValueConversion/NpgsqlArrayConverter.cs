@@ -25,12 +25,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
                 throw new ArgumentException("Can only convert between arrays");
             }
 
-            if (modelElementType.UnwrapNullableType() != elementConverter.ModelClrType)
+            if (modelElementType.UnwrapNullableType() != elementConverter.ModelClrType.UnwrapNullableType())
             {
                 throw new ArgumentException($"The element's value converter model type ({elementConverter.ModelClrType}), doesn't match the array's ({modelElementType})");
             }
 
-            if (providerElementType.UnwrapNullableType() != elementConverter.ProviderClrType)
+            if (providerElementType.UnwrapNullableType() != elementConverter.ProviderClrType.UnwrapNullableType())
             {
                 throw new ArgumentException($"The element's value converter provider type ({elementConverter.ProviderClrType}), doesn't match the array's ({providerElementType})");
             }
@@ -60,7 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
 
             // elementConversionExpression is always over non-nullable value types. If the array is over nullable types,
             // we need to sanitize via an external null check.
-            if (inputElementType.IsGenericType && inputElementType.GetGenericTypeDefinition() == typeof(Nullable<>))
+            if (inputElementType.IsNullableType() && outputElementType.IsNullableType())
             {
                 // p => p is null ? null : elementConversionExpression(p)
                 var p = Expression.Parameter(inputElementType, "foo");
@@ -71,7 +71,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
                         Expression.Convert(
                             Expression.Invoke(
                                 elementConversionExpression,
-                                Expression.Convert(p, inputElementType.UnwrapNullableType())),
+                                // The user-provided conversion lambda typically accepts non-nullable (value) types, with EF Core doing the
+                                // null-sanitization and conversion to non-nullable; do this here unless the user-provided lambda happens to
+                                // accept a nullable value type parameter.
+                                elementConversionExpression.Parameters[0].Type.IsNullableType()
+                                    ? p
+                                    : Expression.Convert(p, inputElementType.UnwrapNullableType())),
                             outputElementType)),
                     p);
             }

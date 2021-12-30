@@ -252,7 +252,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public abstract Task Array_param_Contains_value_converted_column(bool async);
+        public abstract Task Array_param_Contains_value_converted_column_enum_to_int(bool async);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Array_param_Contains_value_converted_column_enum_to_string(bool async);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Array_param_Contains_value_converted_column_nullable_enum_to_string(bool async);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Array_param_Contains_value_converted_column_nullable_enum_to_string_with_non_nullable_lambda(bool async);
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]

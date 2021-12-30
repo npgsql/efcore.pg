@@ -1,5 +1,7 @@
+using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array
@@ -16,8 +18,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array
                 e =>
                 {
                     // We do negative to make sure our value converter is properly used, and not the built-in one
-                    e.Property(ae => ae.ValueConvertedScalar)
+                    e.Property(ae => ae.EnumConvertedToInt)
                         .HasConversion(w => -(int)w, v => (SomeEnum)(-v));
+
+                    e.Property(ae => ae.EnumConvertedToString)
+                        .HasConversion(w => w.ToString(), v => Enum.Parse<SomeEnum>(v));
+
+                    e.Property(ae => ae.NullableEnumConvertedToString)
+                        .HasConversion(w => w.ToString(), v => Enum.Parse<SomeEnum>(v));
+
+                    e.Property(ae => ae.NullableEnumConvertedToStringWithNonNullableLambda)
+                        .HasConversion(new ValueConverter<SomeEnum, string>(w => w.ToString(), v => Enum.Parse<SomeEnum>(v)));
 
                     e.Property(ae => ae.ValueConvertedArray)
                         .HasPostgresArrayConversion(w => -(int)w, v => (SomeEnum)(-v));
