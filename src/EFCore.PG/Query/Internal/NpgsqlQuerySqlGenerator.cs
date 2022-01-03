@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text.RegularExpressions;
@@ -90,6 +91,8 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             // string type mapping. Same for full-text search's TsVector.
             ExpressionType.Add when
                 e.Type == typeof(string) || e.Left.TypeMapping?.ClrType == typeof(string) || e.Right.TypeMapping?.ClrType == typeof(string) ||
+                e.Type == typeof(BitArray) || e.Left.TypeMapping?.ClrType == typeof(BitArray) || e.Right.TypeMapping?.ClrType == typeof(BitArray) ||
+                e.Type == typeof(byte[]) || e.Left.TypeMapping?.ClrType == typeof(byte[]) || e.Right.TypeMapping?.ClrType == typeof(byte[]) ||
                 e.Type == typeof(NpgsqlTsVector) || e.Left.TypeMapping?.ClrType == typeof(NpgsqlTsVector) || e.Right.TypeMapping?.ClrType == typeof(NpgsqlTsVector)
                 => " || ",
             ExpressionType.And when e.Type == typeof(bool)   => " AND ",
