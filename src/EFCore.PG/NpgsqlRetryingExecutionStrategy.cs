@@ -56,6 +56,18 @@ public class NpgsqlRetryingExecutionStrategy : ExecutionStrategy
     /// <summary>
     ///     Creates a new instance of <see cref="NpgsqlRetryingExecutionStrategy" />.
     /// </summary>
+    /// <param name="dependencies"> Parameter object containing service dependencies. </param>
+    /// <param name="errorCodesToAdd"> Additional error codes that should be considered transient. </param>
+    public NpgsqlRetryingExecutionStrategy(
+        ExecutionStrategyDependencies dependencies,
+        ICollection<string>? errorCodesToAdd)
+        : this(dependencies, DefaultMaxRetryCount, DefaultMaxDelay, errorCodesToAdd)
+    {
+    }
+
+    /// <summary>
+    ///     Creates a new instance of <see cref="NpgsqlRetryingExecutionStrategy" />.
+    /// </summary>
     /// <param name="context"> The context on which the operations will be invoked. </param>
     /// <param name="maxRetryCount"> The maximum number of retry attempts. </param>
     /// <param name="maxRetryDelay"> The maximum delay between retries. </param>

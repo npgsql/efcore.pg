@@ -154,6 +154,16 @@ public class NpgsqlDbContextOptionsBuilder
     /// <summary>
     /// Configures the context to use the default retrying <see cref="IExecutionStrategy" />.
     /// </summary>
+    /// <param name="errorCodesToAdd">Additional error codes that should be considered transient.</param>
+    /// <returns>
+    /// An instance of <see cref="NpgsqlDbContextOptionsBuilder"/> with the specified parameters.
+    /// </returns>
+    public virtual NpgsqlDbContextOptionsBuilder EnableRetryOnFailure(ICollection<string>? errorCodesToAdd)
+        => ExecutionStrategy(c => new NpgsqlRetryingExecutionStrategy(c, errorCodesToAdd));
+
+    /// <summary>
+    /// Configures the context to use the default retrying <see cref="IExecutionStrategy" />.
+    /// </summary>
     /// <param name="maxRetryCount">The maximum number of retry attempts.</param>
     /// <param name="maxRetryDelay">The maximum delay between retries.</param>
     /// <param name="errorCodesToAdd">Additional error codes that should be considered transient.</param>
