@@ -34,7 +34,8 @@ public class NpgsqlModificationCommandBatchFactoryTest
                     new UpdateSqlGeneratorDependencies(
                         new NpgsqlSqlGenerationHelper(
                             new RelationalSqlGenerationHelperDependencies()),
-                        typeMapper)),
+                        typeMapper),
+                    new NpgsqlOptions()),
                 new TypedRelationalValueBufferFactoryFactory(
                     new RelationalValueBufferFactoryDependencies(
                         typeMapper, new CoreSingletonOptions())),
@@ -73,7 +74,8 @@ public class NpgsqlModificationCommandBatchFactoryTest
                     new UpdateSqlGeneratorDependencies(
                         new NpgsqlSqlGenerationHelper(
                             new RelationalSqlGenerationHelperDependencies()),
-                        typeMapper)),
+                        typeMapper),
+                    new NpgsqlOptions()),
                 new TypedRelationalValueBufferFactoryFactory(
                     new RelationalValueBufferFactoryDependencies(
                         typeMapper, new CoreSingletonOptions())),
