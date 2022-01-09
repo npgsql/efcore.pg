@@ -42,10 +42,11 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
         AssertSql(
             @"@__param_0='some'
+@__param_0_1='some'
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (@__param_0 = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND ((s.""CaseInsensitiveText"" LIKE @__param_0 || '%' ESCAPE '') AND (left(s.""CaseInsensitiveText"", length(@__param_0))::citext = @__param_0::citext)))
+WHERE @__param_0 = '' OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND (s.""CaseInsensitiveText"" LIKE @__param_0_1 || '%' ESCAPE '') AND left(s.""CaseInsensitiveText"", length(@__param_0))::citext = @__param_0::citext)
 LIMIT 2");
     }
 
@@ -62,7 +63,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (s.""CaseInsensitiveText"" = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND ((@__param_0 LIKE s.""CaseInsensitiveText"" || '%' ESCAPE '') AND (left(@__param_0, length(s.""CaseInsensitiveText""))::citext = s.""CaseInsensitiveText""::citext)))
+WHERE s.""CaseInsensitiveText"" = '' OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND (@__param_0 LIKE s.""CaseInsensitiveText"" || '%' ESCAPE '') AND left(@__param_0, length(s.""CaseInsensitiveText""))::citext = s.""CaseInsensitiveText""::citext)
 LIMIT 2");
     }
 
@@ -90,10 +91,11 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
         AssertSql(
             @"@__param_0='sometext'
+@__param_0_1='sometext'
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (@__param_0 = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND (right(s.""CaseInsensitiveText"", length(@__param_0))::citext = @__param_0::citext))
+WHERE @__param_0 = '' OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND right(s.""CaseInsensitiveText"", length(@__param_0_1))::citext = @__param_0::citext)
 LIMIT 2");
     }
 
@@ -110,7 +112,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (s.""CaseInsensitiveText"" = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND (right(@__param_0, length(s.""CaseInsensitiveText""))::citext = s.""CaseInsensitiveText""::citext))
+WHERE s.""CaseInsensitiveText"" = '' OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND right(@__param_0, length(s.""CaseInsensitiveText""))::citext = s.""CaseInsensitiveText""::citext)
 LIMIT 2");
     }
 
@@ -141,7 +143,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (@__param_0 = '') OR (strpos(s.""CaseInsensitiveText"", @__param_0) > 0)
+WHERE @__param_0 = '' OR strpos(s.""CaseInsensitiveText"", @__param_0) > 0
 LIMIT 2");
     }
 
@@ -158,7 +160,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (s.""CaseInsensitiveText"" = '') OR (strpos(@__param_0, s.""CaseInsensitiveText"") > 0)
+WHERE s.""CaseInsensitiveText"" = '' OR strpos(@__param_0, s.""CaseInsensitiveText"") > 0
 LIMIT 2");
     }
 

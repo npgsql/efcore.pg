@@ -49,6 +49,8 @@ public class CustomConvertersNpgsqlTest : CustomConvertersTestBase<CustomConvert
 
         public override DateTime DefaultDateTime => new();
 
+        public override bool PreservesDateTimeKind => false;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {
             base.OnModelCreating(modelBuilder, context);

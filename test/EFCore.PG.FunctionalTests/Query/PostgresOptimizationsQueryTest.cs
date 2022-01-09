@@ -39,7 +39,7 @@ WHERE (e.""X"", e.""Y"") > (5, 6)");
         AssertSql(
             @"SELECT e.""Id"", e.""X"", e.""Y"", e.""Z""
 FROM ""Entities"" AS e
-WHERE (e.""X"" > 5) OR ((e.""X"" = 5) AND (e.""Y"" < 6))");
+WHERE e.""X"" > 5 OR (e.""X"" = 5 AND e.""Y"" < 6)");
     }
 
     [ConditionalTheory]
@@ -54,7 +54,7 @@ WHERE (e.""X"" > 5) OR ((e.""X"" = 5) AND (e.""Y"" < 6))");
         AssertSql(
             @"SELECT e.""Id"", e.""X"", e.""Y"", e.""Z""
 FROM ""Entities"" AS e
-WHERE (e.""Z"" > 5) OR ((e.""X"" = 5) AND (e.""Y"" > 6))");
+WHERE e.""Z"" > 5 OR (e.""X"" = 5 AND e.""Y"" > 6)");
     }
 
     [ConditionalTheory]
