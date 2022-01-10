@@ -883,6 +883,9 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
     }
 
     [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
+    public override void Can_insert_and_read_back_all_nullable_data_types_with_values_set_to_non_null() {}
+
+    [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
     public override void Can_insert_and_read_back_non_nullable_backed_data_types() {}
 
     [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
@@ -950,6 +953,8 @@ FROM ""MappedDataTypes"" AS m");
         public override bool SupportsLargeStringComparisons => true;
 
         public override bool SupportsDecimalComparisons => true;
+
+        public override bool PreservesDateTimeKind => false;
 
         protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
 

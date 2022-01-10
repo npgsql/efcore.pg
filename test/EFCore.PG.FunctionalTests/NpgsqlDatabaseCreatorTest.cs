@@ -258,7 +258,7 @@ public class NpgsqlDatabaseCreatorHasTablesTest : NpgsqlDatabaseCreatorTest
     {
         using var testDatabase = NpgsqlTestStore.GetOrCreate("NonExisting");
         var databaseCreator = GetDatabaseCreator(testDatabase);
-        await databaseCreator.ExecutionStrategyFactory.Create().ExecuteAsync(
+        await databaseCreator.ExecutionStrategy.ExecuteAsync(
             databaseCreator,
             async creator =>
             {
@@ -652,9 +652,7 @@ public class NpgsqlDatabaseCreatorTest
         public Task<bool> HasTablesAsyncBase(CancellationToken cancellationToken = default)
             => HasTablesAsync(cancellationToken);
 
-        public IExecutionStrategyFactory ExecutionStrategyFactory
-#pragma warning disable CS0618 // Type or member is obsolete
-            => Dependencies.ExecutionStrategyFactory;
-#pragma warning restore CS0618 // Type or member is obsolete
+        public IExecutionStrategy ExecutionStrategy
+            => Dependencies.ExecutionStrategy;
     }
 }

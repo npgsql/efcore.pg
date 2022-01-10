@@ -354,7 +354,7 @@ WHERE subpath(l.""Path"", 0, 2) = 'Top.Science'");
         AssertSql(
             @"SELECT l.""Id"", l.""Path"", l.""PathAsString""
 FROM ""LTreeEntities"" AS l
-WHERE (nlevel(l.""Path"") > 2) AND (subpath(l.""Path"", 2) = 'Astronomy.Astrophysics')
+WHERE nlevel(l.""Path"") > 2 AND subpath(l.""Path"", 2) = 'Astronomy.Astrophysics'
 LIMIT 2");
     }
 

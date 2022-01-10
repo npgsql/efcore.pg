@@ -58,7 +58,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => x.Inet.Equals(IPAddress.Parse(x.TextInet)));
 
         Assert.Equal(9, count);
-        AssertContainsSql(@"n.""TextInet""::inet)");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Inet"" = n.""TextInet""::inet OR ((n.""Inet"" IS NULL) AND (n.""TextInet"" IS NULL))");
     }
 
     [Fact]
@@ -68,7 +71,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => x.Macaddr.Equals(PhysicalAddress.Parse(x.TextMacaddr)));
 
         Assert.Equal(9, count);
-        AssertContainsSql(@"n.""TextMacaddr""::macaddr)");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Macaddr"" = n.""TextMacaddr""::macaddr OR ((n.""Macaddr"" IS NULL) AND (n.""TextMacaddr"" IS NULL))");
     }
 
     [Fact]
@@ -78,7 +84,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => x.Inet.Equals(IPAddress.Parse("192.168.1.2")));
 
         Assert.Equal(1, count);
-        AssertContainsSql("INET '192.168.1.2'");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Inet"" = INET '192.168.1.2'");
     }
 
     [Fact]
@@ -88,7 +97,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => x.Macaddr.Equals(PhysicalAddress.Parse("12-34-56-00-00-02")));
 
         Assert.Equal(1, count);
-        AssertContainsSql("MACADDR '123456000002'");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Macaddr"" = MACADDR '123456000002'");
     }
 
     [Fact]
@@ -122,7 +134,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => EF.Functions.LessThan(x.Inet, IPAddress.Parse("192.168.1.7")));
 
         Assert.Equal(6, count);
-        AssertContainsSql(@"WHERE n.""Inet"" < INET '192.168.1.7'");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Inet"" < INET '192.168.1.7'");
     }
 
     [Fact]
@@ -134,7 +149,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.LessThan(x.Cidr, cidr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" < @__cidr_1");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Cidr"" < @__cidr_1");
     }
 
     [Fact]
@@ -144,7 +164,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => EF.Functions.LessThan(x.Macaddr, PhysicalAddress.Parse("12-34-56-00-00-07")));
 
         Assert.Equal(6, count);
-        AssertContainsSql(@"""Macaddr"" < MACADDR '123456000007'");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Macaddr"" < MACADDR '123456000007'");
     }
 
     [ConditionalFact]
@@ -155,7 +178,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => EF.Functions.LessThan(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
 
         Assert.Equal(6, count);
-        AssertContainsSql(@"""Macaddr8"" < MACADDR8 '08002B0102030407'");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Macaddr8"" < MACADDR8 '08002B0102030407'");
     }
 
     [Fact]
@@ -165,7 +191,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => EF.Functions.LessThanOrEqual(x.Inet, IPAddress.Parse("192.168.1.7")));
 
         Assert.Equal(7, count);
-        AssertContainsSql(@"WHERE n.""Inet"" <= INET '192.168.1.7'");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Inet"" <= INET '192.168.1.7'");
     }
 
     [Fact]
@@ -177,7 +206,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.LessThanOrEqual(x.Cidr, cidr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" <= @__cidr_1");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Cidr"" <= @__cidr_1");
     }
 
     [Fact]
@@ -187,7 +221,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => EF.Functions.LessThanOrEqual(x.Macaddr, PhysicalAddress.Parse("12-34-56-00-00-07")));
 
         Assert.Equal(7, count);
-        AssertContainsSql(@"""Macaddr"" <= MACADDR '123456000007'");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Macaddr"" <= MACADDR '123456000007'");
     }
 
     [ConditionalFact]
@@ -198,7 +235,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => EF.Functions.LessThanOrEqual(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
 
         Assert.Equal(7, count);
-        AssertContainsSql(@"""Macaddr8"" <= MACADDR8 '08002B0102030407'");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Macaddr8"" <= MACADDR8 '08002B0102030407'");
     }
 
     [Fact]
@@ -208,7 +248,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThanOrEqual(x.Inet, IPAddress.Parse("192.168.1.7")));
 
         Assert.Equal(3, count);
-        AssertContainsSql(@"WHERE n.""Inet"" >= INET '192.168.1.7'");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Inet"" >= INET '192.168.1.7'");
     }
 
     [Fact]
@@ -220,7 +263,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.GreaterThanOrEqual(x.Cidr, cidr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" >= @__cidr_1");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Cidr"" >= @__cidr_1");
     }
 
     [Fact]
@@ -230,7 +278,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThanOrEqual(x.Macaddr, PhysicalAddress.Parse("12-34-56-00-00-07")));
 
         Assert.Equal(3, count);
-        AssertContainsSql(@"""Macaddr"" >= MACADDR '123456000007'");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Macaddr"" >= MACADDR '123456000007'");
     }
 
     [ConditionalFact]
@@ -241,7 +292,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThanOrEqual(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
 
         Assert.Equal(3, count);
-        AssertContainsSql(@"""Macaddr8"" >= MACADDR8 '08002B0102030407'");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Macaddr8"" >= MACADDR8 '08002B0102030407'");
     }
 
     [Fact]
@@ -251,7 +305,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThan(x.Inet, IPAddress.Parse("192.168.1.7")));
 
         Assert.Equal(2, count);
-        AssertContainsSql(@"WHERE n.""Inet"" > INET '192.168.1.7'");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Inet"" > INET '192.168.1.7'");
     }
 
     [Fact]
@@ -263,7 +320,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.GreaterThan(x.Cidr, cidr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" > @__cidr_1");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Cidr"" > @__cidr_1");
     }
 
     [Fact]
@@ -273,7 +335,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThan(x.Macaddr, PhysicalAddress.Parse("12-34-56-00-00-07")));
 
         Assert.Equal(2, count);
-        AssertContainsSql(@"""Macaddr"" > MACADDR '123456000007'");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Macaddr"" > MACADDR '123456000007'");
     }
 
     [ConditionalFact]
@@ -284,7 +349,10 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThan(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
 
         Assert.Equal(2, count);
-        AssertContainsSql(@"""Macaddr8"" > MACADDR8 '08002B0102030407'");
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Macaddr8"" > MACADDR8 '08002B0102030407'");
     }
 
     #endregion
@@ -300,7 +368,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.ContainedBy(x.Inet, inet))
             .ToArray();
 
-        AssertContainsSql(@"n.""Inet"" << @__inet_1");
+        AssertSql(
+            @"@__inet_1='0.0.0.0' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Inet"" << @__inet_1");
     }
 
     [Fact]
@@ -312,7 +385,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.ContainedBy(x.Inet, cidr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Inet"" << @__cidr_1");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Inet"" << @__cidr_1");
     }
 
     [Fact]
@@ -324,7 +402,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.ContainedBy(x.Cidr, cidr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" << @__cidr_1");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Cidr"" << @__cidr_1");
     }
 
     [Fact]
@@ -336,7 +419,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.ContainedByOrEqual(x.Inet, inet))
             .ToArray();
 
-        AssertContainsSql(@"n.""Inet"" <<= @__inet_1");
+        AssertSql(
+            @"@__inet_1='0.0.0.0' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Inet"" <<= @__inet_1");
     }
 
     [Fact]
@@ -348,7 +436,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.ContainedByOrEqual(x.Inet, cidr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Inet"" <<= @__cidr_1");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Inet"" <<= @__cidr_1");
     }
 
     [Fact]
@@ -360,7 +453,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.ContainedByOrEqual(x.Cidr, cidr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" <<= @__cidr_1");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Cidr"" <<= @__cidr_1");
     }
 
     [Fact]
@@ -372,7 +470,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.Contains(x.Inet, inet))
             .ToArray();
 
-        AssertContainsSql(@"n.""Inet"" >> @__inet_1");
+        AssertSql(
+            @"@__inet_1='0.0.0.0' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Inet"" >> @__inet_1");
     }
 
     [Fact]
@@ -384,7 +487,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.Contains(x.Cidr, inet))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" >> @__inet_1");
+        AssertSql(
+            @"@__inet_1='0.0.0.0' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Cidr"" >> @__inet_1");
     }
 
     [Fact]
@@ -396,7 +504,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.Contains(x.Cidr, cidr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" >> @__cidr_1");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Cidr"" >> @__cidr_1");
     }
 
     [Fact]
@@ -408,7 +521,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.ContainsOrEqual(x.Inet, inet))
             .ToArray();
 
-        AssertContainsSql(@"n.""Inet"" >>= @__inet_1");
+        AssertSql(
+            @"@__inet_1='0.0.0.0' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Inet"" >>= @__inet_1");
     }
 
     [Fact]
@@ -420,7 +538,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.ContainsOrEqual(x.Cidr, inet))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" >>= @__inet_1");
+        AssertSql(
+            @"@__inet_1='0.0.0.0' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Cidr"" >>= @__inet_1");
     }
 
     [Fact]
@@ -432,7 +555,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.ContainsOrEqual(x.Cidr, cidr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" >>= @__cidr_1");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Cidr"" >>= @__cidr_1");
     }
 
     [Fact]
@@ -444,7 +572,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.ContainsOrContainedBy(x.Inet, inet))
             .ToArray();
 
-        AssertContainsSql(@"n.""Inet"" && @__inet_1");
+        AssertSql(
+            @"@__inet_1='0.0.0.0' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Inet"" && @__inet_1");
     }
 
     [Fact]
@@ -456,7 +589,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.ContainsOrContainedBy(x.Inet, cidr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Inet"" && @__cidr_1");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Inet"" && @__cidr_1");
     }
 
     [Fact]
@@ -468,7 +606,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.ContainsOrContainedBy(x.Cidr, inet))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" && @__inet_1");
+        AssertSql(
+            @"@__inet_1='0.0.0.0' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Cidr"" && @__inet_1");
     }
 
     [Fact]
@@ -480,7 +623,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Where(x => EF.Functions.ContainsOrContainedBy(x.Cidr, cidr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" && @__cidr_1");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE n.""Cidr"" && @__cidr_1");
     }
 
     #endregion
@@ -495,7 +643,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.BitwiseNot(x.Inet))
             .ToArray();
 
-        AssertContainsSql(@"~n.""Inet""");
+        AssertSql(
+            @"SELECT ~n.""Inet""
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -506,7 +656,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.BitwiseNot(x.Cidr))
             .ToArray();
 
-        AssertContainsSql(@"~n.""Cidr""");
+        AssertSql(
+            @"SELECT ~n.""Cidr""
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -517,7 +669,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.BitwiseNot(x.Macaddr))
             .ToArray();
 
-        AssertContainsSql(@"~n.""Macaddr""");
+        AssertSql(
+            @"SELECT ~n.""Macaddr""
+FROM ""NetTestEntities"" AS n");
     }
 
     [ConditionalFact]
@@ -529,7 +683,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.BitwiseNot(x.Macaddr8))
             .ToArray();
 
-        AssertContainsSql(@"~n.""Macaddr8""");
+        AssertSql(
+            @"SELECT ~n.""Macaddr8""
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -540,7 +696,12 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var count = context.NetTestEntities.Count(x => x.Inet == EF.Functions.BitwiseAnd(x.Inet, inet));
 
         Assert.Equal(0, count);
-        AssertContainsSql(@"n.""Inet"" & @__inet_1");
+        AssertSql(
+            @"@__inet_1='0.0.0.0' (DbType = Object)
+
+SELECT COUNT(*)::INT
+FROM ""NetTestEntities"" AS n
+WHERE n.""Inet"" = (n.""Inet"" & @__inet_1) OR (n.""Inet"" IS NULL)");
     }
 
     [Fact]
@@ -552,7 +713,11 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.BitwiseAnd(x.Cidr, cidr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" & @__cidr_1");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT n.""Cidr"" & @__cidr_1
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -564,7 +729,11 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.BitwiseAnd(x.Macaddr, macaddr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Macaddr"" & @__macaddr_1");
+        AssertSql(
+            @"@__macaddr_1='000000000000' (DbType = Object)
+
+SELECT n.""Macaddr"" & @__macaddr_1
+FROM ""NetTestEntities"" AS n");
     }
 
     [ConditionalFact]
@@ -576,7 +745,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.BitwiseAnd(x.Macaddr8, x.Macaddr8))
             .ToArray();
 
-        AssertContainsSql(@"n.""Macaddr8"" & n.""Macaddr8""");
+        AssertSql(
+            @"SELECT n.""Macaddr8"" & n.""Macaddr8""
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -588,7 +759,11 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.BitwiseOr(x.Inet, inet))
             .ToArray();
 
-        AssertContainsSql(@"n.""Inet"" | @__inet_1");
+        AssertSql(
+            @"@__inet_1='0.0.0.0' (DbType = Object)
+
+SELECT n.""Inet"" | @__inet_1
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -600,7 +775,11 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.BitwiseOr(x.Cidr, cidr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" | @__cidr_1");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT n.""Cidr"" | @__cidr_1
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -612,7 +791,11 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.BitwiseOr(x.Macaddr, macaddr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Macaddr"" | @__macaddr_1");
+        AssertSql(
+            @"@__macaddr_1='000000000000' (DbType = Object)
+
+SELECT n.""Macaddr"" | @__macaddr_1
+FROM ""NetTestEntities"" AS n");
     }
 
     [ConditionalFact]
@@ -624,7 +807,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.BitwiseOr(x.Macaddr8, x.Macaddr8))
             .ToArray();
 
-        AssertContainsSql(@"n.""Macaddr8"" | n.""Macaddr8""");
+        AssertSql(
+            @"SELECT n.""Macaddr8"" | n.""Macaddr8""
+FROM ""NetTestEntities"" AS n");
     }
 
     #endregion
@@ -638,7 +823,11 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var actual = context.NetTestEntities.Single(x => EF.Functions.Add(x.Inet, 1) == IPAddress.Parse("192.168.1.2")).Inet;
 
         Assert.Equal(actual, IPAddress.Parse("192.168.1.1"));
-        AssertContainsSql("\"Inet\" + 1");
+        AssertSql(
+            @"SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE (n.""Inet"" + 1) = INET '192.168.1.2'
+LIMIT 2");
     }
 
     [Fact]
@@ -649,7 +838,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Add(x.Cidr, 1))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" + 1");
+        AssertSql(
+            @"SELECT n.""Cidr"" + 1
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -659,7 +850,11 @@ WHERE n.""Cidr"" >>= @__cidr_1");
         var actual = context.NetTestEntities.Single(x => EF.Functions.Subtract(x.Inet, 1) == IPAddress.Parse("192.168.1.1")).Inet;
 
         Assert.Equal(actual, IPAddress.Parse("192.168.1.2"));
-        AssertContainsSql("\"Inet\" - 1");
+        AssertSql(
+            @"SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
+FROM ""NetTestEntities"" AS n
+WHERE (n.""Inet"" - 1) = INET '192.168.1.1'
+LIMIT 2");
     }
 
     [Fact]
@@ -670,7 +865,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Subtract(x.Cidr, 1))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" - 1");
+        AssertSql(
+            @"SELECT n.""Cidr"" - 1
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -682,7 +879,11 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Subtract(x.Inet, inet))
             .ToArray();
 
-        AssertContainsSql(@"n.""Inet"" - @__inet_1");
+        AssertSql(
+            @"@__inet_1='0.0.0.0' (DbType = Object)
+
+SELECT n.""Inet"" - @__inet_1
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -694,7 +895,11 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Subtract(x.Cidr, cidr))
             .ToArray();
 
-        AssertContainsSql(@"n.""Cidr"" - @__cidr_1");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT n.""Cidr"" - @__cidr_1
+FROM ""NetTestEntities"" AS n");
     }
 
     #endregion
@@ -709,7 +914,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Abbreviate(x.Inet))
             .ToArray();
 
-        AssertContainsSql(@"abbrev(n.""Inet"")");
+        AssertSql(
+            @"SELECT abbrev(n.""Inet"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -720,7 +927,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Abbreviate(x.Cidr))
             .ToArray();
 
-        AssertContainsSql(@"abbrev(n.""Cidr"")");
+        AssertSql(
+            @"SELECT abbrev(n.""Cidr"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -731,7 +940,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Broadcast(x.Inet))
             .ToArray();
 
-        AssertContainsSql(@"broadcast(n.""Inet"")");
+        AssertSql(
+            @"SELECT broadcast(n.""Inet"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -742,7 +953,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Broadcast(x.Cidr))
             .ToArray();
 
-        AssertContainsSql(@"broadcast(n.""Cidr"")");
+        AssertSql(
+            @"SELECT broadcast(n.""Cidr"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -753,7 +966,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Family(x.Inet))
             .ToArray();
 
-        AssertContainsSql(@"family(n.""Inet"")");
+        AssertSql(
+            @"SELECT family(n.""Inet"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -764,7 +979,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Family(x.Cidr))
             .ToArray();
 
-        AssertContainsSql(@"family(n.""Cidr"")");
+        AssertSql(
+            @"SELECT family(n.""Cidr"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -775,7 +992,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Host(x.Inet))
             .ToArray();
 
-        AssertContainsSql(@"host(n.""Inet"")");
+        AssertSql(
+            @"SELECT host(n.""Inet"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -786,7 +1005,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Host(x.Cidr))
             .ToArray();
 
-        AssertContainsSql(@"host(n.""Cidr"")");
+        AssertSql(
+            @"SELECT host(n.""Cidr"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -797,7 +1018,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.HostMask(x.Inet))
             .ToArray();
 
-        AssertContainsSql(@"hostmask(n.""Inet"")");
+        AssertSql(
+            @"SELECT hostmask(n.""Inet"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -808,7 +1031,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.HostMask(x.Cidr))
             .ToArray();
 
-        AssertContainsSql(@"hostmask(n.""Cidr"")");
+        AssertSql(
+            @"SELECT hostmask(n.""Cidr"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -819,7 +1044,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.MaskLength(x.Inet))
             .ToArray();
 
-        AssertContainsSql(@"masklen(n.""Inet"")");
+        AssertSql(
+            @"SELECT masklen(n.""Inet"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -830,7 +1057,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.MaskLength(x.Cidr))
             .ToArray();
 
-        AssertContainsSql(@"masklen(n.""Cidr"")");
+        AssertSql(
+            @"SELECT masklen(n.""Cidr"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -841,7 +1070,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Netmask(x.Inet))
             .ToArray();
 
-        AssertContainsSql(@"netmask(n.""Inet"")");
+        AssertSql(
+            @"SELECT netmask(n.""Inet"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -852,7 +1083,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Netmask(x.Cidr))
             .ToArray();
 
-        AssertContainsSql(@"netmask(n.""Cidr"")");
+        AssertSql(
+            @"SELECT netmask(n.""Cidr"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -863,7 +1096,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Network(x.Inet))
             .ToArray();
 
-        AssertContainsSql(@"network(n.""Inet"")");
+        AssertSql(
+            @"SELECT network(n.""Inet"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -874,7 +1109,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Network(x.Cidr))
             .ToArray();
 
-        AssertContainsSql(@"network(n.""Cidr"")");
+        AssertSql(
+            @"SELECT network(n.""Cidr"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -885,7 +1122,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.SetMaskLength(x.Inet, default))
             .ToArray();
 
-        AssertContainsSql(@"set_masklen(n.""Inet"", 0)");
+        AssertSql(
+            @"SELECT set_masklen(n.""Inet"", 0)
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -896,7 +1135,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.SetMaskLength(x.Cidr, default))
             .ToArray();
 
-        AssertContainsSql(@"set_masklen(n.""Cidr"", 0)");
+        AssertSql(
+            @"SELECT set_masklen(n.""Cidr"", 0)
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -907,7 +1148,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Text(x.Inet))
             .ToArray();
 
-        AssertContainsSql(@"text(n.""Inet"")");
+        AssertSql(
+            @"SELECT text(n.""Inet"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -918,7 +1161,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Text(x.Cidr))
             .ToArray();
 
-        AssertContainsSql(@"text(n.""Cidr"")");
+        AssertSql(
+            @"SELECT text(n.""Cidr"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -930,7 +1175,11 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.SameFamily(x.Inet, inet))
             .ToArray();
 
-        AssertContainsSql(@"inet_same_family(n.""Inet"", @__inet_1)");
+        AssertSql(
+            @"@__inet_1='0.0.0.0' (DbType = Object)
+
+SELECT inet_same_family(n.""Inet"", @__inet_1)
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -942,7 +1191,11 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.SameFamily(x.Cidr, cidr))
             .ToArray();
 
-        AssertContainsSql(@"inet_same_family(n.""Cidr"", @__cidr_1)");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT inet_same_family(n.""Cidr"", @__cidr_1)
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -954,7 +1207,11 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Merge(x.Inet, inet))
             .ToArray();
 
-        AssertContainsSql(@"inet_merge(n.""Inet"", @__inet_1)");
+        AssertSql(
+            @"@__inet_1='0.0.0.0' (DbType = Object)
+
+SELECT inet_merge(n.""Inet"", @__inet_1)
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -966,7 +1223,11 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Merge(x.Cidr, cidr))
             .ToArray();
 
-        AssertContainsSql(@"inet_merge(n.""Cidr"", @__cidr_1)");
+        AssertSql(
+            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+
+SELECT inet_merge(n.""Cidr"", @__cidr_1)
+FROM ""NetTestEntities"" AS n");
     }
 
     [Fact]
@@ -977,7 +1238,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Truncate(x.Macaddr))
             .ToArray();
 
-        AssertContainsSql(@"trunc(n.""Macaddr"")");
+        AssertSql(
+            @"SELECT trunc(n.""Macaddr"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [ConditionalFact]
@@ -989,7 +1252,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Truncate(x.Macaddr8))
             .ToArray();
 
-        AssertContainsSql(@"trunc(n.""Macaddr8"")");
+        AssertSql(
+            @"SELECT trunc(n.""Macaddr8"")
+FROM ""NetTestEntities"" AS n");
     }
 
     [ConditionalFact]
@@ -1001,7 +1266,9 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .Select(x => EF.Functions.Set7BitMac8(x.Macaddr8))
             .ToArray();
 
-        AssertContainsSql(@"macaddr8_set7bit(n.""Macaddr8"")");
+        AssertSql(
+            @"SELECT macaddr8_set7bit(n.""Macaddr8"")
+FROM ""NetTestEntities"" AS n");
     }
 
     #endregion
@@ -1121,12 +1388,6 @@ WHERE n.""Cidr"" >>= @__cidr_1");
     protected NetContext CreateContext() => Fixture.CreateContext();
 
     private void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
-
-    /// <summary>
-    /// Asserts that the SQL fragment appears in the logs.
-    /// </summary>
-    /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-    private void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
 
     #endregion
 }

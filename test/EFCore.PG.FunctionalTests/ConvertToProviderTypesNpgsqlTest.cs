@@ -77,6 +77,8 @@ public class ConvertToProviderTypesNpgsqlTest : ConvertToProviderTypesTestBase<C
 
         public override DateTime DefaultDateTime => new();
 
+        public override bool PreservesDateTimeKind => false;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {
             base.OnModelCreating(modelBuilder, context);

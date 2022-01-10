@@ -162,7 +162,7 @@ WHERE date_trunc('day', m.""Timeline"")::timestamp >= @__dateTimeOffset_Date_0")
 
 SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE ((@__start_0 <= date_trunc('day', m.""Timeline"")::timestamptz) AND (m.""Timeline"" < @__end_1)) AND m.""Timeline"" = ANY (@__dates_2)");
+WHERE @__start_0 <= date_trunc('day', m.""Timeline"")::timestamptz AND m.""Timeline"" < @__end_1 AND m.""Timeline"" = ANY (@__dates_2)");
     }
 
     // Base implementation uses DateTimeOffset.Now, which we don't translate by design. Use DateTimeOffset.UtcNow instead.

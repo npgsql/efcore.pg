@@ -195,6 +195,32 @@ public class FakeRelationalCommandDiagnosticsLogger
         CancellationToken cancellationToken = default)
         => Task.CompletedTask;
 
+    public void CommandCanceled(
+        IRelationalConnection connection,
+        DbCommand command,
+        DbContext? context,
+        DbCommandMethod executeMethod,
+        Guid commandId,
+        Guid connectionId,
+        DateTimeOffset startTime,
+        TimeSpan duration,
+        CommandSource commandSource)
+    {
+    }
+
+    public Task CommandCanceledAsync(
+        IRelationalConnection connection,
+        DbCommand command,
+        DbContext? context,
+        DbCommandMethod executeMethod,
+        Guid commandId,
+        Guid connectionId,
+        DateTimeOffset startTime,
+        TimeSpan duration,
+        CommandSource commandSource,
+        CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
+
     public InterceptionResult DataReaderDisposing(
         IRelationalConnection connection,
         DbCommand command,

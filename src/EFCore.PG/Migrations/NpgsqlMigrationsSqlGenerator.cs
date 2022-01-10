@@ -564,7 +564,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 {
                     case null:
                         // Drop the identity, converting the column to a regular int
-                        builder.AppendLine(alterBase).AppendLine("DROP IDENTITY;");
+                        builder.Append(alterBase).AppendLine("DROP IDENTITY;");
                         break;
                     case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
                         builder.Append(alterBase).AppendLine("SET GENERATED ALWAYS;");

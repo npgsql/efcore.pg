@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
+using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Update.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -25,7 +26,8 @@ public class NpgsqlModificationCommandBatchTest
             new ModificationCommandBatchFactoryDependencies(
                 new RelationalCommandBuilderFactory(
                     new RelationalCommandBuilderDependencies(
-                        typeMapper)),
+                        typeMapper,
+                        new ExceptionDetector())),
                 new NpgsqlSqlGenerationHelper(
                     new RelationalSqlGenerationHelperDependencies()),
                 new NpgsqlUpdateSqlGenerator(

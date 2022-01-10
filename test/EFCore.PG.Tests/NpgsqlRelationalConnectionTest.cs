@@ -75,7 +75,8 @@ public class NpgsqlRelationalConnectionTest
                         TestServiceFactory.Instance.Create<TypeMappingSourceDependencies>(),
                         TestServiceFactory.Instance.Create<RelationalTypeMappingSourceDependencies>(),
                         new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
-                        new NpgsqlOptions()))));
+                        new NpgsqlOptions()),
+                    new ExceptionDetector())));
     }
 
     private const string ConnectionString = "Fake Connection String";

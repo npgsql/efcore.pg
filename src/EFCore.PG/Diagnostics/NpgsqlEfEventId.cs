@@ -11,7 +11,7 @@ namespace Microsoft.EntityFrameworkCore.Diagnostics;
 ///     behavior of warnings.
 ///   </para>
 /// </summary>
-public static class NpgsqlEventId
+public static class NpgsqlEfEventId
 {
     // Warning: These values must not change between releases.
     // Only add new values to the end of sections, never in the middle.
