@@ -39,7 +39,7 @@ public readonly struct LTree : IEquatable<LTree>
     /// Returns whether this ltree matches <paramref name="lquery"/>.
     /// </summary>
     /// <remarks>
-    /// <p>The method call is translated to <c>left &lt;@ right</c>.</p>
+    /// <p>The method call is translated to <c>left ~ right</c>.</p>
     /// <p>See https://www.postgresql.org/docs/current/ltree.html</p>
     /// </remarks>
     public bool MatchesLQuery(string lquery)
