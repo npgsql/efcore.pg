@@ -49,7 +49,6 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             PostgresJsonTraversalExpression jsonTraversalExpression => VisitJsonPathTraversal(jsonTraversalExpression),
             PostgresNewArrayExpression newArrayExpression           => VisitPostgresNewArray(newArrayExpression),
             PostgresRegexMatchExpression regexMatchExpression       => VisitRegexMatch(regexMatchExpression),
-            PostgresRowValueExpression rowValueExpression           => VisitRowValue(rowValueExpression),
             PostgresUnknownBinaryExpression unknownBinaryExpression => VisitUnknownBinary(unknownBinaryExpression),
             _                                                       => base.VisitExtension(extensionExpression)
         };
@@ -546,27 +545,6 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         Sql.Append(")");
 
         return expression;
-    }
-
-    public virtual Expression VisitRowValue(PostgresRowValueExpression rowValueExpression)
-    {
-        Sql.Append("(");
-
-        var values = rowValueExpression.RowValues;
-        var count = values.Count;
-        for (var i = 0; i < count; i++)
-        {
-            Visit(values[i]);
-
-            if (i < count - 1)
-            {
-                Sql.Append(", ");
-            }
-        }
-
-        Sql.Append(")");
-
-        return rowValueExpression;
     }
 
     /// <summary>
