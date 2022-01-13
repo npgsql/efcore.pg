@@ -44,8 +44,6 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
                 => VisitRegexMatch(regexMatchExpression, allowOptimizedExpansion, out nullable),
             PostgresJsonTraversalExpression postgresJsonTraversalExpression
                 => VisitJsonTraversal(postgresJsonTraversalExpression, allowOptimizedExpansion, out nullable),
-            PostgresRowValueExpression postgresRowValueExpression
-                => VisitRowValueExpression(postgresRowValueExpression, allowOptimizedExpansion, out nullable),
             PostgresUnknownBinaryExpression postgresUnknownBinaryExpression
                 => VisitUnknownBinary(postgresUnknownBinaryExpression, allowOptimizedExpansion, out nullable),
 
@@ -276,14 +274,6 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         nullable = true;
 
         return jsonTraversalExpression.Update(expression, newPath?.ToArray() ?? jsonTraversalExpression.Path);
-    }
-
-    protected virtual SqlExpression VisitRowValueExpression(
-        PostgresRowValueExpression rowValueExpression, bool allowOptimizedExpansion, out bool nullable)
-    {
-        nullable = false;
-
-        return rowValueExpression;
     }
 
     /// <summary>
