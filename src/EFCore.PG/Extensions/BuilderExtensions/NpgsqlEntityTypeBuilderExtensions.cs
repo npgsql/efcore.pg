@@ -10,11 +10,12 @@ public static class NpgsqlEntityTypeBuilderExtensions
     /// <summary>
     /// Configures using the auto-updating system column <c>xmin</c> as the optimistic concurrency token.
     /// </summary>
-    /// <remarks>
-    /// See http://www.npgsql.org/efcore/miscellaneous.html#optimistic-concurrency-and-concurrency-tokens
-    /// </remarks>
     /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+    /// <remarks>
+    ///     See <see href="https://www.npgsql.org/efcore/modeling/concurrency.html">Concurrency tokens</see>
+    ///     for more information on using optimistic concurrency in PostgreSQL.
+    /// </remarks>
     public static EntityTypeBuilder UseXminAsConcurrencyToken(
         this EntityTypeBuilder entityTypeBuilder)
     {
