@@ -50,7 +50,7 @@ FROM ""Missions"" AS m");
 
 SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE @__start_0 <= date_trunc('day', m.""Timeline"")::timestamptz AND m.""Timeline"" < @__end_1 AND m.""Timeline"" = ANY (@__dates_2)");
+WHERE @__start_0 <= date_trunc('day', m.""Timeline"" AT TIME ZONE 'UTC')::timestamptz AND m.""Timeline"" < @__end_1 AND m.""Timeline"" = ANY (@__dates_2)");
     }
 
     public override async Task DateTimeOffset_Date_returns_datetime(bool async)
@@ -66,7 +66,7 @@ WHERE @__start_0 <= date_trunc('day', m.""Timeline"")::timestamptz AND m.""Timel
 
 SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE date_trunc('day', m.""Timeline"")::timestamp >= @__dateTimeOffset_Date_0");
+WHERE date_trunc('day', m.""Timeline"" AT TIME ZONE 'UTC')::timestamp >= @__dateTimeOffset_Date_0");
     }
 
     public override async Task Where_datetimeoffset_date_component(bool async)
@@ -80,7 +80,7 @@ WHERE date_trunc('day', m.""Timeline"")::timestamp >= @__dateTimeOffset_Date_0")
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE date_trunc('day', m.""Timeline"") > TIMESTAMPTZ '0001-01-01 00:00:00Z'");
+WHERE date_trunc('day', m.""Timeline"" AT TIME ZONE 'UTC') > TIMESTAMPTZ '0001-01-01 00:00:00Z'");
     }
 
     // Not supported by design: we support getting a local DateTime via DateTime.Now (based on PG TimeZone), but there's no way to get a
