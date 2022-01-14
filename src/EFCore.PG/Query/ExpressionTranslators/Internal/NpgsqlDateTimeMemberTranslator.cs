@@ -33,19 +33,19 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
     {
         var type = member.DeclaringType;
 
-        if (type == typeof(DateTimeOffset)
-            && instance is not null
-            && TranslateDateTimeOffset(instance, member, returnType) is { } translated)
-        {
-            return translated;
-        }
-
         if (type != typeof(DateTime)
             && type != typeof(DateTimeOffset)
             && type != typeof(DateOnly)
             && type != typeof(TimeOnly))
         {
             return null;
+        }
+
+        if (type == typeof(DateTimeOffset)
+            && instance is not null
+            && TranslateDateTimeOffset(instance, member, returnType) is { } translated)
+        {
+            return translated;
         }
 
         return member.Name switch
@@ -159,14 +159,27 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
         => member.Name switch
         {
             // We only support UTC DateTimeOffset, so DateTimeOffset.DateTime is just a matter of converting to timestamp without time zone
-            nameof(DateTimeOffset.DateTime)      => _sqlExpressionFactory.AtUtc(instance),
+            nameof(DateTimeOffset.DateTime) => _sqlExpressionFactory.AtUtc(instance),
 
             // We only support UTC DateTimeOffset, so DateTimeOffset.UtcDateTime does nothing (type change on CLR change, no change on the
             // PG side.
-            nameof(DateTimeOffset.UtcDateTime)   => instance,
+            nameof(DateTimeOffset.UtcDateTime) => instance,
 
             // Convert to timestamp without time zone, applying a time zone conversion based on the TimeZone connection parameter.
             nameof(DateTimeOffset.LocalDateTime) => _sqlExpressionFactory.Convert(instance, typeof(DateTime), _timestampMapping),
+
+            // In PG, date_trunc over timestamptz looks at TimeZone, and returns timestamptz. .NET DateTimeOffset.Date just returns the
+            // date part (no conversion), and returns an Unspecified DateTime. So we first convert the timestamptz argument to timestamp
+            // via AT TIME ZONE 'UTC"
+            nameof(DateTimeOffset.Date) =>
+                _sqlExpressionFactory.Function(
+                    "date_trunc",
+                    new SqlExpression[] { _sqlExpressionFactory.Constant("day"), _sqlExpressionFactory.AtUtc(instance) },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[2],
+                    typeof(DateTime),
+                    _timestampTzMapping),
+
             _ => null
         };
 }

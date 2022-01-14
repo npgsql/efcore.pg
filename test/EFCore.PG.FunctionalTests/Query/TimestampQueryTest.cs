@@ -394,6 +394,28 @@ FROM ""Entities"" AS e
 WHERE e.""TimestampDateTimeOffset""::timestamp = TIMESTAMP '1998-04-12 15:26:38'");
     }
 
+    [ConditionalTheory] // #2220
+    [MemberData(nameof(IsAsyncData))]
+    public async Task DateTimeOffset_Date_project(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>().Select(e => new { e.TimestampDateTimeOffset.Date }));
+
+        AssertSql(
+            @"SELECT date_trunc('day', e.""TimestampDateTimeOffset"" AT TIME ZONE 'UTC') AS ""Date""
+FROM ""Entities"" AS e");
+
+        // Additional check to make sure Unspecified DateTimes are returned, as per the .NET DateTimeOffset.Date behavior
+        // (AssertQuery above doesn't confirm this since Kind isn't taken into account for DateTime comparisons)
+        await using var ctx = CreateContext();
+
+        foreach (var date in ctx.Set<Entity>().Select(e => e.TimestampDateTimeOffset.Date))
+        {
+            Assert.Equal(DateTimeKind.Unspecified, date.Kind);
+        }
+    }
+
     #endregion DateTimeOffset
 
     #region DateTime constructors
