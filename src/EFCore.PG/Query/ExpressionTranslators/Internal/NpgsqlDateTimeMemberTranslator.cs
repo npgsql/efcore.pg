@@ -41,13 +41,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             var type = member.DeclaringType;
 
-            if (type == typeof(DateTimeOffset)
-                && instance is not null
-                && TranslateDateTimeOffset(instance, member, returnType) is { } translated)
-            {
-                return translated;
-            }
-
             if (type != typeof(DateTime)
                 && type != typeof(DateTimeOffset)
                 && type != typeof(DateOnly)
@@ -58,6 +51,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 #pragma warning restore 618
             {
                 return null;
+            }
+
+            if (type == typeof(DateTimeOffset)
+                && instance is not null
+                && TranslateDateTimeOffset(instance, member, returnType) is { } translated)
+            {
+                return translated;
             }
 
             return member.Name switch
@@ -179,6 +179,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
                 // Convert to timestamp without time zone, applying a time zone conversion based on the TimeZone connection parameter.
                 nameof(DateTimeOffset.LocalDateTime) => _sqlExpressionFactory.Convert(instance, typeof(DateTime), _timestampMapping),
+
+                // In PG, date_trunc over timestamptz looks at TimeZone, and returns timestamptz. .NET DateTimeOffset.Date just returns the
+                // date part (no conversion), and returns an Unspecified DateTime. So we first convert the timestamptz argument to timestamp
+                // via AT TIME ZONE 'UTC"
+                nameof(DateTimeOffset.Date) =>
+                    _sqlExpressionFactory.Function(
+                        "date_trunc",
+                        new SqlExpression[] { _sqlExpressionFactory.Constant("day"), _sqlExpressionFactory.AtUtc(instance) },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[2],
+                        typeof(DateTime),
+                        _timestampTzMapping),
+
                 _ => null
             };
     }

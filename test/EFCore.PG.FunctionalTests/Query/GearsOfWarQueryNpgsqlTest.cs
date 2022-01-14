@@ -121,7 +121,7 @@ WHERE m.""Timeline"" <> now()");
             AssertSql(
                 @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE date_trunc('day', m.""Timeline"") > TIMESTAMPTZ '0001-01-01 00:00:00Z'");
+WHERE date_trunc('day', m.""Timeline"" AT TIME ZONE 'UTC') > TIMESTAMPTZ '0001-01-01 00:00:00Z'");
         }
 
         public override async Task Where_datetimeoffset_hour_component(bool async)
@@ -147,7 +147,7 @@ WHERE date_part('hour', m.""Timeline"" AT TIME ZONE 'UTC')::INT = 10");
 
 SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE date_trunc('day', m.""Timeline"")::timestamp >= @__dateTimeOffset_Date_0");
+WHERE date_trunc('day', m.""Timeline"" AT TIME ZONE 'UTC')::timestamp >= @__dateTimeOffset_Date_0");
         }
 
         public override async Task DateTimeOffset_Contains_Less_than_Greater_than(bool async)
@@ -169,7 +169,7 @@ WHERE date_trunc('day', m.""Timeline"")::timestamp >= @__dateTimeOffset_Date_0")
 
 SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE ((@__start_0 <= date_trunc('day', m.""Timeline"")::timestamptz) AND (m.""Timeline"" < @__end_1)) AND m.""Timeline"" = ANY (@__dates_2)");
+WHERE ((@__start_0 <= date_trunc('day', m.""Timeline"" AT TIME ZONE 'UTC')::timestamptz) AND (m.""Timeline"" < @__end_1)) AND m.""Timeline"" = ANY (@__dates_2)");
         }
 
         // Base implementation uses DateTimeOffset.Now, which we don't translate by design. Use DateTimeOffset.UtcNow instead.
