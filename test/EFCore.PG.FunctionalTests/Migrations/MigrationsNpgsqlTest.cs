@@ -911,36 +911,6 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
     }
 
     [Fact]
-    public virtual async Task Add_column_generated_tsvector()
-    {
-        if (TestEnvironment.PostgresVersion.IsUnder(12))
-        {
-            return;
-        }
-
-        await Test(
-            builder => builder.Entity(
-                "Blogs", e =>
-                {
-                    e.Property<string>("Title").IsRequired();
-                    e.Property<string>("Description");
-                }),
-            _ => { },
-            builder => builder.Entity("Blogs").Property<NpgsqlTsVector>("TsVector")
-                .IsGeneratedTsVectorColumn("english", "Title", "Description"),
-            model =>
-            {
-                var table = Assert.Single(model.Tables);
-                var column = Assert.Single(table.Columns, c => c.Name == "TsVector");
-                Assert.Equal("tsvector", column.StoreType);
-                Assert.Equal(@"to_tsvector('english'::regconfig, ((""Title"" || ' '::text) || COALESCE(""Description"", ''::text)))", column.ComputedColumnSql);
-            });
-
-        AssertSql(
-            @"ALTER TABLE ""Blogs"" ADD ""TsVector"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""Title"" || ' ' || coalesce(""Description"", ''))) STORED;");
-    }
-
-    [Fact]
     public virtual async Task Add_column_with_compression_method()
     {
         if (TestEnvironment.PostgresVersion.IsUnder(14))
@@ -1617,39 +1587,6 @@ DROP SEQUENCE ""People_Id_old_seq"";");
             @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""C"";");
     }
 #pragma warning restore CS0618
-
-    [Fact]
-    public virtual async Task Alter_column_generated_tsvector_change_config()
-    {
-        if (TestEnvironment.PostgresVersion.IsUnder(12))
-        {
-            return;
-        }
-
-        await Test(
-            builder => builder.Entity(
-                "Blogs", e =>
-                {
-                    e.Property<string>("Title").IsRequired();
-                    e.Property<string>("Description");
-                }),
-            builder => builder.Entity("Blogs").Property<NpgsqlTsVector>("TsVector")
-                .IsGeneratedTsVectorColumn("german", "Title", "Description"),
-            builder => builder.Entity("Blogs").Property<NpgsqlTsVector>("TsVector")
-                .IsGeneratedTsVectorColumn("english", "Title", "Description"),
-            model =>
-            {
-                var table = Assert.Single(model.Tables);
-                var column = Assert.Single(table.Columns, c => c.Name == "TsVector");
-                Assert.Equal("tsvector", column.StoreType);
-                Assert.Equal(@"to_tsvector('english'::regconfig, ((""Title"" || ' '::text) || COALESCE(""Description"", ''::text)))", column.ComputedColumnSql);
-            });
-
-        AssertSql(
-            @"ALTER TABLE ""Blogs"" DROP COLUMN ""TsVector"";",
-            //
-            @"ALTER TABLE ""Blogs"" ADD ""TsVector"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""Title"" || ' ' || coalesce(""Description"", ''))) STORED;");
-    }
 
     [Fact]
     public virtual async Task Alter_column_computed_set_collation()
@@ -2860,6 +2797,119 @@ END $EF$;",
             builder => builder.HasCollation("dummy", locale: "C", provider: "libc"));
 
     #endregion PostgreSQL collation management
+
+    #region PostgreSQL full-text search
+
+    [Fact]
+    public virtual async Task Add_column_generated_tsvector_over_text()
+    {
+        if (TestEnvironment.PostgresVersion.IsUnder(12))
+        {
+            return;
+        }
+
+        await Test(
+            builder => builder.Entity("Blogs", e => e.Property<string>("TextColumn").IsRequired()),
+            _ => { },
+            builder => builder.Entity("Blogs").Property<NpgsqlTsVector>("SearchColumn").IsGeneratedTsVectorColumn("english", "TextColumn"),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var column = Assert.Single(table.Columns, c => c.Name == "SearchColumn");
+                Assert.Equal("tsvector", column.StoreType);
+            });
+
+        AssertSql(
+            @"ALTER TABLE ""Blogs"" ADD ""SearchColumn"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""TextColumn"")) STORED;");
+    }
+
+    [Fact]
+    public virtual async Task Add_column_generated_tsvector_over_jsonb()
+    {
+        if (TestEnvironment.PostgresVersion.IsUnder(12))
+        {
+            return;
+        }
+
+        await Test(
+            builder => builder.Entity("People").Property<string>("JsonbColumn").HasColumnType("jsonb").IsRequired(),
+            _ => { },
+            builder => builder.Entity("People").Property<NpgsqlTsVector>("SearchColumn").IsGeneratedTsVectorColumn("english", "JsonbColumn"),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var column = Assert.Single(table.Columns, c => c.Name == "SearchColumn");
+                Assert.Equal("tsvector", column.StoreType);
+            });
+
+        AssertSql(
+            @"ALTER TABLE ""People"" ADD ""SearchColumn"" tsvector GENERATED ALWAYS AS (jsonb_to_tsvector('english', ""JsonbColumn"", '""all""')) STORED;");
+    }
+
+    [Fact]
+    public virtual async Task Add_column_generated_tsvector_over_mixed()
+    {
+        if (TestEnvironment.PostgresVersion.IsUnder(12))
+        {
+            return;
+        }
+
+        await Test(
+            builder =>
+            {
+                builder.Entity("People").Property<string>("RequiredTextColumn").IsRequired();
+                builder.Entity("People").Property<string>("OptionalTextColumn");
+                builder.Entity("People").Property<string>("RequiredJsonbColumn").HasColumnType("jsonb").IsRequired();
+                builder.Entity("People").Property<string>("OptionalJsonColumn").HasColumnType("json");
+            },
+            _ => { },
+            builder => builder.Entity("People").Property<NpgsqlTsVector>("SearchColumn")
+                .IsGeneratedTsVectorColumn("english", "RequiredTextColumn", "OptionalTextColumn", "RequiredJsonbColumn", "OptionalJsonColumn"),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var column = Assert.Single(table.Columns, c => c.Name == "SearchColumn");
+                Assert.Equal("tsvector", column.StoreType);
+            });
+
+        AssertSql(
+            @"ALTER TABLE ""People"" ADD ""SearchColumn"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""RequiredTextColumn"" || ' ' || coalesce(""OptionalTextColumn"", '')) || jsonb_to_tsvector('english', ""RequiredJsonbColumn"", '""all""') || json_to_tsvector('english', coalesce(""OptionalJsonColumn"", '{}'), '""all""')) STORED;");
+    }
+
+    [Fact]
+    public virtual async Task Alter_column_generated_tsvector_change_config()
+    {
+        if (TestEnvironment.PostgresVersion.IsUnder(12))
+        {
+            return;
+        }
+
+        await Test(
+            builder => builder.Entity(
+                "Blogs", e =>
+                {
+                    e.Property<string>("Title").IsRequired();
+                    e.Property<string>("Description");
+                }),
+            builder => builder.Entity("Blogs").Property<NpgsqlTsVector>("TsVector")
+                .IsGeneratedTsVectorColumn("german", "Title", "Description"),
+            builder => builder.Entity("Blogs").Property<NpgsqlTsVector>("TsVector")
+                .IsGeneratedTsVectorColumn("english", "Title", "Description"),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var column = Assert.Single(table.Columns, c => c.Name == "TsVector");
+                Assert.Equal("tsvector", column.StoreType);
+                Assert.Equal(@"to_tsvector('english'::regconfig, ((""Title"" || ' '::text) || COALESCE(""Description"", ''::text)))", column.ComputedColumnSql);
+            });
+
+        AssertSql(
+            @"ALTER TABLE ""Blogs"" DROP COLUMN ""TsVector"";",
+            //
+            @"ALTER TABLE ""Blogs"" ADD ""TsVector"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""Title"" || ' ' || coalesce(""Description"", ''))) STORED;");
+    }
+
+    #endregion PostgreSQL full-text search
 
     protected override string NonDefaultCollation => "POSIX";
 

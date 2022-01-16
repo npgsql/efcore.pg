@@ -410,8 +410,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         var column = model?.GetRelationalModel().FindTable(operation.Table, operation.Schema)
             ?.Columns.FirstOrDefault(c => c.Name == operation.Name);
 
-        ApplyTsVectorColumnSql(operation, model, operation.Schema, operation.Table);
-        ApplyTsVectorColumnSql(operation.OldColumn, model, operation.OldColumn.Schema, operation.OldColumn.Table);
+        ApplyTsVectorColumnSql(operation, model, operation.Name, operation.Schema, operation.Table);
+
+        // Note: OldColumn doesn't have Schema, Table or Name populated (https://github.com/dotnet/efcore/issues/28041), so we take these
+        // from the new column (they're identical in any case).
+        ApplyTsVectorColumnSql(operation.OldColumn, model, operation.Name, operation.Schema, operation.Table);
 
         if (operation.ComputedColumnSql != operation.OldColumn.ComputedColumnSql
             || operation.IsStored != operation.OldColumn.IsStored)
@@ -840,7 +843,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         var indexColumns = GetIndexColumns(operation);
 
         var columnsExpression = operation[NpgsqlAnnotationNames.TsVectorConfig] is string tsVectorConfig
-            ? ColumnsToTsVector(indexColumns.Select(i => i.Name), tsVectorConfig, model, operation.Schema, operation.Table)
+            ? ColumnsToTsVector(operation.Name, indexColumns.Select(i => i.Name), tsVectorConfig, model, operation.Schema, operation.Table)
             : IndexColumnList(indexColumns, method);
 
         builder
@@ -1508,7 +1511,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             }
         }
 
-        ApplyTsVectorColumnSql(operation, model, schema, table);
+        ApplyTsVectorColumnSql(operation, model, operation.Name, schema, table);
 
         if (operation.ComputedColumnSql is not null)
         {
@@ -1561,7 +1564,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     /// Checks for a <see cref="NpgsqlAnnotationNames.TsVectorConfig"/> annotation on the given column, and if found, assigns
     /// the appropriate SQL to <see cref="ColumnOperation.ComputedColumnSql"/>.
     /// </summary>
-    protected virtual void ApplyTsVectorColumnSql(ColumnOperation column, IModel? model, string? schema, string table)
+    protected virtual void ApplyTsVectorColumnSql(ColumnOperation column, IModel? model, string name, string? schema, string table)
     {
         if (column[NpgsqlAnnotationNames.TsVectorConfig] is string tsVectorConfig)
         {
@@ -1573,7 +1576,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                     $"{nameof(NpgsqlAnnotationNames.TsVectorProperties)} is absent or empty");
             }
 
-            column.ComputedColumnSql = ColumnsToTsVector(tsVectorIncludedColumns, tsVectorConfig, model, schema, table);
+            column.ComputedColumnSql = ColumnsToTsVector(name, tsVectorIncludedColumns, tsVectorConfig, model, schema, table);
             column.IsStored = true;
 
             column.RemoveAnnotation(NpgsqlAnnotationNames.TsVectorConfig);
@@ -1974,25 +1977,61 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         return builder.ToString();
     }
 
-    private string ColumnsToTsVector(IEnumerable<string> columns, string tsVectorConfig, IModel? model, string? schema, string table)
+    private string ColumnsToTsVector(
+        string columnOrIndexName,
+        IEnumerable<string> columnNames,
+        string tsVectorConfig,
+        IModel? model,
+        string? schema,
+        string table)
     {
-        return new StringBuilder()
-            .Append("to_tsvector(")
-            .Append(_stringTypeMapping.GenerateSqlLiteral(tsVectorConfig))
-            .Append(", ")
-            .Append(string.Join(" || ' ' || ", columns.Select(GetTsVectorColumnExpression)))
-            .Append(")")
-            .ToString();
+        var columns = columnNames
+            .Select(columnName => model?.GetRelationalModel().FindTable(table, schema)?.Columns.FirstOrDefault(c => c.Name == columnName))
+            .ToArray();
 
-        string GetTsVectorColumnExpression(string columnName)
+        IEnumerable<IGrouping<string, IColumn>> columnGroups = columns
+            .GroupBy(
+                c => c?.StoreType switch
+                {
+                    "json" => "json",
+                    "jsonb" => "jsonb",
+                    null => "null",
+                    _ => "text"
+
+                    // Note: we currently don't support array_to_tsvector since it doesn't accept a search configuration
+                })!;
+
+        var tsVectorConfigLiteral = _stringTypeMapping.GenerateSqlLiteral(tsVectorConfig);
+
+        var builder = new StringBuilder();
+
+        foreach (var columnGroup in columnGroups)
         {
-            var delimitedColumnName = DelimitIdentifier(columnName);
-            var column = model?.GetRelationalModel()
-                .FindTable(table, schema)?.Columns.FirstOrDefault(c => c.Name == columnName);
-            return column?.IsNullable != false
-                ? $"coalesce({delimitedColumnName}, '')"
-                : delimitedColumnName;
+            if (builder.Length > 0)
+            {
+                builder.Append(" || ");
+            }
+
+            builder.Append(columnGroup.Key switch
+            {
+                "text" => $"to_tsvector({tsVectorConfigLiteral}, {string.Join(" || ' ' || ", columnGroup.Select(TextColumn))})",
+                "json" => string.Join(" || ", columnGroup.Select(c =>
+                    $@"json_to_tsvector({tsVectorConfigLiteral}, {JsonColumn(c)}, '""all""')")),
+                "jsonb" => string.Join(" || ", columnGroup.Select(c =>
+                    $@"jsonb_to_tsvector({tsVectorConfigLiteral}, {JsonColumn(c)}, '""all""')")),
+                "null" => throw new InvalidOperationException(
+                    $"Column or index {columnOrIndexName} refers to unknown column in tsvector definition"),
+                _ => throw new ArgumentOutOfRangeException()
+            });
         }
+
+        return builder.ToString();
+
+        string TextColumn(IColumn column)
+            => column.IsNullable ? $"coalesce({DelimitIdentifier(column.Name)}, '')" : DelimitIdentifier(column.Name);
+
+        string JsonColumn(IColumn column)
+            => column.IsNullable ? $"coalesce({DelimitIdentifier(column.Name)}, '{{}}')" : DelimitIdentifier(column.Name);
     }
 
     private static bool TryParseSchema(string identifier, out string name, out string? schema)
