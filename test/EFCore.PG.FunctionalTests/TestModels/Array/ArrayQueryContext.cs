@@ -35,6 +35,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array
 
                     e.Property(ae => ae.ValueConvertedList)
                         .HasPostgresArrayConversion(w => -(int)w, v => (SomeEnum)(-v));
+
+                    e.HasIndex(ae => ae.NonNullableText);
                 });
 
         public static void Seed(ArrayQueryContext context)

@@ -694,20 +694,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             RelationalTypeMapping? elementTypeMapping = null;
 
             // First, loop over the expressions to infer the array's type mapping (if not provided), and to make
-            // sure we don't have heterogeneous mappings.
+            // sure we don't have heterogeneous store types.
             foreach (var expression in postgresNewArrayExpression.Expressions)
             {
-                if (expression.TypeMapping is not null)
+                if (expression.TypeMapping is not { } expressionTypeMapping)
                 {
-                    if (elementTypeMapping is null)
-                    {
-                        elementTypeMapping = expression.TypeMapping;
-                    }
-                    else if (elementTypeMapping != expression.TypeMapping)
-                    {
-                        throw new InvalidOperationException(
-                            $"Heterogeneous type mappings detected when making new array ({elementTypeMapping}, {expression.TypeMapping})");
-                    }
+                    continue;
+                }
+
+                if (elementTypeMapping is null)
+                {
+                    elementTypeMapping = expressionTypeMapping;
+                }
+                else if (elementTypeMapping.StoreType != expressionTypeMapping.StoreType)
+                {
+                    throw new InvalidOperationException(
+                        $"Heterogeneous store types detected when making new array ({elementTypeMapping.StoreType}, {expressionTypeMapping.StoreType})");
                 }
             }
 
