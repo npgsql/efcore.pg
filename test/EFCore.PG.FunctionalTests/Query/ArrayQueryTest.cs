@@ -17,14 +17,14 @@ public abstract class ArrayQueryTest<TFixture> : QueryTestBase<TFixture>
 
     #region Basic Mapping
 
-    [ConditionalFact]
-    public void New_array_of_text_properties_with_indexed_one()
-    {
-        using var ctx = CreateContext();
-
-        // Should not throw
-        _ = ctx.SomeEntities.Select(e => new[] { e.NonNullableIndexedText, e.NonNullableText }).First();
-    }
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public Task New_array_of_text_properties_with_indexed_one(bool async)
+        => AssertQuery(
+            async,
+            ss => ss.Set<ArrayEntity>().Select(e => new[] { e.NullableText, e.NonNullableText }),
+            elementAsserter: Assert.Equal,
+            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
 
     #endregion
 

@@ -30,7 +30,7 @@ public class ArrayQueryContext : PoolableDbContext
                 e.Property(ae => ae.ValueConvertedList)
                     .HasPostgresArrayConversion(w => -(int)w, v => (SomeEnum)(-v));
 
-                e.HasIndex(ae => ae.NonNullableIndexedText);
+                e.HasIndex(ae => ae.NonNullableText);
             });
 
     public static void Seed(ArrayQueryContext context)

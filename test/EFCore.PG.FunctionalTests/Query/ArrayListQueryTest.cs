@@ -16,7 +16,7 @@ public class ArrayListQueryTest : ArrayQueryTest<ArrayListQueryTest.ArrayListQue
         await base.Index_with_constant(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""IntList""[1] = 3");
     }
@@ -28,7 +28,7 @@ WHERE s.""IntList""[1] = 3");
         AssertSql(
             @"@__x_0='0'
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""IntList""[@__x_0 + 1] = 3");
     }
@@ -38,7 +38,7 @@ WHERE s.""IntList""[@__x_0 + 1] = 3");
         await base.Nullable_index_with_constant(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""NullableIntList""[1] = 3");
     }
@@ -48,7 +48,7 @@ WHERE s.""NullableIntList""[1] = 3");
         await base.Nullable_value_array_index_compare_to_null(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE (s.""NullableIntList""[3] IS NULL)");
     }
@@ -58,7 +58,7 @@ WHERE (s.""NullableIntList""[3] IS NULL)");
         await base.Non_nullable_value_array_index_compare_to_null(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE FALSE");
     }
@@ -68,7 +68,7 @@ WHERE FALSE");
         await base.Nullable_reference_array_index_compare_to_null(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE (s.""NullableStringList""[3] IS NULL)");
     }
@@ -78,7 +78,7 @@ WHERE (s.""NullableStringList""[3] IS NULL)");
         await base.Non_nullable_reference_array_index_compare_to_null(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE FALSE");
     }
@@ -94,7 +94,7 @@ WHERE FALSE");
         AssertSql(
             @"@__arr_0={ '3', '4' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""IntList"" = @__arr_0");
     }
@@ -104,7 +104,7 @@ WHERE s.""IntList"" = @__arr_0");
         await base.SequenceEqual_with_array_literal(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""IntList"" = ARRAY[3,4]::integer[]");
     }
@@ -116,7 +116,7 @@ WHERE s.""IntList"" = ARRAY[3,4]::integer[]");
         AssertSql(
             @"@__arr_0={ '3', '4', NULL } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""NullableIntList"" = @__arr_0");
     }
@@ -130,7 +130,7 @@ WHERE s.""NullableIntList"" = @__arr_0");
         await base.Array_column_Any_equality_operator(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""StringList"" @> ARRAY['3']::text[]");
     }
@@ -140,7 +140,7 @@ WHERE s.""StringList"" @> ARRAY['3']::text[]");
         await base.Array_column_Any_Equals(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""StringList"" @> ARRAY['3']::text[]");
     }
@@ -150,7 +150,7 @@ WHERE s.""StringList"" @> ARRAY['3']::text[]");
         await base.Array_column_Contains_literal_item(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""IntList"" @> ARRAY[3]::integer[]");
     }
@@ -162,7 +162,7 @@ WHERE s.""IntList"" @> ARRAY[3]::integer[]");
         AssertSql(
             @"@__p_0='3'
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""IntList"" @> ARRAY[@__p_0]::integer[]");
     }
@@ -172,7 +172,7 @@ WHERE s.""IntList"" @> ARRAY[@__p_0]::integer[]");
         await base.Array_column_Contains_column_item(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""IntList"" @> ARRAY[s.""Id"" + 2]::integer[]");
     }
@@ -182,7 +182,7 @@ WHERE s.""IntList"" @> ARRAY[s.""Id"" + 2]::integer[]");
         await base.Array_column_Contains_null_constant(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE (array_position(s.""NullableStringList"", NULL) IS NOT NULL)");
     }
@@ -210,7 +210,7 @@ WHERE s.""StringList"" @> ARRAY[NULL]::text[]");
         await base.Nullable_array_column_Contains_literal_item(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""NullableIntList"" @> ARRAY[3]::integer[]");
     }
@@ -223,7 +223,7 @@ WHERE s.""NullableIntList"" @> ARRAY[3]::integer[]");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""NullableText"" IN ('foo', 'xxx')");
     }
@@ -240,7 +240,7 @@ WHERE s.""NullableText"" IN ('foo', 'xxx')");
         AssertSql(
             @"@__array_0={ 'foo', 'xxx' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""NullableText"" = ANY (@__array_0) OR ((s.""NullableText"" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))");
 
@@ -258,7 +258,7 @@ WHERE s.""NullableText"" = ANY (@__array_0) OR ((s.""NullableText"" IS NULL) AND
         AssertSql(
             @"@__array_0={ '1' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""Id"" = ANY (@__array_0)");
     }
@@ -359,7 +359,7 @@ WHERE NOT (s.""NullableText"" = ANY (@__array_0) AND ((s.""NullableText"" = ANY 
         AssertSql(
             @"@__values_0={ '1', '999' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""Id""::text = ANY (@__values_0)");
     }
@@ -376,7 +376,7 @@ WHERE s.""Id""::text = ANY (@__values_0)");
         AssertSql(
             @"@__values_0={ '20' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""Byte"" = ANY (@__values_0)");
     }
@@ -393,7 +393,7 @@ WHERE s.""Byte"" = ANY (@__values_0)");
         AssertSql(
             @"@__array_0={ '-2', '-3' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""EnumConvertedToInt"" = ANY (@__array_0)");
     }
@@ -410,7 +410,7 @@ WHERE s.""EnumConvertedToInt"" = ANY (@__array_0)");
         AssertSql(
             @"@__array_0={ 'Two', 'Three' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""EnumConvertedToString"" = ANY (@__array_0)");
     }
@@ -427,7 +427,7 @@ WHERE s.""EnumConvertedToString"" = ANY (@__array_0)");
         AssertSql(
             @"@__array_0={ 'Two', 'Three' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""NullableEnumConvertedToString"" = ANY (@__array_0) OR ((s.""NullableEnumConvertedToString"" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))");
     }
@@ -444,7 +444,7 @@ WHERE s.""NullableEnumConvertedToString"" = ANY (@__array_0) OR ((s.""NullableEn
         AssertSql(
             @"@__array_0={ 'Two', 'Three' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""NullableEnumConvertedToStringWithNonNullableLambda"" = ANY (@__array_0) OR ((s.""NullableEnumConvertedToStringWithNonNullableLambda"" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))");
     }
@@ -456,7 +456,7 @@ WHERE s.""NullableEnumConvertedToStringWithNonNullableLambda"" = ANY (@__array_0
         AssertSql(
             @"@__item_0='-8'
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""ValueConvertedList"" @> ARRAY[@__item_0]::integer[]");
     }
@@ -473,7 +473,7 @@ WHERE s.""ValueConvertedList"" @> ARRAY[@__item_0]::integer[]");
         AssertSql(
             @"@__p_0={ '-8', '-9' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""ValueConvertedList"" <@ @__p_0");
     }
@@ -505,7 +505,7 @@ WHERE 3 = ANY ((
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE cardinality(s.""IntList"") = 2");
     }
@@ -518,7 +518,7 @@ WHERE cardinality(s.""IntList"") = 2");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE cardinality(s.""NullableIntList"") = 3");
     }
@@ -531,7 +531,7 @@ WHERE cardinality(s.""NullableIntList"") = 3");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE cardinality(s.""IntList"") = 2");
     }
@@ -545,7 +545,7 @@ WHERE cardinality(s.""IntList"") = 2");
         await base.Any_no_predicate(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE cardinality(s.""IntList"") > 0");
     }
@@ -561,7 +561,7 @@ WHERE cardinality(s.""IntList"") > 0");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""NullableText"" LIKE ANY (ARRAY['a%','b%','c%']::text[])");
     }
@@ -577,7 +577,7 @@ WHERE s.""NullableText"" LIKE ANY (ARRAY['a%','b%','c%']::text[])");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""NullableText"" ILIKE ANY (ARRAY['a%','b%','c%']::text[])");
     }
@@ -600,7 +600,7 @@ WHERE s.""NullableText"" ILIKE ANY (ARRAY['a%','b%','c%']::text[])");
         AssertSql(
             @"@__patternsActual_0={ 'a%', 'b%', 'c%' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""NullableText"" LIKE ANY (@__patternsActual_0)");
     }
@@ -616,7 +616,7 @@ WHERE s.""NullableText"" LIKE ANY (@__patternsActual_0)");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""NullableText"" LIKE ALL (ARRAY['b%','ba%']::text[])");
     }
@@ -632,7 +632,7 @@ WHERE s.""NullableText"" LIKE ALL (ARRAY['b%','ba%']::text[])");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""NullableText"" ILIKE ALL (ARRAY['B%','ba%']::text[])");
     }
@@ -642,7 +642,7 @@ WHERE s.""NullableText"" ILIKE ALL (ARRAY['B%','ba%']::text[])");
         await base.Any_Contains_on_constant_array(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE ARRAY[2,3]::integer[] && s.""IntList""");
     }
@@ -654,7 +654,7 @@ WHERE ARRAY[2,3]::integer[] && s.""IntList""");
         AssertSql(
             @"@__ints_0={ '2', '3' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""IntList"" && @__ints_0");
     }
@@ -666,7 +666,7 @@ WHERE s.""IntList"" && @__ints_0");
         AssertSql(
             @"@__ints_0={ '2', '3' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE s.""IntList"" && @__ints_0");
     }
@@ -676,7 +676,7 @@ WHERE s.""IntList"" && @__ints_0");
         await base.All_Contains(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE ARRAY[5,6]::integer[] <@ s.""IntList""");
     }
@@ -690,7 +690,7 @@ WHERE ARRAY[5,6]::integer[] <@ s.""IntList""");
         await base.Append(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE array_append(s.""IntList"", 5) = ARRAY[3,4,5]::integer[]");
     }
@@ -700,7 +700,7 @@ WHERE array_append(s.""IntList"", 5) = ARRAY[3,4,5]::integer[]");
         await base.Concat(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE array_cat(s.""IntList"", ARRAY[5,6]::integer[]) = ARRAY[3,4,5,6]::integer[]");
     }
@@ -715,7 +715,7 @@ WHERE array_cat(s.""IntList"", ARRAY[5,6]::integer[]) = ARRAY[3,4,5,6]::integer[
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE COALESCE(array_position(s.""IntList"", 6) - 1, -1) = 1");
     }
@@ -730,7 +730,7 @@ WHERE COALESCE(array_position(s.""IntList"", 6) - 1, -1) = 1");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE COALESCE(array_position(s.""IntList"", 6, 2) - 1, -1) = 1");
     }
@@ -740,7 +740,7 @@ WHERE COALESCE(array_position(s.""IntList"", 6, 2) - 1, -1) = 1");
         await base.String_Join(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableIndexedText"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList""
 FROM ""SomeEntities"" AS s
 WHERE array_to_string(s.""IntList"", ', ', '') = '3, 4'");
     }
