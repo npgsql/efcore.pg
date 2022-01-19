@@ -29,6 +29,8 @@ public class ArrayQueryContext : PoolableDbContext
 
                 e.Property(ae => ae.ValueConvertedList)
                     .HasPostgresArrayConversion(w => -(int)w, v => (SomeEnum)(-v));
+
+                e.HasIndex(ae => ae.NonNullableIndexedText);
             });
 
     public static void Seed(ArrayQueryContext context)

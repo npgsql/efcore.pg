@@ -693,7 +693,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 {
                     elementTypeMapping = expression.TypeMapping;
                 }
-                else if (elementTypeMapping != expression.TypeMapping)
+                else if (elementTypeMapping.StoreType != expression.TypeMapping.StoreType)
                 {
                     throw new InvalidOperationException(
                         $"Heterogeneous type mappings detected when making new array ({elementTypeMapping}, {expression.TypeMapping})");

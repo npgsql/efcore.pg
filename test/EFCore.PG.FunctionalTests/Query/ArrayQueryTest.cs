@@ -15,6 +15,19 @@ public abstract class ArrayQueryTest<TFixture> : QueryTestBase<TFixture>
         // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
+    #region Basic Mapping
+
+    [ConditionalFact]
+    public void New_array_of_text_properties_with_indexed_one()
+    {
+        using var ctx = CreateContext();
+
+        // Should not throw
+        _ = ctx.SomeEntities.Select(e => new[] { e.NonNullableIndexedText, e.NonNullableText }).First();
+    }
+
+    #endregion
+
     #region Roundtrip
 
     [ConditionalFact]
