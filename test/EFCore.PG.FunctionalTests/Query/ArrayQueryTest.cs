@@ -15,6 +15,19 @@ public abstract class ArrayQueryTest<TFixture> : QueryTestBase<TFixture>
         // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
+    #region Basic Mapping
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public Task New_array_of_text_properties_with_indexed_one(bool async)
+        => AssertQuery(
+            async,
+            ss => ss.Set<ArrayEntity>().Select(e => new[] { e.NullableText, e.NonNullableText }),
+            elementAsserter: Assert.Equal,
+            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
+
+    #endregion
+
     #region Roundtrip
 
     [ConditionalFact]
