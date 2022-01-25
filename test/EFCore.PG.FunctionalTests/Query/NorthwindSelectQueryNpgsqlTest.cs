@@ -19,6 +19,30 @@ public class NorthwindSelectQueryNpgsqlTest : NorthwindSelectQueryRelationalTest
 FROM ""Orders"" AS o");
     }
 
+    public override async Task Correlated_collection_after_distinct_with_complex_projection_not_containing_original_identifier(bool async)
+    {
+        // Identifier set for Distinct. Issue #24440.
+        Assert.Equal(
+            RelationalStrings.InsufficientInformationToIdentifyElementOfCollectionJoin,
+            (await Assert.ThrowsAsync<InvalidOperationException>(
+                () => base.Correlated_collection_after_distinct_with_complex_projection_not_containing_original_identifier(async)))
+            .Message);
+
+        AssertSql();
+    }
+
+    public override async Task
+        SelectMany_with_collection_being_correlated_subquery_which_references_non_mapped_properties_from_inner_and_outer_entity(
+            bool async)
+    {
+        await AssertUnableToTranslateEFProperty(
+            () => base
+                .SelectMany_with_collection_being_correlated_subquery_which_references_non_mapped_properties_from_inner_and_outer_entity(
+                    async));
+
+        AssertSql();
+    }
+
     [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/27152")]
     public override Task Reverse_in_subquery_via_pushdown(bool async)
         => base.Reverse_in_subquery_via_pushdown(async);

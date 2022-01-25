@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
+using Xunit.Sdk;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
@@ -92,6 +93,81 @@ LIMIT 1");
                 .Select(o => new { Test = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMinutes(o.OrderID % 25) }),
             assertOrder: true,
             elementAsserter: (e, a) => AssertEqual(e.Test, a.Test));
+
+    public override async Task Client_code_using_instance_method_throws(bool async)
+    {
+        Assert.Equal(
+            CoreStrings.ClientProjectionCapturingConstantInMethodInstance(
+                "Npgsql.EntityFrameworkCore.PostgreSQL.Query.NorthwindMiscellaneousQueryNpgsqlTest",
+                "InstanceMethod"),
+            (await Assert.ThrowsAsync<InvalidOperationException>(
+                () => base.Client_code_using_instance_method_throws(async))).Message);
+
+        AssertSql();
+    }
+
+    public override async Task Client_code_using_instance_in_static_method(bool async)
+    {
+        Assert.Equal(
+            CoreStrings.ClientProjectionCapturingConstantInMethodArgument(
+                "Npgsql.EntityFrameworkCore.PostgreSQL.Query.NorthwindMiscellaneousQueryNpgsqlTest",
+                "StaticMethod"),
+            (await Assert.ThrowsAsync<InvalidOperationException>(
+                () => base.Client_code_using_instance_in_static_method(async))).Message);
+
+        AssertSql();
+    }
+
+    public override async Task Client_code_using_instance_in_anonymous_type(bool async)
+    {
+        Assert.Equal(
+            CoreStrings.ClientProjectionCapturingConstantInTree(
+                "Npgsql.EntityFrameworkCore.PostgreSQL.Query.NorthwindMiscellaneousQueryNpgsqlTest"),
+            (await Assert.ThrowsAsync<InvalidOperationException>(
+                () => base.Client_code_using_instance_in_anonymous_type(async))).Message);
+
+        AssertSql();
+    }
+
+    public override async Task Client_code_unknown_method(bool async)
+    {
+        await AssertTranslationFailedWithDetails(
+            () => base.Client_code_unknown_method(async),
+            CoreStrings.QueryUnableToTranslateMethod(
+                "Microsoft.EntityFrameworkCore.Query.NorthwindMiscellaneousQueryTestBase<Npgsql.EntityFrameworkCore.PostgreSQL.Query.NorthwindQueryNpgsqlFixture<Microsoft.EntityFrameworkCore.TestUtilities.NoopModelCustomizer>>",
+                nameof(UnknownMethod)));
+
+        AssertSql();
+    }
+
+    public override async Task Max_on_empty_sequence_throws(bool async)
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(() => base.Max_on_empty_sequence_throws(async));
+
+        AssertSql(
+                @"SELECT (
+    SELECT MAX(o.""OrderID"")
+    FROM ""Orders"" AS o
+    WHERE c.""CustomerID"" = o.""CustomerID"") AS ""Max""
+FROM ""Customers"" AS c");
+    }
+
+    public override void Select_DTO_constructor_distinct_with_collection_projection_translated_to_server()
+    {
+        // Allow binding of expressions after projection has turned to client eval. Issue #24478.
+        Assert.Throws<TrueException>(
+            () => base.Select_DTO_constructor_distinct_with_collection_projection_translated_to_server());
+
+        AssertSql(
+            @"SELECT t.""CustomerID"", o0.""OrderID"", o0.""CustomerID"", o0.""EmployeeID"", o0.""OrderDate""
+FROM (
+    SELECT DISTINCT o.""CustomerID""
+    FROM ""Orders"" AS o
+    WHERE o.""OrderID"" < 10300
+) AS t
+LEFT JOIN ""Orders"" AS o0 ON t.""CustomerID"" = o0.""CustomerID""
+ORDER BY t.""CustomerID"" NULLS FIRST");
+    }
 
     // TODO: Array tests can probably move to the dedicated ArrayQueryTest suite
 

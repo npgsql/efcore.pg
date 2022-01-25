@@ -211,7 +211,7 @@ VALUES (7, 'Aemon Targaryen', GEOMETRY 'SRID=4326;GEOMETRYCOLLECTION Z(LINESTRIN
         base.InsertDataOperation_required_args();
 
         AssertSql(
-            @"INSERT INTO ""People"" (""First Name"")
+            @"INSERT INTO dbo.""People"" (""First Name"")
 VALUES ('John');
 ");
     }
@@ -221,7 +221,7 @@ VALUES ('John');
         base.InsertDataOperation_required_args_composite();
 
         AssertSql(
-            @"INSERT INTO ""People"" (""First Name"", ""Last Name"")
+            @"INSERT INTO dbo.""People"" (""First Name"", ""Last Name"")
 VALUES ('John', 'Snow');
 ");
     }
@@ -231,9 +231,9 @@ VALUES ('John', 'Snow');
         base.InsertDataOperation_required_args_multiple_rows();
 
         AssertSql(
-            @"INSERT INTO ""People"" (""First Name"")
+            @"INSERT INTO dbo.""People"" (""First Name"")
 VALUES ('John');
-INSERT INTO ""People"" (""First Name"")
+INSERT INTO dbo.""People"" (""First Name"")
 VALUES ('Daenerys');
 ");
     }
