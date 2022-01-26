@@ -30,13 +30,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             {
                 return member.Name switch
                 {
-                    nameof(TimeSpan.Days)         => Floor(DatePart("day", instance)),
-                    nameof(TimeSpan.Hours)        => Floor(DatePart("hour", instance)),
-                    nameof(TimeSpan.Minutes)      => Floor(DatePart("minute", instance)),
-                    nameof(TimeSpan.Seconds)      => Floor(DatePart("second", instance)),
+                    nameof(TimeSpan.Days) => Floor(DatePart("day", instance)),
+                    nameof(TimeSpan.Hours) => Floor(DatePart("hour", instance)),
+                    nameof(TimeSpan.Minutes) => Floor(DatePart("minute", instance)),
+                    nameof(TimeSpan.Seconds) => Floor(DatePart("second", instance)),
                     nameof(TimeSpan.Milliseconds) => _sqlExpressionFactory.Modulo(
                         Floor(DatePart("millisecond", instance!)),
                         _sqlExpressionFactory.Constant(1000)),
+
+                    nameof(TimeSpan.TotalDays) => TranslateDurationTotalMember(instance, 86400),
+                    nameof(TimeSpan.TotalHours) => TranslateDurationTotalMember(instance, 3600),
+                    nameof(TimeSpan.TotalMinutes) => TranslateDurationTotalMember(instance, 60),
+                    nameof(TimeSpan.TotalSeconds) => DatePart("epoch", instance),
+                    nameof(TimeSpan.TotalMilliseconds) => TranslateDurationTotalMember(instance, 0.001),
+
                     _ => null
                 };
             }
@@ -62,6 +69,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: true,
                     argumentsPropagateNullability: FalseTrueArray,
                     returnType);
+
+            SqlBinaryExpression TranslateDurationTotalMember(SqlExpression instance, double divisor)
+                => _sqlExpressionFactory.Divide(DatePart("epoch", instance), _sqlExpressionFactory.Constant(divisor));
         }
     }
 }

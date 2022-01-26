@@ -279,9 +279,6 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST");
 
         #region Unsupported
 
-        public override Task Datetime_subtraction_TotalDays(bool async)
-            => AssertTranslationFailed(() =>  base.Datetime_subtraction_TotalDays(async));
-
         // These tests convert (among other things) to and from boolean, which PostgreSQL
         // does not support (https://github.com/dotnet/efcore/issues/19606)
         public override Task Convert_ToBoolean(bool async) => Task.CompletedTask;
