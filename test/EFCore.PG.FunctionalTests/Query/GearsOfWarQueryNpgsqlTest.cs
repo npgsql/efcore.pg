@@ -263,6 +263,76 @@ FROM ""Missions"" AS m
 WHERE (floor(date_part('millisecond', m.""Duration""))::INT % 1000) = 1");
     }
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Where_TimeSpan_TotalDays(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Mission>().Where(m => m.Duration.TotalDays < 0.042));
+
+        AssertSql(
+            @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
+FROM ""Missions"" AS m
+WHERE (date_part('epoch', m.""Duration"") / 86400.0) < 0.042000000000000003");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Where_TimeSpan_TotalHours(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Mission>().Where(m => m.Duration.TotalHours < 1.02));
+
+        AssertSql(
+            @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
+FROM ""Missions"" AS m
+WHERE (date_part('epoch', m.""Duration"") / 3600.0) < 1.02");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Where_TimeSpan_TotalMinutes(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Mission>().Where(m => m.Duration.TotalMinutes < 61));
+
+        AssertSql(
+            @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
+FROM ""Missions"" AS m
+WHERE (date_part('epoch', m.""Duration"") / 60.0) < 61.0");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Where_TimeSpan_TotalSeconds(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Mission>().Where(m => m.Duration.TotalSeconds < 3700));
+
+        AssertSql(
+            @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
+FROM ""Missions"" AS m
+WHERE date_part('epoch', m.""Duration"") < 3700.0");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Where_TimeSpan_TotalMilliseconds(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Mission>().Where(m => m.Duration.TotalMilliseconds < 3700000));
+
+        AssertSql(
+            @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
+FROM ""Missions"" AS m
+WHERE (date_part('epoch', m.""Duration"") / 0.001) < 3700000.0");
+    }
+
     #endregion TimeSpan
 
     #region DateOnly
