@@ -12,135 +12,135 @@ using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 
 // ReSharper disable once CheckNamespace
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
-{
-    public class NpgsqlNetTopologySuiteMethodCallTranslatorPlugin : IMethodCallTranslatorPlugin
-    {
-        public NpgsqlNetTopologySuiteMethodCallTranslatorPlugin(
-            IRelationalTypeMappingSource typeMappingSource,
-            ISqlExpressionFactory sqlExpressionFactory)
-        {
-            if (!(sqlExpressionFactory is NpgsqlSqlExpressionFactory npgsqlSqlExpressionFactory))
-            {
-                throw new ArgumentException($"Must be an {nameof(NpgsqlSqlExpressionFactory)}", nameof(sqlExpressionFactory));
-            }
-            Translators = new IMethodCallTranslator[] { new NpgsqlGeometryMethodTranslator(npgsqlSqlExpressionFactory, typeMappingSource), };
-        }
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
-        public virtual IEnumerable<IMethodCallTranslator> Translators { get; }
+public class NpgsqlNetTopologySuiteMethodCallTranslatorPlugin : IMethodCallTranslatorPlugin
+{
+    public NpgsqlNetTopologySuiteMethodCallTranslatorPlugin(
+        IRelationalTypeMappingSource typeMappingSource,
+        ISqlExpressionFactory sqlExpressionFactory)
+    {
+        if (!(sqlExpressionFactory is NpgsqlSqlExpressionFactory npgsqlSqlExpressionFactory))
+        {
+            throw new ArgumentException($"Must be an {nameof(NpgsqlSqlExpressionFactory)}", nameof(sqlExpressionFactory));
+        }
+        Translators = new IMethodCallTranslator[] { new NpgsqlGeometryMethodTranslator(npgsqlSqlExpressionFactory, typeMappingSource), };
     }
 
-    /// <summary>
-    /// Translates methods operating on types implementing the <see cref="IGeometry"/> interface.
-    /// </summary>
-    public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
+    public virtual IEnumerable<IMethodCallTranslator> Translators { get; }
+}
+
+/// <summary>
+/// Translates methods operating on types implementing the <see cref="IGeometry"/> interface.
+/// </summary>
+public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
+{
+    private static readonly MethodInfo _collectionItem = typeof(GeometryCollection).GetRuntimeProperty("Item")!.GetMethod!;
+
+    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+    private readonly IRelationalTypeMappingSource _typeMappingSource;
+
+    private static readonly bool[][] TrueArrays =
     {
-        private static readonly MethodInfo _collectionItem = typeof(GeometryCollection).GetRuntimeProperty("Item")!.GetMethod!;
+        Array.Empty<bool>(),
+        new[] { true },
+        new[] { true, true },
+        new[] { true, true, true },
+        new[] { true, true, true, true }
+    };
 
-        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        private readonly IRelationalTypeMappingSource _typeMappingSource;
+    public NpgsqlGeometryMethodTranslator(
+        NpgsqlSqlExpressionFactory sqlExpressionFactory,
+        IRelationalTypeMappingSource typeMappingSource)
+    {
+        _sqlExpressionFactory = sqlExpressionFactory;
+        _typeMappingSource = typeMappingSource;
+    }
 
-        private static readonly bool[][] TrueArrays =
+    /// <inheritdoc />
+    public virtual SqlExpression? Translate(
+        SqlExpression? instance,
+        MethodInfo method,
+        IReadOnlyList<SqlExpression> arguments,
+        IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+        => method.DeclaringType == typeof(NpgsqlNetTopologySuiteDbFunctionsExtensions)
+            ? TranslateDbFunction(method, arguments)
+            : instance is not null && typeof(Geometry).IsAssignableFrom(method.DeclaringType)
+                ? TranslateGeometryMethod(instance, method, arguments)
+                : null;
+
+    private SqlExpression? TranslateDbFunction(
+        MethodInfo method,
+        IReadOnlyList<SqlExpression> arguments)
+        => method.Name switch
         {
-            Array.Empty<bool>(),
-            new[] { true },
-            new[] { true, true },
-            new[] { true, true, true },
-            new[] { true, true, true, true }
+            nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Transform) => _sqlExpressionFactory.Function(
+                "ST_Transform",
+                new[] { arguments[1], arguments[2] },
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[2],
+                method.ReturnType,
+                arguments[1].TypeMapping),
+
+            nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Force2D) => _sqlExpressionFactory.Function(
+                "ST_Force2D",
+                new[] { arguments[1] },
+                nullable: true,
+                TrueArrays[1],
+                method.ReturnType,
+                arguments[1].TypeMapping),
+
+            nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.DistanceKnn) => _sqlExpressionFactory.MakePostgresBinary(
+                PostgresExpressionType.PostgisDistanceKnn,
+                arguments[1],
+                arguments[2]),
+
+            nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Distance) =>
+                TranslateGeometryMethod(arguments[1], method, new[] { arguments[2], arguments[3] }),
+            nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.IsWithinDistance) =>
+                TranslateGeometryMethod(arguments[1], method, new[] { arguments[2], arguments[3], arguments[4] }),
+
+            _ => null
         };
 
-        public NpgsqlGeometryMethodTranslator(
-            NpgsqlSqlExpressionFactory sqlExpressionFactory,
-            IRelationalTypeMappingSource typeMappingSource)
+    private SqlExpression? TranslateGeometryMethod(
+        SqlExpression instance,
+        MethodInfo method,
+        IReadOnlyList<SqlExpression> arguments)
+    {
+        var typeMapping = ExpressionExtensions.InferTypeMapping(
+            arguments.Prepend(instance).Where(e => typeof(Geometry).IsAssignableFrom(e.Type)).ToArray());
+
+        Debug.Assert(typeMapping is not null, "At least one argument must have typeMapping.");
+        var storeType = typeMapping.StoreType;
+
+        instance = _sqlExpressionFactory.ApplyTypeMapping(instance, _typeMappingSource.FindMapping(instance.Type, storeType));
+
+        var typeMappedArguments = new List<SqlExpression>();
+        foreach (var argument in arguments)
         {
-            _sqlExpressionFactory = sqlExpressionFactory;
-            _typeMappingSource = typeMappingSource;
+            typeMappedArguments.Add(
+                _sqlExpressionFactory.ApplyTypeMapping(
+                    argument,
+                    typeof(Geometry).IsAssignableFrom(argument.Type)
+                        ? _typeMappingSource.FindMapping(argument.Type, storeType)
+                        : _typeMappingSource.FindMapping(argument.Type)));
+        }
+        arguments = typeMappedArguments;
+
+        if (Equals(method, _collectionItem))
+        {
+            return _sqlExpressionFactory.Function(
+                "ST_GeometryN",
+                new[] { instance, OneBased(arguments[0]) },
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[2],
+                method.ReturnType,
+                _typeMappingSource.FindMapping(typeof(Geometry), instance.TypeMapping!.StoreType));
         }
 
-        /// <inheritdoc />
-        public virtual SqlExpression? Translate(
-            SqlExpression? instance,
-            MethodInfo method,
-            IReadOnlyList<SqlExpression> arguments,
-            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
-            => method.DeclaringType == typeof(NpgsqlNetTopologySuiteDbFunctionsExtensions)
-                ? TranslateDbFunction(method, arguments)
-                : instance is not null && typeof(Geometry).IsAssignableFrom(method.DeclaringType)
-                    ? TranslateGeometryMethod(instance, method, arguments)
-                    : null;
-
-        private SqlExpression? TranslateDbFunction(
-            MethodInfo method,
-            IReadOnlyList<SqlExpression> arguments)
-            => method.Name switch
-            {
-                nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Transform) => _sqlExpressionFactory.Function(
-                    "ST_Transform",
-                    new[] { arguments[1], arguments[2] },
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[2],
-                    method.ReturnType,
-                    arguments[1].TypeMapping),
-
-                nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Force2D) => _sqlExpressionFactory.Function(
-                    "ST_Force2D",
-                    new[] { arguments[1] },
-                    nullable: true,
-                    TrueArrays[1],
-                    method.ReturnType,
-                    arguments[1].TypeMapping),
-
-                nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.DistanceKnn) => _sqlExpressionFactory.MakePostgresBinary(
-                    PostgresExpressionType.PostgisDistanceKnn,
-                    arguments[1],
-                    arguments[2]),
-
-                nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Distance) =>
-                    TranslateGeometryMethod(arguments[1], method, new[] { arguments[2], arguments[3] }),
-                nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.IsWithinDistance) =>
-                    TranslateGeometryMethod(arguments[1], method, new[] { arguments[2], arguments[3], arguments[4] }),
-
-                _ => null
-            };
-
-        private SqlExpression? TranslateGeometryMethod(
-            SqlExpression instance,
-            MethodInfo method,
-            IReadOnlyList<SqlExpression> arguments)
+        return method.Name switch
         {
-            var typeMapping = ExpressionExtensions.InferTypeMapping(
-                arguments.Prepend(instance).Where(e => typeof(Geometry).IsAssignableFrom(e.Type)).ToArray());
-
-            Debug.Assert(typeMapping is not null, "At least one argument must have typeMapping.");
-            var storeType = typeMapping.StoreType;
-
-            instance = _sqlExpressionFactory.ApplyTypeMapping(instance, _typeMappingSource.FindMapping(instance.Type, storeType));
-
-            var typeMappedArguments = new List<SqlExpression>();
-            foreach (var argument in arguments)
-            {
-                typeMappedArguments.Add(
-                    _sqlExpressionFactory.ApplyTypeMapping(
-                        argument,
-                        typeof(Geometry).IsAssignableFrom(argument.Type)
-                            ? _typeMappingSource.FindMapping(argument.Type, storeType)
-                            : _typeMappingSource.FindMapping(argument.Type)));
-            }
-            arguments = typeMappedArguments;
-
-            if (Equals(method, _collectionItem))
-            {
-                return _sqlExpressionFactory.Function(
-                    "ST_GeometryN",
-                    new[] { instance, OneBased(arguments[0]) },
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[2],
-                    method.ReturnType,
-                    _typeMappingSource.FindMapping(typeof(Geometry), instance.TypeMapping!.StoreType));
-            }
-
-            return method.Name switch
-            {
             nameof(Geometry.AsBinary)            => Function("ST_AsBinary",       new[] { instance }, typeof(byte[])),
             nameof(Geometry.AsText)              => Function("ST_AsText",         new[] { instance }, typeof(string)),
             nameof(Geometry.Buffer)              => Function("ST_Buffer",         new[] { instance }.Concat(arguments).ToArray(), typeof(Geometry), ResultGeometryMapping()),
@@ -174,24 +174,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             nameof(Geometry.Union) when arguments.Count == 1 => Function("ST_Union",      new[] { instance, arguments[0] }, typeof(Geometry), ResultGeometryMapping()),
 
             _ => null
-            };
+        };
 
-            SqlFunctionExpression Function(string name, SqlExpression[] arguments, Type returnType, RelationalTypeMapping? typeMapping = null)
-                => _sqlExpressionFactory.Function(name, arguments,
-                    nullable: true, argumentsPropagateNullability: TrueArrays[arguments.Length],
-                    returnType, typeMapping);
+        SqlFunctionExpression Function(string name, SqlExpression[] arguments, Type returnType, RelationalTypeMapping? typeMapping = null)
+            => _sqlExpressionFactory.Function(name, arguments,
+                nullable: true, argumentsPropagateNullability: TrueArrays[arguments.Length],
+                returnType, typeMapping);
 
-            // NetTopologySuite uses 0-based indexing, but PostGIS uses 1-based
-            SqlExpression OneBased(SqlExpression arg)
-                => arg is SqlConstantExpression constant
-                    ? _sqlExpressionFactory.Constant((int)constant.Value! + 1, constant.TypeMapping)
-                    : (SqlExpression)_sqlExpressionFactory.Add(arg, _sqlExpressionFactory.Constant(1));
+        // NetTopologySuite uses 0-based indexing, but PostGIS uses 1-based
+        SqlExpression OneBased(SqlExpression arg)
+            => arg is SqlConstantExpression constant
+                ? _sqlExpressionFactory.Constant((int)constant.Value! + 1, constant.TypeMapping)
+                : (SqlExpression)_sqlExpressionFactory.Add(arg, _sqlExpressionFactory.Constant(1));
 
-            RelationalTypeMapping ResultGeometryMapping()
-            {
-                Debug.Assert(typeof(Geometry).IsAssignableFrom(method.ReturnType));
-                return _typeMappingSource.FindMapping(method.ReturnType, storeType)!;
-            }
+        RelationalTypeMapping ResultGeometryMapping()
+        {
+            Debug.Assert(typeof(Geometry).IsAssignableFrom(method.ReturnType));
+            return _typeMappingSource.FindMapping(method.ReturnType, storeType)!;
         }
     }
 }

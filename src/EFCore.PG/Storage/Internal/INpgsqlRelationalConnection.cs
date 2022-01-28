@@ -1,11 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
-{
-    public interface INpgsqlRelationalConnection : IRelationalConnection
-    {
-        INpgsqlRelationalConnection CreateMasterConnection();
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
-        NpgsqlRelationalConnection CloneWith(string connectionString);
-    }
+public interface INpgsqlRelationalConnection : IRelationalConnection
+{
+    INpgsqlRelationalConnection CreateMasterConnection();
+
+    NpgsqlRelationalConnection CloneWith(string connectionString);
 }

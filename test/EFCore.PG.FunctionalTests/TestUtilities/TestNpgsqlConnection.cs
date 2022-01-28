@@ -5,55 +5,54 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+
+public class TestNpgsqlConnection : NpgsqlRelationalConnection
 {
-    public class TestNpgsqlConnection : NpgsqlRelationalConnection
+    public TestNpgsqlConnection(RelationalConnectionDependencies dependencies)
+        : base(dependencies)
     {
-        public TestNpgsqlConnection(RelationalConnectionDependencies dependencies)
-          : base(dependencies)
+    }
+
+    public string ErrorCode { get; set; } = "XX000";
+    public Queue<bool?> OpenFailures { get; } = new();
+    public int OpenCount { get; set; }
+    public Queue<bool?> CommitFailures { get; } = new();
+    public Queue<bool?> ExecutionFailures { get; } = new();
+    public int ExecutionCount { get; set; }
+
+    public override bool Open(bool errorsExpected = false)
+    {
+        PreOpen();
+
+        return base.Open(errorsExpected);
+    }
+
+    public override Task<bool> OpenAsync(CancellationToken cancellationToken, bool errorsExpected = false)
+    {
+        PreOpen();
+
+        return base.OpenAsync(cancellationToken, errorsExpected);
+    }
+
+    private void PreOpen()
+    {
+        if (DbConnection.State == ConnectionState.Open)
         {
+            return;
         }
 
-        public string ErrorCode { get; set; } = "XX000";
-        public Queue<bool?> OpenFailures { get; } = new();
-        public int OpenCount { get; set; }
-        public Queue<bool?> CommitFailures { get; } = new();
-        public Queue<bool?> ExecutionFailures { get; } = new();
-        public int ExecutionCount { get; set; }
-
-        public override bool Open(bool errorsExpected = false)
+        OpenCount++;
+        if (OpenFailures.Count <= 0)
         {
-            PreOpen();
-
-            return base.Open(errorsExpected);
+            return;
         }
 
-        public override Task<bool> OpenAsync(CancellationToken cancellationToken, bool errorsExpected = false)
+        var fail = OpenFailures.Dequeue();
+
+        if (fail.HasValue)
         {
-            PreOpen();
-
-            return base.OpenAsync(cancellationToken, errorsExpected);
-        }
-
-        private void PreOpen()
-        {
-            if (DbConnection.State == ConnectionState.Open)
-            {
-                return;
-            }
-
-            OpenCount++;
-            if (OpenFailures.Count <= 0)
-            {
-                return;
-            }
-
-            var fail = OpenFailures.Dequeue();
-
-            if (fail.HasValue)
-            {
-                throw new PostgresException("Simulated failure", "ERROR", "ERROR", ErrorCode);
-            }
+            throw new PostgresException("Simulated failure", "ERROR", "ERROR", ErrorCode);
         }
     }
 }

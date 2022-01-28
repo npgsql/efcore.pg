@@ -5,57 +5,70 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
+
+/// <summary>
+/// A convention that configures the default model <see cref="NpgsqlValueGenerationStrategy"/> as
+/// <see cref="NpgsqlValueGenerationStrategy.IdentityByDefaultColumn"/> for newer PostgreSQL versions,
+/// and <see cref="NpgsqlValueGenerationStrategy.SerialColumn"/> for pre-10.0 versions.
+/// </summary>
+public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConvention, IModelFinalizingConvention
 {
+    private readonly Version? _postgresVersion;
+
     /// <summary>
-    /// A convention that configures the default model <see cref="NpgsqlValueGenerationStrategy"/> as
-    /// <see cref="NpgsqlValueGenerationStrategy.IdentityByDefaultColumn"/> for newer PostgreSQL versions,
-    /// and <see cref="NpgsqlValueGenerationStrategy.SerialColumn"/> for pre-10.0 versions.
+    /// Creates a new instance of <see cref="NpgsqlValueGenerationStrategyConvention" />.
     /// </summary>
-    public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConvention, IModelFinalizingConvention
+    /// <param name="dependencies">Parameter object containing dependencies for this convention.</param>
+    /// <param name="relationalDependencies">Parameter object containing relational dependencies for this convention.</param>
+    /// <param name="postgresVersion">The PostgreSQL version being targeted. This affects the default value generation strategy.</param>
+    public NpgsqlValueGenerationStrategyConvention(
+        ProviderConventionSetBuilderDependencies dependencies,
+        RelationalConventionSetBuilderDependencies relationalDependencies,
+        Version? postgresVersion)
     {
-        private readonly Version? _postgresVersion;
+        Dependencies = dependencies;
+        _postgresVersion = postgresVersion;
+    }
 
-        /// <summary>
-        /// Creates a new instance of <see cref="NpgsqlValueGenerationStrategyConvention" />.
-        /// </summary>
-        /// <param name="dependencies">Parameter object containing dependencies for this convention.</param>
-        /// <param name="relationalDependencies">Parameter object containing relational dependencies for this convention.</param>
-        /// <param name="postgresVersion">The PostgreSQL version being targeted. This affects the default value generation strategy.</param>
-        public NpgsqlValueGenerationStrategyConvention(
-            ProviderConventionSetBuilderDependencies dependencies,
-            RelationalConventionSetBuilderDependencies relationalDependencies,
-            Version? postgresVersion)
+    /// <summary>
+    /// Parameter object containing service dependencies.
+    /// </summary>
+    protected virtual ProviderConventionSetBuilderDependencies Dependencies { get; }
+
+    /// <inheritdoc />
+    public virtual void ProcessModelInitialized(IConventionModelBuilder modelBuilder, IConventionContext<IConventionModelBuilder> context)
+        => modelBuilder.HasValueGenerationStrategy(
+            _postgresVersion < new Version(10, 0)
+                ? NpgsqlValueGenerationStrategy.SerialColumn
+                : NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+    /// <inheritdoc />
+    public virtual void ProcessModelFinalizing(
+        IConventionModelBuilder modelBuilder, IConventionContext<IConventionModelBuilder> context)
+    {
+        foreach (var entityType in modelBuilder.Metadata.GetEntityTypes())
         {
-            Dependencies = dependencies;
-            _postgresVersion = postgresVersion;
-        }
-
-        /// <summary>
-        /// Parameter object containing service dependencies.
-        /// </summary>
-        protected virtual ProviderConventionSetBuilderDependencies Dependencies { get; }
-
-        /// <inheritdoc />
-        public virtual void ProcessModelInitialized(IConventionModelBuilder modelBuilder, IConventionContext<IConventionModelBuilder> context)
-            => modelBuilder.HasValueGenerationStrategy(
-                _postgresVersion < new Version(10, 0)
-                    ? NpgsqlValueGenerationStrategy.SerialColumn
-                    : NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
-        /// <inheritdoc />
-        public virtual void ProcessModelFinalizing(
-            IConventionModelBuilder modelBuilder, IConventionContext<IConventionModelBuilder> context)
-        {
-            foreach (var entityType in modelBuilder.Metadata.GetEntityTypes())
+            foreach (var property in entityType.GetDeclaredProperties())
             {
-                foreach (var property in entityType.GetDeclaredProperties())
+                NpgsqlValueGenerationStrategy? strategy = null;
+                var table = entityType.GetTableName();
+                if (table is not null)
                 {
-                    NpgsqlValueGenerationStrategy? strategy = null;
-                    var table = entityType.GetTableName();
-                    if (table is not null)
+                    var storeObject = StoreObjectIdentifier.Table(table, entityType.GetSchema());
+                    strategy = property.GetValueGenerationStrategy(storeObject, Dependencies.TypeMappingSource);
+                    if (strategy == NpgsqlValueGenerationStrategy.None
+                        && !IsStrategyNoneNeeded(property, storeObject))
                     {
-                        var storeObject = StoreObjectIdentifier.Table(table, entityType.GetSchema());
+                        strategy = null;
+                    }
+                }
+                else
+                {
+                    var view = entityType.GetViewName();
+                    if (view is not null)
+                    {
+                        var storeObject = StoreObjectIdentifier.View(view, entityType.GetViewSchema());
                         strategy = property.GetValueGenerationStrategy(storeObject, Dependencies.TypeMappingSource);
                         if (strategy == NpgsqlValueGenerationStrategy.None
                             && !IsStrategyNoneNeeded(property, storeObject))
@@ -63,47 +76,33 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
                             strategy = null;
                         }
                     }
-                    else
-                    {
-                        var view = entityType.GetViewName();
-                        if (view is not null)
-                        {
-                            var storeObject = StoreObjectIdentifier.View(view, entityType.GetViewSchema());
-                            strategy = property.GetValueGenerationStrategy(storeObject, Dependencies.TypeMappingSource);
-                            if (strategy == NpgsqlValueGenerationStrategy.None
-                                && !IsStrategyNoneNeeded(property, storeObject))
-                            {
-                                strategy = null;
-                            }
-                        }
-                    }
-
-                    // Needed for the annotation to show up in the model snapshot
-                    if (strategy is not null)
-                    {
-                        property.Builder.HasValueGenerationStrategy(strategy);
-                    }
                 }
-            }
 
-            bool IsStrategyNoneNeeded(IReadOnlyProperty property, StoreObjectIdentifier storeObject)
-            {
-                if (property.ValueGenerated == ValueGenerated.OnAdd
-                    && !property.TryGetDefaultValue(storeObject, out _)
-                    && property.GetDefaultValueSql(storeObject) is null
-                    && property.GetComputedColumnSql(storeObject) is null
-                    && property.DeclaringEntityType.Model.GetValueGenerationStrategy() != NpgsqlValueGenerationStrategy.None)
+                // Needed for the annotation to show up in the model snapshot
+                if (strategy is not null)
                 {
-                    var providerClrType = (property.GetValueConverter()
-                            ?? (property.FindRelationalTypeMapping(storeObject)
-                                ?? Dependencies.TypeMappingSource.FindMapping((IProperty)property))?.Converter)
-                        ?.ProviderClrType.UnwrapNullableType();
-
-                    return providerClrType is not null && (providerClrType.IsInteger());
+                    property.Builder.HasValueGenerationStrategy(strategy);
                 }
-
-                return false;
             }
+        }
+
+        bool IsStrategyNoneNeeded(IReadOnlyProperty property, StoreObjectIdentifier storeObject)
+        {
+            if (property.ValueGenerated == ValueGenerated.OnAdd
+                && !property.TryGetDefaultValue(storeObject, out _)
+                && property.GetDefaultValueSql(storeObject) is null
+                && property.GetComputedColumnSql(storeObject) is null
+                && property.DeclaringEntityType.Model.GetValueGenerationStrategy() != NpgsqlValueGenerationStrategy.None)
+            {
+                var providerClrType = (property.GetValueConverter()
+                        ?? (property.FindRelationalTypeMapping(storeObject)
+                            ?? Dependencies.TypeMappingSource.FindMapping((IProperty)property))?.Converter)
+                    ?.ProviderClrType.UnwrapNullableType();
+
+                return providerClrType is not null && (providerClrType.IsInteger());
+            }
+
+            return false;
         }
     }
 }
