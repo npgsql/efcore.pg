@@ -9,131 +9,130 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+
+/// <summary>
+/// The validator that enforces rules for Npgsql.
+/// </summary>
+public class NpgsqlModelValidator : RelationalModelValidator
 {
     /// <summary>
-    /// The validator that enforces rules for Npgsql.
+    /// The backend version to target.
     /// </summary>
-    public class NpgsqlModelValidator : RelationalModelValidator
+    private readonly Version _postgresVersion;
+
+    /// <inheritdoc />
+    public NpgsqlModelValidator(
+        ModelValidatorDependencies dependencies,
+        RelationalModelValidatorDependencies relationalDependencies,
+        INpgsqlOptions npgsqlOptions)
+        : base(dependencies, relationalDependencies)
+        => _postgresVersion = Check.NotNull(npgsqlOptions, nameof(npgsqlOptions)).PostgresVersion;
+
+    public override void Validate(IModel model, IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
     {
-        /// <summary>
-        /// The backend version to target.
-        /// </summary>
-        private readonly Version _postgresVersion;
+        base.Validate(model, logger);
 
-        /// <inheritdoc />
-        public NpgsqlModelValidator(
-            ModelValidatorDependencies dependencies,
-            RelationalModelValidatorDependencies relationalDependencies,
-            INpgsqlOptions npgsqlOptions)
-            : base(dependencies, relationalDependencies)
-            => _postgresVersion = Check.NotNull(npgsqlOptions, nameof(npgsqlOptions)).PostgresVersion;
+        ValidateIdentityVersionCompatibility(model);
+        ValidateIndexIncludeProperties(model);
+    }
 
-        public override void Validate(IModel model, IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
+    /// <summary>
+    /// Validates that identity columns are used only with PostgreSQL 10.0 or later.
+    /// </summary>
+    /// <param name="model">The model to validate.</param>
+    protected virtual void ValidateIdentityVersionCompatibility(IModel model)
+    {
+        if (_postgresVersion.AtLeast(10))
         {
-            base.Validate(model, logger);
-
-            ValidateIdentityVersionCompatibility(model);
-            ValidateIndexIncludeProperties(model);
+            return;
         }
 
-        /// <summary>
-        /// Validates that identity columns are used only with PostgreSQL 10.0 or later.
-        /// </summary>
-        /// <param name="model">The model to validate.</param>
-        protected virtual void ValidateIdentityVersionCompatibility(IModel model)
+        var strategy = model.GetValueGenerationStrategy();
+
+        if (strategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
+            strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
         {
-            if (_postgresVersion.AtLeast(10))
-            {
-                return;
-            }
+            throw new InvalidOperationException(
+                $"'{strategy}' requires PostgreSQL 10.0 or later. " +
+                "If you're using an older version, set PostgreSQL compatibility mode by calling " +
+                $"'optionsBuilder.{nameof(NpgsqlDbContextOptionsBuilder.SetPostgresVersion)}()' in your model's OnConfiguring. " +
+                "See the docs for more info.");
+        }
 
-            var strategy = model.GetValueGenerationStrategy();
+        foreach (var property in model.GetEntityTypes().SelectMany(e => e.GetProperties()))
+        {
+            var propertyStrategy = property.GetValueGenerationStrategy();
 
-            if (strategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
-                strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+            if (propertyStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
+                propertyStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
             {
                 throw new InvalidOperationException(
-                    $"'{strategy}' requires PostgreSQL 10.0 or later. " +
-                    "If you're using an older version, set PostgreSQL compatibility mode by calling " +
-                    $"'optionsBuilder.{nameof(NpgsqlDbContextOptionsBuilder.SetPostgresVersion)}()' in your model's OnConfiguring. " +
-                    "See the docs for more info.");
+                    $"{property.DeclaringEntityType}.{property.Name}: '{propertyStrategy}' requires PostgreSQL 10.0 or later.");
             }
+        }
+    }
 
-            foreach (var property in model.GetEntityTypes().SelectMany(e => e.GetProperties()))
+    protected virtual void ValidateIndexIncludeProperties(IModel model)
+    {
+        foreach (var index in model.GetEntityTypes().SelectMany(t => t.GetDeclaredIndexes()))
+        {
+            var includeProperties = index.GetIncludeProperties();
+            if (includeProperties?.Count > 0)
             {
-                var propertyStrategy = property.GetValueGenerationStrategy();
+                var notFound = includeProperties
+                    .FirstOrDefault(i => index.DeclaringEntityType.FindProperty(i) is null);
 
-                if (propertyStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
-                    propertyStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+                if (notFound is not null)
                 {
                     throw new InvalidOperationException(
-                        $"{property.DeclaringEntityType}.{property.Name}: '{propertyStrategy}' requires PostgreSQL 10.0 or later.");
+                        NpgsqlStrings.IncludePropertyNotFound(index.DeclaringEntityType.DisplayName(), notFound));
                 }
-            }
-        }
 
-        protected virtual void ValidateIndexIncludeProperties(IModel model)
-        {
-            foreach (var index in model.GetEntityTypes().SelectMany(t => t.GetDeclaredIndexes()))
-            {
-                var includeProperties = index.GetIncludeProperties();
-                if (includeProperties?.Count > 0)
+                var duplicate = includeProperties
+                    .GroupBy(i => i)
+                    .Where(g => g.Count() > 1)
+                    .Select(y => y.Key)
+                    .FirstOrDefault();
+
+                if (duplicate is not null)
                 {
-                    var notFound = includeProperties
-                        .FirstOrDefault(i => index.DeclaringEntityType.FindProperty(i) is null);
+                    throw new InvalidOperationException(
+                        NpgsqlStrings.IncludePropertyDuplicated(index.DeclaringEntityType.DisplayName(), duplicate));
+                }
 
-                    if (notFound is not null)
-                    {
-                        throw new InvalidOperationException(
-                            NpgsqlStrings.IncludePropertyNotFound(index.DeclaringEntityType.DisplayName(), notFound));
-                    }
+                var inIndex = includeProperties
+                    .FirstOrDefault(i => index.Properties.Any(p => i == p.Name));
 
-                    var duplicate = includeProperties
-                        .GroupBy(i => i)
-                        .Where(g => g.Count() > 1)
-                        .Select(y => y.Key)
-                        .FirstOrDefault();
-
-                    if (duplicate is not null)
-                    {
-                        throw new InvalidOperationException(
-                            NpgsqlStrings.IncludePropertyDuplicated(index.DeclaringEntityType.DisplayName(), duplicate));
-                    }
-
-                    var inIndex = includeProperties
-                        .FirstOrDefault(i => index.Properties.Any(p => i == p.Name));
-
-                    if (inIndex is not null)
-                    {
-                        throw new InvalidOperationException(
-                            NpgsqlStrings.IncludePropertyInIndex(index.DeclaringEntityType.DisplayName(), inIndex));
-                    }
+                if (inIndex is not null)
+                {
+                    throw new InvalidOperationException(
+                        NpgsqlStrings.IncludePropertyInIndex(index.DeclaringEntityType.DisplayName(), inIndex));
                 }
             }
         }
+    }
 
-        /// <inheritdoc />
-        protected override void ValidateCompatible(
-            IProperty property,
-            IProperty duplicateProperty,
-            string columnName,
-            in StoreObjectIdentifier storeObject,
-            IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
+    /// <inheritdoc />
+    protected override void ValidateCompatible(
+        IProperty property,
+        IProperty duplicateProperty,
+        string columnName,
+        in StoreObjectIdentifier storeObject,
+        IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
+    {
+        base.ValidateCompatible(property, duplicateProperty, columnName, storeObject, logger);
+
+        if (property.GetCompressionMethod(storeObject) != duplicateProperty.GetCompressionMethod(storeObject))
         {
-            base.ValidateCompatible(property, duplicateProperty, columnName, storeObject, logger);
-
-            if (property.GetCompressionMethod(storeObject) != duplicateProperty.GetCompressionMethod(storeObject))
-            {
-                throw new InvalidOperationException(
-                    NpgsqlStrings.DuplicateColumnCompressionMethodMismatch(
-                        duplicateProperty.DeclaringEntityType.DisplayName(),
-                        duplicateProperty.Name,
-                        property.DeclaringEntityType.DisplayName(),
-                        property.Name,
-                        columnName,
-                        storeObject.DisplayName()));
-            }
+            throw new InvalidOperationException(
+                NpgsqlStrings.DuplicateColumnCompressionMethodMismatch(
+                    duplicateProperty.DeclaringEntityType.DisplayName(),
+                    duplicateProperty.Name,
+                    property.DeclaringEntityType.DisplayName(),
+                    property.Name,
+                    columnName,
+                    storeObject.DisplayName()));
         }
     }
 }

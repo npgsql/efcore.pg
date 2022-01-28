@@ -1,33 +1,32 @@
 using System.Collections.Generic;
 
 // ReSharper disable once CheckNamespace
-namespace System.Text
+namespace System.Text;
+
+internal static class StringBuilderExtensions
 {
-    internal static class StringBuilderExtensions
+    public static StringBuilder AppendJoin(
+        this StringBuilder stringBuilder, IEnumerable<string> values, string separator = ", ")
+        => stringBuilder.AppendJoin(values, (sb, value) => sb.Append(value), separator);
+
+    public static StringBuilder AppendJoin<T>(
+        this StringBuilder stringBuilder, IEnumerable<T> values, Action<StringBuilder, T> joinAction,
+        string separator)
     {
-        public static StringBuilder AppendJoin(
-            this StringBuilder stringBuilder, IEnumerable<string> values, string separator = ", ")
-            => stringBuilder.AppendJoin(values, (sb, value) => sb.Append(value), separator);
+        var appended = false;
 
-        public static StringBuilder AppendJoin<T>(
-            this StringBuilder stringBuilder, IEnumerable<T> values, Action<StringBuilder, T> joinAction,
-            string separator)
+        foreach (var value in values)
         {
-            var appended = false;
-
-            foreach (var value in values)
-            {
-                joinAction(stringBuilder, value);
-                stringBuilder.Append(separator);
-                appended = true;
-            }
-
-            if (appended)
-            {
-                stringBuilder.Length -= separator.Length;
-            }
-
-            return stringBuilder;
+            joinAction(stringBuilder, value);
+            stringBuilder.Append(separator);
+            appended = true;
         }
+
+        if (appended)
+        {
+            stringBuilder.Length -= separator.Length;
+        }
+
+        return stringBuilder;
     }
 }

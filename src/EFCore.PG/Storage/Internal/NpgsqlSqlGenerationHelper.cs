@@ -4,61 +4,61 @@ using System.Linq;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+
+public class NpgsqlSqlGenerationHelper : RelationalSqlGenerationHelper
 {
-    public class NpgsqlSqlGenerationHelper : RelationalSqlGenerationHelper
+    private static readonly HashSet<string> ReservedWords;
+
+    static NpgsqlSqlGenerationHelper()
     {
-        private static readonly HashSet<string> ReservedWords;
-
-        static NpgsqlSqlGenerationHelper()
+        // https://www.postgresql.org/docs/current/static/sql-keywords-appendix.html
+        using (var conn = new NpgsqlConnection())
         {
-            // https://www.postgresql.org/docs/current/static/sql-keywords-appendix.html
-            using (var conn = new NpgsqlConnection())
-            {
-                ReservedWords = new HashSet<string>(conn.GetSchema("ReservedWords").Rows.Cast<DataRow>().Select(r => (string)r["ReservedWord"]));
-            }
+            ReservedWords = new HashSet<string>(conn.GetSchema("ReservedWords").Rows.Cast<DataRow>().Select(r => (string)r["ReservedWord"]));
+        }
+    }
+
+    public NpgsqlSqlGenerationHelper(RelationalSqlGenerationHelperDependencies dependencies)
+        : base(dependencies) {}
+
+    public override string DelimitIdentifier(string identifier)
+        => RequiresQuoting(identifier) ? base.DelimitIdentifier(identifier) : identifier;
+
+    public override void DelimitIdentifier(StringBuilder builder, string identifier)
+    {
+        if (RequiresQuoting(identifier))
+        {
+            base.DelimitIdentifier(builder, identifier);
+        }
+        else
+        {
+            builder.Append(identifier);
+        }
+    }
+
+    /// <summary>
+    /// Returns whether the given string can be used as an unquoted identifier in PostgreSQL, without quotes.
+    /// </summary>
+    private static bool RequiresQuoting(string identifier)
+    {
+        var first = identifier[0];
+        if (!char.IsLower(first) && first != '_')
+        {
+            return true;
         }
 
-        public NpgsqlSqlGenerationHelper(RelationalSqlGenerationHelperDependencies dependencies)
-            : base(dependencies) {}
-
-        public override string DelimitIdentifier(string identifier)
-            => RequiresQuoting(identifier) ? base.DelimitIdentifier(identifier) : identifier;
-
-        public override void DelimitIdentifier(StringBuilder builder, string identifier)
+        for (var i = 1; i < identifier.Length; i++)
         {
-            if (RequiresQuoting(identifier))
-            {
-                base.DelimitIdentifier(builder, identifier);
-            }
-            else
-            {
-                builder.Append(identifier);
-            }
-        }
+            var c = identifier[i];
 
-        /// <summary>
-        /// Returns whether the given string can be used as an unquoted identifier in PostgreSQL, without quotes.
-        /// </summary>
-        private static bool RequiresQuoting(string identifier)
-        {
-            var first = identifier[0];
-            if (!char.IsLower(first) && first != '_')
+            if (char.IsLower(c))
             {
-                return true;
+                continue;
             }
 
-            for (var i = 1; i < identifier.Length; i++)
+            switch (c)
             {
-                var c = identifier[i];
-
-                if (char.IsLower(c))
-                {
-                    continue;
-                }
-
-                switch (c)
-                {
                 case '0':
                 case '1':
                 case '2':
@@ -72,17 +72,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 case '_':
                 case '$':  // yes it's true
                     continue;
-                }
-
-                return true;
             }
 
-            if (ReservedWords.Contains(identifier.ToUpperInvariant()))
-            {
-                return true;
-            }
-
-            return false;
+            return true;
         }
+
+        if (ReservedWords.Contains(identifier.ToUpperInvariant()))
+        {
+            return true;
+        }
+
+        return false;
     }
 }

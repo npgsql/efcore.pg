@@ -7,104 +7,103 @@ using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
+
+/// <summary>
+/// A convention that creates an optimized copy of the mutable model.
+/// </summary>
+public class NpgsqlRuntimeModelConvention : RelationalRuntimeModelConvention
 {
     /// <summary>
-    /// A convention that creates an optimized copy of the mutable model.
+    /// Creates a new instance of <see cref="RelationalModelConvention"/>.
     /// </summary>
-    public class NpgsqlRuntimeModelConvention : RelationalRuntimeModelConvention
+    /// <param name="dependencies">Parameter object containing dependencies for this convention.</param>
+    /// <param name="relationalDependencies">Parameter object containing relational dependencies for this convention.</param>
+    public NpgsqlRuntimeModelConvention(
+        ProviderConventionSetBuilderDependencies dependencies,
+        RelationalConventionSetBuilderDependencies relationalDependencies)
+        : base(dependencies, relationalDependencies)
     {
-        /// <summary>
-        /// Creates a new instance of <see cref="RelationalModelConvention"/>.
-        /// </summary>
-        /// <param name="dependencies">Parameter object containing dependencies for this convention.</param>
-        /// <param name="relationalDependencies">Parameter object containing relational dependencies for this convention.</param>
-        public NpgsqlRuntimeModelConvention(
-            ProviderConventionSetBuilderDependencies dependencies,
-            RelationalConventionSetBuilderDependencies relationalDependencies)
-            : base(dependencies, relationalDependencies)
-        {
-        }
+    }
 
-        /// <inheritdoc />
-        protected override void ProcessModelAnnotations(
-            Dictionary<string, object?> annotations, IModel model, RuntimeModel runtimeModel, bool runtime)
-        {
-            base.ProcessModelAnnotations(annotations, model, runtimeModel, runtime);
+    /// <inheritdoc />
+    protected override void ProcessModelAnnotations(
+        Dictionary<string, object?> annotations, IModel model, RuntimeModel runtimeModel, bool runtime)
+    {
+        base.ProcessModelAnnotations(annotations, model, runtimeModel, runtime);
 
-            if (!runtime)
+        if (!runtime)
+        {
+            annotations.Remove(NpgsqlAnnotationNames.DatabaseTemplate);
+            annotations.Remove(NpgsqlAnnotationNames.Tablespace);
+            annotations.Remove(NpgsqlAnnotationNames.CollationDefinitionPrefix);
+            annotations.Remove(NpgsqlAnnotationNames.DefaultColumnCollation);
+
+            foreach (var annotationName in annotations.Keys.Where(
+                         k =>
+                             k.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal)
+                             || k.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal)
+                             || k.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal)))
             {
-                annotations.Remove(NpgsqlAnnotationNames.DatabaseTemplate);
-                annotations.Remove(NpgsqlAnnotationNames.Tablespace);
-                annotations.Remove(NpgsqlAnnotationNames.CollationDefinitionPrefix);
-                annotations.Remove(NpgsqlAnnotationNames.DefaultColumnCollation);
-
-                foreach (var annotationName in annotations.Keys.Where(
-                    k =>
-                        k.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal)
-                        || k.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal)
-                        || k.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal)))
-                {
-                    annotations.Remove(annotationName);
-                }
+                annotations.Remove(annotationName);
             }
         }
+    }
 
-        /// <inheritdoc />
-        protected override void ProcessEntityTypeAnnotations(
-            IDictionary<string, object?> annotations, IEntityType entityType, RuntimeEntityType runtimeEntityType, bool runtime)
+    /// <inheritdoc />
+    protected override void ProcessEntityTypeAnnotations(
+        IDictionary<string, object?> annotations, IEntityType entityType, RuntimeEntityType runtimeEntityType, bool runtime)
+    {
+        base.ProcessEntityTypeAnnotations(annotations, entityType, runtimeEntityType, runtime);
+
+        if (!runtime)
         {
-            base.ProcessEntityTypeAnnotations(annotations, entityType, runtimeEntityType, runtime);
+            annotations.Remove(NpgsqlAnnotationNames.UnloggedTable);
 
-            if (!runtime)
+            foreach (var annotationName in annotations.Keys.Where(
+                         k => k.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal)))
             {
-                annotations.Remove(NpgsqlAnnotationNames.UnloggedTable);
-
-                foreach (var annotationName in annotations.Keys.Where(
-                    k => k.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal)))
-                {
-                    annotations.Remove(annotationName);
-                }
+                annotations.Remove(annotationName);
             }
         }
+    }
 
-        /// <inheritdoc />
-        protected override void ProcessPropertyAnnotations(
-            Dictionary<string, object?> annotations, IProperty property, RuntimeProperty runtimeProperty, bool runtime)
+    /// <inheritdoc />
+    protected override void ProcessPropertyAnnotations(
+        Dictionary<string, object?> annotations, IProperty property, RuntimeProperty runtimeProperty, bool runtime)
+    {
+        base.ProcessPropertyAnnotations(annotations, property, runtimeProperty, runtime);
+
+        if (!runtime)
         {
-            base.ProcessPropertyAnnotations(annotations, property, runtimeProperty, runtime);
+            annotations.Remove(NpgsqlAnnotationNames.IdentityOptions);
+            annotations.Remove(NpgsqlAnnotationNames.TsVectorConfig);
+            annotations.Remove(NpgsqlAnnotationNames.TsVectorProperties);
 
-            if (!runtime)
+            if (!annotations.ContainsKey(NpgsqlAnnotationNames.ValueGenerationStrategy))
             {
-                annotations.Remove(NpgsqlAnnotationNames.IdentityOptions);
-                annotations.Remove(NpgsqlAnnotationNames.TsVectorConfig);
-                annotations.Remove(NpgsqlAnnotationNames.TsVectorProperties);
-
-                if (!annotations.ContainsKey(NpgsqlAnnotationNames.ValueGenerationStrategy))
-                {
-                    annotations[NpgsqlAnnotationNames.ValueGenerationStrategy] = property.GetValueGenerationStrategy();
-                }
+                annotations[NpgsqlAnnotationNames.ValueGenerationStrategy] = property.GetValueGenerationStrategy();
             }
         }
+    }
 
-        /// <inheritdoc/>
-        protected override void ProcessIndexAnnotations(
-            Dictionary<string, object?> annotations,
-            IIndex index,
-            RuntimeIndex runtimeIndex,
-            bool runtime)
+    /// <inheritdoc/>
+    protected override void ProcessIndexAnnotations(
+        Dictionary<string, object?> annotations,
+        IIndex index,
+        RuntimeIndex runtimeIndex,
+        bool runtime)
+    {
+        base.ProcessIndexAnnotations(annotations, index, runtimeIndex, runtime);
+
+        if (!runtime)
         {
-            base.ProcessIndexAnnotations(annotations, index, runtimeIndex, runtime);
-
-            if (!runtime)
-            {
-                annotations.Remove(NpgsqlAnnotationNames.IndexMethod);
-                annotations.Remove(NpgsqlAnnotationNames.IndexOperators);
-                annotations.Remove(NpgsqlAnnotationNames.IndexSortOrder);
-                annotations.Remove(NpgsqlAnnotationNames.IndexNullSortOrder);
-                annotations.Remove(NpgsqlAnnotationNames.IndexInclude);
-                annotations.Remove(NpgsqlAnnotationNames.CreatedConcurrently);
-            }
+            annotations.Remove(NpgsqlAnnotationNames.IndexMethod);
+            annotations.Remove(NpgsqlAnnotationNames.IndexOperators);
+            annotations.Remove(NpgsqlAnnotationNames.IndexSortOrder);
+            annotations.Remove(NpgsqlAnnotationNames.IndexNullSortOrder);
+            annotations.Remove(NpgsqlAnnotationNames.IndexInclude);
+            annotations.Remove(NpgsqlAnnotationNames.CreatedConcurrently);
         }
     }
 }
