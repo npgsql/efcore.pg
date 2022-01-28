@@ -119,6 +119,21 @@ public class PostgresBinaryExpression : SqlExpression
                 PostgresExpressionType.JsonExists    => "?",
                 PostgresExpressionType.JsonExistsAny => "?|",
                 PostgresExpressionType.JsonExistsAll => "?&",
+                PostgresExpressionType.LTreeMatches
+                    when Right.TypeMapping?.StoreType == "lquery" ||
+                    Right.TypeMapping is NpgsqlArrayTypeMapping arrayMapping &&
+                    arrayMapping.ElementMapping.StoreType == "lquery"
+                    => "~",
+                PostgresExpressionType.LTreeMatches
+                    when Right.TypeMapping?.StoreType == "ltxtquery"
+                    => "@",
+                PostgresExpressionType.LTreeMatchesAny      => "?",
+                PostgresExpressionType.LTreeFirstAncestor   => "?@>",
+                PostgresExpressionType.LTreeFirstDescendent => "?<@",
+                PostgresExpressionType.LTreeFirstMatches
+                    when Right.TypeMapping?.StoreType == "lquery" => "?~",
+                PostgresExpressionType.LTreeFirstMatches
+                    when Right.TypeMapping?.StoreType == "ltxtquery" => "?@",
 
                 PostgresExpressionType.PostgisDistanceKnn => "<->",
 
