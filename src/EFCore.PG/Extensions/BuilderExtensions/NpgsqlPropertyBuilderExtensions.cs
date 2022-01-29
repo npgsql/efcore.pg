@@ -175,6 +175,7 @@ public static class NpgsqlPropertyBuilderExtensions
         Check.NotNull(propertyBuilder, nameof(propertyBuilder));
 
         var property = propertyBuilder.Metadata;
+        property.ValueGenerated = ValueGenerated.OnAdd;
         property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
         property.SetHiLoSequenceName(null);
         property.SetHiLoSequenceSchema(null);
