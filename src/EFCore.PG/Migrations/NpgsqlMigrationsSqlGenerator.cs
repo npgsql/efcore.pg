@@ -893,12 +893,24 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         // exists. This blocks multi-tenant scenarios where the user has no database privileges.
         // So we procedurally check if the schema exists instead, and create it if not.
         var schemaName = operation.Name.Replace("'", "''");
-        builder.Append($@"DO $EF$
-BEGIN
-    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = '{schemaName}') THEN
+
+        // If we're generating an idempotent migration, we're already in a PL/PGSQL DO block; otherwise we need to start one.
+        if (!Options.HasFlag(MigrationsSqlGenerationOptions.Idempotent))
+        {
+            builder
+                .AppendLine(@"DO $EF$")
+                .AppendLine("BEGIN");
+        }
+
+        builder.AppendLine(
+            $@"    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = '{schemaName}') THEN
         CREATE SCHEMA {DelimitIdentifier(operation.Name)};
-    END IF;
-END $EF$;");
+    END IF;");
+
+        if (!Options.HasFlag(MigrationsSqlGenerationOptions.Idempotent))
+        {
+            builder.AppendLine("END $EF$;");
+        }
 
         EndStatement(builder);
     }
