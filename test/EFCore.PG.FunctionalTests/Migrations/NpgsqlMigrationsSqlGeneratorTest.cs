@@ -458,6 +458,21 @@ DROP SEQUENCE ""Person_Id_old_seq"";
 ");
     }
 
+    [Fact]
+    public void Create_schema_idempotent()
+    {
+        Generate(
+            _ => { },
+            new[] { new EnsureSchemaOperation { Name = "some_schema" } },
+            MigrationsSqlGenerationOptions.Idempotent);
+
+        AssertSql(
+            $@"    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'some_schema') THEN
+        CREATE SCHEMA some_schema;
+    END IF;
+");
+    }
+
     #region CockroachDB interleave-in-parent
 
     // Note that we don't run tests against actual CockroachDB instances, so these are unit tests asserting on SQL
