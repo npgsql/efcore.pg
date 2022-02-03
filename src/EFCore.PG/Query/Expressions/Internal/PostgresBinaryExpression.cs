@@ -1,3 +1,5 @@
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 /// <summary>
@@ -119,6 +121,7 @@ public class PostgresBinaryExpression : SqlExpression
                 PostgresExpressionType.JsonExists    => "?",
                 PostgresExpressionType.JsonExistsAny => "?|",
                 PostgresExpressionType.JsonExistsAll => "?&",
+
                 PostgresExpressionType.LTreeMatches
                     when Right.TypeMapping?.StoreType == "lquery" ||
                     Right.TypeMapping is NpgsqlArrayTypeMapping arrayMapping &&
