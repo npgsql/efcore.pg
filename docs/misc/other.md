@@ -42,6 +42,9 @@ protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 
 You may also consider passing `Trust Server Certificate=true` in your connection string to make Npgsql accept whatever certificate your PostgreSQL provides (useful for self-signed certificates).
 
+> [!CAUTION]
+> When specifying the options via `OnConfiguring`, make sure that the callbacks you pass in are static methods. Passing in instance methods causes EF Core to create a new service provider for each context instance, which can degrade performance in a significant way.
+
 ## Comments
 
 PostgreSQL allows you to [attach comments](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-COMMENTS) to database objects, which can help explain their purpose for someone examining the schema. The Npgsql EF Core provider supports this for tables or columns, simply set the comment in your model's `OnModelCreating` as follows:
