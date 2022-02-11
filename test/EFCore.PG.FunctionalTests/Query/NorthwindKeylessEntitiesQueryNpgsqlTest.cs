@@ -8,10 +8,20 @@ public class NorthwindKeylessEntitiesQueryNpgsqlTest : NorthwindKeylessEntitiesQ
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    [ConditionalFact(Skip = "https://github.com/dotnet/efcore/issues/21627")]
-    public override void KeylessEntity_with_nav_defining_query()
-        => base.KeylessEntity_with_nav_defining_query();
+    public override async Task KeylessEntity_with_nav_defining_query(bool async)
+    {
+        // FromSql mapping. Issue #21627.
+        await Assert.ThrowsAsync<PostgresException>(() => base.KeylessEntity_with_nav_defining_query(async));
+
+        AssertSql(
+            @"SELECT c.""CompanyName"", c.""OrderCount"", c.""SearchTerm""
+FROM ""CustomerQueryWithQueryFilter"" AS c
+WHERE c.""OrderCount"" > 0");
+    }
+
+    private void AssertSql(params string[] expected)
+        => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 }

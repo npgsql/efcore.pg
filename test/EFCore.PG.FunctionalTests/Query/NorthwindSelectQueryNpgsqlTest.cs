@@ -43,10 +43,6 @@ FROM ""Orders"" AS o");
         AssertSql();
     }
 
-    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/27152")]
-    public override Task Reverse_in_subquery_via_pushdown(bool async)
-        => base.Reverse_in_subquery_via_pushdown(async);
-
     public override Task Member_binding_after_ctor_arguments_fails_with_client_eval(bool async)
         => AssertTranslationFailed(() => base.Member_binding_after_ctor_arguments_fails_with_client_eval(async));
 

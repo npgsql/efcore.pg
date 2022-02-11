@@ -1817,6 +1817,14 @@ DROP SEQUENCE ""People_Id_old_seq"";");
             @"CREATE UNIQUE INDEX ""IX_People_FirstName_LastName"" ON ""People"" (""FirstName"", ""LastName"");");
     }
 
+    [ConditionalFact(Skip = "https://github.com/npgsql/efcore.pg/issues/2267")]
+    public override Task Create_index_descending()
+        => Task.CompletedTask;
+
+    [ConditionalFact(Skip = "https://github.com/npgsql/efcore.pg/issues/2267")]
+    public override Task Create_index_descending_mixed()
+        => Task.CompletedTask;
+
     public override async Task Create_index_with_filter()
     {
         await base.Create_index_with_filter();
@@ -2174,6 +2182,10 @@ DROP SEQUENCE ""People_Id_old_seq"";");
         AssertSql(
             @"CREATE INDEX ""IX_Blogs_Title_Description"" ON ""Blogs"" USING GIN (to_tsvector('simple', ""Title"" || ' ' || coalesce(""Description"", '')));");
     }
+
+    [ConditionalFact(Skip = "https://github.com/npgsql/efcore.pg/issues/2267")]
+    public override Task Alter_index_change_sort_order()
+        => Task.CompletedTask;
 
     public override async Task Drop_index()
     {

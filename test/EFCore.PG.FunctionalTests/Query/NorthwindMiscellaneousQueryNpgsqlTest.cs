@@ -152,11 +152,25 @@ LIMIT 1");
 FROM ""Customers"" AS c");
     }
 
-    public override void Select_DTO_constructor_distinct_with_collection_projection_translated_to_server()
+    public override async Task Entity_equality_through_subquery_composite_key(bool async)
+    {
+        var message = (await Assert.ThrowsAsync<InvalidOperationException>(
+            () => base.Entity_equality_through_subquery_composite_key(async))).Message;
+
+        Assert.Equal(
+            CoreStrings.EntityEqualityOnCompositeKeyEntitySubqueryNotSupported("==", nameof(OrderDetail)),
+            message);
+
+        AssertSql();
+    }
+
+    public override async Task
+        Select_DTO_constructor_distinct_with_collection_projection_translated_to_server_with_binding_after_client_eval(bool async)
     {
         // Allow binding of expressions after projection has turned to client eval. Issue #24478.
-        Assert.Throws<TrueException>(
-            () => base.Select_DTO_constructor_distinct_with_collection_projection_translated_to_server());
+        await Assert.ThrowsAsync<TrueException>(
+            () => base
+                .Select_DTO_constructor_distinct_with_collection_projection_translated_to_server_with_binding_after_client_eval(async));
 
         AssertSql(
             @"SELECT t.""CustomerID"", o0.""OrderID"", o0.""CustomerID"", o0.""EmployeeID"", o0.""OrderDate""
