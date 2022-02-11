@@ -1940,7 +1940,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             // sorting, thus we only want to emit sort options for btree indexes.
             if (method is null || method == "btree")
             {
-                if (column.SortOrder == SortOrder.Descending)
+                if (column.IsDescending)
                 {
                     builder.Append(" DESC");
                 }
@@ -2006,7 +2006,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         var collations = operation[RelationalAnnotationNames.Collation] as string[];
 
         var operators = operation[NpgsqlAnnotationNames.IndexOperators] as string[];
-        var sortOrders = operation[NpgsqlAnnotationNames.IndexSortOrder] as SortOrder[];
+        
+        // We used to have our own annotation-based descending index mechanism, this got replaced with IsDescending in EF Core 7.0.
+        var isDescendingValues = operation.IsDescending;
+        var legacySortOrders = operation[NpgsqlAnnotationNames.IndexSortOrder] as SortOrder[];
+        
         var nullSortOrders = operation[NpgsqlAnnotationNames.IndexNullSortOrder] as NullSortOrder[];
 
         var columns = new IndexColumn[operation.Columns.Length];
@@ -2016,10 +2020,12 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             var name = operation.Columns[i];
             var @operator = i < operators?.Length ? operators[i] : null;
             var collation = i < collations?.Length ? collations[i] : null;
-            var sortOrder = i < sortOrders?.Length ? sortOrders[i] : SortOrder.Ascending;
+            var isColumnDescending = isDescendingValues is not null
+                ? isDescendingValues[i]
+                : i < legacySortOrders?.Length && legacySortOrders[i] == SortOrder.Descending;
             var nullSortOrder = i < nullSortOrders?.Length ? nullSortOrders[i] : NullSortOrder.Unspecified;
 
-            columns[i] = new IndexColumn(name, @operator, collation, sortOrder, nullSortOrder);
+            columns[i] = new IndexColumn(name, @operator, collation, isColumnDescending, nullSortOrder);
         }
 
         return columns;
@@ -2027,19 +2033,19 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
     private readonly struct IndexColumn
     {
-        public IndexColumn(string name, string? @operator, string? collation, SortOrder sortOrder, NullSortOrder nullSortOrder)
+        public IndexColumn(string name, string? @operator, string? collation, bool isDescending, NullSortOrder nullSortOrder)
         {
             Name = name;
             Operator = @operator;
             Collation = collation;
-            SortOrder = sortOrder;
+            IsDescending = isDescending;
             NullSortOrder = nullSortOrder;
         }
 
         public string Name { get; }
         public string? Operator { get; }
         public string? Collation { get; }
-        public SortOrder SortOrder { get; }
+        public bool IsDescending { get; }
         public NullSortOrder NullSortOrder { get; }
     }
 

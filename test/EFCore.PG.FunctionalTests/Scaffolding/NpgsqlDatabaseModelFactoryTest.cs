@@ -1665,12 +1665,12 @@ CREATE INDEX ix_without ON ""IndexCollation"" (a, b);",
             @"DROP TABLE ""IndexCollation""");
 
     [Theory]
-    [InlineData("gin", null)]
-    [InlineData("gist", null)]
-    [InlineData("hash", null)]
-    [InlineData("brin", null)]
-    [InlineData("btree", new[] { SortOrder.Ascending, SortOrder.Descending })]
-    public void Index_sort_order(string method, SortOrder[] expected)
+    [InlineData("gin", new bool[0])]
+    [InlineData("gist", new bool[0])]
+    [InlineData("hash", new bool[0])]
+    [InlineData("brin", new bool[0])]
+    [InlineData("btree", new[] { false, true })]
+    public void Index_IsDescending(string method, bool[] expected)
         => Test(@"
 CREATE TABLE ""IndexSortOrder"" (a text, b text, c tsvector);
 CREATE INDEX ix_gin ON ""IndexSortOrder"" USING gin (c);
@@ -1686,10 +1686,11 @@ CREATE INDEX ix_without ON ""IndexSortOrder"" (a, b);",
                 var table = dbModel.Tables.Single();
 
                 var indexWith = table.Indexes.Single(i => i.Name == $"ix_{method}");
-                Assert.Equal(expected, indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexSortOrder)?.Value);
+                // Assert.True(indexWith.IsDescending.SequenceEqual(expected));
+                Assert.Equal(expected, indexWith.IsDescending);
 
                 var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
-                Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.IndexSortOrder));
+                Assert.Equal(new[] { false, false }, indexWithout.IsDescending);
             },
             @"DROP TABLE ""IndexSortOrder""");
 

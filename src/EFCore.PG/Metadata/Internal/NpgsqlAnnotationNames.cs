@@ -13,7 +13,6 @@ public static class NpgsqlAnnotationNames
     public const string IdentityOptions = Prefix + "IdentitySequenceOptions";
     public const string IndexMethod = Prefix + "IndexMethod";
     public const string IndexOperators = Prefix + "IndexOperators";
-    public const string IndexSortOrder = Prefix + "IndexSortOrder";
     public const string IndexNullSortOrder = Prefix + "IndexNullSortOrder";
     public const string IndexInclude = Prefix + "IndexInclude";
     public const string Tablespace = Prefix + "Tablespace";
@@ -55,4 +54,7 @@ public static class NpgsqlAnnotationNames
 
     [Obsolete("Replaced by RelationalAnnotationNames.Collation")]
     public const string IndexCollation = Prefix + "IndexCollation";
+
+    // Replaced by IsDescending in EF Core 7.0
+    public const string IndexSortOrder = Prefix + "IndexSortOrder";
 }
