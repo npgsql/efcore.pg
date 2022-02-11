@@ -1817,6 +1817,78 @@ DROP SEQUENCE ""People_Id_old_seq"";");
             @"CREATE UNIQUE INDEX ""IX_People_FirstName_LastName"" ON ""People"" (""FirstName"", ""LastName"");");
     }
 
+    public override async Task Create_index_descending()
+    {
+        await base.Create_index_descending();
+
+        AssertSql(
+            @"CREATE INDEX ""IX_People_X"" ON ""People"" (""X"" DESC);");
+    }
+
+    public override async Task Create_index_descending_mixed()
+    {
+        await base.Create_index_descending_mixed();
+
+        AssertSql(
+            @"CREATE INDEX ""IX_People_X_Y_Z"" ON ""People"" (""X"", ""Y"" DESC, ""Z"");");
+    }
+
+#pragma warning disable CS0618 // HasSortOrder is obsolete
+    [Fact]
+    public virtual async Task Create_index_descending_mixed_legacy_api()
+    {
+        await Test(
+            builder => builder.Entity(
+                "People", e =>
+                {
+                    e.Property<int>("Id");
+                    e.Property<int>("X");
+                    e.Property<int>("Y");
+                    e.Property<int>("Z");
+                }),
+            builder => { },
+            builder => builder.Entity("People")
+                .HasIndex("X", "Y", "Z")
+                .HasSortOrder(SortOrder.Ascending, SortOrder.Descending),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var index = Assert.Single(table.Indexes);
+                Assert.Collection(index.IsDescending, Assert.False, Assert.True, Assert.False);
+            });
+
+        AssertSql(
+            @"CREATE INDEX ""IX_People_X_Y_Z"" ON ""People"" (""X"", ""Y"" DESC, ""Z"");");
+    }
+#pragma warning restore CS0618
+
+    [Fact]
+    public virtual async Task Create_index_descending_mixed_legacy_annotation()
+    {
+        await Test(
+            builder => builder.Entity(
+                "People", e =>
+                {
+                    e.Property<int>("Id");
+                    e.Property<int>("X");
+                    e.Property<int>("Y");
+                    e.Property<int>("Z");
+                }),
+            builder => { },
+            builder => builder.Entity("People")
+                .HasIndex("X", "Y", "Z")
+                .HasAnnotation(NpgsqlAnnotationNames.IndexSortOrder, new[] { SortOrder.Ascending, SortOrder.Descending }),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var index = Assert.Single(table.Indexes);
+                Assert.Collection(index.IsDescending, Assert.False, Assert.True, Assert.False);
+            });
+
+        AssertSql(
+            @"CREATE INDEX ""IX_People_X_Y_Z"" ON ""People"" (""X"", ""Y"" DESC, ""Z"");");
+    }
+
     public override async Task Create_index_with_filter()
     {
         await base.Create_index_with_filter();
@@ -2082,32 +2154,6 @@ DROP SEQUENCE ""People_Id_old_seq"";");
     // the database here.
 
     [Fact]
-    public virtual async Task Create_index_with_sort_order()
-    {
-        await Test(
-            builder => builder.Entity(
-                "People", e =>
-                {
-                    e.Property<int>("Id");
-                    e.Property<string>("FirstName");
-                    e.Property<string>("LastName");
-                }),
-            _ => { },
-            builder => builder.Entity("People").HasIndex("FirstName", "LastName")
-                .HasSortOrder(SortOrder.Descending, SortOrder.Ascending),
-            model =>
-            {
-                var table = Assert.Single(model.Tables);
-                var index = Assert.Single(table.Indexes);
-                Assert.Equal(new[] { SortOrder.Descending, SortOrder.Ascending },
-                    index[NpgsqlAnnotationNames.IndexSortOrder]);
-            });
-
-        AssertSql(
-            @"CREATE INDEX ""IX_People_FirstName_LastName"" ON ""People"" (""FirstName"" DESC, ""LastName"");");
-    }
-
-    [Fact]
     public virtual async Task Create_index_with_null_sort_order()
     {
         await Test(
@@ -2173,6 +2219,16 @@ DROP SEQUENCE ""People_Id_old_seq"";");
 
         AssertSql(
             @"CREATE INDEX ""IX_Blogs_Title_Description"" ON ""Blogs"" USING GIN (to_tsvector('simple', ""Title"" || ' ' || coalesce(""Description"", '')));");
+    }
+
+    public override async Task Alter_index_change_sort_order()
+    {
+        await base.Alter_index_change_sort_order();
+
+        AssertSql(
+            @"DROP INDEX ""IX_People_X_Y_Z"";",
+            //
+            @"CREATE INDEX ""IX_People_X_Y_Z"" ON ""People"" (""X"", ""Y"" DESC, ""Z"");");
     }
 
     public override async Task Drop_index()

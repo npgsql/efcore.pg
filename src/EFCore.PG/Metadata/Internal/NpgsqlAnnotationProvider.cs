@@ -133,11 +133,6 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
             yield return new Annotation(NpgsqlAnnotationNames.IndexOperators, operators);
         }
 
-        if (modelIndex.GetSortOrder() is { } sortOrder)
-        {
-            yield return new Annotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
-        }
-
         if (modelIndex.GetNullSortOrder() is { } nullSortOrder)
         {
             yield return new Annotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
@@ -165,6 +160,12 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
             yield return new Annotation(
                 NpgsqlAnnotationNames.CreatedConcurrently,
                 isCreatedConcurrently.Value);
+        }
+
+        // Support legacy annotation for index ordering
+        if (modelIndex[NpgsqlAnnotationNames.IndexSortOrder] is IReadOnlyList<SortOrder> legacySortOrder)
+        {
+            yield return new Annotation(NpgsqlAnnotationNames.IndexSortOrder, legacySortOrder);
         }
     }
 

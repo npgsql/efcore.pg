@@ -369,99 +369,6 @@ public static class NpgsqlIndexBuilderExtensions
 
     #endregion Collation
 
-    #region Sort order
-
-    /// <summary>
-    /// The PostgreSQL index sort ordering to be used.
-    /// </summary>
-    /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
-    /// </remarks>
-    /// <param name="indexBuilder">The builder for the index being configured.</param>
-    /// <param name="values">The sort order to use for each column.</param>
-    /// <returns>A builder to further configure the index.</returns>
-    public static IndexBuilder HasSortOrder(
-        this IndexBuilder indexBuilder,
-        params SortOrder[]? values)
-    {
-        Check.NotNull(indexBuilder, nameof(indexBuilder));
-        Check.NullButNotEmpty(values, nameof(values));
-
-        if (!SortOrderHelper.IsDefaultSortOrder(values))
-        {
-            indexBuilder.Metadata.SetSortOrder(values);
-        }
-
-        return indexBuilder;
-    }
-
-    /// <summary>
-    /// The PostgreSQL index sort ordering to be used.
-    /// </summary>
-    /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
-    /// </remarks>
-    /// <param name="indexBuilder">The builder for the index being configured.</param>
-    /// <param name="values">The sort order to use for each column.</param>
-    /// <returns>A builder to further configure the index.</returns>
-    public static IndexBuilder<TEntity> HasSortOrder<TEntity>(
-        this IndexBuilder<TEntity> indexBuilder,
-        params SortOrder[]? values)
-        => (IndexBuilder<TEntity>)HasSortOrder((IndexBuilder)indexBuilder, values);
-
-    /// <summary>
-    /// The PostgreSQL index sort ordering to be used.
-    /// </summary>
-    /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
-    /// </remarks>
-    /// <param name="indexBuilder">The builder for the index being configured.</param>
-    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
-    /// <param name="values">The sort order to use for each column.</param>
-    /// <returns>A builder to further configure the index.</returns>
-    public static IConventionIndexBuilder? HasSortOrder(
-        this IConventionIndexBuilder indexBuilder,
-        IReadOnlyList<SortOrder>? values,
-        bool fromDataAnnotation)
-    {
-        if (indexBuilder.CanSetSortOrder(values, fromDataAnnotation))
-        {
-            Check.NotNull(indexBuilder, nameof(indexBuilder));
-            Check.NullButNotEmpty(values, nameof(values));
-
-            if (!SortOrderHelper.IsDefaultSortOrder(values))
-            {
-                indexBuilder.Metadata.SetSortOrder(values, fromDataAnnotation);
-            }
-
-            return indexBuilder;
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Returns a value indicating whether the PostgreSQL index sort ordering can be set.
-    /// </summary>
-    /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
-    /// </remarks>
-    /// <param name="indexBuilder">The builder for the index being configured.</param>
-    /// <param name="values">The sort order to use for each column.</param>
-    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
-    /// <returns>A builder to further configure the index.</returns>
-    public static bool CanSetSortOrder(
-        this IConventionIndexBuilder indexBuilder,
-        IReadOnlyList<SortOrder>? values,
-        bool fromDataAnnotation)
-    {
-        Check.NotNull(indexBuilder, nameof(indexBuilder));
-
-        return indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.IndexSortOrder, values, fromDataAnnotation);
-    }
-
-    #endregion Sort order
-
     #region Null sort order
 
     /// <summary>
@@ -480,9 +387,7 @@ public static class NpgsqlIndexBuilderExtensions
         Check.NotNull(indexBuilder, nameof(indexBuilder));
         Check.NullButNotEmpty(values, nameof(values));
 
-        var sortOrders = indexBuilder.Metadata.GetSortOrder();
-
-        if (!SortOrderHelper.IsDefaultNullSortOrder(values, sortOrders))
+        if (!SortOrderHelper.IsDefaultNullSortOrder(values, indexBuilder.Metadata.IsDescending))
         {
             indexBuilder.Metadata.SetNullSortOrder(values);
         }
@@ -521,9 +426,7 @@ public static class NpgsqlIndexBuilderExtensions
     {
         if (indexBuilder.CanSetNullSortOrder(values, fromDataAnnotation))
         {
-            var sortOrders = indexBuilder.Metadata.GetSortOrder();
-
-            if (!SortOrderHelper.IsDefaultNullSortOrder(values, sortOrders))
+            if (!SortOrderHelper.IsDefaultNullSortOrder(values, indexBuilder.Metadata.IsDescending))
             {
                 indexBuilder.Metadata.SetNullSortOrder(values, fromDataAnnotation);
             }
@@ -762,6 +665,111 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     #endregion Created concurrently
+
+    #region Sort order (legacy)
+
+    /// <summary>
+    /// The PostgreSQL index sort ordering to be used.
+    /// </summary>
+    /// <remarks>
+    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    /// </remarks>
+    /// <param name="indexBuilder">The builder for the index being configured.</param>
+    /// <param name="values">The sort order to use for each column.</param>
+    /// <returns>A builder to further configure the index.</returns>
+    [Obsolete("Use IsDescending instead")]
+    public static IndexBuilder HasSortOrder(
+        this IndexBuilder indexBuilder,
+        params SortOrder[]? values)
+    {
+        Check.NotNull(indexBuilder, nameof(indexBuilder));
+        Check.NullButNotEmpty(values, nameof(values));
+
+        var isDescending = new bool[indexBuilder.Metadata.Properties.Count];
+
+        for (var i = 0; i < isDescending.Length; i++)
+        {
+            isDescending[i] = values?.Length > i && values[i] == SortOrder.Descending;
+        }
+
+        indexBuilder.IsDescending(isDescending);
+
+        return indexBuilder;
+    }
+
+    /// <summary>
+    /// The PostgreSQL index sort ordering to be used.
+    /// </summary>
+    /// <remarks>
+    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    /// </remarks>
+    /// <param name="indexBuilder">The builder for the index being configured.</param>
+    /// <param name="values">The sort order to use for each column.</param>
+    /// <returns>A builder to further configure the index.</returns>
+    [Obsolete("Use IsDescending instead")]
+    public static IndexBuilder<TEntity> HasSortOrder<TEntity>(
+        this IndexBuilder<TEntity> indexBuilder,
+        params SortOrder[]? values)
+        => (IndexBuilder<TEntity>)HasSortOrder((IndexBuilder)indexBuilder, values);
+
+    /// <summary>
+    /// The PostgreSQL index sort ordering to be used.
+    /// </summary>
+    /// <remarks>
+    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    /// </remarks>
+    /// <param name="indexBuilder">The builder for the index being configured.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <param name="values">The sort order to use for each column.</param>
+    /// <returns>A builder to further configure the index.</returns>
+    [Obsolete("Use IsDescending instead")]
+    public static IConventionIndexBuilder? HasSortOrder(
+        this IConventionIndexBuilder indexBuilder,
+        IReadOnlyList<SortOrder>? values,
+        bool fromDataAnnotation)
+    {
+        if (indexBuilder.CanSetSortOrder(values, fromDataAnnotation))
+        {
+            Check.NotNull(indexBuilder, nameof(indexBuilder));
+            Check.NullButNotEmpty(values, nameof(values));
+
+            var isDescending = new bool[indexBuilder.Metadata.Properties.Count];
+
+            for (var i = 0; i < isDescending.Length; i++)
+            {
+                isDescending[i] = values?.Count > i && values[i] == SortOrder.Descending;
+            }
+
+            indexBuilder.IsDescending(isDescending);
+
+            return indexBuilder;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Returns a value indicating whether the PostgreSQL index sort ordering can be set.
+    /// </summary>
+    /// <remarks>
+    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    /// </remarks>
+    /// <param name="indexBuilder">The builder for the index being configured.</param>
+    /// <param name="values">The sort order to use for each column.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <returns>A builder to further configure the index.</returns>
+    [Obsolete("Use IsDescending instead")]
+    public static bool CanSetSortOrder(
+        this IConventionIndexBuilder indexBuilder,
+        IReadOnlyList<SortOrder>? values,
+        bool fromDataAnnotation)
+    {
+        Check.NotNull(indexBuilder, nameof(indexBuilder));
+
+        return indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.IndexSortOrder, values, fromDataAnnotation);
+    }
+
+    #endregion Sort order (obsolete)
 
     #region Obsolete
 

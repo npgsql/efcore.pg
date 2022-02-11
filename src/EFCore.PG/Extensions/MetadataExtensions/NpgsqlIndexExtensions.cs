@@ -159,54 +159,6 @@ public static class NpgsqlIndexExtensions
 
     #endregion Collation
 
-    #region Sort order
-
-    /// <summary>
-    /// Returns the column sort orders to be used, or <c>null</c> if they have not been specified.
-    /// </summary>
-    /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
-    /// </remarks>
-    public static IReadOnlyList<SortOrder>? GetSortOrder(this IReadOnlyIndex index)
-        => (IReadOnlyList<SortOrder>?)index[NpgsqlAnnotationNames.IndexSortOrder];
-
-    /// <summary>
-    /// Sets the column sort orders to be used, or <c>null</c> if they have not been specified.
-    /// </summary>
-    /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
-    /// </remarks>
-    public static void SetSortOrder(this IMutableIndex index, IReadOnlyList<SortOrder>? sortOrder)
-        => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
-
-    /// <summary>
-    /// Sets the column sort orders to be used, or <c>null</c> if they have not been specified.
-    /// </summary>
-    /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
-    /// </remarks>
-    public static IReadOnlyList<SortOrder>? SetSortOrder(
-        this IConventionIndex index,
-        IReadOnlyList<SortOrder>? sortOrder,
-        bool fromDataAnnotation = false)
-    {
-        Check.NullButNotEmpty(sortOrder, nameof(sortOrder));
-
-        index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder, fromDataAnnotation);
-
-        return sortOrder;
-    }
-
-    /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the index sort orders.
-    /// </summary>
-    /// <param name="index">The index.</param>
-    /// <returns>The <see cref="ConfigurationSource" /> for the index sort orders.</returns>
-    public static ConfigurationSource? GetSortOrderConfigurationSource(this IConventionIndex index)
-        => index.FindAnnotation(NpgsqlAnnotationNames.IndexSortOrder)?.GetConfigurationSource();
-
-    #endregion Sort order
-
     #region Null sort order
 
     /// <summary>
@@ -419,4 +371,56 @@ public static class NpgsqlIndexExtensions
         => index.FindAnnotation(NpgsqlAnnotationNames.TsVectorConfig)?.GetConfigurationSource();
 
     #endregion ToTsVector
+
+    #region Sort order (legacy)
+
+    /// <summary>
+    /// Returns the column sort orders to be used, or <c>null</c> if they have not been specified.
+    /// </summary>
+    /// <remarks>
+    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    /// </remarks>
+    [Obsolete("Use IsDescending instead")]
+    public static IReadOnlyList<SortOrder>? GetSortOrder(this IReadOnlyIndex index)
+        => (IReadOnlyList<SortOrder>?)index[NpgsqlAnnotationNames.IndexSortOrder];
+
+    /// <summary>
+    /// Sets the column sort orders to be used, or <c>null</c> if they have not been specified.
+    /// </summary>
+    /// <remarks>
+    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    /// </remarks>
+    [Obsolete("Use IsDescending instead")]
+    public static void SetSortOrder(this IMutableIndex index, IReadOnlyList<SortOrder>? sortOrder)
+        => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
+
+    /// <summary>
+    /// Sets the column sort orders to be used, or <c>null</c> if they have not been specified.
+    /// </summary>
+    /// <remarks>
+    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    /// </remarks>
+    [Obsolete("Use IsDescending instead")]
+    public static IReadOnlyList<SortOrder>? SetSortOrder(
+        this IConventionIndex index,
+        IReadOnlyList<SortOrder>? sortOrder,
+        bool fromDataAnnotation = false)
+    {
+        Check.NullButNotEmpty(sortOrder, nameof(sortOrder));
+
+        index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder, fromDataAnnotation);
+
+        return sortOrder;
+    }
+
+    /// <summary>
+    /// Returns the <see cref="ConfigurationSource" /> for the index sort orders.
+    /// </summary>
+    /// <param name="index">The index.</param>
+    /// <returns>The <see cref="ConfigurationSource" /> for the index sort orders.</returns>
+    [Obsolete("Use IsDescending instead")]
+    public static ConfigurationSource? GetSortOrderConfigurationSource(this IConventionIndex index)
+        => index.FindAnnotation(NpgsqlAnnotationNames.IndexSortOrder)?.GetConfigurationSource();
+
+    #endregion Sort order (legacy)
 }

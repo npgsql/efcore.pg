@@ -710,26 +710,16 @@ WHERE
                     {
                         var options = record.GetFieldValue<ushort[]>("indoption");
 
-                        // The first bit specifies whether values are sorted in descending order.
-                        const ushort indoptionDescFlag = 0x0001;
-
-                        var sortOrders = options
-                            .Select(val => (val & indoptionDescFlag) != 0 ? SortOrder.Descending : SortOrder.Ascending)
-                            .ToArray();
-
-                        if (!SortOrderHelper.IsDefaultSortOrder(sortOrders))
-                        {
-                            index[NpgsqlAnnotationNames.IndexSortOrder] = sortOrders;
-                        }
-
-                        // The second bit specifies whether NULLs are sorted first instead of last.
-                        const ushort indoptionNullsFirstFlag = 0x0002;
-
+                        // The first bit in indoption specifies whether values are sorted in descending order, the second whether
+                        // NULLs are sorted first instead of last.
+                        var isDescending = options.Select(val => (val & 0x0001) != 0).ToList();
                         var nullSortOrders = options
-                            .Select(val => (val & indoptionNullsFirstFlag) != 0 ? NullSortOrder.NullsFirst : NullSortOrder.NullsLast)
+                            .Select(val => (val & 0x0002) != 0 ? NullSortOrder.NullsFirst : NullSortOrder.NullsLast)
                             .ToArray();
 
-                        if (!SortOrderHelper.IsDefaultNullSortOrder(nullSortOrders, sortOrders))
+                        index.IsDescending = isDescending;
+
+                        if (!SortOrderHelper.IsDefaultNullSortOrder(nullSortOrders, isDescending))
                         {
                             index[NpgsqlAnnotationNames.IndexNullSortOrder] = nullSortOrders;
                         }

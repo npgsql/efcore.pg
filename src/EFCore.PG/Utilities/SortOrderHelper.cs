@@ -4,12 +4,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 internal static class SortOrderHelper
 {
-    public static bool IsDefaultSortOrder(IReadOnlyList<SortOrder>? sortOrders)
-        => sortOrders?.All(sortOrder => sortOrder == SortOrder.Ascending) ?? true;
-
     public static bool IsDefaultNullSortOrder(
         IReadOnlyList<NullSortOrder>? nullSortOrders,
-        IReadOnlyList<SortOrder>? sortOrders)
+        IReadOnlyList<bool>? isDescendingValues)
     {
         if (nullSortOrders is null)
         {
@@ -21,9 +18,7 @@ internal static class SortOrderHelper
             var nullSortOrder = nullSortOrders[i];
 
             // We need to consider the ASC/DESC sort order to determine the default NULLS FIRST/LAST sort order.
-            var sortOrder = i < sortOrders?.Count ? sortOrders[i] : SortOrder.Ascending;
-
-            if (sortOrder == SortOrder.Descending)
+            if (isDescendingValues is not null && isDescendingValues[i])
             {
                 // NULLS FIRST is the default when DESC is specified.
                 if (nullSortOrder != NullSortOrder.NullsFirst)
