@@ -22,7 +22,7 @@ In PostgreSQL, collations are first-class, named database objects which can be c
 modelBuilder.HasCollation("my_collation", locale: "en-u-ks-primary", provider: "icu", deterministic: false);
 ```
 
-This creates a collation with the name `my_collation`: this is an arbitrary name you can choose, which you will be specifying later when assigning the collation to columns. The rest of the parameters instruct PostgreSQL to create a non-deterministic, case-insensitive ICU collation. ICU collations are very powerful, and allow you to specify precise rules with regards to case, accents and other textual aspects. Consult [the ICU docs](http://userguide.icu-project.org/collation) for more information on supported features and keywords.
+This creates a collation with the name `my_collation`: this is an arbitrary name you can choose, which you will be specifying later when assigning the collation to columns. The rest of the parameters instruct PostgreSQL to create a non-deterministic, case-insensitive ICU collation. ICU collations are very powerful, and allow you to specify precise rules with regards to case, accents and other textual aspects. Consult [the ICU docs](https://unicode-org.github.io/icu/userguide/collation/) for more information on supported features and keywords.
 
 ### Column collation
 
