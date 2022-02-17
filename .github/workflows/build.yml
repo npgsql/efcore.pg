@@ -16,7 +16,7 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 jobs:
-  build:
+  build-pg:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -132,7 +132,7 @@ jobs:
           fi
 
   publish-ci:
-    needs: build
+    needs: build-pg
     runs-on: ubuntu-20.04
     if: github.event_name == 'push' && startsWith(github.repository, 'npgsql/')
     environment: myget
@@ -166,9 +166,9 @@ jobs:
         working-directory: nupkgs
 
   release:
-    needs: build
+    needs: build-pg
     runs-on: ubuntu-20.04
-    if: github.event_name == 'push' && startsWith(github.repository, 'npgsql/') && needs.build.outputs.is_release == 'true'
+    if: github.event_name == 'push' && startsWith(github.repository, 'npgsql/') && needs.build-pg.outputs.is_release == 'true'
     environment: nuget.org
 
     steps:
@@ -192,7 +192,7 @@ jobs:
       - name: Create Github release
         uses: ncipollo/release-action@v1.9.0
         with:
-          prerelease: ${{ needs.build.outputs.is_prerelease }}
+          prerelease: ${{ needs.build-pg.outputs.is_prerelease }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to nuget.org
