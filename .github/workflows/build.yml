@@ -18,7 +18,6 @@ env:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-
     strategy:
       fail-fast: false
       matrix:
@@ -198,3 +197,78 @@ jobs:
       - name: Publish to nuget.org
         run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.NUGET_ORG_API_KEY }} --source https://api.nuget.org/v3/index.json
         working-directory: nupkgs
+
+  build-cockroach:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-20.04 ]
+        crdb_major: [ v21.2.5, master ]
+        config: [Release]
+        include:
+          - os: ubuntu-20.04
+            crdb_major: master
+            config: Debug
+    outputs:
+      is_release: ${{ steps.analyze_tag.outputs.is_release }}
+      is_prerelease: ${{ steps.analyze_tag.outputs.is_prerelease }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.4.0
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1.9.0
+        with:
+          dotnet-version: ${{ env.dotnet_sdk_version }}
+
+      - name: Build
+        run: dotnet build --configuration Debug
+        shell: bash
+
+      - name: Start CockroachDB ${{ matrix.crdb_major }} (Linux)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          # First uninstall any cockroachDB installed on the image
+          sudo rm -f /usr/local/bin/cockroach
+          # Install CRDB
+
+          if [[ ${{ matrix.crdb_major }} == "master" ]]; then
+            wget --no-verbose -O cockroach  https://edge-binaries.cockroachdb.com/cockroach/cockroach.linux-gnu-amd64.LATEST
+            chmod u+x cockroach
+            sudo mv ./cockroach /usr/local/bin/cockroach
+          else
+            curl https://binaries.cockroachdb.com/cockroach-v21.2.5.linux-amd64.tgz | tar -xz && sudo cp -i cockroach-v21.2.5.linux-amd64/cockroach /usr/local/bin/
+            sudo mkdir -p /usr/local/lib/cockroach
+            sudo cp -i cockroach-v21.2.5.linux-amd64/lib/libgeos.so /usr/local/lib/cockroach/
+            sudo cp -i cockroach-v21.2.5.linux-amd64/lib/libgeos_c.so /usr/local/lib/cockroach/
+          fi
+
+          which cockroach
+          cockroach version
+          # Create certificates
+          rm -rf cockroach-data
+          cockroach cert create-ca --certs-dir=certs --ca-key=certs/ca.key
+          cockroach cert create-client --certs-dir=certs --ca-key=certs/ca.key root
+          cockroach cert create-node --certs-dir=certs --ca-key=certs/ca.key 127.0.0.1 127.0.0.1
+          # Start the initialization
+          cockroach start-single-node --certs-dir=certs --advertise-addr=127.0.0.1:26257 --background
+          cockroach sql --certs-dir=certs -e "CREATE USER crdb_tests WITH PASSWORD 'crdb_tests'; GRANT admin TO crdb_tests" --url="postgresql://root@127.0.0.1:26257/defaultdb?sslcert=certs%2Fclient.root.crt&sslkey=certs%2Fclient.root.key&sslmode=verify-full&sslrootcert=certs%2Fca.crt"
+      - name: Test CockroachDB
+        run: TEST_COCKROACH_DB=true dotnet test -c ${{ matrix.config }} --logger "GitHubActions;report-warnings=false"
+        shell: bash
+
+      - id: analyze_tag
+        name: Analyze tag
+        shell: bash
+        run: |
+          if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+              echo "Release tag detected"
+              echo "::set-output name=is_release::true"
+              if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+.*- ]]; then
+                  echo "Prerelease tag detected"
+                  echo "::set-output name=is_prerelease::true"
+              fi
+          fi
+
