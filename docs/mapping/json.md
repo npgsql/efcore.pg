@@ -225,7 +225,7 @@ EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", customer)     | 
 EF.Functions.JsonExists(customer, "Age")                                      | [customer ? 'Age'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
 EF.Functions.JsonExistsAny(customer, "Age", "Address")                        | [customer ?\| ARRAY['Age','Address']](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
 EF.Functions.JsonExistsAll(customer, "Age", "Address")                        | [customer ?& ARRAY['Age','Address']](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
-EF.Functions.JsonTypeof(customer.GetProperty("Age") == "number")              | [jsonb_typeof(customer->'Age') = 'number'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
+EF.Functions.JsonTypeof(customer.GetProperty("Age")) == "number"              | [jsonb_typeof(customer->'Age') = 'number'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
 
 ***
 
