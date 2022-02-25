@@ -131,7 +131,7 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
             { "date", new RelationalTypeMapping[] { _date } },
             { "time without time zone", new RelationalTypeMapping[] { _time } },
             { "time with time zone", new RelationalTypeMapping[] { _timetz } },
-            { "interval", new RelationalTypeMapping[] { _periodInterval } },
+            { "interval", new RelationalTypeMapping[] { _periodInterval, _durationInterval } },
 
             { "tsrange", LegacyTimestampBehavior
                 ? new RelationalTypeMapping[] { _legacyTimestampInstantRange, _timestampLocalDateTimeRange }
