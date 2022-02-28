@@ -524,6 +524,29 @@ public class NpgsqlNodaTimeTypeMappingTest
     #region interval
 
     [Fact]
+    public void Duration_is_properly_mapped()
+    {
+        var mapping = GetMapping(typeof(Duration));
+
+        Assert.Equal("interval", mapping.StoreType);
+        Assert.Same(typeof(Duration), mapping.ClrType);
+
+        Assert.Same(mapping, GetMapping(typeof(Duration), "interval"));
+    }
+
+    [Fact]
+    public void Period_is_properly_mapped()
+    {
+        var mapping = GetMapping(typeof(Period));
+
+        Assert.Equal("interval", mapping.StoreType);
+        Assert.Same(typeof(Period), mapping.ClrType);
+
+        Assert.Same(mapping, GetMapping(typeof(Period)));
+        Assert.Same(mapping, GetMapping(typeof(Period), "interval"));
+    }
+
+    [Fact]
     public void GenerateSqlLiteral_returns_Period_literal()
     {
         var mapping = GetMapping(typeof(Period));
