@@ -150,7 +150,7 @@ jobs:
         run: dotnet pack --configuration Release --output nupkgs --version-suffix "ci.$(date -u +%Y%m%dT%H%M%S)+sha.${GITHUB_SHA:0:9}" -p:ContinuousIntegrationBuild=true
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2.3.1
+        uses: actions/upload-artifact@v3
         with:
           name: EFCore.PG.CI
           path: nupkgs
@@ -184,7 +184,7 @@ jobs:
         run: dotnet pack --configuration Release --output nupkgs -p:ContinuousIntegrationBuild=true
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2.3.1
+        uses: actions/upload-artifact@v3
         with:
           name: EFCore.PG.Release
           path: nupkgs
