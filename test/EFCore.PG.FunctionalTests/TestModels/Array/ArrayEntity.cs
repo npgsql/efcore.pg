@@ -17,6 +17,8 @@ public class ArrayEntity
     public List<string?> NullableStringList { get; set; } = null!;
     public string? NullableText { get; set; }
     public string NonNullableText { get; set; } = null!;
+    public string Varchar10 { get; set; } = null!;
+    public string Varchar15 { get; set; } = null!;
     public SomeEnum EnumConvertedToInt { get; set; }
     public SomeEnum EnumConvertedToString { get; set; }
     public SomeEnum? NullableEnumConvertedToString { get; set; }

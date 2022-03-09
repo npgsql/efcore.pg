@@ -1,4 +1,5 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
 
 // ReSharper disable ConvertToConstant.Local
 
@@ -14,19 +15,6 @@ public abstract class ArrayQueryTest<TFixture> : QueryTestBase<TFixture>
         Fixture.TestSqlLoggerFactory.Clear();
         // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
-
-    #region Basic Mapping
-
-    [Theory]
-    [MemberData(nameof(IsAsyncData))]
-    public Task New_array_of_text_properties_with_indexed_one(bool async)
-        => AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Select(e => new[] { e.NullableText, e.NonNullableText }),
-            elementAsserter: Assert.Equal,
-            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
-
-    #endregion
 
     #region Roundtrip
 
@@ -396,6 +384,58 @@ public abstract class ArrayQueryTest<TFixture> : QueryTestBase<TFixture>
     }
 
     #endregion Any/All
+
+    #region New
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task New_array_with_columns(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<ArrayEntity>().Select(e => new[] { e.NullableText, e.NonNullableText }),
+            elementAsserter: Assert.Equal,
+            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
+
+        AssertSql(
+            @"SELECT ARRAY[s.""NullableText"",s.""NonNullableText""]::text[]
+FROM ""SomeEntities"" AS s");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task New_array_with_heterogeneous_columns_throws(bool async)
+    {
+        // Note that arrays of objects are treated specially by EF Core, so they're fine.
+        // The below checks Bytea and ByteArray, which are the same CLR type (byte[]) but mapped to different PG types
+        // (bytea and smallint[])
+        using var context = CreateContext();
+
+        var exception = async
+            ? await Assert.ThrowsAsync<InvalidOperationException>(
+                () => context.Set<ArrayEntity>().Select(e => new[] { e.Bytea, e.ByteArray }).ToListAsync())
+            : Assert.Throws<InvalidOperationException>(
+                () => context.Set<ArrayEntity>().Select(e => new[] { e.Bytea, e.ByteArray }).ToList());
+
+        Assert.Equal(NpgsqlStrings.HeterogeneousTypesInNewArray("bytea", "smallint[]"), exception.Message);
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task New_array_with_heterogeneous_columns_but_same_base_type(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<ArrayEntity>().Select(e => new[] { e.Varchar10, e.Varchar15 }),
+            elementAsserter: Assert.Equal,
+            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
+
+        AssertSql(
+            @"SELECT ARRAY[s.""Varchar10"",s.""Varchar15""]::varchar(15)[]
+FROM ""SomeEntities"" AS s");
+    }
+
+    #endregion
 
     #region Other translations
 

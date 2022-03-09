@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -696,10 +697,44 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             {
                 elementTypeMapping = expressionTypeMapping;
             }
-            else if (elementTypeMapping.StoreType != expressionTypeMapping.StoreType)
+            else if (expressionTypeMapping.StoreType != elementTypeMapping.StoreType)
             {
-                throw new InvalidOperationException(
-                    $"Heterogeneous store types detected when making new array ({elementTypeMapping.StoreType}, {expressionTypeMapping.StoreType})");
+                if (expressionTypeMapping.StoreTypeNameBase != elementTypeMapping.StoreTypeNameBase)
+                {
+                    throw new InvalidOperationException(
+                        NpgsqlStrings.HeterogeneousTypesInNewArray(
+                            elementTypeMapping.StoreType, expressionTypeMapping.StoreType));
+                }
+
+                // We have two store types, but with the same base type (e.g. varchar(10) and varchar(15)). Round up to the larger one.
+                if (expressionTypeMapping.Size is not null && elementTypeMapping.Size is not null)
+                {
+                    var size = Math.Max(expressionTypeMapping.Size.Value, elementTypeMapping.Size.Value);
+
+                    elementTypeMapping = _typeMappingSource.FindMapping($"{expressionTypeMapping.StoreTypeNameBase}({size})");
+                }
+                else if (expressionTypeMapping.Precision is not null
+                         && elementTypeMapping.Precision is not null
+                         && expressionTypeMapping.Scale is not null
+                         && elementTypeMapping.Scale is not null)
+                {
+                    var precision = Math.Max(expressionTypeMapping.Precision.Value, elementTypeMapping.Precision.Value);
+                    var scale = Math.Max(expressionTypeMapping.Scale.Value, elementTypeMapping.Scale.Value);
+
+                    elementTypeMapping = _typeMappingSource.FindMapping($"{expressionTypeMapping.StoreTypeNameBase}({precision},{scale})");
+                }
+                else if (expressionTypeMapping.Precision is not null && elementTypeMapping.Precision is not null)
+                {
+                    var precision = Math.Max(expressionTypeMapping.Precision.Value, elementTypeMapping.Precision.Value);
+
+                    elementTypeMapping = _typeMappingSource.FindMapping($"{expressionTypeMapping.StoreTypeNameBase}({precision})");
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        NpgsqlStrings.HeterogeneousTypesInNewArray(
+                            elementTypeMapping.StoreType, expressionTypeMapping.StoreType));
+                }
             }
         }
 
