@@ -17,6 +17,11 @@ public class ArrayQueryContext : PoolableDbContext
         => modelBuilder.Entity<ArrayEntity>(
             e =>
             {
+                e.Property(ae => ae.ByteArray).HasColumnType("smallint[]");
+
+                e.Property(ae => ae.Varchar10).HasColumnType("varchar(10)");
+                e.Property(ae => ae.Varchar15).HasColumnType("varchar(15)");
+
                 // We do negative to make sure our value converter is properly used, and not the built-in one
                 e.Property(ae => ae.EnumConvertedToInt)
                     .HasConversion(w => -(int)w, v => (SomeEnum)(-v));

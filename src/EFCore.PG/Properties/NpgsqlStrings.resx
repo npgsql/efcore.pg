@@ -135,6 +135,9 @@
   <data name="FreeTextFunctionOnClient" xml:space="preserve">
     <value>The 'FreeText' method is not supported because the query has switched to client-evaluation. Inspect the log to determine which query expressions are triggering client-evaluation.</value>
   </data>
+  <data name="HeterogeneousTypesInNewArray" xml:space="preserve">
+    <value>Heterogeneous store types detected when making new array ({type1}, {type2}).</value>
+  </data>
   <data name="IncludePropertyDuplicated" xml:space="preserve">
     <value>Include property '{entityType}.{property}' cannot be defined multiple times</value>
   </data>
