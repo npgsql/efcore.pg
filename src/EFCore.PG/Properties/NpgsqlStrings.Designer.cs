@@ -66,6 +66,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             => GetString("FreeTextFunctionOnClient");
 
         /// <summary>
+        ///     Heterogeneous store types detected when making new array ({type1}, {type2}).
+        /// </summary>
+        public static string HeterogeneousTypesInNewArray(object? type1, object? type2)
+            => string.Format(
+                GetString("HeterogeneousTypesInNewArray", nameof(type1), nameof(type2)),
+                type1, type2);
+
+        /// <summary>
         ///     Include property '{entityType}.{property}' cannot be defined multiple times
         /// </summary>
         public static string IncludePropertyDuplicated(object? entityType, object? property)
