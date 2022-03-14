@@ -669,6 +669,7 @@ public static class NpgsqlModelBuilderExtensions
     /// <param name="modelBuilder">The model builder.</param>
     /// <param name="collation">The collation.</param>
     /// <returns>A builder to further configure the property.</returns>
+    [Obsolete("Use EF Core's standard model bulk configuration API")]
     public static ModelBuilder UseDefaultColumnCollation(this ModelBuilder modelBuilder, string? collation)
     {
         Check.NotNull(modelBuilder, nameof(modelBuilder));
@@ -698,6 +699,7 @@ public static class NpgsqlModelBuilderExtensions
     /// <param name="collation">The collation.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     /// <returns>A builder to further configure the property.</returns>
+    [Obsolete("Use EF Core's standard model bulk configuration API")]
     public static IConventionModelBuilder? UseDefaultColumnCollation(
         this IConventionModelBuilder modelBuilder,
         string? collation,
@@ -719,6 +721,7 @@ public static class NpgsqlModelBuilderExtensions
     /// <param name="collation">The collation.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     /// <returns><c>true</c> if the given value can be set as the collation.</returns>
+    [Obsolete("Use EF Core's standard model bulk configuration API")]
     public static bool CanSetDefaultColumnCollation(
         this IConventionModelBuilder modelBuilder,
         string? collation,

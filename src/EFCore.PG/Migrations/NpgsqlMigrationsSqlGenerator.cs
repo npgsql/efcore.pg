@@ -476,10 +476,14 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             : null;
 
         // If a collation was defined on the column specifically, via the standard EF mechanism, it will be
-        // available in operation.Collation (as usual). If not, there may be a model-wide default column collation,
-        // which gets transmitted via the Npgsql-specific annotation.
+        // available in operation.Collation (as usual).
+        // If not, there may be a model-wide default column collation, which gets transmitted via the Npgsql-specific annotation.
+        // This mechanism is obsolete, and EF Core's bulk model configuration can be used instead; but we continue to support it for
+        // backwards compat.
+#pragma warning disable CS0618
         var oldCollation = (string?)(operation.OldColumn.Collation ?? operation.OldColumn[NpgsqlAnnotationNames.DefaultColumnCollation]);
         var newCollation = (string?)(operation.Collation ?? operation[NpgsqlAnnotationNames.DefaultColumnCollation]);
+#pragma warning restore CS0618
 
         if (type != oldType || newCollation != oldCollation)
         {
@@ -1526,9 +1530,14 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
 
         // If a collation was defined on the column specifically, via the standard EF mechanism, it will be
-        // available in operation.Collation (as usual). If not, there may be a model-wide default column collation,
-        // which gets transmitted via the Npgsql-specific annotation.
-        if ((operation.Collation ?? operation[NpgsqlAnnotationNames.DefaultColumnCollation]) is string collation)
+        // available in operation.Collation (as usual).
+        // If not, there may be a model-wide default column collation, which gets transmitted via the Npgsql-specific annotation.
+        // This mechanism is obsolete, and EF Core's bulk model configuration can be used instead; but we continue to support it for
+        // backwards compat.
+#pragma warning disable CS0618
+        var collation = (string?)(operation.Collation ?? operation[NpgsqlAnnotationNames.DefaultColumnCollation]);
+#pragma warning restore CS0618
+        if (collation is not null)
         {
             builder
                 .Append(" COLLATE ")

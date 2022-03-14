@@ -849,6 +849,7 @@ public static class NpgsqlPropertyExtensions
     /// </summary>
     /// <param name="property"> The property. </param>
     /// <returns> The collation for the column this property is mapped to. </returns>
+    [Obsolete("Use EF Core's standard model bulk configuration API")]
     public static string? GetDefaultCollation(this IReadOnlyProperty property)
         => property.FindTypeMapping() is StringTypeMapping
             ? property.DeclaringEntityType.Model.GetDefaultColumnCollation()

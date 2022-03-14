@@ -300,6 +300,7 @@ public static class NpgsqlModelExtensions
     /// For more information, see https://www.postgresql.org/docs/current/collation.html.
     /// </p>
     /// </remarks>
+    [Obsolete("Use EF Core's standard model bulk configuration API")]
     public static string? GetDefaultColumnCollation(this IReadOnlyModel model)
         => (string?)model[NpgsqlAnnotationNames.DefaultColumnCollation];
 
@@ -317,6 +318,7 @@ public static class NpgsqlModelExtensions
     /// For more information, see https://www.postgresql.org/docs/current/collation.html.
     /// </p>
     /// </remarks>
+    [Obsolete("Use EF Core's standard model bulk configuration API")]
     public static void SetDefaultColumnCollation(this IMutableModel model, string? collation)
         => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DefaultColumnCollation, collation);
 
@@ -334,6 +336,7 @@ public static class NpgsqlModelExtensions
     /// For more information, see https://www.postgresql.org/docs/current/collation.html.
     /// </p>
     /// </remarks>
+    [Obsolete("Use EF Core's standard model bulk configuration API")]
     public static string? SetDefaultColumnCollation(this IConventionModel model, string? collation, bool fromDataAnnotation = false)
     {
         model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DefaultColumnCollation, collation, fromDataAnnotation);
@@ -345,6 +348,7 @@ public static class NpgsqlModelExtensions
     /// </summary>
     /// <param name="model">The model.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the default column collation.</returns>
+    [Obsolete("Use EF Core's standard model bulk configuration API")]
     public static ConfigurationSource? GetDefaultColumnCollationConfigurationSource(this IConventionModel model)
         => model.FindAnnotation(NpgsqlAnnotationNames.DefaultColumnCollation)?.GetConfigurationSource();
 

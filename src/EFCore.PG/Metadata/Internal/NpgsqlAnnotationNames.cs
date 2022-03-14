@@ -7,7 +7,6 @@ public static class NpgsqlAnnotationNames
     public const string CompressionMethod = Prefix + "Compression:";
     public const string CreatedConcurrently = Prefix + "CreatedConcurrently";
     public const string DatabaseTemplate = Prefix + "DatabaseTemplate";
-    public const string DefaultColumnCollation = Prefix + "DefaultColumnCollation";
     public const string HiLoSequenceName = Prefix + "HiLoSequenceName";
     public const string HiLoSequenceSchema = Prefix + "HiLoSequenceSchema";
     public const string IdentityOptions = Prefix + "IdentitySequenceOptions";
@@ -45,6 +44,9 @@ public static class NpgsqlAnnotationNames
     /// This is currently unsupported and will be ignored.
     /// </summary>
     public const string IndexExpression = Prefix + "IndexExpression";
+
+    [Obsolete("Use EF Core's standard model bulk configuration API")]
+    public const string DefaultColumnCollation = Prefix + "DefaultColumnCollation";
 
     [Obsolete("Replaced by ValueGenerationStrategy.SerialColumn")]
     public const string ValueGeneratedOnAdd = Prefix + "ValueGeneratedOnAdd";
