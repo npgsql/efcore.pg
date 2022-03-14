@@ -72,13 +72,17 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
 
         // If the property has a collation explicitly defined on it via the standard EF mechanism, it will get
         // passed on the Collation property (we don't need to do anything).
-        // Otherwise, a model-wide default column collation exists, pass that through our custom annotation.
+        // Otherwise, if a model-wide default column collation exists, pass that through our custom annotation.
+        // Note that this mechanism is obsolete, and EF Core's bulk model configuration can be used instead; but we continue to support
+        // it for backwards compat.
+#pragma warning disable CS0618
         if (column.PropertyMappings.All(m => m.Property.GetCollation() is null) &&
             column.PropertyMappings.Select(m => m.Property.GetDefaultCollation())
                 .FirstOrDefault(c => c is not null) is { } defaultColumnCollation)
         {
             yield return new Annotation(NpgsqlAnnotationNames.DefaultColumnCollation, defaultColumnCollation);
         }
+#pragma warning restore CS0618
 
         if (column.PropertyMappings.Select(m => m.Property.GetTsVectorConfig())
                 .FirstOrDefault(c => c is not null) is { } tsVectorConfig)

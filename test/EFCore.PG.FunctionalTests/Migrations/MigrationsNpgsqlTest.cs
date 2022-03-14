@@ -634,6 +634,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
             @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""POSIX"" GENERATED ALWAYS AS ('hello') STORED;");
     }
 
+#pragma warning disable CS0618
     [ConditionalFact]
     public async Task Add_column_with_default_column_collation()
     {
@@ -680,6 +681,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
         AssertSql(
             @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""C"" NULL;");
     }
+#pragma warning restore CS0618
 
     public override async Task Add_column_shared()
     {
@@ -1591,6 +1593,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
             @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""default"";");
     }
 
+#pragma warning disable CS0618
     [Fact]
     public async Task Alter_column_change_default_column_collation()
     {
@@ -1613,6 +1616,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
         AssertSql(
             @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""C"";");
     }
+#pragma warning restore CS0618
 
     [Fact]
     public virtual async Task Alter_column_generated_tsvector_change_config()
