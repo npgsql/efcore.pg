@@ -1428,7 +1428,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 sqlBuilder,
                 modificationCommand,
                 0,
-                overridingSystemValue);
+                overridingSystemValue,
+                out _);
         }
 
         builder.Append(sqlBuilder.ToString());

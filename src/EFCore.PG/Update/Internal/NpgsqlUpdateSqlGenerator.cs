@@ -12,14 +12,16 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
     public override ResultSetMapping AppendInsertOperation(
         StringBuilder commandStringBuilder,
         IReadOnlyModificationCommand command,
-        int commandPosition)
-        => AppendInsertOperation(commandStringBuilder, command, commandPosition, false);
+        int commandPosition,
+        out bool requiresTransaction)
+        => AppendInsertOperation(commandStringBuilder, command, commandPosition, overridingSystemValue: false, out requiresTransaction);
 
     public virtual ResultSetMapping AppendInsertOperation(
         StringBuilder commandStringBuilder,
         IReadOnlyModificationCommand command,
         int commandPosition,
-        bool overridingSystemValue)
+        bool overridingSystemValue,
+        out bool requiresTransaction)
     {
         Check.NotNull(commandStringBuilder, nameof(commandStringBuilder));
         Check.NotNull(command, nameof(command));
@@ -32,6 +34,7 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
         var readOperations = operations.Where(o => o.IsRead).ToArray();
 
         AppendInsertCommandHeader(commandStringBuilder, command.TableName, command.Schema, writeOperations);
+
         if (overridingSystemValue)
         {
             commandStringBuilder.AppendLine().Append("OVERRIDING SYSTEM VALUE");
@@ -39,6 +42,7 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
 
         AppendValuesHeader(commandStringBuilder, writeOperations);
         AppendValues(commandStringBuilder, name, schema, writeOperations);
+
         if (readOperations.Length > 0)
         {
             AppendReturningClause(commandStringBuilder, readOperations);
@@ -46,13 +50,16 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
 
         commandStringBuilder.Append(SqlGenerationHelper.StatementTerminator).AppendLine();
 
+        requiresTransaction = false;
+
         return ResultSetMapping.NoResultSet;
     }
 
     public override ResultSetMapping AppendUpdateOperation(
         StringBuilder commandStringBuilder,
         IReadOnlyModificationCommand command,
-        int commandPosition)
+        int commandPosition,
+        out bool requiresTransaction)
     {
         Check.NotNull(commandStringBuilder, nameof(commandStringBuilder));
         Check.NotNull(command, nameof(command));
@@ -67,11 +74,16 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
 
         AppendUpdateCommandHeader(commandStringBuilder, tableName, schemaName, writeOperations);
         AppendWhereClause(commandStringBuilder, conditionOperations);
+
         if (readOperations.Length > 0)
         {
             AppendReturningClause(commandStringBuilder, readOperations);
         }
+
         commandStringBuilder.Append(SqlGenerationHelper.StatementTerminator).AppendLine();
+
+        requiresTransaction = false;
+
         return ResultSetMapping.NoResultSet;
     }
 
