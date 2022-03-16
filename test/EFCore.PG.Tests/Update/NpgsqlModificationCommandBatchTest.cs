@@ -40,13 +40,13 @@ public class NpgsqlModificationCommandBatchTest
                         typeMapper, new CoreSingletonOptions())),
                 new CurrentDbContext(new FakeDbContext()),
                 logger),
-            1);
+            maxBatchSize: 1);
 
         Assert.True(
-            batch.AddCommand(
+            batch.TryAddCommand(
                 CreateModificationCommand("T1", null, false)));
         Assert.False(
-            batch.AddCommand(
+            batch.TryAddCommand(
                 CreateModificationCommand("T1", null, false)));
     }
 

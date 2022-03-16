@@ -23,17 +23,29 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
         bool overridingSystemValue,
         out bool requiresTransaction)
     {
-        Check.NotNull(commandStringBuilder, nameof(commandStringBuilder));
-        Check.NotNull(command, nameof(command));
-
         var name = command.TableName;
         var schema = command.Schema;
         var operations = command.ColumnModifications;
 
-        var writeOperations = operations.Where(o => o.IsWrite).ToArray();
-        var readOperations = operations.Where(o => o.IsRead).ToArray();
+        var writeOperations = operations.Where(o => o.IsWrite).ToList();
+        var readOperations = operations.Where(o => o.IsRead).ToList();
 
-        AppendInsertCommandHeader(commandStringBuilder, command.TableName, command.Schema, writeOperations);
+        AppendInsertCommand(commandStringBuilder, name, schema, writeOperations, readOperations, overridingSystemValue);
+
+        requiresTransaction = false;
+
+        return readOperations.Count > 0 ? ResultSetMapping.LastInResultSet : ResultSetMapping.NoResultSet;
+    }
+
+    protected virtual void AppendInsertCommand(
+        StringBuilder commandStringBuilder,
+        string name,
+        string? schema,
+        IReadOnlyList<IColumnModification> writeOperations,
+        IReadOnlyList<IColumnModification> readOperations,
+        bool overridingSystemValue)
+    {
+        AppendInsertCommandHeader(commandStringBuilder, name, schema, writeOperations);
 
         if (overridingSystemValue)
         {
@@ -42,17 +54,8 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
 
         AppendValuesHeader(commandStringBuilder, writeOperations);
         AppendValues(commandStringBuilder, name, schema, writeOperations);
-
-        if (readOperations.Length > 0)
-        {
-            AppendReturningClause(commandStringBuilder, readOperations);
-        }
-
-        commandStringBuilder.Append(SqlGenerationHelper.StatementTerminator).AppendLine();
-
-        requiresTransaction = false;
-
-        return ResultSetMapping.NoResultSet;
+        AppendReturningClause(commandStringBuilder, readOperations);
+        commandStringBuilder.AppendLine(SqlGenerationHelper.StatementTerminator);
     }
 
     public override ResultSetMapping AppendUpdateOperation(
@@ -61,41 +64,40 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
         int commandPosition,
         out bool requiresTransaction)
     {
-        Check.NotNull(commandStringBuilder, nameof(commandStringBuilder));
-        Check.NotNull(command, nameof(command));
-
-        var tableName = command.TableName;
-        var schemaName = command.Schema;
+        // The default implementation adds RETURNING 1 to do concurrency check (was the row actually updated), but in PostgreSQL we check
+        // the per-statement row-affected value exposed by Npgsql in the batch; so no need for RETURNING 1.
+        var name = command.TableName;
+        var schema = command.Schema;
         var operations = command.ColumnModifications;
 
-        var writeOperations = operations.Where(o => o.IsWrite).ToArray();
-        var conditionOperations = operations.Where(o => o.IsCondition).ToArray();
-        var readOperations = operations.Where(o => o.IsRead).ToArray();
-
-        AppendUpdateCommandHeader(commandStringBuilder, tableName, schemaName, writeOperations);
-        AppendWhereClause(commandStringBuilder, conditionOperations);
-
-        if (readOperations.Length > 0)
-        {
-            AppendReturningClause(commandStringBuilder, readOperations);
-        }
-
-        commandStringBuilder.Append(SqlGenerationHelper.StatementTerminator).AppendLine();
+        var writeOperations = operations.Where(o => o.IsWrite).ToList();
+        var conditionOperations = operations.Where(o => o.IsCondition).ToList();
+        var readOperations = operations.Where(o => o.IsRead).ToList();
 
         requiresTransaction = false;
 
-        return ResultSetMapping.NoResultSet;
+        AppendUpdateCommand(commandStringBuilder, name, schema, writeOperations, readOperations, conditionOperations);
+
+        return ResultSetMapping.LastInResultSet;
     }
 
-    // ReSharper disable once ParameterTypeCanBeEnumerable.Local
-    private void AppendReturningClause(
+    public override ResultSetMapping AppendDeleteOperation(
         StringBuilder commandStringBuilder,
-        IReadOnlyList<IColumnModification> operations)
+        IReadOnlyModificationCommand command,
+        int commandPosition,
+        out bool requiresTransaction)
     {
-        commandStringBuilder
-            .AppendLine()
-            .Append("RETURNING ")
-            .AppendJoin(operations.Select(c => SqlGenerationHelper.DelimitIdentifier(c.ColumnName)));
+        // The default implementation adds RETURNING 1 to do concurrency check (was the row actually deleted), but in PostgreSQL we check
+        // the per-statement row-affected value exposed by Npgsql in the batch; so no need for RETURNING 1.
+        var name = command.TableName;
+        var schema = command.Schema;
+        var conditionOperations = command.ColumnModifications.Where(o => o.IsCondition).ToList();
+
+        requiresTransaction = false;
+
+        AppendDeleteCommand(commandStringBuilder, name, schema, Array.Empty<IColumnModification>(), conditionOperations);
+
+        return ResultSetMapping.NoResultSet;
     }
 
     public override void AppendNextSequenceValueOperation(StringBuilder commandStringBuilder, string name, string? schema)
@@ -105,23 +107,9 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
         commandStringBuilder.Append("')");
     }
 
-    public override void AppendBatchHeader(StringBuilder commandStringBuilder)
-    {
-    }
-
     protected override void AppendIdentityWhereCondition(StringBuilder commandStringBuilder, IColumnModification columnModification)
-    {
-        throw new NotSupportedException();
-    }
+        => throw new NotSupportedException();
 
     protected override void AppendRowsAffectedWhereCondition(StringBuilder commandStringBuilder, int expectedRowsAffected)
-    {
-        throw new NotSupportedException();
-    }
-
-    public enum ResultsGrouping
-    {
-        OneResultSet,
-        OneCommandPerResultSet
-    }
+        => throw new NotSupportedException();
 }

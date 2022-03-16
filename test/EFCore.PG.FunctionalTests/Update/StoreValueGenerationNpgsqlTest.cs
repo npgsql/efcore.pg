@@ -4,7 +4,7 @@
 using Microsoft.EntityFrameworkCore.TestModels.StoreValueGenerationModel;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Microsoft.EntityFrameworkCore.Update;
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
 
 #nullable enable
 
@@ -15,7 +15,7 @@ public class StoreValueGenerationNpgsqlTest : StoreValueGenerationTestBase<
         : base(fixture)
     {
         fixture.TestSqlLoggerFactory.Clear();
-        fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        // fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     protected override bool ShouldCreateImplicitTransaction(
