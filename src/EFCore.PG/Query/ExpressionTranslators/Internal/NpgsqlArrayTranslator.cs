@@ -186,7 +186,7 @@ public class NpgsqlArrayTranslator : IMethodCallTranslator, IMemberTranslator
                     // When the array is a column, we translate to array @> ARRAY[item]. GIN indexes
                     // on array are used, but null semantics is impossible without preventing index use.
                     case ColumnExpression:
-                        if (item is SqlConstantExpression constant && constant.Value is null)
+                        if (item is SqlConstantExpression { Value: null })
                         {
                             // We special-case null constant item and use array_position instead, since it does
                             // nulls correctly (but doesn't use indexes)

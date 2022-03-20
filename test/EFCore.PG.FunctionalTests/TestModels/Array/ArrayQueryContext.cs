@@ -36,10 +36,10 @@ public class ArrayQueryContext : PoolableDbContext
                     .HasConversion(new ValueConverter<SomeEnum, string>(w => w.ToString(), v => Enum.Parse<SomeEnum>(v)));
 
                 e.Property(ae => ae.ValueConvertedArray)
-                    .HasPostgresArrayConversion(w => -(int)w, v => (SomeEnum)(-v));
+                    .HasPostgresArrayConversion(w => w.ToString(), v => Enum.Parse<SomeEnum>(v));
 
                 e.Property(ae => ae.ValueConvertedList)
-                    .HasPostgresArrayConversion(w => -(int)w, v => (SomeEnum)(-v));
+                    .HasPostgresArrayConversion(w => w.ToString(), v => Enum.Parse<SomeEnum>(v));
 
                 e.HasIndex(ae => ae.NonNullableText);
             });

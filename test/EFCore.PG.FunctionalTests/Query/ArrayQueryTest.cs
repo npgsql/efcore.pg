@@ -270,15 +270,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Array_column_Contains_value_converted_param(bool async)
-        {
-            var item = SomeEnum.Eight;
+        public abstract Task Array_column_Contains_value_converted_param(bool async);
 
-            await AssertQuery(
-                async,
-                ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.Contains(item)),
-                entryCount: 1);
-        }
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public abstract Task Array_column_Contains_value_converted_constant(bool async);
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
