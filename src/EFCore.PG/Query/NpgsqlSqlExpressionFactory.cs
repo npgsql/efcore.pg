@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
@@ -144,13 +145,30 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             return NewArray(expressions, type, typeMapping);
         }
 
-        var array = Array.CreateInstance(elementType, expressions.Count);
-        for (var i = 0; i < expressions.Count; i++)
+        if (type.IsArray)
         {
-            array.SetValue(((SqlConstantExpression)expressions[i]).Value, i);
+            var array = Array.CreateInstance(elementType, expressions.Count);
+            for (var i = 0; i < expressions.Count; i++)
+            {
+                array.SetValue(((SqlConstantExpression)expressions[i]).Value, i);
+            }
+
+            return Constant(array, typeMapping);
         }
 
-        return Constant(array, typeMapping);
+        if (type.IsGenericList())
+        {
+            var list = (IList)Activator.CreateInstance(type, expressions.Count)!;
+            var addMethod = type.GetMethod("Add")!;
+            for (var i = 0; i < expressions.Count; i++)
+            {
+                addMethod.Invoke(list, new[] { ((SqlConstantExpression)expressions[i]).Value });
+            }
+
+            return Constant(list, typeMapping);
+        }
+
+        throw new ArgumentException("Must be an array or generic list", nameof(type));
     }
 
     public virtual PostgresNewArrayExpression NewArray(
@@ -549,12 +567,14 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case PostgresExpressionType.ContainedBy:
             {
                 // Containment when both sides have the same type: array within an array, range within range, multirange within multirange.
-                if (left.Type == right.Type)
+                // (CLR array and list are treated as the same type)
+                if (left.Type == right.Type
+                    || left.Type.IsArray && right.Type.IsGenericList() && left.Type.GetElementType() == right.Type.GetGenericArguments()[0]
+                    || left.Type.IsGenericList() && right.Type.IsArray && left.Type.GetGenericArguments()[0] == right.Type.GetElementType())
                 {
                     inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
                     resultType = typeof(bool);
                     resultTypeMapping = _boolTypeMapping;
-
                     break;
                 }
 
