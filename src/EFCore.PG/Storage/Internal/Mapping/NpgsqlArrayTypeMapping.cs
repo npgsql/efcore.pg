@@ -119,7 +119,7 @@ public abstract class NpgsqlArrayTypeMapping : RelationalTypeMapping
         sb.Append("ARRAY[");
         for (var i = 0; i < list.Count; i++)
         {
-            sb.Append(ElementMapping.GenerateSqlLiteral(list[i]));
+            sb.Append(ElementMapping.GenerateProviderValueSqlLiteral(list[i]));
             if (i < list.Count - 1)
             {
                 sb.Append(",");

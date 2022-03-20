@@ -446,14 +446,32 @@ WHERE s.""NullableEnumConvertedToStringWithNonNullableLambda"" = ANY (@__array_0
 
     public override async Task Array_column_Contains_value_converted_param(bool async)
     {
-        await base.Array_column_Contains_value_converted_param(async);
+        var item = SomeEnum.Eight;
+
+        await AssertQuery(
+            async,
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.Contains(item)),
+            entryCount: 1);
 
         AssertSql(
-            @"@__item_0='-8'
+            @"@__item_0='Eight' (Nullable = false)
 
 SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
 FROM ""SomeEntities"" AS s
-WHERE s.""ValueConvertedArray"" @> ARRAY[@__item_0]::integer[]");
+WHERE s.""ValueConvertedArray"" @> ARRAY[@__item_0]::text[]");
+    }
+
+    public override async Task Array_column_Contains_value_converted_constant(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.Contains(SomeEnum.Eight)),
+            entryCount: 1);
+
+        AssertSql(
+            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
+FROM ""SomeEntities"" AS s
+WHERE s.""ValueConvertedArray"" @> ARRAY['Eight']::text[]");
     }
 
     public override async Task Array_param_Contains_value_converted_array_column(bool async)
@@ -466,7 +484,7 @@ WHERE s.""ValueConvertedArray"" @> ARRAY[@__item_0]::integer[]");
             entryCount: 1);
 
         AssertSql(
-            @"@__p_0={ '-8', '-9' } (DbType = Object)
+            @"@__p_0={ 'Eight', 'Nine' } (DbType = Object)
 
 SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
 FROM ""SomeEntities"" AS s
