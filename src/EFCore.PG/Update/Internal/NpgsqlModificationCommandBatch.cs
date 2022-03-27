@@ -31,10 +31,6 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
     /// </summary>
     protected override int MaxBatchSize { get; }
 
-    /// <inheritdoc />
-    protected override bool IsValid()
-        => ParameterValues.Count <= ushort.MaxValue;
-
     protected override void Consume(RelationalDataReader reader)
     {
         var npgsqlReader = (NpgsqlDataReader)reader.DbDataReader;
