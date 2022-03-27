@@ -74,6 +74,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
                 type1, type2);
 
         /// <summary>
+        ///     Identity value generation cannot be used for the property '{property}' on entity type '{entityType}' because the property type is '{propertyType}'. Identity value generation can only be used with signed integer properties.
+        /// </summary>
+        public static string IdentityBadType(object? property, object? entityType, object? propertyType)
+            => string.Format(
+                GetString("IdentityBadType", nameof(property), nameof(entityType), nameof(propertyType)),
+                property, entityType, propertyType);
+
+        /// <summary>
         ///     Include property '{entityType}.{property}' cannot be defined multiple times
         /// </summary>
         public static string IncludePropertyDuplicated(object? entityType, object? property)

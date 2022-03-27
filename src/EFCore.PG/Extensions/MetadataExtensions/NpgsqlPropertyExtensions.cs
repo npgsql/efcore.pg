@@ -1,3 +1,4 @@
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
@@ -370,20 +371,20 @@ public static class NpgsqlPropertyExtensions
         {
             var propertyType = property.ClrType;
 
-            if (value == NpgsqlValueGenerationStrategy.SerialColumn && !IsCompatibleWithValueGeneration(property))
-            {
-                throw new ArgumentException($"Serial value generation cannot be used for the property '{property.Name}' on entity type '{property.DeclaringEntityType.DisplayName()}' because the property type is '{propertyType.ShortDisplayName()}'. Serial columns can only be of type short, int or long.");
-            }
-
-            if ((value == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn || value == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+            if ((value is NpgsqlValueGenerationStrategy.IdentityAlwaysColumn or NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
                 && !IsCompatibleWithValueGeneration(property))
             {
-                throw new ArgumentException($"Identity value generation cannot be used for the property '{property.Name}' on entity type '{property.DeclaringEntityType.DisplayName()}' because the property type is '{propertyType.ShortDisplayName()}'. Identity columns can only be of type short, int or long.");
+                throw new ArgumentException(
+                    NpgsqlStrings.IdentityBadType(
+                        property.Name, property.DeclaringEntityType.DisplayName(), propertyType.ShortDisplayName()));
             }
-
-            if (value == NpgsqlValueGenerationStrategy.SequenceHiLo && !IsCompatibleWithValueGeneration(property))
+            
+            if (value is NpgsqlValueGenerationStrategy.SerialColumn or NpgsqlValueGenerationStrategy.SequenceHiLo
+                && !IsCompatibleWithValueGeneration(property))
             {
-                throw new ArgumentException($"PostgreSQL sequences cannot be used to generate values for the property '{property.Name}' on entity type '{property.DeclaringEntityType.DisplayName()}' because the property type is '{propertyType.ShortDisplayName()}'. Sequences can only be used with integer properties.");
+                throw new ArgumentException(
+                    NpgsqlStrings.SequenceBadType(
+                        property.Name, property.DeclaringEntityType.DisplayName(), propertyType.ShortDisplayName()));
             }
         }
     }
@@ -398,10 +399,10 @@ public static class NpgsqlPropertyExtensions
         => property.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy)?.GetConfigurationSource();
 
     /// <summary>
-    ///     Returns a value indicating whether the property is compatible with any <see cref="NpgsqlValueGenerationStrategy" />.
+    /// Returns a value indicating whether the property is compatible with any <see cref="NpgsqlValueGenerationStrategy" />.
     /// </summary>
-    /// <param name="property"> The property. </param>
-    /// <returns> <see langword="true" /> if compatible. </returns>
+    /// <param name="property">The property.</param>
+    /// <returns><see langword="true" /> if compatible.</returns>
     public static bool IsCompatibleWithValueGeneration(IReadOnlyProperty property)
     {
         var valueConverter = property.GetValueConverter()
@@ -409,7 +410,7 @@ public static class NpgsqlPropertyExtensions
 
         var type = (valueConverter?.ProviderClrType ?? property.ClrType).UnwrapNullableType();
 
-        return type.IsInteger();
+        return type.IsInteger() || type.IsEnum;
     }
 
     private static bool IsCompatibleWithValueGeneration(
@@ -423,7 +424,7 @@ public static class NpgsqlPropertyExtensions
 
         var type = (valueConverter?.ProviderClrType ?? property.ClrType).UnwrapNullableType();
 
-        return type.IsInteger();
+        return type.IsInteger() || type.IsEnum;
     }
 
     #endregion Value generation
