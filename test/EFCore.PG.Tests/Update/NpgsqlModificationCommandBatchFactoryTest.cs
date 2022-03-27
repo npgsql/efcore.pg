@@ -46,8 +46,8 @@ public class NpgsqlModificationCommandBatchFactoryTest
 
         var batch = factory.Create();
 
-        Assert.True(batch.AddCommand(CreateModificationCommand("T1", null, false)));
-        Assert.False(batch.AddCommand(CreateModificationCommand("T1", null, false)));
+        Assert.True(batch.TryAddCommand(CreateModificationCommand("T1", null, false)));
+        Assert.False(batch.TryAddCommand(CreateModificationCommand("T1", null, false)));
     }
 
     [Fact]
@@ -86,8 +86,8 @@ public class NpgsqlModificationCommandBatchFactoryTest
 
         var batch = factory.Create();
 
-        Assert.True(batch.AddCommand(CreateModificationCommand("T1", null, false)));
-        Assert.True(batch.AddCommand(CreateModificationCommand("T1", null, false)));
+        Assert.True(batch.TryAddCommand(CreateModificationCommand("T1", null, false)));
+        Assert.True(batch.TryAddCommand(CreateModificationCommand("T1", null, false)));
     }
 
     private class FakeDbContext : DbContext

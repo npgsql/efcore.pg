@@ -19,7 +19,6 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
 {
     private const int DefaultBatchSize = 1000;
     private readonly int _maxBatchSize;
-    private int _parameterCount;
 
     /// <summary>
     /// Constructs an instance of the <see cref="NpgsqlModificationCommandBatch"/> class.
@@ -29,7 +28,7 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
         int? maxBatchSize)
         : base(dependencies)
     {
-        if (maxBatchSize.HasValue && maxBatchSize.Value <= 0)
+        if (maxBatchSize is <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(maxBatchSize), RelationalStrings.InvalidMaxBatchSize(maxBatchSize));
         }
@@ -37,27 +36,9 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
         _maxBatchSize = maxBatchSize ?? DefaultBatchSize;
     }
 
-    protected override int GetParameterCount() => _parameterCount;
-
-    protected override bool CanAddCommand(IReadOnlyModificationCommand modificationCommand)
-    {
-        if (ModificationCommands.Count >= _maxBatchSize)
-        {
-            return false;
-        }
-
-        var newParamCount = (long)_parameterCount + modificationCommand.ColumnModifications.Count;
-        if (newParamCount > int.MaxValue)
-        {
-            return false;
-        }
-
-        _parameterCount = (int)newParamCount;
-        return true;
-    }
-
-    protected override bool IsCommandTextValid()
-        => true;
+    /// <inheritdoc />
+    protected override bool IsValid()
+        => ModificationCommands.Count <= _maxBatchSize && ParameterValues.Count <= ushort.MaxValue;
 
     protected override void Consume(RelationalDataReader reader)
     {

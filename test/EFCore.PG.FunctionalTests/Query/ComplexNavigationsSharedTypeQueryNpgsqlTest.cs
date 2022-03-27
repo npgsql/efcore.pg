@@ -41,4 +41,12 @@ public class ComplexNavigationsSharedTypeQueryNpgsqlTest
     public override Task Nested_SelectMany_correlated_with_join_table_correctly_translated_to_apply(bool async)
         => Assert.ThrowsAsync<EqualException>(
             async () => await base.Nested_SelectMany_correlated_with_join_table_correctly_translated_to_apply(async));
+
+    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/26104")]
+    public override Task GroupBy_aggregate_where_required_relationship(bool async)
+        => base.GroupBy_aggregate_where_required_relationship(async);
+
+    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/26104")]
+    public override Task GroupBy_aggregate_where_required_relationship_2(bool async)
+        => base.GroupBy_aggregate_where_required_relationship_2(async);
 }
