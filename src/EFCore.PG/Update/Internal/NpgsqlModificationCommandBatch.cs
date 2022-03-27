@@ -17,28 +17,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
 /// </remarks>
 public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
 {
-    private const int DefaultBatchSize = 1000;
-    private readonly int _maxBatchSize;
-
     /// <summary>
     /// Constructs an instance of the <see cref="NpgsqlModificationCommandBatch"/> class.
     /// </summary>
     public NpgsqlModificationCommandBatch(
         ModificationCommandBatchFactoryDependencies dependencies,
-        int? maxBatchSize)
+        int maxBatchSize)
         : base(dependencies)
-    {
-        if (maxBatchSize is <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(maxBatchSize), RelationalStrings.InvalidMaxBatchSize(maxBatchSize));
-        }
+        => MaxBatchSize = maxBatchSize;
 
-        _maxBatchSize = maxBatchSize ?? DefaultBatchSize;
-    }
+    /// <summary>
+    ///     The maximum number of <see cref="ModificationCommand"/> instances that can be added to a single batch; defaults to 1000.
+    /// </summary>
+    protected override int MaxBatchSize { get; }
 
     /// <inheritdoc />
     protected override bool IsValid()
-        => ModificationCommands.Count <= _maxBatchSize && ParameterValues.Count <= ushort.MaxValue;
+        => ParameterValues.Count <= ushort.MaxValue;
 
     protected override void Consume(RelationalDataReader reader)
     {
