@@ -115,6 +115,7 @@ Version 5.0.0 of the provider includes sugar for defining the appropriate expres
 ```c#
 modelBuilder.Entity<Blog>()
     .HasIndex(b => new { b.Title, b.Description })
+    .HasMethod("GIN")
     .IsTsVectorExpressionIndex("english");
 ```
 
