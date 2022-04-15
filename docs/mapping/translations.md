@@ -208,17 +208,17 @@ The below translations are for working with label trees from the PostgreSQL [`lt
 .NET                                                              | SQL
 ----------------------------------------------------------------- | --------------------
 ltree1.IsAncestorOf(ltree2)                                       | ltree1 @&gt; ltree2
-ltree1.IsDescendant(ltree2)                                       | ltree1 &lt;@ ltree2
+ltree1.IsDescendantOf(ltree2)                                     | ltree1 &lt;@ ltree2
 ltree.MatchesLQuery(lquery)                                       | ltree ~ lquery
 ltree.MatchesLTxtQuery(ltxtquery)                                 | ltree @ ltxtquery
 lqueries.Any(q => ltree.MatchesLQuery(q))                         | ltree ? lqueries
 ltrees.Any(t => t.IsAncestorOf(ltree))                            | ltrees @&gt; ltree
-ltrees.Any(t => t.IsDescendant(ltree))                            | ltrees &lt;@ ltree
+ltrees.Any(t => t.IsDescendantOf(ltree))                          | ltrees &lt;@ ltree
 ltrees.Any(t => t.MatchesLQuery(lquery))                          | ltrees ~ ltree
 ltrees.Any(t => t.MatchesLTxtQuery(ltxtquery))                    | ltrees @ ltxtquery
 ltrees.Any(t => lqueries.Any(q => t.MatchesLQuery(q)))            | ltrees ? lqueries
 ltrees.FirstOrDefault(l => l.IsAncestorOf(ltree))                 | ltrees ?@&gt; ltree
-ltrees.FirstOrDefault(l => l.IsDescendant(ltree))                 | ltrees ?&lt;@ ltree
+ltrees.FirstOrDefault(l => l.IsDescendantOf(ltree))               | ltrees ?&lt;@ ltree
 ltrees.FirstOrDefault(l => l.MatchesLQuery(lquery))               | ltrees ?~ ltree
 ltrees.FirstOrDefault(l => l.MatchesLTxtQuery(ltxtquery))         | ltrees ?@ ltree
 ltree.Subtree(0, 1)                                               | subltree(ltree, 0, 1)
