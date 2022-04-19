@@ -1,4 +1,5 @@
 ﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal;
 
@@ -311,13 +312,11 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
                         getValueExpression
                     );
 
-            case "Date":
-                return _sqlExpressionFactory.Function(
-                    "DATE_TRUNC",
-                    new[] { _sqlExpressionFactory.Constant("day"), instance },
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[2],
-                    returnType);
+            // PG allows converting a timestamp directly to date, truncating the time; but given a timestamptz, it performs a time zone
+            // conversion (based on TimeZone), which we don't want (so avoid translating except on timestamp).
+            // The translation for ZonedDateTime.Date converts to timestamp before ending up here.
+            case "Date" when instance.TypeMapping is TimestampLocalDateTimeMapping:
+                return _sqlExpressionFactory.Convert(instance, typeof(LocalDate), _typeMappingSource.FindMapping(typeof(LocalDate))!);
 
             case "TimeOfDay":
                 // TODO: Technically possible simply via casting to PG time,
