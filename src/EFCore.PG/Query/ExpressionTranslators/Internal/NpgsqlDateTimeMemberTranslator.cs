@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using NpgsqlTypes;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
@@ -60,6 +61,39 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
             return translated;
         }
 
+        if (member.Name == nameof(DateTime.Date))
+        {
+            // Note that DateTime.Date returns a DateTime, not a DateOnly (introduced later); so we convert using date_trunc (which returns
+            // a PG timestamp/timestamptz) rather than a conversion to PG date (compare with NodaTime where we want a LocalDate).
+
+            // When given a timestamptz, date_trunc performs the truncation with respect to TimeZone; to avoid that, we use the overload
+            // accepting a time zone, and pass UTC. For regular timestamp (or in legacy timestamp mode), we use the simpler overload without
+            // a time zone.
+            if (NpgsqlTypeMappingSource.LegacyTimestampBehavior || instance?.TypeMapping is NpgsqlTimestampTypeMapping)
+            {
+                return _sqlExpressionFactory.Function(
+                    "date_trunc",
+                    new[] { _sqlExpressionFactory.Constant("day"), instance! },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[2],
+                    returnType,
+                    instance!.TypeMapping);
+            }
+
+            if (instance?.TypeMapping is NpgsqlTimestampTzTypeMapping)
+            {
+                return _sqlExpressionFactory.Function(
+                    "date_trunc",
+                    new[] { _sqlExpressionFactory.Constant("day"), instance, _sqlExpressionFactory.Constant("UTC") },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[3],
+                    returnType,
+                    instance.TypeMapping);
+            }
+
+            return null;
+        }
+
         return member.Name switch
         {
             // Legacy behavior
@@ -94,14 +128,6 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
 
             // .NET's DayOfWeek is an enum, but its int values happen to correspond to PostgreSQL
             nameof(DateTime.DayOfWeek) => GetDatePartExpression(instance!, "dow", floor: true),
-
-            nameof(DateTime.Date) => _sqlExpressionFactory.Function(
-                "date_trunc",
-                new[] { _sqlExpressionFactory.Constant("day"), instance! },
-                nullable: true,
-                argumentsPropagateNullability: TrueArrays[2],
-                returnType,
-                instance!.TypeMapping),
 
             // TODO: Technically possible simply via casting to PG time, should be better in EF Core 3.0
             // but ExplicitCastExpression only allows casting to PG types that
