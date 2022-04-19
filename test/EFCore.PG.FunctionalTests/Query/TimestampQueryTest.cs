@@ -336,6 +336,41 @@ WHERE now() <> @__myDatetime_0");
 
     #endregion Now
 
+    #region Date member
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    [MinimumPostgresVersion(12, 0)]
+    public virtual async Task Where_datetime_date_on_timestamptz(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>().Where(e => e.TimestamptzDateTime.Date == new DateTime(1998, 4, 12, 0, 0, 0, DateTimeKind.Utc)),
+            entryCount: 1);
+
+        AssertSql(
+            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
+FROM ""Entities"" AS e
+WHERE date_trunc('day', e.""TimestamptzDateTime"", 'UTC') = TIMESTAMPTZ '1998-04-12 00:00:00Z'");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Where_datetime_date_on_timestamp(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>().Where(e => e.TimestampDateTime.Date == new DateTime(1998, 4, 12, 0, 0, 0, DateTimeKind.Local)),
+            entryCount: 1);
+
+        AssertSql(
+            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
+FROM ""Entities"" AS e
+WHERE date_trunc('day', e.""TimestampDateTime"") = TIMESTAMP '1998-04-12 00:00:00'");
+    }
+
+    #endregion
+
     #region DateTimeOffset
 
     [ConditionalTheory]
