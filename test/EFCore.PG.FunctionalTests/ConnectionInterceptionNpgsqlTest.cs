@@ -11,6 +11,22 @@ public abstract class ConnectionInterceptionNpgsqlTestBase : ConnectionIntercept
     {
     }
 
+    [ConditionalTheory(Skip = "#2368")]
+    public override Task Intercept_connection_creation_passively(bool async)
+        => base.Intercept_connection_creation_passively(async);
+
+    [ConditionalTheory(Skip = "#2368")]
+    public override Task Intercept_connection_creation_with_multiple_interceptors(bool async)
+        => base.Intercept_connection_creation_with_multiple_interceptors(async);
+
+    [ConditionalTheory(Skip = "#2368")]
+    public override Task Intercept_connection_to_override_connection_after_creation(bool async)
+        => base.Intercept_connection_to_override_connection_after_creation(async);
+
+    [ConditionalTheory(Skip = "#2368")]
+    public override Task Intercept_connection_to_override_creation(bool async)
+        => base.Intercept_connection_to_override_creation(async);
+
     public abstract class InterceptionNpgsqlFixtureBase : InterceptionFixtureBase
     {
         protected override string StoreName => "ConnectionInterception";
@@ -21,6 +37,9 @@ public abstract class ConnectionInterceptionNpgsqlTestBase : ConnectionIntercept
             IEnumerable<IInterceptor> injectedInterceptors)
             => base.InjectInterceptors(serviceCollection.AddEntityFrameworkNpgsql(), injectedInterceptors);
     }
+
+    protected override DbContextOptionsBuilder ConfigureProvider(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseNpgsql();
 
     protected override BadUniverseContext CreateBadUniverse(DbContextOptionsBuilder optionsBuilder)
         => new(optionsBuilder.UseNpgsql(new FakeDbConnection()).Options);

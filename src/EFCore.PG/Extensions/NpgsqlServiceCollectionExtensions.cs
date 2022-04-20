@@ -96,7 +96,6 @@ public static class NpgsqlServiceCollectionExtensions
             .TryAdd<IRelationalAnnotationProvider, NpgsqlAnnotationProvider>()
             .TryAdd<IModelValidator, NpgsqlModelValidator>()
             .TryAdd<IProviderConventionSetBuilder, NpgsqlConventionSetBuilder>()
-            .TryAdd<IRelationalValueBufferFactoryFactory, TypedRelationalValueBufferFactoryFactory>()
             .TryAdd<IUpdateSqlGenerator, NpgsqlUpdateSqlGenerator>()
             .TryAdd<IModificationCommandBatchFactory, NpgsqlModificationCommandBatchFactory>()
             .TryAdd<IValueGeneratorSelector, NpgsqlValueGeneratorSelector>()

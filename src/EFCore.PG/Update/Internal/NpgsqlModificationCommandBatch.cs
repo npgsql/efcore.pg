@@ -86,8 +86,9 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
                         modificationCommand.Entries);
                 }
 
-                var valueBufferFactory = CreateValueBufferFactory(modificationCommand.ColumnModifications);
-                modificationCommand.PropagateResults(valueBufferFactory.Create(npgsqlReader));
+                Check.DebugAssert(modificationCommand.RequiresResultPropagation, "RequiresResultPropagation is false");
+
+                modificationCommand.PropagateResults(reader);
 
                 npgsqlReader.NextResult();
             }
@@ -163,8 +164,9 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
                     );
                 }
 
-                var valueBufferFactory = CreateValueBufferFactory(modificationCommand.ColumnModifications);
-                modificationCommand.PropagateResults(valueBufferFactory.Create(npgsqlReader));
+                Check.DebugAssert(modificationCommand.RequiresResultPropagation, "RequiresResultPropagation is false");
+
+                modificationCommand.PropagateResults(reader);
 
                 await npgsqlReader.NextResultAsync(cancellationToken).ConfigureAwait(false);
             }
