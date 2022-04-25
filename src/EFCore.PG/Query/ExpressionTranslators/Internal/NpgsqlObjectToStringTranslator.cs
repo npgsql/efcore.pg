@@ -27,9 +27,14 @@ public class NpgsqlObjectToStringTranslator : IMethodCallTranslator
     };
 
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
+    private readonly RelationalTypeMapping _textTypeMapping;
 
-    public NpgsqlObjectToStringTranslator(ISqlExpressionFactory sqlExpressionFactory)
-        => _sqlExpressionFactory = sqlExpressionFactory;
+    public NpgsqlObjectToStringTranslator(IRelationalTypeMappingSource typeMappingSource, ISqlExpressionFactory sqlExpressionFactory)
+    {
+        _sqlExpressionFactory = sqlExpressionFactory;
+
+        _textTypeMapping = typeMappingSource.FindMapping("text")!;
+    }
 
     public virtual SqlExpression? Translate(
         SqlExpression? instance,
@@ -68,7 +73,7 @@ public class NpgsqlObjectToStringTranslator : IMethodCallTranslator
 
         return _typeMapping.Contains(instance.Type)
             || instance.Type.UnwrapNullableType().IsEnum && instance.TypeMapping is NpgsqlEnumTypeMapping
-                ? _sqlExpressionFactory.Convert(instance, typeof(string))
+                ? _sqlExpressionFactory.Convert(instance, typeof(string), _textTypeMapping)
                 : null;
     }
 }

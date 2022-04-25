@@ -431,6 +431,36 @@ FROM ""SomeEntities"" AS s");
 FROM ""SomeEntities"" AS s");
     }
 
+    [Theory] // #2342
+    [MemberData(nameof(IsAsyncData))]
+    public async Task New_array_with_heterogeneous_columns_but_textual(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<ArrayEntity>().Select(e => new[] { e.NonNullableText, e.Varchar15 }),
+            elementAsserter: Assert.Equal,
+            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
+
+        AssertSql(
+            @"SELECT ARRAY[s.""NonNullableText"",s.""Varchar15""]::text[]
+FROM ""SomeEntities"" AS s");
+    }
+
+    [Theory] // #2342
+    [MemberData(nameof(IsAsyncData))]
+    public async Task New_array_with_heterogeneous_columns_but_textual_after_ToString(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<ArrayEntity>().Select(e => new[] { e.Id.ToString(), e.Varchar15 }),
+            elementAsserter: Assert.Equal,
+            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
+
+        AssertSql(
+            @"SELECT ARRAY[s.""Id""::text,s.""Varchar15""]::text[]
+FROM ""SomeEntities"" AS s");
+    }
+
     #endregion
 
     #region Other translations
