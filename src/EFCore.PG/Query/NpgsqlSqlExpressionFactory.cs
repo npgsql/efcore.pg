@@ -729,35 +729,44 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             }
             else if (expressionTypeMapping.StoreType != elementTypeMapping.StoreType)
             {
-                if (expressionTypeMapping.StoreTypeNameBase != elementTypeMapping.StoreTypeNameBase)
+                // We have two heterogeneous store types in the array.
+                // We allow this when they have the same base type but differing facets (e.g. varchar(10) and varchar(15)), in which case
+                // we cast up. We also manually take care of some special cases (e.g. text and varchar(10) -> text).
+                // This is a hacky solution until a full type compatibility chart is implemented
+                // (https://github.com/dotnet/efcore/issues/15586)
+                if (expressionTypeMapping.StoreTypeNameBase == elementTypeMapping.StoreTypeNameBase)
                 {
-                    throw new InvalidOperationException(
-                        NpgsqlStrings.HeterogeneousTypesInNewArray(
-                            elementTypeMapping.StoreType, expressionTypeMapping.StoreType));
+                    if (expressionTypeMapping.Size is not null && elementTypeMapping.Size is not null)
+                    {
+                        var size = Math.Max(expressionTypeMapping.Size.Value, elementTypeMapping.Size.Value);
+
+                        elementTypeMapping = _typeMappingSource.FindMapping($"{expressionTypeMapping.StoreTypeNameBase}({size})");
+                    }
+                    else if (expressionTypeMapping.Precision is not null
+                             && elementTypeMapping.Precision is not null
+                             && expressionTypeMapping.Scale is not null
+                             && elementTypeMapping.Scale is not null)
+                    {
+                        var precision = Math.Max(expressionTypeMapping.Precision.Value, elementTypeMapping.Precision.Value);
+                        var scale = Math.Max(expressionTypeMapping.Scale.Value, elementTypeMapping.Scale.Value);
+
+                        elementTypeMapping =
+                            _typeMappingSource.FindMapping($"{expressionTypeMapping.StoreTypeNameBase}({precision},{scale})");
+                    }
+                    else if (expressionTypeMapping.Precision is not null && elementTypeMapping.Precision is not null)
+                    {
+                        var precision = Math.Max(expressionTypeMapping.Precision.Value, elementTypeMapping.Precision.Value);
+
+                        elementTypeMapping = _typeMappingSource.FindMapping($"{expressionTypeMapping.StoreTypeNameBase}({precision})");
+                    }
                 }
-
-                // We have two store types, but with the same base type (e.g. varchar(10) and varchar(15)). Round up to the larger one.
-                if (expressionTypeMapping.Size is not null && elementTypeMapping.Size is not null)
+                else if (expressionTypeMapping.StoreType == "text" && IsTextualTypeMapping(elementTypeMapping))
                 {
-                    var size = Math.Max(expressionTypeMapping.Size.Value, elementTypeMapping.Size.Value);
-
-                    elementTypeMapping = _typeMappingSource.FindMapping($"{expressionTypeMapping.StoreTypeNameBase}({size})");
+                    elementTypeMapping = expressionTypeMapping;
                 }
-                else if (expressionTypeMapping.Precision is not null
-                         && elementTypeMapping.Precision is not null
-                         && expressionTypeMapping.Scale is not null
-                         && elementTypeMapping.Scale is not null)
+                else if (elementTypeMapping.StoreType == "text" && IsTextualTypeMapping(expressionTypeMapping))
                 {
-                    var precision = Math.Max(expressionTypeMapping.Precision.Value, elementTypeMapping.Precision.Value);
-                    var scale = Math.Max(expressionTypeMapping.Scale.Value, elementTypeMapping.Scale.Value);
-
-                    elementTypeMapping = _typeMappingSource.FindMapping($"{expressionTypeMapping.StoreTypeNameBase}({precision},{scale})");
-                }
-                else if (expressionTypeMapping.Precision is not null && elementTypeMapping.Precision is not null)
-                {
-                    var precision = Math.Max(expressionTypeMapping.Precision.Value, elementTypeMapping.Precision.Value);
-
-                    elementTypeMapping = _typeMappingSource.FindMapping($"{expressionTypeMapping.StoreTypeNameBase}({precision})");
+                    // elementTypeMapping is already "text"
                 }
                 else
                 {
@@ -765,6 +774,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                         NpgsqlStrings.HeterogeneousTypesInNewArray(
                             elementTypeMapping.StoreType, expressionTypeMapping.StoreType));
                 }
+
+                static bool IsTextualTypeMapping(RelationalTypeMapping mapping)
+                    => mapping.StoreTypeNameBase is "varchar" or "char" or "character varying" or "character" or "text";
             }
         }
 
