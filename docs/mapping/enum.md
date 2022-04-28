@@ -19,12 +19,12 @@ protected override void OnModelCreating(ModelBuilder builder)
 
 ```c#
 protected override void OnModelCreating(ModelBuilder builder)
-    => builder.HasPostgresEnum("Mood", new[] { "happy", "sad" });
+    => builder.HasPostgresEnum("mood", new[] { "happy", "sad" });
 ```
 
 ---
 
-This causes the EF Core provider to create your data enum type, `Mood`, with two labels: `happy` and `sad`. This will cause the appropriate migration to be created.
+This causes the EF Core provider to create your enum type, `mood`, with two labels: `happy` and `sad`. This will cause the appropriate migration to be created.
 
 If you are using `context.Database.Migrate()` to create your enums, you need to instruct Npgsql to reload all types after applying your migrations:
 
@@ -47,7 +47,7 @@ static MyDbContext()
     => NpgsqlConnection.GlobalTypeMapper.MapEnum<Mood>();
 ```
 
-This code lets Npgsql know that your CLR enum type, `Mood`, should be mapped to a database enum called `Mood`. Note that if your enum is in a custom schema (not `public`), you must specify that schema in the call to `MapEnum`.
+This code lets Npgsql know that your CLR enum type, `Mood`, should be mapped to a database enum called `mood`. Note that if your enum is in a custom schema (not `public`), you must specify that schema in the call to `MapEnum`.
 
 If you're curious as to inner workings, this code maps the enum with the ADO.NET provider - [see here for the full docs](http://www.npgsql.org/doc/types/enums_and_composites.html). When the Npgsql EF Core first initializes, it calls into the ADO.NET provider to get all mapped enums, and sets everything up internally at the EF Core layer as well.
 
@@ -75,10 +75,16 @@ using (var ctx = new MyDbContext())
 
 ## Altering enum definitions
 
-Although PostgreSQL allows [altering enum types](https://www.postgresql.org/docs/current/static/sql-altertype.html), the Npgsql provider currently does not generate SQL for those operations (beyond creating and dropping the entire type). If you to add or rename enum values (removal is not supported by PostgreSQL), you'll have to include raw SQL in your migrations (this is quite easy to do). As always, test your migrations carefully before running them on production databases.
+The Npgsql provider only allow adding new values to existing enums, and the appropriate migrations will be automatically created as you add values to your CLR enum type. However, PostgreSQL itself doesn't support removing enum values (since these may be in use), and while renaming values is supported, it isn't automatically done by the provider to avoid using unreliable detection heuristics. Renaming an enum value can be done by including [raw SQL](https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/managing?tabs=dotnet-core-cli#arbitrary-changes-via-raw-sql) in your migrations as follows:
+
+```c#
+migrationBuilder.Sql(@"ALTER TYPE mood RENAME VALUE happy TO thrilled;");
+```
+  
+As always, test your migrations carefully before running them on production databases.
 
 ## Scaffolding from an existing database
 
-If you're creating your model from an existing database, the provider will recognize enums in your database, and scaffold the appropriate `HasPostgresEnum()` lines in your model. However, since the scaffolding process has no knowledge of your CLR type, and will therefore skip your enum columns (warnings will be logged). You will have to create the CLR type, add the global mapping and add the properties to your entities.
+If you're creating your model from an existing database, the provider will recognize enums in your database, and scaffold the appropriate `HasPostgresEnum()` lines in your model. However, the scaffolding process has no knowledge of your CLR type, and will therefore skip your enum columns (warnings will be logged). You will have to create the CLR type, add the global mapping and add the properties to your entities.
 
 In the future it may be possible to scaffold the actual enum type (and with it the properties), but this doesn't happen at the moment.
