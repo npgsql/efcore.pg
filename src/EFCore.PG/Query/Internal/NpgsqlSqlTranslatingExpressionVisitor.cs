@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
@@ -17,7 +18,8 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) })!;
 
     private static readonly ConstructorInfo DateTimeCtor3 =
-        typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(DateTimeKind) })!;
+        typeof(DateTime).GetConstructor(
+            new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(DateTimeKind) })!;
 
     private static readonly ConstructorInfo DateOnlyCtor =
         typeof(DateOnly).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
@@ -131,8 +133,8 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
 
             // Translate Length on byte[], but only if the type mapping is for bytea. There's also array of bytes
             // (mapped to smallint[]), which is handled below with CARDINALITY.
-            if (sqlOperand!.Type == typeof(byte[]) &&
-                (sqlOperand.TypeMapping is null || sqlOperand.TypeMapping is NpgsqlByteArrayTypeMapping))
+            if (sqlOperand!.Type == typeof(byte[])
+                && (sqlOperand.TypeMapping is null || sqlOperand.TypeMapping is NpgsqlByteArrayTypeMapping))
             {
                 return _sqlExpressionFactory.Function(
                     "length",
@@ -142,8 +144,8 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                     typeof(int));
             }
 
-            return _jsonPocoTranslator.TranslateArrayLength(sqlOperand) ??
-                _sqlExpressionFactory.Function(
+            return _jsonPocoTranslator.TranslateArrayLength(sqlOperand)
+                ?? _sqlExpressionFactory.Function(
                     "cardinality",
                     new[] { sqlOperand },
                     nullable: true,
@@ -151,7 +153,27 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                     typeof(int));
         }
 
-        return base.VisitUnary(unaryExpression);
+        var translated = base.VisitUnary(unaryExpression);
+
+        // Temporary hack around https://github.com/dotnet/efcore/pull/27964
+        if (translated == QueryCompilationContext.NotTranslatedExpression)
+        {
+            if (unaryExpression.NodeType is ExpressionType.Convert or ExpressionType.ConvertChecked or ExpressionType.TypeAs
+                && unaryExpression.Type.IsInterface
+                && unaryExpression.Operand.Type.IsAssignableTo(unaryExpression.Type))
+            {
+                var operand = Visit(unaryExpression.Operand);
+
+                if (TranslationFailed(unaryExpression.Operand, operand, out var sqlOperand))
+                {
+                    return QueryCompilationContext.NotTranslatedExpression;
+                }
+
+                return sqlOperand!;
+            }
+        }
+
+        return translated;
     }
 
     protected override Expression VisitMethodCall(MethodCallExpression methodCall)
@@ -413,12 +435,27 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
 
     protected override Expression VisitNew(NewExpression newExpression)
     {
+        // TEMPORARY HACK around https://github.com/dotnet/efcore/pull/27965
+        // This row value translation should happen after base.VisitNew, but the base implementation doesn't take evaluatable filters into
+        // account. Move it down after that's fixed.
+
+        // We translate new ValueTuple<T1, T2...>(x, y...) to a SQL row value expression: (x, y).
+        // This is notably done to support row value comparisons: WHERE (x, y) > (3, 4) (see e.g. NpgsqlDbFunctionsExtensions.GreaterThan)
+        if (newExpression.Type.IsAssignableTo(typeof(ITuple)))
+        {
+            return TryTranslateArguments(out var sqlArguments)
+                ? new PostgresRowValueExpression(sqlArguments)
+                : QueryCompilationContext.NotTranslatedExpression;
+        }
+
         var visitedNewExpression = base.VisitNew(newExpression);
+
         if (visitedNewExpression != QueryCompilationContext.NotTranslatedExpression)
         {
             return visitedNewExpression;
         }
 
+        // Translate new DateTime(...) -> make_timestamp/make_date
         if (newExpression.Constructor?.DeclaringType == typeof(DateTime))
         {
             if (newExpression.Constructor == DateTimeCtor1)
@@ -471,6 +508,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
             }
         }
 
+        // Translate new DateOnly(...) -> make_date
         if (newExpression.Constructor == DateOnlyCtor)
         {
             return TryTranslateArguments(out var sqlArguments)

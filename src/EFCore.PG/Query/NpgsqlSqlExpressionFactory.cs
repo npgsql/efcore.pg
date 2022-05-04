@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
@@ -303,8 +304,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 PostgresBinaryExpression e     => ApplyTypeMappingOnPostgresBinary(e, typeMapping),
                 PostgresFunctionExpression e   => e.ApplyTypeMapping(typeMapping),
                 PostgresILikeExpression e      => ApplyTypeMappingOnILike(e),
-                PostgresNewArrayExpression e   => ApplyTypeMappingOnPostgresNewArray(e, typeMapping),
+                PostgresNewArrayExpression e   => ApplyTypeMappingOnNewArray(e, typeMapping),
                 PostgresRegexMatchExpression e => ApplyTypeMappingOnRegexMatch(e),
+                PostgresRowValueExpression e   => ApplyTypeMappingOnRowValue(e),
 
                 _ => base.ApplyTypeMapping(sqlExpression, typeMapping)
             };
@@ -321,14 +323,14 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         return sqlExpression;
     }
 
-    private SqlExpression ApplyTypeMappingOnSqlBinary(SqlBinaryExpression binary, RelationalTypeMapping? typeMapping)
+    private SqlBinaryExpression ApplyTypeMappingOnSqlBinary(SqlBinaryExpression binary, RelationalTypeMapping? typeMapping)
     {
         // The default SqlExpressionFactory behavior is to assume that the two added operands have the same type,
         // and so to infer one side's mapping from the other if needed. Here we take care of some heterogeneous
         // operand cases where this doesn't work:
         // * Period + Period (???)
 
-        if (binary.OperatorType == ExpressionType.Add || binary.OperatorType == ExpressionType.Subtract)
+        if (binary.OperatorType is ExpressionType.Add or ExpressionType.Subtract)
         {
             var (left, right) = (binary.Left, binary.Right);
             var leftType = left.Type.UnwrapNullableType();
@@ -391,20 +393,78 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             }
         }
 
-        return base.ApplyTypeMapping(binary, typeMapping);
+        if (IsComparison(binary.OperatorType)
+            && binary.Left is PostgresRowValueExpression leftRowValue
+            && binary.Right is PostgresRowValueExpression rightRowValue)
+        {
+            Check.DebugAssert(leftRowValue.Values.Count == rightRowValue.Values.Count, "Row value count mismatch in comparison");
+
+            var count = leftRowValue.Values.Count;
+            var updatedLeftValues = new SqlExpression[count];
+            var updatedRightValues = new SqlExpression[count];
+
+            for (var i = 0; i < count; i++)
+            {
+                var updatedElementBinaryExpression =
+                    MakeBinary(binary.OperatorType, leftRowValue.Values[i], rightRowValue.Values[i], typeMapping: null)!;
+
+                updatedLeftValues[i] = updatedElementBinaryExpression.Left;
+                updatedRightValues[i] = updatedElementBinaryExpression.Right;
+            }
+
+            binary = new SqlBinaryExpression(
+                binary.OperatorType,
+                new PostgresRowValueExpression(updatedLeftValues),
+                new PostgresRowValueExpression(updatedRightValues),
+                binary.Type,
+                binary.TypeMapping);
+        }
+
+        return (SqlBinaryExpression)base.ApplyTypeMapping(binary, typeMapping);
+
+        static bool IsComparison(ExpressionType expressionType)
+        {
+            switch (expressionType)
+            {
+                case ExpressionType.Equal:
+                case ExpressionType.NotEqual:
+                case ExpressionType.GreaterThan:
+                case ExpressionType.LessThan:
+                case ExpressionType.GreaterThanOrEqual:
+                case ExpressionType.LessThanOrEqual:
+                    return true;
+                default:
+                    return false;
+            }
+        }
     }
 
     private SqlExpression ApplyTypeMappingOnRegexMatch(PostgresRegexMatchExpression postgresRegexMatchExpression)
     {
         var inferredTypeMapping = ExpressionExtensions.InferTypeMapping(
                 postgresRegexMatchExpression.Match, postgresRegexMatchExpression.Pattern)
-            ?? (RelationalTypeMapping?)_typeMappingSource.FindMapping(postgresRegexMatchExpression.Match.Type, Dependencies.Model);
+            ?? _typeMappingSource.FindMapping(postgresRegexMatchExpression.Match.Type, Dependencies.Model);
 
         return new PostgresRegexMatchExpression(
             ApplyTypeMapping(postgresRegexMatchExpression.Match, inferredTypeMapping),
             ApplyTypeMapping(postgresRegexMatchExpression.Pattern, inferredTypeMapping),
             postgresRegexMatchExpression.Options,
             _boolTypeMapping);
+    }
+
+    private SqlExpression ApplyTypeMappingOnRowValue(PostgresRowValueExpression postgresRowValueExpression)
+    {
+        // If the row value is in a binary expression (e.g. a comparison, (a, b) > (5, 6)), we have special type inference code
+        // to infer from the other row value in ApplyTypeMappingOnSqlBinary.
+        // If we're here, that means that no such inference can happen, and we just use the default type mappings.
+        var updatedValues = new SqlExpression[postgresRowValueExpression.Values.Count];
+
+        for (var i = 0; i < updatedValues.Length; i++)
+        {
+            updatedValues[i] = ApplyDefaultTypeMapping(postgresRowValueExpression.Values[i]);
+        }
+
+        return new PostgresRowValueExpression(updatedValues, PostgresRowValueExpression.TypeMappingInstance);
     }
 
     private SqlExpression ApplyTypeMappingOnAny(PostgresAnyExpression postgresAnyExpression)
@@ -434,7 +494,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 : null)
             // If we couldn't find a type mapping on the item, try inferring it from the array
             ?? arrayMapping?.ElementMapping
-            ?? (RelationalTypeMapping?)_typeMappingSource.FindMapping(itemExpression.Type, Dependencies.Model);
+            ?? _typeMappingSource.FindMapping(itemExpression.Type, Dependencies.Model);
 
         if (itemMapping is null)
         {
@@ -693,7 +753,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         }
     }
 
-    private SqlExpression ApplyTypeMappingOnPostgresNewArray(
+    private SqlExpression ApplyTypeMappingOnNewArray(
         PostgresNewArrayExpression postgresNewArrayExpression, RelationalTypeMapping? typeMapping)
     {
         var arrayTypeMapping = typeMapping as NpgsqlArrayTypeMapping;

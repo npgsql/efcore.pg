@@ -17,6 +17,7 @@ public class NorthwindMiscellaneousQueryNpgsqlTest : NorthwindMiscellaneousQuery
     public override async Task Query_expression_with_to_string_and_contains(bool async)
     {
         await base.Query_expression_with_to_string_and_contains(async);
+
         AssertContainsSqlFragment(@"strpos(o.""EmployeeID""::text, '10') > 0");
     }
 

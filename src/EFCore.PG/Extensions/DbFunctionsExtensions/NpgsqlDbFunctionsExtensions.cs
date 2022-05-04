@@ -1,6 +1,9 @@
 ﻿
 
 // ReSharper disable once CheckNamespace
+
+using System.Runtime.CompilerServices;
+
 namespace Microsoft.EntityFrameworkCore;
 
 /// <summary>
@@ -42,4 +45,16 @@ public static class NpgsqlDbFunctionsExtensions
     /// <returns>The reversed string.</returns>
     public static string Reverse(this DbFunctions _, string value)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Reverse)));
+
+    public static bool GreaterThan(this DbFunctions _, ITuple a, ITuple b)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(GreaterThan)));
+
+    public static bool LessThan(this DbFunctions _, ITuple a, ITuple b)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LessThan)));
+
+    public static bool GreaterThanOrEqual(this DbFunctions _, ITuple a, ITuple b)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(GreaterThanOrEqual)));
+
+    public static bool LessThanOrEqual(this DbFunctions _, ITuple a, ITuple b)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LessThanOrEqual)));
 }

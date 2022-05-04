@@ -1,4 +1,7 @@
-﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+﻿using Microsoft.EntityFrameworkCore.TestModels.Northwind;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
+
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class NorthwindWhereQueryNpgsqlTest : NorthwindWhereQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
 {
@@ -170,26 +173,43 @@ WHERE date_part('second', o.""OrderDate"")::INT = 44");
 
     public override async Task Where_compare_tuple_constructed_equal(bool async)
     {
-        //  Anonymous type to constant comparison. Issue #14672.
-        await AssertTranslationFailed(() => base.Where_compare_tuple_constructed_equal(async));
+        await AssertQuery(
+            async,
+            ss => ss.Set<Customer>().Where(c => new Tuple<string>(c.City).Equals(new Tuple<string>("London"))),
+            entryCount: 6);
 
-        AssertSql();
+        AssertSql(
+            @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
+FROM ""Customers"" AS c
+WHERE (c.""City"") = ('London')");
     }
 
     public override async Task Where_compare_tuple_constructed_multi_value_equal(bool async)
     {
-        //  Anonymous type to constant comparison. Issue #14672.
-        await AssertTranslationFailed(() => base.Where_compare_tuple_constructed_multi_value_equal(async));
+        await AssertQuery(
+            async,
+            ss => ss.Set<Customer>().Where(
+                c => new Tuple<string, string>(c.City, c.Country).Equals(new Tuple<string, string>("Sao Paulo", "Brazil"))),
+            entryCount: 4);
 
-        AssertSql();
+        AssertSql(
+            @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
+FROM ""Customers"" AS c
+WHERE (c.""City"", c.""Country"") = ('Sao Paulo', 'Brazil')");
     }
 
     public override async Task Where_compare_tuple_constructed_multi_value_not_equal(bool async)
     {
-        //  Anonymous type to constant comparison. Issue #14672.
-        await AssertTranslationFailed(() => base.Where_compare_tuple_constructed_multi_value_not_equal(async));
+        await AssertQuery(
+            async,
+            ss => ss.Set<Customer>().Where(
+                c => !new Tuple<string, string>(c.City, c.Country).Equals(new Tuple<string, string>("Sao Paulo", "Brazil"))),
+            entryCount: 87);
 
-        AssertSql();
+        AssertSql(
+            @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
+FROM ""Customers"" AS c
+WHERE (c.""City"", c.""Country"") <> ('Sao Paulo', 'Brazil')");
     }
 
     public override async Task Where_compare_tuple_create_constructed_equal(bool async)
@@ -215,6 +235,167 @@ WHERE date_part('second', o.""OrderDate"")::INT = 44");
 
         AssertSql();
     }
+
+    #region Row value comparisons
+
+    [ConditionalFact]
+    public async Task Row_value_GreaterThan()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Customers
+            .Where(c => EF.Functions.GreaterThan(
+                new ValueTuple<string, string>(c.City, c.CustomerID),
+                new ValueTuple<string, string>("Buenos Aires", "OCEAN")))
+            .CountAsync();
+
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""Customers"" AS c
+WHERE (c.""City"", c.""CustomerID"") > ('Buenos Aires', 'OCEAN')");
+    }
+
+    [ConditionalFact]
+    public async Task Row_value_GreaterThan_with_differing_types()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Orders
+            .Where(o => EF.Functions.GreaterThan(
+                new ValueTuple<string, int>(o.CustomerID, o.OrderID),
+                new ValueTuple<string, int>("ALFKI", 10702)))
+            .CountAsync();
+
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""Orders"" AS o
+WHERE (o.""CustomerID"", o.""OrderID"") > ('ALFKI', 10702)");
+    }
+
+    [ConditionalFact]
+    public async Task Row_value_GreaterThan_with_parameter()
+    {
+        await using var ctx = CreateContext();
+
+        var city1 = "Buenos Aires";
+
+        _ = await ctx.Customers
+            .Where(c => EF.Functions.GreaterThan(
+                new ValueTuple<string, string>(c.City, c.CustomerID),
+                new ValueTuple<string, string>(city1, "OCEAN")))
+            .CountAsync();
+
+        AssertSql(
+            @"@__city1_1='Buenos Aires'
+
+SELECT COUNT(*)::INT
+FROM ""Customers"" AS c
+WHERE (c.""City"", c.""CustomerID"") > (@__city1_1, 'OCEAN')");
+    }
+
+    [ConditionalFact]
+    public async Task Row_value_LessThan()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Customers
+            .Where(c => EF.Functions.LessThan(
+                new ValueTuple<string, string>(c.City, c.CustomerID),
+                new ValueTuple<string, string>("Buenos Aires", "OCEAN")))
+            .CountAsync();
+
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""Customers"" AS c
+WHERE (c.""City"", c.""CustomerID"") < ('Buenos Aires', 'OCEAN')");
+    }
+
+    [ConditionalFact]
+    public async Task Row_value_GreaterThanOrEqual()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Customers
+            .Where(c => EF.Functions.GreaterThanOrEqual(
+                new ValueTuple<string, string>(c.City, c.CustomerID),
+                new ValueTuple<string, string>("Buenos Aires", "OCEAN")))
+            .CountAsync();
+
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""Customers"" AS c
+WHERE (c.""City"", c.""CustomerID"") >= ('Buenos Aires', 'OCEAN')");
+    }
+
+    [ConditionalFact]
+    public async Task Row_value_LessThanOrEqual()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Customers
+            .Where(c => EF.Functions.LessThanOrEqual(
+                new ValueTuple<string, string>(c.City, c.CustomerID),
+                new ValueTuple<string, string>("Buenos Aires", "OCEAN")))
+            .CountAsync();
+
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""Customers"" AS c
+WHERE (c.""City"", c.""CustomerID"") <= ('Buenos Aires', 'OCEAN')");
+    }
+
+    [ConditionalFact]
+    public async Task Row_value_parameter_count_mismatch()
+    {
+        await using var ctx = CreateContext();
+
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => ctx.Customers
+                .Where(c => EF.Functions.LessThanOrEqual(
+                    new ValueTuple<string, string>(c.City, c.CustomerID),
+                    new ValueTuple<string, string, string>("Buenos Aires", "OCEAN", "foo")))
+                .CountAsync());
+
+        Assert.Equal(
+            NpgsqlStrings.RowValueMethodRequiresTwoArraysOfSameLength(nameof(NpgsqlDbFunctionsExtensions.LessThanOrEqual)),
+            exception.Message);
+    }
+
+    [ConditionalFact]
+    public async Task Row_value_equals()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Customers
+            .Where(c =>
+                new ValueTuple<string, string>(c.City, c.CustomerID).Equals(
+                new ValueTuple<string, string>("Buenos Aires", "OCEAN")))
+            .CountAsync();
+
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""Customers"" AS c
+WHERE (c.""City"", c.""CustomerID"") = ('Buenos Aires', 'OCEAN')");
+    }
+
+    [ConditionalFact]
+    public async Task Row_value_not_equals()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Customers
+            .Where(c =>
+                !new ValueTuple<string, string>(c.City, c.CustomerID).Equals(
+                    new ValueTuple<string, string>("Buenos Aires", "OCEAN")))
+            .CountAsync();
+
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""Customers"" AS c
+WHERE (c.""City"", c.""CustomerID"") <> ('Buenos Aires', 'OCEAN')");
+    }
+
+    #endregion Row value comparisons
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
