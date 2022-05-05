@@ -20,7 +20,7 @@ public class NpgsqlModificationCommandBatchFactoryTest
             TestServiceFactory.Instance.Create<TypeMappingSourceDependencies>(),
             TestServiceFactory.Instance.Create<RelationalTypeMappingSourceDependencies>(),
             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
-            new NpgsqlOptions());
+            new NpgsqlSingletonOptions());
 
         var logger = new FakeRelationalCommandDiagnosticsLogger();
 
@@ -60,7 +60,7 @@ public class NpgsqlModificationCommandBatchFactoryTest
             TestServiceFactory.Instance.Create<TypeMappingSourceDependencies>(),
             TestServiceFactory.Instance.Create<RelationalTypeMappingSourceDependencies>(),
             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
-            new NpgsqlOptions());
+            new NpgsqlSingletonOptions());
 
         var logger = new FakeRelationalCommandDiagnosticsLogger();
 

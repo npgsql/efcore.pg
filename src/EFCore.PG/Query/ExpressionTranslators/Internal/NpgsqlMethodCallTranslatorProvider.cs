@@ -10,7 +10,7 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
     public NpgsqlMethodCallTranslatorProvider(
         RelationalMethodCallTranslatorProviderDependencies dependencies,
         IModel model,
-        INpgsqlOptions npgsqlOptions)
+        INpgsqlSingletonOptions npgsqlSingletonOptions)
         : base(dependencies)
     {
         var sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
@@ -20,7 +20,7 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
 
         AddTranslators(new IMethodCallTranslator[]
         {
-            new NpgsqlArrayTranslator(sqlExpressionFactory, jsonTranslator, npgsqlOptions.UseRedshift),
+            new NpgsqlArrayTranslator(sqlExpressionFactory, jsonTranslator, npgsqlSingletonOptions.UseRedshift),
             new NpgsqlByteArrayMethodTranslator(sqlExpressionFactory),
             new NpgsqlConvertTranslator(sqlExpressionFactory),
             new NpgsqlDateTimeMethodTranslator(typeMappingSource, sqlExpressionFactory),
@@ -32,10 +32,10 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
             LTreeTranslator,
             new NpgsqlMathTranslator(typeMappingSource, sqlExpressionFactory, model),
             new NpgsqlNetworkTranslator(typeMappingSource, sqlExpressionFactory, model),
-            new NpgsqlNewGuidTranslator(sqlExpressionFactory, npgsqlOptions.PostgresVersion),
+            new NpgsqlNewGuidTranslator(sqlExpressionFactory, npgsqlSingletonOptions),
             new NpgsqlObjectToStringTranslator(typeMappingSource, sqlExpressionFactory),
             new NpgsqlRandomTranslator(sqlExpressionFactory),
-            new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory, model),
+            new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory, model, npgsqlSingletonOptions),
             new NpgsqlRegexIsMatchTranslator(sqlExpressionFactory),
             new NpgsqlRowValueComparisonTranslator(sqlExpressionFactory),
             new NpgsqlStringMethodTranslator(typeMappingSource, sqlExpressionFactory, model),

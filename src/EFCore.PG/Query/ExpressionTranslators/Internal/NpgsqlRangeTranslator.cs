@@ -1,3 +1,4 @@
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
@@ -10,6 +11,7 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
     private readonly IRelationalTypeMappingSource _typeMappingSource;
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
     private readonly IModel _model;
+    private readonly bool _supportsMultiranges;
 
     private static readonly MethodInfo EnumerableAnyWithoutPredicate =
         typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
@@ -18,11 +20,14 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
     public NpgsqlRangeTranslator(
         IRelationalTypeMappingSource typeMappingSource,
         NpgsqlSqlExpressionFactory npgsqlSqlExpressionFactory,
-        IModel model)
+        IModel model,
+        INpgsqlSingletonOptions npgsqlSingletonOptions)
     {
         _typeMappingSource = typeMappingSource;
         _sqlExpressionFactory = npgsqlSqlExpressionFactory;
         _model = model;
+        _supportsMultiranges = npgsqlSingletonOptions.PostgresVersionWithoutDefault is null
+            || npgsqlSingletonOptions.PostgresVersionWithoutDefault.AtLeast(14);
     }
 
     /// <inheritdoc />
@@ -33,7 +38,8 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
         // Any() over multirange -> NOT isempty(). NpgsqlRange<T> has IsEmpty which is translated below.
-        if (method.IsGenericMethod
+        if (_supportsMultiranges
+            && method.IsGenericMethod
             && method.GetGenericMethodDefinition() == EnumerableAnyWithoutPredicate
             && arguments[0].Type.TryGetMultirangeSubtype(out _))
         {
@@ -47,7 +53,7 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
         }
 
         if (method.DeclaringType != typeof(NpgsqlRangeDbFunctionsExtensions)
-            && method.DeclaringType != typeof(NpgsqlMultirangeDbFunctionsExtensions))
+            && (method.DeclaringType != typeof(NpgsqlMultirangeDbFunctionsExtensions) || !_supportsMultiranges))
         {
             return null;
         }

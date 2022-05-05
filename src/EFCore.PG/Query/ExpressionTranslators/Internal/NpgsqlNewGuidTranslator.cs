@@ -1,3 +1,4 @@
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
@@ -17,10 +18,10 @@ public class NpgsqlNewGuidTranslator : IMethodCallTranslator
 
     public NpgsqlNewGuidTranslator(
         ISqlExpressionFactory sqlExpressionFactory,
-        Version? postgresVersion)
+        INpgsqlSingletonOptions npgsqlSingletonOptions)
     {
         _sqlExpressionFactory = sqlExpressionFactory;
-        _uuidGenerationFunction = postgresVersion?.AtLeast(13) == true ? "gen_random_uuid" : "uuid_generate_v4";
+        _uuidGenerationFunction = npgsqlSingletonOptions.PostgresVersion.AtLeast(13) ? "gen_random_uuid" : "uuid_generate_v4";
     }
 
     public virtual SqlExpression? Translate(

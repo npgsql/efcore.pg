@@ -1867,7 +1867,7 @@ CREATE TABLE bar (foreign_key int REFERENCES foo(some_num))",
     [Fact]
     public void Column_default_type_names_are_scaffolded()
     {
-        var options = new NpgsqlOptions();
+        var options = new NpgsqlSingletonOptions();
         options.Initialize(new DbContextOptionsBuilder().Options);
 
         Test(@"

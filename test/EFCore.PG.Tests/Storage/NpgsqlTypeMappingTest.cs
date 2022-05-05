@@ -890,7 +890,7 @@ public class NpgsqlTypeMappingTest
         ),
         new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
         new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
-        new NpgsqlOptions()
+        new NpgsqlSingletonOptions()
     );
 
     private static RelationalTypeMapping GetMapping(string storeType)

@@ -4,10 +4,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 
 /// <inheritdoc />
-public class NpgsqlOptions : INpgsqlOptions
+public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
 {
+    public static readonly Version DefaultPostgresVersion = new(12, 0);
+
     /// <inheritdoc />
     public virtual Version PostgresVersion { get; private set; } = null!;
+
+    /// <inheritdoc />
+    public virtual Version? PostgresVersionWithoutDefault { get; private set; }
 
     /// <inheritdoc />
     public virtual bool UseRedshift { get; private set; }
@@ -18,7 +23,7 @@ public class NpgsqlOptions : INpgsqlOptions
     /// <inheritdoc />
     public virtual IReadOnlyList<UserRangeDefinition> UserRangeDefinitions { get; private set; }
 
-    public NpgsqlOptions()
+    public NpgsqlSingletonOptions()
         => UserRangeDefinitions = Array.Empty<UserRangeDefinition>();
 
     /// <inheritdoc />
@@ -26,7 +31,8 @@ public class NpgsqlOptions : INpgsqlOptions
     {
         var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
 
-        PostgresVersion = npgsqlOptions.PostgresVersion;
+        PostgresVersionWithoutDefault = npgsqlOptions.PostgresVersion;
+        PostgresVersion = npgsqlOptions.PostgresVersion ?? DefaultPostgresVersion;
         UseRedshift = npgsqlOptions.UseRedshift;
         ReverseNullOrderingEnabled = npgsqlOptions.ReverseNullOrdering;
         UserRangeDefinitions = npgsqlOptions.UserRangeDefinitions;
@@ -37,7 +43,7 @@ public class NpgsqlOptions : INpgsqlOptions
     {
         var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
 
-        if (!PostgresVersion.Equals(npgsqlOptions.PostgresVersion))
+        if (PostgresVersionWithoutDefault != npgsqlOptions.PostgresVersion)
         {
             throw new InvalidOperationException(
                 CoreStrings.SingletonOptionChanged(

@@ -8,19 +8,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 public class NpgsqlQuerySqlGeneratorFactory : IQuerySqlGeneratorFactory
 {
     private readonly QuerySqlGeneratorDependencies _dependencies;
-    private readonly INpgsqlOptions _npgsqlOptions;
+    private readonly INpgsqlSingletonOptions _npgsqlSingletonOptions;
 
     public NpgsqlQuerySqlGeneratorFactory(
         QuerySqlGeneratorDependencies dependencies,
-        INpgsqlOptions npgsqlOptions)
+        INpgsqlSingletonOptions npgsqlSingletonOptions)
     {
         _dependencies = dependencies;
-        _npgsqlOptions = npgsqlOptions;
+        _npgsqlSingletonOptions = npgsqlSingletonOptions;
     }
 
     public virtual QuerySqlGenerator Create()
         => new NpgsqlQuerySqlGenerator(
             _dependencies,
-            _npgsqlOptions.ReverseNullOrderingEnabled,
-            _npgsqlOptions.PostgresVersion);
+            _npgsqlSingletonOptions.ReverseNullOrderingEnabled,
+            _npgsqlSingletonOptions.PostgresVersion);
 }
