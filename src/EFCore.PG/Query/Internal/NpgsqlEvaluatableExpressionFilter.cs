@@ -35,18 +35,6 @@ public class NpgsqlEvaluatableExpressionFilter : RelationalEvaluatableExpression
                 }
 
                 break;
-
-            case MemberExpression memberExpression:
-                // We support translating certain NodaTime patterns which accept a time zone as a parameter,
-                // e.g. Instant.InZone(timezone), as long as the timezone is expressed as an access on DateTimeZoneProviders.Tzdb.
-                // Prevent this from being evaluated locally and so parameterized, so we can access the access tree on
-                // DateTimeZoneProviders and extract the constant (see NpgsqlNodaTimeMethodCallTranslatorPlugin)
-                if (memberExpression.Member.DeclaringType?.FullName == "NodaTime.DateTimeZoneProviders")
-                {
-                    return false;
-                }
-
-                break;
         }
 
         return base.IsEvaluatableExpression(expression, model);
