@@ -38,12 +38,14 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
                 => VisitBinary(binaryExpression, allowOptimizedExpansion, out nullable),
             PostgresILikeExpression ilikeExpression
                 => VisitILike(ilikeExpression, allowOptimizedExpansion, out nullable),
+            PostgresJsonTraversalExpression postgresJsonTraversalExpression
+                => VisitJsonTraversal(postgresJsonTraversalExpression, allowOptimizedExpansion, out nullable),
             PostgresNewArrayExpression newArrayExpression
                 => VisitNewArray(newArrayExpression, allowOptimizedExpansion, out nullable),
             PostgresRegexMatchExpression regexMatchExpression
                 => VisitRegexMatch(regexMatchExpression, allowOptimizedExpansion, out nullable),
-            PostgresJsonTraversalExpression postgresJsonTraversalExpression
-                => VisitJsonTraversal(postgresJsonTraversalExpression, allowOptimizedExpansion, out nullable),
+            PostgresRowValueExpression postgresRowValueExpression
+                => VisitRowValueExpression(postgresRowValueExpression, allowOptimizedExpansion, out nullable),
             PostgresUnknownBinaryExpression postgresUnknownBinaryExpression
                 => VisitUnknownBinary(postgresUnknownBinaryExpression, allowOptimizedExpansion, out nullable),
 
@@ -274,6 +276,40 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         nullable = true;
 
         return jsonTraversalExpression.Update(expression, newPath?.ToArray() ?? jsonTraversalExpression.Path);
+    }
+
+    protected virtual SqlExpression VisitRowValueExpression(
+        PostgresRowValueExpression rowValueExpression,
+        bool allowOptimizedExpansion,
+        out bool nullable)
+    {
+        SqlExpression[]? newValues = null;
+
+        for (var i = 0; i < rowValueExpression.Values.Count; i++)
+        {
+            var value = rowValueExpression.Values[i];
+
+            // Note that we disallow optimized expansion, since the null vs. false distinction does matter inside the row's values
+            var newValue = Visit(value, allowOptimizedExpansion: false, out _);
+            if (newValue != value && newValues is null)
+            {
+                newValues = new SqlExpression[rowValueExpression.Values.Count];
+                for (var j = 0; j < i; j++)
+                {
+                    newValues[j] = newValue;
+                }
+            }
+
+            if (newValues is not null)
+            {
+                newValues[i] = newValue;
+            }
+        }
+
+        // The row value expression itself can never be null
+        nullable = false;
+
+        return rowValueExpression.Update(newValues ?? rowValueExpression.Values);
     }
 
     /// <summary>

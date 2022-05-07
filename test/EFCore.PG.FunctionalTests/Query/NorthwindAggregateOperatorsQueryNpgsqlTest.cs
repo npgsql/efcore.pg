@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
@@ -67,7 +66,7 @@ WHERE e.""EmployeeID"" = ANY (@__ids_0)");
         => await AssertTranslationFailed(() => base.Contains_with_local_anonymous_type_array_closure(async));
 
     public override async Task Contains_with_local_tuple_array_closure(bool async)
-        => await AssertTranslationFailed(() => base.Contains_with_local_tuple_array_closure(async));
+        => await Assert.ThrowsAsync<InvalidOperationException>(() => base.Contains_with_local_tuple_array_closure(async: true));
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

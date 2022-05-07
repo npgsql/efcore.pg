@@ -122,6 +122,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
                 property, entityType);
 
         /// <summary>
+        ///     '{method}' requires two array parameters of the same length.
+        /// </summary>
+        public static string RowValueMethodRequiresTwoArraysOfSameLength(object? method)
+            => string.Format(
+                GetString("RowValueMethodRequiresTwoArraysOfSameLength", nameof(method)),
+                method);
+
+        /// <summary>
         ///     PostgreSQL sequences cannot be used to generate values for the property '{property}' on entity type '{entityType}' because the property type is '{propertyType}'. Sequences can only be used with integer properties.
         /// </summary>
         public static string SequenceBadType(object? property, object? entityType, object? propertyType)
