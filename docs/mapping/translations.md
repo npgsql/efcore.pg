@@ -146,6 +146,22 @@ Math.Tan(a)             | tan(a)             |
 Math.Truncate(d)        | trunc(d)           |
 EF.Functions.Random()   | random()           | Added in 6.0
 
+## Row value comparisons
+
+The following allow expressing [comparisons over SQL row values](https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON). This are particularly useful for implementing efficient pagination, see [the EF Core docs](https://docs.microsoft.com/ef/core/querying/pagination) for more information.
+
+> [!NOTE]
+> All of the below are being introduced in version 7.0 of the provider.
+
+.NET                                                                              | SQL
+--------------------------------------------------------------------------------- | ----------------
+EF.Functions.GreaterThan(ValueTuple.Create(a, b), ValueTuple.Create(c, d))        | (a, b) > (c, d)
+EF.Functions.LessThan(ValueTuple.Create(a, b), ValueTuple.Create(c, d))           | (a, b) < (c, d)
+EF.Functions.GreaterThanOrEqual(ValueTuple.Create(a, b), ValueTuple.Create(c, d)) | (a, b) >= (c, d)
+EF.Functions.LessThanOrEqual(ValueTuple.Create(a, b), ValueTuple.Create(c, d))    | (a, b) <= (c, d)
+ValueTuple.Create(a, b).Equals(ValueTuple.Create(c, d))                           | (a, b) = (c, d)
+!ValueTuple.Create(a, b).Equals(ValueTuple.Create(c, d))                          | (a, b) <> (c, d)
+
 ## Network functions
 
 .NET                                             | SQL
