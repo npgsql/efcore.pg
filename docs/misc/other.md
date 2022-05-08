@@ -12,7 +12,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 ## Execution Strategy
 
-Since 2.0.0, the Npgsql EF Core provider provides a retrying execution strategy, which will attempt to detect most transient PostgreSQL/network errors and will automatically retry your operation. To enable, place the following code in your context's `OnModelConfiguring`:
+The Npgsql EF Core provider provides a retrying execution strategy, which will attempt to detect most transient PostgreSQL/network errors and will automatically retry your operation. To enable, place the following code in your context's `OnModelConfiguring`:
 
 ```c#
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -44,16 +44,6 @@ You may also consider passing `Trust Server Certificate=true` in your connection
 
 > [!CAUTION]
 > When specifying the options via `OnConfiguring`, make sure that the callbacks you pass in are static methods. Passing in instance methods causes EF Core to create a new service provider for each context instance, which can degrade performance in a significant way.
-
-## Comments
-
-PostgreSQL allows you to [attach comments](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-COMMENTS) to database objects, which can help explain their purpose for someone examining the schema. The Npgsql EF Core provider supports this for tables or columns, simply set the comment in your model's `OnModelCreating` as follows:
-
-```c#
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-    => modelBuilder.Entity<MyEntity>()
-                   .HasComment("Some comment");
-```
 
 ## CockroachDB Interleave In Parent
 

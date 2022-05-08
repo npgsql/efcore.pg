@@ -174,9 +174,9 @@ CREATE TRIGGER "UpdateTimestamp"
 > [!NOTE]
 > This feature works only on PostgreSQL 12 or above, and was introduced in version 3.0.0 of the provider.
 
-PostgreSQL 12 added support for [stored generated columns](https://www.postgresql.org/docs/current/ddl-generated-columns.html), and Npgsql feature supports that feature as well. The following configuration:
+PostgreSQL 12 added support for [stored generated columns](https://www.postgresql.org/docs/current/ddl-generated-columns.html), and Npgsql feature supports that feature as well:
 
-### [Version 5.0](#tab/efcore5.0)
+### [Version 5.0](#tab/efcore5)
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -187,7 +187,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 }
 ```
 
-### [Version 3.x](#tab/efcore3.x)
+### [Version 3.x](#tab/efcore3)
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -200,7 +200,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 ***
 
-Will cause the following migration SQL to be generated
+This will cause the following migration SQL to be generated:
 
 ```sql
 ALTER TABLE ""Person"" ADD ""DisplayName"" text GENERATED ALWAYS AS (""FirstName"" || ' ' || ""LastName"") STORED;

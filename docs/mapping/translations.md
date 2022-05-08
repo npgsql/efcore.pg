@@ -4,22 +4,53 @@ Entity Framework Core allows providers to translate query expressions to SQL for
 
 The Npgsql-specific translations are listed below. Some areas, such as [full-text search](full-text-search.md), have their own pages in this section which list additional translations.
 
-## Binary functions
+## String functions
 
-.NET                         | SQL                             | Notes
----------------------------- | ------------------------------- | --------
-bytes[i]                     | get_byte(bytes, i)              | Added in 5.0
-bytes.Contains(value)        | position(value IN bytes) > 0    | Added in 5.0
-bytes.Length                 | length(@bytes)                  | Added in 5.0
-bytes1.SequenceEqual(bytes2) | @bytes = @second                | Added in 5.0
+.NET                                                          | SQL                                                    | Notes
+------------------------------------------------------------- | ------------------------------------------------------ | --------
+EF.Functions.Collate(operand, collation)                      | operand COLLATE collation                              | Added in 5.0
+EF.Functions.Like(matchExpression, pattern)                   | matchExpression LIKE pattern
+EF.Functions.Like(matchExpression, pattern, escapeCharacter)  | matchExpression LIKE pattern ESCAPE escapeCharacter
+EF.Functions.ILike(matchExpression, pattern)                  | [matchExpression ILIKE pattern](../misc/collations-and-case-sensitivity.md)
+EF.Functions.ILike(matchExpression, pattern, escapeCharacter) | [matchExpression ILIKE pattern ESCAPE escapeCharacter](../misc/collations-and-case-sensitivity.md)
+string.Compare(strA, strB)                                    | CASE WHEN strA = strB THEN 0 ... END
+string.Concat(str0, str1)                                     | str0 \|\| str1
+string.IsNullOrEmpty(value)                                   | value IS NULL OR value = ''
+string.IsNullOrWhiteSpace(value)                              | value IS NULL OR btrim(value, E' \t\n\r') = ''
+stringValue.CompareTo(strB)                                   | CASE WHEN stringValue = strB THEN 0 ... END
+stringValue.Contains(value)                                   | strpos(stringValue, value) > 0
+stringValue.EndsWith(value)                                   | stringValue LIKE '%' \|\| value
+stringValue.FirstOrDefault()                                  | substr(stringValue, 1, 1)                              | Added in 5.0
+stringValue.IndexOf(value)                                    | strpos(stringValue, value) - 1
+stringValue.LastOrDefault()                                   | substr(stringValue, length(stringValue), 1)            | Added in 5.0
+stringValue.Length                                            | length(stringValue)
+stringValue.PadLeft(length)                                   | lpad(stringValue, length)
+stringValue.PadLeft(length, char)                             | lpad(stringValue, length, char)
+stringValue.PadRight(length)                                  | rpad(stringValue, length)
+stringValue.PadRight(length, char)                            | rpad(stringValue, length, char)
+stringValue.Replace(oldValue, newValue)                       | replace(stringValue, oldValue, newValue)
+stringValue.StartsWith(value)                                 | stringValue LIKE value \|\| '%'
+stringValue.Substring(startIndex, length)                     | substr(stringValue, startIndex + 1, @length)
+stringValue.ToLower()                                         | lower(stringValue)
+stringValue.ToUpper()                                         | upper(stringValue)
+stringValue.Trim()                                            | btrim(stringValue)
+stringValue.Trim(trimChar)                                    | btrim(stringValue, trimChar)
+stringValue.TrimEnd()                                         | rtrim(stringValue)
+stringValue.TrimEnd(trimChar)                                 | rtrim(stringValue, trimChar)
+stringValue.TrimStart()                                       | ltrim(stringValue)
+stringValue.TrimStart(trimChar)                               | ltrim(stringValue, trimChar)
+EF.Functions.Reverse(value)                                   | reverse(value)
+Regex.IsMatch(stringValue, "^A+")                             | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options)
+Regex.IsMatch(stringValue, "^A+", regexOptions)               | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options)
 
 ## Date and time functions
 
 > [!NOTE]
 > Some of the operations below depend on the concept of a "local time zone" (e.g. `DateTime.Today`). While in .NET this is the machine time zone where .NET is running, the corresponding PostgreSQL translations use the [`TimeZone`](https://www.postgresql.org/docs/current/runtime-config-client.html#GUC-TIMEZONE) connection parameter as the local time zone.
-
-> [!NOTE]
+>
 > Since version 6.0, many of the below DateTime translations are also supported on DateTimeOffset.
+>
+> See also Npgsql's [NodaTime support](/efcore/mapping/nodatime.html), which is a better and safer way of interacting with date/time data.
 
 .NET                                                              | SQL                                                                                                                                    | Notes
 ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------
@@ -69,8 +100,51 @@ new DateTime(year, month, day)                                    | [make_date(y
 new DateTime(y, m, d, h, m, s)                                    | [make_timestamp(y, m, d, h, m, s)](https://www.postgresql.org/docs/current/functions-datetime.html)                                    |
 new DateTime(y, m, d, h, m, s, kind)                              | [make_timestamp or make_timestamptz](https://www.postgresql.org/docs/current/functions-datetime.html), based on `kind`                 | Added in 6.0
 
-> [!NOTE]
-> See also Npgsql's [NodaTime support](/efcore/mapping/nodatime.html).
+## Miscellaneous functions
+
+.NET                                     | SQL
+---------------------------------------- | --------------------
+collection.Contains(item)                | item IN collection
+enumValue.HasFlag(flag)                  | enumValue & flag = flag
+Guid.NewGuid()                           | [uuid_generate_v4()](https://www.postgresql.org/docs/current/uuid-ossp.html), or [gen_random_uuid()](https://www.postgresql.org/docs/current/functions-uuid.html) on PostgreSQL 13 with EF Core 5 and above.
+nullable.GetValueOrDefault()             | coalesce(nullable, 0)
+nullable.GetValueOrDefault(defaultValue) | coalesce(nullable, defaultValue)
+
+## Binary functions
+
+.NET                         | SQL                             | Notes
+---------------------------- | ------------------------------- | --------
+bytes[i]                     | get_byte(bytes, i)              | Added in 5.0
+bytes.Contains(value)        | position(value IN bytes) > 0    | Added in 5.0
+bytes.Length                 | length(@bytes)                  | Added in 5.0
+bytes1.SequenceEqual(bytes2) | @bytes = @second                | Added in 5.0
+
+## Math functions
+
+.NET                    | SQL                | Notes
+----------------------- | ------------------ | -----
+Math.Abs(value)         | abs(value)         |
+Math.Acos(d)            | acos(d)            |
+Math.Asin(d)            | asin(d)            |
+Math.Atan(d)            | atan(d)            |
+Math.Atan2(y, x)        | atan2(y, x)        |
+Math.Ceiling(d)         | ceiling(d)         |
+Math.Cos(d)             | cos(d)             |
+Math.Exp(d)             | exp(d)             |
+Math.Floor(d)           | floor(d)           |
+Math.Log(d)             | ln(d)              |
+Math.Log10(d)           | log(d)             |
+Math.Max(x, y)          | greatest(x, y)     |
+Math.Min(x, y)          | least(x, y)        |
+Math.Pow(x, y)          | power(x, y)        |
+Math.Round(d)           | round(d)           |
+Math.Round(d, decimals) | round(d, decimals) |
+Math.Sin(a)             | sin(a)             |
+Math.Sign(value)        | sign(value)::int   |
+Math.Sqrt(d)            | sqrt(d)            |
+Math.Tan(a)             | tan(a)             |
+Math.Truncate(d)        | trunc(d)           |
+EF.Functions.Random()   | random()           | Added in 6.0
 
 ## Network functions
 
@@ -107,72 +181,6 @@ EF.Functions.SameFamily(inet1, inet2)            | [inet_same_family(inet1, inet
 EF.Functions.Merge(inet1, inet2)                 | [inet_merge(inet1, inet2)](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-FUNCTIONS-TABLE)
 EF.Functions.Truncate(macaddr)                   | [trunc(macaddr)](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-FUNCTIONS-TABLE)
 EF.Functions.Set7BitMac8(macaddr8)               | [macaddr8_set7bit(macaddr8)](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-FUNCTIONS-TABLE)
-
-## Numeric functions
-
-.NET                    | SQL                | Notes
------------------------ | ------------------ | -----
-Math.Abs(value)         | abs(value)         |
-Math.Acos(d)            | acos(d)            |
-Math.Asin(d)            | asin(d)            |
-Math.Atan(d)            | atan(d)            |
-Math.Atan2(y, x)        | atan2(y, x)        |
-Math.Ceiling(d)         | ceiling(d)         |
-Math.Cos(d)             | cos(d)             |
-Math.Exp(d)             | exp(d)             |
-Math.Floor(d)           | floor(d)           |
-Math.Log(d)             | ln(d)              |
-Math.Log10(d)           | log(d)             |
-Math.Max(x, y)          | greatest(x, y)     |
-Math.Min(x, y)          | least(x, y)        |
-Math.Pow(x, y)          | power(x, y)        |
-Math.Round(d)           | round(d)           |
-Math.Round(d, decimals) | round(d, decimals) |
-Math.Sin(a)             | sin(a)             |
-Math.Sign(value)        | sign(value)::int   |
-Math.Sqrt(d)            | sqrt(d)            |
-Math.Tan(a)             | tan(a)             |
-Math.Truncate(d)        | trunc(d)           |
-EF.Functions.Random()   | random()           | Added in 6.0
-
-## String functions
-
-.NET                                                          | SQL                                                    | Notes
-------------------------------------------------------------- | ------------------------------------------------------ | --------
-EF.Functions.Collate(operand, collation)                      | operand COLLATE collation                              | Added in 5.0
-EF.Functions.Like(matchExpression, pattern)                   | matchExpression LIKE pattern
-EF.Functions.Like(matchExpression, pattern, escapeCharacter)  | matchExpression LIKE pattern ESCAPE escapeCharacter
-EF.Functions.ILike(matchExpression, pattern)                  | [matchExpression ILIKE pattern](../misc/collations-and-case-sensitivity.md)
-EF.Functions.ILike(matchExpression, pattern, escapeCharacter) | [matchExpression ILIKE pattern ESCAPE escapeCharacter](../misc/collations-and-case-sensitivity.md)
-string.Compare(strA, strB)                                    | CASE WHEN strA = strB THEN 0 ... END
-string.Concat(str0, str1)                                     | str0 \|\| str1
-string.IsNullOrEmpty(value)                                   | value IS NULL OR value = ''
-string.IsNullOrWhiteSpace(value)                              | value IS NULL OR btrim(value, E' \t\n\r') = ''
-stringValue.CompareTo(strB)                                   | CASE WHEN stringValue = strB THEN 0 ... END
-stringValue.Contains(value)                                   | strpos(stringValue, value) > 0
-stringValue.EndsWith(value)                                   | stringValue LIKE '%' \|\| value
-stringValue.FirstOrDefault()                                  | substr(stringValue, 1, 1)                              | Added in 5.0
-stringValue.IndexOf(value)                                    | strpos(stringValue, value) - 1
-stringValue.LastOrDefault()                                   | substr(stringValue, length(stringValue), 1)            | Added in 5.0
-stringValue.Length                                            | length(stringValue)
-stringValue.PadLeft(length)                                   | lpad(stringValue, length)
-stringValue.PadLeft(length, char)                             | lpad(stringValue, length, char)
-stringValue.PadRight(length)                                  | rpad(stringValue, length)
-stringValue.PadRight(length, char)                            | rpad(stringValue, length, char)
-stringValue.Replace(oldValue, newValue)                       | replace(stringValue, oldValue, newValue)
-stringValue.StartsWith(value)                                 | stringValue LIKE value \|\| '%'
-stringValue.Substring(startIndex, length)                     | substr(stringValue, startIndex + 1, @length)
-stringValue.ToLower()                                         | lower(stringValue)
-stringValue.ToUpper()                                         | upper(stringValue)
-stringValue.Trim()                                            | btrim(stringValue)
-stringValue.Trim(trimChar)                                    | btrim(stringValue, trimChar)
-stringValue.TrimEnd()                                         | rtrim(stringValue)
-stringValue.TrimEnd(trimChar)                                 | rtrim(stringValue, trimChar)
-stringValue.TrimStart()                                       | ltrim(stringValue)
-stringValue.TrimStart(trimChar)                               | ltrim(stringValue, trimChar)
-EF.Functions.Reverse(value)                                   | reverse(value)
-Regex.IsMatch(stringValue, "^A+")                             | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options)
-Regex.IsMatch(stringValue, "^A+", regexOptions)               | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options)
 
 ## Trigram functions
 
@@ -228,13 +236,3 @@ ltree.NLevel                                                      | nlevel(ltree
 ltree.Index(subpath)                                              | index(ltree, subpath)
 ltree.Index(subpath, 2)                                           | index(ltree, subpath, 2)
 LTree.LongestCommonAncestor(ltree1, ltree2)                       | lca(index(ltree1, ltree2)
-
-## Miscellaneous functions
-
-.NET                                     | SQL
----------------------------------------- | --------------------
-collection.Contains(item)                | item IN collection
-enumValue.HasFlag(flag)                  | enumValue & flag = flag
-Guid.NewGuid()                           | [uuid_generate_v4()](https://www.postgresql.org/docs/current/uuid-ossp.html), or [gen_random_uuid()](https://www.postgresql.org/docs/current/functions-uuid.html) on PostgreSQL 13 with EF Core 5 and above.
-nullable.GetValueOrDefault()             | coalesce(nullable, 0)
-nullable.GetValueOrDefault(defaultValue) | coalesce(nullable, defaultValue)
