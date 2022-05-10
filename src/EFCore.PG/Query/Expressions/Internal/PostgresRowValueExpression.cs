@@ -22,10 +22,11 @@ public class PostgresRowValueExpression : SqlExpression, IEquatable<PostgresRowV
     public static RelationalTypeMapping TypeMappingInstance => RowValueTypeMapping.Instance;
 
     /// <inheritdoc />
-    public PostgresRowValueExpression(IReadOnlyList<SqlExpression> values, RelationalTypeMapping? typeMapping = null)
-        : base(typeof(ITuple), typeMapping)
+    public PostgresRowValueExpression(IReadOnlyList<SqlExpression> values, Type type, RelationalTypeMapping? typeMapping = null)
+        : base(type, typeMapping)
     {
         Check.NotNull(values, nameof(values));
+        Check.DebugAssert(type.IsAssignableTo(typeof(ITuple)), $"Type '{type}' isn't an ITuple");
 
         Values = values;
     }
@@ -56,13 +57,13 @@ public class PostgresRowValueExpression : SqlExpression, IEquatable<PostgresRowV
             }
         }
 
-        return newRowValues is null ? this : new PostgresRowValueExpression(newRowValues);
+        return newRowValues is null ? this : new PostgresRowValueExpression(newRowValues, Type);
     }
 
     public virtual PostgresRowValueExpression Update(IReadOnlyList<SqlExpression> values)
         => values.Count == Values.Count && values.Zip(Values, (x, y) => (x, y)).All(tup => tup.x == tup.y)
             ? this
-            : new PostgresRowValueExpression(values);
+            : new PostgresRowValueExpression(values, Type);
 
     /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)

@@ -356,9 +356,7 @@ WHERE (c.""City"", c.""CustomerID"") <= ('Buenos Aires', 'OCEAN')");
                     new ValueTuple<string, string, string>("Buenos Aires", "OCEAN", "foo")))
                 .CountAsync());
 
-        Assert.Equal(
-            NpgsqlStrings.RowValueMethodRequiresTwoArraysOfSameLength(nameof(NpgsqlDbFunctionsExtensions.LessThanOrEqual)),
-            exception.Message);
+        Assert.Equal(NpgsqlStrings.RowValueComparisonRequiresTuplesOfSameLength, exception.Message);
     }
 
     [ConditionalFact]
