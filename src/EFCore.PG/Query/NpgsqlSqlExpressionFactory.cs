@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
@@ -393,29 +394,34 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             }
         }
 
+        // If this is a row value comparison (e.g. (a, b) > (5, 6)), doing type mapping inference on each corresponding pair.
         if (IsComparison(binary.OperatorType)
-            && binary.Left is PostgresRowValueExpression leftRowValue
-            && binary.Right is PostgresRowValueExpression rightRowValue)
+            && TryGetRowValueValues(binary.Left, out var leftValues)
+            && TryGetRowValueValues(binary.Right, out var rightValues))
         {
-            Check.DebugAssert(leftRowValue.Values.Count == rightRowValue.Values.Count, "Row value count mismatch in comparison");
+            if (leftValues.Count != rightValues.Count)
+            {
+                throw new ArgumentException(NpgsqlStrings.RowValueComparisonRequiresTuplesOfSameLength);
+            }
 
-            var count = leftRowValue.Values.Count;
+            var count = leftValues.Count;
             var updatedLeftValues = new SqlExpression[count];
             var updatedRightValues = new SqlExpression[count];
 
             for (var i = 0; i < count; i++)
             {
-                var updatedElementBinaryExpression =
-                    MakeBinary(binary.OperatorType, leftRowValue.Values[i], rightRowValue.Values[i], typeMapping: null)!;
+                var updatedElementBinaryExpression = MakeBinary(binary.OperatorType, leftValues[i], rightValues[i], typeMapping: null)!;
 
                 updatedLeftValues[i] = updatedElementBinaryExpression.Left;
                 updatedRightValues[i] = updatedElementBinaryExpression.Right;
             }
 
+            // Note that we always return non-constant PostgresRowValueExpression operands, even if the original input was a
+            // SqlConstantExpression. This is because each value in the row value needs to have its type mapping.
             binary = new SqlBinaryExpression(
                 binary.OperatorType,
-                new PostgresRowValueExpression(updatedLeftValues),
-                new PostgresRowValueExpression(updatedRightValues),
+                new PostgresRowValueExpression(updatedLeftValues, binary.Left.Type),
+                new PostgresRowValueExpression(updatedRightValues, binary.Right.Type),
                 binary.Type,
                 binary.TypeMapping);
         }
@@ -434,6 +440,31 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 case ExpressionType.LessThanOrEqual:
                     return true;
                 default:
+                    return false;
+            }
+        }
+
+        bool TryGetRowValueValues(SqlExpression e, [NotNullWhen(true)] out IReadOnlyList<SqlExpression>? values)
+        {
+            switch (e)
+            {
+                case PostgresRowValueExpression rowValueExpression:
+                    values = rowValueExpression.Values;
+                    return true;
+
+                case SqlConstantExpression { Value : ITuple constantTuple }:
+                    var v = new SqlExpression[constantTuple.Length];
+
+                    for (var i = 0; i < v.Length; i++)
+                    {
+                        v[i] = Constant(constantTuple[i]);
+                    }
+
+                    values = v;
+                    return true;
+
+                default:
+                    values = null;
                     return false;
             }
         }
@@ -464,7 +495,8 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             updatedValues[i] = ApplyDefaultTypeMapping(postgresRowValueExpression.Values[i]);
         }
 
-        return new PostgresRowValueExpression(updatedValues, PostgresRowValueExpression.TypeMappingInstance);
+        return new PostgresRowValueExpression(
+            updatedValues, postgresRowValueExpression.Type, PostgresRowValueExpression.TypeMappingInstance);
     }
 
     private SqlExpression ApplyTypeMappingOnAny(PostgresAnyExpression postgresAnyExpression)

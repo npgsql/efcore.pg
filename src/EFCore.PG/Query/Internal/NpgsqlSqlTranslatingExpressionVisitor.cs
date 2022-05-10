@@ -435,24 +435,20 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
 
     protected override Expression VisitNew(NewExpression newExpression)
     {
-        // TEMPORARY HACK around https://github.com/dotnet/efcore/pull/27965
-        // This row value translation should happen after base.VisitNew, but the base implementation doesn't take evaluatable filters into
-        // account. Move it down after that's fixed.
+        var visitedNewExpression = base.VisitNew(newExpression);
+
+        if (visitedNewExpression != QueryCompilationContext.NotTranslatedExpression)
+        {
+            return visitedNewExpression;
+        }
 
         // We translate new ValueTuple<T1, T2...>(x, y...) to a SQL row value expression: (x, y).
         // This is notably done to support row value comparisons: WHERE (x, y) > (3, 4) (see e.g. NpgsqlDbFunctionsExtensions.GreaterThan)
         if (newExpression.Type.IsAssignableTo(typeof(ITuple)))
         {
             return TryTranslateArguments(out var sqlArguments)
-                ? new PostgresRowValueExpression(sqlArguments)
+                ? new PostgresRowValueExpression(sqlArguments, newExpression.Type)
                 : QueryCompilationContext.NotTranslatedExpression;
-        }
-
-        var visitedNewExpression = base.VisitNew(newExpression);
-
-        if (visitedNewExpression != QueryCompilationContext.NotTranslatedExpression)
-        {
-            return visitedNewExpression;
         }
 
         // Translate new DateTime(...) -> make_timestamp/make_date

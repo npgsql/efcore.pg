@@ -49,19 +49,33 @@ public class NpgsqlRowValueComparisonTranslator : IMethodCallTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (method.DeclaringType != typeof(NpgsqlDbFunctionsExtensions)
-            || !Methods.TryGetValue(method, out var expressionType)
-            || arguments[1] is not PostgresRowValueExpression rowValue1
-            || arguments[2] is not PostgresRowValueExpression rowValue2)
+        if (method.DeclaringType != typeof(NpgsqlDbFunctionsExtensions) || !Methods.TryGetValue(method, out var expressionType))
         {
             return null;
         }
 
-        if (rowValue1.Values.Count != rowValue2.Values.Count)
+        var leftCount = arguments[1] is PostgresRowValueExpression leftRowValue
+            ? leftRowValue.Values.Count
+            : arguments[1] is SqlConstantExpression { Value : ITuple leftTuple }
+                ? (int?)leftTuple.Length
+                : null;
+
+        var rightCount = arguments[2] is PostgresRowValueExpression rightRowValue
+            ? rightRowValue.Values.Count
+            : arguments[2] is SqlConstantExpression { Value : ITuple rightTuple }
+                ? (int?)rightTuple.Length
+                : null;
+
+        if (leftCount is null || rightCount is null)
         {
-            throw new ArgumentException(NpgsqlStrings.RowValueMethodRequiresTwoArraysOfSameLength(method.Name));
+            return null;
         }
 
-        return _sqlExpressionFactory.MakeBinary(expressionType, rowValue1, rowValue2, typeMapping: null);
+        if (leftCount != rightCount)
+        {
+            throw new ArgumentException(NpgsqlStrings.RowValueComparisonRequiresTuplesOfSameLength);
+        }
+
+        return _sqlExpressionFactory.MakeBinary(expressionType, arguments[1], arguments[2], typeMapping: null);
     }
 }
