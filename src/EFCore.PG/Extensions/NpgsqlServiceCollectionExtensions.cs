@@ -110,6 +110,7 @@ public static class NpgsqlServiceCollectionExtensions
             .TryAdd<IEvaluatableExpressionFilter, NpgsqlEvaluatableExpressionFilter>()
             .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
             .TryAdd<IRelationalSqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
+            .TryAdd<IQueryTranslationPostprocessorFactory, NpgsqlQueryTranslationPostprocessorFactory>()
             .TryAdd<IRelationalParameterBasedSqlProcessorFactory, NpgsqlParameterBasedSqlProcessorFactory>()
             .TryAdd<ISqlExpressionFactory, NpgsqlSqlExpressionFactory>()
             .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetRequiredService<INpgsqlOptions>())
