@@ -53,6 +53,7 @@ public class JsonDomQueryTest : IClassFixture<JsonDomQueryTest.JsonDomQueryFixtu
 
         Assert.Empty(ctx.JsonbEntities.Where(e => e.CustomerDocument == JsonDocument.Parse(@"
 { ""Name"": ""Test customer"", ""Age"": 80 }", default)));
+
         AssertSql(
             @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
@@ -63,10 +64,12 @@ WHERE j.""CustomerDocument"" = '{""Name"":""Test customer"",""Age"":80}'");
     public void Parameter_document()
     {
         using var ctx = CreateContext();
+
         var expected = ctx.JsonbEntities.Find(1).CustomerDocument;
         var actual = ctx.JsonbEntities.Single(e => e.CustomerDocument == expected).CustomerDocument;
 
         Assert.Equal(actual, expected);
+
         AssertSql(
             @"@__p_0='1'
 
@@ -87,10 +90,12 @@ LIMIT 2");
     public void Parameter_element()
     {
         using var ctx = CreateContext();
+
         var expected = ctx.JsonbEntities.Find(1).CustomerElement;
         var actual = ctx.JsonbEntities.Single(e => e.CustomerElement.Equals(expected)).CustomerElement;
 
         Assert.Equal(actual, expected);
+
         AssertSql(
             @"@__p_0='1'
 
@@ -111,9 +116,11 @@ LIMIT 2");
     public void Text_output_on_document()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.CustomerDocument.RootElement.GetProperty("Name").GetString() == "Joe");
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
+
         AssertSql(
             @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
@@ -125,9 +132,11 @@ LIMIT 2");
     public void Text_output()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.CustomerElement.GetProperty("Name").GetString() == "Joe");
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
+
         AssertSql(
             @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
@@ -139,9 +148,11 @@ LIMIT 2");
     public void Text_output_json()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonEntities.Single(e => e.CustomerElement.GetProperty("Name").GetString() == "Joe");
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
+
         AssertSql(
             @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonEntities"" AS j
@@ -153,9 +164,11 @@ LIMIT 2");
     public void Integer_output()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.CustomerElement.GetProperty("Age").GetInt32() < 30);
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
+
         AssertSql(
             @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
@@ -167,9 +180,11 @@ LIMIT 2");
     public void Guid_output()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.CustomerElement.GetProperty("ID").GetGuid() == Guid.Empty);
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
+
         AssertSql(
             @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
@@ -181,9 +196,11 @@ LIMIT 2");
     public void Bool_output()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.CustomerElement.GetProperty("IsVip").GetBoolean());
 
         Assert.Equal("Moe", x.CustomerElement.GetProperty("Name").GetString());
+
         AssertSql(
             @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
@@ -195,9 +212,11 @@ LIMIT 2");
     public void Nested()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.CustomerElement.GetProperty("Statistics").GetProperty("Visits").GetInt64() == 4);
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
+
         AssertSql(
             @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
@@ -209,7 +228,9 @@ LIMIT 2");
     public void Nested_twice()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.CustomerElement.GetProperty("Statistics").GetProperty("Nested").GetProperty("SomeProperty").GetInt32() == 10);
+
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
         AssertSql(
@@ -223,9 +244,11 @@ LIMIT 2");
     public void Array_of_objects()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.CustomerElement.GetProperty("Orders")[0].GetProperty("Price").GetDecimal() == 99.5m);
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
+
         AssertSql(
             @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
@@ -237,10 +260,12 @@ LIMIT 2");
     public void Array_nested()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e =>
             e.CustomerElement.GetProperty("Statistics").GetProperty("Nested").GetProperty("IntArray")[1].GetInt32() == 4);
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
+
         AssertSql(
             @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
@@ -252,11 +277,13 @@ LIMIT 2");
     public void Array_parameter_index()
     {
         using var ctx = CreateContext();
+
         var i = 1;
         var x = ctx.JsonbEntities.Single(e =>
             e.CustomerElement.GetProperty("Statistics").GetProperty("Nested").GetProperty("IntArray")[i].GetInt32() == 4);
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
+
         AssertSql(
             @"@__i_0='1'
 
@@ -270,9 +297,11 @@ LIMIT 2");
     public void GetArrayLength()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.CustomerElement.GetProperty("Orders").GetArrayLength() == 2);
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
+
         AssertSql(
             @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
@@ -284,9 +313,11 @@ LIMIT 2");
     public void GetArrayLength_json()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonEntities.Single(e => e.CustomerElement.GetProperty("Orders").GetArrayLength() == 2);
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
+
         AssertSql(
             @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonEntities"" AS j
@@ -298,9 +329,11 @@ LIMIT 2");
     public void Like()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.CustomerElement.GetProperty("Name").GetString().StartsWith("J"));
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
+
         AssertSql(
             @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
@@ -312,11 +345,13 @@ LIMIT 2");
     public void Where_nullable_guid()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e =>
             e.CustomerElement.GetProperty("Statistics").GetProperty("Nested").GetProperty("SomeNullableGuid").GetGuid()
             == Guid.Parse("d5f2685d-e5c4-47e5-97aa-d0266154eb2d"));
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
+
         AssertSql(
             @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
@@ -328,6 +363,7 @@ LIMIT 2");
     public void Where_root_value()
     {
         using var ctx = CreateContext();
+
         _ = ctx.JsonbEntities.Single(e => e.CustomerElement.GetString() == "foo");
 
         AssertSql(
