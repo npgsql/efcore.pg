@@ -146,6 +146,12 @@ var npgsql = context.Products
     .ToList();
 ```
 
+## Computed column over JSON columns
+
+Starting with 7.0, the provider can also create computed `tsvector` columns over JSON columns. Simply use `HasGeneratedTsVectorColumn()` as shown above, and when applied to JSON columns, the provider will automatically generate [`json_to_tsvector/jsonb_to_tsvector`](https://www.postgresql.org/docs/current/functions-textsearch.html#TEXTSEARCH-FUNCTIONS-TABLE) as appropriate.
+
+Note that this will pass the filter `all` to these functions, meaning that all values in the JSON document will be included. To customize the filter - or to create the computed column on older versions of the provider - simply specify the function yourself via [`HasComputedColumnSql`](https://docs.microsoft.com/ef/core/modeling/generated-properties?tabs=data-annotations#computed-columns).
+
 ## Operation translation
 
 Almost all PostgreSQL full text search functions can be called through LINQ queries. All supported EF Core LINQ methods are defined in extension classes in the `Microsoft.EntityFrameworkCore` namespace, so simply referencing the Npgsql provider will light up these methods. The following table lists all supported operations; if an operation you need is missing, please open an issue to request for it.
