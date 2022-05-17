@@ -1,13 +1,14 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
-public class NpgsqlRowValueComparisonTranslator : IMethodCallTranslator
+public class NpgsqlRowValueTranslator : IMethodCallTranslator
 {
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
@@ -28,7 +29,7 @@ public class NpgsqlRowValueComparisonTranslator : IMethodCallTranslator
         typeof(NpgsqlDbFunctionsExtensions).GetMethods()
             .Single(m => m.Name == nameof(NpgsqlDbFunctionsExtensions.LessThanOrEqual));
 
-    private static readonly Dictionary<MethodInfo, ExpressionType> Methods = new()
+    private static readonly Dictionary<MethodInfo, ExpressionType> ComparisonMethods = new()
     {
         { GreaterThan, ExpressionType.GreaterThan },
         { LessThan, ExpressionType.LessThan },
@@ -37,19 +38,27 @@ public class NpgsqlRowValueComparisonTranslator : IMethodCallTranslator
     };
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="NpgsqlRowValueComparisonTranslator"/> class.
+    /// Initializes a new instance of the <see cref="NpgsqlRowValueTranslator"/> class.
     /// </summary>
-    public NpgsqlRowValueComparisonTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
+    public NpgsqlRowValueTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
         => _sqlExpressionFactory = sqlExpressionFactory;
 
     /// <inheritdoc />
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicMethods, typeof(ValueType))] // For ValueTuple.Create
     public virtual SqlExpression? Translate(
         SqlExpression? instance,
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (method.DeclaringType != typeof(NpgsqlDbFunctionsExtensions) || !Methods.TryGetValue(method, out var expressionType))
+        // Translate ValueTuple.Create
+        if (method.DeclaringType == typeof(ValueTuple) && method.IsStatic && method.Name == nameof(ValueTuple.Create))
+        {
+            return new PostgresRowValueExpression(arguments, method.ReturnType);
+        }
+
+        // Translate EF.Functions.GreaterThan and other comparisons
+        if (method.DeclaringType != typeof(NpgsqlDbFunctionsExtensions) || !ComparisonMethods.TryGetValue(method, out var expressionType))
         {
             return null;
         }

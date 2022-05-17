@@ -23,15 +23,18 @@ public class NpgsqlEvaluatableExpressionFilter : RelationalEvaluatableExpression
         {
             case MethodCallExpression methodCallExpression:
                 var declaringType = methodCallExpression.Method.DeclaringType;
+                var method = methodCallExpression.Method;
 
-                if (methodCallExpression.Method == TsQueryParse
-                    || methodCallExpression.Method == TsVectorParse
+                if (method == TsQueryParse
+                    || method == TsVectorParse
                     || declaringType == typeof(NpgsqlDbFunctionsExtensions)
                     || declaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions)
                     || declaringType == typeof(NpgsqlFullTextSearchLinqExtensions)
                     || declaringType == typeof(NpgsqlNetworkDbFunctionsExtensions)
                     || declaringType == typeof(NpgsqlJsonDbFunctionsExtensions)
-                    || declaringType == typeof(NpgsqlRangeDbFunctionsExtensions))
+                    || declaringType == typeof(NpgsqlRangeDbFunctionsExtensions)
+                    // Prevent evaluation of ValueTuple.Create, see NewExpression of ITuple below
+                    || declaringType == typeof(ValueTuple) && method.Name == nameof(ValueTuple.Create))
                 {
                     return false;
                 }
