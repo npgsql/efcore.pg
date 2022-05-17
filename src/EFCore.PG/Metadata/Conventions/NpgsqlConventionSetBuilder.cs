@@ -13,11 +13,11 @@ public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
         ProviderConventionSetBuilderDependencies dependencies,
         RelationalConventionSetBuilderDependencies relationalDependencies,
         IRelationalTypeMappingSource typeMappingSource,
-        INpgsqlOptions npgsqlOptions)
+        INpgsqlSingletonOptions npgsqlSingletonOptions)
         : base(dependencies, relationalDependencies)
     {
         _typeMappingSource = typeMappingSource;
-        _postgresVersion = npgsqlOptions.PostgresVersion;
+        _postgresVersion = npgsqlSingletonOptions.PostgresVersion;
     }
 
     [EntityFrameworkInternal]

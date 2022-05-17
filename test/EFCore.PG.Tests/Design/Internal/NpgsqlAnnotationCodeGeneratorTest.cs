@@ -1,4 +1,5 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -396,5 +397,6 @@ public class NpgsqlAnnotationCodeGeneratorTest
                     Array.Empty<ITypeMappingSourcePlugin>()
                 ),
                 new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
-                new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()))));
+                new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
+                new NpgsqlSingletonOptions())));
 }

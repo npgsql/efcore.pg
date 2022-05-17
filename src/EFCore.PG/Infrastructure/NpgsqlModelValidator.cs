@@ -18,9 +18,9 @@ public class NpgsqlModelValidator : RelationalModelValidator
     public NpgsqlModelValidator(
         ModelValidatorDependencies dependencies,
         RelationalModelValidatorDependencies relationalDependencies,
-        INpgsqlOptions npgsqlOptions)
+        INpgsqlSingletonOptions npgsqlSingletonOptions)
         : base(dependencies, relationalDependencies)
-        => _postgresVersion = Check.NotNull(npgsqlOptions, nameof(npgsqlOptions)).PostgresVersion;
+        => _postgresVersion = npgsqlSingletonOptions.PostgresVersion;
 
     public override void Validate(IModel model, IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
     {
@@ -43,8 +43,7 @@ public class NpgsqlModelValidator : RelationalModelValidator
 
         var strategy = model.GetValueGenerationStrategy();
 
-        if (strategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
-            strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+        if (strategy is NpgsqlValueGenerationStrategy.IdentityAlwaysColumn or NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
         {
             throw new InvalidOperationException(
                 $"'{strategy}' requires PostgreSQL 10.0 or later. " +
@@ -57,8 +56,8 @@ public class NpgsqlModelValidator : RelationalModelValidator
         {
             var propertyStrategy = property.GetValueGenerationStrategy();
 
-            if (propertyStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
-                propertyStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+            if (propertyStrategy is NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
+                or NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
             {
                 throw new InvalidOperationException(
                     $"{property.DeclaringEntityType}.{property.Name}: '{propertyStrategy}' requires PostgreSQL 10.0 or later.");

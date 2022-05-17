@@ -20,10 +20,10 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
     public NpgsqlMigrationsSqlGenerator(
         MigrationsSqlGeneratorDependencies dependencies,
-        INpgsqlOptions npgsqlOptions)
+        INpgsqlSingletonOptions npgsqlSingletonOptions)
         : base(dependencies)
     {
-        _postgresVersion = npgsqlOptions.PostgresVersion;
+        _postgresVersion = npgsqlSingletonOptions.PostgresVersion;
         _stringTypeMapping = dependencies.TypeMappingSource.GetMapping(typeof(string))
             ?? throw new InvalidOperationException("No string type mapping found");
     }
