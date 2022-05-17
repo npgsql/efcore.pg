@@ -245,8 +245,8 @@ WHERE (c.""City"", c.""Country"") <> ('Sao Paulo', 'Brazil')");
 
         _ = await ctx.Customers
             .Where(c => EF.Functions.GreaterThan(
-                new ValueTuple<string, string>(c.City, c.CustomerID),
-                new ValueTuple<string, string>("Buenos Aires", "OCEAN")))
+                ValueTuple.Create(c.City, c.CustomerID),
+                ValueTuple.Create("Buenos Aires", "OCEAN")))
             .CountAsync();
 
         AssertSql(
@@ -262,8 +262,8 @@ WHERE (c.""City"", c.""CustomerID"") > ('Buenos Aires', 'OCEAN')");
 
         _ = await ctx.Orders
             .Where(o => EF.Functions.GreaterThan(
-                new ValueTuple<string, int>(o.CustomerID, o.OrderID),
-                new ValueTuple<string, int>("ALFKI", 10702)))
+                ValueTuple.Create(o.CustomerID, o.OrderID),
+                ValueTuple.Create("ALFKI", 10702)))
             .CountAsync();
 
         AssertSql(
@@ -281,8 +281,8 @@ WHERE (o.""CustomerID"", o.""OrderID"") > ('ALFKI', 10702)");
 
         _ = await ctx.Customers
             .Where(c => EF.Functions.GreaterThan(
-                new ValueTuple<string, string>(c.City, c.CustomerID),
-                new ValueTuple<string, string>(city1, "OCEAN")))
+                ValueTuple.Create(c.City, c.CustomerID),
+                ValueTuple.Create(city1, "OCEAN")))
             .CountAsync();
 
         AssertSql(
@@ -300,8 +300,8 @@ WHERE (c.""City"", c.""CustomerID"") > (@__city1_1, 'OCEAN')");
 
         _ = await ctx.Customers
             .Where(c => EF.Functions.LessThan(
-                new ValueTuple<string, string>(c.City, c.CustomerID),
-                new ValueTuple<string, string>("Buenos Aires", "OCEAN")))
+                ValueTuple.Create(c.City, c.CustomerID),
+                ValueTuple.Create("Buenos Aires", "OCEAN")))
             .CountAsync();
 
         AssertSql(
@@ -317,8 +317,8 @@ WHERE (c.""City"", c.""CustomerID"") < ('Buenos Aires', 'OCEAN')");
 
         _ = await ctx.Customers
             .Where(c => EF.Functions.GreaterThanOrEqual(
-                new ValueTuple<string, string>(c.City, c.CustomerID),
-                new ValueTuple<string, string>("Buenos Aires", "OCEAN")))
+                ValueTuple.Create(c.City, c.CustomerID),
+                ValueTuple.Create("Buenos Aires", "OCEAN")))
             .CountAsync();
 
         AssertSql(
@@ -334,6 +334,23 @@ WHERE (c.""City"", c.""CustomerID"") >= ('Buenos Aires', 'OCEAN')");
 
         _ = await ctx.Customers
             .Where(c => EF.Functions.LessThanOrEqual(
+                ValueTuple.Create(c.City, c.CustomerID),
+                ValueTuple.Create("Buenos Aires", "OCEAN")))
+            .CountAsync();
+
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""Customers"" AS c
+WHERE (c.""City"", c.""CustomerID"") <= ('Buenos Aires', 'OCEAN')");
+    }
+
+    [ConditionalFact]
+    public async Task Row_value_with_ValueTuple_constructor()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Customers
+            .Where(c => EF.Functions.GreaterThan(
                 new ValueTuple<string, string>(c.City, c.CustomerID),
                 new ValueTuple<string, string>("Buenos Aires", "OCEAN")))
             .CountAsync();
@@ -341,7 +358,7 @@ WHERE (c.""City"", c.""CustomerID"") >= ('Buenos Aires', 'OCEAN')");
         AssertSql(
             @"SELECT COUNT(*)::INT
 FROM ""Customers"" AS c
-WHERE (c.""City"", c.""CustomerID"") <= ('Buenos Aires', 'OCEAN')");
+WHERE (c.""City"", c.""CustomerID"") > ('Buenos Aires', 'OCEAN')");
     }
 
     [ConditionalFact]
@@ -352,8 +369,8 @@ WHERE (c.""City"", c.""CustomerID"") <= ('Buenos Aires', 'OCEAN')");
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => ctx.Customers
                 .Where(c => EF.Functions.LessThanOrEqual(
-                    new ValueTuple<string, string>(c.City, c.CustomerID),
-                    new ValueTuple<string, string, string>("Buenos Aires", "OCEAN", "foo")))
+                    ValueTuple.Create(c.City, c.CustomerID),
+                    ValueTuple.Create("Buenos Aires", "OCEAN", "foo")))
                 .CountAsync());
 
         Assert.Equal(NpgsqlStrings.RowValueComparisonRequiresTuplesOfSameLength, exception.Message);
@@ -366,8 +383,8 @@ WHERE (c.""City"", c.""CustomerID"") <= ('Buenos Aires', 'OCEAN')");
 
         _ = await ctx.Customers
             .Where(c =>
-                new ValueTuple<string, string>(c.City, c.CustomerID).Equals(
-                new ValueTuple<string, string>("Buenos Aires", "OCEAN")))
+                ValueTuple.Create(c.City, c.CustomerID).Equals(
+                ValueTuple.Create("Buenos Aires", "OCEAN")))
             .CountAsync();
 
         AssertSql(
@@ -382,9 +399,7 @@ WHERE (c.""City"", c.""CustomerID"") = ('Buenos Aires', 'OCEAN')");
         await using var ctx = CreateContext();
 
         _ = await ctx.Customers
-            .Where(c =>
-                !new ValueTuple<string, string>(c.City, c.CustomerID).Equals(
-                    new ValueTuple<string, string>("Buenos Aires", "OCEAN")))
+            .Where(c => !ValueTuple.Create(c.City, c.CustomerID).Equals(ValueTuple.Create("Buenos Aires", "OCEAN")))
             .CountAsync();
 
         AssertSql(
