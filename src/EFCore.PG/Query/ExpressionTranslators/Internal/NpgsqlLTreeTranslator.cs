@@ -156,7 +156,6 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
         ReadOnlyCollection<Expression> arguments)
     {
         var array = arguments[0];
-
         {
             if (method.IsClosedFormOf(EnumerableMethods.AnyWithPredicate) &&
                 arguments[1] is LambdaExpression wherePredicate &&
