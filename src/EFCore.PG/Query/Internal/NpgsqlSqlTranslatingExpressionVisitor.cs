@@ -124,56 +124,44 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     /// <inheritdoc />
     protected override Expression VisitUnary(UnaryExpression unaryExpression)
     {
-        if (unaryExpression.NodeType == ExpressionType.ArrayLength)
+        switch (unaryExpression.NodeType)
         {
-            if (TranslationFailed(unaryExpression.Operand, Visit(unaryExpression.Operand), out var sqlOperand))
-            {
-                return QueryCompilationContext.NotTranslatedExpression;
-            }
-
-            // Translate Length on byte[], but only if the type mapping is for bytea. There's also array of bytes
-            // (mapped to smallint[]), which is handled below with CARDINALITY.
-            if (sqlOperand!.Type == typeof(byte[])
-                && (sqlOperand.TypeMapping is null || sqlOperand.TypeMapping is NpgsqlByteArrayTypeMapping))
-            {
-                return _sqlExpressionFactory.Function(
-                    "length",
-                    new[] { sqlOperand },
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[1],
-                    typeof(int));
-            }
-
-            return _jsonPocoTranslator.TranslateArrayLength(sqlOperand)
-                ?? _sqlExpressionFactory.Function(
-                    "cardinality",
-                    new[] { sqlOperand },
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[1],
-                    typeof(int));
-        }
-
-        var translated = base.VisitUnary(unaryExpression);
-
-        // Temporary hack around https://github.com/dotnet/efcore/pull/27964
-        if (translated == QueryCompilationContext.NotTranslatedExpression)
-        {
-            if (unaryExpression.NodeType is ExpressionType.Convert or ExpressionType.ConvertChecked or ExpressionType.TypeAs
-                && unaryExpression.Type.IsInterface
-                && unaryExpression.Operand.Type.IsAssignableTo(unaryExpression.Type))
-            {
-                var operand = Visit(unaryExpression.Operand);
-
-                if (TranslationFailed(unaryExpression.Operand, operand, out var sqlOperand))
+            case ExpressionType.ArrayLength:
+                if (TranslationFailed(unaryExpression.Operand, Visit(unaryExpression.Operand), out var sqlOperand))
                 {
                     return QueryCompilationContext.NotTranslatedExpression;
                 }
 
-                return sqlOperand!;
-            }
+                // Translate Length on byte[], but only if the type mapping is for bytea. There's also array of bytes
+                // (mapped to smallint[]), which is handled below with CARDINALITY.
+                if (sqlOperand!.Type == typeof(byte[])
+                    && (sqlOperand.TypeMapping is null || sqlOperand.TypeMapping is NpgsqlByteArrayTypeMapping))
+                {
+                    return _sqlExpressionFactory.Function(
+                        "length",
+                        new[] { sqlOperand },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(int));
+                }
+
+                return _jsonPocoTranslator.TranslateArrayLength(sqlOperand)
+                    ?? _sqlExpressionFactory.Function(
+                        "cardinality",
+                        new[] { sqlOperand },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(int));
+
+            // We have row value comparison methods such as EF.Functions.GreaterThan, which accept two ValueTuples/Tuples.
+            // Since they accept ITuple parameters, the arguments have a Convert node casting up from the concrete argument to ITuple;
+            // this node causes translation failure in RelationalSqlTranslatingExpressionVisitor, so unwrap here.
+            case ExpressionType.Convert
+                when unaryExpression.Type == typeof(ITuple) && unaryExpression.Operand.Type.IsAssignableTo(typeof(ITuple)):
+                return Visit(unaryExpression.Operand);
         }
 
-        return translated;
+        return base.VisitUnary(unaryExpression);
     }
 
     protected override Expression VisitMethodCall(MethodCallExpression methodCall)
@@ -195,7 +183,6 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     private Expression? VisitArrayMethodCall(MethodInfo method, ReadOnlyCollection<Expression> arguments)
     {
         var array = arguments[0];
-
         {
             if (method.IsClosedFormOf(EnumerableMethods.AnyWithPredicate) &&
                 arguments[1] is LambdaExpression wherePredicate)

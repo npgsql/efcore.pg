@@ -294,6 +294,27 @@ WHERE (c.""City"", c.""CustomerID"") > (@__city1_1, 'OCEAN')");
     }
 
     [ConditionalFact]
+    public async Task Row_value_GreaterThan_with_parameter_with_ValueTuple_constructor()
+    {
+        await using var ctx = CreateContext();
+
+        var city1 = "Buenos Aires";
+
+        _ = await ctx.Customers
+            .Where(c => EF.Functions.GreaterThan(
+                new ValueTuple<string, string>(c.City, c.CustomerID),
+                new ValueTuple<string, string>(city1, "OCEAN")))
+            .CountAsync();
+
+        AssertSql(
+            @"@__city1_1='Buenos Aires'
+
+SELECT COUNT(*)::INT
+FROM ""Customers"" AS c
+WHERE (c.""City"", c.""CustomerID"") > (@__city1_1, 'OCEAN')");
+    }
+
+    [ConditionalFact]
     public async Task Row_value_LessThan()
     {
         await using var ctx = CreateContext();
