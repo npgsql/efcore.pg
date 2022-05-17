@@ -50,7 +50,9 @@ public class JsonStringQueryTest : IClassFixture<JsonStringQueryTest.JsonStringQ
     {
         using var ctx = CreateContext();
 
-        Assert.Empty(ctx.JsonEntities.Where(e => e.CustomerJsonb == @"{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}"));
+        Assert.Empty(ctx.JsonEntities.Where(
+            e => e.CustomerJsonb == @"{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}"));
+
         AssertSql(
             @"SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
 FROM ""JsonEntities"" AS j
@@ -61,10 +63,12 @@ WHERE j.""CustomerJsonb"" = '{""Name"":""Test customer"",""Age"":80,""IsVip"":fa
     public void Parameter()
     {
         using var ctx = CreateContext();
+
         var expected = ctx.JsonEntities.Find(1).CustomerJsonb;
         var actual = ctx.JsonEntities.Single(e => e.CustomerJsonb == expected).CustomerJsonb;
 
         Assert.Equal(actual, expected);
+
         AssertSql(
             @"@__p_0='1'
 
@@ -83,34 +87,33 @@ LIMIT 2");
 
     #region Functions
 
-//        [Fact]
-//        public void JsonContains_with_json_element()
-//        {
-//            using (var ctx = CreateContext())
-//            {
-//                var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
-//                var count = ctx.JsonEntities.Count(e =>
-//                    EF.Functions.JsonContains(e.Customer, element));
-//                Assert.Equal(1, count);
-//
-//                AssertSql(
-//                    @"@__element_1='{""Name"": ""Joe""
-//""Age"": 25}' (DbType = Object)
-//
-//SELECT COUNT(*)::INT
-//FROM ""JsonbEntities"" AS j
-//WHERE (j.""Customer"" @> @__element_1)");
-//            }
-//        }
+    [Fact]
+    public void JsonContains_with_json_element()
+    {
+        using var ctx = CreateContext();
+
+        var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
+        var count = ctx.JsonEntities.Count(e => EF.Functions.JsonContains(e.CustomerJsonb, element));
+
+        Assert.Equal(1, count);
+
+        AssertSql(
+            @"@__element_1='{""Name"": ""Joe"", ""Age"": 25}' (DbType = Object)
+
+SELECT COUNT(*)::INT
+FROM ""JsonEntities"" AS j
+WHERE j.""CustomerJsonb"" @> @__element_1");
+    }
 
     [Fact]
     public void JsonContains_with_string()
     {
         using var ctx = CreateContext();
-        var count = ctx.JsonEntities.Count(e =>
-            EF.Functions.JsonContains(e.CustomerJsonb, @"{""Name"": ""Joe"", ""Age"": 25}"));
+
+        var count = ctx.JsonEntities.Count(e => EF.Functions.JsonContains(e.CustomerJsonb, @"{""Name"": ""Joe"", ""Age"": 25}"));
 
         Assert.Equal(1, count);
+
         AssertSql(
             @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
@@ -121,11 +124,12 @@ WHERE j.""CustomerJsonb"" @> '{""Name"": ""Joe"", ""Age"": 25}'");
     public void JsonContained_with_json_element()
     {
         using var ctx = CreateContext();
+
         var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
-        var count = ctx.JsonEntities.Count(e =>
-            EF.Functions.JsonContained(element, e.CustomerJsonb));
+        var count = ctx.JsonEntities.Count(e => EF.Functions.JsonContained(element, e.CustomerJsonb));
 
         Assert.Equal(1, count);
+
         AssertSql(
             @"@__element_1='{""Name"": ""Joe"", ""Age"": 25}' (DbType = Object)
 
@@ -138,10 +142,11 @@ WHERE @__element_1 <@ j.""CustomerJsonb""");
     public void JsonContained_with_string()
     {
         using var ctx = CreateContext();
-        var count = ctx.JsonEntities.Count(e =>
-            EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", e.CustomerJsonb));
+
+        var count = ctx.JsonEntities.Count(e => EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", e.CustomerJsonb));
 
         Assert.Equal(1, count);
+
         AssertSql(
             @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
@@ -152,10 +157,11 @@ WHERE '{""Name"": ""Joe"", ""Age"": 25}' <@ j.""CustomerJsonb""");
     public void JsonExists()
     {
         using var ctx = CreateContext();
-        var count = ctx.JsonEntities.Count(e =>
-            EF.Functions.JsonExists(e.CustomerJsonb, "Age"));
+
+        var count = ctx.JsonEntities.Count(e => EF.Functions.JsonExists(e.CustomerJsonb, "Age"));
 
         Assert.Equal(2, count);
+
         AssertSql(
             @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
@@ -166,10 +172,11 @@ WHERE j.""CustomerJsonb"" ? 'Age'");
     public void JsonExistAny()
     {
         using var ctx = CreateContext();
-        var count = ctx.JsonEntities.Count(e =>
-            EF.Functions.JsonExistAny(e.CustomerJsonb, "foo", "Age"));
+
+        var count = ctx.JsonEntities.Count(e => EF.Functions.JsonExistAny(e.CustomerJsonb, "foo", "Age"));
 
         Assert.Equal(2, count);
+
         AssertSql(
             @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
@@ -180,10 +187,11 @@ WHERE j.""CustomerJsonb"" ?| ARRAY['foo','Age']::text[]");
     public void JsonExistAll()
     {
         using var ctx = CreateContext();
-        var count = ctx.JsonEntities.Count(e =>
-            EF.Functions.JsonExistAll(e.CustomerJsonb, "foo", "Age"));
+
+        var count = ctx.JsonEntities.Count(e => EF.Functions.JsonExistAll(e.CustomerJsonb, "foo", "Age"));
 
         Assert.Equal(0, count);
+
         AssertSql(
             @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
@@ -262,9 +270,12 @@ WHERE j.""CustomerJsonb"" ?& ARRAY['foo','Age']::text[]");
                     ]
                 }";
 
+            const string array = "[1, 2, 3]";
+
             context.JsonEntities.AddRange(
                 new JsonEntity { Id = 1, CustomerJsonb = customer1, CustomerJson = customer1 },
-                new JsonEntity { Id = 2, CustomerJsonb = customer2, CustomerJson = customer2 });
+                new JsonEntity { Id = 2, CustomerJsonb = customer2, CustomerJson = customer2 },
+                new JsonEntity { Id = 3, CustomerJsonb = array, CustomerJson = array });
             context.SaveChanges();
         }
     }

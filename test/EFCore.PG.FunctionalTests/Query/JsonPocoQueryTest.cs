@@ -54,10 +54,12 @@ WHERE j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""ID"":""00000000
     public void Parameter()
     {
         using var ctx = CreateContext();
+
         var expected = ctx.JsonbEntities.Find(1).Customer;
         var actual = ctx.JsonbEntities.Single(e => e.Customer == expected).Customer;
 
         Assert.Equal(actual.Name, expected.Name);
+
         AssertSql(
             @"@__p_0='1'
 
@@ -80,9 +82,11 @@ LIMIT 2");
     public void Output_string_with_jsonb()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.Customer.Name == "Joe");
 
         Assert.Equal("Joe", x.Customer.Name);
+
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
@@ -94,9 +98,11 @@ LIMIT 2");
     public void Output_string_with_json()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonEntities.Single(e => e.Customer.Name == "Joe");
 
         Assert.Equal("Joe", x.Customer.Name);
+
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonEntities"" AS j
@@ -108,9 +114,11 @@ LIMIT 2");
     public void Output_int()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.Customer.Age < 30);
 
         Assert.Equal("Joe", x.Customer.Name);
+
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
@@ -122,9 +130,11 @@ LIMIT 2");
     public void Output_Guid()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.Customer.ID == Guid.Empty);
 
         Assert.Equal("Joe", x.Customer.Name);
+
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
@@ -136,9 +146,11 @@ LIMIT 2");
     public void Output_bool()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.Customer.VariousTypes.Bool);
 
         Assert.Equal("Moe", x.Customer.Name);
+
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
@@ -150,10 +162,12 @@ LIMIT 2");
     public void Output_DateTime()
     {
         using var ctx = CreateContext();
+
         var p = new DateTime(1990, 3, 3, 17, 10, 15, DateTimeKind.Utc);
         var x = ctx.JsonbEntities.Single(e => e.Customer.VariousTypes.DateTime == p);
 
         Assert.Equal("Moe", x.Customer.Name);
+
         AssertSql(
             @"@__p_0='1990-03-03T17:10:15.0000000Z' (DbType = DateTime)
 
@@ -167,10 +181,12 @@ LIMIT 2");
     public void Output_DateTimeOffset()
     {
         using var ctx = CreateContext();
+
         var p = new DateTimeOffset(1990, 3, 3, 17, 10, 15, TimeSpan.Zero);
         var x = ctx.JsonbEntities.Single(e => e.Customer.VariousTypes.DateTimeOffset == p);
 
         Assert.Equal("Moe", x.Customer.Name);
+
         AssertSql(
             @"@__p_0='1990-03-03T17:10:15.0000000+00:00' (DbType = DateTime)
 
@@ -186,6 +202,7 @@ LIMIT 2");
     public void Nullable()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.SomeNullableInt == 20);
 
         Assert.Equal("Joe", x.Customer.Name);
@@ -201,6 +218,7 @@ LIMIT 2");
     public void Compare_to_null()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.SomeNullableInt == null);
 
         Assert.Equal("Moe", x.Customer.Name);
@@ -216,9 +234,11 @@ LIMIT 2");
     public void Nested()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Visits == 4);
 
         Assert.Equal("Joe", x.Customer.Name);
+
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
@@ -230,9 +250,11 @@ LIMIT 2");
     public void Nested_twice()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.SomeProperty == 10);
 
         Assert.Equal("Joe", x.Customer.Name);
+
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
@@ -244,9 +266,11 @@ LIMIT 2");
     public void Array_of_objects()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.Customer.Orders[0].Price == 99.5m);
 
         Assert.Equal("Joe", x.Customer.Name);
+
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
@@ -258,9 +282,11 @@ LIMIT 2");
     public void Array_toplevel()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.ToplevelArray[1] == "two");
 
         Assert.Equal("Joe", x.Customer.Name);
+
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
@@ -272,9 +298,11 @@ LIMIT 2");
     public void Array_nested()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.IntArray[1] == 4);
 
         Assert.Equal("Joe", x.Customer.Name);
+
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
@@ -286,10 +314,12 @@ LIMIT 2");
     public void Array_parameter_index()
     {
         using var ctx = CreateContext();
+
         var i = 1;
         var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.IntArray[i] == 4);
 
         Assert.Equal("Joe", x.Customer.Name);
+
         AssertSql(
             @"@__i_0='1'
 
@@ -303,9 +333,11 @@ LIMIT 2");
     public void Array_Length()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.Customer.Orders.Length == 2);
 
         Assert.Equal("Joe", x.Customer.Name);
+
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
@@ -317,9 +349,11 @@ LIMIT 2");
     public void Array_Length_json()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonEntities.Single(e => e.Customer.Orders.Length == 2);
 
         Assert.Equal("Joe", x.Customer.Name);
+
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonEntities"" AS j
@@ -331,9 +365,11 @@ LIMIT 2");
     public void Array_Any_toplevel()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.ToplevelArray.Any());
 
         Assert.Equal("Joe", x.Customer.Name);
+
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
@@ -345,9 +381,11 @@ LIMIT 2");
     public void Like()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e => e.Customer.Name.StartsWith("J"));
 
         Assert.Equal("Joe", x.Customer.Name);
+
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
@@ -359,10 +397,12 @@ LIMIT 2");
     public void Where_nullable_guid()
     {
         using var ctx = CreateContext();
+
         var x = ctx.JsonbEntities.Single(e =>
             e.Customer.Statistics.Nested.SomeNullableGuid == Guid.Parse("d5f2685d-e5c4-47e5-97aa-d0266154eb2d"));
 
         Assert.Equal("Joe", x.Customer.Name);
+
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
