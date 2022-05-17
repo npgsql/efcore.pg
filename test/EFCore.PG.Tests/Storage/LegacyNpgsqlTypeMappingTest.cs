@@ -51,7 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             ),
             new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
-            new NpgsqlOptions()
+            new NpgsqlSingletonOptions()
         );
 
         private static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);

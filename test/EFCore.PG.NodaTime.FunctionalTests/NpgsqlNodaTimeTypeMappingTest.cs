@@ -604,7 +604,7 @@ public class NpgsqlNodaTimeTypeMappingTest
                 new NpgsqlNodaTimeTypeMappingSourcePlugin(new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()))
             }),
         new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
-        new NpgsqlOptions()
+        new NpgsqlSingletonOptions()
     );
 
     private static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);

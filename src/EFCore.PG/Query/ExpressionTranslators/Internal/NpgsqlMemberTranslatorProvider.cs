@@ -16,7 +16,7 @@ public class NpgsqlMemberTranslatorProvider : RelationalMemberTranslatorProvider
         RelationalMemberTranslatorProviderDependencies dependencies,
         IModel model,
         IRelationalTypeMappingSource typeMappingSource,
-        INpgsqlOptions npgsqlOptions)
+        INpgsqlSingletonOptions npgsqlSingletonOptions)
         : base(dependencies)
     {
         var sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
@@ -24,13 +24,13 @@ public class NpgsqlMemberTranslatorProvider : RelationalMemberTranslatorProvider
 
         AddTranslators(
             new IMemberTranslator[] {
-                new NpgsqlArrayTranslator(sqlExpressionFactory, JsonPocoTranslator, npgsqlOptions.UseRedshift),
+                new NpgsqlArrayTranslator(sqlExpressionFactory, JsonPocoTranslator, npgsqlSingletonOptions.UseRedshift),
                 new NpgsqlBigIntegerMemberTranslator(sqlExpressionFactory),
                 new NpgsqlDateTimeMemberTranslator(typeMappingSource, sqlExpressionFactory),
                 new NpgsqlJsonDomTranslator(typeMappingSource, sqlExpressionFactory, model),
                 new NpgsqlLTreeTranslator(typeMappingSource, sqlExpressionFactory, model),
                 JsonPocoTranslator,
-                new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory, model),
+                new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory, model, npgsqlSingletonOptions),
                 new NpgsqlStringMemberTranslator(sqlExpressionFactory),
                 new NpgsqlTimeSpanMemberTranslator(sqlExpressionFactory),
             });

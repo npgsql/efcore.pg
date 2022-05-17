@@ -60,6 +60,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
 
     private static MethodInfo? _adoUserTypeMappingsGetMethodInfo;
 
+    private readonly bool _supportsMultiranges;
+
     #region Mappings
 
     // Numeric types
@@ -148,7 +150,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     private readonly NpgsqlMultirangeTypeMapping _nummultirangeArray;
     private readonly NpgsqlMultirangeTypeMapping _tsmultirangeArray;
     private readonly NpgsqlMultirangeTypeMapping _tstzmultirangeArray;
-    private readonly NpgsqlMultirangeTypeMapping _dateTimedatemultirangeArray;
+    private readonly NpgsqlMultirangeTypeMapping _dateTimeDatemultirangeArray;
     private readonly NpgsqlMultirangeTypeMapping _dateOnlyDatemultirangeArray;
 
     private readonly NpgsqlMultirangeTypeMapping _int4multirangeList;
@@ -182,10 +184,12 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     public NpgsqlTypeMappingSource(TypeMappingSourceDependencies dependencies,
         RelationalTypeMappingSourceDependencies relationalDependencies,
         ISqlGenerationHelper sqlGenerationHelper,
-        INpgsqlOptions? npgsqlOptions = null)
+        INpgsqlSingletonOptions npgsqlSingletonOptions)
         : base(dependencies, relationalDependencies)
     {
         _sqlGenerationHelper = Check.NotNull(sqlGenerationHelper, nameof(sqlGenerationHelper));
+        _supportsMultiranges = npgsqlSingletonOptions.PostgresVersionWithoutDefault is null
+            || npgsqlSingletonOptions.PostgresVersionWithoutDefault.AtLeast(14);
 
         // Initialize some mappings which depend on other mappings
         _int4range         = new NpgsqlRangeTypeMapping("int4range", typeof(NpgsqlRange<int>),      _int4,         sqlGenerationHelper);
@@ -211,7 +215,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         _tsmultirangeArray           = new NpgsqlMultirangeTypeMapping("tsmultirange",   typeof(NpgsqlRange<DateTime>[]),     _tsrange,           sqlGenerationHelper);
         _tstzmultirangeArray         = new NpgsqlMultirangeTypeMapping("tstzmultirange", typeof(NpgsqlRange<DateTime>[]),     _tstzrange,         sqlGenerationHelper);
         _dateOnlyDatemultirangeArray = new NpgsqlMultirangeTypeMapping("datemultirange", typeof(NpgsqlRange<DateOnly>[]),     _dateOnlyDaterange, sqlGenerationHelper);
-        _dateTimedatemultirangeArray = new NpgsqlMultirangeTypeMapping("datemultirange", typeof(NpgsqlRange<DateTime>[]),     _dateTimeDaterange, sqlGenerationHelper);
+        _dateTimeDatemultirangeArray = new NpgsqlMultirangeTypeMapping("datemultirange", typeof(NpgsqlRange<DateTime>[]),     _dateTimeDaterange, sqlGenerationHelper);
 
         _int4multirangeList          = new NpgsqlMultirangeTypeMapping("int4multirange", typeof(List<NpgsqlRange<int>>),      _int4range,         sqlGenerationHelper);
         _int8multirangeList          = new NpgsqlMultirangeTypeMapping("int8multirange", typeof(List<NpgsqlRange<long>>),     _int8range,         sqlGenerationHelper);
@@ -232,7 +236,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
                 {
                     _tsmultirangeArray, _tsmultirangeList,
                     _tstzmultirangeArray, _tstzmultirangeList,
-                    _dateTimedatemultirangeArray, _dateTimeMultirangeList
+                    _dateTimeDatemultirangeArray, _dateTimeMultirangeList
                 }
             }
         };
@@ -310,13 +314,6 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { "tstzrange",                   new[] { _tstzrange                    } },
             { "daterange",                   new[] { _dateOnlyDaterange, _dateTimeDaterange } },
 
-            { "int4multirange",              new[] { _int4multirangeArray, _int4multirangeList } },
-            { "int8multirange",              new[] { _int8multirangeArray, _int8multirangeList } },
-            { "nummultirange",               new[] { _nummultirangeArray, _nummultirangeList   } },
-            { "tsmultirange",                new[] { _tsmultirangeArray, _tsmultirangeList     } },
-            { "tstzmultirange",              new[] { _tstzmultirangeArray, _tstzmultirangeList } },
-            { "datemultirange",              new[] { _dateOnlyDatemultirangeArray, _dateOnlyDatemultirangeList, _dateTimedatemultirangeArray, _dateTimeMultirangeList } },
-
             { "tsquery",                     new[] { _tsquery                      } },
             { "tsvector",                    new[] { _tsvector                     } },
             { "regconfig",                   new[] { _regconfig                    } },
@@ -385,18 +382,6 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { typeof(NpgsqlRange<DateTimeOffset>),          _tstzrange           },
             { typeof(NpgsqlRange<DateOnly>),               _dateOnlyDaterange },
 
-            { typeof(NpgsqlRange<int>[]),                  _int4multirangeArray  },
-            { typeof(NpgsqlRange<long>[]),                 _int8multirangeArray  },
-            { typeof(NpgsqlRange<decimal>[]),              _nummultirangeArray   },
-            { typeof(NpgsqlRange<DateTime>[]),             LegacyTimestampBehavior ? _tsmultirangeArray : _tstzmultirangeArray },
-            { typeof(NpgsqlRange<DateOnly>[]),              _dateOnlyDatemultirangeArray },
-
-            { typeof(List<NpgsqlRange<int>>),              _int4multirangeList   },
-            { typeof(List<NpgsqlRange<long>>),             _int8multirangeList   },
-            { typeof(List<NpgsqlRange<decimal>>),          _nummultirangeList    },
-            { typeof(List<NpgsqlRange<DateTime>>),         LegacyTimestampBehavior ? _tsmultirangeList : _tstzmultirangeList },
-            { typeof(List<NpgsqlRange<DateOnly>>),          _dateOnlyDatemultirangeList },
-
             { typeof(NpgsqlTsQuery),                       _tsquery              },
             { typeof(NpgsqlTsVector),                      _tsvector             },
             { typeof(NpgsqlTsRankingNormalization),        _rankingNormalization },
@@ -404,12 +389,34 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { typeof(LTree),                               _ltree                }
         };
 
+        if (_supportsMultiranges)
+        {
+            storeTypeMappings["int4multirange"] = new[] { _int4multirangeArray, _int4multirangeList };
+            storeTypeMappings["int8multirange"] = new[] { _int8multirangeArray, _int8multirangeList };
+            storeTypeMappings["nummultirange"] = new[] { _nummultirangeArray, _nummultirangeList   };
+            storeTypeMappings["tsmultirange"] = new[] { _tsmultirangeArray, _tsmultirangeList     };
+            storeTypeMappings["tstzmultirange"] = new[] { _tstzmultirangeArray, _tstzmultirangeList };
+            storeTypeMappings["datemultirange"] = new[] { _dateOnlyDatemultirangeArray, _dateOnlyDatemultirangeList, _dateTimeDatemultirangeArray, _dateTimeMultirangeList };
+
+            clrTypeMappings[typeof(NpgsqlRange<int>[])] = _int4multirangeArray;
+            clrTypeMappings[typeof(NpgsqlRange<long>[])] = _int8multirangeArray;
+            clrTypeMappings[typeof(NpgsqlRange<decimal>[])] = _nummultirangeArray;
+            clrTypeMappings[typeof(NpgsqlRange<DateTime>[])] = LegacyTimestampBehavior ? _tsmultirangeArray : _tstzmultirangeArray;
+            clrTypeMappings[typeof(NpgsqlRange<DateOnly>[])] = _dateOnlyDatemultirangeArray;
+
+            clrTypeMappings[typeof(List<NpgsqlRange<int>>)] = _int4multirangeList;
+            clrTypeMappings[typeof(List<NpgsqlRange<long>>)] = _int8multirangeList;
+            clrTypeMappings[typeof(List<NpgsqlRange<decimal>>)] = _nummultirangeList;
+            clrTypeMappings[typeof(List<NpgsqlRange<DateTime>>)] = LegacyTimestampBehavior ? _tsmultirangeList : _tstzmultirangeList;
+            clrTypeMappings[typeof(List<NpgsqlRange<DateOnly>>)] = _dateOnlyDatemultirangeList;
+        }
+
         StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
         ClrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
 
         LoadUserDefinedTypeMappings(sqlGenerationHelper);
 
-        _userRangeDefinitions = npgsqlOptions?.UserRangeDefinitions ?? new UserRangeDefinition[0];
+        _userRangeDefinitions = npgsqlSingletonOptions?.UserRangeDefinitions ?? new UserRangeDefinition[0];
     }
 
     /// <summary>
@@ -715,7 +722,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     }
 
     /// <summary>
-    /// Finds the mapping for a container given its CLR type and its containee's type mapping'; this is currently used to infer type
+    /// Finds the mapping for a container given its CLR type and its containee's type mapping; this is currently used to infer type
     /// mappings for ranges and multiranges from their values.
     /// </summary>
     public virtual RelationalTypeMapping? FindContainerMapping(Type containerClrType, RelationalTypeMapping containeeTypeMapping)
@@ -727,7 +734,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
                 : null;
         }
 
-        if (containerClrType.TryGetMultirangeSubtype(out subtypeType))
+        if (_supportsMultiranges && containerClrType.TryGetMultirangeSubtype(out subtypeType))
         {
             return _multirangeTypeMapings.TryGetValue(subtypeType, out var candidateMappings)
                 ? candidateMappings.FirstOrDefault(m => m.SubtypeMapping.StoreType == containeeTypeMapping.StoreType)

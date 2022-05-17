@@ -126,13 +126,13 @@ public static class NpgsqlServiceCollectionExtensions
             .TryAdd<IRelationalSqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
             .TryAdd<IRelationalParameterBasedSqlProcessorFactory, NpgsqlParameterBasedSqlProcessorFactory>()
             .TryAdd<ISqlExpressionFactory, NpgsqlSqlExpressionFactory>()
-            .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetRequiredService<INpgsqlOptions>())
+            .TryAdd<ISingletonOptions, INpgsqlSingletonOptions>(p => p.GetRequiredService<INpgsqlSingletonOptions>())
             .TryAdd<IValueConverterSelector, NpgsqlValueConverterSelector>()
             .TryAdd<IQueryCompilationContextFactory, NpgsqlQueryCompilationContextFactory>()
             .TryAddProviderSpecificServices(
                 b => b
                     .TryAddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()
-                    .TryAddSingleton<INpgsqlOptions, NpgsqlOptions>()
+                    .TryAddSingleton<INpgsqlSingletonOptions, NpgsqlSingletonOptions>()
                     .TryAddSingleton<INpgsqlSequenceValueGeneratorFactory, NpgsqlSequenceValueGeneratorFactory>()
                     .TryAddScoped<INpgsqlRelationalConnection, NpgsqlRelationalConnection>())
             .TryAddCoreServices();

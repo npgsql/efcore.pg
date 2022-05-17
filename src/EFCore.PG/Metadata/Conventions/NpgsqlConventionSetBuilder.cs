@@ -17,7 +17,7 @@ public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
     public NpgsqlConventionSetBuilder(
         ProviderConventionSetBuilderDependencies dependencies,
         RelationalConventionSetBuilderDependencies relationalDependencies,
-        INpgsqlOptions npgsqlOptions)
+        INpgsqlSingletonOptions npgsqlOptions)
         : base(dependencies, relationalDependencies)
         => _postgresVersion = npgsqlOptions.PostgresVersion;
 

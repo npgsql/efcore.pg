@@ -7,12 +7,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 /// <summary>
 /// Represents options for Npgsql that can only be set at the <see cref="IServiceProvider"/> singleton level.
 /// </summary>
-public interface INpgsqlOptions : ISingletonOptions
+public interface INpgsqlSingletonOptions : ISingletonOptions
 {
     /// <summary>
     /// The backend version to target.
     /// </summary>
     Version PostgresVersion { get; }
+
+    /// <summary>
+    /// The backend version to target, but returns <see langword="null" /> unless the user explicitly specified a version.
+    /// </summary>
+    Version? PostgresVersionWithoutDefault { get; }
 
     /// <summary>
     /// Whether to target Redshift.

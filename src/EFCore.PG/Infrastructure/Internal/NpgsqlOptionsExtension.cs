@@ -16,8 +16,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 /// </summary>
 public class NpgsqlOptionsExtension : RelationalOptionsExtension
 {
-    public static readonly Version DefaultPostgresVersion = new(12, 0);
-
     private DbContextOptionsExtensionInfo? _info;
     private readonly List<UserRangeDefinition> _userRangeDefinitions;
 
@@ -29,7 +27,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     /// <summary>
     /// The backend version to target.
     /// </summary>
-    public virtual Version PostgresVersion { get; private set; } = DefaultPostgresVersion;
+    public virtual Version? PostgresVersion { get; private set; }
 
     /// <summary>
     /// Whether to target Redshift.
@@ -140,7 +138,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
         var clone = (NpgsqlOptionsExtension)Clone();
 
-        clone.PostgresVersion = postgresVersion ?? DefaultPostgresVersion;
+        clone.PostgresVersion = postgresVersion;
 
         return clone;
     }
@@ -179,7 +177,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
         base.Validate(options);
 
-        if (UseRedshift && !PostgresVersion.Equals(DefaultPostgresVersion))
+        if (UseRedshift && PostgresVersion is not null)
         {
             throw new InvalidOperationException($"{nameof(UseRedshift)} and {nameof(PostgresVersion)} cannot both be set");
         }
@@ -271,7 +269,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
                     builder.Append(nameof(Extension.AdminDatabase)).Append("=").Append(Extension.AdminDatabase).Append(' ');
                 }
 
-                if (!Extension.PostgresVersion.Equals(DefaultPostgresVersion))
+                if (Extension.PostgresVersion is not null)
                 {
                     builder.Append(nameof(Extension.PostgresVersion)).Append("=").Append(Extension.PostgresVersion).Append(' ');
                 }
