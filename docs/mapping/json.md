@@ -229,7 +229,7 @@ EF.Functions.JsonTypeof(customer.GetProperty("Age")) == "number"                
 
 ***
 
-<sup>1</sup> JSON functions which accept a .NET object require a JSON document, and do not accept scalar values. For example, to pass a scalar to `JsonContains`, wrap it in a `JsonElement`.
+<sup>1</sup> JSON functions which accept a .NET object will not accept .NET scalar values. For example, to pass a scalar to `JsonContains` wrap it in a `JsonElement` or alternatively wrap it in a string. Note: a root level JSON string value requires quotes and escaping `@"""Joe"""`, just as any nested JSON string value would.
 
 ## Indexing JSON columns
 
