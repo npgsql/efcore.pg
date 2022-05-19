@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text.Json;
@@ -309,13 +310,13 @@ LIMIT 2");
     public void Array_Length()
     {
         using var ctx = CreateContext();
-        var x = ctx.JsonbEntities.Single(e => e.Customer.Orders.Length == 2);
+        var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.IntArray.Length == 2);
 
         Assert.Equal("Joe", x.Customer.Name);
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE jsonb_array_length(j.""Customer""->'Orders') = 2
+WHERE jsonb_array_length(j.""Customer""#>'{Statistics,Nested,IntArray}') = 2
 LIMIT 2");
     }
 
@@ -323,13 +324,45 @@ LIMIT 2");
     public void Array_Length_json()
     {
         using var ctx = CreateContext();
-        var x = ctx.JsonEntities.Single(e => e.Customer.Orders.Length == 2);
+        var x = ctx.JsonEntities.Single(e => e.Customer.Statistics.Nested.IntArray.Length == 2);
 
         Assert.Equal("Joe", x.Customer.Name);
         AssertSql(
             @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonEntities"" AS j
-WHERE json_array_length(j.""Customer""->'Orders') = 2
+WHERE json_array_length(j.""Customer""#>'{Statistics,Nested,IntArray}') = 2
+LIMIT 2");
+    }
+
+    [Fact]
+    public void List_Count()
+    {
+        using var ctx = CreateContext();
+
+        var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.IntList.Count == 2);
+
+        Assert.Equal("Joe", x.Customer.Name);
+
+        AssertSql(
+            @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+FROM ""JsonbEntities"" AS j
+WHERE jsonb_array_length(j.""Customer""#>'{Statistics,Nested,IntList}') = 2
+LIMIT 2");
+    }
+
+    [Fact]
+    public void List_Count_json()
+    {
+        using var ctx = CreateContext();
+
+        var x = ctx.JsonEntities.Single(e => e.Customer.Statistics.Nested.IntList.Count == 2);
+
+        Assert.Equal("Joe", x.Customer.Name);
+
+        AssertSql(
+            @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+FROM ""JsonEntities"" AS j
+WHERE json_array_length(j.""Customer""#>'{Statistics,Nested,IntList}') = 2
 LIMIT 2");
     }
 
@@ -585,7 +618,8 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                         SomeProperty = 10,
                         SomeNullableInt = 20,
                         SomeNullableGuid = Guid.Parse("d5f2685d-e5c4-47e5-97aa-d0266154eb2d"),
-                        IntArray = new[] { 3, 4 }
+                        IntArray = new[] { 3, 4 },
+                        IntList = new() { 3, 4 }
                     }
                 },
                 Orders = new[]
@@ -629,7 +663,8 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                         SomeProperty = 20,
                         SomeNullableInt = null,
                         SomeNullableGuid = null,
-                        IntArray = new[] { 5, 6 }
+                        IntArray = new[] { 5, 6, 7 },
+                        IntList = new() { 5, 6, 7 }
                     }
                 },
                 Orders = new[]
@@ -709,6 +744,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
         public int SomeProperty { get; set; }
         public int? SomeNullableInt { get; set; }
         public int[] IntArray { get; set; }
+        public List<int> IntList { get; set; }
         public Guid? SomeNullableGuid { get; set; }
     }
 

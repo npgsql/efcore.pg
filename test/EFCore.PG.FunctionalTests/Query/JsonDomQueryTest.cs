@@ -105,7 +105,7 @@ FROM ""JsonbEntities"" AS j
 WHERE j.""Id"" = @__p_0
 LIMIT 1",
             //
-            @"@__expected_0='{""ID"": ""00000000-0000-0000-0000-000000000000"", ""Age"": 25, ""Name"": ""Joe"", ""IsVip"": false, ""Orders"": [{""Price"": 99.5, ""ShippingAddress"": ""Some address 1""}, {""Price"": 23, ""ShippingAddress"": ""Some address 2""}], ""Statistics"": {""Nested"": {""IntArray"": [3, 4], ""SomeProperty"": 10, ""SomeNullableInt"": 20, ""SomeNullableGuid"": ""d5f2685d-e5c4-47e5-97aa-d0266154eb2d""}, ""Visits"": 4, ""Purchases"": 3}, ""VariousTypes"": {""Bool"": ""false"", ""Int16"": 8, ""Int32"": 8, ""Int64"": 8, ""String"": ""foo"", ""Decimal"": 10, ""DateTime"": ""2020-01-01T10:30:45"", ""DateTimeOffset"": ""2020-01-01T10:30:45+02:00""}}' (DbType = Object)
+            @"@__expected_0='{""ID"": ""00000000-0000-0000-0000-000000000000"", ""Age"": 25, ""Name"": ""Joe"", ""IsVip"": false, ""Orders"": [{""Price"": 99.5, ""ShippingAddress"": ""Some address 1""}, {""Price"": 23, ""ShippingAddress"": ""Some address 2""}], ""Statistics"": {""Nested"": {""IntList"": [3, 4], ""IntArray"": [3, 4], ""SomeProperty"": 10, ""SomeNullableInt"": 20, ""SomeNullableGuid"": ""d5f2685d-e5c4-47e5-97aa-d0266154eb2d""}, ""Visits"": 4, ""Purchases"": 3}, ""VariousTypes"": {""Bool"": ""false"", ""Int16"": 8, ""Int32"": 8, ""Int64"": 8, ""String"": ""foo"", ""Decimal"": 10, ""DateTime"": ""2020-01-01T10:30:45"", ""DateTimeOffset"": ""2020-01-01T10:30:45+02:00""}}' (DbType = Object)
 
 SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
@@ -522,7 +522,8 @@ WHERE json_typeof(j.""CustomerElement""#>'{Statistics,Visits}') = 'number'");
                             ""SomeProperty"": 10,
                             ""SomeNullableInt"": 20,
                             ""SomeNullableGuid"": ""d5f2685d-e5c4-47e5-97aa-d0266154eb2d"",
-                            ""IntArray"": [3, 4]
+                            ""IntArray"": [3, 4],
+                            ""IntList"": [3, 4]
                         }
                     },
                     ""Orders"":
@@ -564,7 +565,8 @@ WHERE json_typeof(j.""CustomerElement""#>'{Statistics,Visits}') = 'number'");
                             ""SomeProperty"": 20,
                             ""SomeNullableInt"": null,
                             ""SomeNullableGuid"": null,
-                            ""IntArray"": [5, 6]
+                            ""IntArray"": [5, 6, 7],
+                            ""IntArray"": [5, 6, 7]
                         }
                     },
                     ""Orders"":
