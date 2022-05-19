@@ -23,17 +23,29 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator
         _stringTypeMapping = typeMappingSource.FindMapping(typeof(string), model)!;
     }
 
-    public virtual SqlExpression? Translate(SqlExpression? instance,
+    public virtual SqlExpression? Translate(
+        SqlExpression? instance,
         MemberInfo member,
         Type returnType,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
-        => instance?.TypeMapping is NpgsqlJsonTypeMapping || instance is PostgresJsonTraversalExpression
-            ? TranslateMemberAccess(
-                instance,
-                _sqlExpressionFactory.Constant(
-                    member.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? member.Name),
-                returnType)
-            : null;
+    {
+        if (instance?.TypeMapping is not NpgsqlJsonTypeMapping && instance is not PostgresJsonTraversalExpression)
+        {
+            return null;
+        }
+
+        if (member.Name == nameof(List<object>.Count)
+            && member.DeclaringType?.IsGenericType == true
+            && member.DeclaringType.GetGenericTypeDefinition() == typeof(List<>))
+        {
+            return TranslateArrayLength(instance);
+        }
+
+        return TranslateMemberAccess(
+            instance,
+            _sqlExpressionFactory.Constant(member.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? member.Name),
+            returnType);
+    }
 
     public virtual SqlExpression? TranslateMemberAccess(
         SqlExpression instance, SqlExpression member, Type returnType)
@@ -41,8 +53,7 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator
         // The first time we see a JSON traversal it's on a column - create a JsonTraversalExpression.
         // Traversals on top of that get appended into the same expression.
 
-        if (instance is ColumnExpression columnExpression &&
-            columnExpression.TypeMapping is NpgsqlJsonTypeMapping)
+        if (instance is ColumnExpression { TypeMapping: NpgsqlJsonTypeMapping } columnExpression)
         {
             return ConvertFromText(
                 _sqlExpressionFactory.JsonTraversal(
@@ -66,8 +77,7 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator
 
     public virtual SqlExpression? TranslateArrayLength(SqlExpression expression)
     {
-        if (expression is ColumnExpression columnExpression &&
-            columnExpression.TypeMapping is NpgsqlJsonTypeMapping mapping)
+        if (expression is ColumnExpression { TypeMapping: NpgsqlJsonTypeMapping mapping })
         {
             return _sqlExpressionFactory.Function(
                 mapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
