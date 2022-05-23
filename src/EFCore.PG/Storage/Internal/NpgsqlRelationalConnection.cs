@@ -34,6 +34,7 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     protected override DbConnection CreateDbConnection()
     {
         var conn = new NpgsqlConnection(ConnectionString);
+
         if (ProvideClientCertificatesCallback is not null)
         {
             conn.ProvideClientCertificatesCallback = ProvideClientCertificatesCallback;

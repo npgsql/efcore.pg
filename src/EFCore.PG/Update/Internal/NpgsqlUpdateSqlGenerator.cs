@@ -106,10 +106,4 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
         SqlGenerationHelper.DelimitIdentifier(commandStringBuilder, Check.NotNull(name, nameof(name)), schema);
         commandStringBuilder.Append("')");
     }
-
-    protected override void AppendIdentityWhereCondition(StringBuilder commandStringBuilder, IColumnModification columnModification)
-        => throw new NotSupportedException();
-
-    protected override void AppendRowsAffectedWhereCondition(StringBuilder commandStringBuilder, int expectedRowsAffected)
-        => throw new NotSupportedException();
 }

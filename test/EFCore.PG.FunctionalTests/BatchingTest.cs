@@ -133,8 +133,7 @@ public class BatchingTest : IClassFixture<BatchingTest.BatchingTestFixture>
     }
 
 
-#if !Test20
-    [Theory]
+    [ConditionalTheory]
     [InlineData(3)]
     [InlineData(4)]
     public void Inserts_are_batched_only_when_necessary(int minBatchSize)
@@ -148,13 +147,9 @@ public class BatchingTest : IClassFixture<BatchingTest.BatchingTestFixture>
                 var owner = new Owner();
                 context.Owners.Add(owner);
 
-                for (var i = 1; i < 4; i++)
+                for (var i = 1; i < 3; i++)
                 {
-                    var blog = new Blog
-                    {
-                        Id = Guid.NewGuid(),
-                        Owner = owner
-                    };
+                    var blog = new Blog { Id = Guid.NewGuid(), Owner = owner };
 
                     context.Set<Blog>().Add(blog);
                     expectedBlogs.Add(blog);
@@ -166,14 +161,15 @@ public class BatchingTest : IClassFixture<BatchingTest.BatchingTestFixture>
 
                 Assert.Contains(
                     minBatchSize == 3
-                        ? RelationalResources.LogBatchReadyForExecution(new TestLogger<NpgsqlLoggingDefinitions>()).GenerateMessage(3)
-                        : RelationalResources.LogBatchSmallerThanMinBatchSize(new TestLogger<NpgsqlLoggingDefinitions>()).GenerateMessage(3, 4),
+                        ? RelationalResources.LogBatchReadyForExecution(new TestLogger<NpgsqlLoggingDefinitions>())
+                            .GenerateMessage(3)
+                        : RelationalResources.LogBatchSmallerThanMinBatchSize(new TestLogger<NpgsqlLoggingDefinitions>())
+                            .GenerateMessage(3, 4),
                     Fixture.TestSqlLoggerFactory.Log.Select(l => l.Message));
 
-                Assert.Equal(minBatchSize <= 3 ? 2 : 4, Fixture.TestSqlLoggerFactory.SqlStatements.Count);
+                Assert.Equal(minBatchSize <= 3 ? 1 : 3, Fixture.TestSqlLoggerFactory.SqlStatements.Count);
             }, context => AssertDatabaseState(context, false, expectedBlogs));
     }
-#endif
 
     private void AssertDatabaseState(DbContext context, bool clientOrder, List<Blog> expectedBlogs)
     {

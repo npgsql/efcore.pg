@@ -35,9 +35,6 @@ public class NpgsqlModificationCommandBatchTest
                         new NpgsqlSqlGenerationHelper(
                             new RelationalSqlGenerationHelperDependencies()),
                         typeMapper)),
-                new TypedRelationalValueBufferFactoryFactory(
-                    new RelationalValueBufferFactoryDependencies(
-                        typeMapper, new CoreSingletonOptions())),
                 new CurrentDbContext(new FakeDbContext()),
                 logger),
             maxBatchSize: 1);
@@ -54,17 +51,10 @@ public class NpgsqlModificationCommandBatchTest
     {
     }
 
-    private static IModificationCommand CreateModificationCommand(
+    private static INonTrackedModificationCommand CreateModificationCommand(
         string name,
         string schema,
         bool sensitiveLoggingEnabled)
-    {
-        var modificationCommandParameters = new ModificationCommandParameters(
-            name, schema, sensitiveLoggingEnabled);
-
-        var modificationCommand = new ModificationCommandFactory().CreateModificationCommand(
-            modificationCommandParameters);
-
-        return modificationCommand;
-    }
+        => new ModificationCommandFactory().CreateNonTrackedModificationCommand(
+            new NonTrackedModificationCommandParameters(name, schema, sensitiveLoggingEnabled));
 }
