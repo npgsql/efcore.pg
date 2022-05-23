@@ -66,28 +66,26 @@ public class NpgsqlQueryableAggregateMethodTranslator : IAggregateMethodCallTran
                     || methodInfo == QueryableMethods.CountWithPredicate:
                     var countSqlExpression = (source.Selector as SqlExpression) ?? _sqlExpressionFactory.Fragment("*");
                     return _sqlExpressionFactory.Convert(
-                        _sqlExpressionFactory.ApplyDefaultTypeMapping(
-                            _sqlExpressionFactory.AggregateFunction(
-                                "count",
-                                new[] { countSqlExpression },
-                                nullable: false,
-                                argumentsPropagateNullability: FalseArrays[1],
-                                source,
-                                typeof(long))),
+                        _sqlExpressionFactory.AggregateFunction(
+                            "count",
+                            new[] { countSqlExpression },
+                            nullable: false,
+                            argumentsPropagateNullability: FalseArrays[1],
+                            source,
+                            typeof(long)),
                         typeof(int), _typeMappingSource.FindMapping(typeof(int)));
 
                 case nameof(Queryable.LongCount)
                 when methodInfo == QueryableMethods.LongCountWithoutPredicate
                     || methodInfo == QueryableMethods.LongCountWithPredicate:
                     var longCountSqlExpression = (source.Selector as SqlExpression) ?? _sqlExpressionFactory.Fragment("*");
-                    return _sqlExpressionFactory.ApplyDefaultTypeMapping(
-                        _sqlExpressionFactory.AggregateFunction(
+                    return _sqlExpressionFactory.AggregateFunction(
                             "count",
                             new[] { longCountSqlExpression },
                             nullable: false,
                             argumentsPropagateNullability: FalseArrays[1],
                             source,
-                            typeof(long)));
+                            typeof(long));
 
                 case nameof(Queryable.Max)
                 when (methodInfo == QueryableMethods.MaxWithoutSelector

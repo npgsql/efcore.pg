@@ -12,6 +12,9 @@ public class DataAnnotationNpgsqlTest : DataAnnotationRelationalTestBase<DataAnn
     protected override void UseTransaction(DatabaseFacade facade, IDbContextTransaction transaction)
         => facade.UseTransaction(transaction.GetDbTransaction());
 
+    protected override TestHelpers TestHelpers
+        => NpgsqlTestHelpers.Instance;
+
     public override void StringLengthAttribute_throws_while_inserting_value_longer_than_max_length()
     {
         // Npgsql does not support length
