@@ -90,10 +90,16 @@ WHERE date_trunc('day', m.""Timeline"" AT TIME ZONE 'UTC') > TIMESTAMPTZ '0001-0
     // Not supported by design: we support getting a local DateTime via DateTime.Now (based on PG TimeZone), but there's no way to get a
     // non-UTC DateTimeOffset.
     public override Task Where_datetimeoffset_now(bool async)
-        => Task.CompletedTask;
+        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Where_datetimeoffset_now(async));
 
+    // Not supported by design: we support getting a local DateTime via DateTime.Now (based on PG TimeZone), but there's no way to get a
+    // non-UTC DateTimeOffset.
+    public override Task DateTimeOffsetNow_minus_timespan(bool async)
+        => Assert.ThrowsAsync<InvalidOperationException>(() => base.DateTimeOffsetNow_minus_timespan(async));
+
+    // SQL translation not implemented, too annoying
     public override Task Where_datetimeoffset_millisecond_component(bool async)
-        => Task.CompletedTask; // SQL translation not implemented, too annoying
+        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Where_datetimeoffset_millisecond_component(async));
 
     // Test runs successfully, but some time difference and precision issues and fail the assertion
     public override Task Where_TimeSpan_Hours(bool async)

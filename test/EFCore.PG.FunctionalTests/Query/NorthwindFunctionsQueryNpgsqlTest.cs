@@ -14,6 +14,7 @@ public class NorthwindFunctionsQueryNpgsqlTest : NorthwindFunctionsQueryRelation
         ClearLog();
         //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
+
     public override async Task IsNullOrWhiteSpace_in_predicate(bool async)
     {
         await base.IsNullOrWhiteSpace_in_predicate(async);
@@ -24,17 +25,21 @@ FROM ""Customers"" AS c
 WHERE (c.""Region"" IS NULL) OR btrim(c.""Region"", E' \t\n\r') = ''");
     }
 
+    // PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though
     public override Task Where_math_log_new_base(bool async)
-        => Task.CompletedTask; // PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though
+        => AssertTranslationFailed(() => base.Where_math_log_new_base(async));
 
+    // PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though
     public override Task Where_mathf_log_new_base(bool async)
-        => Task.CompletedTask; // PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though
+        => AssertTranslationFailed(() => base.Where_mathf_log_new_base(async));
 
+    // PostgreSQL only has round(v, s) over numeric, may be possible to cast back and forth though
     public override Task Where_mathf_round2(bool async)
-        => Task.CompletedTask; // PostgreSQL only has round(v, s) over numeric, may be possible to cast back and forth though
+        => AssertTranslationFailed(() => base.Where_mathf_round2(async));
 
+    // Convert on DateTime not yet supported
     public override Task Convert_ToString(bool async)
-        => Task.CompletedTask; // Convert on DateTime not yet supported
+        => AssertTranslationFailed(() => base.Convert_ToString(async));
 
     #region Substring
 
@@ -271,6 +276,14 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST");
     #endregion
 
     #region Unsupported
+
+    // PostgreSQL does not have strpos with starting position
+    public override Task Indexof_with_constant_starting_position(bool async)
+        => AssertTranslationFailed(() => base.Indexof_with_constant_starting_position(async));
+
+    // PostgreSQL does not have strpos with starting position
+    public override Task Indexof_with_parameter_starting_position(bool async)
+        => AssertTranslationFailed(() => base.Indexof_with_parameter_starting_position(async));
 
     // These tests convert (among other things) to and from boolean, which PostgreSQL
     // does not support (https://github.com/dotnet/efcore/issues/19606)
