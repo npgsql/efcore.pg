@@ -15,7 +15,6 @@ public class NpgsqlSetOperationTypeResolutionCompensatingExpressionVisitor : Exp
                     Visit(shapedQueryExpression.ShaperExpression)),
             SetOperationBase setOperationExpression => VisitSetOperation(setOperationExpression),
             SelectExpression selectExpression => VisitSelect(selectExpression),
-            TpcTablesExpression tpcTablesExpression => VisitTpcTablesExpression(tpcTablesExpression),
             _ => base.VisitExtension(extensionExpression)
         };
 
@@ -39,40 +38,6 @@ public class NpgsqlSetOperationTypeResolutionCompensatingExpressionVisitor : Exp
                 return base.VisitExtension(setOperationExpression);
         }
     }
-
-#pragma warning disable EF1001
-    private Expression VisitTpcTablesExpression(TpcTablesExpression tpcTablesExpression)
-    {
-        var parentState = _state;
-
-        if (tpcTablesExpression.SelectExpressions.Count < 3)
-        {
-            return base.VisitExtension(tpcTablesExpression);
-        }
-
-        var changed = false;
-        var visitedSelectExpressions = new SelectExpression[tpcTablesExpression.SelectExpressions.Count];
-
-        _state = State.InNestedSetOperation;
-        visitedSelectExpressions[0] = (SelectExpression)Visit(tpcTablesExpression.SelectExpressions[0]);
-        changed |= visitedSelectExpressions[0] != tpcTablesExpression.SelectExpressions[0];
-        _state = State.AlreadyCompensated;
-
-        for (var i = 1; i < tpcTablesExpression.SelectExpressions.Count; i++)
-        {
-            var selectExpression = tpcTablesExpression.SelectExpressions[i];
-            var visitedSelectExpression = (SelectExpression)Visit(tpcTablesExpression.SelectExpressions[i]);
-            visitedSelectExpressions[i] = visitedSelectExpression;
-            changed |= selectExpression != visitedSelectExpression;
-        }
-
-        _state = parentState;
-
-        return changed
-            ? new TpcTablesExpression(tpcTablesExpression.Alias, tpcTablesExpression.EntityType, visitedSelectExpressions)
-            : tpcTablesExpression;
-    }
-#pragma warning restore EF1001
 
     private Expression VisitSelect(SelectExpression selectExpression)
     {
