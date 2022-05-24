@@ -51,6 +51,9 @@ This code lets Npgsql know that your CLR enum type, `Mood`, should be mapped to 
 
 If you're curious as to inner workings, this code maps the enum with the ADO.NET provider - [see here for the full docs](http://www.npgsql.org/doc/types/enums_and_composites.html). When the Npgsql EF Core first initializes, it calls into the ADO.NET provider to get all mapped enums, and sets everything up internally at the EF Core layer as well.
 
+> [!NOTE]
+> If you have multiple context types, all `MapEnum` invocations must be done before *any* of them is used; this means that the code cannot be in your static constructors, but must be moved to the program start.
+
 ## Using enum properties
 
 Once your enum is mapped and created in the database, you can use your CLR enum type just like any other property:
