@@ -205,7 +205,7 @@ The following expression types and functions are translated:
 --------------------------------------------------------------------------------------- | ----
 customer.Name                                                                           | [customer->>'Name'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
 customer.Orders[1].Price                                                                | [customer#>>'{Orders,0,Price}'[1]](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
-customer.Orders.Length                                                                  | [jsonb_array_length(customer->'Orders')](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
+customer.Orders.Length (or Count)                                                       | [jsonb_array_length(customer->'Orders')](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
 EF.Functions.JsonContains(customer, @"{""Name"": ""Joe"", ""Age"": 25}")<sup>1</sup>    | [customer @> '{"Name": "Joe", "Age": 25}'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
 EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", e.Customer)<sup>1</sup> | ['{"Name": "Joe", "Age": 25}' <@ customer](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
 EF.Functions.JsonExists(e.Customer, "Age")                                              | [customer ? 'Age'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
