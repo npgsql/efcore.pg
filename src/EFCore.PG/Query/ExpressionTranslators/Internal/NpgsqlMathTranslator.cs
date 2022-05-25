@@ -184,13 +184,15 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
         if (TruncateMethodInfos.Contains(method))
         {
             var argument = arguments[0];
-            // Result of trunc for float/double is always double in server side
+
+            // C# has Round over decimal/double/float only so our argument will be one of those types (compiler puts convert node)
+            // In database result will be same type except for float which returns double which we need to cast back to float.
             var result = (SqlExpression)_sqlExpressionFactory.Function(
                 "trunc",
                 new[] { argument },
                 nullable: true,
                 argumentsPropagateNullability: new[] { true, false, false },
-                typeof(double));
+                argument.Type == typeof(float) ? typeof(double) : argument.Type);
 
             if (argument.Type == typeof(float))
             {
@@ -203,13 +205,15 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
         if (RoundMethodInfos.Contains(method))
         {
             var argument = arguments[0];
-            // Result of round for float/double is always double in server side
+
+            // C# has Round over decimal/double/float only so our argument will be one of those types (compiler puts convert node)
+            // In database result will be same type except for float which returns double which we need to cast back to float.
             var result = (SqlExpression) _sqlExpressionFactory.Function(
                 "round",
                 new[] { argument },
                 nullable: true,
                 argumentsPropagateNullability: new[] { true, true },
-                typeof(double));
+                argument.Type == typeof(float) ? typeof(double) : argument.Type);
 
             if (argument.Type == typeof(float))
             {
