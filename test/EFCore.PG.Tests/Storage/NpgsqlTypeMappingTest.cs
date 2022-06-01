@@ -132,6 +132,14 @@ public class NpgsqlTypeMappingTest
         Assert.Equal(
             "TIMESTAMPTZ 'infinity'",
             GetMapping("timestamptz").GenerateSqlLiteral(DateTime.MaxValue));
+
+        Assert.Equal(
+            "TIMESTAMPTZ '-infinity'",
+            GetMapping("timestamptz").GenerateSqlLiteral(DateTimeOffset.MinValue));
+
+        Assert.Equal(
+            "TIMESTAMPTZ 'infinity'",
+            GetMapping("timestamptz").GenerateSqlLiteral(DateTimeOffset.MaxValue));
     }
 
     [Fact]

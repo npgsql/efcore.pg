@@ -61,6 +61,19 @@ public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
                 };
 
             case DateTimeOffset dateTimeOffset:
+                if (!NpgsqlTypeMappingSource.DisableDateTimeInfinityConversions)
+                {
+                    if (dateTimeOffset == DateTimeOffset.MinValue)
+                    {
+                        return "-infinity";
+                    }
+
+                    if (dateTimeOffset == DateTimeOffset.MaxValue)
+                    {
+                        return "infinity";
+                    }
+                }
+
                 return dateTimeOffset.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFzzz", CultureInfo.InvariantCulture);
 
             default:
