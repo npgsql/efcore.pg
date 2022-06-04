@@ -31,7 +31,7 @@ CREATE TABLE "Employees" (
 	(
 		"EmployeeID"
 	),
-	CONSTRAINT "FK_Employees_Employees" FOREIGN KEY 
+	CONSTRAINT "FK_Employees_Employees" FOREIGN KEY
 	(
 		"ReportsTo"
 	) REFERENCES "Employees" (
@@ -50,7 +50,7 @@ CREATE TABLE "Categories" (
 	"CategoryName" varchar (15) NOT NULL ,
 	"Description" text NULL ,
 	"Picture" bytea NULL ,
-	CONSTRAINT "PK_Categories" PRIMARY KEY 
+	CONSTRAINT "PK_Categories" PRIMARY KEY
 	(
 		"CategoryID"
 	)
@@ -90,7 +90,7 @@ CREATE TABLE "Shippers" (
 	"ShipperID" SERIAL ,
 	"CompanyName" varchar (40) NOT NULL ,
 	"Phone" varchar (24) NULL ,
-	CONSTRAINT "PK_Shippers" PRIMARY KEY 
+	CONSTRAINT "PK_Shippers" PRIMARY KEY
 	(
 		"ShipperID"
 	)
@@ -109,7 +109,7 @@ CREATE TABLE "Suppliers" (
 	"Phone" varchar (24) NULL ,
 	"Fax" varchar (24) NULL ,
 	"HomePage" text NULL ,
-	CONSTRAINT "PK_Suppliers" PRIMARY KEY 
+	CONSTRAINT "PK_Suppliers" PRIMARY KEY
 	(
 		"SupplierID"
 	)
@@ -135,23 +135,23 @@ CREATE TABLE "Orders" (
 	"ShipRegion" varchar (15) NULL ,
 	"ShipPostalCode" varchar (10) NULL ,
 	"ShipCountry" varchar (15) NULL ,
-	CONSTRAINT "PK_Orders" PRIMARY KEY 
+	CONSTRAINT "PK_Orders" PRIMARY KEY
 	(
 		"OrderID"
 	),
-	CONSTRAINT "FK_Orders_Customers" FOREIGN KEY 
+	CONSTRAINT "FK_Orders_Customers" FOREIGN KEY
 	(
 		"CustomerID"
 	) REFERENCES "Customers" (
 		"CustomerID"
 	),
-	CONSTRAINT "FK_Orders_Employees" FOREIGN KEY 
+	CONSTRAINT "FK_Orders_Employees" FOREIGN KEY
 	(
 		"EmployeeID"
 	) REFERENCES "Employees" (
 		"EmployeeID"
 	),
-	CONSTRAINT "FK_Orders_Shippers" FOREIGN KEY 
+	CONSTRAINT "FK_Orders_Shippers" FOREIGN KEY
 	(
 		"ShipVia"
 	) REFERENCES "Shippers" (
@@ -187,17 +187,17 @@ CREATE TABLE "Products" (
 	"UnitsOnOrder" smallint NULL CONSTRAINT "DF_Products_UnitsOnOrder" DEFAULT (0),
 	"ReorderLevel" smallint NULL CONSTRAINT "DF_Products_ReorderLevel" DEFAULT (0),
 	"Discontinued" boolean NOT NULL CONSTRAINT "DF_Products_Discontinued" DEFAULT (false),
-	CONSTRAINT "PK_Products" PRIMARY KEY 
+	CONSTRAINT "PK_Products" PRIMARY KEY
 	(
 		"ProductID"
 	),
-	CONSTRAINT "FK_Products_Categories" FOREIGN KEY 
+	CONSTRAINT "FK_Products_Categories" FOREIGN KEY
 	(
 		"CategoryID"
 	) REFERENCES "Categories" (
 		"CategoryID"
 	),
-	CONSTRAINT "FK_Products_Suppliers" FOREIGN KEY 
+	CONSTRAINT "FK_Products_Suppliers" FOREIGN KEY
 	(
 		"SupplierID"
 	) REFERENCES "Suppliers" (
@@ -231,13 +231,13 @@ CREATE TABLE "Order Details" (
 		"OrderID",
 		"ProductID"
 	),
-	CONSTRAINT "FK_Order_Details_Orders" FOREIGN KEY 
+	CONSTRAINT "FK_Order_Details_Orders" FOREIGN KEY
 	(
 		"OrderID"
 	) REFERENCES "Orders" (
 		"OrderID"
 	),
-	CONSTRAINT "FK_Order_Details_Products" FOREIGN KEY 
+	CONSTRAINT "FK_Order_Details_Products" FOREIGN KEY
 	(
 		"ProductID"
 	) REFERENCES "Products" (
@@ -279,9 +279,9 @@ WHERE ((("Product_List"."Discontinued")=false))
 GO
 
 create view "Orders Qry" AS
-SELECT "Orders"."OrderID", "Orders"."CustomerID", "Orders"."EmployeeID", "Orders"."OrderDate", "Orders"."RequiredDate", 
-	"Orders"."ShippedDate", "Orders"."ShipVia", "Orders"."Freight", "Orders"."ShipName", "Orders"."ShipAddress", "Orders"."ShipCity", 
-	"Orders"."ShipRegion", "Orders"."ShipPostalCode", "Orders"."ShipCountry", 
+SELECT "Orders"."OrderID", "Orders"."CustomerID", "Orders"."EmployeeID", "Orders"."OrderDate", "Orders"."RequiredDate",
+	"Orders"."ShippedDate", "Orders"."ShipVia", "Orders"."Freight", "Orders"."ShipName", "Orders"."ShipAddress", "Orders"."ShipCity",
+	"Orders"."ShipRegion", "Orders"."ShipPostalCode", "Orders"."ShipCountry",
 	"Customers"."CompanyName", "Customers"."Address", "Customers"."City", "Customers"."Region", "Customers"."PostalCode", "Customers"."Country"
 FROM "Customers" INNER JOIN "Orders" ON "Customers"."CustomerID" = "Orders"."CustomerID"
 GO
@@ -307,28 +307,28 @@ WHERE "Orders"."OrderDate" BETWEEN '19970101' And '19971231'
 GO
 
 create view "Invoices" AS
-SELECT "Orders"."ShipName", "Orders"."ShipAddress", "Orders"."ShipCity", "Orders"."ShipRegion", "Orders"."ShipPostalCode", 
-	"Orders"."ShipCountry", "Orders"."CustomerID", "Customers"."CompanyName" AS "CustomerName", "Customers"."Address", "Customers"."City", 
-	"Customers"."Region", "Customers"."PostalCode", "Customers"."Country", 
-	("FirstName" || ' ' || "LastName") AS "Salesperson", 
-	"Orders"."OrderID", "Orders"."OrderDate", "Orders"."RequiredDate", "Orders"."ShippedDate", "Shippers"."CompanyName" As "ShipperName", 
-	"Order Details"."ProductID", "Products"."ProductName", "Order Details"."UnitPrice", "Order Details"."Quantity", 
-	"Order Details"."Discount", 
+SELECT "Orders"."ShipName", "Orders"."ShipAddress", "Orders"."ShipCity", "Orders"."ShipRegion", "Orders"."ShipPostalCode",
+	"Orders"."ShipCountry", "Orders"."CustomerID", "Customers"."CompanyName" AS "CustomerName", "Customers"."Address", "Customers"."City",
+	"Customers"."Region", "Customers"."PostalCode", "Customers"."Country",
+	("FirstName" || ' ' || "LastName") AS "Salesperson",
+	"Orders"."OrderID", "Orders"."OrderDate", "Orders"."RequiredDate", "Orders"."ShippedDate", "Shippers"."CompanyName" As "ShipperName",
+	"Order Details"."ProductID", "Products"."ProductName", "Order Details"."UnitPrice", "Order Details"."Quantity",
+	"Order Details"."Discount",
 	(("Order Details"."UnitPrice"*"Quantity"*(1-"Discount")/100)*100) AS "ExtendedPrice", "Orders"."Freight"
-FROM 	"Shippers" INNER JOIN 
-		("Products" INNER JOIN 
+FROM 	"Shippers" INNER JOIN
+		("Products" INNER JOIN
 			(
-				("Employees" INNER JOIN 
-					("Customers" INNER JOIN "Orders" ON "Customers"."CustomerID" = "Orders"."CustomerID") 
-				ON "Employees"."EmployeeID" = "Orders"."EmployeeID") 
-			INNER JOIN "Order Details" ON "Orders"."OrderID" = "Order Details"."OrderID") 
-		ON "Products"."ProductID" = "Order Details"."ProductID") 
+				("Employees" INNER JOIN
+					("Customers" INNER JOIN "Orders" ON "Customers"."CustomerID" = "Orders"."CustomerID")
+				ON "Employees"."EmployeeID" = "Orders"."EmployeeID")
+			INNER JOIN "Order Details" ON "Orders"."OrderID" = "Order Details"."OrderID")
+		ON "Products"."ProductID" = "Order Details"."ProductID")
 	ON "Shippers"."ShipperID" = "Orders"."ShipVia"
 GO
 
 create view "Order Details Extended" AS
-SELECT "Order Details"."OrderID", "Order Details"."ProductID", "Products"."ProductName", 
-	"Order Details"."UnitPrice", "Order Details"."Quantity", "Order Details"."Discount", 
+SELECT "Order Details"."OrderID", "Order Details"."ProductID", "Products"."ProductName",
+	"Order Details"."UnitPrice", "Order Details"."Quantity", "Order Details"."Discount",
 	(("Order Details"."UnitPrice"*"Quantity"*(1-"Discount")/100)*100) AS "ExtendedPrice"
 FROM "Products" INNER JOIN "Order Details" ON "Products"."ProductID" = "Order Details"."ProductID"
 --ORDER BY "Order Details".OrderID
@@ -341,11 +341,11 @@ GROUP BY "Order Details"."OrderID"
 GO
 
 create view "Product Sales for 1997" AS
-SELECT "Categories"."CategoryName", "Products"."ProductName", 
+SELECT "Categories"."CategoryName", "Products"."ProductName",
 Sum(("Order Details"."UnitPrice"*"Quantity"*(1-"Discount")/100)*100) AS "ProductSales"
-FROM ("Categories" INNER JOIN "Products" ON "Categories"."CategoryID" = "Products"."CategoryID") 
-	INNER JOIN ("Orders" 
-		INNER JOIN "Order Details" ON "Orders"."OrderID" = "Order Details"."OrderID") 
+FROM ("Categories" INNER JOIN "Products" ON "Categories"."CategoryID" = "Products"."CategoryID")
+	INNER JOIN ("Orders"
+		INNER JOIN "Order Details" ON "Orders"."OrderID" = "Order Details"."OrderID")
 	ON "Products"."ProductID" = "Order Details"."ProductID"
 WHERE ((("Orders"."ShippedDate") Between '19970101' And '19971231'))
 GROUP BY "Categories"."CategoryName", "Products"."ProductName"
@@ -358,12 +358,12 @@ GROUP BY "Product Sales for 1997"."CategoryName"
 GO
 
 create view "Sales by Category" AS
-SELECT "Categories"."CategoryID", "Categories"."CategoryName", "Products"."ProductName", 
+SELECT "Categories"."CategoryID", "Categories"."CategoryName", "Products"."ProductName",
 	Sum("Order Details Extended"."ExtendedPrice") AS "ProductSales"
-FROM 	"Categories" INNER JOIN 
-		("Products" INNER JOIN 
-			("Orders" INNER JOIN "Order Details Extended" ON "Orders"."OrderID" = "Order Details Extended"."OrderID") 
-		ON "Products"."ProductID" = "Order Details Extended"."ProductID") 
+FROM 	"Categories" INNER JOIN
+		("Products" INNER JOIN
+			("Orders" INNER JOIN "Order Details Extended" ON "Orders"."OrderID" = "Order Details Extended"."OrderID")
+		ON "Products"."ProductID" = "Order Details Extended"."ProductID")
 	ON "Categories"."CategoryID" = "Products"."CategoryID"
 WHERE "Orders"."OrderDate" BETWEEN '19970101' And '19971231'
 GROUP BY "Categories"."CategoryID", "Categories"."CategoryName", "Products"."ProductName"
@@ -372,8 +372,8 @@ GO
 
 create view "Sales Totals by Amount" AS
 SELECT "Order Subtotals"."Subtotal" AS "SaleAmount", "Orders"."OrderID", "Customers"."CompanyName", "Orders"."ShippedDate"
-FROM 	"Customers" INNER JOIN 
-		("Orders" INNER JOIN "Order Subtotals" ON "Orders"."OrderID" = "Order Subtotals"."OrderID") 
+FROM 	"Customers" INNER JOIN
+		("Orders" INNER JOIN "Order Subtotals" ON "Orders"."OrderID" = "Order Subtotals"."OrderID")
 	ON "Customers"."CustomerID" = "Orders"."CustomerID"
 WHERE ("Order Subtotals"."Subtotal" > 2500) AND ("Orders"."ShippedDate" BETWEEN '19970101' And '19971231')
 GO
@@ -406,8 +406,8 @@ CREATE FUNCTION "Employee Sales by Country" ("Beginning_Date" TIMESTAMP, "Ending
   RETURNS TABLE ("Country" VARCHAR(15), "LastName" VARCHAR(20), "FirstName" VARCHAR(10), "ShippedDate" TIMESTAMP, "OrderID" INT4, "Subtotal" DOUBLE PRECISION)
   AS '
 SELECT "Employees"."Country", "Employees"."LastName", "Employees"."FirstName", "Orders"."ShippedDate", "Orders"."OrderID", "Order Subtotals"."Subtotal" AS "SaleAmount"
-FROM "Employees" INNER JOIN 
-	("Orders" INNER JOIN "Order Subtotals" ON "Orders"."OrderID" = "Order Subtotals"."OrderID") 
+FROM "Employees" INNER JOIN
+	("Orders" INNER JOIN "Order Subtotals" ON "Orders"."OrderID" = "Order Subtotals"."OrderID")
 	ON "Employees"."EmployeeID" = "Orders"."EmployeeID"
 WHERE "Orders"."ShippedDate" Between "Beginning_Date" And "Ending_Date"
   ' LANGUAGE SQL;
@@ -416,7 +416,7 @@ GO
 CREATE FUNCTION "Sales by Year" ("Beginning_Date" TIMESTAMP, "Ending_Date" TIMESTAMP)
   RETURNS TABLE ("ShippedDate" TIMESTAMP, "OrderID" INT4, "Subtotal" DOUBLE PRECISION, "Year" INT4)
   AS '
-SELECT "Orders"."ShippedDate", "Orders"."OrderID", "Order Subtotals"."Subtotal", DATE_PART("year","ShippedDate") AS "Year"
+SELECT "Orders"."ShippedDate", "Orders"."OrderID", "Order Subtotals"."Subtotal", date_part("year","ShippedDate") AS "Year"
 FROM "Orders" INNER JOIN "Order Subtotals" ON "Orders"."OrderID" = "Order Subtotals"."OrderID"
 WHERE "Orders"."ShippedDate" Between "Beginning_Date" And "Ending_Date"
   ' LANGUAGE SQL;
@@ -8884,7 +8884,7 @@ go
 --SELECT ProductName,
 --    UnitPrice=ROUND(Od.UnitPrice, 2),
 --    Quantity,
---    Discount=CONVERT(int, Discount * 100), 
+--    Discount=CONVERT(int, Discount * 100),
 --    ExtendedPrice=ROUND(CONVERT(money, Quantity * (1 - Discount) * Od.UnitPrice), 2)
 --FROM Products P, [Order Details] Od
 --WHERE Od.ProductID = P.ProductID and Od.OrderID = @OrderID
@@ -8897,7 +8897,7 @@ go
 --
 --CREATE PROCEDURE CustOrdersOrders @CustomerID nchar(5)
 --AS
---SELECT OrderID, 
+--SELECT OrderID,
 --	OrderDate,
 --	RequiredDate,
 --	ShippedDate
@@ -8924,7 +8924,7 @@ GO
 --CREATE PROCEDURE SalesByCategory
 --    @CategoryName varchar(15), @OrdYear varchar(4) = '1998'
 --AS
---IF @OrdYear != '1996' AND @OrdYear != '1997' AND @OrdYear != '1998' 
+--IF @OrdYear != '1996' AND @OrdYear != '1997' AND @OrdYear != '1998'
 --BEGIN
 --	SELECT @OrdYear = '1998'
 --END
@@ -8932,8 +8932,8 @@ GO
 --SELECT ProductName,
 --	TotalPurchase=ROUND(SUM(CONVERT(decimal(14,2), OD.Quantity * (1-OD.Discount) * OD.UnitPrice)), 0)
 --FROM [Order Details] OD, Orders O, Products P, Categories C
---WHERE OD.OrderID = O.OrderID 
---	AND OD.ProductID = P.ProductID 
+--WHERE OD.OrderID = O.OrderID
+--	AND OD.ProductID = P.ProductID
 --	AND P.CategoryID = C.CategoryID
 --	AND C.CategoryName = @CategoryName
 --	AND SUBSTRING(CONVERT(varchar(22), O.OrderDate, 111), 1, 4) = @OrdYear
@@ -8953,13 +8953,13 @@ GO
 
 CREATE TABLE "CustomerDemographics"
 	("CustomerTypeID" char (10) NOT NULL ,
-	"CustomerDesc" text NULL 
+	"CustomerDesc" text NULL
 )
-GO		
-	
+GO
+
 CREATE TABLE "Region"
 	( "RegionID" integer NOT NULL ,
-	"RegionDescription" char (50) NOT NULL 
+	"RegionDescription" char (50) NOT NULL
 )
 GO
 
@@ -8972,7 +8972,7 @@ GO
 
 CREATE TABLE "EmployeeTerritories"
 	("EmployeeID" integer NOT NULL,
-	"TerritoryID" varchar (20) NOT NULL 
+	"TerritoryID" varchar (20) NOT NULL
 )
 GO
 
@@ -9110,7 +9110,7 @@ ALTER TABLE "CustomerDemographics"
 GO
 
 ALTER TABLE "CustomerCustomerDemo"
-	ADD CONSTRAINT "FK_CustomerCustomerDemo" FOREIGN KEY 
+	ADD CONSTRAINT "FK_CustomerCustomerDemo" FOREIGN KEY
 	(
 		"CustomerTypeID"
 	) REFERENCES "CustomerDemographics" (
@@ -9142,7 +9142,7 @@ ALTER TABLE "Territories"
 GO
 
 ALTER TABLE "Territories"
-	ADD CONSTRAINT "FK_Territories_Region" FOREIGN KEY 
+	ADD CONSTRAINT "FK_Territories_Region" FOREIGN KEY
 	(
 		"RegionID"
 	) REFERENCES "Region" (
@@ -9159,7 +9159,7 @@ ALTER TABLE "EmployeeTerritories"
 GO
 
 ALTER TABLE "EmployeeTerritories"
-	ADD CONSTRAINT "FK_EmployeeTerritories_Employees" FOREIGN KEY 
+	ADD CONSTRAINT "FK_EmployeeTerritories_Employees" FOREIGN KEY
 	(
 		"EmployeeID"
 	) REFERENCES "Employees" (
@@ -9169,7 +9169,7 @@ GO
 
 
 ALTER TABLE "EmployeeTerritories"
-	ADD CONSTRAINT "FK_EmployeeTerritories_Territories" FOREIGN KEY 
+	ADD CONSTRAINT "FK_EmployeeTerritories_Territories" FOREIGN KEY
 	(
 		"TerritoryID"
 	) REFERENCES "Territories" (

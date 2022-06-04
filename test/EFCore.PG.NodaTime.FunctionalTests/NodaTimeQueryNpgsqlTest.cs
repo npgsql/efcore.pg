@@ -102,7 +102,7 @@ WHERE ((n.""ZonedDateTime"" + INTERVAL '1 00:00:00') - n.""ZonedDateTime"") = IN
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE MAKE_INTERVAL(days => n.""LocalDate2"" - n.""LocalDate"") = INTERVAL 'P1D'");
+WHERE make_interval(days => n.""LocalDate2"" - n.""LocalDate"") = INTERVAL 'P1D'");
     }
 
     [ConditionalTheory]
@@ -120,7 +120,7 @@ WHERE MAKE_INTERVAL(days => n.""LocalDate2"" - n.""LocalDate"") = INTERVAL 'P1D'
 
 SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE MAKE_INTERVAL(days => n.""LocalDate2"" - @__date_0) = INTERVAL 'P1D'");
+WHERE make_interval(days => n.""LocalDate2"" - @__date_0) = INTERVAL 'P1D'");
     }
 
     [ConditionalTheory]
@@ -135,7 +135,7 @@ WHERE MAKE_INTERVAL(days => n.""LocalDate2"" - @__date_0) = INTERVAL 'P1D'");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE MAKE_INTERVAL(days => n.""LocalDate2"" - DATE '2018-04-20') = INTERVAL 'P1D'");
+WHERE make_interval(days => n.""LocalDate2"" - DATE '2018-04-20') = INTERVAL 'P1D'");
     }
 
     [ConditionalTheory]
@@ -169,7 +169,7 @@ WHERE ((n.""LocalTime"" + INTERVAL 'PT1H') - n.""LocalTime"") = INTERVAL 'PT1H'"
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('year', n.""LocalDateTime"")::INT = 2018");
+WHERE date_part('year', n.""LocalDateTime"")::int = 2018");
     }
 
     [ConditionalTheory]
@@ -184,7 +184,7 @@ WHERE DATE_PART('year', n.""LocalDateTime"")::INT = 2018");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('month', n.""LocalDateTime"")::INT = 4");
+WHERE date_part('month', n.""LocalDateTime"")::int = 4");
     }
 
     [ConditionalTheory]
@@ -199,7 +199,7 @@ WHERE DATE_PART('month', n.""LocalDateTime"")::INT = 4");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('doy', n.""LocalDateTime"")::INT = 110");
+WHERE date_part('doy', n.""LocalDateTime"")::int = 110");
     }
 
     [ConditionalTheory]
@@ -214,7 +214,7 @@ WHERE DATE_PART('doy', n.""LocalDateTime"")::INT = 110");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('day', n.""LocalDateTime"")::INT = 20");
+WHERE date_part('day', n.""LocalDateTime"")::int = 20");
     }
 
     [ConditionalTheory]
@@ -229,7 +229,7 @@ WHERE DATE_PART('day', n.""LocalDateTime"")::INT = 20");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('hour', n.""LocalDateTime"")::INT = 10");
+WHERE date_part('hour', n.""LocalDateTime"")::int = 10");
     }
 
     [ConditionalTheory]
@@ -244,7 +244,7 @@ WHERE DATE_PART('hour', n.""LocalDateTime"")::INT = 10");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('minute', n.""LocalDateTime"")::INT = 31");
+WHERE date_part('minute', n.""LocalDateTime"")::int = 31");
     }
 
     [ConditionalTheory]
@@ -259,7 +259,7 @@ WHERE DATE_PART('minute', n.""LocalDateTime"")::INT = 31");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE FLOOR(DATE_PART('second', n.""LocalDateTime""))::INT = 33");
+WHERE floor(date_part('second', n.""LocalDateTime""))::int = 33");
     }
 
     [ConditionalTheory]
@@ -290,8 +290,8 @@ WHERE n.""LocalDateTime""::date = DATE '2018-04-20'");
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
 WHERE CASE
-    WHEN FLOOR(DATE_PART('dow', n.""LocalDateTime""))::INT = 0 THEN 7
-    ELSE FLOOR(DATE_PART('dow', n.""LocalDateTime""))::INT
+    WHEN floor(date_part('dow', n.""LocalDateTime""))::int = 0 THEN 7
+    ELSE floor(date_part('dow', n.""LocalDateTime""))::int
 END = 5");
     }
 
@@ -349,7 +349,7 @@ WHERE n.""LocalDateTime"" AT TIME ZONE n.""TimeZoneId"" = @__ToInstant_0");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('year', n.""LocalDate"")::INT = 2018");
+WHERE date_part('year', n.""LocalDate"")::int = 2018");
     }
 
     [ConditionalTheory]
@@ -364,7 +364,7 @@ WHERE DATE_PART('year', n.""LocalDate"")::INT = 2018");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('month', n.""LocalDate"")::INT = 4");
+WHERE date_part('month', n.""LocalDate"")::int = 4");
     }
 
     [ConditionalTheory]
@@ -379,7 +379,7 @@ WHERE DATE_PART('month', n.""LocalDate"")::INT = 4");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('doy', n.""LocalDate"")::INT = 110");
+WHERE date_part('doy', n.""LocalDate"")::int = 110");
     }
 
     [ConditionalTheory]
@@ -394,7 +394,7 @@ WHERE DATE_PART('doy', n.""LocalDate"")::INT = 110");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('day', n.""LocalDate"")::INT = 20");
+WHERE date_part('day', n.""LocalDate"")::int = 20");
     }
 
     #endregion LocalDate
@@ -413,7 +413,7 @@ WHERE DATE_PART('day', n.""LocalDate"")::INT = 20");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('hour', n.""LocalTime"")::INT = 10");
+WHERE date_part('hour', n.""LocalTime"")::int = 10");
     }
 
     [ConditionalTheory]
@@ -428,7 +428,7 @@ WHERE DATE_PART('hour', n.""LocalTime"")::INT = 10");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('minute', n.""LocalTime"")::INT = 31");
+WHERE date_part('minute', n.""LocalTime"")::int = 31");
     }
 
     [ConditionalTheory]
@@ -443,7 +443,7 @@ WHERE DATE_PART('minute', n.""LocalTime"")::INT = 31");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE FLOOR(DATE_PART('second', n.""LocalTime""))::INT = 33");
+WHERE floor(date_part('second', n.""LocalTime""))::int = 33");
     }
 
     #endregion LocalTime
@@ -462,7 +462,7 @@ WHERE FLOOR(DATE_PART('second', n.""LocalTime""))::INT = 33");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('year', n.""Period"")::INT = 2018");
+WHERE date_part('year', n.""Period"")::int = 2018");
     }
 
     [ConditionalTheory]
@@ -477,7 +477,7 @@ WHERE DATE_PART('year', n.""Period"")::INT = 2018");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('month', n.""Period"")::INT = 4");
+WHERE date_part('month', n.""Period"")::int = 4");
     }
 
     [ConditionalTheory]
@@ -492,7 +492,7 @@ WHERE DATE_PART('month', n.""Period"")::INT = 4");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('day', n.""Period"")::INT = 20");
+WHERE date_part('day', n.""Period"")::int = 20");
     }
 
     [ConditionalTheory]
@@ -507,7 +507,7 @@ WHERE DATE_PART('day', n.""Period"")::INT = 20");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('hour', n.""Period"")::INT = 10");
+WHERE date_part('hour', n.""Period"")::int = 10");
     }
 
     [ConditionalTheory]
@@ -522,7 +522,7 @@ WHERE DATE_PART('hour', n.""Period"")::INT = 10");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('minute', n.""Period"")::INT = 31");
+WHERE date_part('minute', n.""Period"")::int = 31");
     }
 
     [ConditionalTheory]
@@ -537,7 +537,7 @@ WHERE DATE_PART('minute', n.""Period"")::INT = 31");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE FLOOR(DATE_PART('second', n.""Period""))::INT = 23");
+WHERE floor(date_part('second', n.""Period""))::int = 23");
     }
 
     // PostgreSQL does not support extracting weeks from intervals
@@ -589,7 +589,7 @@ WHERE FLOOR(DATE_PART('second', n.""Period""))::INT = 23");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('year', MAKE_INTERVAL(years => n.""Id""))::INT = 1");
+WHERE date_part('year', make_interval(years => n.""Id""))::int = 1");
     }
 
     [ConditionalTheory]
@@ -604,7 +604,7 @@ WHERE DATE_PART('year', MAKE_INTERVAL(years => n.""Id""))::INT = 1");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('month', MAKE_INTERVAL(months => n.""Id""))::INT = 1");
+WHERE date_part('month', make_interval(months => n.""Id""))::int = 1");
     }
 
     [ConditionalTheory]
@@ -620,7 +620,7 @@ WHERE DATE_PART('month', MAKE_INTERVAL(months => n.""Id""))::INT = 1");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('day', MAKE_INTERVAL(weeks => n.""Id""))::INT = 7");
+WHERE date_part('day', make_interval(weeks => n.""Id""))::int = 7");
     }
 
     [ConditionalTheory]
@@ -635,7 +635,7 @@ WHERE DATE_PART('day', MAKE_INTERVAL(weeks => n.""Id""))::INT = 7");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('day', MAKE_INTERVAL(days => n.""Id""))::INT = 1");
+WHERE date_part('day', make_interval(days => n.""Id""))::int = 1");
     }
 
     [ConditionalTheory]
@@ -650,7 +650,7 @@ WHERE DATE_PART('day', MAKE_INTERVAL(days => n.""Id""))::INT = 1");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('hour', MAKE_INTERVAL(hours => n.""Id""))::INT = 1");
+WHERE date_part('hour', make_interval(hours => n.""Id""))::int = 1");
     }
 
     [ConditionalTheory]
@@ -665,7 +665,7 @@ WHERE DATE_PART('hour', MAKE_INTERVAL(hours => n.""Id""))::INT = 1");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('hour', MAKE_INTERVAL(hours => n.""Long""::INT))::INT = 1");
+WHERE date_part('hour', make_interval(hours => n.""Long""::int))::int = 1");
     }
 
     [ConditionalTheory]
@@ -680,7 +680,7 @@ WHERE DATE_PART('hour', MAKE_INTERVAL(hours => n.""Long""::INT))::INT = 1");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('minute', MAKE_INTERVAL(mins => n.""Id""))::INT = 1");
+WHERE date_part('minute', make_interval(mins => n.""Id""))::int = 1");
     }
 
     [ConditionalTheory]
@@ -695,7 +695,7 @@ WHERE DATE_PART('minute', MAKE_INTERVAL(mins => n.""Id""))::INT = 1");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('minute', MAKE_INTERVAL(mins => n.""Long""::INT))::INT = 1");
+WHERE date_part('minute', make_interval(mins => n.""Long""::int))::int = 1");
     }
 
     [ConditionalTheory]
@@ -710,7 +710,7 @@ WHERE DATE_PART('minute', MAKE_INTERVAL(mins => n.""Long""::INT))::INT = 1");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE FLOOR(DATE_PART('second', MAKE_INTERVAL(secs => n.""Id""::bigint::double precision)))::INT = 1");
+WHERE floor(date_part('second', make_interval(secs => n.""Id""::bigint::double precision)))::int = 1");
     }
 
     [ConditionalTheory]
@@ -725,7 +725,7 @@ WHERE FLOOR(DATE_PART('second', MAKE_INTERVAL(secs => n.""Id""::bigint::double p
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE FLOOR(DATE_PART('second', MAKE_INTERVAL(secs => n.""Long""::double precision)))::INT = 1");
+WHERE floor(date_part('second', make_interval(secs => n.""Long""::double precision)))::int = 1");
     }
 
     [ConditionalFact]
@@ -771,7 +771,7 @@ WHERE FLOOR(DATE_PART('second', MAKE_INTERVAL(secs => n.""Long""::double precisi
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE (DATE_PART('epoch', n.""Duration"") / 86400.0) > 27.0");
+WHERE (date_part('epoch', n.""Duration"") / 86400.0) > 27.0");
     }
 
     [ConditionalTheory]
@@ -786,7 +786,7 @@ WHERE (DATE_PART('epoch', n.""Duration"") / 86400.0) > 27.0");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE (DATE_PART('epoch', n.""Duration"") / 3600.0) < 700.0");
+WHERE (date_part('epoch', n.""Duration"") / 3600.0) < 700.0");
     }
 
     [ConditionalTheory]
@@ -801,7 +801,7 @@ WHERE (DATE_PART('epoch', n.""Duration"") / 3600.0) < 700.0");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE (DATE_PART('epoch', n.""Duration"") / 60.0) < 40000.0");
+WHERE (date_part('epoch', n.""Duration"") / 60.0) < 40000.0");
     }
 
     [ConditionalTheory]
@@ -816,7 +816,7 @@ WHERE (DATE_PART('epoch', n.""Duration"") / 60.0) < 40000.0");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('epoch', n.""Duration"") = 2365448.02");
+WHERE date_part('epoch', n.""Duration"") = 2365448.02");
     }
 
     [ConditionalTheory]
@@ -831,7 +831,7 @@ WHERE DATE_PART('epoch', n.""Duration"") = 2365448.02");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE (DATE_PART('epoch', n.""Duration"") / 0.001) = 2365448020.0");
+WHERE (date_part('epoch', n.""Duration"") / 0.001) = 2365448020.0");
     }
 
     [ConditionalTheory]
@@ -846,7 +846,7 @@ WHERE (DATE_PART('epoch', n.""Duration"") / 0.001) = 2365448020.0");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('day', n.""Duration"")::INT = 27");
+WHERE date_part('day', n.""Duration"")::int = 27");
     }
 
     [ConditionalTheory]
@@ -861,7 +861,7 @@ WHERE DATE_PART('day', n.""Duration"")::INT = 27");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('hour', n.""Duration"")::INT = 9");
+WHERE date_part('hour', n.""Duration"")::int = 9");
     }
 
     [ConditionalTheory]
@@ -876,7 +876,7 @@ WHERE DATE_PART('hour', n.""Duration"")::INT = 9");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('minute', n.""Duration"")::INT = 4");
+WHERE date_part('minute', n.""Duration"")::int = 4");
     }
 
     [ConditionalTheory]
@@ -891,7 +891,7 @@ WHERE DATE_PART('minute', n.""Duration"")::INT = 4");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE FLOOR(DATE_PART('second', n.""Duration""))::INT = 8");
+WHERE floor(date_part('second', n.""Duration""))::int = 8");
     }
 
     #endregion
@@ -1235,7 +1235,7 @@ WHERE n.""Instant"" < NOW()");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('year', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 2018");
+WHERE date_part('year', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::int = 2018");
     }
 
     [ConditionalTheory]
@@ -1250,7 +1250,7 @@ WHERE DATE_PART('year', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 2018");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('month', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 4");
+WHERE date_part('month', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::int = 4");
     }
 
     [ConditionalTheory]
@@ -1265,7 +1265,7 @@ WHERE DATE_PART('month', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 4");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('doy', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 110");
+WHERE date_part('doy', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::int = 110");
     }
 
     [ConditionalTheory]
@@ -1280,7 +1280,7 @@ WHERE DATE_PART('doy', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 110");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('day', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 20");
+WHERE date_part('day', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::int = 20");
 
     }
 
@@ -1296,7 +1296,7 @@ WHERE DATE_PART('day', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 20");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('hour', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 10");
+WHERE date_part('hour', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::int = 10");
 
     }
 
@@ -1312,7 +1312,7 @@ WHERE DATE_PART('hour', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 10");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE DATE_PART('minute', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 31");
+WHERE date_part('minute', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::int = 31");
     }
 
     [ConditionalTheory]
@@ -1327,7 +1327,7 @@ WHERE DATE_PART('minute', n.""ZonedDateTime"" AT TIME ZONE 'UTC')::INT = 31");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE FLOOR(DATE_PART('second', n.""ZonedDateTime"" AT TIME ZONE 'UTC'))::INT = 33");
+WHERE floor(date_part('second', n.""ZonedDateTime"" AT TIME ZONE 'UTC'))::int = 33");
     }
 
     [ConditionalTheory]
@@ -1358,8 +1358,8 @@ WHERE CAST(n.""ZonedDateTime"" AT TIME ZONE 'UTC' AS date) = DATE '2018-04-20'")
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
 WHERE CASE
-    WHEN FLOOR(DATE_PART('dow', n.""ZonedDateTime"" AT TIME ZONE 'UTC'))::INT = 0 THEN 7
-    ELSE FLOOR(DATE_PART('dow', n.""ZonedDateTime"" AT TIME ZONE 'UTC'))::INT
+    WHEN floor(date_part('dow', n.""ZonedDateTime"" AT TIME ZONE 'UTC'))::int = 0 THEN 7
+    ELSE floor(date_part('dow', n.""ZonedDateTime"" AT TIME ZONE 'UTC'))::int
 END = 5");
     }
 

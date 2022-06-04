@@ -226,7 +226,7 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
 
         static PostgresFunctionExpression IntervalPart(string datePart, SqlExpression parameter)
             => PostgresFunctionExpression.CreateWithNamedArguments(
-                "MAKE_INTERVAL",
+                "make_interval",
                 new[] { parameter },
                 new[] { datePart },
                 nullable: true,
