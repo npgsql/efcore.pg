@@ -59,7 +59,7 @@ WHERE n.""Cidr"" >>= @__cidr_1");
 
         Assert.Equal(9, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Inet"" = n.""TextInet""::inet OR ((n.""Inet"" IS NULL) AND (n.""TextInet"" IS NULL))");
     }
@@ -72,7 +72,7 @@ WHERE n.""Inet"" = n.""TextInet""::inet OR ((n.""Inet"" IS NULL) AND (n.""TextIn
 
         Assert.Equal(9, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Macaddr"" = n.""TextMacaddr""::macaddr OR ((n.""Macaddr"" IS NULL) AND (n.""TextMacaddr"" IS NULL))");
     }
@@ -85,7 +85,7 @@ WHERE n.""Macaddr"" = n.""TextMacaddr""::macaddr OR ((n.""Macaddr"" IS NULL) AND
 
         Assert.Equal(1, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Inet"" = INET '192.168.1.2'");
     }
@@ -98,7 +98,7 @@ WHERE n.""Inet"" = INET '192.168.1.2'");
 
         Assert.Equal(1, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Macaddr"" = MACADDR '123456000002'");
     }
@@ -135,7 +135,7 @@ WHERE n.""Macaddr"" = MACADDR '123456000002'");
 
         Assert.Equal(6, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Inet"" < INET '192.168.1.7'");
     }
@@ -165,7 +165,7 @@ WHERE n.""Cidr"" < @__cidr_1");
 
         Assert.Equal(6, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Macaddr"" < MACADDR '123456000007'");
     }
@@ -179,7 +179,7 @@ WHERE n.""Macaddr"" < MACADDR '123456000007'");
 
         Assert.Equal(6, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Macaddr8"" < MACADDR8 '08002B0102030407'");
     }
@@ -192,7 +192,7 @@ WHERE n.""Macaddr8"" < MACADDR8 '08002B0102030407'");
 
         Assert.Equal(7, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Inet"" <= INET '192.168.1.7'");
     }
@@ -222,7 +222,7 @@ WHERE n.""Cidr"" <= @__cidr_1");
 
         Assert.Equal(7, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Macaddr"" <= MACADDR '123456000007'");
     }
@@ -236,7 +236,7 @@ WHERE n.""Macaddr"" <= MACADDR '123456000007'");
 
         Assert.Equal(7, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Macaddr8"" <= MACADDR8 '08002B0102030407'");
     }
@@ -249,7 +249,7 @@ WHERE n.""Macaddr8"" <= MACADDR8 '08002B0102030407'");
 
         Assert.Equal(3, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Inet"" >= INET '192.168.1.7'");
     }
@@ -279,7 +279,7 @@ WHERE n.""Cidr"" >= @__cidr_1");
 
         Assert.Equal(3, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Macaddr"" >= MACADDR '123456000007'");
     }
@@ -293,7 +293,7 @@ WHERE n.""Macaddr"" >= MACADDR '123456000007'");
 
         Assert.Equal(3, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Macaddr8"" >= MACADDR8 '08002B0102030407'");
     }
@@ -306,7 +306,7 @@ WHERE n.""Macaddr8"" >= MACADDR8 '08002B0102030407'");
 
         Assert.Equal(2, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Inet"" > INET '192.168.1.7'");
     }
@@ -336,7 +336,7 @@ WHERE n.""Cidr"" > @__cidr_1");
 
         Assert.Equal(2, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Macaddr"" > MACADDR '123456000007'");
     }
@@ -350,7 +350,7 @@ WHERE n.""Macaddr"" > MACADDR '123456000007'");
 
         Assert.Equal(2, count);
         AssertSql(
-            @"SELECT count(*)::INT
+            @"SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Macaddr8"" > MACADDR8 '08002B0102030407'");
     }
@@ -699,7 +699,7 @@ FROM ""NetTestEntities"" AS n");
         AssertSql(
             @"@__inet_1='0.0.0.0' (DbType = Object)
 
-SELECT count(*)::INT
+SELECT count(*)::int
 FROM ""NetTestEntities"" AS n
 WHERE n.""Inet"" = (n.""Inet"" & @__inet_1) OR (n.""Inet"" IS NULL)");
     }

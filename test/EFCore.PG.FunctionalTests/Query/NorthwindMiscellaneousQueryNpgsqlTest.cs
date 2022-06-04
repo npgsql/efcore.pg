@@ -80,7 +80,7 @@ WHERE (o.""OrderDate"" - INTERVAL '1 00:00:00') = TIMESTAMP '1997-10-08 00:00:00
                 .Select(o => new { Elapsed = (DateTime.Today - ((DateTime)o.OrderDate).Date).Days }));
 
         AssertSql(
-            @"SELECT floor(date_part('day', date_trunc('day', now()::timestamp) - date_trunc('day', o.""OrderDate"")))::INT AS ""Elapsed""
+            @"SELECT floor(date_part('day', date_trunc('day', now()::timestamp) - date_trunc('day', o.""OrderDate"")))::int AS ""Elapsed""
 FROM ""Orders"" AS o
 WHERE (o.""OrderDate"" IS NOT NULL)
 LIMIT 1");

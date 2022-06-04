@@ -42,7 +42,7 @@ FROM ""Orders"" AS o0");
                 .Union(ss.Set<Order>().Select(o => new { OrderID = (int?)o.OrderID, o.CustomerID })));
 
         AssertSql(
-            @"SELECT NULL::INT AS ""OrderID"", o.""CustomerID""
+            @"SELECT NULL::int AS ""OrderID"", o.""CustomerID""
 FROM ""Orders"" AS o
 UNION
 SELECT NULL AS ""OrderID"", o0.""CustomerID""
@@ -64,7 +64,7 @@ FROM ""Orders"" AS o1");
                 .Union(ss.Set<Order>().Select(o => new { OrderID = (int?)o.OrderID, o.CustomerID })));
 
         AssertSql(
-            @"SELECT NULL::INT AS ""OrderID"", o.""CustomerID""
+            @"SELECT NULL::int AS ""OrderID"", o.""CustomerID""
 FROM ""Orders"" AS o
 UNION
 SELECT NULL AS ""OrderID"", o0.""CustomerID""
@@ -90,7 +90,7 @@ FROM ""Orders"" AS o2");
                 .Union(ss.Set<Order>().Select(o => new { OrderID = (int?)o.OrderID, o.CustomerID })));
 
         AssertSql(
-            @"SELECT NULL::INT AS ""OrderID"", o.""CustomerID""
+            @"SELECT NULL::int AS ""OrderID"", o.""CustomerID""
 FROM ""Orders"" AS o
 UNION
 SELECT NULL AS ""OrderID"", o0.""CustomerID""
@@ -126,7 +126,7 @@ FROM ""Orders"" AS o3");
         AssertSql(
             @"SELECT t0.""OrderID"", t0.""CustomerID""
 FROM (
-    SELECT NULL::INT AS ""OrderID"", o.""CustomerID""
+    SELECT NULL::int AS ""OrderID"", o.""CustomerID""
     FROM ""Orders"" AS o
     UNION
     SELECT NULL AS ""OrderID"", o0.""CustomerID""
@@ -138,7 +138,7 @@ FROM (
 WHERE t0.""CustomerID"" = (
     SELECT t1.""CustomerID""
     FROM (
-        SELECT NULL::INT AS ""OrderID"", o2.""CustomerID""
+        SELECT NULL::int AS ""OrderID"", o2.""CustomerID""
         FROM ""Orders"" AS o2
         UNION
         SELECT NULL AS ""OrderID"", o3.""CustomerID""
@@ -151,7 +151,7 @@ WHERE t0.""CustomerID"" = (
     LIMIT 1) OR ((t0.""CustomerID"" IS NULL) AND ((
     SELECT t1.""CustomerID""
     FROM (
-        SELECT NULL::INT AS ""OrderID"", o2.""CustomerID""
+        SELECT NULL::int AS ""OrderID"", o2.""CustomerID""
         FROM ""Orders"" AS o2
         UNION
         SELECT NULL AS ""OrderID"", o3.""CustomerID""

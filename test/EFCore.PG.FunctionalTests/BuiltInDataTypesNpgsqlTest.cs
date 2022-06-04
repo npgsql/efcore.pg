@@ -918,7 +918,7 @@ FROM ""MappedDataTypes"" AS m",
             @"SELECT COALESCE(sum(m.""Int""), 0)::int
 FROM ""MappedDataTypes"" AS m",
             //
-            @"SELECT COALESCE(sum(m.""ShortAsSmallint""::INT), 0)::INT
+            @"SELECT COALESCE(sum(m.""ShortAsSmallint""::int), 0)::int
 FROM ""MappedDataTypes"" AS m");
     }
 
