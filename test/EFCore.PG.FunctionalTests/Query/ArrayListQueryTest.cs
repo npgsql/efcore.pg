@@ -200,7 +200,7 @@ WHERE (array_position(s.""NullableStringList"", NULL) IS NOT NULL)");
             ctx.SomeEntities.Count(e => e.StringList.Contains(p)));
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""SomeEntities"" AS s
 WHERE s.""StringList"" @> ARRAY[NULL]::text[]");
     }
@@ -279,7 +279,7 @@ WHERE s.""Id"" = ANY (@__array_0)");
         AssertSql(
             @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
-SELECT COUNT(*)::INT
+SELECT count(*)::INT
 FROM ""SomeEntities"" AS s
 WHERE s.""NonNullableText"" = ANY (@__array_0)");
     }
@@ -300,7 +300,7 @@ WHERE s.""NonNullableText"" = ANY (@__array_0)");
         AssertSql(
             @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
-SELECT COUNT(*)::INT
+SELECT count(*)::INT
 FROM ""SomeEntities"" AS s
 WHERE NOT (s.""NonNullableText"" = ANY (@__array_0) AND ((s.""NonNullableText"" = ANY (@__array_0) IS NOT NULL)))");
     }
@@ -321,7 +321,7 @@ WHERE NOT (s.""NonNullableText"" = ANY (@__array_0) AND ((s.""NonNullableText"" 
         AssertSql(
             @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
-SELECT COUNT(*)::INT
+SELECT count(*)::INT
 FROM ""SomeEntities"" AS s
 WHERE s.""NullableText"" = ANY (@__array_0) OR ((s.""NullableText"" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))");
     }
@@ -342,7 +342,7 @@ WHERE s.""NullableText"" = ANY (@__array_0) OR ((s.""NullableText"" IS NULL) AND
         AssertSql(
             @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
-SELECT COUNT(*)::INT
+SELECT count(*)::INT
 FROM ""SomeEntities"" AS s
 WHERE NOT (s.""NullableText"" = ANY (@__array_0) AND ((s.""NullableText"" = ANY (@__array_0) IS NOT NULL))) AND ((s.""NullableText"" IS NOT NULL) OR (array_position(@__array_0, NULL) IS NULL))");
     }

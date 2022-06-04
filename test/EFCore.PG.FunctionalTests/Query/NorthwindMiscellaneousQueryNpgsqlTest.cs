@@ -146,8 +146,8 @@ LIMIT 1");
         await Assert.ThrowsAsync<InvalidOperationException>(() => base.Max_on_empty_sequence_throws(async));
 
         AssertSql(
-                @"SELECT (
-    SELECT MAX(o.""OrderID"")
+            @"SELECT (
+    SELECT max(o.""OrderID"")
     FROM ""Orders"" AS o
     WHERE c.""CustomerID"" = o.""CustomerID"") AS ""Max""
 FROM ""Customers"" AS c");

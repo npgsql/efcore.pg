@@ -912,13 +912,13 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
         _ = context.Set<MappedDataTypes>().Sum(m => m.ShortAsSmallint);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(m.""LongAsBigint""), 0.0)::bigint
+            @"SELECT COALESCE(sum(m.""LongAsBigint""), 0.0)::bigint
 FROM ""MappedDataTypes"" AS m",
             //
-            @"SELECT COALESCE(SUM(m.""Int""), 0)::int
+            @"SELECT COALESCE(sum(m.""Int""), 0)::int
 FROM ""MappedDataTypes"" AS m",
             //
-            @"SELECT COALESCE(SUM(m.""ShortAsSmallint""::INT), 0)::INT
+            @"SELECT COALESCE(sum(m.""ShortAsSmallint""::INT), 0)::INT
 FROM ""MappedDataTypes"" AS m");
     }
 

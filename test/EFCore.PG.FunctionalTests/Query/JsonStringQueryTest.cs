@@ -100,7 +100,7 @@ LIMIT 2");
         AssertSql(
             @"@__element_1='{""Name"": ""Joe"", ""Age"": 25}' (DbType = Object)
 
-SELECT COUNT(*)::INT
+SELECT count(*)::INT
 FROM ""JsonEntities"" AS j
 WHERE j.""CustomerJsonb"" @> @__element_1");
     }
@@ -115,7 +115,7 @@ WHERE j.""CustomerJsonb"" @> @__element_1");
         Assert.Equal(1, count);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""JsonEntities"" AS j
 WHERE j.""CustomerJsonb"" @> '{""Name"": ""Joe"", ""Age"": 25}'");
     }
@@ -133,7 +133,7 @@ WHERE j.""CustomerJsonb"" @> '{""Name"": ""Joe"", ""Age"": 25}'");
         AssertSql(
             @"@__element_1='{""Name"": ""Joe"", ""Age"": 25}' (DbType = Object)
 
-SELECT COUNT(*)::INT
+SELECT count(*)::INT
 FROM ""JsonEntities"" AS j
 WHERE @__element_1 <@ j.""CustomerJsonb""");
     }
@@ -148,7 +148,7 @@ WHERE @__element_1 <@ j.""CustomerJsonb""");
         Assert.Equal(1, count);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""JsonEntities"" AS j
 WHERE '{""Name"": ""Joe"", ""Age"": 25}' <@ j.""CustomerJsonb""");
     }
@@ -163,7 +163,7 @@ WHERE '{""Name"": ""Joe"", ""Age"": 25}' <@ j.""CustomerJsonb""");
         Assert.Equal(2, count);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""JsonEntities"" AS j
 WHERE j.""CustomerJsonb"" ? 'Age'");
     }
@@ -178,7 +178,7 @@ WHERE j.""CustomerJsonb"" ? 'Age'");
         Assert.Equal(2, count);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""JsonEntities"" AS j
 WHERE j.""CustomerJsonb"" ?| ARRAY['foo','Age']::text[]");
     }
@@ -193,7 +193,7 @@ WHERE j.""CustomerJsonb"" ?| ARRAY['foo','Age']::text[]");
         Assert.Equal(0, count);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""JsonEntities"" AS j
 WHERE j.""CustomerJsonb"" ?& ARRAY['foo','Age']::text[]");
     }

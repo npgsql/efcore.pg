@@ -250,7 +250,7 @@ WHERE (c.""City"", c.""Country"") <> ('Sao Paulo', 'Brazil')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Customers"" AS c
 WHERE (c.""City"", c.""CustomerID"") > ('Buenos Aires', 'OCEAN')");
     }
@@ -267,7 +267,7 @@ WHERE (c.""City"", c.""CustomerID"") > ('Buenos Aires', 'OCEAN')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Orders"" AS o
 WHERE (o.""CustomerID"", o.""OrderID"") > ('ALFKI', 10702)");
     }
@@ -288,7 +288,7 @@ WHERE (o.""CustomerID"", o.""OrderID"") > ('ALFKI', 10702)");
         AssertSql(
             @"@__city1_1='Buenos Aires'
 
-SELECT COUNT(*)::INT
+SELECT count(*)::INT
 FROM ""Customers"" AS c
 WHERE (c.""City"", c.""CustomerID"") > (@__city1_1, 'OCEAN')");
     }
@@ -309,7 +309,7 @@ WHERE (c.""City"", c.""CustomerID"") > (@__city1_1, 'OCEAN')");
         AssertSql(
             @"@__city1_1='Buenos Aires'
 
-SELECT COUNT(*)::INT
+SELECT count(*)::INT
 FROM ""Customers"" AS c
 WHERE (c.""City"", c.""CustomerID"") > (@__city1_1, 'OCEAN')");
     }
@@ -326,7 +326,7 @@ WHERE (c.""City"", c.""CustomerID"") > (@__city1_1, 'OCEAN')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Customers"" AS c
 WHERE (c.""City"", c.""CustomerID"") < ('Buenos Aires', 'OCEAN')");
     }
@@ -343,7 +343,7 @@ WHERE (c.""City"", c.""CustomerID"") < ('Buenos Aires', 'OCEAN')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Customers"" AS c
 WHERE (c.""City"", c.""CustomerID"") >= ('Buenos Aires', 'OCEAN')");
     }
@@ -360,7 +360,7 @@ WHERE (c.""City"", c.""CustomerID"") >= ('Buenos Aires', 'OCEAN')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Customers"" AS c
 WHERE (c.""City"", c.""CustomerID"") <= ('Buenos Aires', 'OCEAN')");
     }
@@ -377,7 +377,7 @@ WHERE (c.""City"", c.""CustomerID"") <= ('Buenos Aires', 'OCEAN')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Customers"" AS c
 WHERE (c.""City"", c.""CustomerID"") > ('Buenos Aires', 'OCEAN')");
     }
@@ -409,7 +409,7 @@ WHERE (c.""City"", c.""CustomerID"") > ('Buenos Aires', 'OCEAN')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Customers"" AS c
 WHERE (c.""City"", c.""CustomerID"") = ('Buenos Aires', 'OCEAN')");
     }
@@ -424,7 +424,7 @@ WHERE (c.""City"", c.""CustomerID"") = ('Buenos Aires', 'OCEAN')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Customers"" AS c
 WHERE (c.""City"", c.""CustomerID"") <> ('Buenos Aires', 'OCEAN')");
     }

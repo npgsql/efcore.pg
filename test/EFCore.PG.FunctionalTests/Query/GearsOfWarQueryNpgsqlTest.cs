@@ -83,7 +83,7 @@ WHERE length(s.""Banner"") = @__p_0");
         AssertSql(
             @"@__byteArrayParam='0x2A80'
 
-SELECT COUNT(*)::INT
+SELECT count(*)::INT
 FROM ""Squads"" AS s
 WHERE length(s.""Banner"") = length(@__byteArrayParam)");
     }

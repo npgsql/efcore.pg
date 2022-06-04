@@ -268,7 +268,7 @@ WHERE e.""TimestamptzDateTime"" = @__dateTime_0");
         Assert.Equal(1, count);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Entities"" AS e
 WHERE e.""TimestamptzDateTime"" = e.""TimestampDateTime""::timestamptz");
     }
@@ -287,7 +287,7 @@ WHERE e.""TimestamptzDateTime"" = e.""TimestampDateTime""::timestamptz");
         Assert.Equal(1, count);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Entities"" AS e
 WHERE e.""TimestamptzDateTime""::timestamp = e.""TimestampDateTime""");
     }
@@ -424,7 +424,7 @@ WHERE e.""TimestampDateTimeOffset"" = TIMESTAMPTZ '1998-04-12 13:26:38Z'");
         Assert.Equal(1, count);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Entities"" AS e
 WHERE e.""TimestampDateTimeOffset""::timestamp = TIMESTAMP '1998-04-12 15:26:38'");
     }
@@ -626,7 +626,7 @@ WHERE e.""TimestamptzDateTime"" AT TIME ZONE 'Europe/Berlin' = TIMESTAMP '1998-0
         Assert.Equal(1, count);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Entities"" AS e
 WHERE e.""TimestampDateTime""::timestamptz = TIMESTAMPTZ '1998-04-12 13:26:38Z'");
     }

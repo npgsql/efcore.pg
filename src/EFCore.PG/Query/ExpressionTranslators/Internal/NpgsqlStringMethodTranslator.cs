@@ -69,7 +69,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
         _whitespace = _sqlExpressionFactory.Constant(
             @" \t\n\r",  // TODO: Complete this
             typeMappingSource.EStringTypeMapping);
-        _textTypeMapping = (RelationalTypeMapping)typeMappingSource.FindMapping(typeof(string), model)!;
+        _textTypeMapping = typeMappingSource.FindMapping(typeof(string), model)!;
     }
 
     public virtual SqlExpression? Translate(

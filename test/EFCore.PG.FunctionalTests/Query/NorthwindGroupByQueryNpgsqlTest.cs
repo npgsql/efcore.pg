@@ -20,7 +20,7 @@ public class NorthwindGroupByQueryNpgsqlTest : NorthwindGroupByQueryRelationalTe
         await base.GroupBy_Property_Select_Average(async);
 
         AssertSql(
-            @"SELECT AVG(o.""OrderID""::double precision)
+            @"SELECT avg(o.""OrderID""::double precision)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
 
@@ -42,7 +42,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_Count(async);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -52,7 +52,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_LongCount(async);
 
         AssertSql(
-            @"SELECT COUNT(*)
+            @"SELECT count(*)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -62,7 +62,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_Count_with_nulls(async);
 
         AssertSql(
-            @"SELECT c.""City"", COUNT(*)::INT AS ""Faxes""
+            @"SELECT c.""City"", count(*)::INT AS ""Faxes""
 FROM ""Customers"" AS c
 GROUP BY c.""City""");
     }
@@ -72,7 +72,7 @@ GROUP BY c.""City""");
         await base.GroupBy_Property_Select_LongCount_with_nulls(async);
 
         AssertSql(
-            @"SELECT c.""City"", COUNT(*) AS ""Faxes""
+            @"SELECT c.""City"", count(*) AS ""Faxes""
 FROM ""Customers"" AS c
 GROUP BY c.""City""");
     }
@@ -82,7 +82,7 @@ GROUP BY c.""City""");
         await base.GroupBy_Property_Select_Max(async);
 
         AssertSql(
-            @"SELECT MAX(o.""OrderID"")
+            @"SELECT max(o.""OrderID"")
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -92,7 +92,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_Min(async);
 
         AssertSql(
-            @"SELECT MIN(o.""OrderID"")
+            @"SELECT min(o.""OrderID"")
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -102,7 +102,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_Sum(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -112,7 +112,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_Sum_Min_Max_Avg(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", MIN(o.""OrderID"") AS ""Min"", MAX(o.""OrderID"") AS ""Max"", AVG(o.""OrderID""::double precision) AS ""Avg""
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", min(o.""OrderID"") AS ""Min"", max(o.""OrderID"") AS ""Max"", avg(o.""OrderID""::double precision) AS ""Avg""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -122,7 +122,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_Key_Average(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", AVG(o.""OrderID""::double precision) AS ""Average""
+            @"SELECT o.""CustomerID"" AS ""Key"", avg(o.""OrderID""::double precision) AS ""Average""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -132,7 +132,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_Key_Count(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", COUNT(*)::INT AS ""Count""
+            @"SELECT o.""CustomerID"" AS ""Key"", count(*)::INT AS ""Count""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -142,7 +142,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_Key_LongCount(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", COUNT(*) AS ""LongCount""
+            @"SELECT o.""CustomerID"" AS ""Key"", count(*) AS ""LongCount""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -152,7 +152,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_Key_Max(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", MAX(o.""OrderID"") AS ""Max""
+            @"SELECT o.""CustomerID"" AS ""Key"", max(o.""OrderID"") AS ""Max""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -162,7 +162,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_Key_Min(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", MIN(o.""OrderID"") AS ""Min""
+            @"SELECT o.""CustomerID"" AS ""Key"", min(o.""OrderID"") AS ""Min""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -172,7 +172,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_Key_Sum(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum""
+            @"SELECT o.""CustomerID"" AS ""Key"", COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -182,7 +182,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_Key_Sum_Min_Max_Avg(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", MIN(o.""OrderID"") AS ""Min"", MAX(o.""OrderID"") AS ""Max"", AVG(o.""OrderID""::double precision) AS ""Avg""
+            @"SELECT o.""CustomerID"" AS ""Key"", COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", min(o.""OrderID"") AS ""Min"", max(o.""OrderID"") AS ""Max"", avg(o.""OrderID""::double precision) AS ""Avg""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -192,7 +192,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_Sum_Min_Key_Max_Avg(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", MIN(o.""OrderID"") AS ""Min"", o.""CustomerID"" AS ""Key"", MAX(o.""OrderID"") AS ""Max"", AVG(o.""OrderID""::double precision) AS ""Avg""
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", min(o.""OrderID"") AS ""Min"", o.""CustomerID"" AS ""Key"", max(o.""OrderID"") AS ""Max"", avg(o.""OrderID""::double precision) AS ""Avg""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -202,7 +202,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_key_multiple_times_and_aggregate(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key1"", COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum""
+            @"SELECT o.""CustomerID"" AS ""Key1"", COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -212,7 +212,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_Key_with_constant(async);
 
         AssertSql(
-            @"SELECT t.""Name"", t.""CustomerID"" AS ""Value"", COUNT(*)::INT AS ""Count""
+            @"SELECT t.""Name"", t.""CustomerID"" AS ""Value"", count(*)::INT AS ""Count""
 FROM (
     SELECT o.""CustomerID"", 'CustomerID' AS ""Name""
     FROM ""Orders"" AS o
@@ -226,11 +226,11 @@ GROUP BY t.""Name"", t.""CustomerID""");
 
         AssertSql(
             @"SELECT o.""OrderDate"" AS ""Key"", CASE
-    WHEN COUNT(*)::INT = 0 THEN 1
-    ELSE COALESCE(SUM(CASE
+    WHEN count(*)::INT = 0 THEN 1
+    ELSE COALESCE(sum(CASE
         WHEN (o.""OrderID"" % 2) = 0 THEN 1
         ELSE 0
-    END), 0)::INT / COUNT(*)::INT
+    END), 0)::INT / count(*)::INT
 END AS ""SomeValue""
 FROM ""Orders"" AS o
 GROUP BY o.""OrderDate""");
@@ -244,7 +244,7 @@ GROUP BY o.""OrderDate""");
             @"SELECT CASE
     WHEN (o.""OrderDate"" IS NULL) THEN 'is null'
     ELSE 'is not null'
-END AS ""Key"", COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum""
+END AS ""Key"", COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum""
 FROM ""Orders"" AS o
 GROUP BY o.""OrderDate""");
     }
@@ -254,7 +254,7 @@ GROUP BY o.""OrderDate""");
         await base.GroupBy_anonymous_Select_Average(async);
 
         AssertSql(
-            @"SELECT AVG(o.""OrderID""::double precision)
+            @"SELECT avg(o.""OrderID""::double precision)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -264,7 +264,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_anonymous_Select_Count(async);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -274,7 +274,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_anonymous_Select_LongCount(async);
 
         AssertSql(
-            @"SELECT COUNT(*)
+            @"SELECT count(*)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -284,7 +284,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_anonymous_Select_Max(async);
 
         AssertSql(
-            @"SELECT MAX(o.""OrderID"")
+            @"SELECT max(o.""OrderID"")
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -294,7 +294,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_anonymous_Select_Min(async);
 
         AssertSql(
-            @"SELECT MIN(o.""OrderID"")
+            @"SELECT min(o.""OrderID"")
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -304,7 +304,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_anonymous_Select_Sum(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -314,7 +314,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_anonymous_Select_Sum_Min_Max_Avg(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", MIN(o.""OrderID"") AS ""Min"", MAX(o.""OrderID"") AS ""Max"", AVG(o.""OrderID""::double precision) AS ""Avg""
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", min(o.""OrderID"") AS ""Min"", max(o.""OrderID"") AS ""Max"", avg(o.""OrderID""::double precision) AS ""Avg""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -324,7 +324,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_anonymous_with_alias_Select_Key_Sum(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum""
+            @"SELECT o.""CustomerID"" AS ""Key"", COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -334,7 +334,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Composite_Select_Average(async);
 
         AssertSql(
-            @"SELECT AVG(o.""OrderID""::double precision)
+            @"SELECT avg(o.""OrderID""::double precision)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -344,7 +344,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_Count(async);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -354,7 +354,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_LongCount(async);
 
         AssertSql(
-            @"SELECT COUNT(*)
+            @"SELECT count(*)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -364,7 +364,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_Max(async);
 
         AssertSql(
-            @"SELECT MAX(o.""OrderID"")
+            @"SELECT max(o.""OrderID"")
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -374,7 +374,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_Min(async);
 
         AssertSql(
-            @"SELECT MIN(o.""OrderID"")
+            @"SELECT min(o.""OrderID"")
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -384,7 +384,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_Sum(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -394,7 +394,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_Sum_Min_Max_Avg(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", MIN(o.""OrderID"") AS ""Min"", MAX(o.""OrderID"") AS ""Max"", AVG(o.""OrderID""::double precision) AS ""Avg""
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", min(o.""OrderID"") AS ""Min"", max(o.""OrderID"") AS ""Max"", avg(o.""OrderID""::double precision) AS ""Avg""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -404,7 +404,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_Key_Average(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"", o.""EmployeeID"", AVG(o.""OrderID""::double precision) AS ""Average""
+            @"SELECT o.""CustomerID"", o.""EmployeeID"", avg(o.""OrderID""::double precision) AS ""Average""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -414,7 +414,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_Key_Count(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"", o.""EmployeeID"", COUNT(*)::INT AS ""Count""
+            @"SELECT o.""CustomerID"", o.""EmployeeID"", count(*)::INT AS ""Count""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -424,7 +424,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_Key_LongCount(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"", o.""EmployeeID"", COUNT(*) AS ""LongCount""
+            @"SELECT o.""CustomerID"", o.""EmployeeID"", count(*) AS ""LongCount""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -434,7 +434,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_Key_Max(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"", o.""EmployeeID"", MAX(o.""OrderID"") AS ""Max""
+            @"SELECT o.""CustomerID"", o.""EmployeeID"", max(o.""OrderID"") AS ""Max""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -444,7 +444,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_Key_Min(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"", o.""EmployeeID"", MIN(o.""OrderID"") AS ""Min""
+            @"SELECT o.""CustomerID"", o.""EmployeeID"", min(o.""OrderID"") AS ""Min""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -454,7 +454,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_Key_Sum(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"", o.""EmployeeID"", COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum""
+            @"SELECT o.""CustomerID"", o.""EmployeeID"", COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -464,7 +464,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_Key_Sum_Min_Max_Avg(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"", o.""EmployeeID"", COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", MIN(o.""OrderID"") AS ""Min"", MAX(o.""OrderID"") AS ""Max"", AVG(o.""OrderID""::double precision) AS ""Avg""
+            @"SELECT o.""CustomerID"", o.""EmployeeID"", COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", min(o.""OrderID"") AS ""Min"", max(o.""OrderID"") AS ""Max"", avg(o.""OrderID""::double precision) AS ""Avg""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -474,7 +474,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_Sum_Min_Key_Max_Avg(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", MIN(o.""OrderID"") AS ""Min"", o.""CustomerID"", o.""EmployeeID"", MAX(o.""OrderID"") AS ""Max"", AVG(o.""OrderID""::double precision) AS ""Avg""
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", min(o.""OrderID"") AS ""Min"", o.""CustomerID"", o.""EmployeeID"", max(o.""OrderID"") AS ""Max"", avg(o.""OrderID""::double precision) AS ""Avg""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -484,7 +484,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_Sum_Min_Key_flattened_Max_Avg(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", MIN(o.""OrderID"") AS ""Min"", o.""CustomerID"", o.""EmployeeID"", MAX(o.""OrderID"") AS ""Max"", AVG(o.""OrderID""::double precision) AS ""Avg""
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", min(o.""OrderID"") AS ""Min"", o.""CustomerID"", o.""EmployeeID"", max(o.""OrderID"") AS ""Max"", avg(o.""OrderID""::double precision) AS ""Avg""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -494,7 +494,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Dto_as_key_Select_Sum(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", o.""CustomerID"", o.""EmployeeID""
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", o.""CustomerID"", o.""EmployeeID""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -504,7 +504,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Dto_as_element_selector_Select_Sum(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""EmployeeID""::bigint), 0.0)::bigint AS ""Sum"", o.""CustomerID"" AS ""Key""
+            @"SELECT COALESCE(sum(o.""EmployeeID""::bigint), 0.0)::bigint AS ""Sum"", o.""CustomerID"" AS ""Key""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -514,7 +514,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Composite_Select_Dto_Sum_Min_Key_flattened_Max_Avg(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", MIN(o.""OrderID"") AS ""Min"", o.""CustomerID"" AS ""CustomerId"", o.""EmployeeID"" AS ""EmployeeId"", MAX(o.""OrderID"") AS ""Max"", AVG(o.""OrderID""::double precision) AS ""Avg""
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", min(o.""OrderID"") AS ""Min"", o.""CustomerID"" AS ""CustomerId"", o.""EmployeeID"" AS ""EmployeeId"", max(o.""OrderID"") AS ""Max"", avg(o.""OrderID""::double precision) AS ""Avg""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -524,7 +524,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Composite_Select_Sum_Min_part_Key_flattened_Max_Avg(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", MIN(o.""OrderID"") AS ""Min"", o.""CustomerID"", MAX(o.""OrderID"") AS ""Max"", AVG(o.""OrderID""::double precision) AS ""Avg""
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", min(o.""OrderID"") AS ""Min"", o.""CustomerID"", max(o.""OrderID"") AS ""Max"", avg(o.""OrderID""::double precision) AS ""Avg""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID"", o.""EmployeeID""");
     }
@@ -534,7 +534,7 @@ GROUP BY o.""CustomerID"", o.""EmployeeID""");
         await base.GroupBy_Constant_Select_Sum_Min_Key_Max_Avg(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(t.""OrderID""), 0)::INT AS ""Sum"", MIN(t.""OrderID"") AS ""Min"", t.""Key"", MAX(t.""OrderID"") AS ""Max"", AVG(t.""OrderID""::double precision) AS ""Avg""
+            @"SELECT COALESCE(sum(t.""OrderID""), 0)::INT AS ""Sum"", min(t.""OrderID"") AS ""Min"", t.""Key"", max(t.""OrderID"") AS ""Max"", avg(t.""OrderID""::double precision) AS ""Avg""
 FROM (
     SELECT o.""OrderID"", 2 AS ""Key""
     FROM ""Orders"" AS o
@@ -547,7 +547,7 @@ GROUP BY t.""Key""");
         await base.GroupBy_Constant_with_element_selector_Select_Sum(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(t.""OrderID""), 0)::INT AS ""Sum""
+            @"SELECT COALESCE(sum(t.""OrderID""), 0)::INT AS ""Sum""
 FROM (
     SELECT o.""OrderID"", 2 AS ""Key""
     FROM ""Orders"" AS o
@@ -560,7 +560,7 @@ GROUP BY t.""Key""");
         await base.GroupBy_Constant_with_element_selector_Select_Sum2(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(t.""OrderID""), 0)::INT AS ""Sum""
+            @"SELECT COALESCE(sum(t.""OrderID""), 0)::INT AS ""Sum""
 FROM (
     SELECT o.""OrderID"", 2 AS ""Key""
     FROM ""Orders"" AS o
@@ -573,7 +573,7 @@ GROUP BY t.""Key""");
         await base.GroupBy_Constant_with_element_selector_Select_Sum3(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(t.""OrderID""), 0)::INT AS ""Sum""
+            @"SELECT COALESCE(sum(t.""OrderID""), 0)::INT AS ""Sum""
 FROM (
     SELECT o.""OrderID"", 2 AS ""Key""
     FROM ""Orders"" AS o
@@ -586,7 +586,7 @@ GROUP BY t.""Key""");
         await base.GroupBy_after_predicate_Constant_Select_Sum_Min_Key_Max_Avg(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(t.""OrderID""), 0)::INT AS ""Sum"", MIN(t.""OrderID"") AS ""Min"", t.""Key"" AS ""Random"", MAX(t.""OrderID"") AS ""Max"", AVG(t.""OrderID""::double precision) AS ""Avg""
+            @"SELECT COALESCE(sum(t.""OrderID""), 0)::INT AS ""Sum"", min(t.""OrderID"") AS ""Min"", t.""Key"" AS ""Random"", max(t.""OrderID"") AS ""Max"", avg(t.""OrderID""::double precision) AS ""Avg""
 FROM (
     SELECT o.""OrderID"", 2 AS ""Key""
     FROM ""Orders"" AS o
@@ -600,7 +600,7 @@ GROUP BY t.""Key""");
         await base.GroupBy_Constant_with_element_selector_Select_Sum_Min_Key_Max_Avg(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(t.""OrderID""), 0)::INT AS ""Sum"", t.""Key""
+            @"SELECT COALESCE(sum(t.""OrderID""), 0)::INT AS ""Sum"", t.""Key""
 FROM (
     SELECT o.""OrderID"", 2 AS ""Key""
     FROM ""Orders"" AS o
@@ -613,7 +613,7 @@ GROUP BY t.""Key""");
         await base.GroupBy_constant_with_where_on_grouping_with_aggregate_operators(async);
 
         AssertSql(
-            @"SELECT MIN(t.""OrderDate"") FILTER (WHERE 1 = t.""Key"") AS ""Min"", MAX(t.""OrderDate"") FILTER (WHERE 1 = t.""Key"") AS ""Max"", COALESCE(SUM(t.""OrderID"") FILTER (WHERE 1 = t.""Key""), 0)::INT AS ""Sum"", AVG(t.""OrderID""::double precision) FILTER (WHERE 1 = t.""Key"") AS ""Average""
+            @"SELECT min(t.""OrderDate"") FILTER (WHERE 1 = t.""Key"") AS ""Min"", max(t.""OrderDate"") FILTER (WHERE 1 = t.""Key"") AS ""Max"", COALESCE(sum(t.""OrderID"") FILTER (WHERE 1 = t.""Key""), 0)::INT AS ""Sum"", avg(t.""OrderID""::double precision) FILTER (WHERE 1 = t.""Key"") AS ""Average""
 FROM (
     SELECT o.""OrderID"", o.""OrderDate"", 1 AS ""Key""
     FROM ""Orders"" AS o
@@ -629,7 +629,7 @@ ORDER BY t.""Key"" NULLS FIRST");
         AssertSql(
             @"@__a_0='2'
 
-SELECT COALESCE(SUM(t.""OrderID""), 0)::INT AS ""Sum"", MIN(t.""OrderID"") AS ""Min"", t.""Key"", MAX(t.""OrderID"") AS ""Max"", AVG(t.""OrderID""::double precision) AS ""Avg""
+SELECT COALESCE(sum(t.""OrderID""), 0)::INT AS ""Sum"", min(t.""OrderID"") AS ""Min"", t.""Key"", max(t.""OrderID"") AS ""Max"", avg(t.""OrderID""::double precision) AS ""Avg""
 FROM (
     SELECT o.""OrderID"", @__a_0 AS ""Key""
     FROM ""Orders"" AS o
@@ -644,7 +644,7 @@ GROUP BY t.""Key""");
         AssertSql(
             @"@__a_0='2'
 
-SELECT COALESCE(SUM(t.""OrderID""), 0)::INT AS ""Sum""
+SELECT COALESCE(sum(t.""OrderID""), 0)::INT AS ""Sum""
 FROM (
     SELECT o.""OrderID"", @__a_0 AS ""Key""
     FROM ""Orders"" AS o
@@ -659,7 +659,7 @@ GROUP BY t.""Key""");
         AssertSql(
             @"@__a_0='2'
 
-SELECT COALESCE(SUM(t.""OrderID""), 0)::INT AS ""Sum""
+SELECT COALESCE(sum(t.""OrderID""), 0)::INT AS ""Sum""
 FROM (
     SELECT o.""OrderID"", @__a_0 AS ""Key""
     FROM ""Orders"" AS o
@@ -674,7 +674,7 @@ GROUP BY t.""Key""");
         AssertSql(
             @"@__a_0='2'
 
-SELECT COALESCE(SUM(t.""OrderID""), 0)::INT AS ""Sum""
+SELECT COALESCE(sum(t.""OrderID""), 0)::INT AS ""Sum""
 FROM (
     SELECT o.""OrderID"", @__a_0 AS ""Key""
     FROM ""Orders"" AS o
@@ -689,7 +689,7 @@ GROUP BY t.""Key""");
         AssertSql(
             @"@__a_0='2'
 
-SELECT COALESCE(SUM(t.""OrderID""), 0)::INT AS ""Sum"", t.""Key""
+SELECT COALESCE(sum(t.""OrderID""), 0)::INT AS ""Sum"", t.""Key""
 FROM (
     SELECT o.""OrderID"", @__a_0 AS ""Key""
     FROM ""Orders"" AS o
@@ -702,7 +702,7 @@ GROUP BY t.""Key""");
         await base.GroupBy_anonymous_key_type_mismatch_with_aggregate(async);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT AS ""I0"", t.""I0"" AS ""I1""
+            @"SELECT count(*)::INT AS ""I0"", t.""I0"" AS ""I1""
 FROM (
     SELECT date_part('year', o.""OrderDate"")::INT AS ""I0""
     FROM ""Orders"" AS o
@@ -716,7 +716,7 @@ ORDER BY t.""I0"" NULLS FIRST");
         await base.GroupBy_Property_scalar_element_selector_Average(async);
 
         AssertSql(
-            @"SELECT AVG(o.""OrderID""::double precision)
+            @"SELECT avg(o.""OrderID""::double precision)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -726,7 +726,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_scalar_element_selector_Count(async);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -736,7 +736,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_scalar_element_selector_LongCount(async);
 
         AssertSql(
-            @"SELECT COUNT(*)
+            @"SELECT count(*)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -746,7 +746,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_scalar_element_selector_Max(async);
 
         AssertSql(
-            @"SELECT MAX(o.""OrderID"")
+            @"SELECT max(o.""OrderID"")
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -756,7 +756,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_scalar_element_selector_Min(async);
 
         AssertSql(
-            @"SELECT MIN(o.""OrderID"")
+            @"SELECT min(o.""OrderID"")
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -766,7 +766,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_scalar_element_selector_Sum(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -776,7 +776,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_scalar_element_selector_Sum_Min_Max_Avg(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", MIN(o.""OrderID"") AS ""Min"", MAX(o.""OrderID"") AS ""Max"", AVG(o.""OrderID""::double precision) AS ""Avg""
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", min(o.""OrderID"") AS ""Min"", max(o.""OrderID"") AS ""Max"", avg(o.""OrderID""::double precision) AS ""Avg""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -786,7 +786,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_anonymous_element_selector_Average(async);
 
         AssertSql(
-            @"SELECT AVG(o.""OrderID""::double precision)
+            @"SELECT avg(o.""OrderID""::double precision)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -796,7 +796,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_anonymous_element_selector_Count(async);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -806,7 +806,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_anonymous_element_selector_LongCount(async);
 
         AssertSql(
-            @"SELECT COUNT(*)
+            @"SELECT count(*)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -816,7 +816,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_anonymous_element_selector_Max(async);
 
         AssertSql(
-            @"SELECT MAX(o.""OrderID"")
+            @"SELECT max(o.""OrderID"")
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -826,7 +826,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_anonymous_element_selector_Min(async);
 
         AssertSql(
-            @"SELECT MIN(o.""OrderID"")
+            @"SELECT min(o.""OrderID"")
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -836,7 +836,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_anonymous_element_selector_Sum(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -846,7 +846,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_anonymous_element_selector_Sum_Min_Max_Avg(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", MIN(o.""EmployeeID"") AS ""Min"", MAX(o.""EmployeeID"") AS ""Max"", AVG(o.""OrderID""::double precision) AS ""Avg""
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", min(o.""EmployeeID"") AS ""Min"", max(o.""EmployeeID"") AS ""Max"", avg(o.""OrderID""::double precision) AS ""Avg""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -856,7 +856,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_element_selector_complex_aggregate(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID"" + 1), 0)::INT
+            @"SELECT COALESCE(sum(o.""OrderID"" + 1), 0)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -866,7 +866,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_element_selector_complex_aggregate2(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID"" + 1), 0)::INT
+            @"SELECT COALESCE(sum(o.""OrderID"" + 1), 0)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -876,7 +876,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_element_selector_complex_aggregate3(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID"" + 1), 0)::INT
+            @"SELECT COALESCE(sum(o.""OrderID"" + 1), 0)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -886,7 +886,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_element_selector_complex_aggregate4(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID"" + 1), 0)::INT
+            @"SELECT COALESCE(sum(o.""OrderID"" + 1), 0)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -896,7 +896,7 @@ GROUP BY o.""CustomerID""");
         await base.Element_selector_with_case_block_repeated_inside_another_case_block_in_projection(async);
 
         AssertSql(
-            @"SELECT o.""OrderID"", COALESCE(SUM(CASE
+            @"SELECT o.""OrderID"", COALESCE(sum(CASE
     WHEN o.""CustomerID"" = 'ALFKI' THEN CASE
         WHEN o.""OrderID"" > 1000 THEN o.""OrderID""
         ELSE -o.""OrderID""
@@ -915,7 +915,7 @@ GROUP BY o.""OrderID""");
         await base.GroupBy_conditional_properties(async);
 
         AssertSql(
-            @"SELECT t.""OrderMonth"", t.""CustomerID"" AS ""Customer"", COUNT(*)::INT AS ""Count""
+            @"SELECT t.""OrderMonth"", t.""CustomerID"" AS ""Customer"", count(*)::INT AS ""Count""
 FROM (
     SELECT o.""CustomerID"", NULL AS ""OrderMonth""
     FROM ""Orders"" AS o
@@ -928,7 +928,7 @@ GROUP BY t.""OrderMonth"", t.""CustomerID""");
         await base.GroupBy_empty_key_Aggregate(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(t.""OrderID""), 0)::INT
+            @"SELECT COALESCE(sum(t.""OrderID""), 0)::INT
 FROM (
     SELECT o.""OrderID"", 1 AS ""Key""
     FROM ""Orders"" AS o
@@ -941,7 +941,7 @@ GROUP BY t.""Key""");
         await base.GroupBy_empty_key_Aggregate_Key(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(t.""OrderID""), 0)::INT AS ""Sum""
+            @"SELECT COALESCE(sum(t.""OrderID""), 0)::INT AS ""Sum""
 FROM (
     SELECT o.""OrderID"", 1 AS ""Key""
     FROM ""Orders"" AS o
@@ -954,7 +954,7 @@ GROUP BY t.""Key""");
         await base.OrderBy_GroupBy_Aggregate(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -966,7 +966,7 @@ GROUP BY o.""CustomerID""");
         AssertSql(
             @"@__p_0='80'
 
-SELECT AVG(t.""OrderID""::double precision)
+SELECT avg(t.""OrderID""::double precision)
 FROM (
     SELECT o.""OrderID"", o.""CustomerID""
     FROM ""Orders"" AS o
@@ -983,7 +983,7 @@ GROUP BY t.""CustomerID""");
         AssertSql(
             @"@__p_0='500'
 
-SELECT MIN(t.""OrderID"")
+SELECT min(t.""OrderID"")
 FROM (
     SELECT o.""OrderID"", o.""CustomerID""
     FROM ""Orders"" AS o
@@ -1001,7 +1001,7 @@ GROUP BY t.""CustomerID""");
             @"@__p_1='500'
 @__p_0='80'
 
-SELECT MAX(t.""OrderID"")
+SELECT max(t.""OrderID"")
 FROM (
     SELECT o.""OrderID"", o.""CustomerID""
     FROM ""Orders"" AS o
@@ -1016,7 +1016,7 @@ GROUP BY t.""CustomerID""");
         await base.Distinct_GroupBy_Aggregate(async);
 
         AssertSql(
-            @"SELECT t.""CustomerID"" AS ""Key"", COUNT(*)::INT AS c
+            @"SELECT t.""CustomerID"" AS ""Key"", count(*)::INT AS c
 FROM (
     SELECT DISTINCT o.""OrderID"", o.""CustomerID"", o.""EmployeeID"", o.""OrderDate""
     FROM ""Orders"" AS o
@@ -1029,7 +1029,7 @@ GROUP BY t.""CustomerID""");
         await base.Anonymous_projection_Distinct_GroupBy_Aggregate(async);
 
         AssertSql(
-            @"SELECT t.""EmployeeID"" AS ""Key"", COUNT(*)::INT AS c
+            @"SELECT t.""EmployeeID"" AS ""Key"", count(*)::INT AS c
 FROM (
     SELECT DISTINCT o.""OrderID"", o.""EmployeeID""
     FROM ""Orders"" AS o
@@ -1042,7 +1042,7 @@ GROUP BY t.""EmployeeID""");
         await base.SelectMany_GroupBy_Aggregate(async);
 
         AssertSql(
-            @"SELECT o.""EmployeeID"" AS ""Key"", COUNT(*)::INT AS c
+            @"SELECT o.""EmployeeID"" AS ""Key"", count(*)::INT AS c
 FROM ""Customers"" AS c
 INNER JOIN ""Orders"" AS o ON c.""CustomerID"" = o.""CustomerID""
 GROUP BY o.""EmployeeID""");
@@ -1053,7 +1053,7 @@ GROUP BY o.""EmployeeID""");
         await base.Join_GroupBy_Aggregate(async);
 
         AssertSql(
-            @"SELECT c.""CustomerID"" AS ""Key"", AVG(o.""OrderID""::double precision) AS ""Count""
+            @"SELECT c.""CustomerID"" AS ""Key"", avg(o.""OrderID""::double precision) AS ""Count""
 FROM ""Orders"" AS o
 INNER JOIN ""Customers"" AS c ON o.""CustomerID"" = c.""CustomerID""
 GROUP BY c.""CustomerID""");
@@ -1064,7 +1064,7 @@ GROUP BY c.""CustomerID""");
         await base.GroupBy_required_navigation_member_Aggregate(async);
 
         AssertSql(
-            @"SELECT o0.""CustomerID"" AS ""CustomerId"", COUNT(*)::INT AS ""Count""
+            @"SELECT o0.""CustomerID"" AS ""CustomerId"", count(*)::INT AS ""Count""
 FROM ""Order Details"" AS o
 INNER JOIN ""Orders"" AS o0 ON o.""OrderID"" = o0.""OrderID""
 GROUP BY o0.""CustomerID""");
@@ -1079,7 +1079,7 @@ GROUP BY o0.""CustomerID""");
 @__p_2='50'
 @__p_1='10'
 
-SELECT t0.""CustomerID"" AS ""Key"", AVG(t.""OrderID""::double precision) AS ""Count""
+SELECT t0.""CustomerID"" AS ""Key"", avg(t.""OrderID""::double precision) AS ""Count""
 FROM (
     SELECT o.""OrderID"", o.""CustomerID""
     FROM ""Orders"" AS o
@@ -1102,7 +1102,7 @@ GROUP BY t0.""CustomerID""");
         await base.GroupJoin_GroupBy_Aggregate(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", AVG(o.""OrderID""::double precision) AS ""Average""
+            @"SELECT o.""CustomerID"" AS ""Key"", avg(o.""OrderID""::double precision) AS ""Average""
 FROM ""Customers"" AS c
 LEFT JOIN ""Orders"" AS o ON c.""CustomerID"" = o.""CustomerID""
 WHERE (o.""OrderID"" IS NOT NULL)
@@ -1114,7 +1114,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupJoin_GroupBy_Aggregate_2(async);
 
         AssertSql(
-            @"SELECT c.""CustomerID"" AS ""Key"", MAX(c.""City"") AS ""Max""
+            @"SELECT c.""CustomerID"" AS ""Key"", max(c.""City"") AS ""Max""
 FROM ""Customers"" AS c
 LEFT JOIN ""Orders"" AS o ON c.""CustomerID"" = o.""CustomerID""
 GROUP BY c.""CustomerID""");
@@ -1125,7 +1125,7 @@ GROUP BY c.""CustomerID""");
         await base.GroupJoin_GroupBy_Aggregate_3(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", AVG(o.""OrderID""::double precision) AS ""Average""
+            @"SELECT o.""CustomerID"" AS ""Key"", avg(o.""OrderID""::double precision) AS ""Average""
 FROM ""Orders"" AS o
 LEFT JOIN ""Customers"" AS c ON o.""CustomerID"" = c.""CustomerID""
 GROUP BY o.""CustomerID""");
@@ -1136,7 +1136,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupJoin_GroupBy_Aggregate_4(async);
 
         AssertSql(
-            @"SELECT c.""CustomerID"" AS ""Value"", MAX(c.""City"") AS ""Max""
+            @"SELECT c.""CustomerID"" AS ""Value"", max(c.""City"") AS ""Max""
 FROM ""Customers"" AS c
 LEFT JOIN ""Orders"" AS o ON c.""CustomerID"" = o.""CustomerID""
 GROUP BY c.""CustomerID""");
@@ -1147,7 +1147,7 @@ GROUP BY c.""CustomerID""");
         await base.GroupJoin_GroupBy_Aggregate_5(async);
 
         AssertSql(
-            @"SELECT o.""OrderID"" AS ""Value"", AVG(o.""OrderID""::double precision) AS ""Average""
+            @"SELECT o.""OrderID"" AS ""Value"", avg(o.""OrderID""::double precision) AS ""Average""
 FROM ""Orders"" AS o
 LEFT JOIN ""Customers"" AS c ON o.""CustomerID"" = c.""CustomerID""
 GROUP BY o.""OrderID""");
@@ -1158,7 +1158,7 @@ GROUP BY o.""OrderID""");
         await base.GroupBy_optional_navigation_member_Aggregate(async);
 
         AssertSql(
-            @"SELECT c.""Country"", COUNT(*)::INT AS ""Count""
+            @"SELECT c.""Country"", count(*)::INT AS ""Count""
 FROM ""Orders"" AS o
 LEFT JOIN ""Customers"" AS c ON o.""CustomerID"" = c.""CustomerID""
 GROUP BY c.""Country""");
@@ -1173,7 +1173,7 @@ GROUP BY c.""Country""");
 @__p_0='10'
 @__p_2='100'
 
-SELECT t0.""CustomerID"" AS ""Key"", AVG(t0.""OrderID""::double precision) AS ""Count""
+SELECT t0.""CustomerID"" AS ""Key"", avg(t0.""OrderID""::double precision) AS ""Count""
 FROM (
     SELECT c.""CustomerID""
     FROM ""Customers"" AS c
@@ -1197,7 +1197,7 @@ GROUP BY t0.""CustomerID""");
         await base.Self_join_GroupBy_Aggregate(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", AVG(o0.""OrderID""::double precision) AS ""Count""
+            @"SELECT o.""CustomerID"" AS ""Key"", avg(o0.""OrderID""::double precision) AS ""Count""
 FROM ""Orders"" AS o
 INNER JOIN ""Orders"" AS o0 ON o.""OrderID"" = o0.""OrderID""
 WHERE o.""OrderID"" < 10400
@@ -1209,7 +1209,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_multi_navigation_members_Aggregate(async);
 
         AssertSql(
-            @"SELECT o0.""CustomerID"", p.""ProductName"", COUNT(*)::INT AS ""Count""
+            @"SELECT o0.""CustomerID"", p.""ProductName"", count(*)::INT AS ""Count""
 FROM ""Order Details"" AS o
 INNER JOIN ""Orders"" AS o0 ON o.""OrderID"" = o0.""OrderID""
 INNER JOIN ""Products"" AS p ON o.""ProductID"" = p.""ProductID""
@@ -1221,7 +1221,7 @@ GROUP BY o0.""CustomerID"", p.""ProductName""");
         await base.Union_simple_groupby(async);
 
         AssertSql(
-            @"SELECT t.""City"" AS ""Key"", COUNT(*)::INT AS ""Total""
+            @"SELECT t.""City"" AS ""Key"", count(*)::INT AS ""Total""
 FROM (
     SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
     FROM ""Customers"" AS c
@@ -1239,7 +1239,7 @@ GROUP BY t.""City""");
         await base.Select_anonymous_GroupBy_Aggregate(async);
 
         AssertSql(
-            @"SELECT MIN(o.""OrderDate"") AS ""Min"", MAX(o.""OrderDate"") AS ""Max"", COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", AVG(o.""OrderID""::double precision) AS ""Avg""
+            @"SELECT min(o.""OrderDate"") AS ""Min"", max(o.""OrderDate"") AS ""Max"", COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", avg(o.""OrderID""::double precision) AS ""Avg""
 FROM ""Orders"" AS o
 WHERE o.""OrderID"" < 10300
 GROUP BY o.""CustomerID""");
@@ -1250,7 +1250,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_principal_key_property_optimization(async);
 
         AssertSql(
-            @"SELECT c.""CustomerID"" AS ""Key"", COUNT(*)::INT AS ""Count""
+            @"SELECT c.""CustomerID"" AS ""Key"", count(*)::INT AS ""Count""
 FROM ""Orders"" AS o
 LEFT JOIN ""Customers"" AS c ON o.""CustomerID"" = c.""CustomerID""
 GROUP BY c.""CustomerID""");
@@ -1261,7 +1261,7 @@ GROUP BY c.""CustomerID""");
         await base.GroupBy_after_anonymous_projection_and_distinct_followed_by_another_anonymous_projection(async);
 
         AssertSql(
-            @"SELECT t.""CustomerID"" AS ""Key"", COUNT(*)::INT AS ""Count""
+            @"SELECT t.""CustomerID"" AS ""Key"", count(*)::INT AS ""Count""
 FROM (
     SELECT DISTINCT o.""CustomerID"", o.""OrderID""
     FROM ""Orders"" AS o
@@ -1274,7 +1274,7 @@ GROUP BY t.""CustomerID""");
         await base.GroupBy_complex_key_aggregate(async);
 
         AssertSql(
-            @"SELECT t.""Key"", COUNT(*)::INT AS ""Count""
+            @"SELECT t.""Key"", count(*)::INT AS ""Count""
 FROM (
     SELECT substring(c.""CustomerID"", 1, 1) AS ""Key""
     FROM ""Orders"" AS o
@@ -1288,8 +1288,8 @@ GROUP BY t.""Key""");
         await base.GroupBy_complex_key_aggregate_2(async);
 
         AssertSql(
-            @"SELECT t.""Key"" AS ""Month"", COALESCE(SUM(t.""OrderID""), 0)::INT AS ""Total"", (
-    SELECT COALESCE(SUM(o0.""OrderID""), 0)::INT
+            @"SELECT t.""Key"" AS ""Month"", COALESCE(sum(t.""OrderID""), 0)::INT AS ""Total"", (
+    SELECT COALESCE(sum(o0.""OrderID""), 0)::INT
     FROM ""Orders"" AS o0
     WHERE date_part('month', o0.""OrderDate"")::INT = t.""Key"" OR ((o0.""OrderDate"" IS NULL) AND (t.""Key"" IS NULL))) AS ""Payment""
 FROM (
@@ -1304,7 +1304,7 @@ GROUP BY t.""Key""");
         await base.Select_collection_of_scalar_before_GroupBy_aggregate(async);
 
         AssertSql(
-            @"SELECT c.""City"" AS ""Key"", COUNT(*)::INT AS ""Count""
+            @"SELECT c.""City"" AS ""Key"", count(*)::INT AS ""Count""
 FROM ""Customers"" AS c
 GROUP BY c.""City""");
     }
@@ -1314,7 +1314,7 @@ GROUP BY c.""City""");
         await base.GroupBy_OrderBy_key(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", COUNT(*)::INT AS c
+            @"SELECT o.""CustomerID"" AS ""Key"", count(*)::INT AS c
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""
 ORDER BY o.""CustomerID"" NULLS FIRST");
@@ -1325,10 +1325,10 @@ ORDER BY o.""CustomerID"" NULLS FIRST");
         await base.GroupBy_OrderBy_count(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", COUNT(*)::INT AS ""Count""
+            @"SELECT o.""CustomerID"" AS ""Key"", count(*)::INT AS ""Count""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""
-ORDER BY COUNT(*)::INT NULLS FIRST, o.""CustomerID"" NULLS FIRST");
+ORDER BY count(*)::INT NULLS FIRST, o.""CustomerID"" NULLS FIRST");
     }
 
     public override async Task GroupBy_OrderBy_count_Select_sum(bool async)
@@ -1336,10 +1336,10 @@ ORDER BY COUNT(*)::INT NULLS FIRST, o.""CustomerID"" NULLS FIRST");
         await base.GroupBy_OrderBy_count_Select_sum(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum""
+            @"SELECT o.""CustomerID"" AS ""Key"", COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""
-ORDER BY COUNT(*)::INT NULLS FIRST, o.""CustomerID"" NULLS FIRST");
+ORDER BY count(*)::INT NULLS FIRST, o.""CustomerID"" NULLS FIRST");
     }
 
     public override async Task GroupBy_aggregate_Contains(bool async)
@@ -1353,7 +1353,7 @@ WHERE EXISTS (
     SELECT 1
     FROM ""Orders"" AS o0
     GROUP BY o0.""CustomerID""
-    HAVING COUNT(*)::INT > 30 AND (o0.""CustomerID"" = o.""CustomerID"" OR ((o0.""CustomerID"" IS NULL) AND (o.""CustomerID"" IS NULL))))");
+    HAVING count(*)::INT > 30 AND (o0.""CustomerID"" = o.""CustomerID"" OR ((o0.""CustomerID"" IS NULL) AND (o.""CustomerID"" IS NULL))))");
     }
 
     public override async Task GroupBy_aggregate_Pushdown(bool async)
@@ -1369,7 +1369,7 @@ FROM (
     SELECT o.""CustomerID""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT > 10
+    HAVING count(*)::INT > 10
     ORDER BY o.""CustomerID"" NULLS FIRST
     LIMIT @__p_0
 ) AS t
@@ -1387,10 +1387,10 @@ OFFSET @__p_1");
 
 SELECT t.""Key"", t.""Max""
 FROM (
-    SELECT o.""CustomerID"" AS ""Key"", MAX(o.""CustomerID"") AS ""Max""
+    SELECT o.""CustomerID"" AS ""Key"", max(o.""CustomerID"") AS ""Max""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT > 10
+    HAVING count(*)::INT > 10
     ORDER BY o.""CustomerID"" NULLS FIRST
     LIMIT @__p_0
 ) AS t
@@ -1411,7 +1411,7 @@ FROM (
     SELECT o.""CustomerID""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT > 10
+    HAVING count(*)::INT > 10
     ORDER BY o.""CustomerID"" NULLS FIRST
     LIMIT @__p_0
 ) AS t
@@ -1432,7 +1432,7 @@ FROM (
     SELECT o.""CustomerID""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT > 10
+    HAVING count(*)::INT > 10
     ORDER BY o.""CustomerID"" NULLS FIRST
     LIMIT @__p_0
 ) AS t
@@ -1445,7 +1445,7 @@ OFFSET @__p_1");
         await base.GroupBy_filter_key(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", COUNT(*)::INT AS c
+            @"SELECT o.""CustomerID"" AS ""Key"", count(*)::INT AS c
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""
 HAVING o.""CustomerID"" = 'ALFKI'");
@@ -1456,10 +1456,10 @@ HAVING o.""CustomerID"" = 'ALFKI'");
         await base.GroupBy_filter_count(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", COUNT(*)::INT AS ""Count""
+            @"SELECT o.""CustomerID"" AS ""Key"", count(*)::INT AS ""Count""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""
-HAVING COUNT(*)::INT > 4");
+HAVING count(*)::INT > 4");
     }
 
     public override async Task GroupBy_count_filter(bool async)
@@ -1467,13 +1467,13 @@ HAVING COUNT(*)::INT > 4");
         await base.GroupBy_count_filter(async);
 
         AssertSql(
-            @"SELECT t.""Key"" AS ""Name"", COUNT(*)::INT AS ""Count""
+            @"SELECT t.""Key"" AS ""Name"", count(*)::INT AS ""Count""
 FROM (
     SELECT 'Order' AS ""Key""
     FROM ""Orders"" AS o
 ) AS t
 GROUP BY t.""Key""
-HAVING COUNT(*)::INT > 0");
+HAVING count(*)::INT > 0");
     }
 
     public override async Task GroupBy_filter_count_OrderBy_count_Select_sum(bool async)
@@ -1481,11 +1481,11 @@ HAVING COUNT(*)::INT > 0");
         await base.GroupBy_filter_count_OrderBy_count_Select_sum(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", COUNT(*)::INT AS ""Count"", COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum""
+            @"SELECT o.""CustomerID"" AS ""Key"", count(*)::INT AS ""Count"", COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""
-HAVING COUNT(*)::INT > 4
-ORDER BY COUNT(*)::INT NULLS FIRST, o.""CustomerID"" NULLS FIRST");
+HAVING count(*)::INT > 4
+ORDER BY count(*)::INT NULLS FIRST, o.""CustomerID"" NULLS FIRST");
     }
 
     public override async Task GroupBy_Aggregate_Join(bool async)
@@ -1495,10 +1495,10 @@ ORDER BY COUNT(*)::INT NULLS FIRST, o.""CustomerID"" NULLS FIRST");
         AssertSql(
             @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region"", o0.""OrderID"", o0.""CustomerID"", o0.""EmployeeID"", o0.""OrderDate""
 FROM (
-    SELECT o.""CustomerID"", MAX(o.""OrderID"") AS ""LastOrderID""
+    SELECT o.""CustomerID"", max(o.""OrderID"") AS ""LastOrderID""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT > 5
+    HAVING count(*)::INT > 5
 ) AS t
 INNER JOIN ""Customers"" AS c ON t.""CustomerID"" = c.""CustomerID""
 INNER JOIN ""Orders"" AS o0 ON t.""LastOrderID"" = o0.""OrderID""");
@@ -1515,7 +1515,7 @@ INNER JOIN (
     SELECT o.""CustomerID""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT > 5
+    HAVING count(*)::INT > 5
 ) AS t ON c.""CustomerID"" = t.""CustomerID""");
     }
 
@@ -1527,10 +1527,10 @@ INNER JOIN (
             @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
 LEFT JOIN (
-    SELECT o.""CustomerID"", MAX(o.""OrderID"") AS ""LastOrderID""
+    SELECT o.""CustomerID"", max(o.""OrderID"") AS ""LastOrderID""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT > 5
+    HAVING count(*)::INT > 5
 ) AS t ON c.""CustomerID"" = t.""CustomerID""");
     }
 
@@ -1542,10 +1542,10 @@ LEFT JOIN (
             @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region"", o0.""OrderID"", o0.""CustomerID"", o0.""EmployeeID"", o0.""OrderDate""
 FROM ""Customers"" AS c
 INNER JOIN (
-    SELECT o.""CustomerID"", MAX(o.""OrderID"") AS ""LastOrderID""
+    SELECT o.""CustomerID"", max(o.""OrderID"") AS ""LastOrderID""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT > 5
+    HAVING count(*)::INT > 5
 ) AS t ON c.""CustomerID"" = t.""CustomerID""
 INNER JOIN ""Orders"" AS o0 ON t.""LastOrderID"" = o0.""OrderID""");
     }
@@ -1558,10 +1558,10 @@ INNER JOIN ""Orders"" AS o0 ON t.""LastOrderID"" = o0.""OrderID""");
             @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region"", t.""LastOrderID""
 FROM ""Customers"" AS c
 INNER JOIN (
-    SELECT o.""CustomerID"", MAX(o.""OrderID"") AS ""LastOrderID""
+    SELECT o.""CustomerID"", max(o.""OrderID"") AS ""LastOrderID""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT > 5
+    HAVING count(*)::INT > 5
 ) AS t ON c.""CustomerID"" = t.""CustomerID""");
     }
 
@@ -1573,10 +1573,10 @@ INNER JOIN (
             @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region"", t.""LastOrderID"", o0.""OrderID""
 FROM ""Customers"" AS c
 INNER JOIN (
-    SELECT o.""CustomerID"", MAX(o.""OrderID"") AS ""LastOrderID""
+    SELECT o.""CustomerID"", max(o.""OrderID"") AS ""LastOrderID""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT > 5
+    HAVING count(*)::INT > 5
 ) AS t ON c.""CustomerID"" = t.""CustomerID""
 INNER JOIN ""Orders"" AS o0 ON c.""CustomerID"" = o0.""CustomerID""");
     }
@@ -1589,13 +1589,13 @@ INNER JOIN ""Orders"" AS o0 ON c.""CustomerID"" = o0.""CustomerID""");
             @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region"", t0.""LastOrderID""
 FROM ""Customers"" AS c
 INNER JOIN (
-    SELECT DISTINCT t.""CustomerID"", MAX(t.""OrderID"") AS ""LastOrderID""
+    SELECT DISTINCT t.""CustomerID"", max(t.""OrderID"") AS ""LastOrderID""
     FROM (
         SELECT o.""OrderID"", o.""CustomerID"", date_part('year', o.""OrderDate"")::INT AS ""Year""
         FROM ""Orders"" AS o
     ) AS t
     GROUP BY t.""CustomerID"", t.""Year""
-    HAVING COUNT(*)::INT > 5
+    HAVING count(*)::INT > 5
 ) AS t0 ON c.""CustomerID"" = t0.""CustomerID""");
     }
 
@@ -1607,10 +1607,10 @@ INNER JOIN (
             @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region"", t.""LastOrderID""
 FROM ""Customers"" AS c
 LEFT JOIN (
-    SELECT o.""CustomerID"", MAX(o.""OrderID"") AS ""LastOrderID""
+    SELECT o.""CustomerID"", max(o.""OrderID"") AS ""LastOrderID""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT > 5
+    HAVING count(*)::INT > 5
 ) AS t ON c.""CustomerID"" = t.""CustomerID""
 WHERE c.""CustomerID"" LIKE 'A%'");
     }
@@ -1629,7 +1629,7 @@ INNER JOIN (
         SELECT o0.""CustomerID""
         FROM ""Orders"" AS o0
         GROUP BY o0.""CustomerID""
-        HAVING COUNT(*)::INT > 5
+        HAVING count(*)::INT > 5
     ) AS t ON c.""CustomerID"" = t.""CustomerID""
 ) AS t0 ON o.""CustomerID"" = t0.""CustomerID""
 WHERE o.""OrderID"" < 10400");
@@ -1643,10 +1643,10 @@ WHERE o.""OrderID"" < 10400");
             @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region"", t.""LastOrderID""
 FROM ""Customers"" AS c
 INNER JOIN (
-    SELECT o.""CustomerID"" AS ""Key"", MAX(o.""OrderID"") AS ""LastOrderID""
+    SELECT o.""CustomerID"" AS ""Key"", max(o.""OrderID"") AS ""LastOrderID""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT > 5
+    HAVING count(*)::INT > 5
 ) AS t ON c.""CustomerID"" = t.""Key""");
     }
 
@@ -1655,7 +1655,7 @@ INNER JOIN (
         await base.GroupBy_with_result_selector(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", MIN(o.""OrderID"") AS ""Min"", MAX(o.""OrderID"") AS ""Max"", AVG(o.""OrderID""::double precision) AS ""Avg""
+            @"SELECT COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", min(o.""OrderID"") AS ""Min"", max(o.""OrderID"") AS ""Max"", avg(o.""OrderID""::double precision) AS ""Avg""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1665,7 +1665,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Sum_constant(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(1), 0)::INT
+            @"SELECT COALESCE(sum(1), 0)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1675,7 +1675,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Sum_constant_cast(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(1), 0.0)::bigint
+            @"SELECT COALESCE(sum(1), 0.0)::bigint
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1685,7 +1685,7 @@ GROUP BY o.""CustomerID""");
         await base.Distinct_GroupBy_OrderBy_key(async);
 
         AssertSql(
-            @"SELECT t.""CustomerID"" AS ""Key"", COUNT(*)::INT AS c
+            @"SELECT t.""CustomerID"" AS ""Key"", count(*)::INT AS c
 FROM (
     SELECT DISTINCT o.""OrderID"", o.""CustomerID"", o.""EmployeeID"", o.""OrderDate""
     FROM ""Orders"" AS o
@@ -1743,7 +1743,7 @@ LEFT JOIN LATERAL (
     GROUP BY p.""ProductID""
 ) AS t ON TRUE
 LEFT JOIN LATERAL (
-    SELECT COUNT(*)::INT AS c, p0.""ProductID""
+    SELECT count(*)::INT AS c, p0.""ProductID""
     FROM ""Products"" AS p0
     GROUP BY p0.""ProductID""
 ) AS t0 ON TRUE
@@ -1768,7 +1768,7 @@ ORDER BY o.""OrderID"" NULLS FIRST, t.""ProductID"" NULLS FIRST");
         await base.GroupBy_Where_Average(async);
 
         AssertSql(
-            @"SELECT AVG(o.""OrderID""::double precision) FILTER (WHERE o.""OrderID"" < 10300)
+            @"SELECT avg(o.""OrderID""::double precision) FILTER (WHERE o.""OrderID"" < 10300)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1778,7 +1778,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Count(async);
 
         AssertSql(
-            @"SELECT COUNT(*) FILTER (WHERE o.""OrderID"" < 10300)::INT
+            @"SELECT count(*) FILTER (WHERE o.""OrderID"" < 10300)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1788,7 +1788,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_LongCount(async);
 
         AssertSql(
-            @"SELECT COUNT(*) FILTER (WHERE o.""OrderID"" < 10300)
+            @"SELECT count(*) FILTER (WHERE o.""OrderID"" < 10300)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1798,7 +1798,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Max(async);
 
         AssertSql(
-            @"SELECT MAX(o.""OrderID"") FILTER (WHERE o.""OrderID"" < 10300)
+            @"SELECT max(o.""OrderID"") FILTER (WHERE o.""OrderID"" < 10300)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1808,7 +1808,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Min(async);
 
         AssertSql(
-            @"SELECT MIN(o.""OrderID"") FILTER (WHERE o.""OrderID"" < 10300)
+            @"SELECT min(o.""OrderID"") FILTER (WHERE o.""OrderID"" < 10300)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1818,7 +1818,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Sum(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(o.""OrderID"") FILTER (WHERE o.""OrderID"" < 10300), 0)::INT
+            @"SELECT COALESCE(sum(o.""OrderID"") FILTER (WHERE o.""OrderID"" < 10300), 0)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1828,7 +1828,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Count_with_predicate(async);
 
         AssertSql(
-            @"SELECT COUNT(*) FILTER (WHERE o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997)::INT
+            @"SELECT count(*) FILTER (WHERE o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1838,7 +1838,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Where_Count(async);
 
         AssertSql(
-            @"SELECT COUNT(*) FILTER (WHERE o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997)::INT
+            @"SELECT count(*) FILTER (WHERE o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1848,7 +1848,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Select_Where_Count(async);
 
         AssertSql(
-            @"SELECT COUNT(*) FILTER (WHERE o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997)::INT
+            @"SELECT count(*) FILTER (WHERE o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1858,7 +1858,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Select_Where_Select_Min(async);
 
         AssertSql(
-            @"SELECT MIN(o.""OrderID"") FILTER (WHERE o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997)
+            @"SELECT min(o.""OrderID"") FILTER (WHERE o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1868,7 +1868,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_multiple_Count_with_predicate(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"", COUNT(*)::INT AS ""All"", COUNT(*) FILTER (WHERE o.""OrderID"" < 11000)::INT AS ""TenK"", COUNT(*) FILTER (WHERE o.""OrderID"" < 12000)::INT AS ""EleventK""
+            @"SELECT o.""CustomerID"", count(*)::INT AS ""All"", count(*) FILTER (WHERE o.""OrderID"" < 11000)::INT AS ""TenK"", count(*) FILTER (WHERE o.""OrderID"" < 12000)::INT AS ""EleventK""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1878,10 +1878,10 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_multiple_Sum_with_conditional_projection(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"", COALESCE(SUM(CASE
+            @"SELECT o.""CustomerID"", COALESCE(sum(CASE
     WHEN o.""OrderID"" < 11000 THEN o.""OrderID""
     ELSE 0
-END), 0)::INT AS ""TenK"", COALESCE(SUM(CASE
+END), 0)::INT AS ""TenK"", COALESCE(sum(CASE
     WHEN o.""OrderID"" >= 11000 THEN o.""OrderID""
     ELSE 0
 END), 0)::INT AS ""EleventK""
@@ -1894,10 +1894,10 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_multiple_Sum_with_Select_conditional_projection(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"", COALESCE(SUM(CASE
+            @"SELECT o.""CustomerID"", COALESCE(sum(CASE
     WHEN o.""OrderID"" < 11000 THEN o.""OrderID""
     ELSE 0
-END), 0)::INT AS ""TenK"", COALESCE(SUM(CASE
+END), 0)::INT AS ""TenK"", COALESCE(sum(CASE
     WHEN o.""OrderID"" >= 11000 THEN o.""OrderID""
     ELSE 0
 END), 0)::INT AS ""EleventK""
@@ -1910,7 +1910,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Key_as_part_of_element_selector(async);
 
         AssertSql(
-            @"SELECT o.""OrderID"" AS ""Key"", AVG(o.""OrderID""::double precision) AS ""Avg"", MAX(o.""OrderDate"") AS ""Max""
+            @"SELECT o.""OrderID"" AS ""Key"", avg(o.""OrderID""::double precision) AS ""Avg"", max(o.""OrderDate"") AS ""Max""
 FROM ""Orders"" AS o
 GROUP BY o.""OrderID""");
     }
@@ -1920,7 +1920,7 @@ GROUP BY o.""OrderID""");
         await base.GroupBy_composite_Key_as_part_of_element_selector(async);
 
         AssertSql(
-            @"SELECT o.""OrderID"", o.""CustomerID"", AVG(o.""OrderID""::double precision) AS ""Avg"", MAX(o.""OrderDate"") AS ""Max""
+            @"SELECT o.""OrderID"", o.""CustomerID"", avg(o.""OrderID""::double precision) AS ""Avg"", max(o.""OrderDate"") AS ""Max""
 FROM ""Orders"" AS o
 GROUP BY o.""OrderID"", o.""CustomerID""");
     }
@@ -1931,7 +1931,7 @@ GROUP BY o.""OrderID"", o.""CustomerID""");
 
         AssertSql(
             @"SELECT (
-    SELECT MAX(c.""Region"")
+    SELECT max(c.""Region"")
     FROM ""Orders"" AS o0
     LEFT JOIN ""Customers"" AS c ON o0.""CustomerID"" = c.""CustomerID""
     WHERE o.""EmployeeID"" = o0.""EmployeeID"" OR ((o.""EmployeeID"" IS NULL) AND (o0.""EmployeeID"" IS NULL))) AS max
@@ -1945,9 +1945,9 @@ GROUP BY o.""EmployeeID""");
 
         AssertSql(
             @"SELECT o.""EmployeeID"" AS ""Key"", (
-    SELECT MAX(o0.""OrderID"")
+    SELECT max(o0.""OrderID"")
     FROM ""Orders"" AS o0
-    WHERE o0.""EmployeeID""::bigint = CAST((MAX(o.""OrderID"") * 6) AS bigint) OR ((o0.""EmployeeID"" IS NULL) AND (MAX(o.""OrderID"") IS NULL))) AS ""Max""
+    WHERE o0.""EmployeeID""::bigint = CAST((max(o.""OrderID"") * 6) AS bigint) OR ((o0.""EmployeeID"" IS NULL) AND (max(o.""OrderID"") IS NULL))) AS ""Max""
 FROM ""Orders"" AS o
 GROUP BY o.""EmployeeID""");
     }
@@ -2081,7 +2081,7 @@ ORDER BY t.""City"" NULLS FIRST, c0.""CustomerID"" NULLS FIRST");
         await base.Count_after_GroupBy_aggregate(async);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM (
     SELECT o.""CustomerID""
     FROM ""Orders"" AS o
@@ -2094,7 +2094,7 @@ FROM (
         await base.LongCount_after_GroupBy_aggregate(async);
 
         AssertSql(
-            @"SELECT COUNT(*)
+            @"SELECT count(*)
 FROM (
     SELECT o.""CustomerID""
     FROM ""Orders"" AS o
@@ -2107,7 +2107,7 @@ FROM (
         await base.GroupBy_Select_Distinct_aggregate(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", AVG(DISTINCT o.""OrderID""::double precision) AS ""Average"", COUNT(DISTINCT o.""EmployeeID"")::INT AS ""Count"", COUNT(DISTINCT o.""EmployeeID"") AS ""LongCount"", MAX(DISTINCT o.""OrderDate"") AS ""Max"", MIN(DISTINCT o.""OrderDate"") AS ""Min"", COALESCE(SUM(DISTINCT o.""OrderID""), 0)::INT AS ""Sum""
+            @"SELECT o.""CustomerID"" AS ""Key"", avg(DISTINCT o.""OrderID""::double precision) AS ""Average"", count(DISTINCT o.""EmployeeID"")::INT AS ""Count"", count(DISTINCT o.""EmployeeID"") AS ""LongCount"", max(DISTINCT o.""OrderDate"") AS ""Max"", min(DISTINCT o.""OrderDate"") AS ""Min"", COALESCE(sum(DISTINCT o.""OrderID""), 0)::INT AS ""Sum""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -2117,7 +2117,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_group_Distinct_Select_Distinct_aggregate(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", MAX(DISTINCT o.""OrderDate"") AS ""Max""
+            @"SELECT o.""CustomerID"" AS ""Key"", max(DISTINCT o.""OrderDate"") AS ""Max""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -2127,7 +2127,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_group_Where_Select_Distinct_aggregate(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", MAX(DISTINCT o.""OrderDate"") FILTER (WHERE (o.""OrderDate"" IS NOT NULL)) AS ""Max""
+            @"SELECT o.""CustomerID"" AS ""Key"", max(DISTINCT o.""OrderDate"") FILTER (WHERE (o.""OrderDate"" IS NOT NULL)) AS ""Max""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -2137,16 +2137,16 @@ GROUP BY o.""CustomerID""");
         await base.MinMax_after_GroupBy_aggregate(async);
 
         AssertSql(
-            @"SELECT MIN(t.c)
+            @"SELECT min(t.c)
 FROM (
-    SELECT COALESCE(SUM(o.""OrderID""), 0)::INT AS c
+    SELECT COALESCE(sum(o.""OrderID""), 0)::INT AS c
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
 ) AS t",
             //
-            @"SELECT MAX(t.c)
+            @"SELECT max(t.c)
 FROM (
-    SELECT COALESCE(SUM(o.""OrderID""), 0)::INT AS c
+    SELECT COALESCE(sum(o.""OrderID""), 0)::INT AS c
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
 ) AS t");
@@ -2173,7 +2173,7 @@ FROM (
     SELECT 1
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COALESCE(SUM(o.""OrderID""), 0)::INT < 0)");
+    HAVING COALESCE(sum(o.""OrderID""), 0)::INT < 0)");
     }
 
     public override async Task Any_after_GroupBy_aggregate(bool async)
@@ -2192,7 +2192,7 @@ FROM (
         await base.Count_after_GroupBy_without_aggregate(async);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM (
     SELECT o.""CustomerID""
     FROM ""Orders"" AS o
@@ -2205,12 +2205,12 @@ FROM (
         await base.Count_with_predicate_after_GroupBy_without_aggregate(async);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM (
     SELECT o.""CustomerID""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT > 1
+    HAVING count(*)::INT > 1
 ) AS t");
     }
 
@@ -2219,7 +2219,7 @@ FROM (
         await base.LongCount_after_GroupBy_without_aggregate(async);
 
         AssertSql(
-            @"SELECT COUNT(*)
+            @"SELECT count(*)
 FROM (
     SELECT o.""CustomerID""
     FROM ""Orders"" AS o
@@ -2232,12 +2232,12 @@ FROM (
         await base.LongCount_with_predicate_after_GroupBy_without_aggregate(async);
 
         AssertSql(
-            @"SELECT COUNT(*)
+            @"SELECT count(*)
 FROM (
     SELECT o.""CustomerID""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT > 1
+    HAVING count(*)::INT > 1
 ) AS t");
     }
 
@@ -2261,7 +2261,7 @@ FROM (
     SELECT 1
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT > 1)");
+    HAVING count(*)::INT > 1)");
     }
 
     public override async Task All_with_predicate_after_GroupBy_without_aggregate(bool async)
@@ -2273,7 +2273,7 @@ FROM (
     SELECT 1
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
-    HAVING COUNT(*)::INT <= 1)");
+    HAVING count(*)::INT <= 1)");
     }
 
     public override async Task GroupBy_aggregate_followed_by_another_GroupBy_aggregate(bool async)
@@ -2281,11 +2281,11 @@ FROM (
         await base.GroupBy_aggregate_followed_by_another_GroupBy_aggregate(async);
 
         AssertSql(
-            @"SELECT t0.""Key0"" AS ""Key"", COALESCE(SUM(t0.""Count""), 0)::INT AS ""Count""
+            @"SELECT t0.""Key0"" AS ""Key"", COALESCE(sum(t0.""Count""), 0)::INT AS ""Count""
 FROM (
     SELECT t.""Count"", 1 AS ""Key0""
     FROM (
-        SELECT COUNT(*)::INT AS ""Count""
+        SELECT count(*)::INT AS ""Count""
         FROM ""Orders"" AS o
         GROUP BY o.""CustomerID""
     ) AS t
@@ -2302,7 +2302,7 @@ GROUP BY t0.""Key0""");
     SELECT 1
     FROM ""Order Details"" AS o0
     WHERE o.""OrderID"" = o0.""OrderID"" AND o0.""ProductID"" < 25) AS ""HasOrderDetails"", (
-    SELECT COUNT(*)::INT
+    SELECT count(*)::INT
     FROM (
         SELECT p.""ProductName""
         FROM ""Order Details"" AS o1
@@ -2319,7 +2319,7 @@ WHERE (o.""OrderDate"" IS NOT NULL)");
         await base.GroupBy_nominal_type_count(async);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::INT
 FROM (
     SELECT o.""CustomerID""
     FROM ""Orders"" AS o
@@ -2332,7 +2332,7 @@ FROM (
         await base.GroupBy_based_on_renamed_property_simple(async);
 
         AssertSql(
-            @"SELECT c.""City"" AS ""Renamed"", COUNT(*)::INT AS ""Count""
+            @"SELECT c.""City"" AS ""Renamed"", count(*)::INT AS ""Count""
 FROM ""Customers"" AS c
 GROUP BY c.""City""");
     }
@@ -2342,7 +2342,7 @@ GROUP BY c.""City""");
         await base.GroupBy_based_on_renamed_property_complex(async);
 
         AssertSql(
-            @"SELECT t.""Renamed"" AS ""Key"", COUNT(*)::INT AS ""Count""
+            @"SELECT t.""Renamed"" AS ""Key"", count(*)::INT AS ""Count""
 FROM (
     SELECT DISTINCT c.""City"" AS ""Renamed"", c.""CustomerID""
     FROM ""Customers"" AS c
@@ -2367,7 +2367,7 @@ ORDER BY o.""OrderDate"" NULLS FIRST");
         await base.Odata_groupby_empty_key(async);
 
         AssertSql(
-            @"SELECT 'TotalAmount' AS ""Name"", COALESCE(SUM(t.""OrderID""::numeric), 0.0) AS ""Value""
+            @"SELECT 'TotalAmount' AS ""Name"", COALESCE(sum(t.""OrderID""::numeric), 0.0) AS ""Value""
 FROM (
     SELECT o.""OrderID"", 1 AS ""Key""
     FROM ""Orders"" AS o
@@ -2380,7 +2380,7 @@ GROUP BY t.""Key""");
         await base.GroupBy_with_group_key_access_thru_navigation(async);
 
         AssertSql(
-            @"SELECT o0.""CustomerID"" AS ""Key"", COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Aggregate""
+            @"SELECT o0.""CustomerID"" AS ""Key"", COALESCE(sum(o.""OrderID""), 0)::INT AS ""Aggregate""
 FROM ""Order Details"" AS o
 INNER JOIN ""Orders"" AS o0 ON o.""OrderID"" = o0.""OrderID""
 GROUP BY o0.""CustomerID""");
@@ -2391,7 +2391,7 @@ GROUP BY o0.""CustomerID""");
         await base.GroupBy_with_group_key_access_thru_nested_navigation(async);
 
         AssertSql(
-            @"SELECT c.""Country"" AS ""Key"", COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Aggregate""
+            @"SELECT c.""Country"" AS ""Key"", COALESCE(sum(o.""OrderID""), 0)::INT AS ""Aggregate""
 FROM ""Order Details"" AS o
 INNER JOIN ""Orders"" AS o0 ON o.""OrderID"" = o0.""OrderID""
 LEFT JOIN ""Customers"" AS c ON o0.""CustomerID"" = c.""CustomerID""
@@ -2435,7 +2435,7 @@ GROUP BY c.""Country""");
         AssertSql(
             @"@__p_0='80'
 
-SELECT COALESCE(SUM(t.""OrderID""), 0)::INT
+SELECT COALESCE(sum(t.""OrderID""), 0)::INT
 FROM (
     SELECT o.""OrderID"", o.""CustomerID""
     FROM ""Orders"" AS o
@@ -2450,7 +2450,7 @@ GROUP BY t.""CustomerID""");
         await base.GroupBy_Property_Select_Count_with_predicate(async);
 
         AssertSql(
-            @"SELECT COUNT(*) FILTER (WHERE o.""OrderID"" < 10300)::INT
+            @"SELECT count(*) FILTER (WHERE o.""OrderID"" < 10300)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -2460,7 +2460,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_LongCount_with_predicate(async);
 
         AssertSql(
-            @"SELECT COUNT(*) FILTER (WHERE o.""OrderID"" < 10300)
+            @"SELECT count(*) FILTER (WHERE o.""OrderID"" < 10300)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -2470,10 +2470,10 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_orderby_projection_with_coalesce_operation(async);
 
         AssertSql(
-            @"SELECT COALESCE(c.""City"", 'Unknown') AS ""Locality"", COUNT(*)::INT AS ""Count""
+            @"SELECT COALESCE(c.""City"", 'Unknown') AS ""Locality"", count(*)::INT AS ""Count""
 FROM ""Customers"" AS c
 GROUP BY c.""City""
-ORDER BY COUNT(*)::INT DESC NULLS LAST, c.""City"" NULLS FIRST");
+ORDER BY count(*)::INT DESC NULLS LAST, c.""City"" NULLS FIRST");
     }
 
     public override async Task GroupBy_let_orderby_projection_with_coalesce_operation(bool async)
@@ -2488,11 +2488,11 @@ ORDER BY COUNT(*)::INT DESC NULLS LAST, c.""City"" NULLS FIRST");
         await base.GroupBy_Min_Where_optional_relationship(async);
 
         AssertSql(
-            @"SELECT c.""CustomerID"" AS ""Key"", COUNT(*)::INT AS ""Count""
+            @"SELECT c.""CustomerID"" AS ""Key"", count(*)::INT AS ""Count""
 FROM ""Orders"" AS o
 LEFT JOIN ""Customers"" AS c ON o.""CustomerID"" = c.""CustomerID""
 GROUP BY c.""CustomerID""
-HAVING COUNT(*)::INT <> 2");
+HAVING count(*)::INT <> 2");
     }
 
     public override async Task GroupBy_Min_Where_optional_relationship_2(bool async)
@@ -2500,11 +2500,11 @@ HAVING COUNT(*)::INT <> 2");
         await base.GroupBy_Min_Where_optional_relationship_2(async);
 
         AssertSql(
-            @"SELECT c.""CustomerID"" AS ""Key"", COUNT(*)::INT AS ""Count""
+            @"SELECT c.""CustomerID"" AS ""Key"", count(*)::INT AS ""Count""
 FROM ""Orders"" AS o
 LEFT JOIN ""Customers"" AS c ON o.""CustomerID"" = c.""CustomerID""
 GROUP BY c.""CustomerID""
-HAVING COUNT(*)::INT < 2 OR COUNT(*)::INT > 2");
+HAVING count(*)::INT < 2 OR count(*)::INT > 2");
     }
 
     public override async Task GroupBy_aggregate_over_a_subquery(bool async)
@@ -2513,7 +2513,7 @@ HAVING COUNT(*)::INT < 2 OR COUNT(*)::INT > 2");
 
         AssertSql(
             @"SELECT o.""CustomerID"" AS ""Key"", (
-    SELECT COUNT(*)::INT
+    SELECT count(*)::INT
     FROM ""Customers"" AS c
     WHERE c.""CustomerID"" = o.""CustomerID"") AS ""Count""
 FROM ""Orders"" AS o
@@ -2527,7 +2527,7 @@ GROUP BY o.""CustomerID""");
         AssertSql(
             @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region"", t.""Count""
 FROM (
-    SELECT o.""CustomerID"" AS ""Key"", COUNT(*)::INT AS ""Count""
+    SELECT o.""CustomerID"" AS ""Key"", count(*)::INT AS ""Count""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
 ) AS t
@@ -2541,7 +2541,7 @@ INNER JOIN ""Customers"" AS c ON t.""Key"" = c.""CustomerID""");
         AssertSql(
             @"SELECT o0.""OrderID"", o0.""CustomerID"", o0.""EmployeeID"", o0.""OrderDate""
 FROM (
-    SELECT o.""CustomerID"" AS ""Key"", MAX(o.""OrderDate"") AS ""LastOrderDate""
+    SELECT o.""CustomerID"" AS ""Key"", max(o.""OrderDate"") AS ""LastOrderDate""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
 ) AS t
@@ -2558,7 +2558,7 @@ INNER JOIN ""Orders"" AS o0 ON (t.""Key"" = o0.""CustomerID"" OR ((t.""Key"" IS 
 SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region"", t.""Max""
 FROM ""Customers"" AS c
 INNER JOIN (
-    SELECT o.""CustomerID"" AS ""Key"", MAX(o.""OrderDate"") AS ""Max""
+    SELECT o.""CustomerID"" AS ""Key"", max(o.""OrderDate"") AS ""Max""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
 ) AS t ON c.""CustomerID"" = t.""Key""
@@ -2573,12 +2573,12 @@ LIMIT @__p_0 OFFSET @__p_0");
         AssertSql(
             @"SELECT t.""Key"", t.""Total"", t0.""ThatYear""
 FROM (
-    SELECT o.""CustomerID"" AS ""Key"", COUNT(*)::INT AS ""Total""
+    SELECT o.""CustomerID"" AS ""Key"", count(*)::INT AS ""Total""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
 ) AS t
 INNER JOIN (
-    SELECT o0.""CustomerID"" AS ""Key"", COUNT(*)::INT AS ""ThatYear""
+    SELECT o0.""CustomerID"" AS ""Key"", count(*)::INT AS ""ThatYear""
     FROM ""Orders"" AS o0
     WHERE date_part('year', o0.""OrderDate"")::INT = 1997
     GROUP BY o0.""CustomerID""
@@ -2592,7 +2592,7 @@ INNER JOIN (
         AssertSql(
             @"@__p_0='0'
 
-SELECT t.""CustomerID"" AS ""Key"", COUNT(*)::INT AS ""Total""
+SELECT t.""CustomerID"" AS ""Key"", count(*)::INT AS ""Total""
 FROM (
     SELECT o.""CustomerID""
     FROM ""Orders"" AS o
@@ -2608,7 +2608,7 @@ GROUP BY t.""CustomerID""");
         AssertSql(
             @"@__p_0='0'
 
-SELECT o.""CustomerID"" AS ""Key"", COUNT(*)::INT AS ""Total""
+SELECT o.""CustomerID"" AS ""Key"", count(*)::INT AS ""Total""
 FROM ""Orders"" AS o
 WHERE o.""OrderID"" > 10500
 GROUP BY o.""CustomerID""
@@ -2620,7 +2620,7 @@ LIMIT @__p_0 OFFSET @__p_0");
         await base.GroupBy_aggregate_followed_another_GroupBy_aggregate(async);
 
         AssertSql(
-            @"SELECT t0.""CustomerID"" AS ""Key"", COUNT(*)::INT AS ""Count""
+            @"SELECT t0.""CustomerID"" AS ""Key"", count(*)::INT AS ""Count""
 FROM (
     SELECT t.""CustomerID""
     FROM (
@@ -2639,7 +2639,7 @@ GROUP BY t0.""CustomerID""");
         AssertSql(
             @"SELECT o0.""OrderID"", o0.""CustomerID"", o0.""EmployeeID"", o0.""OrderDate""
 FROM (
-    SELECT MIN(o.""OrderID"") AS c
+    SELECT min(o.""OrderID"") AS c
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
 ) AS t
@@ -2682,7 +2682,7 @@ ORDER BY t.""CustomerID"" NULLS FIRST");
         await base.GroupBy_with_grouping_key_using_Like(async);
 
         AssertSql(
-            @"SELECT t.""Key"", COUNT(*)::INT AS ""Count""
+            @"SELECT t.""Key"", count(*)::INT AS ""Count""
 FROM (
     SELECT o.""CustomerID"" LIKE 'A%' AS ""Key""
     FROM ""Orders"" AS o
@@ -2695,7 +2695,7 @@ GROUP BY t.""Key""");
         await base.GroupBy_with_grouping_key_DateTime_Day(async);
 
         AssertSql(
-            @"SELECT t.""Key"", COUNT(*)::INT AS ""Count""
+            @"SELECT t.""Key"", count(*)::INT AS ""Count""
 FROM (
     SELECT date_part('day', o.""OrderDate"")::INT AS ""Key""
     FROM ""Orders"" AS o
@@ -2708,7 +2708,7 @@ GROUP BY t.""Key""");
         await base.GroupBy_with_cast_inside_grouping_aggregate(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", COUNT(*)::INT AS ""Count"", COALESCE(SUM(o.""OrderID""::bigint), 0.0)::bigint AS ""Sum""
+            @"SELECT o.""CustomerID"" AS ""Key"", count(*)::INT AS ""Count"", COALESCE(sum(o.""OrderID""::bigint), 0.0)::bigint AS ""Sum""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -2721,7 +2721,7 @@ GROUP BY o.""CustomerID""");
             @"SELECT c.""CustomerID"", t.""Sum"", t.""CustomerID""
 FROM ""Customers"" AS c
 LEFT JOIN LATERAL (
-    SELECT COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", o.""CustomerID""
+    SELECT COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", o.""CustomerID""
     FROM ""Orders"" AS o
     WHERE c.""CustomerID"" = o.""CustomerID""
     GROUP BY o.""CustomerID""
@@ -2737,7 +2737,7 @@ ORDER BY c.""CustomerID"" NULLS FIRST");
             @"SELECT c.""CustomerID"", t.""Max"", t.""Sum"", t.""CustomerID""
 FROM ""Customers"" AS c
 LEFT JOIN LATERAL (
-    SELECT MAX(length(o.""CustomerID"")::INT) AS ""Max"", COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", o.""CustomerID""
+    SELECT max(length(o.""CustomerID"")::INT) AS ""Max"", COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", o.""CustomerID""
     FROM ""Orders"" AS o
     WHERE c.""CustomerID"" = o.""CustomerID""
     GROUP BY o.""CustomerID""
@@ -2753,7 +2753,7 @@ ORDER BY c.""CustomerID"" NULLS FIRST");
             @"SELECT c.""CustomerID"", t.""Max"", t.""Sum"", t.""CustomerID""
 FROM ""Customers"" AS c
 LEFT JOIN LATERAL (
-    SELECT MAX(length(o.""CustomerID"")::INT) AS ""Max"", COALESCE(SUM(o.""OrderID""), 0)::INT AS ""Sum"", o.""CustomerID""
+    SELECT max(length(o.""CustomerID"")::INT) AS ""Max"", COALESCE(sum(o.""OrderID""), 0)::INT AS ""Sum"", o.""CustomerID""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
 ) AS t ON TRUE
@@ -2765,7 +2765,7 @@ ORDER BY c.""CustomerID"" NULLS FIRST");
         await base.Group_by_with_projection_into_DTO(async);
 
         AssertSql(
-            @"SELECT o.""OrderID""::bigint AS ""Id"", COUNT(*)::INT AS ""Count""
+            @"SELECT o.""OrderID""::bigint AS ""Id"", count(*)::INT AS ""Count""
 FROM ""Orders"" AS o
 GROUP BY o.""OrderID""");
     }
@@ -2775,10 +2775,10 @@ GROUP BY o.""OrderID""");
         await base.Where_select_function_groupby_followed_by_another_select_with_aggregates(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", COALESCE(SUM(CASE
+            @"SELECT o.""CustomerID"" AS ""Key"", COALESCE(sum(CASE
     WHEN (2020 - date_part('year', o.""OrderDate"")::INT) <= 30 THEN o.""OrderID""
     ELSE 0
-END), 0)::INT AS ""Sum1"", COALESCE(SUM(CASE
+END), 0)::INT AS ""Sum1"", COALESCE(sum(CASE
     WHEN (2020 - date_part('year', o.""OrderDate"")::INT) > 30 AND (2020 - date_part('year', o.""OrderDate"")::INT) <= 60 THEN o.""OrderID""
     ELSE 0
 END), 0)::INT AS ""Sum2""
@@ -2803,7 +2803,7 @@ ORDER BY o.""CustomerID"" NULLS FIRST");
         await base.Key_plus_key_in_projection(async);
 
         AssertSql(
-            @"SELECT o.""OrderID"" + o.""OrderID"" AS ""Value"", AVG(o.""OrderID""::double precision) AS ""Average""
+            @"SELECT o.""OrderID"" + o.""OrderID"" AS ""Value"", avg(o.""OrderID""::double precision) AS ""Average""
 FROM ""Orders"" AS o
 LEFT JOIN ""Customers"" AS c ON o.""CustomerID"" = c.""CustomerID""
 GROUP BY o.""OrderID""");
@@ -2814,7 +2814,7 @@ GROUP BY o.""OrderID""");
         await base.Group_by_with_arithmetic_operation_inside_aggregate(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", COALESCE(SUM(o.""OrderID"" + length(o.""CustomerID"")::INT), 0)::INT AS ""Sum""
+            @"SELECT o.""CustomerID"" AS ""Key"", COALESCE(sum(o.""OrderID"" + length(o.""CustomerID"")::INT), 0)::INT AS ""Sum""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -2824,7 +2824,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_scalar_subquery(async);
 
         AssertSql(
-            @"SELECT t.""Key"", COUNT(*)::INT AS ""Count""
+            @"SELECT t.""Key"", count(*)::INT AS ""Count""
 FROM (
     SELECT (
         SELECT c.""ContactName""
@@ -2894,7 +2894,7 @@ OUTER APPLY (
 
         AssertSql(
             @"SELECT o.""CustomerID"" AS ""Key"", COALESCE((
-    SELECT COUNT(*)::INT + MIN(o.""OrderID"")
+    SELECT count(*)::INT + min(o.""OrderID"")
     FROM ""Employees"" AS e
     WHERE e.""City"" = 'Seattle'
     GROUP BY e.""City""
@@ -2957,7 +2957,7 @@ LEFT JOIN LATERAL (
     GROUP BY p.""ProductID""
 ) AS t0 ON TRUE
 LEFT JOIN LATERAL (
-    SELECT COUNT(*)::INT AS c, p0.""ProductID""
+    SELECT count(*)::INT AS c, p0.""ProductID""
     FROM ""Products"" AS p0
     GROUP BY p0.""ProductID""
 ) AS t1 ON TRUE
@@ -3007,7 +3007,7 @@ ORDER BY t.""CustomerID"" NULLS FIRST");
         AssertSql(
             @"SELECT t.c, t.""ProductID"", t0.""CustomerID"", t0.""City""
 FROM (
-    SELECT COALESCE(SUM(o.""ProductID"" + (o.""OrderID"" * 1000)), 0)::INT AS c, o.""ProductID"", MIN(o.""OrderID"" / 100) AS c0
+    SELECT COALESCE(sum(o.""ProductID"" + (o.""OrderID"" * 1000)), 0)::INT AS c, o.""ProductID"", min(o.""OrderID"" / 100) AS c0
     FROM ""Order Details"" AS o
     INNER JOIN ""Orders"" AS o0 ON o.""OrderID"" = o0.""OrderID""
     LEFT JOIN ""Customers"" AS c ON o0.""CustomerID"" = c.""CustomerID""
@@ -3030,8 +3030,8 @@ ORDER BY t.""ProductID"" NULLS FIRST, t0.""CustomerID"" NULLS FIRST");
             @"SELECT c.""CustomerID"", t1.""Sum"", t1.""Count"", t1.""Key""
 FROM ""Customers"" AS c
 LEFT JOIN LATERAL (
-    SELECT COALESCE(SUM(t.""OrderID""), 0)::INT AS ""Sum"", (
-        SELECT COUNT(*)::INT
+    SELECT COALESCE(sum(t.""OrderID""), 0)::INT AS ""Sum"", (
+        SELECT count(*)::INT
         FROM (
             SELECT o0.""OrderID"", o0.""CustomerID"", o0.""EmployeeID"", o0.""OrderDate"", c1.""CustomerID"" AS ""CustomerID0"", c1.""Address"", c1.""City"", c1.""CompanyName"", c1.""ContactName"", c1.""ContactTitle"", c1.""Country"", c1.""Fax"", c1.""Phone"", c1.""PostalCode"", c1.""Region"", COALESCE(c1.""City"", '') || COALESCE(o0.""CustomerID"", '') AS ""Key""
             FROM ""Orders"" AS o0
