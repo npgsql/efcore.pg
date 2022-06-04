@@ -52,7 +52,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         private static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);
 
-        private static RelationalTypeMapping GetMapping(Type clrType) => (RelationalTypeMapping)Mapper.FindMapping(clrType);
+        private static RelationalTypeMapping GetMapping(Type clrType) => Mapper.FindMapping(clrType);
 
         public class LegacyNpgsqlTypeMappingFixture : IDisposable
         {

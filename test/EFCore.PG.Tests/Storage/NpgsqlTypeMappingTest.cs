@@ -905,7 +905,7 @@ public class NpgsqlTypeMappingTest
         => Mapper.FindMapping(storeType);
 
     private static RelationalTypeMapping GetMapping(Type clrType)
-        => (RelationalTypeMapping)Mapper.FindMapping(clrType);
+        => Mapper.FindMapping(clrType);
 
     private static RelationalTypeMapping GetMapping(Type clrType, string storeType)
         => Mapper.FindMapping(clrType, storeType);

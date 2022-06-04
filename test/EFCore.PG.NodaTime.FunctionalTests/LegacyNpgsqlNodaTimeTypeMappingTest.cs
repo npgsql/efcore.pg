@@ -72,7 +72,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         private static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);
 
-        private static RelationalTypeMapping GetMapping(Type clrType) => (RelationalTypeMapping)Mapper.FindMapping(clrType);
+        private static RelationalTypeMapping GetMapping(Type clrType) => Mapper.FindMapping(clrType);
 
         private static RelationalTypeMapping GetMapping(Type clrType, string storeType)
             => Mapper.FindMapping(clrType, storeType);

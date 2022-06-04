@@ -69,7 +69,7 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
         var newExpr = ConstantNew(ConstructorWithSeconds, dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute, dateTime.Second);
 
         return dateTime.NanosecondOfSecond == 0
-            ? (Expression)newExpr
+            ? newExpr
             : Expression.Call(newExpr, PlusNanosecondsMethod, Expression.Constant((long)dateTime.NanosecondOfSecond));
     }
 }

@@ -613,7 +613,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             var elementType = clrType.GetElementType();
             Debug.Assert(elementType is not null, "Detected array type but element type is null");
 
-            var elementMapping = (RelationalTypeMapping?)FindMapping(elementType);
+            var elementMapping = FindMapping(elementType);
 
             // If no mapping was found for the element, there's no mapping for the array.
             // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
@@ -636,7 +636,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             var elementType = clrType.GetGenericArguments()[0];
 
             // If an element isn't supported, neither is its array
-            var elementMapping = (RelationalTypeMapping?)FindMapping(elementType);
+            var elementMapping = FindMapping(elementType);
             if (elementMapping is null)
             {
                 return null;

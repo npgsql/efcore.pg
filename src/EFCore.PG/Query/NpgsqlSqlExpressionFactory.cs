@@ -75,7 +75,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         // PostgreSQL AT TIME ZONE flips the given type from timestamptz to timestamp and vice versa
         // See https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT
         typeMapping ??= FlipTimestampTypeMapping(
-            timestamp.TypeMapping ?? (RelationalTypeMapping?)_typeMappingSource.FindMapping(timestamp.Type, Dependencies.Model)!);
+            timestamp.TypeMapping ?? _typeMappingSource.FindMapping(timestamp.Type, Dependencies.Model)!);
 
         return new PostgresBinaryExpression(
             PostgresExpressionType.AtTimeZone,
@@ -613,7 +613,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             postgresArrayIndexExpression.Array.TypeMapping is NpgsqlArrayTypeMapping arrayMapping
                 ? arrayMapping.ElementMapping
                 : typeMapping
-                ?? (RelationalTypeMapping?)_typeMappingSource.FindMapping(postgresArrayIndexExpression.Type, Dependencies.Model));
+                ?? _typeMappingSource.FindMapping(postgresArrayIndexExpression.Type, Dependencies.Model));
     }
 
     private SqlExpression ApplyTypeMappingOnILike(PostgresILikeExpression ilikeExpression)
@@ -624,7 +624,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 : ExpressionExtensions.InferTypeMapping(
                     ilikeExpression.Match, ilikeExpression.Pattern,
                     ilikeExpression.EscapeChar))
-            ?? (RelationalTypeMapping?)_typeMappingSource.FindMapping(ilikeExpression.Match.Type, Dependencies.Model);
+            ?? _typeMappingSource.FindMapping(ilikeExpression.Match.Type, Dependencies.Model);
 
         return new PostgresILikeExpression(
             ApplyTypeMapping(ilikeExpression.Match, inferredTypeMapping),
