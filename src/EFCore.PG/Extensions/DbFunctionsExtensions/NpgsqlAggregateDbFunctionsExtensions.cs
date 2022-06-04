@@ -36,6 +36,24 @@ public static class NpgsqlAggregateDbFunctionsExtensions
     public static T[] JsonbAgg<T>(this DbFunctions _, IEnumerable<T> input)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonbAgg)));
 
+    /// <summary>
+    /// Computes the sum of the non-null input intervals. Corresponds to the PostgreSQL <c>sum</c> aggregate function.
+    /// </summary>
+    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
+    /// <param name="input">The input values to be summed.</param>
+    /// <seealso href="https://www.postgresql.org/docs/current/functions-aggregate.html">PostgreSQL documentation for aggregate functions.</seealso>
+    public static TimeSpan? Sum(this DbFunctions _, IEnumerable<TimeSpan> input)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Sum)));
+
+    /// <summary>
+    /// Computes the average (arithmetic mean) of the non-null input intervals. Corresponds to the PostgreSQL <c>avg</c> aggregate function.
+    /// </summary>
+    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
+    /// <param name="input">The input values to be computed into an average.</param>
+    /// <seealso href="https://www.postgresql.org/docs/current/functions-aggregate.html">PostgreSQL documentation for aggregate functions.</seealso>
+    public static TimeSpan? Average(this DbFunctions _, IEnumerable<TimeSpan> input)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Average)));
+
     #region Range
 
     /// <summary>

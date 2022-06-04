@@ -3163,6 +3163,8 @@ FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
 
+    // See aggregate tests over TimeSpan in GearsOfWarQueryNpsgqlTest
+
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 

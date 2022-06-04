@@ -13,7 +13,7 @@ public class NorthwindFunctionsQueryNpgsqlTest : NorthwindFunctionsQueryRelation
         : base(fixture)
     {
         ClearLog();
-        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     public override async Task IsNullOrWhiteSpace_in_predicate(bool async)
