@@ -36,6 +36,8 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
                 => VisitArrayIndex(arrayIndexExpression, allowOptimizedExpansion, out nullable),
             PostgresBinaryExpression binaryExpression
                 => VisitBinary(binaryExpression, allowOptimizedExpansion, out nullable),
+            PostgresFunctionExpression postgresFunctionExpression
+                => VisitPostgresFunction(postgresFunctionExpression, allowOptimizedExpansion, out nullable),
             PostgresILikeExpression ilikeExpression
                 => VisitILike(ilikeExpression, allowOptimizedExpansion, out nullable),
             PostgresJsonTraversalExpression postgresJsonTraversalExpression
@@ -178,6 +180,48 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         };
 
         return binaryExpression.Update(left, right);
+    }
+
+    protected virtual SqlExpression VisitPostgresFunction(
+        PostgresFunctionExpression functionExpression,
+        bool allowOptimizedExpansion,
+        out bool nullable)
+    {
+        // PostgresFunctionExpression extends SqlFunctionExpression, and adds aggregate predicate and ordering expressions to that.
+        // First call the base VisitSqlFunction to visit the arguments
+        var visitedBase =
+            (PostgresFunctionExpression)base.VisitSqlFunction(functionExpression, allowOptimizedExpansion, out nullable);
+
+        var aggregateChanged = false;
+
+        var visitedAggregatePredicate = Visit(functionExpression.AggregatePredicate, allowOptimizedExpansion: true, out _);
+        aggregateChanged |= visitedAggregatePredicate != functionExpression.AggregatePredicate;
+
+        OrderingExpression[]? visitedOrderings = null;
+        for (var i = 0; i < functionExpression.AggregateOrderings.Count; i++)
+        {
+            var ordering = functionExpression.AggregateOrderings[i];
+            var visitedOrdering = ordering.Update(Visit(ordering.Expression, out _));
+            if (visitedOrdering != ordering && visitedOrderings is null)
+            {
+                visitedOrderings = new OrderingExpression[functionExpression.AggregateOrderings.Count];
+                for (var j = 0; j < i; j++)
+                {
+                    visitedOrderings[j] = functionExpression.AggregateOrderings[j];
+                }
+
+                aggregateChanged = true;
+            }
+
+            if (visitedOrderings is not null)
+            {
+                visitedOrderings[i] = visitedOrdering;
+            }
+        }
+
+        return aggregateChanged
+            ? visitedBase.UpdateAggregateComponents(visitedAggregatePredicate, visitedOrderings ?? functionExpression.AggregateOrderings)
+            : visitedBase;
     }
 
     protected virtual SqlExpression VisitILike(

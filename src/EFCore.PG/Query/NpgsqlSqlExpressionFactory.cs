@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
@@ -285,6 +284,36 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         Check.NotNull(right, nameof(right));
 
         return MakePostgresBinary(PostgresExpressionType.Overlaps, left, right);
+    }
+
+    public virtual PostgresFunctionExpression AggregateFunction(
+        string name,
+        IEnumerable<SqlExpression> arguments,
+        bool nullable,
+        IEnumerable<bool> argumentsPropagateNullability,
+        EnumerableExpression aggregateEnumerableExpression,
+        Type returnType,
+        RelationalTypeMapping? typeMapping = null)
+    {
+        var typeMappedArguments = new List<SqlExpression>();
+
+        foreach (var argument in arguments)
+        {
+            typeMappedArguments.Add(ApplyDefaultTypeMapping(argument));
+        }
+
+        return new PostgresFunctionExpression(
+            name,
+            typeMappedArguments,
+            argumentNames: null,
+            argumentSeparators: null,
+            nullable,
+            argumentsPropagateNullability,
+            aggregateEnumerableExpression.IsDistinct,
+            aggregateEnumerableExpression.Predicate,
+            aggregateEnumerableExpression.Orderings,
+            returnType,
+            typeMapping);
     }
 
     #endregion Expression factory methods

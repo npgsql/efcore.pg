@@ -613,15 +613,7 @@ GROUP BY t.""Key""");
         await base.GroupBy_constant_with_where_on_grouping_with_aggregate_operators(async);
 
         AssertSql(
-            @"SELECT MIN(CASE
-    WHEN 1 = t.""Key"" THEN t.""OrderDate""
-END) AS ""Min"", MAX(CASE
-    WHEN 1 = t.""Key"" THEN t.""OrderDate""
-END) AS ""Max"", COALESCE(SUM(CASE
-    WHEN 1 = t.""Key"" THEN t.""OrderID""
-END), 0)::INT AS ""Sum"", AVG(CAST(CASE
-    WHEN 1 = t.""Key"" THEN t.""OrderID""
-END AS double precision)) AS ""Average""
+            @"SELECT MIN(t.""OrderDate"") FILTER (WHERE 1 = t.""Key"") AS ""Min"", MAX(t.""OrderDate"") FILTER (WHERE 1 = t.""Key"") AS ""Max"", COALESCE(SUM(t.""OrderID"") FILTER (WHERE 1 = t.""Key""), 0)::INT AS ""Sum"", AVG(t.""OrderID""::double precision) FILTER (WHERE 1 = t.""Key"") AS ""Average""
 FROM (
     SELECT o.""OrderID"", o.""OrderDate"", 1 AS ""Key""
     FROM ""Orders"" AS o
@@ -1776,9 +1768,7 @@ ORDER BY o.""OrderID"" NULLS FIRST, t.""ProductID"" NULLS FIRST");
         await base.GroupBy_Where_Average(async);
 
         AssertSql(
-            @"SELECT AVG(CAST(CASE
-    WHEN o.""OrderID"" < 10300 THEN o.""OrderID""
-END AS double precision))
+            @"SELECT AVG(o.""OrderID""::double precision) FILTER (WHERE o.""OrderID"" < 10300)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1788,9 +1778,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Count(async);
 
         AssertSql(
-            @"SELECT COUNT(CASE
-    WHEN o.""OrderID"" < 10300 THEN 1
-END)::INT
+            @"SELECT COUNT(*) FILTER (WHERE o.""OrderID"" < 10300)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1800,9 +1788,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_LongCount(async);
 
         AssertSql(
-            @"SELECT COUNT(CASE
-    WHEN o.""OrderID"" < 10300 THEN 1
-END)
+            @"SELECT COUNT(*) FILTER (WHERE o.""OrderID"" < 10300)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1812,9 +1798,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Max(async);
 
         AssertSql(
-            @"SELECT MAX(CASE
-    WHEN o.""OrderID"" < 10300 THEN o.""OrderID""
-END)
+            @"SELECT MAX(o.""OrderID"") FILTER (WHERE o.""OrderID"" < 10300)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1824,9 +1808,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Min(async);
 
         AssertSql(
-            @"SELECT MIN(CASE
-    WHEN o.""OrderID"" < 10300 THEN o.""OrderID""
-END)
+            @"SELECT MIN(o.""OrderID"") FILTER (WHERE o.""OrderID"" < 10300)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1836,9 +1818,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Sum(async);
 
         AssertSql(
-            @"SELECT COALESCE(SUM(CASE
-    WHEN o.""OrderID"" < 10300 THEN o.""OrderID""
-END), 0)::INT
+            @"SELECT COALESCE(SUM(o.""OrderID"") FILTER (WHERE o.""OrderID"" < 10300), 0)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1848,9 +1828,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Count_with_predicate(async);
 
         AssertSql(
-            @"SELECT COUNT(CASE
-    WHEN o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997 THEN 1
-END)::INT
+            @"SELECT COUNT(*) FILTER (WHERE o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1860,9 +1838,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Where_Count(async);
 
         AssertSql(
-            @"SELECT COUNT(CASE
-    WHEN o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997 THEN 1
-END)::INT
+            @"SELECT COUNT(*) FILTER (WHERE o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1872,9 +1848,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Select_Where_Count(async);
 
         AssertSql(
-            @"SELECT COUNT(CASE
-    WHEN o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997 THEN 1
-END)::INT
+            @"SELECT COUNT(*) FILTER (WHERE o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1884,9 +1858,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Where_Select_Where_Select_Min(async);
 
         AssertSql(
-            @"SELECT MIN(CASE
-    WHEN o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997 THEN o.""OrderID""
-END)
+            @"SELECT MIN(o.""OrderID"") FILTER (WHERE o.""OrderID"" < 10300 AND (o.""OrderDate"" IS NOT NULL) AND date_part('year', o.""OrderDate"")::INT = 1997)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -1896,11 +1868,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_multiple_Count_with_predicate(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"", COUNT(*)::INT AS ""All"", COUNT(CASE
-    WHEN o.""OrderID"" < 11000 THEN 1
-END)::INT AS ""TenK"", COUNT(CASE
-    WHEN o.""OrderID"" < 12000 THEN 1
-END)::INT AS ""EleventK""
+            @"SELECT o.""CustomerID"", COUNT(*)::INT AS ""All"", COUNT(*) FILTER (WHERE o.""OrderID"" < 11000)::INT AS ""TenK"", COUNT(*) FILTER (WHERE o.""OrderID"" < 12000)::INT AS ""EleventK""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -2139,7 +2107,7 @@ FROM (
         await base.GroupBy_Select_Distinct_aggregate(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", AVG(DISTINCT (o.""OrderID""::double precision)) AS ""Average"", COUNT(DISTINCT (o.""EmployeeID""))::INT AS ""Count"", COUNT(DISTINCT (o.""EmployeeID"")) AS ""LongCount"", MAX(DISTINCT (o.""OrderDate"")) AS ""Max"", MIN(DISTINCT (o.""OrderDate"")) AS ""Min"", COALESCE(SUM(DISTINCT (o.""OrderID"")), 0)::INT AS ""Sum""
+            @"SELECT o.""CustomerID"" AS ""Key"", AVG(DISTINCT o.""OrderID""::double precision) AS ""Average"", COUNT(DISTINCT o.""EmployeeID"")::INT AS ""Count"", COUNT(DISTINCT o.""EmployeeID"") AS ""LongCount"", MAX(DISTINCT o.""OrderDate"") AS ""Max"", MIN(DISTINCT o.""OrderDate"") AS ""Min"", COALESCE(SUM(DISTINCT o.""OrderID""), 0)::INT AS ""Sum""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -2149,7 +2117,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_group_Distinct_Select_Distinct_aggregate(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", MAX(DISTINCT (o.""OrderDate"")) AS ""Max""
+            @"SELECT o.""CustomerID"" AS ""Key"", MAX(DISTINCT o.""OrderDate"") AS ""Max""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -2159,9 +2127,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_group_Where_Select_Distinct_aggregate(async);
 
         AssertSql(
-            @"SELECT o.""CustomerID"" AS ""Key"", MAX(DISTINCT (CASE
-    WHEN (o.""OrderDate"" IS NOT NULL) THEN o.""OrderDate""
-END)) AS ""Max""
+            @"SELECT o.""CustomerID"" AS ""Key"", MAX(DISTINCT o.""OrderDate"") FILTER (WHERE (o.""OrderDate"" IS NOT NULL)) AS ""Max""
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -2484,9 +2450,7 @@ GROUP BY t.""CustomerID""");
         await base.GroupBy_Property_Select_Count_with_predicate(async);
 
         AssertSql(
-            @"SELECT COUNT(CASE
-    WHEN o.""OrderID"" < 10300 THEN 1
-END)::INT
+            @"SELECT COUNT(*) FILTER (WHERE o.""OrderID"" < 10300)::INT
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }
@@ -2496,9 +2460,7 @@ GROUP BY o.""CustomerID""");
         await base.GroupBy_Property_Select_LongCount_with_predicate(async);
 
         AssertSql(
-            @"SELECT COUNT(CASE
-    WHEN o.""OrderID"" < 10300 THEN 1
-END)
+            @"SELECT COUNT(*) FILTER (WHERE o.""OrderID"" < 10300)
 FROM ""Orders"" AS o
 GROUP BY o.""CustomerID""");
     }

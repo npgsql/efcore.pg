@@ -1,9 +1,6 @@
-﻿
+﻿using System.Runtime.CompilerServices;
 
 // ReSharper disable once CheckNamespace
-
-using System.Runtime.CompilerServices;
-
 namespace Microsoft.EntityFrameworkCore;
 
 /// <summary>
