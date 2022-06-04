@@ -60,67 +60,6 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         _timestampTzMapping = _typeMappingSource.FindMapping("timestamp with time zone")!;
     }
 
-    // PostgreSQL COUNT() always returns bigint, so we need to downcast to int
-    public override SqlExpression TranslateCount(SqlExpression sqlExpression)
-    {
-        Check.NotNull(sqlExpression, nameof(sqlExpression));
-
-        return _sqlExpressionFactory.Convert(
-            _sqlExpressionFactory.ApplyDefaultTypeMapping(
-                _sqlExpressionFactory.Function(
-                    "COUNT",
-                    new[] { sqlExpression },
-                    nullable: false,
-                    argumentsPropagateNullability: FalseArrays[1],
-                    typeof(long))),
-            typeof(int), _typeMappingSource.FindMapping(typeof(int)));
-    }
-
-    // In PostgreSQL SUM() doesn't return the same type as its argument for smallint, int and bigint.
-    // Cast to get the same type.
-    // http://www.postgresql.org/docs/current/static/functions-aggregate.html
-    public override SqlExpression TranslateSum(SqlExpression sqlExpression)
-    {
-        Check.NotNull(sqlExpression, nameof(sqlExpression));
-
-        var inputType = sqlExpression.Type.UnwrapNullableType();
-
-        // Note that there is no Sum over short in LINQ
-        if (inputType == typeof(int))
-        {
-            return _sqlExpressionFactory.Convert(
-                _sqlExpressionFactory.Function(
-                    "SUM",
-                    new[] { sqlExpression },
-                    nullable: true,
-                    argumentsPropagateNullability: FalseArrays[1],
-                    typeof(long)),
-                inputType,
-                sqlExpression.TypeMapping);
-        }
-
-        if (inputType == typeof(long))
-        {
-            return _sqlExpressionFactory.Convert(
-                _sqlExpressionFactory.Function(
-                    "SUM",
-                    new[] { sqlExpression },
-                    nullable: true,
-                    argumentsPropagateNullability: FalseArrays[1],
-                    typeof(decimal)),
-                inputType,
-                sqlExpression.TypeMapping);
-        }
-
-        return _sqlExpressionFactory.Function(
-            "SUM",
-            new[] { sqlExpression },
-            nullable: true,
-            argumentsPropagateNullability: FalseArrays[1],
-            inputType,
-            sqlExpression.TypeMapping);
-    }
-
     /// <inheritdoc />
     protected override Expression VisitUnary(UnaryExpression unaryExpression)
     {

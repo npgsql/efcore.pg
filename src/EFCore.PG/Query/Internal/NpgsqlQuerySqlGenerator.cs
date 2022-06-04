@@ -44,7 +44,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             PostgresAnyExpression anyExpression                     => VisitArrayAny(anyExpression),
             PostgresArrayIndexExpression arrayIndexExpression       => VisitArrayIndex(arrayIndexExpression),
             PostgresBinaryExpression binaryExpression               => VisitPostgresBinary(binaryExpression),
-            PostgresFunctionExpression functionExpression           => VisitPgFunction(functionExpression),
+            PostgresFunctionExpression functionExpression           => VisitPostgresFunction(functionExpression),
             PostgresILikeExpression iLikeExpression                 => VisitILike(iLikeExpression),
             PostgresJsonTraversalExpression jsonTraversalExpression => VisitJsonPathTraversal(jsonTraversalExpression),
             PostgresNewArrayExpression newArrayExpression           => VisitPostgresNewArray(newArrayExpression),
@@ -692,7 +692,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// <returns>
     /// An <see cref="Expression"/>.
     /// </returns>
-    public virtual Expression VisitPgFunction(PostgresFunctionExpression e)
+    public virtual Expression VisitPostgresFunction(PostgresFunctionExpression e)
     {
         Check.NotNull(e, nameof(e));
 
@@ -716,6 +716,11 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
         Sql.Append("(");
 
+        if (e.IsAggregateDistinct)
+        {
+            Sql.Append("DISTINCT ");
+        }
+
         for (var i = 0; i < e.Arguments.Count; i++)
         {
             if (i < e.ArgumentNames.Count && e.ArgumentNames[i] is { } argumentName)
@@ -735,7 +740,31 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             }
         }
 
+        if (e.AggregateOrderings.Count > 0)
+        {
+            Sql.Append(" ORDER BY ");
+
+            for (var i = 0; i < e.AggregateOrderings.Count; i++)
+            {
+                if (i > 0)
+                {
+                    Sql.Append(", ");
+                }
+
+                Visit(e.AggregateOrderings[i]);
+            }
+        }
+
         Sql.Append(")");
+
+        if (e.AggregatePredicate is not null)
+        {
+            Sql.Append(" FILTER (WHERE ");
+
+            Visit(e.AggregatePredicate);
+
+            Sql.Append(")");
+        }
 
         return e;
     }

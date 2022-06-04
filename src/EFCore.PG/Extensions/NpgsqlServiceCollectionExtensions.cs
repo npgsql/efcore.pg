@@ -106,6 +106,7 @@ public static class NpgsqlServiceCollectionExtensions
             .TryAdd<ICompiledQueryCacheKeyGenerator, NpgsqlCompiledQueryCacheKeyGenerator>()
             .TryAdd<IExecutionStrategyFactory, NpgsqlExecutionStrategyFactory>()
             .TryAdd<IMethodCallTranslatorProvider, NpgsqlMethodCallTranslatorProvider>()
+            .TryAdd<IAggregateMethodCallTranslatorProvider, NpgsqlAggregateMethodCallTranslatorProvider>()
             .TryAdd<IMemberTranslatorProvider, NpgsqlMemberTranslatorProvider>()
             .TryAdd<IEvaluatableExpressionFilter, NpgsqlEvaluatableExpressionFilter>()
             .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()

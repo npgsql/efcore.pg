@@ -16,6 +16,21 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
         => base.ArgumentsPropagateNullability!;
 
     /// <summary>
+    /// For aggregate methods, contains whether to apply distinct.
+    /// </summary>
+    public virtual bool IsAggregateDistinct { get; }
+
+    /// <summary>
+    /// For aggregate methods, contains the predicate to be applied (generated as the SQL FILTER clause).
+    /// </summary>
+    public virtual SqlExpression? AggregatePredicate { get; }
+
+    /// <summary>
+    /// For aggregate methods, contains the orderings to be applied.
+    /// </summary>
+    public virtual IReadOnlyList<OrderingExpression> AggregateOrderings { get; }
+
+    /// <summary>
     /// List of argument names, corresponding position-wise to arguments in <see cref="SqlFunctionExpression.Arguments"/>.
     /// Unnamed (positional) arguments must come first, so this list must contain possible nulls, followed by
     /// non-nulls.
@@ -43,7 +58,9 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
 
         return new PostgresFunctionExpression(
             name, arguments, argumentNames, argumentSeparators: null,
-            nullable, argumentsPropagateNullability, type, typeMapping);
+            nullable, argumentsPropagateNullability,
+            aggregateDistinct: false, aggregatePredicate: null, aggregateOrderings: Array.Empty<OrderingExpression>(),
+            type, typeMapping);
     }
 
     public static PostgresFunctionExpression CreateWithArgumentSeparators(
@@ -61,16 +78,21 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
 
         return new PostgresFunctionExpression(
             name, arguments, argumentNames: null, argumentSeparators,
-            nullable, argumentsPropagateNullability, type, typeMapping);
+            nullable, argumentsPropagateNullability,
+            aggregateDistinct: false, aggregatePredicate: null, aggregateOrderings: Array.Empty<OrderingExpression>(),
+            type, typeMapping);
     }
 
-    private PostgresFunctionExpression(
+    public PostgresFunctionExpression(
         string name,
         IEnumerable<SqlExpression> arguments,
         IEnumerable<string?>? argumentNames,
         IEnumerable<string?>? argumentSeparators,
         bool nullable,
         IEnumerable<bool> argumentsPropagateNullability,
+        bool aggregateDistinct,
+        SqlExpression? aggregatePredicate,
+        IReadOnlyList<OrderingExpression> aggregateOrderings,
         Type type,
         RelationalTypeMapping? typeMapping)
         : base(name, arguments, nullable, argumentsPropagateNullability, type, typeMapping)
@@ -85,18 +107,80 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
         {
             throw new ArgumentException($"{nameof(argumentNames)} must contain nulls followed by non-nulls", nameof(argumentNames));
         }
+
+        IsAggregateDistinct = aggregateDistinct;
+        AggregatePredicate = aggregatePredicate;
+        AggregateOrderings = aggregateOrderings;
     }
 
     protected override Expression VisitChildren(ExpressionVisitor visitor)
     {
         Check.NotNull(visitor, nameof(visitor));
 
-        var visited = base.VisitChildren(visitor);
-        return visited != this && visited is PostgresFunctionExpression e
+        var changed = false;
+
+        // Note that we don't have instance functions in PG
+
+        SqlExpression[]? visitedArguments = null;
+
+        if (!IsNiladic)
+        {
+            for (var i = 0; i < Arguments.Count; i++)
+            {
+                var visitedArgument = (SqlExpression)visitor.Visit(Arguments[i]);
+
+                if (visitedArgument != Arguments[i] && visitedArguments is null)
+                {
+                    changed = true;
+                    visitedArguments = new SqlExpression[Arguments.Count];
+
+                    for (var j = 0; j < visitedArguments.Length; j++)
+                    {
+                        visitedArguments[j] = Arguments[j];
+                    }
+                }
+
+                if (visitedArguments is not null)
+                {
+                    visitedArguments[i] = visitedArgument;
+                }
+            }
+        }
+
+        var visitedAggregatePredicate = (SqlExpression?)visitor.Visit(AggregatePredicate);
+        changed |= visitedAggregatePredicate != AggregatePredicate;
+
+        OrderingExpression[]? visitedAggregateOrderings = null;
+
+        for (var i = 0; i < AggregateOrderings.Count; i++)
+        {
+            var visitedOrdering = (OrderingExpression)visitor.Visit(AggregateOrderings[i]);
+            if (visitedOrdering != AggregateOrderings[i] && visitedAggregateOrderings is null)
+            {
+                changed = true;
+                visitedAggregateOrderings = new OrderingExpression[AggregateOrderings.Count];
+
+                for (var j = 0; j < visitedAggregateOrderings.Length; j++)
+                {
+                    visitedAggregateOrderings[j] = AggregateOrderings[j];
+                }
+            }
+
+            if (visitedAggregateOrderings is not null)
+            {
+                visitedAggregateOrderings[i] = visitedOrdering;
+            }
+        }
+
+        return changed
             ? new PostgresFunctionExpression(
-                e.Name, e.Arguments, ArgumentNames, ArgumentSeparators,
-                IsNullable, ArgumentsPropagateNullability!, Type, TypeMapping)
-            : visited;
+                Name, visitedArguments ?? Arguments, ArgumentNames, ArgumentSeparators,
+                IsNullable, ArgumentsPropagateNullability!,
+                IsAggregateDistinct,
+                visitedAggregatePredicate ?? AggregatePredicate,
+                visitedAggregateOrderings ?? AggregateOrderings,
+                Type, TypeMapping)
+            : this;
     }
 
     public override SqlFunctionExpression ApplyTypeMapping(RelationalTypeMapping? typeMapping)
@@ -107,12 +191,16 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
             ArgumentSeparators,
             IsNullable,
             ArgumentsPropagateNullability,
+            IsAggregateDistinct,
+            AggregatePredicate,
+            AggregateOrderings,
             Type,
             typeMapping ?? TypeMapping);
 
     public override SqlFunctionExpression Update(SqlExpression? instance, IReadOnlyList<SqlExpression>? arguments)
     {
         Check.NotNull(arguments, nameof(arguments));
+
         if (instance is not null)
         {
             throw new ArgumentException("Must be null", nameof(instance));
@@ -121,32 +209,104 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
         return !arguments.SequenceEqual(Arguments)
             ? new PostgresFunctionExpression(
                 Name, arguments, ArgumentNames, ArgumentSeparators,
-                IsNullable, ArgumentsPropagateNullability, Type, TypeMapping)
+                IsNullable, ArgumentsPropagateNullability,
+                IsAggregateDistinct,
+                AggregatePredicate,
+                AggregateOrderings,
+                Type, TypeMapping)
             : this;
     }
 
-    public override bool Equals(object? obj) => obj is PostgresFunctionExpression pgFunction && Equals(pgFunction);
+    public virtual SqlFunctionExpression UpdateAggregateComponents(SqlExpression? predicate, IReadOnlyList<OrderingExpression> orderings)
+    {
+        return predicate != AggregatePredicate || orderings != AggregateOrderings
+            ? new PostgresFunctionExpression(
+                Name, Arguments, ArgumentNames, ArgumentSeparators,
+                IsNullable, ArgumentsPropagateNullability,
+                IsAggregateDistinct,
+                predicate,
+                orderings,
+                Type, TypeMapping)
+            : this;
+    }
+
+    /// <inheritdoc />
+    protected override void Print(ExpressionPrinter expressionPrinter)
+    {
+        if (!string.IsNullOrEmpty(Schema))
+        {
+            expressionPrinter.Append(Schema).Append(".").Append(Name);
+        }
+        else
+        {
+            Check.DebugAssert(Instance is null, "Instance is null");
+
+            expressionPrinter.Append(Name);
+        }
+
+        if (!IsNiladic)
+        {
+            expressionPrinter.Append("(");
+
+            if (IsAggregateDistinct)
+            {
+                expressionPrinter.Append("DISTINCT ");
+            }
+
+            expressionPrinter.VisitCollection(Arguments);
+
+            if (AggregateOrderings.Count > 0)
+            {
+                expressionPrinter.Append(" ORDER BY ");
+                expressionPrinter.VisitCollection(AggregateOrderings);
+            }
+
+            expressionPrinter.Append(")");
+
+            if (AggregatePredicate is not null)
+            {
+                expressionPrinter.Append(" FILTER (WHERE ");
+                expressionPrinter.Visit(AggregatePredicate);
+                expressionPrinter.Append(")");
+            }
+        }
+    }
+
+    public override bool Equals(object? obj)
+        => obj is PostgresFunctionExpression pgFunction && Equals(pgFunction);
 
     public virtual bool Equals(PostgresFunctionExpression? other)
-        => ReferenceEquals(this, other) ||
-            other is not null &&
-            base.Equals(other) &&
-            ArgumentNames.SequenceEqual(other.ArgumentNames) &&
-            ArgumentSeparators.SequenceEqual(other.ArgumentSeparators);
+        => ReferenceEquals(this, other)
+            || other is not null
+            && base.Equals(other)
+            && ArgumentNames.SequenceEqual(other.ArgumentNames)
+            && ArgumentSeparators.SequenceEqual(other.ArgumentSeparators)
+            && AggregateOrderings.SequenceEqual(other.AggregateOrderings)
+            && (AggregatePredicate is null && other.AggregatePredicate is null
+                || AggregatePredicate != null && AggregatePredicate.Equals(other.AggregatePredicate));
 
     public override int GetHashCode()
     {
         var hash = new HashCode();
+
         hash.Add(base.GetHashCode());
+
         foreach (var argumentName in ArgumentNames)
         {
-            hash.Add(argumentName?.GetHashCode());
+            hash.Add(argumentName);
         }
 
         foreach (var argumentSeparator in ArgumentSeparators)
         {
-            hash.Add(argumentSeparator?.GetHashCode() ?? 0);
+            hash.Add(argumentSeparator);
         }
+
+        foreach (var aggregateOrdering in AggregateOrderings)
+        {
+            hash.Add(aggregateOrdering);
+        }
+
+        hash.Add(AggregatePredicate);
 
         return hash.ToHashCode();
     }

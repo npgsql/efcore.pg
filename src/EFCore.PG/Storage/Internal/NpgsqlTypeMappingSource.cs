@@ -582,9 +582,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             var elementStoreType = storeType.Substring(0, storeType.Length - 2);
             var elementStoreTypeNameBase = storeTypeNameBase!.Substring(0, storeTypeNameBase.Length - 2);
 
-            RelationalTypeMapping? elementMapping;
-
-            elementMapping = elementClrType is null
+            var elementMapping = elementClrType is null
                 ? FindMapping(new RelationalTypeMappingInfo(
                     elementStoreType, elementStoreTypeNameBase,
                     mappingInfo.IsUnicode, mappingInfo.Size, mappingInfo.Precision, mappingInfo.Scale))
