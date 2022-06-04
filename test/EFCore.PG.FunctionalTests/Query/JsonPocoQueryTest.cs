@@ -325,7 +325,7 @@ LIMIT 2");
 
 SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE CAST(j.""Customer""#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::TEXT[] AS integer) = 4
+WHERE CAST(j.""Customer""#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::text[] AS integer) = 4
 LIMIT 2");
     }
 

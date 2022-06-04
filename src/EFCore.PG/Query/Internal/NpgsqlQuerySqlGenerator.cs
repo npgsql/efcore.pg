@@ -631,7 +631,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                     Sql.Append(",");
                 }
             }
-            Sql.Append("]::TEXT[]");
+            Sql.Append("]::text[]");
         }
 
         return expression;
