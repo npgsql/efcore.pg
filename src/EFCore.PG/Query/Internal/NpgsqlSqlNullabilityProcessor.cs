@@ -36,8 +36,6 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
                 => VisitArrayIndex(arrayIndexExpression, allowOptimizedExpansion, out nullable),
             PostgresBinaryExpression binaryExpression
                 => VisitBinary(binaryExpression, allowOptimizedExpansion, out nullable),
-            PostgresFunctionExpression postgresFunctionExpression
-                => VisitPostgresFunction(postgresFunctionExpression, allowOptimizedExpansion, out nullable),
             PostgresILikeExpression ilikeExpression
                 => VisitILike(ilikeExpression, allowOptimizedExpansion, out nullable),
             PostgresJsonTraversalExpression postgresJsonTraversalExpression
@@ -50,6 +48,8 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
                 => VisitRowValueExpression(postgresRowValueExpression, allowOptimizedExpansion, out nullable),
             PostgresUnknownBinaryExpression postgresUnknownBinaryExpression
                 => VisitUnknownBinary(postgresUnknownBinaryExpression, allowOptimizedExpansion, out nullable),
+
+            // PostgresFunctionExpression is visited via the SqlFunctionExpression override below
 
             _ => base.VisitCustomSqlExpression(sqlExpression, allowOptimizedExpansion, out nullable)
         };
@@ -182,46 +182,68 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         return binaryExpression.Update(left, right);
     }
 
-    protected virtual SqlExpression VisitPostgresFunction(
-        PostgresFunctionExpression functionExpression,
+    protected override SqlExpression VisitSqlFunction(
+        SqlFunctionExpression sqlFunctionExpression,
         bool allowOptimizedExpansion,
         out bool nullable)
     {
         // PostgresFunctionExpression extends SqlFunctionExpression, and adds aggregate predicate and ordering expressions to that.
         // First call the base VisitSqlFunction to visit the arguments
-        var visitedBase =
-            (PostgresFunctionExpression)base.VisitSqlFunction(functionExpression, allowOptimizedExpansion, out nullable);
+        var visitedBase = base.VisitSqlFunction(sqlFunctionExpression, allowOptimizedExpansion, out nullable);
 
-        var aggregateChanged = false;
-
-        var visitedAggregatePredicate = Visit(functionExpression.AggregatePredicate, allowOptimizedExpansion: true, out _);
-        aggregateChanged |= visitedAggregatePredicate != functionExpression.AggregatePredicate;
-
-        OrderingExpression[]? visitedOrderings = null;
-        for (var i = 0; i < functionExpression.AggregateOrderings.Count; i++)
+        // base.VisitSqlFunction has some special logic for SUM which wraps it in a COALESCE
+        // (see https://github.com/dotnet/efcore/issues/28158), so we need some special handling to properly visit the
+        // PostgresFunctionExpression it wraps.
+        if (sqlFunctionExpression.IsBuiltIn
+            && string.Equals(sqlFunctionExpression.Name, "SUM", StringComparison.OrdinalIgnoreCase)
+            && visitedBase is SqlFunctionExpression { Name: "COALESCE", Arguments: { } } coalesceExpression
+            && coalesceExpression.Arguments[0] is PostgresFunctionExpression wrappedFunctionExpression)
         {
-            var ordering = functionExpression.AggregateOrderings[i];
-            var visitedOrdering = ordering.Update(Visit(ordering.Expression, out _));
-            if (visitedOrdering != ordering && visitedOrderings is null)
-            {
-                visitedOrderings = new OrderingExpression[functionExpression.AggregateOrderings.Count];
-                for (var j = 0; j < i; j++)
-                {
-                    visitedOrderings[j] = functionExpression.AggregateOrderings[j];
-                }
+            var visitedArguments = coalesceExpression.Arguments!.ToArray();
+            visitedArguments[0] = VisitPostgresFunctionComponents(wrappedFunctionExpression);
 
-                aggregateChanged = true;
-            }
-
-            if (visitedOrderings is not null)
-            {
-                visitedOrderings[i] = visitedOrdering;
-            }
+            return coalesceExpression.Update(coalesceExpression.Instance, visitedArguments);
         }
 
-        return aggregateChanged
-            ? visitedBase.UpdateAggregateComponents(visitedAggregatePredicate, visitedOrderings ?? functionExpression.AggregateOrderings)
+        return visitedBase is PostgresFunctionExpression pgFunctionExpression
+            ? VisitPostgresFunctionComponents(pgFunctionExpression)
             : visitedBase;
+
+        PostgresFunctionExpression VisitPostgresFunctionComponents(PostgresFunctionExpression pgFunctionExpression)
+        {
+            var aggregateChanged = false;
+
+            var visitedAggregatePredicate = Visit(pgFunctionExpression.AggregatePredicate, allowOptimizedExpansion: true, out _);
+            aggregateChanged |= visitedAggregatePredicate != pgFunctionExpression.AggregatePredicate;
+
+            OrderingExpression[]? visitedOrderings = null;
+            for (var i = 0; i < pgFunctionExpression.AggregateOrderings.Count; i++)
+            {
+                var ordering = pgFunctionExpression.AggregateOrderings[i];
+                var visitedOrdering = ordering.Update(Visit(ordering.Expression, out _));
+                if (visitedOrdering != ordering && visitedOrderings is null)
+                {
+                    visitedOrderings = new OrderingExpression[pgFunctionExpression.AggregateOrderings.Count];
+                    for (var j = 0; j < i; j++)
+                    {
+                        visitedOrderings[j] = pgFunctionExpression.AggregateOrderings[j];
+                    }
+
+                    aggregateChanged = true;
+                }
+
+                if (visitedOrderings is not null)
+                {
+                    visitedOrderings[i] = visitedOrdering;
+                }
+            }
+
+            return aggregateChanged
+                ? pgFunctionExpression.UpdateAggregateComponents(
+                    visitedAggregatePredicate,
+                    visitedOrderings ?? pgFunctionExpression.AggregateOrderings)
+                : pgFunctionExpression;
+        }
     }
 
     protected virtual SqlExpression VisitILike(

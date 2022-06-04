@@ -217,7 +217,9 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
             : this;
     }
 
-    public virtual SqlFunctionExpression UpdateAggregateComponents(SqlExpression? predicate, IReadOnlyList<OrderingExpression> orderings)
+    public virtual PostgresFunctionExpression UpdateAggregateComponents(
+        SqlExpression? predicate,
+        IReadOnlyList<OrderingExpression> orderings)
     {
         return predicate != AggregatePredicate || orderings != AggregateOrderings
             ? new PostgresFunctionExpression(
