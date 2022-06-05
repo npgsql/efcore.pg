@@ -149,3 +149,7 @@ point.M                                                          | [ST_M(point)]
 point.X                                                          | [ST_X(point)](https://postgis.net/docs/ST_X.html)
 point.Y                                                          | [ST_Y(point)](https://postgis.net/docs/ST_Y.html)
 point.Z                                                          | [ST_Z(point)](https://postgis.net/docs/ST_Z.html)
+UnaryUnionOp.Union(geometries)                                   | [ST_Union(geometries)](https://postgis.net/docs/ST_Union.html)                       | Added in 7.0, see [Aggregate functions](translations.md#aggregate-functions).
+GeometryCombiner.Combine(geometries)                             | [ST_Collect(geometries)](https://postgis.net/docs/ST_Collect.html)                   | Added in 7.0, see [Aggregate functions](translations.md#aggregate-functions).
+EnvelopeCombiner.CombineAsGeometry(geometries)                   | [ST_Extent(geometries)::geometry](https://postgis.net/docs/ST_Extent.html)           | Added in 7.0, see [Aggregate functions](translations.md#aggregate-functions).
+ConvexHull.Create(geometries)                                    | [ST_ConvexHull(geometries)](https://postgis.net/docs/ST_ConvexHull.html)             | Added in 7.0, see [Aggregate functions](translations.md#aggregate-functions).

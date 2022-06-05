@@ -6,9 +6,9 @@ The Npgsql-specific translations are listed below. Some areas, such as [full-tex
 
 ## String functions
 
-.NET                                                          | SQL                                                    | Notes
-------------------------------------------------------------- | ------------------------------------------------------ | --------
-EF.Functions.Collate(operand, collation)                      | operand COLLATE collation                              | Added in 5.0
+.NET                                                          | SQL                                                                                                                     | Notes
+------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | --------
+EF.Functions.Collate(operand, collation)                      | operand COLLATE collation                                                                                               | Added in 5.0
 EF.Functions.Like(matchExpression, pattern)                   | matchExpression LIKE pattern
 EF.Functions.Like(matchExpression, pattern, escapeCharacter)  | matchExpression LIKE pattern ESCAPE escapeCharacter
 EF.Functions.ILike(matchExpression, pattern)                  | [matchExpression ILIKE pattern](../misc/collations-and-case-sensitivity.md)
@@ -20,9 +20,9 @@ string.IsNullOrWhiteSpace(value)                              | value IS NULL OR
 stringValue.CompareTo(strB)                                   | CASE WHEN stringValue = strB THEN 0 ... END
 stringValue.Contains(value)                                   | strpos(stringValue, value) > 0
 stringValue.EndsWith(value)                                   | stringValue LIKE '%' \|\| value
-stringValue.FirstOrDefault()                                  | substr(stringValue, 1, 1)                              | Added in 5.0
+stringValue.FirstOrDefault()                                  | substr(stringValue, 1, 1)                                                                                               | Added in 5.0
 stringValue.IndexOf(value)                                    | strpos(stringValue, value) - 1
-stringValue.LastOrDefault()                                   | substr(stringValue, length(stringValue), 1)            | Added in 5.0
+stringValue.LastOrDefault()                                   | substr(stringValue, length(stringValue), 1)                                                                             | Added in 5.0
 stringValue.Length                                            | length(stringValue)
 stringValue.PadLeft(length)                                   | lpad(stringValue, length)
 stringValue.PadLeft(length, char)                             | lpad(stringValue, length, char)
@@ -42,6 +42,7 @@ stringValue.TrimStart(trimChar)                               | ltrim(stringValu
 EF.Functions.Reverse(value)                                   | reverse(value)
 Regex.IsMatch(stringValue, "^A+")                             | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options)
 Regex.IsMatch(stringValue, "^A+", regexOptions)               | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options)
+string.Join(", ", strings)<sup>1</sup>                        | [string_agg(strings, ', ')](https://www.postgresql.org/docs/current/functions-aggregate.html#FUNCTIONS-AGGREGATE-TABLE) | Added in 7.0, see [Aggregate functions](#aggregate-functions).
 
 ## Date and time functions
 
@@ -99,6 +100,8 @@ DateTime.SpecifyKind(nonUtcDateTime, DateTimeKind.Utc)            | [nonUtcDateT
 new DateTime(year, month, day)                                    | [make_date(year, month, day)](https://www.postgresql.org/docs/current/functions-datetime.html)                                         |
 new DateTime(y, m, d, h, m, s)                                    | [make_timestamp(y, m, d, h, m, s)](https://www.postgresql.org/docs/current/functions-datetime.html)                                    |
 new DateTime(y, m, d, h, m, s, kind)                              | [make_timestamp or make_timestamptz](https://www.postgresql.org/docs/current/functions-datetime.html), based on `kind`                 | Added in 6.0
+EF.Functions.Sum(timespans)                                       | [sum(timespans)](https://www.postgresql.org/docs/current/functions-aggregate.html#FUNCTIONS-AGGREGATE-TABLE)                           | Added in 7.0, see [Aggregate functions](#aggregate-functions).
+EF.Functions.Average(timespans)                                   | [avg(timespans)](https://www.postgresql.org/docs/current/functions-aggregate.html#FUNCTIONS-AGGREGATE-TABLE)                           | Added in 7.0, see [Aggregate functions](#aggregate-functions).
 
 ## Miscellaneous functions
 
@@ -145,6 +148,8 @@ Math.Sqrt(d)            | sqrt(d)            |
 Math.Tan(a)             | tan(a)             |
 Math.Truncate(d)        | trunc(d)           |
 EF.Functions.Random()   | random()           | Added in 6.0
+
+See also [Aggregate statistics functions](#aggregate-statistics-functions).
 
 ## Row value comparisons
 
@@ -252,3 +257,65 @@ ltree.NLevel                                                      | nlevel(ltree
 ltree.Index(subpath)                                              | index(ltree, subpath)
 ltree.Index(subpath, 2)                                           | index(ltree, subpath, 2)
 LTree.LongestCommonAncestor(ltree1, ltree2)                       | lca(index(ltree1, ltree2)
+
+## Aggregate functions
+
+The PostgreSQL aggregate functions are documented [here](https://www.postgresql.org/docs/current/functions-aggregate.html).
+
+> [!NOTE]
+> All the below aggregate functions were added in version 7.0.
+
+| .NET                                                                               | SQL
+| ---------------------------------------------------------------------------------- | --------------------
+| string.Join(", ", strings)                                                         | string_agg(strings, ', ')
+| EF.Functions.ArrayAgg(values)                                                      | array_agg(values)
+| EF.Functions.JsonbAgg(values)                                                      | jsonb_agg(values)
+| EF.Functions.JsonAgg(values)                                                       | json_agg(values)
+| EF.Functions.RangeAgg(ranges)                                                      | range_agg(ranges)
+| EF.Functions.RangeIntersectAgg(ranges)                                             | range_intersect_agg(ranges)
+| EF.Functions.Sum(timespans)                                                        | sum(timespans)
+| EF.Functions.Average(timespans)                                                    | avg(timespans)
+| EF.Functions.JsonObjectAgg(tuple_of_2)                                             | json_object_agg(tuple_of_2.first, tuple_of_2.second)
+|                                                                                    |
+| EF.Functions.StandardDeviationSample(values)                                       | stddev_samp(values)
+| EF.Functions.StandardDeviationPopulation(values)                                   | stddev_pop(values)
+| EF.Functions.VarianceSample(values)                                                | var_samp(values)
+| EF.Functions.VariancePopulation(values)                                            | var_pop(values)
+|                                                                                    |
+| EF.Functions.Correlation(tuple)                                                    | corr(tuple_of_2.first, tuple_of_2.second)
+| EF.Functions.CovariancePopulation(tuple)                                           | covar_pop(tuple_of_2.first, tuple_of_2.second)
+| EF.Functions.CovarianceSample(tuple)                                               | covar_samp(tuple_of_2.first, tuple_of_2.second)
+| EF.Functions.RegrAverageX(tuple)                                                   | regr_avgx(tuple_of_2.first, tuple_of_2.second)
+| EF.Functions.RegrAverageY(tuple)                                                   | regr_avgy(tuple_of_2.first, tuple_of_2.second)
+| EF.Functions.RegrCount(tuple)                                                      | regr_count(tuple_of_2.first, tuple_of_2.second)
+| EF.Functions.RegrIntercept(tuple)                                                  | regr_intercept(tuple_of_2.first, tuple_of_2.second)
+| EF.Functions.RegrR2(tuple)                                                         | regr_r2(tuple_of_2.first, tuple_of_2.second)
+| EF.Functions.RegrSlope(tuple)                                                      | regr_slope(tuple_of_2.first, tuple_of_2.second)
+| EF.Functions.RegrSXX(tuple)                                                        | regr_sxx(tuple_of_2.first, tuple_of_2.second)
+| EF.Functions.RegrSXY(tuple)                                                        | regr_sxy(tuple_of_2.first, tuple_of_2.second)
+
+Aggregate functions can be used as follows:
+
+```c#
+var query = ctx.Set<Customer>()
+    .GroupBy(c => c.City)
+    .Select(
+        g => new
+        {
+            City = g.Key,
+            Companies = EF.Functions.ArrayAgg(g.Select(c => c.ContactName))
+        });
+```
+
+To use functions accepting a tuple_of_2, project out from the group as follows:
+
+```c#
+var query = ctx.Set<Customer>()
+    .GroupBy(c => c.City)
+    .Select(
+        g => new
+        {
+            City = g.Key,
+            Companies = EF.Functions.JsonObjectAgg(g.Select(c => ValueTuple.Create(c.CompanyName, c.ContactName)))
+        });
+```
