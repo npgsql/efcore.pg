@@ -362,7 +362,7 @@ WHERE (date_part('epoch', m.""Duration"") / 0.001) < 3700000.0");
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE make_date(date_part('year', m.""Date"")::INT, date_part('month', m.""Date"")::INT, 1) = DATE '1996-09-11'");
+WHERE make_date(date_part('year', m.""Date"")::int, date_part('month', m.""Date"")::int, 1) = DATE '1996-09-11'");
     }
 
     [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/2039")]
@@ -376,7 +376,7 @@ WHERE make_date(date_part('year', m.""Date"")::INT, date_part('month', m.""Date"
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE date_part('year', m.""Date"")::INT = 1990");
+WHERE date_part('year', m.""Date"")::int = 1990");
     }
 
     public override async Task Where_DateOnly_Month(bool async)
