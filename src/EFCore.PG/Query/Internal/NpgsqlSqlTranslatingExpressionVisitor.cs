@@ -317,7 +317,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                     ExpressionType.Subtract, sqlLeft!, sqlRight!, _typeMappingSource.FindMapping(typeof(int)))!;
 
                 return PostgresFunctionExpression.CreateWithNamedArguments(
-                    "MAKE_INTERVAL",
+                    "make_interval",
                     new[] {  subtraction },
                     new[] { "days" },
                     nullable: true,

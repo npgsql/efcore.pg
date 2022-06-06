@@ -55,7 +55,7 @@ WHERE power(e.""BigInteger"", 2) = 4");
         AssertSql(
             @"SELECT e.""Id"", e.""BigInteger""
 FROM ""Entities"" AS e
-WHERE greatest(e.""BigInteger"", 1) = 1");
+WHERE GREATEST(e.""BigInteger"", 1) = 1");
     }
 
     [ConditionalTheory]
@@ -70,7 +70,7 @@ WHERE greatest(e.""BigInteger"", 1) = 1");
         AssertSql(
             @"SELECT e.""Id"", e.""BigInteger""
 FROM ""Entities"" AS e
-WHERE least(e.""BigInteger"", 1) = 1");
+WHERE LEAST(e.""BigInteger"", 1) = 1");
     }
 
     [ConditionalTheory]

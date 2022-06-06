@@ -15,7 +15,7 @@ public class NorthwindSelectQueryNpgsqlTest : NorthwindSelectQueryRelationalTest
         await base.Select_datetime_DayOfWeek_component(async);
 
         AssertSql(
-            @"SELECT floor(date_part('dow', o.""OrderDate""))::INT
+            @"SELECT floor(date_part('dow', o.""OrderDate""))::int
 FROM ""Orders"" AS o");
     }
 

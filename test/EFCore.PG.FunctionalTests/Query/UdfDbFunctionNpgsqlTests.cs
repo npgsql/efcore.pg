@@ -20,7 +20,7 @@ public class UdfDbFunctionNpgsqlTests : UdfDbFunctionTestBase<UdfDbFunctionNpgsq
         base.Scalar_Function_Extension_Method_Static();
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""Customers"" AS c
 WHERE ""IsDate""(c.""FirstName"") = FALSE");
     }
@@ -282,7 +282,7 @@ LIMIT 2");
         base.Scalar_Function_Extension_Method_Instance();
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""Customers"" AS c
 WHERE ""IsDate""(c.""FirstName"") = FALSE");
     }

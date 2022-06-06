@@ -80,7 +80,7 @@ WHERE (o.""OrderDate"" - INTERVAL '1 00:00:00') = TIMESTAMP '1997-10-08 00:00:00
                 .Select(o => new { Elapsed = (DateTime.Today - ((DateTime)o.OrderDate).Date).Days }));
 
         AssertSql(
-            @"SELECT floor(date_part('day', date_trunc('day', now()::timestamp) - date_trunc('day', o.""OrderDate"")))::INT AS ""Elapsed""
+            @"SELECT floor(date_part('day', date_trunc('day', now()::timestamp) - date_trunc('day', o.""OrderDate"")))::int AS ""Elapsed""
 FROM ""Orders"" AS o
 WHERE (o.""OrderDate"" IS NOT NULL)
 LIMIT 1");
@@ -146,8 +146,8 @@ LIMIT 1");
         await Assert.ThrowsAsync<InvalidOperationException>(() => base.Max_on_empty_sequence_throws(async));
 
         AssertSql(
-                @"SELECT (
-    SELECT MAX(o.""OrderID"")
+            @"SELECT (
+    SELECT max(o.""OrderID"")
     FROM ""Orders"" AS o
     WHERE c.""CustomerID"" = o.""CustomerID"") AS ""Max""
 FROM ""Customers"" AS c");

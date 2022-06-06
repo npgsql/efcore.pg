@@ -28,7 +28,7 @@ public class NorthwindDbFunctionsQueryNpgsqlTest : NorthwindDbFunctionsQueryRela
             c => c.ContactName.Contains("M"));
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" LIKE '%M%'");
     }
@@ -38,7 +38,7 @@ WHERE c.""ContactName"" LIKE '%M%'");
         await base.Like_identity(async);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" LIKE c.""ContactName"" ESCAPE ''");
     }
@@ -48,7 +48,7 @@ WHERE c.""ContactName"" LIKE c.""ContactName"" ESCAPE ''");
         await base.Like_literal_with_escape(async);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" LIKE '!%' ESCAPE '!'");
     }
@@ -61,7 +61,7 @@ WHERE c.""ContactName"" LIKE '!%' ESCAPE '!'");
 
         Assert.Equal(0, count);
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" LIKE '\' ESCAPE ''");
     }
@@ -74,7 +74,7 @@ WHERE c.""ContactName"" LIKE '\' ESCAPE ''");
 
         Assert.Equal(34, count);
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" ILIKE '%M%'");
     }
@@ -87,7 +87,7 @@ WHERE c.""ContactName"" ILIKE '%M%'");
 
         Assert.Equal(0, count);
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" ILIKE '!%' ESCAPE '!'");
     }
@@ -103,7 +103,7 @@ WHERE c.""ContactName"" ILIKE '!%' ESCAPE '!'");
         await base.Collate_case_insensitive(async);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" COLLATE ""some-case-insensitive-collation"" = 'maria anders'");
     }
@@ -113,7 +113,7 @@ WHERE c.""ContactName"" COLLATE ""some-case-insensitive-collation"" = 'maria and
         await base.Collate_case_sensitive(async);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" COLLATE ""POSIX"" = 'maria anders'");
     }
@@ -133,7 +133,7 @@ WHERE c.""ContactName"" COLLATE ""POSIX"" = 'maria anders'");
 
         Assert.Equal(1, count);
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""Customers"" AS c
 WHERE reverse(c.""ContactName"") = 'srednA airaM'");
     }

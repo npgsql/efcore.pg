@@ -362,7 +362,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                     case ScalarSubqueryExpression:
                         var storeType = sqlUnaryExpression.TypeMapping.StoreType switch
                         {
-                            "integer" => "INT",
+                            "integer" => "int",
                             "timestamp with time zone" => "timestamptz",
                             "timestamp without time zone" => "timestamp",
                             var s => s
@@ -631,7 +631,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                     Sql.Append(",");
                 }
             }
-            Sql.Append("]::TEXT[]");
+            Sql.Append("]::text[]");
         }
 
         return expression;

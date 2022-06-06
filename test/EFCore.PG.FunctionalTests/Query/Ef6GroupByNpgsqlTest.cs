@@ -35,7 +35,7 @@ ORDER BY length((
     SELECT p1.""LastName""
     FROM ""Person"" AS p1
     WHERE p1.""MiddleInitial"" = 'Q' AND p1.""Age"" = 20 AND (p.""LastName"" = p1.""LastName"" OR ((p.""LastName"" IS NULL) AND (p1.""LastName"" IS NULL)))
-    LIMIT 1))::INT NULLS FIRST");
+    LIMIT 1))::int NULLS FIRST");
     }
 
     public override async Task Whats_new_2021_sample_5(bool async)

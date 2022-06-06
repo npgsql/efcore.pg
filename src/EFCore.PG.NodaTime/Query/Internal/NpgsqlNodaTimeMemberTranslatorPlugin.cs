@@ -297,7 +297,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
 
             case "DayOfWeek":
                 // Unlike DateTime.DayOfWeek, NodaTime's IsoDayOfWeek enum doesn't exactly correspond to PostgreSQL's
-                // values returned by DATE_PART('dow', ...): in NodaTime Sunday is 7 and not 0, which is None.
+                // values returned by date_part('dow', ...): in NodaTime Sunday is 7 and not 0, which is None.
                 // So we generate a CASE WHEN expression to translate PostgreSQL's 0 to 7.
                 var getValueExpression = GetDatePartExpression(instance, "dow", true);
                 // TODO: Can be simplified once https://github.com/aspnet/EntityFrameworkCore/pull/16726 is in
@@ -331,16 +331,16 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
     }
 
     /// <summary>
-    /// Constructs the DATE_PART expression.
+    /// Constructs the date_part expression.
     /// </summary>
     /// <param name="e">The member expression.</param>
-    /// <param name="partName">The name of the DATE_PART to construct.</param>
-    /// <param name="floor">True if the result should be wrapped with FLOOR(...); otherwise, false.</param>
+    /// <param name="partName">The name of the date_part to construct.</param>
+    /// <param name="floor">True if the result should be wrapped with floor(...); otherwise, false.</param>
     /// <returns>
-    /// The DATE_PART expression.
+    /// The date_part expression.
     /// </returns>
     /// <remarks>
-    /// DATE_PART returns doubles, which we floor and cast into ints
+    /// date_part returns doubles, which we floor and cast into ints
     /// This also gets rid of sub-second components when retrieving seconds.
     /// </remarks>
     private SqlExpression GetDatePartExpression(
@@ -358,7 +358,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
         bool floor = false)
     {
         var result = _sqlExpressionFactory.Function(
-            "DATE_PART",
+            "date_part",
             new[] { _sqlExpressionFactory.Constant(partName), instance },
             nullable: true,
             argumentsPropagateNullability: TrueArrays[2],
@@ -367,7 +367,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
         if (floor)
         {
             result = _sqlExpressionFactory.Function(
-                "FLOOR",
+                "floor",
                 new[] { result },
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],

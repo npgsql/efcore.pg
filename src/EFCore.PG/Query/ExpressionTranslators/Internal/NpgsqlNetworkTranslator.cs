@@ -83,13 +83,13 @@ public class NpgsqlNetworkTranslator : IMethodCallTranslator
             nameof(NpgsqlNetworkDbFunctionsExtensions.ContainsOrContainedBy)
                 => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.NetworkContainsOrContainedBy, arguments[1], arguments[2]),
 
-            nameof(NpgsqlNetworkDbFunctionsExtensions.BitwiseNot)            => new SqlUnaryExpression(ExpressionType.Not,
-                arguments[1],
-                arguments[1].Type,
-                arguments[1].TypeMapping),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.BitwiseNot)
+                => new SqlUnaryExpression(ExpressionType.Not, arguments[1], arguments[1].Type, arguments[1].TypeMapping),
 
-            nameof(NpgsqlNetworkDbFunctionsExtensions.BitwiseAnd) => _sqlExpressionFactory.And(arguments[1], arguments[2]),
-            nameof(NpgsqlNetworkDbFunctionsExtensions.BitwiseOr)  => _sqlExpressionFactory.Or(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.BitwiseAnd)
+                => _sqlExpressionFactory.And(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.BitwiseOr)
+                => _sqlExpressionFactory.Or(arguments[1], arguments[2]),
 
             // Add/Subtract accept inet + int, so we can't use the default type mapping inference logic which assumes
             // same-typed operands

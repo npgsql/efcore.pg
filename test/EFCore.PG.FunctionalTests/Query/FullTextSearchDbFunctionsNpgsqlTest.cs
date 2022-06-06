@@ -901,7 +901,7 @@ LIMIT 1");
                 .Matches(EF.Functions.ToTsQuery("owner").Or(EF.Functions.ToTsQuery("foo"))));
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""Customers"" AS c
 WHERE to_tsvector(c.""ContactTitle"") @@ (to_tsquery('owner') || to_tsquery('foo'))");
     }

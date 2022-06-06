@@ -22,7 +22,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
         //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    #region Greatest
+    #region GREATEST
 
     //[Fact]
     public void Max_ushort_ushort()
@@ -33,7 +33,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Max(x.UShort, x.UShort))
                 .ToArray();
 
-        AssertContainsSql("SELECT greatest(x.\"UShort\", x.\"UShort\")");
+        AssertContainsSql("SELECT GREATEST(x.\"UShort\", x.\"UShort\")");
     }
 
     //[Fact]
@@ -45,7 +45,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Max(x.UInt, x.UInt))
                 .ToArray();
 
-        AssertContainsSql("SELECT greatest(x.\"UInt\", x.\"UInt\")");
+        AssertContainsSql("SELECT GREATEST(x.\"UInt\", x.\"UInt\")");
     }
 
     //[Fact]
@@ -57,7 +57,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Max(x.ULong, x.ULong))
                 .ToArray();
 
-        AssertContainsSql("SELECT greatest(x.\"ULong\", x.\"ULong\")");
+        AssertContainsSql("SELECT GREATEST(x.\"ULong\", x.\"ULong\")");
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Max(x.Short, x.Short))
                 .ToArray();
 
-        AssertContainsSql("SELECT greatest(x.\"Short\", x.\"Short\")");
+        AssertContainsSql("SELECT GREATEST(x.\"Short\", x.\"Short\")");
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Max(x.Int, x.Int))
                 .ToArray();
 
-        AssertContainsSql("SELECT greatest(x.\"Int\", x.\"Int\")");
+        AssertContainsSql("SELECT GREATEST(x.\"Int\", x.\"Int\")");
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Max(x.Long, x.Long))
                 .ToArray();
 
-        AssertContainsSql("SELECT greatest(x.\"Long\", x.\"Long\")");
+        AssertContainsSql("SELECT GREATEST(x.\"Long\", x.\"Long\")");
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Max(x.Float, x.Float))
                 .ToArray();
 
-        AssertContainsSql("SELECT greatest(x.\"Float\", x.\"Float\")");
+        AssertContainsSql("SELECT GREATEST(x.\"Float\", x.\"Float\")");
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Max(x.Double, x.Double))
                 .ToArray();
 
-        AssertContainsSql("SELECT greatest(x.\"Double\", x.\"Double\")");
+        AssertContainsSql("SELECT GREATEST(x.\"Double\", x.\"Double\")");
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Max(x.Decimal, x.Decimal))
                 .ToArray();
 
-        AssertContainsSql("SELECT greatest(x.\"Decimal\", x.\"Decimal\")");
+        AssertContainsSql("SELECT GREATEST(x.\"Decimal\", x.\"Decimal\")");
     }
 
     //[Fact]
@@ -141,7 +141,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Max(x.SByte, x.SByte))
                 .ToArray();
 
-        AssertContainsSql("SELECT greatest(x.\"SByte\", x.\"SByte\")");
+        AssertContainsSql("SELECT GREATEST(x.\"SByte\", x.\"SByte\")");
     }
 
     //[Fact]
@@ -153,7 +153,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Max(x.Byte, x.Byte))
                 .ToArray();
 
-        AssertContainsSql("SELECT greatest(x.\"Byte\", x.\"Byte\")");
+        AssertContainsSql("SELECT GREATEST(x.\"Byte\", x.\"Byte\")");
     }
 
     #endregion
@@ -169,7 +169,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Min(x.UShort, x.UShort))
                 .ToArray();
 
-        AssertContainsSql("SELECT least(x.\"UShort\", x.\"UShort\")");
+        AssertContainsSql("SELECT LEAST(x.\"UShort\", x.\"UShort\")");
     }
 
     //[Fact]
@@ -181,7 +181,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Min(x.UInt, x.UInt))
                 .ToArray();
 
-        AssertContainsSql("SELECT least(x.\"UInt\", x.\"UInt\")");
+        AssertContainsSql("SELECT LEAST(x.\"UInt\", x.\"UInt\")");
     }
 
     //[Fact]
@@ -193,7 +193,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Min(x.ULong, x.ULong))
                 .ToArray();
 
-        AssertContainsSql("SELECT least(x.\"ULong\", x.\"ULong\")");
+        AssertContainsSql("SELECT LEAST(x.\"ULong\", x.\"ULong\")");
     }
 
     [Fact]
@@ -205,7 +205,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Min(x.Short, x.Short))
                 .ToArray();
 
-        AssertContainsSql("SELECT least(x.\"Short\", x.\"Short\")");
+        AssertContainsSql("SELECT LEAST(x.\"Short\", x.\"Short\")");
     }
 
     [Fact]
@@ -217,7 +217,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Min(x.Int, x.Int))
                 .ToArray();
 
-        AssertContainsSql("SELECT least(x.\"Int\", x.\"Int\")");
+        AssertContainsSql("SELECT LEAST(x.\"Int\", x.\"Int\")");
     }
 
     [Fact]
@@ -229,7 +229,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Min(x.Long, x.Long))
                 .ToArray();
 
-        AssertContainsSql("SELECT least(x.\"Long\", x.\"Long\")");
+        AssertContainsSql("SELECT LEAST(x.\"Long\", x.\"Long\")");
     }
 
     [Fact]
@@ -241,7 +241,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Min(x.Float, x.Float))
                 .ToArray();
 
-        AssertContainsSql("SELECT least(x.\"Float\", x.\"Float\")");
+        AssertContainsSql("SELECT LEAST(x.\"Float\", x.\"Float\")");
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Min(x.Double, x.Double))
                 .ToArray();
 
-        AssertContainsSql("SELECT least(x.\"Double\", x.\"Double\")");
+        AssertContainsSql("SELECT LEAST(x.\"Double\", x.\"Double\")");
     }
 
     [Fact]
@@ -265,7 +265,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Min(x.Decimal, x.Decimal))
                 .ToArray();
 
-        AssertContainsSql("SELECT least(x.\"Decimal\", x.\"Decimal\")");
+        AssertContainsSql("SELECT LEAST(x.\"Decimal\", x.\"Decimal\")");
     }
 
     //[Fact]
@@ -277,7 +277,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Min(x.SByte, x.SByte))
                 .ToArray();
 
-        AssertContainsSql("SELECT least(x.\"SByte\", x.\"SByte\")");
+        AssertContainsSql("SELECT LEAST(x.\"SByte\", x.\"SByte\")");
     }
 
     //[Fact]
@@ -289,7 +289,7 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
                 .Select(x => Math.Min(x.Byte, x.Byte))
                 .ToArray();
 
-        AssertContainsSql("SELECT least(x.\"Byte\", x.\"Byte\")");
+        AssertContainsSql("SELECT LEAST(x.\"Byte\", x.\"Byte\")");
     }
 
     #endregion

@@ -311,7 +311,7 @@ LIMIT 2");
         Assert.Equal(0, count);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""RangeTestEntities"" AS r
 WHERE NOT (lower_inc(r.""IntRange""))");
     }
@@ -324,7 +324,7 @@ WHERE NOT (lower_inc(r.""IntRange""))");
         Assert.Equal(0, count);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""RangeTestEntities"" AS r
 WHERE upper_inc(r.""IntRange"")");
     }
@@ -337,7 +337,7 @@ WHERE upper_inc(r.""IntRange"")");
         Assert.Equal(0, count);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""RangeTestEntities"" AS r
 WHERE lower_inf(r.""IntRange"")");
     }
@@ -350,7 +350,7 @@ WHERE lower_inf(r.""IntRange"")");
         Assert.Equal(0, count);
 
         AssertSql(
-            @"SELECT COUNT(*)::INT
+            @"SELECT count(*)::int
 FROM ""RangeTestEntities"" AS r
 WHERE upper_inf(r.""IntRange"")");
     }

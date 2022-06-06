@@ -83,7 +83,7 @@ WHERE length(s.""Banner"") = @__p_0");
         AssertSql(
             @"@__byteArrayParam='0x2A80'
 
-SELECT COUNT(*)::INT
+SELECT count(*)::int
 FROM ""Squads"" AS s
 WHERE length(s.""Banner"") = length(@__byteArrayParam)");
     }
@@ -137,7 +137,7 @@ WHERE date_trunc('day', m.""Timeline"" AT TIME ZONE 'UTC') > TIMESTAMPTZ '0001-0
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE date_part('hour', m.""Timeline"" AT TIME ZONE 'UTC')::INT = 10");
+WHERE date_part('hour', m.""Timeline"" AT TIME ZONE 'UTC')::int = 10");
     }
 
     public override async Task DateTimeOffset_Date_returns_datetime(bool async)
@@ -211,7 +211,7 @@ FROM ""Missions"" AS m");
         await base.TimeSpan_Hours(async);
 
         AssertSql(
-            @"SELECT floor(date_part('hour', m.""Duration""))::INT
+            @"SELECT floor(date_part('hour', m.""Duration""))::int
 FROM ""Missions"" AS m");
     }
 
@@ -220,7 +220,7 @@ FROM ""Missions"" AS m");
         await base.TimeSpan_Minutes(async);
 
         AssertSql(
-            @"SELECT floor(date_part('minute', m.""Duration""))::INT
+            @"SELECT floor(date_part('minute', m.""Duration""))::int
 FROM ""Missions"" AS m");
     }
 
@@ -229,7 +229,7 @@ FROM ""Missions"" AS m");
         await base.TimeSpan_Seconds(async);
 
         AssertSql(
-            @"SELECT floor(date_part('second', m.""Duration""))::INT
+            @"SELECT floor(date_part('second', m.""Duration""))::int
 FROM ""Missions"" AS m");
     }
 
@@ -238,7 +238,7 @@ FROM ""Missions"" AS m");
         await base.TimeSpan_Milliseconds(async);
 
         AssertSql(
-            @"SELECT floor(date_part('millisecond', m.""Duration""))::INT % 1000
+            @"SELECT floor(date_part('millisecond', m.""Duration""))::int % 1000
 FROM ""Missions"" AS m");
     }
 
@@ -253,7 +253,7 @@ FROM ""Missions"" AS m");
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE floor(date_part('minute', m.""Duration""))::INT = 1");
+WHERE floor(date_part('minute', m.""Duration""))::int = 1");
     }
 
     public override async Task Where_TimeSpan_Seconds(bool async)
@@ -263,7 +263,7 @@ WHERE floor(date_part('minute', m.""Duration""))::INT = 1");
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE floor(date_part('second', m.""Duration""))::INT = 1");
+WHERE floor(date_part('second', m.""Duration""))::int = 1");
     }
 
     public override async Task Where_TimeSpan_Milliseconds(bool async)
@@ -273,7 +273,7 @@ WHERE floor(date_part('second', m.""Duration""))::INT = 1");
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE (floor(date_part('millisecond', m.""Duration""))::INT % 1000) = 1");
+WHERE (floor(date_part('millisecond', m.""Duration""))::int % 1000) = 1");
     }
 
     [ConditionalTheory]
@@ -362,7 +362,7 @@ WHERE (date_part('epoch', m.""Duration"") / 0.001) < 3700000.0");
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE make_date(date_part('year', m.""Date"")::INT, date_part('month', m.""Date"")::INT, 1) = DATE '1996-09-11'");
+WHERE make_date(date_part('year', m.""Date"")::int, date_part('month', m.""Date"")::int, 1) = DATE '1996-09-11'");
     }
 
     [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/2039")]
@@ -376,7 +376,7 @@ WHERE make_date(date_part('year', m.""Date"")::INT, date_part('month', m.""Date"
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE date_part('year', m.""Date"")::INT = 1990");
+WHERE date_part('year', m.""Date"")::int = 1990");
     }
 
     public override async Task Where_DateOnly_Month(bool async)
@@ -389,7 +389,7 @@ WHERE date_part('year', m.""Date"")::INT = 1990");
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE date_part('month', m.""Date"")::INT = 11");
+WHERE date_part('month', m.""Date"")::int = 11");
     }
 
     public override async Task Where_DateOnly_Day(bool async)
@@ -402,7 +402,7 @@ WHERE date_part('month', m.""Date"")::INT = 11");
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE date_part('day', m.""Date"")::INT = 10");
+WHERE date_part('day', m.""Date"")::int = 10");
     }
 
     public override async Task Where_DateOnly_DayOfYear(bool async)
@@ -415,7 +415,7 @@ WHERE date_part('day', m.""Date"")::INT = 10");
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE date_part('doy', m.""Date"")::INT = 314");
+WHERE date_part('doy', m.""Date"")::int = 314");
     }
 
     public override async Task Where_DateOnly_DayOfWeek(bool async)
@@ -428,7 +428,7 @@ WHERE date_part('doy', m.""Date"")::INT = 314");
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE floor(date_part('dow', m.""Date""))::INT = 6");
+WHERE floor(date_part('dow', m.""Date""))::int = 6");
     }
 
     public override async Task Where_DateOnly_AddYears(bool async)
@@ -484,7 +484,7 @@ WHERE (m.""Date"" + INTERVAL '3 days') = DATE '1990-11-13'");
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE date_part('hour', m.""Time"")::INT = 10");
+WHERE date_part('hour', m.""Time"")::int = 10");
     }
 
     public override async Task Where_TimeOnly_Minute(bool async)
@@ -497,7 +497,7 @@ WHERE date_part('hour', m.""Time"")::INT = 10");
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE date_part('minute', m.""Time"")::INT = 15");
+WHERE date_part('minute', m.""Time"")::int = 15");
     }
 
     public override async Task Where_TimeOnly_Second(bool async)
@@ -510,7 +510,7 @@ WHERE date_part('minute', m.""Time"")::INT = 15");
         AssertSql(
             @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
 FROM ""Missions"" AS m
-WHERE date_part('second', m.""Time"")::INT = 50");
+WHERE date_part('second', m.""Time"")::int = 50");
     }
 
     public override Task Where_TimeOnly_Millisecond(bool async)
