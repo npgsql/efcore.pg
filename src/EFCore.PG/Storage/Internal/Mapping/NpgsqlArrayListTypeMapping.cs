@@ -88,6 +88,16 @@ public class NpgsqlArrayListTypeMapping : NpgsqlArrayTypeMapping
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
         => new NpgsqlArrayListTypeMapping(parameters, elementMapping);
 
+    #region Code Generation
+
+    public override Expression GenerateCodeLiteral(object value)
+    {
+        var arrayExpr = base.GenerateCodeLiteral(value);
+        return Expression.Call(PostgreSQL.Internal.EnumerableMethods.ToList.MakeGenericMethod(ElementMapping.ClrType), arrayExpr);
+    }
+
+    #endregion
+
     #region Value Comparison
 
     // Note that the value comparison code is largely duplicated from NpgsqlArrayTypeMapping.

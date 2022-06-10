@@ -209,6 +209,25 @@ public class NpgsqlNodaTimeTypeMappingTest
     }
 
     [Fact]
+    public void GenerateCodeLiteral_returns_string_array_literal()
+    {
+        Assert.Equal(
+            @"new[] { ""1"", ""2"", ""3"" }",
+            CodeLiteral(new[] { "1", "2", "3"})
+            );
+    }
+
+    [Fact]
+    public void GenerateCodeLiteral_returns_int_list_literal()
+    {
+        Assert.Equal(
+            @"System.Linq.Enumerable.ToList(new int[] { 1, 2, 3 })",
+            CodeLiteral(new List<int> { 1, 2, 3})
+        );
+    }
+
+
+    [Fact]
     public void Interval_array_is_properly_mapped()
     {
         Assert.Equal("tstzmultirange", GetMapping(typeof(Interval[])).StoreType);

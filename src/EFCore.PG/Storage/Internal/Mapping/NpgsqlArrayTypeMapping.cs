@@ -148,6 +148,32 @@ public abstract class NpgsqlArrayTypeMapping : RelationalTypeMapping
         }
     }
 
+    #region Code Generation
+    public override Expression GenerateCodeLiteral(object value)
+    {
+        var values = (IList)value;
+        List<Expression> elements = new(values.Count);
+        var generated = true;
+        foreach (var element in values)
+        {
+            if (generated)
+            {
+                try
+                {
+                    elements.Add(ElementMapping.GenerateCodeLiteral(element)); // attempt to convert if required
+                    continue;
+                }
+                catch (NotSupportedException)
+                {
+                    generated = false; // if we can't generate one element, we probably can't generate any
+                }
+            }
+            elements.Add(Expression.Constant(element));
+        }
+        return Expression.NewArrayInit(ElementMapping.ClrType, elements);
+    }
+    #endregion
+
     // isElementNullable is provided for reference-type properties by decoding NRT information from the property, since that's not
     // available on the CLR type. Note, however, that because of value conversion we may get a discrepancy between the model property's
     // nullability and the provider types' (e.g. array of nullable reference property value-converted to array of non-nullable value

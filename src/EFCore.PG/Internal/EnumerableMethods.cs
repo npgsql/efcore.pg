@@ -176,7 +176,7 @@ internal static class EnumerableMethods
     //public static MethodInfo ToHashSet { get; }
     //public static MethodInfo ToHashSetWithComparer { get; }
 
-    // public static MethodInfo ToList { get; }
+    public static MethodInfo ToList { get; }
 
     //public static MethodInfo ToLookupWithKeySelector { get; }
     //public static MethodInfo ToLookupWithKeySelectorAndComparer { get; }
@@ -553,7 +553,7 @@ internal static class EnumerableMethods
 
         // ToArray = GetMethod(nameof(Enumerable.ToArray), 1, types => new[] { typeof(IEnumerable<>).MakeGenericType(types[0]) });
 
-        // ToList = GetMethod(nameof(Enumerable.ToList), 1, types => new[] { typeof(IEnumerable<>).MakeGenericType(types[0]) });
+        ToList = GetMethod(nameof(Enumerable.ToList), 1, types => new[] { typeof(IEnumerable<>).MakeGenericType(types[0]) });
 
         // Take = GetMethod(nameof(Enumerable.Take), 1,
         //     types => new[]
