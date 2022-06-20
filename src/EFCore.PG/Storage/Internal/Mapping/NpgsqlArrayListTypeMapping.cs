@@ -88,6 +88,33 @@ public class NpgsqlArrayListTypeMapping : NpgsqlArrayTypeMapping
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
         => new NpgsqlArrayListTypeMapping(parameters, elementMapping);
 
+    public override NpgsqlArrayTypeMapping FlipArrayListClrType(Type newType)
+    {
+        var elementType = ClrType.GetGenericArguments()[0];
+        if (newType.IsGenericList())
+        {
+            var newTypeElement = newType.GetGenericArguments()[0];
+
+            return newTypeElement == elementType
+                ? this
+                : throw new ArgumentException(
+                    $"Mismatch in list element CLR types when converting a type mapping: {newTypeElement.Name} and {elementType.Name}");
+        }
+
+        if (newType.IsArray)
+        {
+            var arrayElementType = newType.GetElementType()!;
+
+            return arrayElementType == elementType
+                ? new NpgsqlArrayArrayTypeMapping(newType, ElementMapping)
+                : throw new ArgumentException(
+                    "Mismatch in list element CLR types when converting a type mapping: " +
+                    $"{arrayElementType} and {elementType.Name}");
+        }
+
+        throw new ArgumentException($"Non-array/list type: {newType.Name}");
+    }
+
     #region Value Comparison
 
     // Note that the value comparison code is largely duplicated from NpgsqlArrayTypeMapping.

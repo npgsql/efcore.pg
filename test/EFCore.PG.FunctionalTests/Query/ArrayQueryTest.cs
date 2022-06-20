@@ -362,6 +362,10 @@ public abstract class ArrayQueryTest<TFixture> : QueryTestBase<TFixture>
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
+    public abstract Task Any_Contains_between_column_and_other_type(bool async);
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
     public virtual async Task All_Contains(bool async)
         => await AssertQuery(
             async,
