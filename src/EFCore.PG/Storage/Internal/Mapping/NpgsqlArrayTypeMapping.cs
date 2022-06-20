@@ -95,6 +95,12 @@ public abstract class NpgsqlArrayTypeMapping : RelationalTypeMapping
         return Clone(parameters, elementMapping);
     }
 
+    /// <summary>
+    /// Returns a type mapping identical to this one, but over the other CLR array type. That is, convert a CLR array mapping to a List
+    /// mapping and vice versa.
+    /// </summary>
+    public abstract NpgsqlArrayTypeMapping FlipArrayListClrType(Type newType);
+
     // The array-to-array mapping needs to know how to generate an SQL literal for a List<>, and
     // the list-to-array mapping needs to know how to generate an SQL literal for an array.
     // This is because in cases such as ctx.SomeListColumn.SequenceEquals(new[] { 1, 2, 3}), the list mapping
