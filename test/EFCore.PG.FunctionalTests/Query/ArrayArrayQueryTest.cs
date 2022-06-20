@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -688,6 +689,23 @@ WHERE s.""IntArray"" && @__ints_0");
 SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
 FROM ""SomeEntities"" AS s
 WHERE s.""IntArray"" && @__ints_0");
+    }
+
+    public override async Task Any_Contains_between_column_and_other_type(bool async)
+    {
+        var list = new List<SomeEnum> { SomeEnum.Eight };
+
+        await AssertQuery(
+            async,
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.Any(i => list.Contains(i))),
+            entryCount: 1);
+
+        AssertSql(
+            @"@__list_0={ 'Eight' } (DbType = Object)
+
+SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
+FROM ""SomeEntities"" AS s
+WHERE s.""ValueConvertedArray"" && @__list_0");
     }
 
     public override async Task All_Contains(bool async)

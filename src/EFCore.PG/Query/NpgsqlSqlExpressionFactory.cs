@@ -535,24 +535,52 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         switch (operatorType)
         {
             case PostgresExpressionType.Overlaps:
+            case PostgresExpressionType.Contains:
+            case PostgresExpressionType.ContainedBy:
             case PostgresExpressionType.RangeIsStrictlyLeftOf:
             case PostgresExpressionType.RangeIsStrictlyRightOf:
             case PostgresExpressionType.RangeDoesNotExtendRightOf:
             case PostgresExpressionType.RangeDoesNotExtendLeftOf:
             case PostgresExpressionType.RangeIsAdjacentTo:
             {
-                // These operators are defined also on multirange and range (different types), and so need fancy type mapping inference.
-                if (left.Type != right.Type)
-                {
-                    var (newLeft, newRight) = InferContainmentMappings(left, right);
-
-                    return new PostgresBinaryExpression(operatorType, newLeft, newRight, typeof(bool), _boolTypeMapping);
-                }
-
-                inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
                 resultType = typeof(bool);
                 resultTypeMapping = _boolTypeMapping;
-                break;
+
+                // Simple case: we have the same CLR type on both sides, infer as usual (e.g. overlap/intersect between two CLR arrays)
+                if (left.Type == right.Type)
+                {
+                    inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
+                    break;
+                }
+
+                // Mixing array and list, so we can't simply infer.
+                if (left.Type.IsArrayOrGenericList() && right.Type.IsArrayOrGenericList())
+                {
+                    inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
+
+                    if (inferredTypeMapping is not NpgsqlArrayTypeMapping arrayTypeMapping)
+                    {
+                        throw new Exception("Trying to infer with non-array mapping across CLR array types, please file a bug.");
+                    }
+
+                    inferredTypeMapping = arrayTypeMapping.FlipArrayListClrType(left.TypeMapping is null ? left.Type : right.Type);
+                    break;
+                }
+
+                // Multirange and range, cidr and ip - cases of different types where one contains the other.
+                // We need fancier type mapping inference.
+                SqlExpression newLeft, newRight;
+
+                if (operatorType == PostgresExpressionType.ContainedBy)
+                {
+                    (newRight, newLeft) = InferContainmentMappings(right, left);
+                }
+                else
+                {
+                    (newLeft, newRight) = InferContainmentMappings(left, right);
+                }
+
+                return new PostgresBinaryExpression(operatorType, newLeft, newRight, resultType, resultTypeMapping);
             }
 
             case PostgresExpressionType.NetworkContainedByOrEqual:
@@ -571,36 +599,6 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                     ApplyDefaultTypeMapping(right),
                     typeof(bool),
                     _boolTypeMapping);
-            }
-
-            case PostgresExpressionType.Contains:
-            case PostgresExpressionType.ContainedBy:
-            {
-                // Containment when both sides have the same type: array within an array, range within range, multirange within multirange.
-                // (CLR array and list are treated as the same type)
-                if (left.Type == right.Type
-                    || left.Type.IsArray && right.Type.IsGenericList() && left.Type.GetElementType() == right.Type.GetGenericArguments()[0]
-                    || left.Type.IsGenericList() && right.Type.IsArray && left.Type.GetGenericArguments()[0] == right.Type.GetElementType())
-                {
-                    inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
-                    resultType = typeof(bool);
-                    resultTypeMapping = _boolTypeMapping;
-                    break;
-                }
-
-                // Containment when the two sides have different types: value within (multirange), range within multirange.
-                // Note that containment of item within an array is expressed via ArrayAnyAllExpression
-                SqlExpression newLeft, newRight;
-                if (operatorType == PostgresExpressionType.Contains)
-                {
-                    (newLeft, newRight) = InferContainmentMappings(left, right);
-                }
-                else
-                {
-                    (newRight, newLeft) = InferContainmentMappings(right, left);
-                }
-
-                return new PostgresBinaryExpression(operatorType, newLeft, newRight, typeof(bool), _boolTypeMapping);
             }
 
             case PostgresExpressionType.RangeUnion:

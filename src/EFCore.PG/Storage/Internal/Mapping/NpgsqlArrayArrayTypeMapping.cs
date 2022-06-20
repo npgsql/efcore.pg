@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
@@ -98,6 +99,33 @@ public class NpgsqlArrayArrayTypeMapping : NpgsqlArrayTypeMapping
 
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
         => new NpgsqlArrayArrayTypeMapping(parameters, elementMapping);
+
+    public override NpgsqlArrayTypeMapping FlipArrayListClrType(Type newType)
+    {
+        var elementType = ClrType.GetElementType()!;
+        if (newType.IsArray)
+        {
+            var newTypeElement = newType.GetElementType()!;
+
+            return newTypeElement == elementType
+                ? this
+                : throw new ArgumentException(
+                    $"Mismatch in array element CLR types when converting a type mapping: {newTypeElement.Name} and {elementType.Name}");
+        }
+
+        if (newType.IsGenericList())
+        {
+            var listElementType = newType.GetGenericArguments()[0];
+
+            return listElementType == elementType
+                ? new NpgsqlArrayListTypeMapping(newType, ElementMapping)
+                : throw new ArgumentException(
+                    "Mismatch in array element CLR types when converting a type mapping: " +
+                    $"{listElementType} and {elementType.Name}");
+        }
+
+        throw new ArgumentException($"Non-array/list type: {newType.Name}");
+    }
 
     #region Value comparer
 
