@@ -311,7 +311,7 @@ END = 5");
 
 SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE n.""LocalDateTime"" AT TIME ZONE 'Europe/Berlin' = @__ToInstant_0");
+WHERE (n.""LocalDateTime"" AT TIME ZONE 'Europe/Berlin') = @__ToInstant_0");
     }
 
     [ConditionalTheory]
@@ -330,7 +330,7 @@ WHERE n.""LocalDateTime"" AT TIME ZONE 'Europe/Berlin' = @__ToInstant_0");
 
 SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE n.""LocalDateTime"" AT TIME ZONE n.""TimeZoneId"" = @__ToInstant_0");
+WHERE (n.""LocalDateTime"" AT TIME ZONE n.""TimeZoneId"") = @__ToInstant_0");
     }
 
     #endregion LocalDateTime
@@ -1176,7 +1176,7 @@ WHERE n.""Instant"" = @__p_0");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE n.""Instant"" AT TIME ZONE 'Europe/Berlin' = TIMESTAMP '2018-04-20T12:31:33.666'");
+WHERE (n.""Instant"" AT TIME ZONE 'Europe/Berlin') = TIMESTAMP '2018-04-20T12:31:33.666'");
     }
 
     [ConditionalFact]
@@ -1342,7 +1342,7 @@ WHERE floor(date_part('second', n.""ZonedDateTime"" AT TIME ZONE 'UTC'))::int = 
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE CAST(n.""ZonedDateTime"" AT TIME ZONE 'UTC' AS date) = DATE '2018-04-20'");
+WHERE CAST((n.""ZonedDateTime"" AT TIME ZONE 'UTC') AS date) = DATE '2018-04-20'");
     }
 
     [ConditionalTheory]
@@ -1375,7 +1375,7 @@ END = 5");
         AssertSql(
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
-WHERE n.""Instant"" AT TIME ZONE 'UTC' = TIMESTAMP '2018-04-20T10:31:33.666'");
+WHERE (n.""Instant"" AT TIME ZONE 'UTC') = TIMESTAMP '2018-04-20T10:31:33.666'");
     }
 
     [ConditionalTheory]

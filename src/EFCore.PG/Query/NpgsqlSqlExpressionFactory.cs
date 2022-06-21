@@ -61,44 +61,38 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             typeMapping);
     }
 
-    public virtual PostgresBinaryExpression AtUtc(
+    public virtual AtTimeZoneExpression AtUtc(
         SqlExpression timestamp,
         RelationalTypeMapping? typeMapping = null)
         => AtTimeZone(timestamp, Constant("UTC"), timestamp.Type);
 
-    public virtual PostgresBinaryExpression AtTimeZone(
+    public virtual AtTimeZoneExpression AtTimeZone(
         SqlExpression timestamp,
         SqlExpression timeZone,
         Type type,
         RelationalTypeMapping? typeMapping = null)
     {
-        // PostgreSQL AT TIME ZONE flips the given type from timestamptz to timestamp and vice versa
-        // See https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT
-        typeMapping ??= FlipTimestampTypeMapping(
-            timestamp.TypeMapping ?? _typeMappingSource.FindMapping(timestamp.Type, Dependencies.Model)!);
+        if (typeMapping is null)
+        {
+            // PostgreSQL AT TIME ZONE flips the given type from timestamptz to timestamp and vice versa
+            // See https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT
+            typeMapping = timestamp.TypeMapping ?? _typeMappingSource.FindMapping(timestamp.Type, Dependencies.Model)!;
+            var storeType = typeMapping.StoreType;
 
-        return new PostgresBinaryExpression(
-            PostgresExpressionType.AtTimeZone,
+            typeMapping = storeType.StartsWith("timestamp with time zone", StringComparison.Ordinal)
+                || storeType.StartsWith("timestamptz", StringComparison.Ordinal)
+                    ? _typeMappingSource.FindMapping("timestamp without time zone")!
+                    : storeType.StartsWith("timestamp without time zone", StringComparison.Ordinal)
+                    || storeType.StartsWith("timestamp", StringComparison.Ordinal)
+                        ? _typeMappingSource.FindMapping("timestamp with time zone")!
+                        : throw new ArgumentException($"timestamp argument to AtTimeZone had unknown store type {storeType}", nameof(timestamp));
+        }
+
+        return new AtTimeZoneExpression(
             ApplyDefaultTypeMapping(timestamp),
             ApplyDefaultTypeMapping(timeZone),
             type,
             typeMapping);
-
-        RelationalTypeMapping FlipTimestampTypeMapping(RelationalTypeMapping mapping)
-        {
-            var storeType = mapping.StoreType;
-            if (storeType.StartsWith("timestamp with time zone", StringComparison.Ordinal) || storeType.StartsWith("timestamptz", StringComparison.Ordinal))
-            {
-                return _typeMappingSource.FindMapping("timestamp without time zone")!;
-            }
-
-            if (storeType.StartsWith("timestamp without time zone", StringComparison.Ordinal) || storeType.StartsWith("timestamp", StringComparison.Ordinal))
-            {
-                return _typeMappingSource.FindMapping("timestamp with time zone")!;
-            }
-
-            throw new ArgumentException($"timestamp argument to AtTimeZone had unknown store type {storeType}", nameof(timestamp));
-        }
     }
 
     public virtual PostgresILikeExpression ILike(

@@ -9,8 +9,6 @@ public enum PostgresExpressionType
     ContainedBy,                  // << (inet/cidr), <@
     Overlaps,                     // &&
 
-    AtTimeZone,                   // AT TIME ZONE
-
     NetworkContainedByOrEqual,    // <<=
     NetworkContainsOrEqual,       // >>=
     NetworkContainsOrContainedBy, // &&

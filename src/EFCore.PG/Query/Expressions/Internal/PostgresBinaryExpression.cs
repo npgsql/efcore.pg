@@ -99,8 +99,6 @@ public class PostgresBinaryExpression : SqlExpression
                 PostgresExpressionType.ContainedBy => "<@",
                 PostgresExpressionType.Overlaps    => "&&",
 
-                PostgresExpressionType.AtTimeZone => "AT TIME ZONE",
-
                 PostgresExpressionType.NetworkContainedByOrEqual    => "<<=",
                 PostgresExpressionType.NetworkContainsOrEqual       => ">>=",
                 PostgresExpressionType.NetworkContainsOrContainedBy => "&&",

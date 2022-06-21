@@ -64,7 +64,7 @@ WHERE now() <> @__myDatetime_0");
 
 SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeOffset"", e.""TimestamptzDateTime""
 FROM ""Entities"" AS e
-WHERE now() AT TIME ZONE 'UTC' <> @__myDatetime_0");
+WHERE (now() AT TIME ZONE 'UTC') <> @__myDatetime_0");
         }
 
         #region Support
