@@ -270,8 +270,6 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 PostgresExpressionType.ContainedBy => "<@",
                 PostgresExpressionType.Overlaps    => "&&",
 
-                PostgresExpressionType.AtTimeZone => "AT TIME ZONE",
-
                 PostgresExpressionType.NetworkContainedByOrEqual    => "<<=",
                 PostgresExpressionType.NetworkContainsOrEqual       => ">>=",
                 PostgresExpressionType.NetworkContainsOrContainedBy => "&&",
