@@ -17,11 +17,7 @@ public abstract class FindNpgsqlTest : FindTestBase<FindNpgsqlTest.FindNpgsqlFix
         {
         }
 
-        protected override TEntity Find<TEntity>(DbContext context, params object[] keyValues)
-            => context.Set<TEntity>().Find(keyValues);
-
-        protected override ValueTask<TEntity> FindAsync<TEntity>(DbContext context, params object[] keyValues)
-            => context.Set<TEntity>().FindAsync(keyValues);
+        protected override TestFinder Finder { get; } = new FindViaSetFinder();
     }
 
     public class FindNpgsqlTestContext : FindNpgsqlTest
@@ -31,11 +27,7 @@ public abstract class FindNpgsqlTest : FindTestBase<FindNpgsqlTest.FindNpgsqlFix
         {
         }
 
-        protected override TEntity Find<TEntity>(DbContext context, params object[] keyValues)
-            => context.Find<TEntity>(keyValues);
-
-        protected override ValueTask<TEntity> FindAsync<TEntity>(DbContext context, params object[] keyValues)
-            => context.FindAsync<TEntity>(keyValues);
+        protected override TestFinder Finder { get; } = new FindViaContextFinder();
     }
 
     public class FindNpgsqlTestNonGeneric : FindNpgsqlTest
@@ -45,11 +37,7 @@ public abstract class FindNpgsqlTest : FindTestBase<FindNpgsqlTest.FindNpgsqlFix
         {
         }
 
-        protected override TEntity Find<TEntity>(DbContext context, params object[] keyValues)
-            => (TEntity)context.Find(typeof(TEntity), keyValues);
-
-        protected override async ValueTask<TEntity> FindAsync<TEntity>(DbContext context, params object[] keyValues)
-            => (TEntity)await context.FindAsync(typeof(TEntity), keyValues);
+        protected override TestFinder Finder { get; } = new FindViaNonGenericContextFinder();
     }
 
     public class FindNpgsqlFixture : FindFixtureBase

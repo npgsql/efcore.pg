@@ -61,10 +61,7 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
 #pragma warning disable 618
                     if (npgsqlReader.Statements[commandIndex].Rows == 0)
                     {
-                        throw new DbUpdateConcurrencyException(
-                            RelationalStrings.UpdateConcurrencyException(1, 0),
-                            ModificationCommands[commandIndex].Entries
-                        );
+                        ThrowAggregateUpdateConcurrencyException(reader, commandIndex, 1, 0);
                     }
 #pragma warning restore 618
                 }
@@ -77,13 +74,11 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
 
                 // Propagate to results from the reader to the ModificationCommand
 
-                var modificationCommand = ModificationCommands[commandIndex++];
+                var modificationCommand = ModificationCommands[commandIndex];
 
                 if (!reader.Read())
                 {
-                    throw new DbUpdateConcurrencyException(
-                        RelationalStrings.UpdateConcurrencyException(1, 0),
-                        modificationCommand.Entries);
+                    ThrowAggregateUpdateConcurrencyException(reader, commandIndex, 1, 0);
                 }
 
                 Check.DebugAssert(modificationCommand.RequiresResultPropagation, "RequiresResultPropagation is false");
@@ -91,13 +86,11 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
                 modificationCommand.PropagateResults(reader);
 
                 npgsqlReader.NextResult();
+
+                commandIndex++;
             }
         }
-        catch (DbUpdateException)
-        {
-            throw;
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not DbUpdateException and not OperationCanceledException)
         {
             throw new DbUpdateException(
                 RelationalStrings.UpdateStoreException,
@@ -138,10 +131,8 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
 #pragma warning disable 618
                     if (npgsqlReader.Statements[commandIndex].Rows == 0)
                     {
-                        throw new DbUpdateConcurrencyException(
-                            RelationalStrings.UpdateConcurrencyException(1, 0),
-                            ModificationCommands[commandIndex].Entries
-                        );
+                        await ThrowAggregateUpdateConcurrencyExceptionAsync(reader, commandIndex, 1, 0, cancellationToken)
+                            .ConfigureAwait(false);
                     }
 #pragma warning restore 618
                 }
@@ -154,14 +145,12 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
 
                 // Extract result from the command and propagate it
 
-                var modificationCommand = ModificationCommands[commandIndex++];
+                var modificationCommand = ModificationCommands[commandIndex];
 
                 if (!(await reader.ReadAsync(cancellationToken).ConfigureAwait(false)))
                 {
-                    throw new DbUpdateConcurrencyException(
-                        RelationalStrings.UpdateConcurrencyException(1, 0),
-                        modificationCommand.Entries
-                    );
+                    await ThrowAggregateUpdateConcurrencyExceptionAsync(reader, commandIndex, 1, 0, cancellationToken)
+                        .ConfigureAwait(false);
                 }
 
                 Check.DebugAssert(modificationCommand.RequiresResultPropagation, "RequiresResultPropagation is false");
@@ -169,13 +158,11 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
                 modificationCommand.PropagateResults(reader);
 
                 await npgsqlReader.NextResultAsync(cancellationToken).ConfigureAwait(false);
+
+                commandIndex++;
             }
         }
-        catch (DbUpdateException)
-        {
-            throw;
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not DbUpdateException and not OperationCanceledException)
         {
             throw new DbUpdateException(
                 RelationalStrings.UpdateStoreException,
@@ -183,4 +170,96 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
                 ModificationCommands[commandIndex].Entries);
         }
     }
+
+    private IReadOnlyList<IUpdateEntry> AggregateEntries(int endIndex, int commandCount)
+    {
+        var entries = new List<IUpdateEntry>();
+        for (var i = endIndex - commandCount; i < endIndex; i++)
+        {
+            entries.AddRange(ModificationCommands[i].Entries);
+        }
+
+        return entries;
+    }
+
+    /// <summary>
+    ///     Throws an exception indicating the command affected an unexpected number of rows.
+    /// </summary>
+    /// <param name="reader">The data reader.</param>
+    /// <param name="commandIndex">The ordinal of the command.</param>
+    /// <param name="expectedRowsAffected">The expected number of rows affected.</param>
+    /// <param name="rowsAffected">The actual number of rows affected.</param>
+    protected virtual void ThrowAggregateUpdateConcurrencyException(
+        RelationalDataReader reader,
+        int commandIndex,
+        int expectedRowsAffected,
+        int rowsAffected)
+    {
+        var entries = AggregateEntries(commandIndex + 1, expectedRowsAffected);
+        var exception = new DbUpdateConcurrencyException(
+            RelationalStrings.UpdateConcurrencyException(expectedRowsAffected, rowsAffected),
+            entries);
+
+        if (!Dependencies.UpdateLogger.OptimisticConcurrencyException(
+                Dependencies.CurrentContext.Context,
+                entries,
+                exception,
+                (c, ex, e, d) => CreateConcurrencyExceptionEventData(c, reader, ex, e, d)).IsSuppressed)
+        {
+            throw exception;
+        }
+    }
+
+    /// <summary>
+    ///     Throws an exception indicating the command affected an unexpected number of rows.
+    /// </summary>
+    /// <param name="reader">The data reader.</param>
+    /// <param name="commandIndex">The ordinal of the command.</param>
+    /// <param name="expectedRowsAffected">The expected number of rows affected.</param>
+    /// <param name="rowsAffected">The actual number of rows affected.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+    /// <returns> A task that represents the asynchronous operation.</returns>
+    /// <exception cref="OperationCanceledException">If the <see cref="CancellationToken" /> is canceled.</exception>
+    protected virtual async Task ThrowAggregateUpdateConcurrencyExceptionAsync(
+        RelationalDataReader reader,
+        int commandIndex,
+        int expectedRowsAffected,
+        int rowsAffected,
+        CancellationToken cancellationToken)
+    {
+        var entries = AggregateEntries(commandIndex + 1, expectedRowsAffected);
+        var exception = new DbUpdateConcurrencyException(
+            RelationalStrings.UpdateConcurrencyException(expectedRowsAffected, rowsAffected),
+            entries);
+
+        if (!(await Dependencies.UpdateLogger.OptimisticConcurrencyExceptionAsync(
+                    Dependencies.CurrentContext.Context,
+                    entries,
+                    exception,
+                    (c, ex, e, d) => CreateConcurrencyExceptionEventData(c, reader, ex, e, d),
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false)).IsSuppressed)
+        {
+            throw exception;
+        }
+    }
+
+    private static RelationalConcurrencyExceptionEventData CreateConcurrencyExceptionEventData(
+        DbContext context,
+        RelationalDataReader reader,
+        DbUpdateConcurrencyException exception,
+        IReadOnlyList<IUpdateEntry> entries,
+        EventDefinition<Exception> definition)
+        => new(
+            definition,
+            (definition1, payload)
+                => ((EventDefinition<Exception>)definition1).GenerateMessage(((ConcurrencyExceptionEventData)payload).Exception),
+            context,
+            reader.RelationalConnection.DbConnection,
+            reader.DbCommand,
+            reader.DbDataReader,
+            reader.CommandId,
+            reader.RelationalConnection.ConnectionId,
+            entries,
+            exception);
 }

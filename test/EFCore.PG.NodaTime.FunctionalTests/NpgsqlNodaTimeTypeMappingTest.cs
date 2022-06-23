@@ -271,8 +271,9 @@ public class NpgsqlNodaTimeTypeMappingTest
 
     [Fact]
     public void GenerateCodeLiteral_returns_Interval_list_literal()
-        => Assert.Throws<NotSupportedException>(
-            () => CodeLiteral(new List<Interval>
+        => Assert.Equal(
+            "new List<Interval> { new NodaTime.Interval(NodaTime.Instant.FromUnixTimeTicks(8923875980000000L), NodaTime.Instant.FromUnixTimeTicks(8923947980000000L)), new NodaTime.Interval(NodaTime.Instant.FromUnixTimeTicks(8924739980000000L), NodaTime.Instant.FromUnixTimeTicks(8924811980000000L)) }",
+            CodeLiteral(new List<Interval>
             {
                 new(
                     new LocalDateTime(1998, 4, 12, 13, 26, 38).InUtc().ToInstant(),
@@ -440,8 +441,9 @@ public class NpgsqlNodaTimeTypeMappingTest
 
     [Fact]
     public void GenerateCodeLiteral_returns_DateInterval_list_literal()
-        => Assert.Throws<NotSupportedException>(
-            () => CodeLiteral(new List<DateInterval>
+        => Assert.Equal(
+            "new List<DateInterval> { new NodaTime.DateInterval(new NodaTime.LocalDate(2002, 3, 4), new NodaTime.LocalDate(2002, 3, 5)), new NodaTime.DateInterval(new NodaTime.LocalDate(2002, 3, 8), new NodaTime.LocalDate(2002, 3, 10)) }",
+            CodeLiteral(new List<DateInterval>
             {
                 new(new(2002, 3, 4), new(2002, 3, 5)),
                 new(new(2002, 3, 8), new(2002, 3, 10))

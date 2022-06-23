@@ -20,8 +20,6 @@ public class NpgsqlModificationCommandBatchTest
             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
             new NpgsqlSingletonOptions());
 
-        var logger = new FakeRelationalCommandDiagnosticsLogger();
-
         var batch = new NpgsqlModificationCommandBatch(
             new ModificationCommandBatchFactoryDependencies(
                 new RelationalCommandBuilderFactory(
@@ -36,7 +34,8 @@ public class NpgsqlModificationCommandBatchTest
                             new RelationalSqlGenerationHelperDependencies()),
                         typeMapper)),
                 new CurrentDbContext(new FakeDbContext()),
-                logger),
+                new FakeRelationalCommandDiagnosticsLogger(),
+                new FakeDiagnosticsLogger<DbLoggerCategory.Update>()),
             maxBatchSize: 1);
 
         Assert.True(
