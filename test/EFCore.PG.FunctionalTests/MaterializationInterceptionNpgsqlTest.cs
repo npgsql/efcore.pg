@@ -6,18 +6,18 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class BindingInterceptionNpgsqlTest : BindingInterceptionTestBase,
-    IClassFixture<BindingInterceptionNpgsqlTest.BindingInterceptionNpgsqlFixture>
+public class MaterializationInterceptionNpgsqlTest : MaterializationInterceptionTestBase,
+    IClassFixture<MaterializationInterceptionNpgsqlTest.MaterializationInterceptionNpgsqlFixture>
 {
-    public BindingInterceptionNpgsqlTest(BindingInterceptionNpgsqlFixture fixture)
+    public MaterializationInterceptionNpgsqlTest(MaterializationInterceptionNpgsqlFixture fixture)
         : base(fixture)
     {
     }
 
-    public class BindingInterceptionNpgsqlFixture : SingletonInterceptorsFixtureBase
+    public class MaterializationInterceptionNpgsqlFixture : SingletonInterceptorsFixtureBase
     {
         protected override string StoreName
-            => "BindingInterception";
+            => "MaterializationInterception";
 
         protected override ITestStoreFactory TestStoreFactory
             => NpgsqlTestStoreFactory.Instance;
