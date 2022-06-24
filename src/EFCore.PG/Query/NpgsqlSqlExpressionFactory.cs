@@ -283,9 +283,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     public virtual PostgresFunctionExpression AggregateFunction(
         string name,
         IEnumerable<SqlExpression> arguments,
+        EnumerableExpression aggregateEnumerableExpression,
         bool nullable,
         IEnumerable<bool> argumentsPropagateNullability,
-        EnumerableExpression aggregateEnumerableExpression,
         Type returnType,
         RelationalTypeMapping? typeMapping = null)
     {
@@ -301,13 +301,11 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             typeMappedArguments,
             argumentNames: null,
             argumentSeparators: null,
-            nullable,
-            argumentsPropagateNullability,
             aggregateEnumerableExpression.IsDistinct,
             aggregateEnumerableExpression.Predicate,
             aggregateEnumerableExpression.Orderings,
-            returnType,
-            typeMapping);
+            nullable: nullable,
+            argumentsPropagateNullability: argumentsPropagateNullability, type: returnType, typeMapping: typeMapping);
     }
 
     #endregion Expression factory methods

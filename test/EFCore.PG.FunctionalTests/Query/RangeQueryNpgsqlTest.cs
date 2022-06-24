@@ -224,6 +224,31 @@ LIMIT 2");
     }
 
     [ConditionalFact]
+    [MinimumPostgresVersion(14, 0)] // Multiranges were introduced in PostgreSQL 14
+    public void Union_aggregate()
+    {
+        using var context = CreateContext();
+
+        var union = context.RangeTestEntities
+            .Where(x => x.Id == 1 || x.Id == 2)
+            .GroupBy(x => true)
+            .Select(g => EF.Functions.RangeAgg(g.Select(x => x.IntRange)))
+            .Single();
+
+        Assert.Equal(new NpgsqlRange<int>[] { new(1, true, 16, false) }, union);
+
+        AssertSql(
+            @"SELECT range_agg(t.""IntRange"")
+FROM (
+    SELECT r.""IntRange"", TRUE AS ""Key""
+    FROM ""RangeTestEntities"" AS r
+    WHERE r.""Id"" IN (1, 2)
+) AS t
+GROUP BY t.""Key""
+LIMIT 2");
+    }
+
+    [ConditionalFact]
     public void Intersect()
     {
         using var context = CreateContext();
@@ -237,6 +262,31 @@ LIMIT 2");
 SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
 FROM ""RangeTestEntities"" AS r
 WHERE r.""IntRange"" * @__range_0 = '[1,3]'::int4range
+LIMIT 2");
+    }
+
+    [ConditionalFact]
+    [MinimumPostgresVersion(14, 0)] // Multiranges were introduced in PostgreSQL 14
+    public void Intersect_aggregate()
+    {
+        using var context = CreateContext();
+
+        var intersection = context.RangeTestEntities
+            .Where(x => x.Id == 1 || x.Id == 2)
+            .GroupBy(x => true)
+            .Select(g => EF.Functions.RangeIntersectAgg(g.Select(x => x.IntRange)))
+            .Single();
+
+        Assert.Equal(new NpgsqlRange<int>(5, true, 11, false), intersection);
+
+        AssertSql(
+            @"SELECT range_intersect_agg(t.""IntRange"")
+FROM (
+    SELECT r.""IntRange"", TRUE AS ""Key""
+    FROM ""RangeTestEntities"" AS r
+    WHERE r.""Id"" IN (1, 2)
+) AS t
+GROUP BY t.""Key""
 LIMIT 2");
     }
 

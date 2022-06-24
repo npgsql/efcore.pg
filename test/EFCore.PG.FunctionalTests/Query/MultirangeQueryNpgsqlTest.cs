@@ -439,6 +439,34 @@ LIMIT 2");
     }
 
     [ConditionalFact]
+    public void Intersect_aggregate()
+    {
+        using var context = CreateContext();
+
+        var intersection = context.TestEntities
+            .Where(x => x.Id == 1 || x.Id == 2)
+            .GroupBy(x => true)
+            .Select(g => EF.Functions.RangeIntersectAgg(g.Select(x => x.IntMultirange)))
+            .Single();
+
+        Assert.Equal(new NpgsqlRange<int>[]
+        {
+            new(4, true, 6, false),
+            new(7, true, 9, false)
+        }, intersection);
+
+        AssertSql(
+            @"SELECT range_intersect_agg(t0.""IntMultirange"")
+FROM (
+    SELECT t.""IntMultirange"", TRUE AS ""Key""
+    FROM ""TestEntities"" AS t
+    WHERE t.""Id"" IN (1, 2)
+) AS t0
+GROUP BY t0.""Key""
+LIMIT 2");
+    }
+
+    [ConditionalFact]
     public void Except_multirange()
     {
         using var context = CreateContext();
