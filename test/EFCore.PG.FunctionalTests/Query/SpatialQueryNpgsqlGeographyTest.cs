@@ -259,8 +259,10 @@ FROM ""PointEntity"" AS p");
     #region Not supported on geography
 
     public override Task Boundary(bool async)                        => Task.CompletedTask;
+    public override Task Combine_aggregate(bool async)               => Task.CompletedTask;
     public override Task Contains(bool async)                        => Task.CompletedTask;
     public override Task ConvexHull(bool async)                      => Task.CompletedTask;
+    public override Task ConvexHull_aggregate(bool async)            => Task.CompletedTask;
     public override Task Crosses(bool async)                         => Task.CompletedTask;
     public override Task Difference(bool async)                      => Task.CompletedTask;
     public override Task Dimension(bool async)                       => Task.CompletedTask;
@@ -300,6 +302,7 @@ FROM ""PointEntity"" AS p");
     public override Task SymmetricDifference(bool async)             => Task.CompletedTask;
     public override Task Touches(bool async)                         => Task.CompletedTask;
     public override Task Union(bool async)                           => Task.CompletedTask;
+    public override Task Union_aggregate(bool async)                 => Task.CompletedTask;
     public override Task Union_void(bool async)                      => Task.CompletedTask;
     public override Task Within(bool async)                          => Task.CompletedTask;
     public override Task X(bool async)                               => Task.CompletedTask;

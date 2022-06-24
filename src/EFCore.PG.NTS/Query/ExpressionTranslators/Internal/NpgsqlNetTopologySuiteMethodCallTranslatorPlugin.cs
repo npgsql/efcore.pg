@@ -10,10 +10,11 @@ public class NpgsqlNetTopologySuiteMethodCallTranslatorPlugin : IMethodCallTrans
         IRelationalTypeMappingSource typeMappingSource,
         ISqlExpressionFactory sqlExpressionFactory)
     {
-        if (!(sqlExpressionFactory is NpgsqlSqlExpressionFactory npgsqlSqlExpressionFactory))
+        if (sqlExpressionFactory is not NpgsqlSqlExpressionFactory npgsqlSqlExpressionFactory)
         {
             throw new ArgumentException($"Must be an {nameof(NpgsqlSqlExpressionFactory)}", nameof(sqlExpressionFactory));
         }
+
         Translators = new IMethodCallTranslator[] { new NpgsqlGeometryMethodTranslator(npgsqlSqlExpressionFactory, typeMappingSource), };
     }
 

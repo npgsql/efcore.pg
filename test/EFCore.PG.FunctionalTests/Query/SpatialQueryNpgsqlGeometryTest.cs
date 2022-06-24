@@ -80,6 +80,17 @@ FROM ""PolygonEntity"" AS p");
 FROM ""PolygonEntity"" AS p");
     }
 
+    public override async Task Combine_aggregate(bool async)
+    {
+        await base.Combine_aggregate(async);
+
+        AssertSql(
+            @"SELECT p.""Group"" AS ""Id"", ST_Collect(p.""Point"") AS ""Combined""
+FROM ""PointEntity"" AS p
+WHERE (p.""Point"" IS NOT NULL)
+GROUP BY p.""Group""");
+    }
+
     public override async Task Contains(bool async)
     {
         await base.Contains(async);
@@ -98,6 +109,17 @@ FROM ""PolygonEntity"" AS p");
         AssertSql(
             @"SELECT p.""Id"", ST_ConvexHull(p.""Polygon"") AS ""ConvexHull""
 FROM ""PolygonEntity"" AS p");
+    }
+
+    public override async Task ConvexHull_aggregate(bool async)
+    {
+        await base.ConvexHull_aggregate(async);
+
+        AssertSql(
+            @"SELECT p.""Group"" AS ""Id"", ST_ConvexHull(ST_Collect(p.""Point"")) AS ""ConvexHull""
+FROM ""PointEntity"" AS p
+WHERE (p.""Point"" IS NOT NULL)
+GROUP BY p.""Group""");
     }
 
     public override async Task IGeometryCollection_Count(bool async)
@@ -524,6 +546,17 @@ FROM ""PolygonEntity"" AS p");
 
 SELECT p.""Id"", ST_Union(p.""Polygon"", @__polygon_0) AS ""Union""
 FROM ""PolygonEntity"" AS p");
+    }
+
+    public override async Task Union_aggregate(bool async)
+    {
+        await base.Union_aggregate(async);
+
+        AssertSql(
+            @"SELECT p.""Group"" AS ""Id"", ST_Union(p.""Point"") AS ""Union""
+FROM ""PointEntity"" AS p
+WHERE (p.""Point"" IS NOT NULL)
+GROUP BY p.""Group""");
     }
 
     public override async Task Union_void(bool async)
