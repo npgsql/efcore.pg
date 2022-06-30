@@ -100,11 +100,11 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.UseHiLo();
 ```
 
-## Guid/UUID Generation
+## GUID/UUID Generation
 
-By default, for Guid key properties (or if you specify `ValueGeneratedOnAdd` on any Guid property), a random `Guid` value will be generated client-side and sent to the database.
+By default, for GUID key properties, a random GUID is generated client-side by the EF provider and sent to the database.
 
-If you prefer to generate values in the database instead, you can do so by specifying `HasDefaultValueSql` on your property, and call the function to generate the `Guid` in the SQL expression. Which function to use depends on your PostgreSQL version:
+If you prefer to generate values in the database instead, you can do so by specifying `HasDefaultValueSql` on your property, and call the function to generate the value in the SQL expression. Which function to use depends on your PostgreSQL version:
 
 ### [PG 13+](#tab/13)
 
@@ -120,7 +120,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 ### [Older](#tab/older)
 
-Versions of PostgreSQL prior to 13 don't include any Guid/UUID generation functions, but extensions such as `uuid-ossp` or `pgcrypto` exist to fill thie gap. This can be done by placing the following code in your model's `OnModelCreating`:
+Versions of PostgreSQL prior to 13 don't include any GUID/UUID generation functions, but extensions such as `uuid-ossp` or `pgcrypto` exist to fill thie gap. This can be done by placing the following code in your model's `OnModelCreating`:
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -137,6 +137,9 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 ***
 
 See [the PostgreSQL docs on UUID for more details](https://www.postgresql.org/docs/current/static/datatype-uuid.html).
+
+> [!NOTE]
+> Generating `Guid` values in the database causes an additional network roundtrip when a principal and a dependent are inserted in the same `SaveChanges`, as the principal's key needs to be fetched before inserting the dependent's.
 
 ## Timestamp generation
 
