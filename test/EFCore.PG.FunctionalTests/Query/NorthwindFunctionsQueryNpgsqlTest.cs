@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
@@ -12,7 +13,7 @@ public class NorthwindFunctionsQueryNpgsqlTest : NorthwindFunctionsQueryRelation
         : base(fixture)
     {
         ClearLog();
-        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     public override async Task IsNullOrWhiteSpace_in_predicate(bool async)
@@ -274,6 +275,431 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST");
     }
 
     #endregion
+
+    #region Aggregate functions
+
+    public override async Task String_Join_over_non_nullable_column(bool async)
+    {
+        await base.String_Join_over_non_nullable_column(async);
+
+        AssertSql(
+            @"SELECT c.""City"", COALESCE(string_agg(c.""CustomerID"", '|'), '') AS ""Customers""
+FROM ""Customers"" AS c
+GROUP BY c.""City""");
+    }
+
+    public override async Task String_Join_over_nullable_column(bool async)
+    {
+        await base.String_Join_over_nullable_column(async);
+
+        AssertSql(
+            @"SELECT c.""City"", COALESCE(string_agg(COALESCE(c.""Region"", ''), '|'), '') AS ""Regions""
+FROM ""Customers"" AS c
+GROUP BY c.""City""");
+    }
+
+    public override async Task String_Join_with_predicate(bool async)
+    {
+        await base.String_Join_with_predicate(async);
+
+        AssertSql(
+            @"SELECT c.""City"", COALESCE(string_agg(c.""CustomerID"", '|') FILTER (WHERE length(c.""ContactName"")::int > 10), '') AS ""Customers""
+FROM ""Customers"" AS c
+GROUP BY c.""City""");
+    }
+
+    public override async Task String_Join_with_ordering(bool async)
+    {
+        await base.String_Join_with_ordering(async);
+
+        AssertSql(
+            @"SELECT c.""City"", COALESCE(string_agg(c.""CustomerID"", '|' ORDER BY c.""CustomerID"" DESC NULLS LAST), '') AS ""Customers""
+FROM ""Customers"" AS c
+GROUP BY c.""City""");
+    }
+
+    public override async Task String_Concat(bool async)
+    {
+        await base.String_Concat(async);
+
+        AssertSql(
+            @"SELECT c.""City"", COALESCE(string_agg(c.""CustomerID"", ''), '') AS ""Customers""
+FROM ""Customers"" AS c
+GROUP BY c.""City""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task GroupBy_ArrayAgg(bool async)
+    {
+        using var ctx = CreateContext();
+
+        var query = ctx.Set<Customer>()
+            .GroupBy(c => c.City)
+            .Select(g => new
+            {
+                City = g.Key,
+                FaxNumbers = EF.Functions.ArrayAgg(g.Select(c => c.Fax).OrderBy(id => id))
+            });
+
+        var results = async
+            ? await query.ToListAsync()
+            : query.ToList();
+
+        var london = results.Single(x => x.City == "London");
+        Assert.Collection(
+            london.FaxNumbers,
+            Assert.Null,
+            f => Assert.Equal("(171) 555-2530", f),
+            f => Assert.Equal("(171) 555-3373", f),
+            f => Assert.Equal("(171) 555-5646", f),
+            f => Assert.Equal("(171) 555-6750", f),
+            f => Assert.Equal("(171) 555-9199", f));
+
+        AssertSql(
+            @"SELECT c.""City"", array_agg(c.""Fax"" ORDER BY c.""Fax"" NULLS FIRST) AS ""FaxNumbers""
+FROM ""Customers"" AS c
+GROUP BY c.""City""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task GroupBy_JsonAgg(bool async)
+    {
+        using var ctx = CreateContext();
+
+        var query = ctx.Set<Customer>()
+            .GroupBy(c => c.City)
+            .Select(g => new
+            {
+                City = g.Key,
+                FaxNumbers = EF.Functions.JsonAgg(g.Select(c => c.Fax).OrderBy(id => id))
+            });
+
+        var results = async
+            ? await query.ToListAsync()
+            : query.ToList();
+
+        var london = results.Single(x => x.City == "London");
+        Assert.Collection(
+            london.FaxNumbers,
+            Assert.Null,
+            f => Assert.Equal("(171) 555-2530", f),
+            f => Assert.Equal("(171) 555-3373", f),
+            f => Assert.Equal("(171) 555-5646", f),
+            f => Assert.Equal("(171) 555-6750", f),
+            f => Assert.Equal("(171) 555-9199", f));
+
+        AssertSql(
+            @"SELECT c.""City"", json_agg(c.""Fax"" ORDER BY c.""Fax"" NULLS FIRST) AS ""FaxNumbers""
+FROM ""Customers"" AS c
+GROUP BY c.""City""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task GroupBy_JsonbAgg(bool async)
+    {
+        using var ctx = CreateContext();
+
+        var query = ctx.Set<Customer>()
+            .GroupBy(c => c.City)
+            .Select(g => new
+            {
+                City = g.Key,
+                FaxNumbers = EF.Functions.JsonbAgg(g.Select(c => c.Fax).OrderBy(id => id))
+            });
+
+        var results = async
+            ? await query.ToListAsync()
+            : query.ToList();
+
+        var london = results.Single(x => x.City == "London");
+        Assert.Collection(
+            london.FaxNumbers,
+            Assert.Null,
+            f => Assert.Equal("(171) 555-2530", f),
+            f => Assert.Equal("(171) 555-3373", f),
+            f => Assert.Equal("(171) 555-5646", f),
+            f => Assert.Equal("(171) 555-6750", f),
+            f => Assert.Equal("(171) 555-9199", f));
+
+        AssertSql(
+            @"SELECT c.""City"", jsonb_agg(c.""Fax"" ORDER BY c.""Fax"" NULLS FIRST) AS ""FaxNumbers""
+FROM ""Customers"" AS c
+GROUP BY c.""City""");
+    }
+
+    #endregion Aggregate functions
+
+    #region JsonObjectAgg
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task GroupBy_JsonObjectAgg(bool async)
+    {
+        using var ctx = CreateContext();
+
+        var query = ctx.Set<Customer>()
+            .GroupBy(c => c.City)
+            .Select(
+                g => new
+                {
+                    City = g.Key,
+                    Companies = EF.Functions.JsonObjectAgg(
+                        g
+                            .OrderBy(c => c.CompanyName)
+                            .Select(c => ValueTuple.Create(c.CompanyName, c.ContactName)))
+                });
+
+        var results = async
+            ? await query.ToListAsync()
+            : query.ToList();
+
+        var london = results.Single(r => r.City == "London");
+
+        Assert.Equal(
+            @"{ ""Around the Horn"" : ""Thomas Hardy"", ""B's Beverages"" : ""Victoria Ashworth"", ""Consolidated Holdings"" : ""Elizabeth Brown"", ""Eastern Connection"" : ""Ann Devon"", ""North/South"" : ""Simon Crowther"", ""Seven Seas Imports"" : ""Hari Kumar"" }",
+            london.Companies);
+
+        AssertSql(
+            @"SELECT c.""City"", json_object_agg(c.""CompanyName"", c.""ContactName"" ORDER BY c.""CompanyName"" NULLS FIRST) AS ""Companies""
+FROM ""Customers"" AS c
+GROUP BY c.""City""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task GroupBy_JsonObjectAgg_as_Dictionary(bool async)
+    {
+        using var ctx = CreateContext();
+
+        var query = ctx.Set<Customer>()
+            .GroupBy(c => c.City)
+            .Select(
+                g => new
+                {
+                    City = g.Key,
+                    Companies = EF.Functions.JsonObjectAgg<string, string, Dictionary<string, string>>(
+                        g.Select(c => ValueTuple.Create(c.CompanyName, c.ContactName)))
+                });
+
+        var results = async
+            ? await query.ToListAsync()
+            : query.ToList();
+
+        var london = results.Single(r => r.City == "London");
+
+        Assert.Equal(
+            new Dictionary<string, string>
+            {
+                ["Around the Horn"] = "Thomas Hardy",
+                ["B's Beverages"] = "Victoria Ashworth",
+                ["Consolidated Holdings"] = "Elizabeth Brown",
+                ["Eastern Connection"] = "Ann Devon",
+                ["North/South"] = "Simon Crowther",
+                ["Seven Seas Imports"] = "Hari Kumar"
+            },
+            london.Companies);
+
+        AssertSql(
+            @"SELECT c.""City"", json_object_agg(c.""CompanyName"", c.""ContactName"") AS ""Companies""
+FROM ""Customers"" AS c
+GROUP BY c.""City""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task GroupBy_JsonbObjectAgg(bool async)
+    {
+        using var ctx = CreateContext();
+
+        // Note that unlike with json, jsonb doesn't guarantee ordering; so we parse the JSON string client-side.
+        var query = ctx.Set<Customer>()
+            .GroupBy(c => c.City)
+            .Select(
+                g => new
+                {
+                    City = g.Key,
+                    Companies = EF.Functions.JsonbObjectAgg(g.Select(c => ValueTuple.Create(c.CompanyName, c.ContactName)))
+                });
+
+        var results = async
+            ? await query.ToListAsync()
+            : query.ToList();
+
+        var london = results.Single(r => r.City == "London");
+        var companiesDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(london.Companies);
+
+        Assert.Equal(
+            new Dictionary<string, string>
+            {
+                ["Around the Horn"] = "Thomas Hardy",
+                ["B's Beverages"] = "Victoria Ashworth",
+                ["Consolidated Holdings"] = "Elizabeth Brown",
+                ["Eastern Connection"] = "Ann Devon",
+                ["North/South"] = "Simon Crowther",
+                ["Seven Seas Imports"] = "Hari Kumar"
+            },
+            companiesDictionary);
+
+        AssertSql(
+            @"SELECT c.""City"", jsonb_object_agg(c.""CompanyName"", c.""ContactName"") AS ""Companies""
+FROM ""Customers"" AS c
+GROUP BY c.""City""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task GroupBy_JsonbObjectAgg_as_Dictionary(bool async)
+    {
+        using var ctx = CreateContext();
+
+        var query = ctx.Set<Customer>()
+            .GroupBy(c => c.City)
+            .Select(
+                g => new
+                {
+                    City = g.Key,
+                    Companies = EF.Functions.JsonbObjectAgg<string, string, Dictionary<string, string>>(
+                        g.Select(c => ValueTuple.Create(c.CompanyName, c.ContactName)))
+                });
+
+        var results = async
+            ? await query.ToListAsync()
+            : query.ToList();
+
+        var london = results.Single(r => r.City == "London");
+
+        Assert.Equal(
+            new Dictionary<string, string>
+            {
+                ["Around the Horn"] = "Thomas Hardy",
+                ["B's Beverages"] = "Victoria Ashworth",
+                ["Consolidated Holdings"] = "Elizabeth Brown",
+                ["Eastern Connection"] = "Ann Devon",
+                ["North/South"] = "Simon Crowther",
+                ["Seven Seas Imports"] = "Hari Kumar"
+            },
+            london.Companies);
+
+        AssertSql(
+            @"SELECT c.""City"", jsonb_object_agg(c.""CompanyName"", c.""ContactName"") AS ""Companies""
+FROM ""Customers"" AS c
+GROUP BY c.""City""");
+    }
+
+    #endregion JsonObjectAgg
+
+    #region Statistics
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task StandardDeviation(bool async)
+    {
+        await using var ctx = CreateContext();
+
+        var query = ctx.Set<OrderDetail>()
+            .GroupBy(od => od.ProductID)
+            .Select(g => new
+            {
+                ProductID = g.Key,
+                SampleStandardDeviation = EF.Functions.StandardDeviationSample(g.Select(od => od.UnitPrice)),
+                PopulationStandardDeviation = EF.Functions.StandardDeviationPopulation(g.Select(od => od.UnitPrice))
+            });
+
+        var results = async
+            ? await query.ToListAsync()
+            : query.ToList();
+
+        var product9 = results.Single(r => r.ProductID == 9);
+        Assert.Equal(8.675943752699023, product9.SampleStandardDeviation.Value, 5);
+        Assert.Equal(7.759999999999856, product9.PopulationStandardDeviation.Value, 5);
+
+        AssertSql(
+            @"SELECT o.""ProductID"", stddev_samp(o.""UnitPrice"") AS ""SampleStandardDeviation"", stddev_pop(o.""UnitPrice"") AS ""PopulationStandardDeviation""
+FROM ""Order Details"" AS o
+GROUP BY o.""ProductID""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Variance(bool async)
+    {
+        await using var ctx = CreateContext();
+
+        var query = ctx.Set<OrderDetail>()
+            .GroupBy(od => od.ProductID)
+            .Select(
+                g => new
+                {
+                    ProductID = g.Key,
+                    SampleStandardDeviation = EF.Functions.VarianceSample(g.Select(od => od.UnitPrice)),
+                    PopulationStandardDeviation = EF.Functions.VariancePopulation(g.Select(od => od.UnitPrice))
+                });
+
+        var results = async
+            ? await query.ToListAsync()
+            : query.ToList();
+
+        var product9 = results.Single(r => r.ProductID == 9);
+        Assert.Equal(75.2719999999972, product9.SampleStandardDeviation.Value, 5);
+        Assert.Equal(60.217599999997766, product9.PopulationStandardDeviation.Value, 5);
+
+        AssertSql(
+            @"SELECT o.""ProductID"", var_samp(o.""UnitPrice"") AS ""SampleStandardDeviation"", var_pop(o.""UnitPrice"") AS ""PopulationStandardDeviation""
+FROM ""Order Details"" AS o
+GROUP BY o.""ProductID""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Other_statistics_functions(bool async)
+    {
+        await using var ctx = CreateContext();
+
+        var query = ctx.Set<OrderDetail>()
+            .GroupBy(od => od.ProductID)
+            .Select(g => new
+            {
+                ProductID = g.Key,
+                Correlation = EF.Functions.Correlation(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                CovariancePopulation = EF.Functions.CovariancePopulation(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                CovarianceSample = EF.Functions.CovarianceSample(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                RegrAverageX = EF.Functions.RegrAverageX(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                RegrAverageY = EF.Functions.RegrAverageY(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                RegrCount = EF.Functions.RegrCount(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                RegrIntercept = EF.Functions.RegrIntercept(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                RegrR2 = EF.Functions.RegrR2(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                RegrSlope = EF.Functions.RegrSlope(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                RegrSXX = EF.Functions.RegrSXX(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                RegrSXY = EF.Functions.RegrSXY(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+            });
+
+        var results = async
+            ? await query.ToListAsync()
+            : query.ToList();
+
+        var product9 = results.Single(r => r.ProductID == 9);
+        Assert.Equal(0.9336470941441423, product9.Correlation.Value, 5);
+        Assert.Equal(1.4799999967217445, product9.CovariancePopulation.Value, 5);
+        Assert.Equal(1.8499999959021807, product9.CovarianceSample.Value, 5);
+        Assert.Equal(0.10000000149011612, product9.RegrAverageX.Value, 5);
+        Assert.Equal(19, product9.RegrAverageY.Value, 5);
+        Assert.Equal(5, product9.RegrCount.Value);
+        Assert.Equal(2.5555555647538144, product9.RegrIntercept.Value, 5);
+        Assert.Equal(0.871696896403801, product9.RegrR2.Value, 5);
+        Assert.Equal(164.44444190204874, product9.RegrSlope.Value, 5);
+        Assert.Equal(0.045000000596046474, product9.RegrSXX.Value, 5);
+        Assert.Equal(7.399999983608723, product9.RegrSXY.Value, 5);
+
+        AssertSql(
+            @"SELECT o.""ProductID"", corr(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""Correlation"", covar_pop(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""CovariancePopulation"", covar_samp(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""CovarianceSample"", regr_avgx(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrAverageX"", regr_avgy(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrAverageY"", regr_count(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrCount"", regr_intercept(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrIntercept"", regr_r2(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrR2"", regr_slope(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrSlope"", regr_sxx(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrSXX"", regr_sxy(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrSXY""
+FROM ""Order Details"" AS o
+GROUP BY o.""ProductID""");
+    }
+
+    #endregion Statistics
 
     #region Unsupported
 

@@ -64,9 +64,9 @@ public class NpgsqlNetTopologySuiteAggregateMethodTranslator : IAggregateMethodC
             return _sqlExpressionFactory.AggregateFunction(
                 method == GeometryCombineMethod ? "ST_Collect" : "ST_Union",
                 new[] { sqlExpression },
+                source,
                 nullable: true,
                 argumentsPropagateNullability: new[] { false },
-                source,
                 typeof(Geometry),
                 resultTypeMapping);
         }
@@ -80,9 +80,9 @@ public class NpgsqlNetTopologySuiteAggregateMethodTranslator : IAggregateMethodC
                 _sqlExpressionFactory.AggregateFunction(
                     "ST_Collect",
                     new[] { sqlExpression },
+                    source,
                     nullable: true,
                     argumentsPropagateNullability: new[] { false },
-                    source,
                     typeof(Geometry),
                     resultTypeMapping)
             },

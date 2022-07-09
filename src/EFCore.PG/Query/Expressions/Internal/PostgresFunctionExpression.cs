@@ -58,9 +58,8 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
 
         return new PostgresFunctionExpression(
             name, arguments, argumentNames, argumentSeparators: null,
-            nullable, argumentsPropagateNullability,
             aggregateDistinct: false, aggregatePredicate: null, aggregateOrderings: Array.Empty<OrderingExpression>(),
-            type, typeMapping);
+            nullable: nullable, argumentsPropagateNullability: argumentsPropagateNullability, type: type, typeMapping: typeMapping);
     }
 
     public static PostgresFunctionExpression CreateWithArgumentSeparators(
@@ -77,10 +76,9 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
         Check.NotNull(argumentSeparators, nameof(argumentSeparators));
 
         return new PostgresFunctionExpression(
-            name, arguments, argumentNames: null, argumentSeparators,
-            nullable, argumentsPropagateNullability,
+            name, arguments, argumentNames: null, argumentSeparators: argumentSeparators,
             aggregateDistinct: false, aggregatePredicate: null, aggregateOrderings: Array.Empty<OrderingExpression>(),
-            type, typeMapping);
+            nullable: nullable, argumentsPropagateNullability: argumentsPropagateNullability, type: type, typeMapping: typeMapping);
     }
 
     public PostgresFunctionExpression(
@@ -88,11 +86,11 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
         IEnumerable<SqlExpression> arguments,
         IEnumerable<string?>? argumentNames,
         IEnumerable<string?>? argumentSeparators,
-        bool nullable,
-        IEnumerable<bool> argumentsPropagateNullability,
         bool aggregateDistinct,
         SqlExpression? aggregatePredicate,
         IReadOnlyList<OrderingExpression> aggregateOrderings,
+        bool nullable,
+        IEnumerable<bool> argumentsPropagateNullability,
         Type type,
         RelationalTypeMapping? typeMapping)
         : base(name, arguments, nullable, argumentsPropagateNullability, type, typeMapping)
@@ -175,11 +173,10 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
         return changed
             ? new PostgresFunctionExpression(
                 Name, visitedArguments ?? Arguments, ArgumentNames, ArgumentSeparators,
-                IsNullable, ArgumentsPropagateNullability!,
                 IsAggregateDistinct,
                 visitedAggregatePredicate ?? AggregatePredicate,
                 visitedAggregateOrderings ?? AggregateOrderings,
-                Type, TypeMapping)
+                IsNullable, ArgumentsPropagateNullability!, Type, TypeMapping)
             : this;
     }
 
@@ -189,13 +186,11 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
             Arguments,
             ArgumentNames,
             ArgumentSeparators,
-            IsNullable,
-            ArgumentsPropagateNullability,
             IsAggregateDistinct,
             AggregatePredicate,
             AggregateOrderings,
-            Type,
-            typeMapping ?? TypeMapping);
+            IsNullable,
+            ArgumentsPropagateNullability, Type, typeMapping ?? TypeMapping);
 
     public override SqlFunctionExpression Update(SqlExpression? instance, IReadOnlyList<SqlExpression>? arguments)
     {
@@ -209,11 +204,10 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
         return !arguments.SequenceEqual(Arguments)
             ? new PostgresFunctionExpression(
                 Name, arguments, ArgumentNames, ArgumentSeparators,
-                IsNullable, ArgumentsPropagateNullability,
                 IsAggregateDistinct,
                 AggregatePredicate,
                 AggregateOrderings,
-                Type, TypeMapping)
+                IsNullable, ArgumentsPropagateNullability, Type, TypeMapping)
             : this;
     }
 
@@ -224,11 +218,10 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
         return predicate != AggregatePredicate || orderings != AggregateOrderings
             ? new PostgresFunctionExpression(
                 Name, Arguments, ArgumentNames, ArgumentSeparators,
-                IsNullable, ArgumentsPropagateNullability,
                 IsAggregateDistinct,
                 predicate,
                 orderings,
-                Type, TypeMapping)
+                IsNullable, ArgumentsPropagateNullability, Type, TypeMapping)
             : this;
     }
 

@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore.TestModels.Northwind;
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class NorthwindGroupByQueryNpgsqlTest : NorthwindGroupByQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
@@ -3142,6 +3144,23 @@ LEFT JOIN (
     WHERE 1 < t2.row AND t2.row <= 3
 ) AS t1 ON t0.""Key"" = t1.""Key""
 ORDER BY t0.""Key"" NULLS FIRST, t1.""OrderID"" NULLS FIRST");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task GroupBy_OrderBy_Average(bool async)
+    {
+        await AssertQueryScalar(
+            async,
+            ss => from o in ss.Set<Order>()
+                  group o by new { o.CustomerID }
+                  into g
+                  select g.OrderBy(e => e.OrderID).Select(e => (int?)e.OrderID).Average());
+
+        AssertSql(
+            @"SELECT avg(o.""OrderID""::double precision ORDER BY o.""OrderID"" NULLS FIRST)
+FROM ""Orders"" AS o
+GROUP BY o.""CustomerID""");
     }
 
     private void AssertSql(params string[] expected)
