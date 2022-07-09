@@ -22,8 +22,6 @@ public class NpgsqlModificationCommandBatchFactoryTest
             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
             new NpgsqlSingletonOptions());
 
-        var logger = new FakeRelationalCommandDiagnosticsLogger();
-
         var factory = new NpgsqlModificationCommandBatchFactory(
             new ModificationCommandBatchFactoryDependencies(
                 new RelationalCommandBuilderFactory(
@@ -38,7 +36,8 @@ public class NpgsqlModificationCommandBatchFactoryTest
                             new RelationalSqlGenerationHelperDependencies()),
                         typeMapper)),
                 new CurrentDbContext(new FakeDbContext()),
-                logger),
+                new FakeRelationalCommandDiagnosticsLogger(),
+                new FakeDiagnosticsLogger<DbLoggerCategory.Update>()),
             optionsBuilder.Options);
 
         var batch = factory.Create();
@@ -59,8 +58,6 @@ public class NpgsqlModificationCommandBatchFactoryTest
             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
             new NpgsqlSingletonOptions());
 
-        var logger = new FakeRelationalCommandDiagnosticsLogger();
-
         var factory = new NpgsqlModificationCommandBatchFactory(
             new ModificationCommandBatchFactoryDependencies(
                 new RelationalCommandBuilderFactory(
@@ -75,7 +72,8 @@ public class NpgsqlModificationCommandBatchFactoryTest
                             new RelationalSqlGenerationHelperDependencies()),
                         typeMapper)),
                 new CurrentDbContext(new FakeDbContext()),
-                logger),
+                new FakeRelationalCommandDiagnosticsLogger(),
+                new FakeDiagnosticsLogger<DbLoggerCategory.Update>()),
             optionsBuilder.Options);
 
         var batch = factory.Create();

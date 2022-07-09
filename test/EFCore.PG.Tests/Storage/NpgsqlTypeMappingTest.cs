@@ -707,10 +707,16 @@ public class NpgsqlTypeMappingTest
     }
 
     [Fact]
-    public void GenerateCodeLiteral_does_not_support_multirange_lists()
+    public void GenerateCodeLiteral_returns_multirange_list_literal()
     {
-        var value = new List<NpgsqlRange<int>>();
-        Assert.Throws<NotSupportedException>(() => CodeLiteral(value));
+        var value = new List<NpgsqlRange<int>>
+        {
+            new(4, 7),
+            new(9, lowerBoundIsInclusive: true, 10, upperBoundIsInclusive: false),
+            new(13, lowerBoundIsInclusive: false, lowerBoundInfinite: false, default, upperBoundIsInclusive: false, upperBoundInfinite: true)
+        };
+        var literal = CodeLiteral(value);
+        Assert.Equal("new List<NpgsqlRange<int>> { new NpgsqlTypes.NpgsqlRange<int>(4, 7), new NpgsqlTypes.NpgsqlRange<int>(9, true, 10, false), new NpgsqlTypes.NpgsqlRange<int>(13, false, false, 0, false, true) }", literal);
     }
 
     [Fact]

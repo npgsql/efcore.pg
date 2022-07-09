@@ -42,10 +42,10 @@ public class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlFixture>
             entityType2.GetKeys().Single().GetName());
         Assert.Equal(
             "ExtraPropertyWithAnExtremelyLongAndOverlyConvolutedNameThatIsU~",
-            entityType2.GetProperties().ElementAt(1).GetColumnName());
+            entityType2.GetProperties().ElementAt(1).GetColumnName(StoreObjectIdentifier.Table(entityType2.GetTableName())));
         Assert.Equal(
             "ExtraPropertyWithAnExtremelyLongAndOverlyConvolutedNameThatIs~1",
-            entityType2.GetProperties().ElementAt(2).GetColumnName());
+            entityType2.GetProperties().ElementAt(2).GetColumnName(StoreObjectIdentifier.Table(entityType2.GetTableName())));
         Assert.Equal(
             "IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameT~1",
             entityType2.GetIndexes().Single().GetDatabaseName());

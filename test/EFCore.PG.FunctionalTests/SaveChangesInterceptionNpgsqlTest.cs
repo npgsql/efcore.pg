@@ -13,12 +13,20 @@ public abstract class SaveChangesInterceptionNpgsqlTestBase : SaveChangesInterce
 
     public abstract class InterceptionNpgsqlFixtureBase : InterceptionFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override IServiceCollection InjectInterceptors(
             IServiceCollection serviceCollection,
             IEnumerable<IInterceptor> injectedInterceptors)
             => base.InjectInterceptors(serviceCollection.AddEntityFrameworkNpgsql(), injectedInterceptors);
+
+        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+        {
+            new NpgsqlDbContextOptionsBuilder(base.AddOptions(builder))
+                .ExecutionStrategy(d => new NpgsqlExecutionStrategy(d));
+            return builder;
+        }
     }
 
     public class SaveChangesInterceptionNpgsqlTest
