@@ -52,12 +52,12 @@ public static class NpgsqlServiceCollectionExtensions
     /// <returns> The same service collection so that multiple calls can be chained. </returns>
     public static IServiceCollection AddNpgsql<TContext>(
         this IServiceCollection serviceCollection,
-        string connectionString, Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null,
+        string? connectionString,
+        Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null,
         Action<DbContextOptionsBuilder>? optionsAction = null)
         where TContext : DbContext
     {
         Check.NotNull(serviceCollection, nameof(serviceCollection));
-        Check.NotEmpty(connectionString, nameof(connectionString));
 
         return serviceCollection.AddDbContext<TContext>((_, options) =>
         {

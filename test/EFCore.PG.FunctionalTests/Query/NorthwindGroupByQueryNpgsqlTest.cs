@@ -10,7 +10,7 @@ public class NorthwindGroupByQueryNpgsqlTest : NorthwindGroupByQueryRelationalTe
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     [ConditionalFact]
@@ -1514,7 +1514,7 @@ INNER JOIN ""Orders"" AS o0 ON t.""LastOrderID"" = o0.""OrderID""");
             @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
 INNER JOIN (
-    SELECT o.""CustomerID""
+    SELECT o.""CustomerID"", max(o.""OrderID"") AS ""LastOrderID""
     FROM ""Orders"" AS o
     GROUP BY o.""CustomerID""
     HAVING count(*)::int > 5
@@ -1628,7 +1628,7 @@ INNER JOIN (
     SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
     FROM ""Customers"" AS c
     INNER JOIN (
-        SELECT o0.""CustomerID""
+        SELECT o0.""CustomerID"", max(o0.""OrderID"") AS ""LastOrderID""
         FROM ""Orders"" AS o0
         GROUP BY o0.""CustomerID""
         HAVING count(*)::int > 5
