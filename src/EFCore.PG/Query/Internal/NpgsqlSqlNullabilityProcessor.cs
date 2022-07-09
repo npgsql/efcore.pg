@@ -199,6 +199,15 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
             && visitedBase is SqlFunctionExpression { Name: "COALESCE", Arguments: { } } coalesceExpression
             && coalesceExpression.Arguments[0] is PostgresFunctionExpression wrappedFunctionExpression)
         {
+            // The base logic assumes sum is operating over numbers, which breaks sum over PG interval.
+            // Detect that case and remove the coalesce entirely (note that we don't need coalescing since sum function is in
+            // EF.Functions.Sum, and returns nullable. This is a temporary hack until #38158 is fixed.
+            if (sqlFunctionExpression.Type == typeof(TimeSpan)
+                || sqlFunctionExpression.Type.FullName is "NodaTime.Period" or "NodaTime.Duration")
+            {
+                return coalesceExpression.Arguments[0];
+            }
+
             var visitedArguments = coalesceExpression.Arguments!.ToArray();
             visitedArguments[0] = VisitPostgresFunctionComponents(wrappedFunctionExpression);
 

@@ -755,6 +755,48 @@ WHERE floor(date_part('second', make_interval(secs => n.""Long""::double precisi
             () => ctx.Set<NodaTimeTypes>().Where(t => Period.FromNanoseconds(t.Id).Seconds == 1).ToListAsync());
     }
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task GroupBy_Property_Select_Sum_over_Period(bool async)
+    {
+        using var ctx = CreateContext();
+
+        // Note: Unlike Duration, Period can't be converted to total ticks (because its absolute time varies).
+        var query = ctx.Set<NodaTimeTypes>()
+            .GroupBy(o => o.Id)
+            .Select(g => EF.Functions.Sum(g.Select(o => o.Period)));
+
+        _ = async
+            ? await query.ToListAsync()
+            : query.ToList();
+
+        AssertSql(
+            @"SELECT sum(n.""Period"")
+FROM ""NodaTimeTypes"" AS n
+GROUP BY n.""Id""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task GroupBy_Property_Select_Average_over_Period(bool async)
+    {
+        using var ctx = CreateContext();
+
+        // Note: Unlike Duration, Period can't be converted to total ticks (because its absolute time varies).
+        var query = ctx.Set<NodaTimeTypes>()
+            .GroupBy(o => o.Id)
+            .Select(g => EF.Functions.Average(g.Select(o => o.Period)));
+
+        _ = async
+            ? await query.ToListAsync()
+            : query.ToList();
+
+        AssertSql(
+            @"SELECT avg(n.""Period"")
+FROM ""NodaTimeTypes"" AS n
+GROUP BY n.""Id""");
+    }
+
     #endregion Period
 
     #region Duration
@@ -892,6 +934,44 @@ WHERE date_part('minute', n.""Duration"")::int = 4");
             @"SELECT n.""Id"", n.""DateInterval"", n.""Duration"", n.""Instant"", n.""InstantRange"", n.""Interval"", n.""LocalDate"", n.""LocalDate2"", n.""LocalDateRange"", n.""LocalDateTime"", n.""LocalTime"", n.""Long"", n.""OffsetTime"", n.""Period"", n.""TimeZoneId"", n.""ZonedDateTime""
 FROM ""NodaTimeTypes"" AS n
 WHERE floor(date_part('second', n.""Duration""))::int = 8");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task GroupBy_Property_Select_Sum_over_Duration(bool async)
+    {
+        await AssertQueryScalar(
+            async,
+            ss => ss.Set<NodaTimeTypes>()
+                .GroupBy(o => o.Id)
+                .Select(g => EF.Functions.Sum(g.Select(o => o.Duration))),
+            expectedQuery: ss => ss.Set<NodaTimeTypes>()
+                .GroupBy(o => o.Id)
+                .Select(g => (Duration?)Duration.FromTicks(g.Sum(o => o.Duration.TotalTicks))));
+
+        AssertSql(
+            @"SELECT sum(n.""Duration"")
+FROM ""NodaTimeTypes"" AS n
+GROUP BY n.""Id""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task GroupBy_Property_Select_Average_over_Duration(bool async)
+    {
+        await AssertQueryScalar(
+            async,
+            ss => ss.Set<NodaTimeTypes>()
+                .GroupBy(o => o.Id)
+                .Select(g => EF.Functions.Average(g.Select(o => o.Duration))),
+            expectedQuery: ss => ss.Set<NodaTimeTypes>()
+                .GroupBy(o => o.Id)
+                .Select(g => (Duration?)Duration.FromTicks((long)g.Average(o => o.Duration.TotalTicks))));
+
+        AssertSql(
+            @"SELECT avg(n.""Duration"")
+FROM ""NodaTimeTypes"" AS n
+GROUP BY n.""Id""");
     }
 
     #endregion

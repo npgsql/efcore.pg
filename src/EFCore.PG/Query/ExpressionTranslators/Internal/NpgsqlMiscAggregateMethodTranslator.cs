@@ -128,6 +128,26 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
                         returnType: sqlExpression.Type,
                         sqlExpression.TypeMapping);
 
+                case nameof(NpgsqlAggregateDbFunctionsExtensions.Sum):
+                    return _sqlExpressionFactory.AggregateFunction(
+                        "sum",
+                        new[] { sqlExpression },
+                        source,
+                        nullable: true,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        returnType: sqlExpression.Type,
+                        sqlExpression.TypeMapping);
+
+                case nameof(NpgsqlAggregateDbFunctionsExtensions.Average):
+                    return _sqlExpressionFactory.AggregateFunction(
+                        "avg",
+                        new[] { sqlExpression },
+                        source,
+                        nullable: true,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        returnType: sqlExpression.Type,
+                        sqlExpression.TypeMapping);
+
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.JsonbObjectAgg):
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.JsonObjectAgg):
                     var isJsonb = method.Name == nameof(NpgsqlAggregateDbFunctionsExtensions.JsonbObjectAgg);

@@ -346,6 +346,44 @@ FROM ""Missions"" AS m
 WHERE (date_part('epoch', m.""Duration"") / 0.001) < 3700000.0");
     }
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task GroupBy_Property_Select_Sum_over_TimeSpan(bool async)
+    {
+        await AssertQueryScalar(
+            async,
+            ss => ss.Set<Mission>()
+                .GroupBy(o => o.Id)
+                .Select(g => EF.Functions.Sum(g.Select(o => o.Duration))),
+            ss => ss.Set<Mission>()
+                .GroupBy(o => o.Id)
+                .Select(g => (TimeSpan?)new TimeSpan(g.Sum(o => o.Duration.Ticks))));
+
+        AssertSql(
+            @"SELECT sum(m.""Duration"")
+FROM ""Missions"" AS m
+GROUP BY m.""Id""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task GroupBy_Property_Select_Average_over_TimeSpan(bool async)
+    {
+        await AssertQueryScalar(
+            async,
+            ss => ss.Set<Mission>()
+                .GroupBy(o => o.Id)
+                .Select(g => EF.Functions.Average(g.Select(o => o.Duration))),
+            ss => ss.Set<Mission>()
+                .GroupBy(o => o.Id)
+                .Select(g => (TimeSpan?)new TimeSpan((long)g.Average(o => o.Duration.Ticks))));
+
+        AssertSql(
+            @"SELECT avg(m.""Duration"")
+FROM ""Missions"" AS m
+GROUP BY m.""Id""");
+    }
+
     #endregion TimeSpan
 
     #region DateOnly
