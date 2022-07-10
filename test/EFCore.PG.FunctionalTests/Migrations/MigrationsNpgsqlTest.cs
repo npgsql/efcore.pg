@@ -2766,8 +2766,7 @@ END $EF$;",
             });
 
         AssertSql(
-            @"CREATE COLLATION dummy (LC_COLLATE = 'POSIX',
-    LC_CTYPE = 'POSIX',
+            @"CREATE COLLATION dummy (LOCALE = 'POSIX',
     PROVIDER = libc
 );");
     }
@@ -2791,8 +2790,7 @@ END $EF$;",
             });
 
         AssertSql(
-            @"CREATE COLLATION some_collation (LC_COLLATE = 'en-u-ks-primary',
-    LC_CTYPE = 'en-u-ks-primary',
+            @"CREATE COLLATION some_collation (LOCALE = 'en-u-ks-primary',
     PROVIDER = icu,
     DETERMINISTIC = False
 );");

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -1081,6 +1082,7 @@ JOIN pg_namespace ns ON ns.oid=extnamespace";
         var commandText = @$"
 SELECT
     nspname, collname, collprovider, collcollate, collctype,
+    {(connection.PostgreSqlVersion >= new Version(15, 0) ? "colliculocale" : "NULL AS colliculocale")},
     {(connection.PostgreSqlVersion >= new Version(12, 0) ? "collisdeterministic" : "true AS collisdeterministic")}
 FROM pg_collation coll
     JOIN pg_namespace ns ON ns.oid=coll.collnamespace
@@ -1095,8 +1097,9 @@ WHERE
             {
                 var schema = reader.GetString(reader.GetOrdinal("nspname"));
                 var name = reader.GetString(reader.GetOrdinal("collname"));
-                var lcCollate = reader.GetString(reader.GetOrdinal("collcollate"));
-                var lcCtype = reader.GetString(reader.GetOrdinal("collctype"));
+                var icuLocale = reader.GetValueOrDefault<string>("colliculocale");
+                var lcCollate = reader.GetValueOrDefault<string>("collcollate");
+                var lcCtype = reader.GetValueOrDefault<string>("collctype");
                 var providerCode = reader.GetChar(reader.GetOrdinal("collprovider"));
                 var isDeterministic = reader.GetBoolean(reader.GetOrdinal("collisdeterministic"));
 
@@ -1118,10 +1121,19 @@ WHERE
                         continue;
                 }
 
+                // Starting with PG15, ICU collations only have colliculocale populated.
+                if (lcCollate is null || lcCtype is null)
+                {
+                    Debug.Assert(lcCollate is null && lcCtype is null);
+                    Debug.Assert(icuLocale is not null);
+                    lcCollate = icuLocale;
+                    lcCtype = icuLocale;
+                }
+
                 logger.CollationFound(schema, name, lcCollate, lcCtype, provider, isDeterministic);
 
                 PostgresCollation.GetOrAddCollation(
-                    databaseModel, schema, name, lcCollate, lcCtype, provider, isDeterministic);
+                    databaseModel, schema, name, lcCollate!, lcCtype, provider, isDeterministic);
             }
         }
         catch (PostgresException e)
