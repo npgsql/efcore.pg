@@ -1096,11 +1096,18 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             .Append(" (")
             .IncrementIndent();
 
-        var def = new List<string>
+        var def = new List<string>();
+
+        if (collation.LcCollate == collation.LcCtype)
         {
-            @$"LC_COLLATE = {_stringTypeMapping.GenerateSqlLiteral(collation.LcCollate)}",
-            $"LC_CTYPE = {_stringTypeMapping.GenerateSqlLiteral(collation.LcCtype)}"
-        };
+            def.Add($"LOCALE = {_stringTypeMapping.GenerateSqlLiteral(collation.LcCollate)}");
+        }
+        else
+        {
+            def.Add($"LC_COLLATE = {_stringTypeMapping.GenerateSqlLiteral(collation.LcCollate)}");
+            def.Add($"LC_CTYPE = {_stringTypeMapping.GenerateSqlLiteral(collation.LcCtype)}");
+        }
+
         if (collation.Provider is not null)
         {
             def.Add($"PROVIDER = {collation.Provider}");
