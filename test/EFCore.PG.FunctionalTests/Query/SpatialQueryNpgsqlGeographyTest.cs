@@ -260,6 +260,7 @@ FROM ""PointEntity"" AS p");
 
     public override Task Boundary(bool async)                        => Task.CompletedTask;
     public override Task Combine_aggregate(bool async)               => Task.CompletedTask;
+    public override Task EnvelopeCombine_aggregate(bool async)       => Task.CompletedTask;
     public override Task Contains(bool async)                        => Task.CompletedTask;
     public override Task ConvexHull(bool async)                      => Task.CompletedTask;
     public override Task ConvexHull_aggregate(bool async)            => Task.CompletedTask;
