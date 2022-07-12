@@ -47,7 +47,9 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
 
         if (ProvidePasswordCallback is not null)
         {
+#pragma warning disable 618 // ProvidePasswordCallback is obsolete
             conn.ProvidePasswordCallback = ProvidePasswordCallback;
+#pragma warning restore 618
         }
 
         return conn;
