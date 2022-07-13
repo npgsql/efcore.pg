@@ -98,14 +98,42 @@ public static class NpgsqlDbContextOptionsBuilderExtensions
     }
 
     /// <summary>
+    /// Configures the context to connect to a PostgreSQL database with Npgsql.
+    /// </summary>
+    /// <param name="optionsBuilder">A builder for setting options on the context.</param>
+    /// <param name="dataSource">A <see cref="DbDataSource" /> which will be used to get database connections.</param>
+    /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
+    /// <returns>
+    /// The options builder so that further configuration can be chained.
+    /// </returns>
+    public static DbContextOptionsBuilder UseNpgsql(
+        this DbContextOptionsBuilder optionsBuilder,
+        DbDataSource dataSource,
+        Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
+    {
+        Check.NotNull(optionsBuilder, nameof(optionsBuilder));
+        Check.NotNull(dataSource, nameof(dataSource));
+
+        var extension = (NpgsqlOptionsExtension)GetOrCreateExtension(optionsBuilder).WithDataSource(dataSource);
+        ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);
+
+        ConfigureWarnings(optionsBuilder);
+
+        npgsqlOptionsAction?.Invoke(new NpgsqlDbContextOptionsBuilder(optionsBuilder));
+
+        return optionsBuilder;
+    }
+
+    /// <summary>
     /// <para>
     /// Configures the context to connect to a PostgreSQL server with Npgsql, but without initially setting any
-    /// <see cref="DbConnection" /> or connection string.
+    /// <see cref="DbConnection" />, <see cref="DbDataSource" /> or connection string.
     /// </para>
     /// <para>
-    /// The connection or connection string must be set before the <see cref="DbContext" /> is used to connect
-    /// to a database. Set a connection using <see cref="RelationalDatabaseFacadeExtensions.SetDbConnection" />.
-    /// Set a connection string using <see cref="RelationalDatabaseFacadeExtensions.SetConnectionString" />.
+    /// The connection, data source or connection string must be set before the <see cref="DbContext" /> is used to connect
+    /// to a database. Set a connection using <see cref="RelationalDatabaseFacadeExtensions.SetDbConnection" />, a data source using
+    /// <see cref="NpgsqlDatabaseFacadeExtensions.SetDbDataSource" />, or a connection string using
+    /// <see cref="RelationalDatabaseFacadeExtensions.SetConnectionString" />.
     /// </para>
     /// </summary>
     /// <param name="optionsBuilder">The builder being used to configure the context.</param>
@@ -155,6 +183,23 @@ public static class NpgsqlDbContextOptionsBuilderExtensions
         where TContext : DbContext
         => (DbContextOptionsBuilder<TContext>)UseNpgsql(
             (DbContextOptionsBuilder)optionsBuilder, connection, npgsqlOptionsAction);
+
+    /// <summary>
+    /// Configures the context to connect to a PostgreSQL database with Npgsql.
+    /// </summary>
+    /// <param name="optionsBuilder">A builder for setting options on the context.</param>
+    /// <param name="dataSource">A <see cref="DbDataSource" /> which will be used to get database connections.</param>
+    /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
+    /// <returns>
+    /// The options builder so that further configuration can be chained.
+    /// </returns>
+    public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
+        this DbContextOptionsBuilder<TContext> optionsBuilder,
+        DbDataSource dataSource,
+        Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
+        where TContext : DbContext
+        => (DbContextOptionsBuilder<TContext>)UseNpgsql(
+            (DbContextOptionsBuilder)optionsBuilder, dataSource, npgsqlOptionsAction);
 
     /// <summary>
     /// Returns an existing instance of <see cref="NpgsqlOptionsExtension"/>, or a new instance if one does not exist.
