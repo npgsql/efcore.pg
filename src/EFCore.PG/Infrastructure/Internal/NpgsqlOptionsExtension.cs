@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Globalization;
 using System.Net.Security;
 using System.Text;
@@ -9,8 +10,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 /// </summary>
 public class NpgsqlOptionsExtension : RelationalOptionsExtension
 {
+    private DbDataSource? _dataSource, _calculatedDataSource;
     private DbContextOptionsExtensionInfo? _info;
     private readonly List<UserRangeDefinition> _userRangeDefinitions;
+
+    /// <summary>
+    ///     The <see cref="DbDataSource" />, or <see langword="null" /> if a connection string or <see cref="DbConnection" /> was used
+    ///     instead of a <see cref="DbDataSource" />.
+    /// </summary>
+    public virtual DbDataSource? DataSource => _calculatedDataSource;
 
     /// <summary>
     /// The name of the database for administrative operations.
@@ -65,6 +73,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     /// <param name="copyFrom">The instance to copy.</param>
     public NpgsqlOptionsExtension(NpgsqlOptionsExtension copyFrom) : base(copyFrom)
     {
+        _dataSource = copyFrom._dataSource;
         AdminDatabase = copyFrom.AdminDatabase;
         PostgresVersion = copyFrom.PostgresVersion;
         UseRedshift = copyFrom.UseRedshift;
@@ -84,6 +93,21 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public override int? MinBatchSize => base.MinBatchSize ?? 2;
+
+    /// <summary>
+    ///     Creates a new instance with all options the same as for this instance, but with the given option changed.
+    ///     It is unusual to call this method directly. Instead use <see cref="DbContextOptionsBuilder" />.
+    /// </summary>
+    /// <param name="dataSource">The option to change.</param>
+    /// <returns>A new instance with the option changed.</returns>
+    public virtual RelationalOptionsExtension WithDataSource(DbDataSource? dataSource)
+    {
+        var clone = (NpgsqlOptionsExtension)Clone();
+
+        clone._dataSource = dataSource;
+
+        return clone;
+    }
 
     /// <summary>
     /// Returns a copy of the current instance configured with the specified range mapping.
@@ -175,6 +199,18 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     public override void Validate(IDbContextOptions options)
     {
         base.Validate(options);
+
+        // If we don't have an explicitly-configured data source, try to get one from the application service provider.
+        _calculatedDataSource = _dataSource
+            ?? options.FindExtension<CoreOptionsExtension>()?.ApplicationServiceProvider?.GetService<NpgsqlDataSource>();
+
+        if (_calculatedDataSource is not null
+            && (ProvideClientCertificatesCallback is not null
+                || RemoteCertificateValidationCallback is not null
+                || ProvidePasswordCallback is not null))
+        {
+            throw new InvalidOperationException();
+        }
 
         if (UseRedshift && PostgresVersion is not null)
         {
@@ -320,7 +356,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
                         builder.Append(";");
                     }
 
-                    builder.Length = builder.Length -1;
+                    builder.Length -= 1;
                     builder.Append("] ");
                 }
 
@@ -337,6 +373,11 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
                 foreach (var userRangeDefinition in Extension._userRangeDefinitions)
                 {
                     hashCode.Add(userRangeDefinition);
+                }
+
+                if (Extension._dataSource is not null)
+                {
+                    hashCode.Add(Extension._dataSource.ConnectionString);
                 }
 
                 hashCode.Add(Extension.AdminDatabase);

@@ -229,4 +229,7 @@
   <data name="RowValueComparisonRequiresTuplesOfSameLength" xml:space="preserve">
     <value>Row values comparisons require two tuple arguments of the same length.</value>
   </data>
+  <data name="CannotUseDataSourceWithAuthCallbacks" xml:space="preserve">
+    <value>Cannot set ProvideClientCertificatesCallback, RemoteCertificateValidationCallback or ProvidePasswordCallback when a data source is provided.</value>
+  </data>
 </root>

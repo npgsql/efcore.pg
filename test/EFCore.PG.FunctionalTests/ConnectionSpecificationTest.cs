@@ -239,18 +239,67 @@ public class ConnectionSpecificationTest
     #region Added for Npgsql
 
     [Fact]
-    public void Can_specify_connection_in_OnConfiguring_and_create_master_connection()
+    public void Can_create_admin_connection_with_data_source()
     {
-        using var conn = new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString);
-
-        conn.Open();
+        using var dataSource = NpgsqlDataSource.Create(NpgsqlTestStore.NorthwindConnectionString);
 
         using var _ = NpgsqlTestStore.GetNorthwindStore();
-        using var context = new ConnectionInOnConfiguringContext(conn);
-        var relationalConn = context.GetService<INpgsqlRelationalConnection>();
-        using var masterConn = relationalConn.CreateMasterConnection();
 
-        masterConn.Open();
+        var optionsBuilder = new DbContextOptionsBuilder<GeneralOptionsContext>();
+        optionsBuilder.UseNpgsql(dataSource, b => b.ApplyConfiguration());
+        using var context = new GeneralOptionsContext(optionsBuilder.Options);
+
+        var relationalConnection = context.GetService<INpgsqlRelationalConnection>();
+        using var adminConnection = relationalConnection.CreateAdminConnection();
+
+        Assert.Equal("postgres", new NpgsqlConnectionStringBuilder(adminConnection.ConnectionString).Database);
+
+        adminConnection.Open();
+    }
+
+    [Fact]
+    public void Can_create_admin_connection_with_connection_string()
+    {
+        using var _ = NpgsqlTestStore.GetNorthwindStore();
+
+        var optionsBuilder = new DbContextOptionsBuilder<GeneralOptionsContext>();
+        optionsBuilder.UseNpgsql(NpgsqlTestStore.NorthwindConnectionString, b => b.ApplyConfiguration());
+        using var context = new GeneralOptionsContext(optionsBuilder.Options);
+
+        var relationalConnection = context.GetService<INpgsqlRelationalConnection>();
+        using var adminConnection = relationalConnection.CreateAdminConnection();
+
+        Assert.Equal("postgres", new NpgsqlConnectionStringBuilder(adminConnection.ConnectionString).Database);
+
+        adminConnection.Open();
+    }
+
+    [Fact]
+    public void Can_create_admin_connection_with_connection()
+    {
+        using var connection = new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString);
+        connection.Open();
+
+        using var _ = NpgsqlTestStore.GetNorthwindStore();
+
+        var optionsBuilder = new DbContextOptionsBuilder<GeneralOptionsContext>();
+        optionsBuilder.UseNpgsql(connection, b => b.ApplyConfiguration());
+        using var context = new GeneralOptionsContext(optionsBuilder.Options);
+
+        var relationalConnection = context.GetService<INpgsqlRelationalConnection>();
+        using var adminConnection = relationalConnection.CreateAdminConnection();
+
+        Assert.Equal("postgres", new NpgsqlConnectionStringBuilder(adminConnection.ConnectionString).Database);
+
+        adminConnection.Open();
+    }
+
+    private class GeneralOptionsContext : NorthwindContextBase
+    {
+        public GeneralOptionsContext(DbContextOptions<GeneralOptionsContext> options)
+            : base(options)
+        {
+        }
     }
 
     #endregion

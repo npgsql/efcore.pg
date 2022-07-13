@@ -55,7 +55,7 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
     /// </summary>
     public override void Create()
     {
-        using (var masterConnection = _connection.CreateMasterConnection())
+        using (var masterConnection = _connection.CreateAdminConnection())
         {
             try
             {
@@ -82,7 +82,7 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
     /// </summary>
     public override async Task CreateAsync(CancellationToken cancellationToken = default)
     {
-        using (var masterConnection = _connection.CreateMasterConnection())
+        using (var masterConnection = _connection.CreateAdminConnection())
         {
             try
             {
@@ -278,7 +278,7 @@ WHERE
     {
         ClearAllPools();
 
-        using (var masterConnection = _connection.CreateMasterConnection())
+        using (var masterConnection = _connection.CreateAdminConnection())
         {
             Dependencies.MigrationCommandExecutor
                 .ExecuteNonQuery(CreateDropCommands(), masterConnection);
@@ -295,7 +295,7 @@ WHERE
     {
         ClearAllPools();
 
-        using (var masterConnection = _connection.CreateMasterConnection())
+        using (var masterConnection = _connection.CreateAdminConnection())
         {
             await Dependencies.MigrationCommandExecutor
                 .ExecuteNonQueryAsync(CreateDropCommands(), masterConnection, cancellationToken)

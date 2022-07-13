@@ -19,6 +19,7 @@
     <PackageVersion Include="Npgsql" Version="$(NpgsqlVersion)" />
     <PackageVersion Include="Npgsql.NodaTime" Version="$(NpgsqlVersion)" />
     <PackageVersion Include="Npgsql.NetTopologySuite" Version="$(NpgsqlVersion)" />
+    <PackageVersion Include="Npgsql.DependencyInjection" Version="$(NpgsqlVersion)" />
 
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />

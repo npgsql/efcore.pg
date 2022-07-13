@@ -1,4 +1,6 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+﻿using System.Data.Common;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore;
@@ -23,4 +25,32 @@ public static class NpgsqlDatabaseFacadeExtensions
     /// <returns>True if Npgsql is being used; false otherwise.</returns>
     public static bool IsNpgsql(this DatabaseFacade database)
         => database.ProviderName == typeof(NpgsqlOptionsExtension).GetTypeInfo().Assembly.GetName().Name;
+
+    /// <summary>
+    ///     Sets the underlying <see cref="DbDataSource" /> configured for this <see cref="DbContext" />.
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         It may not be possible to change the data source if existing connection, if any, is open.
+    ///     </para>
+    ///     <para>
+    ///         See <see href="https://aka.ms/efcore-docs-connections">Connections and connection strings</see> for more information and examples.
+    ///     </para>
+    /// </remarks>
+    /// <param name="databaseFacade">The <see cref="DatabaseFacade" /> for the context.</param>
+    /// <param name="dataSource">The connection string.</param>
+    public static void SetDbDataSource(this DatabaseFacade databaseFacade, DbDataSource dataSource)
+        => ((NpgsqlRelationalConnection)GetFacadeDependencies(databaseFacade).RelationalConnection).DbDataSource = dataSource;
+
+    private static IRelationalDatabaseFacadeDependencies GetFacadeDependencies(DatabaseFacade databaseFacade)
+    {
+        var dependencies = ((IDatabaseFacadeDependenciesAccessor)databaseFacade).Dependencies;
+
+        if (dependencies is IRelationalDatabaseFacadeDependencies relationalDependencies)
+        {
+            return relationalDependencies;
+        }
+
+        throw new InvalidOperationException(RelationalStrings.RelationalNotInUse);
+    }
 }

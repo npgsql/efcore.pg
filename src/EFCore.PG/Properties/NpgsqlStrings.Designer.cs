@@ -128,6 +128,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             => GetString("RowValueComparisonRequiresTuplesOfSameLength");
 
         /// <summary>
+        ///     Cannot set ProvideClientCertificatesCallback, RemoteCertificateValidationCallback or ProvidePasswordCallback when a data source is provided.
+        /// </summary>
+        public static string CannotUseDataSourceWithAuthCallbacks
+            => GetString("CannotUseDataSourceWithAuthCallbacks");
+
+        /// <summary>
         ///     PostgreSQL sequences cannot be used to generate values for the property '{property}' on entity type '{entityType}' because the property type is '{propertyType}'. Sequences can only be used with integer properties.
         /// </summary>
         public static string SequenceBadType(object? property, object? entityType, object? propertyType)

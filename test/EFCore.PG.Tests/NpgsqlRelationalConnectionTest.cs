@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.FakeProvider;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
@@ -13,22 +14,58 @@ public class NpgsqlRelationalConnectionTest
     [Fact]
     public void Creates_Npgsql_Server_connection_string()
     {
-        using var connection = new NpgsqlRelationalConnection(CreateDependencies());
+        using var connection = CreateConnection();
 
         Assert.IsType<NpgsqlConnection>(connection.DbConnection);
     }
 
     [Fact]
-    public void Can_create_master_connection_string()
+    public void Uses_DbDataSource_from_DbContextOptions()
     {
-        using var connection = new NpgsqlRelationalConnection(CreateDependencies());
-        using var master = connection.CreateMasterConnection();
+        using var dataSource = NpgsqlDataSource.Create("Host=FakeHost");
+
+        var options = new DbContextOptionsBuilder()
+            .UseNpgsql(dataSource)
+            .Options;
+
+        using var connection = CreateConnection(options);
+
+        Assert.Equal("Host=FakeHost", connection.ConnectionString);
+    }
+
+    [Fact]
+    public void Uses_DbDataSource_from_application_service_provider()
+    {
+        using var dataSource = NpgsqlDataSource.Create("Host=FakeHost");
+
+        var appServiceProvider = new ServiceCollection()
+            .AddNpgsqlDataSource("Host=FakeHost")
+            .BuildServiceProvider();
+
+        var options = new DbContextOptionsBuilder()
+            .UseApplicationServiceProvider(appServiceProvider)
+            .UseNpgsql()
+            .Options;
+
+        var npgsqlSingletonOptions = new NpgsqlSingletonOptions();
+        npgsqlSingletonOptions.Initialize(options);
+
+        using var connection = CreateConnection(options);
+
+        Assert.Equal("Host=FakeHost", connection.ConnectionString);
+    }
+
+    [Fact]
+    public void Can_create_master_connection_with_connection_string()
+    {
+        using var connection = CreateConnection();
+        using var master = connection.CreateAdminConnection();
 
         Assert.Equal(@"Host=localhost;Database=postgres;Username=some_user;Password=some_password;Pooling=False;Multiplexing=False", master.ConnectionString);
     }
 
     [Fact]
-    public void Can_create_master_connection_string_with_alternate_admin_db()
+    public void Can_create_master_connection_with_connection_string_and_alternate_admin_db()
     {
         var options = new DbContextOptionsBuilder()
             .UseNpgsql(
@@ -36,47 +73,68 @@ public class NpgsqlRelationalConnectionTest
                 b => b.UseAdminDatabase("template0"))
             .Options;
 
-        using var connection = new NpgsqlRelationalConnection(CreateDependencies(options));
-        using var master = connection.CreateMasterConnection();
+        using var connection = CreateConnection(options);
+        using var master = connection.CreateAdminConnection();
 
         Assert.Equal(@"Host=localhost;Database=template0;Username=some_user;Password=some_password;Pooling=False;Multiplexing=False", master.ConnectionString);
     }
 
-    public static RelationalConnectionDependencies CreateDependencies(DbContextOptions options = null)
+    [ConditionalFact]
+    public void CloneWith_with_connection_and_connection_string()
+    {
+        var services = NpgsqlTestHelpers.Instance.CreateContextServices(
+            new DbContextOptionsBuilder()
+                .UseNpgsql("Host=localhost;Database=DummyDatabase")
+                .Options);
+
+        var relationalConnection = (NpgsqlRelationalConnection)services.GetRequiredService<IRelationalConnection>();
+
+        var clone = relationalConnection.CloneWith("Host=localhost;Database=DummyDatabase;Application Name=foo");
+
+        Assert.Equal("Host=localhost;Database=DummyDatabase;Application Name=foo", clone.ConnectionString);
+    }
+
+    public static NpgsqlRelationalConnection CreateConnection(DbContextOptions options = null)
     {
         options ??= new DbContextOptionsBuilder()
             .UseNpgsql(@"Host=localhost;Database=NpgsqlConnectionTest;Username=some_user;Password=some_password")
             .Options;
 
-        return new RelationalConnectionDependencies(
-            options,
-            new DiagnosticsLogger<DbLoggerCategory.Database.Transaction>(
-                new LoggerFactory(),
-                new LoggingOptions(),
-                new DiagnosticListener("FakeDiagnosticListener"),
-                new NpgsqlLoggingDefinitions(),
-                new NullDbContextLogger()),
-            new RelationalConnectionDiagnosticsLogger(
-                new LoggerFactory(),
-                new LoggingOptions(),
-                new DiagnosticListener("FakeDiagnosticListener"),
-                new NpgsqlLoggingDefinitions(),
-                new NullDbContextLogger(),
-                CreateOptions()),
-            new NamedConnectionStringResolver(options),
-            new RelationalTransactionFactory(
-                new RelationalTransactionFactoryDependencies(
-                    new RelationalSqlGenerationHelper(
-                        new RelationalSqlGenerationHelperDependencies()))),
-            new CurrentDbContext(new FakeDbContext()),
-            new RelationalCommandBuilderFactory(
-                new RelationalCommandBuilderDependencies(
-                    new NpgsqlTypeMappingSource(
-                        TestServiceFactory.Instance.Create<TypeMappingSourceDependencies>(),
-                        TestServiceFactory.Instance.Create<RelationalTypeMappingSourceDependencies>(),
-                        new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
-                        new NpgsqlSingletonOptions()),
-                    new ExceptionDetector())));
+        foreach (var extension in options.Extensions)
+        {
+            extension.Validate(options);
+        }
+
+        return new NpgsqlRelationalConnection(
+            new RelationalConnectionDependencies(
+                options,
+                new DiagnosticsLogger<DbLoggerCategory.Database.Transaction>(
+                    new LoggerFactory(),
+                    new LoggingOptions(),
+                    new DiagnosticListener("FakeDiagnosticListener"),
+                    new NpgsqlLoggingDefinitions(),
+                    new NullDbContextLogger()),
+                new RelationalConnectionDiagnosticsLogger(
+                    new LoggerFactory(),
+                    new LoggingOptions(),
+                    new DiagnosticListener("FakeDiagnosticListener"),
+                    new NpgsqlLoggingDefinitions(),
+                    new NullDbContextLogger(),
+                    CreateOptions()),
+                new NamedConnectionStringResolver(options),
+                new RelationalTransactionFactory(
+                    new RelationalTransactionFactoryDependencies(
+                        new RelationalSqlGenerationHelper(
+                            new RelationalSqlGenerationHelperDependencies()))),
+                new CurrentDbContext(new FakeDbContext()),
+                new RelationalCommandBuilderFactory(
+                    new RelationalCommandBuilderDependencies(
+                        new NpgsqlTypeMappingSource(
+                            TestServiceFactory.Instance.Create<TypeMappingSourceDependencies>(),
+                            TestServiceFactory.Instance.Create<RelationalTypeMappingSourceDependencies>(),
+                            new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
+                            new NpgsqlSingletonOptions()),
+                        new ExceptionDetector()))));
     }
 
     private const string ConnectionString = "Fake Connection String";
