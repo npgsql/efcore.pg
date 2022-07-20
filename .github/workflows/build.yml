@@ -22,15 +22,15 @@ jobs:
       fail-fast: false
       matrix:
 # Temporarily disable Windows because of PG installation issues
-#        os: [ ubuntu-20.04, windows-2019 ]
-        os: [ ubuntu-20.04 ]
+#        os: [ ubuntu-22.04, windows-2022 ]
+        os: [ ubuntu-22.04 ]
         pg_major: [ 14, 13, 12, 11, 10 ]
         config: [Release]
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             pg_major: 14
             config: Debug
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             pg_major: 15
             config: Release
             pg_prerelease: 'PG Prerelease'
@@ -56,8 +56,7 @@ jobs:
           # First uninstall any PostgreSQL installed on the image
           dpkg-query -W --showformat='${Package}\n' 'postgresql-*' | xargs sudo dpkg -P postgresql
 
-          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main 15" >> /etc/apt/sources.list.d/pgdg.list'
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main ${{ matrix.pg_major }}" >> /etc/apt/sources.list.d/pgdg.list'
           sudo apt-get update -qq
           sudo apt-get install -qq postgresql-${{ matrix.pg_major  }}
 
@@ -129,7 +128,7 @@ jobs:
 
   publish-ci:
     needs: build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.event_name == 'push' && startsWith(github.repository, 'npgsql/')
     environment: myget
 
@@ -161,7 +160,7 @@ jobs:
 
   release:
     needs: build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.event_name == 'push' && startsWith(github.repository, 'npgsql/') && needs.build.outputs.is_release == 'true'
     environment: nuget.org
 
