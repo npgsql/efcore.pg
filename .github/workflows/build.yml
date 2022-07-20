@@ -21,9 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-# Temporarily disable Windows because of PG installation issues
-#        os: [ ubuntu-22.04, windows-2022 ]
-        os: [ ubuntu-22.04 ]
+        os: [ ubuntu-22.04, windows-2022 ]
         pg_major: [ 14, 13, 12, 11, 10 ]
         config: [Release]
         include:
@@ -73,11 +71,13 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         run: |
           # Find EnterpriseDB version number
-          EDB_VERSION=$(\
-            curl -Ls 'http://sbp.enterprisedb.com/applications.xml' |
-            sed -n '\#<id>postgresql_${{ matrix.pg_major }}</id>#{n;p;n;p;}' |
-            sed -n '\#<platform>windows-x64</platform>#{n;p;}' |
-            sed -E 's#.*<version>([^<]+)</version>#\1#')
+          EDB_VERSION=$(pwsh -c "
+              \$global:progressPreference='silentlyContinue';
+              Invoke-WebRequest -URI https://www.postgresql.org/applications-v2.xml |
+                  Select-Object -ExpandProperty Content |
+                  Select-Xml -XPath '/applications/application[id=\"postgresql_${{ matrix.pg_major }}\" and platform=\"windows-x64\"]/version/text()' |
+                  Select-Object -First 1 -ExpandProperty Node |
+                  Select-Object -ExpandProperty Value")
 
           # Install PostgreSQL
           echo "Installing PostgreSQL (version: ${EDB_VERSION})"
@@ -85,13 +85,22 @@ jobs:
           unzip pgsql.zip -x 'pgsql/include/**' 'pgsql/doc/**' 'pgsql/pgAdmin 4/**' 'pgsql/StackBuilder/**'
 
           # Match Npgsql CI Docker image and stash one level up
-          cp {$GITHUB_WORKSPACE/.build,pgsql}/server.crt
-          cp {$GITHUB_WORKSPACE/.build,pgsql}/server.key
+          cp $GITHUB_WORKSPACE/.build/{server.crt,server.key} pgsql
 
           # Find OSGEO version number
           OSGEO_VERSION=$(\
             curl -Ls https://download.osgeo.org/postgis/windows/pg${{ matrix.pg_major }} |
-            sed -n 's/.*>postgis-bundle-pg${{ matrix.pg_major }}-\(${{ env.postgis_version }}.[0-9]*.[0-9]*\)x64.zip<.*/\1/p')
+            sed -n 's/.*>postgis-bundle-pg${{ matrix.pg_major }}-\(${{ env.postgis_version }}.[0-9]*.[0-9]*\)x64.zip<.*/\1/p' |
+            tail -n 1)
+          if [ -z "$OSGEO_VERSION" ]; then
+              OSGEO_VERSION=$(\
+                curl -Ls https://download.osgeo.org/postgis/windows/pg${{ matrix.pg_major }}/archive |
+                sed -n 's/.*>postgis-bundle-pg${{ matrix.pg_major }}-\(${{ env.postgis_version }}.[0-9]*.[0-9]*\)x64.zip<.*/\1/p' |
+                tail -n 1)
+              POSTGIS_PATH="archive/"
+          else
+              POSTGIS_PATH=""
+          fi
 
           # Install PostGIS
           echo "Installing PostGIS (version: ${OSGEO_VERSION})"
