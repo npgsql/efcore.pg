@@ -306,11 +306,11 @@ WHERE s.""UnmappedByteEnum"" = ANY (@__values_0)");
         public ISetSource GetExpectedData()
             => _expectedData ??= new EnumData();
 
-        public IReadOnlyDictionary<Type, object> GetEntitySorters()
+        public IReadOnlyDictionary<Type, object> EntitySorters
             => new Dictionary<Type, Func<object, object>> { { typeof(SomeEnumEntity), e => ((SomeEnumEntity)e)?.Id } }
                 .ToDictionary(e => e.Key, e => (object)e.Value);
 
-        public IReadOnlyDictionary<Type, object> GetEntityAsserters()
+        public IReadOnlyDictionary<Type, object> EntityAsserters
             => new Dictionary<Type, Action<object, object>>
             {
                 {

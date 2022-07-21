@@ -35,6 +35,8 @@ public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpg
 
     public class FunkyDataQueryNpgsqlFixture : FunkyDataQueryFixtureBase
     {
+        private FunkyDataData _expectedData;
+
         public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
 
         protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
@@ -47,46 +49,31 @@ public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpg
         }
 
         public override ISetSource GetExpectedData()
-            => new NpgsqlFunkyDataData();
-
-        protected override void Seed(FunkyDataContext context)
         {
-            context.FunkyCustomers.AddRange(NpgsqlFunkyDataData.CreateFunkyCustomers());
-            context.SaveChanges();
-        }
-
-        public class NpgsqlFunkyDataData : FunkyDataData
-        {
-            public new IReadOnlyList<FunkyCustomer> FunkyCustomers { get; }
-
-            public NpgsqlFunkyDataData()
-                => FunkyCustomers = CreateFunkyCustomers();
-
-            public override IQueryable<TEntity> Set<TEntity>()
-                where TEntity : class
+            if (_expectedData is null)
             {
-                if (typeof(TEntity) == typeof(FunkyCustomer))
-                {
-                    return (IQueryable<TEntity>)FunkyCustomers.AsQueryable();
-                }
+                _expectedData = (FunkyDataData)base.GetExpectedData();
 
-                return base.Set<TEntity>();
-            }
+                var maxId = _expectedData.FunkyCustomers.Max(c => c.Id);
 
-            public new static IReadOnlyList<FunkyCustomer> CreateFunkyCustomers()
-            {
-                var customers = FunkyDataData.CreateFunkyCustomers();
-                var maxId = customers.Max(c => c.Id);
+                var mutableCustomersOhYeah = (List<FunkyCustomer>)_expectedData.FunkyCustomers;
 
-                return customers
-                    .Append(new FunkyCustomer
+                mutableCustomersOhYeah.Add(
+                    new()
                     {
                         Id = maxId + 1,
                         FirstName = "Some\\Guy",
                         LastName = null
-                    })
-                    .ToList();
+                    });
             }
+
+            return _expectedData;
+        }
+
+        protected override void Seed(FunkyDataContext context)
+        {
+            context.FunkyCustomers.AddRange(GetExpectedData().Set<FunkyCustomer>());
+            context.SaveChanges();
         }
     }
 }

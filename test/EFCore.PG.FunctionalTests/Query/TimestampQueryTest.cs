@@ -829,11 +829,11 @@ WHERE CAST((e.""TimestamptzDateTime"" AT TIME ZONE 'UTC') AS time without time z
         public ISetSource GetExpectedData()
             => _expectedData ??= new TimestampData();
 
-        public IReadOnlyDictionary<Type, object> GetEntitySorters()
+        public IReadOnlyDictionary<Type, object> EntitySorters
             => new Dictionary<Type, Func<object, object>> { { typeof(Entity), e => ((Entity)e)?.Id } }
                 .ToDictionary(e => e.Key, e => (object)e.Value);
 
-        public IReadOnlyDictionary<Type, object> GetEntityAsserters()
+        public IReadOnlyDictionary<Type, object> EntityAsserters
             => new Dictionary<Type, Action<object, object>>
             {
                 {

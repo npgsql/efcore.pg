@@ -24,7 +24,7 @@ public class TPCGearsOfWarQueryNpgsqlFixture : TPCGearsOfWarQueryRelationalFixtu
     {
         if (_expectedData is null)
         {
-            _expectedData = new GearsOfWarData();
+            _expectedData = (GearsOfWarData)base.GetExpectedData();
 
             // GearsOfWarData contains DateTimeOffsets with various offsets, which we don't support. Change these to UTC.
             // Also chop sub-microsecond precision which PostgreSQL does not support.

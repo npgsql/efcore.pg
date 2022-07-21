@@ -12,9 +12,13 @@ public class TwoDatabasesNpgsqlTest : TwoDatabasesTestBase, IClassFixture<Npgsql
     protected new NpgsqlFixture Fixture => (NpgsqlFixture)base.Fixture;
 
     protected override DbContextOptionsBuilder CreateTestOptions(
-        DbContextOptionsBuilder optionsBuilder, bool withConnectionString = false)
+        DbContextOptionsBuilder optionsBuilder,
+        bool withConnectionString = false,
+        bool withNullConnectionString = false)
         => withConnectionString
-            ? optionsBuilder.UseNpgsql(DummyConnectionString)
+            ? withNullConnectionString
+                ? optionsBuilder.UseNpgsql((string)null)
+                : optionsBuilder.UseNpgsql(DummyConnectionString)
             : optionsBuilder.UseNpgsql();
 
     protected override TwoDatabasesWithDataContext CreateBackingContext(string databaseName)

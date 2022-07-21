@@ -158,11 +158,11 @@ WHERE (e.""BigInteger"" % 2) = 0");
         public ISetSource GetExpectedData()
             => _expectedData ??= new BigIntegerData();
 
-        public IReadOnlyDictionary<Type, object> GetEntitySorters()
+        public IReadOnlyDictionary<Type, object> EntitySorters
             => new Dictionary<Type, Func<object, object>> { { typeof(Entity), e => ((Entity)e)?.Id } }
                 .ToDictionary(e => e.Key, e => (object)e.Value);
 
-        public IReadOnlyDictionary<Type, object> GetEntityAsserters()
+        public IReadOnlyDictionary<Type, object> EntityAsserters
             => new Dictionary<Type, Action<object, object>>
             {
                 {
