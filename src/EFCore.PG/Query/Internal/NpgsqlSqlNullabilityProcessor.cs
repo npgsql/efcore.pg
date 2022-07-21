@@ -280,23 +280,23 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     {
         Check.NotNull(newArrayExpression, nameof(newArrayExpression));
 
-        List<SqlExpression>? newInitializers = null;
+        SqlExpression[]? newInitializers = null;
         for (var i = 0; i < newArrayExpression.Expressions.Count; i++)
         {
             var initializer = newArrayExpression.Expressions[i];
             var newInitializer = Visit(initializer, allowOptimizedExpansion, out _);
             if (newInitializer != initializer && newInitializers is null)
             {
-                newInitializers = new List<SqlExpression>();
+                newInitializers = new SqlExpression[newArrayExpression.Expressions.Count];
                 for (var j = 0; j < i; j++)
                 {
-                    newInitializers.Add(newInitializer);
+                    newInitializers[j] = newArrayExpression.Expressions[j];
                 }
             }
 
             if (newInitializers is not null)
             {
-                newInitializers.Add(newInitializer);
+                newInitializers[i] = newInitializer;
             }
         }
 
@@ -326,23 +326,23 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
 
         var expression = Visit(jsonTraversalExpression.Expression, out _);
 
-        List<SqlExpression>? newPath = null;
+        SqlExpression[]? newPath = null;
         for (var i = 0; i < jsonTraversalExpression.Path.Count; i++)
         {
             var pathComponent = jsonTraversalExpression.Path[i];
             var newPathComponent = Visit(pathComponent, allowOptimizedExpansion, out _);
             if (newPathComponent != pathComponent && newPath is null)
             {
-                newPath = new List<SqlExpression>();
+                newPath = new SqlExpression[jsonTraversalExpression.Path.Count];
                 for (var j = 0; j < i; j++)
                 {
-                    newPath.Add(newPathComponent);
+                    newPath[j] = jsonTraversalExpression.Path[j];
                 }
             }
 
             if (newPath is not null)
             {
-                newPath.Add(newPathComponent);
+                newPath[i] = newPathComponent;
             }
         }
 
@@ -371,7 +371,7 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
                 newValues = new SqlExpression[rowValueExpression.Values.Count];
                 for (var j = 0; j < i; j++)
                 {
-                    newValues[j] = newValue;
+                    newValues[j] = rowValueExpression.Values[j];
                 }
             }
 
