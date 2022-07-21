@@ -51,11 +51,10 @@ public static class NpgsqlDbContextOptionsBuilderExtensions
     /// </returns>
     public static DbContextOptionsBuilder UseNpgsql(
         this DbContextOptionsBuilder optionsBuilder,
-        string connectionString,
+        string? connectionString,
         Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
     {
         Check.NotNull(optionsBuilder, nameof(optionsBuilder));
-        Check.NotEmpty(connectionString, nameof(connectionString));
 
         var extension = (NpgsqlOptionsExtension)GetOrCreateExtension(optionsBuilder).WithConnectionString(connectionString);
         ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);
@@ -130,7 +129,7 @@ public static class NpgsqlDbContextOptionsBuilderExtensions
     /// </returns>
     public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
         this DbContextOptionsBuilder<TContext> optionsBuilder,
-        string connectionString,
+        string? connectionString,
         Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
         where TContext : DbContext
         => (DbContextOptionsBuilder<TContext>)UseNpgsql(

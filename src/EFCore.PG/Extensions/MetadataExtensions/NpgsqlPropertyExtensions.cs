@@ -259,37 +259,78 @@ public static class NpgsqlPropertyExtensions
         in StoreObjectIdentifier storeObject,
         ITypeMappingSource? typeMappingSource)
     {
-        if (property[NpgsqlAnnotationNames.ValueGenerationStrategy] is { } annotation)
+        var @override = property.FindOverrides(storeObject)?.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy);
+        if (@override != null)
         {
-            return (NpgsqlValueGenerationStrategy)annotation;
+            return (NpgsqlValueGenerationStrategy?)@override.Value ?? NpgsqlValueGenerationStrategy.None;
         }
 
-        if (property.FindSharedStoreObjectRootProperty(storeObject) is { } sharedTableRootProperty)
+        var annotation = property.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy);
+        if (annotation?.Value != null
+            && StoreObjectIdentifier.Create(property.DeclaringEntityType, storeObject.StoreObjectType) == storeObject)
         {
-            return sharedTableRootProperty.GetValueGenerationStrategy(storeObject) is var valueGenerationStrategy &&
-                valueGenerationStrategy switch
-                {
-                    NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => true,
-                    NpgsqlValueGenerationStrategy.IdentityAlwaysColumn    => true,
-                    NpgsqlValueGenerationStrategy.SerialColumn            => true,
-                    _                                                     => false
-                }
-                && !property.GetContainingForeignKeys().Any(fk => !fk.IsBaseLinking())
-                    ? valueGenerationStrategy
+            return (NpgsqlValueGenerationStrategy)annotation.Value;
+        }
+
+        var table = storeObject;
+        var sharedTableRootProperty = property.FindSharedStoreObjectRootProperty(storeObject);
+        if (sharedTableRootProperty != null)
+        {
+            return sharedTableRootProperty.GetValueGenerationStrategy(storeObject, typeMappingSource) is var npgsqlValueGenerationStrategy
+                && npgsqlValueGenerationStrategy is
+                    NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
+                    or NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
+                    or NpgsqlValueGenerationStrategy.SerialColumn
+                && table.StoreObjectType == StoreObjectType.Table
+                && !property.GetContainingForeignKeys().Any(
+                    fk =>
+                        !fk.IsBaseLinking()
+                        || (StoreObjectIdentifier.Create(fk.PrincipalEntityType, StoreObjectType.Table)
+                                is StoreObjectIdentifier principal
+                            && fk.GetConstraintName(table, principal) != null))
+                    ? npgsqlValueGenerationStrategy
                     : NpgsqlValueGenerationStrategy.None;
         }
 
         if (property.ValueGenerated != ValueGenerated.OnAdd
-            || property.GetContainingForeignKeys().Any(fk => !fk.IsBaseLinking())
+            || table.StoreObjectType != StoreObjectType.Table
             || property.TryGetDefaultValue(storeObject, out _)
-            || property.GetDefaultValueSql() is not null
-            || property.GetComputedColumnSql() is not null)
+            || property.GetDefaultValueSql(storeObject) != null
+            || property.GetComputedColumnSql(storeObject) != null
+            || property.GetContainingForeignKeys()
+                .Any(fk =>
+                    !fk.IsBaseLinking()
+                    || (StoreObjectIdentifier.Create(fk.PrincipalEntityType, StoreObjectType.Table)
+                        is StoreObjectIdentifier principal
+                        && fk.GetConstraintName(table, principal) != null)))
         {
             return NpgsqlValueGenerationStrategy.None;
         }
 
-        return GetDefaultValueGenerationStrategy(property, storeObject, typeMappingSource);
+        var defaultStrategy = GetDefaultValueGenerationStrategy(property, storeObject, typeMappingSource);
+        if (defaultStrategy != NpgsqlValueGenerationStrategy.None)
+        {
+            if (annotation != null)
+            {
+                return (NpgsqlValueGenerationStrategy?)annotation.Value ?? NpgsqlValueGenerationStrategy.None;
+            }
+        }
+
+        return defaultStrategy;
     }
+
+    /// <summary>
+    ///     Returns the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property.
+    /// </summary>
+    /// <remarks>
+    ///     If no strategy is set for the property, then the strategy to use will be taken from the <see cref="IModel" />.
+    /// </remarks>
+    /// <param name="overrides">The property overrides.</param>
+    /// <returns>The strategy, or <see cref="NpgsqlValueGenerationStrategy.None" /> if none was set.</returns>
+    public static NpgsqlValueGenerationStrategy? GetValueGenerationStrategy(
+        this IReadOnlyRelationalPropertyOverrides overrides)
+        => (NpgsqlValueGenerationStrategy?)overrides.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy)
+            ?.Value;
 
     private static NpgsqlValueGenerationStrategy GetDefaultValueGenerationStrategy(IReadOnlyProperty property)
     {
@@ -356,13 +397,77 @@ public static class NpgsqlPropertyExtensions
     /// <param name="value">The strategy to use.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     public static NpgsqlValueGenerationStrategy? SetValueGenerationStrategy(
-        this IConventionProperty property, NpgsqlValueGenerationStrategy? value, bool fromDataAnnotation = false)
+        this IConventionProperty property,
+        NpgsqlValueGenerationStrategy? value,
+        bool fromDataAnnotation = false)
     {
         CheckValueGenerationStrategy(property, value);
 
-        property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value, fromDataAnnotation);
+        return (NpgsqlValueGenerationStrategy?)property.SetOrRemoveAnnotation(
+                NpgsqlAnnotationNames.ValueGenerationStrategy, value, fromDataAnnotation)
+            ?.Value;
+    }
 
-        return value;
+    /// <summary>
+    ///     Sets the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property for a particular table.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <param name="value">The strategy to use.</param>
+    /// <param name="storeObject">The identifier of the table containing the column.</param>
+    public static void SetValueGenerationStrategy(
+        this IMutableProperty property,
+        NpgsqlValueGenerationStrategy? value,
+        in StoreObjectIdentifier storeObject)
+        => property.GetOrCreateOverrides(storeObject)
+            .SetValueGenerationStrategy(value);
+
+        /// <summary>
+    ///     Sets the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property for a particular table.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <param name="value">The strategy to use.</param>
+    /// <param name="storeObject">The identifier of the table containing the column.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <returns>The configured value.</returns>
+    public static NpgsqlValueGenerationStrategy? SetValueGenerationStrategy(
+        this IConventionProperty property,
+        NpgsqlValueGenerationStrategy? value,
+        in StoreObjectIdentifier storeObject,
+        bool fromDataAnnotation = false)
+        => property.GetOrCreateOverrides(storeObject, fromDataAnnotation)
+            .SetValueGenerationStrategy(value, fromDataAnnotation);
+
+    /// <summary>
+    ///     Sets the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property for a particular table.
+    /// </summary>
+    /// <param name="overrides">The property overrides.</param>
+    /// <param name="value">The strategy to use.</param>
+    public static void SetValueGenerationStrategy(
+        this IMutableRelationalPropertyOverrides overrides,
+        NpgsqlValueGenerationStrategy? value)
+    {
+        CheckValueGenerationStrategy(overrides.Property, value);
+
+        overrides.SetOrRemoveAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value);
+    }
+
+    /// <summary>
+    ///     Sets the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property for a particular table.
+    /// </summary>
+    /// <param name="overrides">The property overrides.</param>
+    /// <param name="value">The strategy to use.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <returns>The configured value.</returns>
+    public static NpgsqlValueGenerationStrategy? SetValueGenerationStrategy(
+        this IConventionRelationalPropertyOverrides overrides,
+        NpgsqlValueGenerationStrategy? value,
+        bool fromDataAnnotation = false)
+    {
+        CheckValueGenerationStrategy(overrides.Property, value);
+
+        return (NpgsqlValueGenerationStrategy?)overrides.SetOrRemoveAnnotation(
+                NpgsqlAnnotationNames.ValueGenerationStrategy, value, fromDataAnnotation)
+            ?.Value;
     }
 
     private static void CheckValueGenerationStrategy(IReadOnlyProperty property, NpgsqlValueGenerationStrategy? value)
@@ -397,6 +502,26 @@ public static class NpgsqlPropertyExtensions
     public static ConfigurationSource? GetValueGenerationStrategyConfigurationSource(
         this IConventionProperty property)
         => property.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy)?.GetConfigurationSource();
+
+    /// <summary>
+    ///     Returns the <see cref="ConfigurationSource" /> for the <see cref="NpgsqlValueGenerationStrategy" /> for a particular table.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <param name="storeObject">The identifier of the table containing the column.</param>
+    /// <returns>The <see cref="ConfigurationSource" /> for the <see cref="NpgsqlValueGenerationStrategy" />.</returns>
+    public static ConfigurationSource? GetValueGenerationStrategyConfigurationSource(
+        this IConventionProperty property,
+        in StoreObjectIdentifier storeObject)
+        => property.FindOverrides(storeObject)?.GetValueGenerationStrategyConfigurationSource();
+
+    /// <summary>
+    ///     Returns the <see cref="ConfigurationSource" /> for the <see cref="NpgsqlValueGenerationStrategy" /> for a particular table.
+    /// </summary>
+    /// <param name="overrides">The property overrides.</param>
+    /// <returns>The <see cref="ConfigurationSource" /> for the <see cref="NpgsqlValueGenerationStrategy" />.</returns>
+    public static ConfigurationSource? GetValueGenerationStrategyConfigurationSource(
+        this IConventionRelationalPropertyOverrides overrides)
+        => overrides.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy)?.GetConfigurationSource();
 
     /// <summary>
     /// Returns a value indicating whether the property is compatible with any <see cref="NpgsqlValueGenerationStrategy" />.

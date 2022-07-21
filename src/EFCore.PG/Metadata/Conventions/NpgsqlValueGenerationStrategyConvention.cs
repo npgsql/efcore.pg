@@ -43,26 +43,24 @@ public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConventi
             foreach (var property in entityType.GetDeclaredProperties())
             {
                 NpgsqlValueGenerationStrategy? strategy = null;
-                var table = entityType.GetTableName();
-                if (table is not null)
+                var declaringTable = property.GetMappedStoreObjects(StoreObjectType.Table).FirstOrDefault();
+                if (declaringTable.Name != null!)
                 {
-                    var storeObject = StoreObjectIdentifier.Table(table, entityType.GetSchema());
-                    strategy = property.GetValueGenerationStrategy(storeObject, Dependencies.TypeMappingSource);
+                    strategy = property.GetValueGenerationStrategy(declaringTable, Dependencies.TypeMappingSource);
                     if (strategy == NpgsqlValueGenerationStrategy.None
-                        && !IsStrategyNoneNeeded(property, storeObject))
+                        && !IsStrategyNoneNeeded(property, declaringTable))
                     {
                         strategy = null;
                     }
                 }
                 else
                 {
-                    var view = entityType.GetViewName();
-                    if (view is not null)
+                    var declaringView = property.GetMappedStoreObjects(StoreObjectType.View).FirstOrDefault();
+                    if (declaringView.Name != null!)
                     {
-                        var storeObject = StoreObjectIdentifier.View(view, entityType.GetViewSchema());
-                        strategy = property.GetValueGenerationStrategy(storeObject, Dependencies.TypeMappingSource);
+                        strategy = property.GetValueGenerationStrategy(declaringView, Dependencies.TypeMappingSource);
                         if (strategy == NpgsqlValueGenerationStrategy.None
-                            && !IsStrategyNoneNeeded(property, storeObject))
+                            && !IsStrategyNoneNeeded(property, declaringView))
                         {
                             strategy = null;
                         }

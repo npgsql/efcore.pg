@@ -38,15 +38,17 @@ public class NpgsqlDbContextOptionsExtensionsTest
         Assert.Null(extension.Connection);
     }
 
-    [ConditionalFact]
-    public void Can_add_extension_with_connection_string_using_generic_options()
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Can_add_extension_with_connection_string_using_generic_options(bool nullConnectionString)
     {
         var optionsBuilder = new DbContextOptionsBuilder<DbContext>();
-        optionsBuilder.UseNpgsql("Database=Whisper");
+        optionsBuilder.UseNpgsql(nullConnectionString ? null : "Database=Whisper");
 
         var extension = optionsBuilder.Options.Extensions.OfType<NpgsqlOptionsExtension>().Single();
 
-        Assert.Equal("Database=Whisper", extension.ConnectionString);
+        Assert.Equal(nullConnectionString ? null : "Database=Whisper", extension.ConnectionString);
         Assert.Null(extension.Connection);
     }
 
@@ -78,16 +80,18 @@ public class NpgsqlDbContextOptionsExtensionsTest
         Assert.Null(extension.ConnectionString);
     }
 
-    [ConditionalFact]
-    public void Service_collection_extension_method_can_configure_npgsql_options()
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Service_collection_extension_method_can_configure_sqlserver_options(bool nullConnectionString)
     {
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddNpgsql<ApplicationDbContext>(
-            "Database=Crunchie",
-            NpgsqlOption =>
+            nullConnectionString ? null : "Database=Crunchie",
+            npgsqlOption =>
             {
-                NpgsqlOption.MaxBatchSize(123);
-                NpgsqlOption.CommandTimeout(30);
+                npgsqlOption.MaxBatchSize(123);
+                npgsqlOption.CommandTimeout(30);
             },
             dbContextOption =>
             {
@@ -103,10 +107,10 @@ public class NpgsqlDbContextOptionsExtensionsTest
             var coreOptions = serviceScope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>().GetExtension<CoreOptionsExtension>();
             Assert.True(coreOptions.DetailedErrorsEnabled);
 
-            var NpgsqlOptions = serviceScope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>().GetExtension<NpgsqlOptionsExtension>();
-            Assert.Equal(123, NpgsqlOptions.MaxBatchSize);
-            Assert.Equal(30, NpgsqlOptions.CommandTimeout);
-            Assert.Equal("Database=Crunchie", NpgsqlOptions.ConnectionString);
+            var npgsqlOptions = serviceScope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>().GetExtension<NpgsqlOptionsExtension>();
+            Assert.Equal(123, npgsqlOptions.MaxBatchSize);
+            Assert.Equal(30, npgsqlOptions.CommandTimeout);
+            Assert.Equal(nullConnectionString ? null : "Database=Crunchie", npgsqlOptions.ConnectionString);
         }
     }
 

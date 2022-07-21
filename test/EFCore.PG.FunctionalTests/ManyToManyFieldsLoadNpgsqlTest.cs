@@ -1,22 +1,23 @@
-using Microsoft.EntityFrameworkCore.TestModels.ManyToManyModel;
+using Microsoft.EntityFrameworkCore.TestModels.ManyToManyFieldsModel;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public abstract class ManyToManyTrackingNpgsqlTestBase<TFixture> : ManyToManyTrackingTestBase<TFixture>
-    where TFixture : ManyToManyTrackingTestBase<TFixture>.ManyToManyTrackingFixtureBase
+public class ManyToManyFieldsLoadNpgsqlTest
+    : ManyToManyFieldsLoadTestBase<ManyToManyFieldsLoadNpgsqlTest.ManyToManyFieldsLoadNpgsqlFixture>
 {
-    protected ManyToManyTrackingNpgsqlTestBase(TFixture fixture)
+    public ManyToManyFieldsLoadNpgsqlTest(ManyToManyFieldsLoadNpgsqlFixture fixture)
         : base(fixture)
     {
     }
 
-    protected override void UseTransaction(DatabaseFacade facade, IDbContextTransaction transaction)
-        => facade.UseTransaction(transaction.GetDbTransaction());
-
-    public class ManyToManyTrackingNpgsqlFixtureBase : ManyToManyTrackingFixtureBase
+    public class ManyToManyFieldsLoadNpgsqlFixture : ManyToManyFieldsLoadFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {
@@ -32,7 +33,7 @@ public abstract class ManyToManyTrackingNpgsqlTestBase<TFixture> : ManyToManyTra
                 .Entity<JoinOneSelfPayload>()
                 .Property(e => e.Payload)
                 .HasColumnType("timestamp without time zone")
-                .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             modelBuilder
                 .SharedTypeEntity<Dictionary<string, object>>("JoinOneToThreePayloadFullShared")

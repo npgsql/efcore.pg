@@ -32,6 +32,18 @@ public class ManyToManyLoadNpgsqlTest : ManyToManyLoadTestBase<ManyToManyLoadNpg
                 .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
 
             modelBuilder
+                .Entity<UnidirectionalEntityCompositeKey>()
+                .Property(e => e.Key3)
+                .HasColumnType("timestamp without time zone")
+                .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+
+            modelBuilder
+                .Entity<UnidirectionalJoinOneSelfPayload>()
+                .Property(e => e.Payload)
+                .HasColumnType("timestamp without time zone")
+                .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+
+            modelBuilder
                 .SharedTypeEntity<Dictionary<string, object>>("JoinOneToThreePayloadFullShared")
                 .IndexerProperty<string>("Payload")
                 .HasDefaultValue("Generated");
