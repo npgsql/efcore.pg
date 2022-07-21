@@ -2077,7 +2077,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             var @operator = i < operators?.Length ? operators[i] : null;
             var collation = i < collations?.Length ? collations[i] : null;
             var isColumnDescending = isDescendingValues is not null
-                ? isDescendingValues[i]
+                ? isDescendingValues.Length == 0 || isDescendingValues[i]
                 : i < legacySortOrders?.Length && legacySortOrders[i] == SortOrder.Descending;
             var nullSortOrder = i < nullSortOrders?.Length ? nullSortOrders[i] : NullSortOrder.Unspecified;
 
