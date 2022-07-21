@@ -2,7 +2,7 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-public class NpgsqlTestHelpers : TestHelpers
+public class NpgsqlTestHelpers : RelationalTestHelpers
 {
     protected NpgsqlTestHelpers() {}
 

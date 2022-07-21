@@ -2913,9 +2913,14 @@ END $EF$;",
 
     public class MigrationsNpgsqlFixture : MigrationsFixtureBase
     {
-        protected override string StoreName => nameof(MigrationsNpgsqlTest);
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-        public override TestHelpers TestHelpers => NpgsqlTestHelpers.Instance;
+        protected override string StoreName
+            => nameof(MigrationsNpgsqlTest);
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
+        public override RelationalTestHelpers TestHelpers
+            => NpgsqlTestHelpers.Instance;
 
         protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
             => base.AddServices(serviceCollection)
