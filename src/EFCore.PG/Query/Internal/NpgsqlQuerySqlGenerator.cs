@@ -44,6 +44,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             PostgresAnyExpression anyExpression                     => VisitArrayAny(anyExpression),
             PostgresArrayIndexExpression arrayIndexExpression       => VisitArrayIndex(arrayIndexExpression),
             PostgresBinaryExpression binaryExpression               => VisitPostgresBinary(binaryExpression),
+            PostgresDeleteExpression deleteExpression               => VisitPostgresDelete(deleteExpression),
             PostgresFunctionExpression functionExpression           => VisitPostgresFunction(functionExpression),
             PostgresILikeExpression iLikeExpression                 => VisitILike(iLikeExpression),
             PostgresJsonTraversalExpression jsonTraversalExpression => VisitJsonPathTraversal(jsonTraversalExpression),
@@ -204,6 +205,45 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             default:
                 return base.VisitSqlBinary(binary);
         }
+    }
+
+    protected override void GenerateRootCommand(Expression rootExpression)
+    {
+        switch (rootExpression)
+        {
+            case PostgresDeleteExpression pgDeleteExpression:
+                VisitPostgresDelete(pgDeleteExpression);
+                return;
+
+            default:
+                base.GenerateRootCommand(rootExpression);
+                return;
+        }
+    }
+
+    // NonQueryConvertingExpressionVisitor converts the relational DeleteExpression to PostgresDeleteExpression, so we should never
+    // get here
+    protected override Expression VisitDelete(DeleteExpression deleteExpression)
+        => throw new InvalidOperationException("Inconceivable!");
+
+    protected virtual Expression VisitPostgresDelete(PostgresDeleteExpression pgDeleteExpression)
+    {
+        Sql.Append("DELETE FROM ");
+        Visit(pgDeleteExpression.Table);
+
+        if (pgDeleteExpression.FromItems.Count > 0)
+        {
+            Sql.AppendLine().Append("USING ");
+            GenerateList(pgDeleteExpression.FromItems, t => Visit(t), sql => sql.Append(", "));
+        }
+
+        if (pgDeleteExpression.Predicate != null)
+        {
+            Sql.AppendLine().Append("WHERE ");
+            Visit(pgDeleteExpression.Predicate);
+        }
+
+        return pgDeleteExpression;
     }
 
     protected virtual Expression VisitPostgresNewArray(PostgresNewArrayExpression postgresNewArrayExpression)
@@ -769,4 +809,22 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
     private static bool RequiresBrackets(SqlExpression expression)
         => expression is SqlBinaryExpression || expression is LikeExpression || expression is PostgresBinaryExpression;
+
+    private void GenerateList<T>(
+        IReadOnlyList<T> items,
+        Action<T> generationAction,
+        Action<IRelationalCommandBuilder>? joinAction = null)
+    {
+        joinAction ??= (isb => isb.Append(", "));
+
+        for (var i = 0; i < items.Count; i++)
+        {
+            if (i > 0)
+            {
+                joinAction(Sql);
+            }
+
+            generationAction(items[i]);
+        }
+    }
 }

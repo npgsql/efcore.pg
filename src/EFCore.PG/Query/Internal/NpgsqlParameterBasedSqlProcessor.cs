@@ -9,6 +9,18 @@ public class NpgsqlParameterBasedSqlProcessor : RelationalParameterBasedSqlProce
     {
     }
 
+    public override Expression Optimize(
+        Expression queryExpression,
+        IReadOnlyDictionary<string, object?> parametersValues,
+        out bool canCache)
+    {
+        queryExpression = base.Optimize(queryExpression, parametersValues, out canCache);
+
+        queryExpression = new NonQueryConvertingExpressionVisitor().Process(queryExpression);
+
+        return queryExpression;
+    }
+
     /// <inheritdoc />
     protected override Expression ProcessSqlNullability(
         Expression selectExpression, IReadOnlyDictionary<string, object?> parametersValues, out bool canCache)
