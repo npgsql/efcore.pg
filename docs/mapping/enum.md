@@ -81,7 +81,7 @@ using (var ctx = new MyDbContext())
 The Npgsql provider only allow adding new values to existing enums, and the appropriate migrations will be automatically created as you add values to your CLR enum type. However, PostgreSQL itself doesn't support removing enum values (since these may be in use), and while renaming values is supported, it isn't automatically done by the provider to avoid using unreliable detection heuristics. Renaming an enum value can be done by including [raw SQL](https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/managing?tabs=dotnet-core-cli#arbitrary-changes-via-raw-sql) in your migrations as follows:
 
 ```c#
-migrationBuilder.Sql(@"ALTER TYPE mood RENAME VALUE happy TO thrilled;");
+migrationBuilder.Sql(@"ALTER TYPE mood RENAME VALUE 'happy' TO 'thrilled';");
 ```
   
 As always, test your migrations carefully before running them on production databases.
