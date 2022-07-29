@@ -55,8 +55,9 @@ public class NpgsqlStoreGenerationConvention : StoreGenerationConvention
 
                 break;
             case RelationalAnnotationNames.DefaultValueSql:
-                if (propertyBuilder.HasValueGenerationStrategy(null, fromDataAnnotation) is null
-                    && propertyBuilder.HasDefaultValueSql(null, fromDataAnnotation) is not null)
+                if (propertyBuilder.Metadata.GetValueGenerationStrategy() != NpgsqlValueGenerationStrategy.Sequence
+                    && propertyBuilder.HasValueGenerationStrategy(null, fromDataAnnotation) == null
+                    && propertyBuilder.HasDefaultValueSql(null, fromDataAnnotation) != null)
                 {
                     context.StopProcessing();
                     return;
@@ -73,10 +74,13 @@ public class NpgsqlStoreGenerationConvention : StoreGenerationConvention
 
                 break;
             case NpgsqlAnnotationNames.ValueGenerationStrategy:
-                if ((propertyBuilder.HasDefaultValue(null, fromDataAnnotation) is null
-                        | propertyBuilder.HasDefaultValueSql(null, fromDataAnnotation) is null
-                        | propertyBuilder.HasComputedColumnSql(null, fromDataAnnotation) is null)
-                    && propertyBuilder.HasValueGenerationStrategy(null, fromDataAnnotation) is not null)
+                if (((propertyBuilder.Metadata.GetValueGenerationStrategy() != NpgsqlValueGenerationStrategy.Sequence
+                            && (propertyBuilder.HasDefaultValue(null, fromDataAnnotation) == null
+                                || propertyBuilder.HasDefaultValueSql(null, fromDataAnnotation) == null
+                                || propertyBuilder.HasComputedColumnSql(null, fromDataAnnotation) == null))
+                        || (propertyBuilder.HasDefaultValue(null, fromDataAnnotation) == null
+                            || propertyBuilder.HasComputedColumnSql(null, fromDataAnnotation) == null))
+                    && propertyBuilder.HasValueGenerationStrategy(null, fromDataAnnotation) != null)
                 {
                     context.StopProcessing();
                     return;

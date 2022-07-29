@@ -60,16 +60,15 @@ public class NpgsqlValueGenerationConvention : RelationalValueGenerationConventi
     /// <returns>The store value generation strategy to set for the given property.</returns>
     protected override ValueGenerated? GetValueGenerated(IConventionProperty property)
     {
-        var tableName = property.DeclaringEntityType.GetTableName();
-        if (tableName is null)
+        var declaringTable = property.GetMappedStoreObjects(StoreObjectType.Table).FirstOrDefault();
+        if (declaringTable.Name == null)
         {
             return null;
         }
 
-        return GetValueGenerated(
-            property,
-            StoreObjectIdentifier.Table(tableName, property.DeclaringEntityType.GetSchema()),
-            Dependencies.TypeMappingSource);
+        // If the first mapping can be value generated then we'll consider all mappings to be value generated
+        // as this is a client-side configuration and can't be specified per-table.
+        return GetValueGenerated(property, declaringTable, Dependencies.TypeMappingSource);
     }
 
     /// <summary>
@@ -78,7 +77,7 @@ public class NpgsqlValueGenerationConvention : RelationalValueGenerationConventi
     /// <param name="property"> The property. </param>
     /// <param name="storeObject"> The identifier of the store object. </param>
     /// <returns>The store value generation strategy to set for the given property.</returns>
-    public new static ValueGenerated? GetValueGenerated(IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+    public static new ValueGenerated? GetValueGenerated(IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
         => RelationalValueGenerationConvention.GetValueGenerated(property, storeObject)
             ?? (property.GetValueGenerationStrategy(storeObject) != NpgsqlValueGenerationStrategy.None
                 ? ValueGenerated.OnAdd

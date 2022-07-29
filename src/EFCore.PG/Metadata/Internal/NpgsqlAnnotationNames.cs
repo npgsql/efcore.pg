@@ -19,6 +19,9 @@ public static class NpgsqlAnnotationNames
     public const string TsVectorProperties = Prefix + "TsVectorProperties";
     public const string UnloggedTable = Prefix + "UnloggedTable";
     public const string ValueGenerationStrategy = Prefix + "ValueGenerationStrategy";
+    public const string SequenceNameSuffix = Prefix + "SequenceNameSuffix";
+    public const string SequenceName = Prefix + "SequenceName";
+    public const string SequenceSchema = Prefix + "SequenceSchema";
 
     public const string CollationDefinitionPrefix = Prefix + "CollationDefinition:";
     public const string EnumPrefix = Prefix + "Enum:";

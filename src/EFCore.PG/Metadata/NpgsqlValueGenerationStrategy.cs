@@ -39,6 +39,11 @@ public enum NpgsqlValueGenerationStrategy
     /// <para>Available only starting PostgreSQL 10.</para>
     /// </summary>
     IdentityByDefaultColumn,
+
+    /// <summary>
+    /// A pattern that uses a database sequence to generate values for the column.
+    /// </summary>
+    Sequence
 }
 
 public static class NpgsqlValueGenerationStrategyExtensions

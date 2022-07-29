@@ -100,9 +100,9 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
         return ResultSetMapping.NoResultSet;
     }
 
-    public override void AppendNextSequenceValueOperation(StringBuilder commandStringBuilder, string name, string? schema)
+    public override void AppendObtainNextSequenceValueOperation(StringBuilder commandStringBuilder, string name, string? schema)
     {
-        commandStringBuilder.Append("SELECT nextval('");
+        commandStringBuilder.Append("nextval('");
         SqlGenerationHelper.DelimitIdentifier(commandStringBuilder, Check.NotNull(name, nameof(name)), schema);
         commandStringBuilder.Append("')");
     }
