@@ -38,6 +38,8 @@ public static class NpgsqlModelBuilderExtensions
         model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
         model.SetHiLoSequenceName(name);
         model.SetHiLoSequenceSchema(schema);
+        model.SetSequenceNameSuffix(null);
+        model.SetSequenceSchema(null);
 
         return modelBuilder;
     }
@@ -138,11 +140,13 @@ public static class NpgsqlModelBuilderExtensions
     {
         Check.NotNull(modelBuilder, nameof(modelBuilder));
 
-        var property = modelBuilder.Model;
+        var model = modelBuilder.Model;
 
-        property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
-        property.SetHiLoSequenceName(null);
-        property.SetHiLoSequenceSchema(null);
+        model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
+        model.SetSequenceNameSuffix(null);
+        model.SetSequenceSchema(null);
+        model.SetHiLoSequenceName(null);
+        model.SetHiLoSequenceSchema(null);
 
         return modelBuilder;
     }
@@ -164,11 +168,13 @@ public static class NpgsqlModelBuilderExtensions
     {
         Check.NotNull(modelBuilder, nameof(modelBuilder));
 
-        var property = modelBuilder.Model;
+        var model = modelBuilder.Model;
 
-        property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-        property.SetHiLoSequenceName(null);
-        property.SetHiLoSequenceSchema(null);
+        model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+        model.SetSequenceNameSuffix(null);
+        model.SetSequenceSchema(null);
+        model.SetHiLoSequenceName(null);
+        model.SetHiLoSequenceSchema(null);
 
         return modelBuilder;
     }
@@ -203,13 +209,23 @@ public static class NpgsqlModelBuilderExtensions
         NpgsqlValueGenerationStrategy? valueGenerationStrategy,
         bool fromDataAnnotation = false)
     {
-        if (modelBuilder.CanSetAnnotation(
-                NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy, fromDataAnnotation))
+        if (modelBuilder.CanSetValueGenerationStrategy(valueGenerationStrategy, fromDataAnnotation))
         {
             modelBuilder.Metadata.SetValueGenerationStrategy(valueGenerationStrategy, fromDataAnnotation);
+
             if (valueGenerationStrategy != NpgsqlValueGenerationStrategy.SequenceHiLo)
             {
                 modelBuilder.HasHiLoSequence(null, null, fromDataAnnotation);
+            }
+
+            if (valueGenerationStrategy != NpgsqlValueGenerationStrategy.Sequence)
+            {
+                if (modelBuilder.CanSetAnnotation(NpgsqlAnnotationNames.SequenceNameSuffix, null)
+                    && modelBuilder.CanSetAnnotation(NpgsqlAnnotationNames.SequenceSchema, null))
+                {
+                    modelBuilder.Metadata.SetSequenceNameSuffix(null, fromDataAnnotation);
+                    modelBuilder.Metadata.SetSequenceSchema(null, fromDataAnnotation);
+                }
             }
 
             return modelBuilder;
@@ -237,6 +253,39 @@ public static class NpgsqlModelBuilderExtensions
     }
 
     #endregion Identity
+
+    #region Sequence
+
+    /// <summary>
+    ///     Configures the model to use a sequence per hierarchy to generate values for key properties marked as
+    ///     <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL.
+    /// </summary>
+    /// <param name="modelBuilder">The model builder.</param>
+    /// <param name="nameSuffix">The name that will suffix the table name for each sequence created automatically.</param>
+    /// <param name="schema">The schema of the sequence.</param>
+    /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+    public static ModelBuilder UseKeySequences(
+        this ModelBuilder modelBuilder,
+        string? nameSuffix = null,
+        string? schema = null)
+    {
+        Check.NullButNotEmpty(nameSuffix, nameof(nameSuffix));
+        Check.NullButNotEmpty(schema, nameof(schema));
+
+        var model = modelBuilder.Model;
+
+        nameSuffix ??= NpgsqlModelExtensions.DefaultSequenceNameSuffix;
+
+        model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.Sequence);
+        model.SetSequenceNameSuffix(nameSuffix);
+        model.SetSequenceSchema(schema);
+        model.SetHiLoSequenceName(null);
+        model.SetHiLoSequenceSchema(null);
+
+        return modelBuilder;
+    }
+
+    #endregion Sequence
 
     #region Extensions
 

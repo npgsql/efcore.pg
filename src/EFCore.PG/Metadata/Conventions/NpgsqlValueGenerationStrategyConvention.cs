@@ -13,12 +13,15 @@ public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConventi
     /// Creates a new instance of <see cref="NpgsqlValueGenerationStrategyConvention" />.
     /// </summary>
     /// <param name="dependencies">Parameter object containing dependencies for this convention.</param>
+    /// <param name="relationalDependencies"> Parameter object containing relational dependencies for this convention.</param>
     /// <param name="postgresVersion">The PostgreSQL version being targeted. This affects the default value generation strategy.</param>
     public NpgsqlValueGenerationStrategyConvention(
         ProviderConventionSetBuilderDependencies dependencies,
+        RelationalConventionSetBuilderDependencies relationalDependencies,
         Version? postgresVersion)
     {
         Dependencies = dependencies;
+        RelationalDependencies = relationalDependencies;
         _postgresVersion = postgresVersion;
     }
 
@@ -26,6 +29,11 @@ public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConventi
     /// Parameter object containing service dependencies.
     /// </summary>
     protected virtual ProviderConventionSetBuilderDependencies Dependencies { get; }
+
+    /// <summary>
+    ///     Relational provider-specific dependencies for this service.
+    /// </summary>
+    protected virtual RelationalConventionSetBuilderDependencies RelationalDependencies { get; }
 
     /// <inheritdoc />
     public virtual void ProcessModelInitialized(IConventionModelBuilder modelBuilder, IConventionContext<IConventionModelBuilder> context)
@@ -68,9 +76,23 @@ public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConventi
                 }
 
                 // Needed for the annotation to show up in the model snapshot
-                if (strategy is not null)
+                if (strategy != null
+                    && declaringTable.Name != null)
                 {
                     property.Builder.HasValueGenerationStrategy(strategy);
+
+                    if (strategy == NpgsqlValueGenerationStrategy.Sequence)
+                    {
+                        var sequence = modelBuilder.HasSequence(
+                            property.GetSequenceName(declaringTable)
+                            ?? entityType.GetRootType().ShortName() + modelBuilder.Metadata.GetSequenceNameSuffix(),
+                            property.GetSequenceSchema(declaringTable)
+                            ?? modelBuilder.Metadata.GetSequenceSchema()).Metadata;
+
+                        property.Builder.HasDefaultValueSql(
+                            RelationalDependencies.UpdateSqlGenerator.GenerateObtainNextSequenceValueOperation(
+                                sequence.Name, sequence.Schema));
+                    }
                 }
             }
         }

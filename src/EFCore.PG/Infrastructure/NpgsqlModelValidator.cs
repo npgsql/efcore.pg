@@ -65,6 +65,23 @@ public class NpgsqlModelValidator : RelationalModelValidator
         }
     }
 
+    protected override void ValidateValueGeneration(
+        IEntityType entityType,
+        IKey key,
+        IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
+    {
+        if (entityType.GetTableName() != null
+            && (string?)entityType[RelationalAnnotationNames.MappingStrategy] == RelationalAnnotationNames.TpcMappingStrategy)
+        {
+            foreach (var storeGeneratedProperty in key.Properties.Where(
+                         p => (p.ValueGenerated & ValueGenerated.OnAdd) != 0
+                             && p.GetValueGenerationStrategy() != NpgsqlValueGenerationStrategy.Sequence))
+            {
+                logger.TpcStoreGeneratedIdentityWarning(storeGeneratedProperty);
+            }
+        }
+    }
+
     protected virtual void ValidateIndexIncludeProperties(IModel model)
     {
         foreach (var index in model.GetEntityTypes().SelectMany(t => t.GetDeclaredIndexes()))

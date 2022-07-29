@@ -211,6 +211,190 @@ public static class NpgsqlPropertyExtensions
 
     #endregion Hi-lo
 
+    #region Sequence
+
+    /// <summary>
+    ///     Returns the name to use for the key value generation sequence.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <returns>The name to use for the key value generation sequence.</returns>
+    public static string? GetSequenceName(this IReadOnlyProperty property)
+        => (string?)property[NpgsqlAnnotationNames.SequenceName];
+
+    /// <summary>
+    ///     Returns the name to use for the key value generation sequence.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <param name="storeObject">The identifier of the store object.</param>
+    /// <returns>The name to use for the key value generation sequence.</returns>
+    public static string? GetSequenceName(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+    {
+        var annotation = property.FindAnnotation(NpgsqlAnnotationNames.SequenceName);
+        if (annotation != null)
+        {
+            return (string?)annotation.Value;
+        }
+
+        return property.FindSharedStoreObjectRootProperty(storeObject)?.GetSequenceName(storeObject);
+    }
+
+    /// <summary>
+    ///     Sets the name to use for the key value generation sequence.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <param name="name">The sequence name to use.</param>
+    public static void SetSequenceName(this IMutableProperty property, string? name)
+        => property.SetOrRemoveAnnotation(
+            NpgsqlAnnotationNames.SequenceName,
+            Check.NullButNotEmpty(name, nameof(name)));
+
+    /// <summary>
+    ///     Sets the name to use for the key value generation sequence.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <param name="name">The sequence name to use.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <returns>The configured value.</returns>
+    public static string? SetSequenceName(
+        this IConventionProperty property,
+        string? name,
+        bool fromDataAnnotation = false)
+    {
+        property.SetOrRemoveAnnotation(
+            NpgsqlAnnotationNames.SequenceName,
+            Check.NullButNotEmpty(name, nameof(name)),
+            fromDataAnnotation);
+
+        return name;
+    }
+
+    /// <summary>
+    ///     Returns the <see cref="ConfigurationSource" /> for the key value generation sequence name.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <returns>The <see cref="ConfigurationSource" /> for the key value generation sequence name.</returns>
+    public static ConfigurationSource? GetSequenceNameConfigurationSource(this IConventionProperty property)
+        => property.FindAnnotation(NpgsqlAnnotationNames.SequenceName)?.GetConfigurationSource();
+
+    /// <summary>
+    ///     Returns the schema to use for the key value generation sequence.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <returns>The schema to use for the key value generation sequence.</returns>
+    public static string? GetSequenceSchema(this IReadOnlyProperty property)
+        => (string?)property[NpgsqlAnnotationNames.SequenceSchema];
+
+    /// <summary>
+    ///     Returns the schema to use for the key value generation sequence.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <param name="storeObject">The identifier of the store object.</param>
+    /// <returns>The schema to use for the key value generation sequence.</returns>
+    public static string? GetSequenceSchema(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+    {
+        var annotation = property.FindAnnotation(NpgsqlAnnotationNames.SequenceSchema);
+        if (annotation != null)
+        {
+            return (string?)annotation.Value;
+        }
+
+        return property.FindSharedStoreObjectRootProperty(storeObject)?.GetSequenceSchema(storeObject);
+    }
+
+    /// <summary>
+    ///     Sets the schema to use for the key value generation sequence.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <param name="schema">The schema to use.</param>
+    public static void SetSequenceSchema(this IMutableProperty property, string? schema)
+        => property.SetOrRemoveAnnotation(
+            NpgsqlAnnotationNames.SequenceSchema,
+            Check.NullButNotEmpty(schema, nameof(schema)));
+
+    /// <summary>
+    ///     Sets the schema to use for the key value generation sequence.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <param name="schema">The schema to use.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <returns>The configured value.</returns>
+    public static string? SetSequenceSchema(
+        this IConventionProperty property,
+        string? schema,
+        bool fromDataAnnotation = false)
+    {
+        property.SetOrRemoveAnnotation(
+            NpgsqlAnnotationNames.SequenceSchema,
+            Check.NullButNotEmpty(schema, nameof(schema)),
+            fromDataAnnotation);
+
+        return schema;
+    }
+
+    /// <summary>
+    ///     Returns the <see cref="ConfigurationSource" /> for the key value generation sequence schema.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <returns>The <see cref="ConfigurationSource" /> for the key value generation sequence schema.</returns>
+    public static ConfigurationSource? GetSequenceSchemaConfigurationSource(this IConventionProperty property)
+        => property.FindAnnotation(NpgsqlAnnotationNames.SequenceSchema)?.GetConfigurationSource();
+
+    /// <summary>
+    ///     Finds the <see cref="ISequence" /> in the model to use for the key value generation pattern.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <returns>The sequence to use, or <see langword="null" /> if no sequence exists in the model.</returns>
+    public static IReadOnlySequence? FindSequence(this IReadOnlyProperty property)
+    {
+        var model = property.DeclaringEntityType.Model;
+
+        var sequenceName = property.GetSequenceName()
+            ?? model.GetSequenceNameSuffix();
+
+        var sequenceSchema = property.GetSequenceSchema()
+            ?? model.GetSequenceSchema();
+
+        return model.FindSequence(sequenceName, sequenceSchema);
+    }
+
+    /// <summary>
+    ///     Finds the <see cref="ISequence" /> in the model to use for the key value generation pattern.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <param name="storeObject">The identifier of the store object.</param>
+    /// <returns>The sequence to use, or <see langword="null" /> if no sequence exists in the model.</returns>
+    public static IReadOnlySequence? FindSequence(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+    {
+        var model = property.DeclaringEntityType.Model;
+
+        var sequenceName = property.GetSequenceName(storeObject)
+            ?? model.GetSequenceNameSuffix();
+
+        var sequenceSchema = property.GetSequenceSchema(storeObject)
+            ?? model.GetSequenceSchema();
+
+        return model.FindSequence(sequenceName, sequenceSchema);
+    }
+
+    /// <summary>
+    ///     Finds the <see cref="ISequence" /> in the model to use for the key value generation pattern.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <returns>The sequence to use, or <see langword="null" /> if no sequence exists in the model.</returns>
+    public static ISequence? FindSequence(this IProperty property)
+        => (ISequence?)((IReadOnlyProperty)property).FindSequence();
+
+    /// <summary>
+    ///     Finds the <see cref="ISequence" /> in the model to use for the key value generation pattern.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <param name="storeObject">The identifier of the store object.</param>
+    /// <returns>The sequence to use, or <see langword="null" /> if no sequence exists in the model.</returns>
+    public static ISequence? FindSequence(this IProperty property, in StoreObjectIdentifier storeObject)
+        => (ISequence?)((IReadOnlyProperty)property).FindSequence(storeObject);
+
+    #endregion Sequence
+
     #region Value generation
 
     /// <summary>
@@ -228,16 +412,17 @@ public static class NpgsqlPropertyExtensions
             return (NpgsqlValueGenerationStrategy?)annotation.Value ?? NpgsqlValueGenerationStrategy.None;
         }
 
+        var defaultValueGenerationStrategy = GetDefaultValueGenerationStrategy(property);
         if (property.ValueGenerated != ValueGenerated.OnAdd
             || property.IsForeignKey()
             || property.TryGetDefaultValue(out _)
-            || property.GetDefaultValueSql() is not null
+            || (defaultValueGenerationStrategy != NpgsqlValueGenerationStrategy.Sequence && property.GetDefaultValueSql() != null)
             || property.GetComputedColumnSql() is not null)
         {
             return NpgsqlValueGenerationStrategy.None;
         }
 
-        return GetDefaultValueGenerationStrategy(property);
+        return defaultValueGenerationStrategy;
     }
 
     /// <summary>
@@ -340,6 +525,7 @@ public static class NpgsqlPropertyExtensions
         {
             case NpgsqlValueGenerationStrategy.SequenceHiLo:
             case NpgsqlValueGenerationStrategy.SerialColumn:
+            case NpgsqlValueGenerationStrategy.Sequence:
             case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
             case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
                 return IsCompatibleWithValueGeneration(property)
@@ -363,15 +549,24 @@ public static class NpgsqlPropertyExtensions
         switch (modelStrategy)
         {
             case NpgsqlValueGenerationStrategy.SequenceHiLo:
-            case NpgsqlValueGenerationStrategy.SerialColumn:
-            case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
-            case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
                 return IsCompatibleWithValueGeneration(property, storeObject, typeMappingSource)
                     ? modelStrategy.Value
                     : NpgsqlValueGenerationStrategy.None;
+
+            case NpgsqlValueGenerationStrategy.SerialColumn:
+            case NpgsqlValueGenerationStrategy.Sequence:
+            case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
+            case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
+                return !IsCompatibleWithValueGeneration(property, storeObject, typeMappingSource)
+                    ? NpgsqlValueGenerationStrategy.None
+                    : property.DeclaringEntityType.GetMappingStrategy() == RelationalAnnotationNames.TpcMappingStrategy
+                        ? NpgsqlValueGenerationStrategy.Sequence
+                        : modelStrategy.Value;
+
             case NpgsqlValueGenerationStrategy.None:
             case null:
                 return NpgsqlValueGenerationStrategy.None;
+
             default:
                 throw new ArgumentOutOfRangeException();
         }

@@ -25,7 +25,8 @@ public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
     {
         var conventionSet = base.CreateConventionSet();
 
-        var valueGenerationStrategyConvention = new NpgsqlValueGenerationStrategyConvention(Dependencies, _postgresVersion);
+        var valueGenerationStrategyConvention =
+            new NpgsqlValueGenerationStrategyConvention(Dependencies, RelationalDependencies, _postgresVersion);
         conventionSet.ModelInitializedConventions.Add(valueGenerationStrategyConvention);
         conventionSet.ModelInitializedConventions.Add(new RelationalMaxIdentifierLengthConvention(63, Dependencies, RelationalDependencies));
 

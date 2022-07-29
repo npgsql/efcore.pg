@@ -44,6 +44,8 @@ public static class NpgsqlPropertyBuilderExtensions
         property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
         property.SetHiLoSequenceName(name);
         property.SetHiLoSequenceSchema(schema);
+        property.SetSequenceName(null);
+        property.SetSequenceSchema(null);
         property.RemoveIdentityOptions();
 
         return propertyBuilder;
@@ -115,6 +117,106 @@ public static class NpgsqlPropertyBuilderExtensions
 
     #endregion HiLo
 
+    #region Sequence
+
+    /// <summary>
+    ///     Configures the key property to use a sequence-based key value generation pattern to generate values for new entities,
+    ///     when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+    /// </summary>
+    /// <param name="propertyBuilder">The builder for the property being configured.</param>
+    /// <param name="name">The name of the sequence.</param>
+    /// <param name="schema">The schema of the sequence.</param>
+    /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+    public static PropertyBuilder UseSequence(
+        this PropertyBuilder propertyBuilder,
+        string? name = null,
+        string? schema = null)
+    {
+        Check.NullButNotEmpty(name, nameof(name));
+        Check.NullButNotEmpty(schema, nameof(schema));
+
+        var property = propertyBuilder.Metadata;
+
+        property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.Sequence);
+        property.SetSequenceName(name);
+        property.SetSequenceSchema(schema);
+        property.SetHiLoSequenceName(null);
+        property.SetHiLoSequenceSchema(null);
+
+        return propertyBuilder;
+    }
+
+    /// <summary>
+    ///     Configures the key property to use a sequence-based key value generation pattern to generate values for new entities,
+    ///     when targeting SQL Server. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+    /// </summary>
+    /// <remarks>
+    ///     See <see href="https://aka.ms/efcore-docs-modeling">Modeling entity types and relationships</see>, and
+    ///     <see href="https://aka.ms/efcore-docs-Npgsql">Accessing SQL Server and SQL Azure databases with EF Core</see>
+    ///     for more information and examples.
+    /// </remarks>
+    /// <typeparam name="TProperty">The type of the property being configured.</typeparam>
+    /// <param name="propertyBuilder">The builder for the property being configured.</param>
+    /// <param name="name">The name of the sequence.</param>
+    /// <param name="schema">The schema of the sequence.</param>
+    /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+    public static PropertyBuilder<TProperty> UseSequence<TProperty>(
+        this PropertyBuilder<TProperty> propertyBuilder,
+        string? name = null,
+        string? schema = null)
+        => (PropertyBuilder<TProperty>)UseSequence((PropertyBuilder)propertyBuilder, name, schema);
+
+    /// <summary>
+    ///     Configures the database sequence used for the key value generation pattern to generate values for the key property,
+    ///     when targeting PostgreSQL.
+    /// </summary>
+    /// <param name="propertyBuilder">The builder for the property being configured.</param>
+    /// <param name="name">The name of the sequence.</param>
+    /// <param name="schema">The schema of the sequence.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <returns>A builder to further configure the sequence.</returns>
+    public static IConventionSequenceBuilder? HasSequence(
+        this IConventionPropertyBuilder propertyBuilder,
+        string? name,
+        string? schema,
+        bool fromDataAnnotation = false)
+    {
+        if (!propertyBuilder.CanSetSequence(name, schema, fromDataAnnotation))
+        {
+            return null;
+        }
+
+        propertyBuilder.Metadata.SetSequenceName(name, fromDataAnnotation);
+        propertyBuilder.Metadata.SetSequenceSchema(schema, fromDataAnnotation);
+
+        return name == null
+            ? null
+            : propertyBuilder.Metadata.DeclaringEntityType.Model.Builder.HasSequence(name, schema, fromDataAnnotation);
+    }
+
+    /// <summary>
+    ///     Returns a value indicating whether the given name and schema can be set for the key value generation sequence.
+    /// </summary>
+    /// <param name="propertyBuilder">The builder for the property being configured.</param>
+    /// <param name="name">The name of the sequence.</param>
+    /// <param name="schema">The schema of the sequence.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <returns><see langword="true" /> if the given name and schema can be set for the key value generation sequence.</returns>
+    public static bool CanSetSequence(
+        this IConventionPropertyBuilder propertyBuilder,
+        string? name,
+        string? schema,
+        bool fromDataAnnotation = false)
+    {
+        Check.NullButNotEmpty(name, nameof(name));
+        Check.NullButNotEmpty(schema, nameof(schema));
+
+        return propertyBuilder.CanSetAnnotation(NpgsqlAnnotationNames.SequenceName, name, fromDataAnnotation)
+            && propertyBuilder.CanSetAnnotation(NpgsqlAnnotationNames.SequenceSchema, schema, fromDataAnnotation);
+    }
+
+    #endregion Sequence
+
     #region Serial
 
     /// <summary>
@@ -133,8 +235,8 @@ public static class NpgsqlPropertyBuilderExtensions
 
         var property = propertyBuilder.Metadata;
         property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn);
-        property.SetHiLoSequenceName(null);
-        property.SetHiLoSequenceSchema(null);
+        property.SetSequenceName(null);
+        property.SetSequenceSchema(null);
         property.RemoveHiLoOptions();
         property.RemoveIdentityOptions();
 
@@ -178,6 +280,8 @@ public static class NpgsqlPropertyBuilderExtensions
         property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
         property.SetHiLoSequenceName(null);
         property.SetHiLoSequenceSchema(null);
+        property.SetSequenceName(null);
+        property.SetSequenceSchema(null);
 
         return propertyBuilder;
     }
@@ -222,6 +326,8 @@ public static class NpgsqlPropertyBuilderExtensions
         property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
         property.SetHiLoSequenceName(null);
         property.SetHiLoSequenceSchema(null);
+        property.SetSequenceName(null);
+        property.SetSequenceSchema(null);
 
         return propertyBuilder;
     }
@@ -303,9 +409,15 @@ public static class NpgsqlPropertyBuilderExtensions
                 NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy, fromDataAnnotation))
         {
             propertyBuilder.Metadata.SetValueGenerationStrategy(valueGenerationStrategy, fromDataAnnotation);
+
             if (valueGenerationStrategy != NpgsqlValueGenerationStrategy.SequenceHiLo)
             {
                 propertyBuilder.HasHiLoSequence(null, null, fromDataAnnotation);
+            }
+
+            if (valueGenerationStrategy != NpgsqlValueGenerationStrategy.Sequence)
+            {
+                propertyBuilder.HasSequence(null, null, fromDataAnnotation);
             }
 
             return propertyBuilder;
