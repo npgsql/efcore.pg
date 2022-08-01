@@ -1001,6 +1001,14 @@ WHERE
     /// </summary>
     private static HashSet<string> GetEnums(NpgsqlConnection connection, DatabaseModel databaseModel)
     {
+        var enums = new HashSet<string>();
+
+        // pg_enum doesn't exist on Redshift
+        if (connection.PostgreSqlVersion < new Version(8, 3))
+        {
+            return enums;
+        }
+
         var commandText = $@"
 SELECT
   nspname,
@@ -1015,7 +1023,6 @@ GROUP BY nspname, typname";
         using var reader = command.ExecuteReader();
 
         // TODO: just return a collection and make this a static utility method.
-        var enums = new HashSet<string>();
         while (reader.Read())
         {
             var schema = reader.GetFieldValue<string?>("nspname");
