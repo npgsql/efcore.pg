@@ -142,6 +142,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
                 property, entityType, propertyType);
 
         /// <summary>
+        ///     The entity type '{entityType}' is mapped to the stored procedure '{sproc}', which is configured with result columns. PostgreSQL stored procedures do not support result columns; use output parameters instead.
+        /// </summary>
+        public static string StoredProcedureResultColumnsNotSupported(object? entityType, object? sproc)
+            => string.Format(
+                GetString("StoredProcedureResultColumnsNotSupported", nameof(entityType), nameof(sproc)),
+                entityType, sproc);
+
+        /// <summary>
+        ///     The entity type '{entityType}' is mapped to the stored procedure '{sproc}', which is configured with result columns. PostgreSQL stored procedures do not support return values; use output parameters instead.
+        /// </summary>
+        public static string StoredProcedureReturnValueNotSupported(object? entityType, object? sproc)
+            => string.Format(
+                GetString("StoredProcedureReturnValueNotSupported", nameof(entityType), nameof(sproc)),
+                entityType, sproc);
+
+        /// <summary>
         ///     An exception has been raised that is likely due to a transient failure. Consider enabling transient error resiliency by adding 'EnableRetryOnFailure()' to the 'UseSqlServer' call.
         /// </summary>
         public static string TransientExceptionDetected
