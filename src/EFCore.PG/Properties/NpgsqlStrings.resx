@@ -232,4 +232,13 @@
   <data name="CannotUseDataSourceWithAuthCallbacks" xml:space="preserve">
     <value>Cannot set ProvideClientCertificatesCallback, RemoteCertificateValidationCallback or ProvidePasswordCallback when a data source is provided.</value>
   </data>
+  <data name="StoredProcedureResultColumnsNotSupported" xml:space="preserve">
+    <value>The entity type '{entityType}' is mapped to the stored procedure '{sproc}', which is configured with result columns. PostgreSQL stored procedures do not support result columns; use output parameters instead.</value>
+  </data>
+  <data name="StoredProcedureReturnValuesNotSupported" xml:space="preserve">
+    <value>The entity type '{entityType}' is mapped to the stored procedure '{sproc}', which is configured with result columns. PostgreSQL stored procedures do not support return values; use output parameters instead.</value>
+  </data>
+  <data name="StoredProcedureReturnValueNotSupported" xml:space="preserve">
+    <value>The entity type '{entityType}' is mapped to the stored procedure '{sproc}', which is configured with result columns. PostgreSQL stored procedures do not support return values; use output parameters instead.</value>
+  </data>
 </root>

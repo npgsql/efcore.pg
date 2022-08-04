@@ -1,3 +1,4 @@
+using System.Data;
 using System.Text;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
@@ -140,6 +141,94 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
         AppendDeleteCommand(commandStringBuilder, name, schema, Array.Empty<IColumnModification>(), conditionOperations);
 
         return ResultSetMapping.NoResults;
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public override ResultSetMapping AppendStoredProcedureCall(
+        StringBuilder commandStringBuilder,
+        IReadOnlyModificationCommand command,
+        int commandPosition,
+        out bool requiresTransaction)
+    {
+        Check.DebugAssert(command.StoreStoredProcedure is not null, "command.StoreStoredProcedure is not null");
+
+        var storedProcedure = command.StoreStoredProcedure;
+
+        Check.DebugAssert(storedProcedure.Parameters.Any() || storedProcedure.ResultColumns.Any(),
+            "Stored procedure call with neither parameters nor result columns");
+
+        var resultSetMapping = ResultSetMapping.NoResults;
+
+        commandStringBuilder.Append("CALL ");
+
+        // PostgreSQL supports neither a return value nor a result set with stored procedures, only output parameters.
+        Check.DebugAssert(storedProcedure.ReturnValue is null, "storedProcedure.Return is null");
+        Check.DebugAssert(!storedProcedure.ResultColumns.Any(), "!storedProcedure.ResultColumns.Any()");
+
+        SqlGenerationHelper.DelimitIdentifier(commandStringBuilder, storedProcedure.Name, storedProcedure.Schema);
+
+        commandStringBuilder.Append('(');
+
+        var first = true;
+
+        // Only positional parameter style supported for now, see https://github.com/dotnet/efcore/issues/28439
+
+        // Note: the column modifications are already ordered according to the sproc parameter ordering
+        // (see ModificationCommand.GenerateColumnModifications)
+        for (var i = 0; i < command.ColumnModifications.Count; i++)
+        {
+            var columnModification = command.ColumnModifications[i];
+            var parameter = (IStoreStoredProcedureParameter)columnModification.Column!;
+
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                commandStringBuilder.Append(", ");
+            }
+
+            Check.DebugAssert(columnModification.UseParameter, "Column modification matched a parameter, but UseParameter is false");
+
+            if (parameter.Direction == ParameterDirection.Output)
+            {
+                // Recommended PG practice is to pass NULL for output parameters
+                commandStringBuilder.Append("NULL");
+            }
+            else
+            {
+                SqlGenerationHelper.GenerateParameterNamePlaceholder(
+                    commandStringBuilder, columnModification.UseOriginalValueParameter
+                        ? columnModification.OriginalParameterName!
+                        : columnModification.ParameterName!);
+            }
+
+            // PostgreSQL stored procedures cannot return a regular result set, and output parameter values are simply sent back as the
+            // result set; this is very different from SQL Server, where output parameter values can be sent back in addition to result
+            // sets.
+            if (parameter.Direction.HasFlag(ParameterDirection.Output))
+            {
+                // The distinction between having only a rows affected output parameter and having other non-rows affected parameters
+                // is important later on (i.e. whether we need to propagate or not).
+                resultSetMapping = parameter == command.RowsAffectedColumn && resultSetMapping == ResultSetMapping.NoResults
+                    ? ResultSetMapping.ResultSetWithRowsAffectedOnly
+                    : ResultSetMapping.LastInResultSet;
+            }
+        }
+
+        commandStringBuilder.Append(')');
+
+        commandStringBuilder.AppendLine(SqlGenerationHelper.StatementTerminator);
+
+        requiresTransaction = true;
+
+        return resultSetMapping;
     }
 
     /// <summary>

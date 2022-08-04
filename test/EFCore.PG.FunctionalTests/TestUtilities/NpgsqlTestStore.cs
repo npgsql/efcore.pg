@@ -78,19 +78,23 @@ public class NpgsqlTestStore : RelationalTestStore
             if (_scriptPath is not null)
             {
                 ExecuteScript(_scriptPath);
+
+                if (_additionalSql is not null)
+                {
+                    Execute(Connection, command => command.ExecuteNonQuery(), _additionalSql);
+                }
             }
             else
             {
-                using (var context = createContext())
-                {
-                    context.Database.EnsureCreatedResiliently();
-                    seed?.Invoke(context);
-                }
-            }
+                using var context = createContext();
+                context.Database.EnsureCreatedResiliently();
 
-            if (_additionalSql is not null)
-            {
-                Execute(Connection, command => command.ExecuteNonQuery(), _additionalSql);
+                if (_additionalSql is not null)
+                {
+                    Execute(Connection, command => command.ExecuteNonQuery(), _additionalSql);
+                }
+
+                seed?.Invoke(context);
             }
         }
     }

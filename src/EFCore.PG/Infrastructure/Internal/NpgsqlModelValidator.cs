@@ -148,6 +148,52 @@ public class NpgsqlModelValidator : RelationalModelValidator
     }
 
     /// <inheritdoc />
+    protected override void ValidateStoredProcedures(
+        IModel model,
+        IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
+    {
+        base.ValidateStoredProcedures(model, logger);
+
+        foreach (var entityType in model.GetEntityTypes())
+        {
+            if (entityType.GetDeleteStoredProcedure() is { } deleteStoredProcedure)
+            {
+                ValidateSproc(deleteStoredProcedure, logger);
+            }
+
+            if (entityType.GetInsertStoredProcedure() is { } insertStoredProcedure)
+            {
+                ValidateSproc(insertStoredProcedure, logger);
+            }
+
+            if (entityType.GetUpdateStoredProcedure() is { } updateStoredProcedure)
+            {
+                ValidateSproc(updateStoredProcedure, logger);
+            }
+        }
+
+        static void ValidateSproc(IStoredProcedure sproc, IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
+        {
+            var entityType = sproc.EntityType;
+            var storeObjectIdentifier = sproc.GetStoreIdentifier();
+
+            if (sproc.ResultColumns.Any())
+            {
+                throw new InvalidOperationException(NpgsqlStrings.StoredProcedureResultColumnsNotSupported(
+                    entityType.DisplayName(),
+                    storeObjectIdentifier.DisplayName()));
+            }
+
+            if (sproc.IsRowsAffectedReturned)
+            {
+                throw new InvalidOperationException(NpgsqlStrings.StoredProcedureReturnValueNotSupported(
+                    entityType.DisplayName(),
+                    storeObjectIdentifier.DisplayName()));
+            }
+        }
+    }
+
+    /// <inheritdoc />
     protected override void ValidateCompatible(
         IProperty property,
         IProperty duplicateProperty,

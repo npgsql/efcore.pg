@@ -1,3 +1,5 @@
+using System.Data;
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
 
 /// <summary>
@@ -31,67 +33,25 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
     /// </summary>
     protected override int MaxBatchSize { get; }
 
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected override void Consume(RelationalDataReader reader)
+    protected override void AddParameter(IColumnModification columnModification)
     {
-        var npgsqlReader = (NpgsqlDataReader)reader.DbDataReader;
-
-#pragma warning disable 618
-        Debug.Assert(npgsqlReader.Statements.Count == ModificationCommands.Count, $"Reader has {npgsqlReader.Statements.Count} statements, expected {ModificationCommands.Count}");
-#pragma warning restore 618
-
-        var commandIndex = 0;
-
-        try
+        // PostgreSQL stored procedures cannot return a regular result set, and output parameter values are simply sent back as the
+        // result set; this is very different from SQL Server, where output parameter values can be sent back in addition to result
+        // sets. So we avoid adding NpgsqlParameters for output parameters - we'll just retrieve and propagate the values below when
+        // consuming the result set.
+        if (columnModification.Column is IStoreStoredProcedureParameter { Direction: ParameterDirection.Output })
         {
-            bool? onResultSet = null;
-
-            for (; commandIndex < ModificationCommands.Count; commandIndex++)
-            {
-                // Note that in the PG provider, we never transmit rows affected via the result set - it's always transmitted separately via
-                // the PG wire protocol and exposed on the reader (see below).
-                // As a result, if there's a result set we know that it contains values to be propagated back into the entity instance.
-                if (ResultSetMappings[commandIndex].HasFlag(ResultSetMapping.HasResultRow))
-                {
-                    var modificationCommand = ModificationCommands[commandIndex];
-
-                    if (!reader.Read())
-                    {
-                        ThrowAggregateUpdateConcurrencyException(reader, commandIndex, 1, 0);
-                    }
-
-                    modificationCommand.PropagateResults(reader);
-
-                    onResultSet = npgsqlReader.NextResult();
-                }
-
-                // TODO: when EF Core adds support for DbBatch (https://github.com/dotnet/efcore/issues/18990), we can start using that
-                // standardized API for fetching the rows affected by an individual command in a batch.
-#pragma warning disable 618
-                if (npgsqlReader.Statements[commandIndex].Rows == 0)
-                {
-                    ThrowAggregateUpdateConcurrencyException(reader, commandIndex, 1, 0);
-                }
-#pragma warning restore 618
-            }
-
-            if (onResultSet == true)
-            {
-                Dependencies.UpdateLogger.UnexpectedTrailingResultSetWhenSaving();
-            }
+            return;
         }
-        catch (Exception ex) when (ex is not DbUpdateException and not OperationCanceledException)
-        {
-            throw new DbUpdateException(
-                RelationalStrings.UpdateStoreException,
-                ex,
-                ModificationCommands[commandIndex].Entries);
-        }
+
+        base.AddParameter(columnModification);
     }
 
     /// <summary>
@@ -100,7 +60,19 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected override async Task ConsumeAsync(RelationalDataReader reader, CancellationToken cancellationToken = default)
+    protected override void Consume(RelationalDataReader reader)
+        => Consume(reader, async: false).GetAwaiter().GetResult();
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected override Task ConsumeAsync(RelationalDataReader reader, CancellationToken cancellationToken = default)
+        => Consume(reader, async: true, cancellationToken);
+
+    private async Task Consume(RelationalDataReader reader, bool async, CancellationToken cancellationToken = default)
     {
         var npgsqlReader = (NpgsqlDataReader)reader.DbDataReader;
 
@@ -116,33 +88,97 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
 
             for (; commandIndex < ModificationCommands.Count; commandIndex++)
             {
-                // Note that in the PG provider, we never transmit rows affected via the result set - it's transmitted via the PG wire
-                // protocol and exposed on the reader (see above).
+                var command = ModificationCommands[commandIndex];
+
+                // Note that in the PG provider, we never transmit rows affected via the result set (except with stored procedures);
+                // it's transmitted separately via the PG wire protocol and exposed on the reader (see below).
                 // As a result, if there's a result set we know that it contains values to be propagated back into the entity instance.
                 if (ResultSetMappings[commandIndex].HasFlag(ResultSetMapping.HasResultRow))
                 {
-                    var modificationCommand = ModificationCommands[commandIndex];
-
-                    if (!(await reader.ReadAsync(cancellationToken).ConfigureAwait(false)))
+                    if (async)
                     {
-                        await ThrowAggregateUpdateConcurrencyExceptionAsync(reader, commandIndex, 1, 0, cancellationToken)
-                            .ConfigureAwait(false);
+                        if (!(await reader.ReadAsync(cancellationToken).ConfigureAwait(false)))
+                        {
+                            await ThrowAggregateUpdateConcurrencyExceptionAsync(reader, commandIndex, 1, 0, cancellationToken)
+                                .ConfigureAwait(false);
+                        }
+                    }
+                    else
+                    {
+                        if (!reader.Read())
+                        {
+                            ThrowAggregateUpdateConcurrencyException(reader, commandIndex, 1, 0);
+                        }
                     }
 
-                    modificationCommand.PropagateResults(reader);
 
-                    onResultSet = await npgsqlReader.NextResultAsync(cancellationToken).ConfigureAwait(false);
+                    if (command.RowsAffectedColumn is { } rowsAffectedColumn)
+                    {
+                        // Only stored procedures have rows affected, as an output parameter. For regular commands, the rows affected gets
+                        // transferred via the Post
+                        Debug.Assert(command.StoreStoredProcedure is not null);
+
+                        var rowsAffectedParameter = (IStoreStoredProcedureParameter)rowsAffectedColumn;
+                        Debug.Assert(rowsAffectedParameter.Direction == ParameterDirection.Output);
+
+                        var readerIndex = -1;
+
+                        for (var i = 0; i < command.ColumnModifications.Count; i++)
+                        {
+                            var columnModification = command.ColumnModifications[i];
+                            if (columnModification.Column is IStoreStoredProcedureParameter
+                                {
+                                    Direction: ParameterDirection.Output or ParameterDirection.InputOutput
+                                })
+                            {
+                                readerIndex++;
+                            }
+
+                            if (columnModification.Column == rowsAffectedColumn)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (reader.DbDataReader.GetInt32(readerIndex) != 1)
+                        {
+                            await ThrowAggregateUpdateConcurrencyExceptionAsync(reader, commandIndex, 1, 0, cancellationToken)
+                                .ConfigureAwait(false);
+                        }
+                    }
+
+                    command.PropagateResults(reader);
+
+                    onResultSet = async
+                        ? await npgsqlReader.NextResultAsync(cancellationToken).ConfigureAwait(false)
+                        : npgsqlReader.NextResult();
+
                 }
-
-                // TODO: when EF Core adds support for DbBatch (https://github.com/dotnet/efcore/issues/18990), we can start using that
-                // standardized API for fetching the rows affected by an individual command in a batch.
-#pragma warning disable 618
-                if (npgsqlReader.Statements[commandIndex].Rows == 0)
+                else
                 {
-                    await ThrowAggregateUpdateConcurrencyExceptionAsync(reader, commandIndex, 1, 0, cancellationToken)
-                        .ConfigureAwait(false);
-                }
+                    Debug.Assert(ResultSetMappings[commandIndex] == ResultSetMapping.NoResults);
+
+                    // With stored procedures, either the rows affected is returned via an output parameter (and is therefore a result
+                    // column and handled above), or there's no rows affected and we skip the check entirely.
+                    // Without stored procedures, PG transmits the rows affected for each statement in the CommandComplete message of the
+                    // protocol, and we always just check that.
+                    // TODO: when EF Core adds support for DbBatch (https://github.com/dotnet/efcore/issues/18990), we can start using that
+                    // standardized API for fetching the rows affected by an individual command in a batch.
+#pragma warning disable 618
+                    if (npgsqlReader.Statements[commandIndex].Rows != 1 && command.StoreStoredProcedure is null)
+                    {
+                        if (async)
+                        {
+                            await ThrowAggregateUpdateConcurrencyExceptionAsync(reader, commandIndex, 1, 0, cancellationToken)
+                                .ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            ThrowAggregateUpdateConcurrencyException(reader, commandIndex, 1, 0);
+                        }
+                    }
 #pragma warning restore 618
+                }
             }
 
             if (onResultSet == true)
