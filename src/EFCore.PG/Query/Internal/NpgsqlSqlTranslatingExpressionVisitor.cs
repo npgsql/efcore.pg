@@ -169,6 +169,20 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                             (SqlExpression)Visit(arguments[0]),
                             (SqlExpression)Visit(wherePredicateMethodCall.Object!));
                     }
+                    
+                    // As above, but for Contains on HashSet<T>
+                    if (predicateMethod.DeclaringType?.IsGenericType == true &&
+                        predicateMethod.DeclaringType.GetGenericTypeDefinition() == typeof(HashSet<>) &&
+                        predicateMethod.Name == nameof(HashSet<int>.Contains) &&
+                        predicateMethod.GetParameters().Length == 1 &&
+                        predicateArguments[0] is ParameterExpression parameterExpression3 &&
+                        parameterExpression3 == wherePredicate.Parameters[0])
+                    {
+                        return _sqlExpressionFactory.Overlaps(
+                            (SqlExpression)Visit(arguments[0]),
+                            (SqlExpression)Visit(wherePredicateMethodCall.Object!));
+                    }
+
                 }
 
                 // Pattern match for: array.Any(e => e == x) (and other equality patterns)
@@ -264,6 +278,20 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                         (SqlExpression)Visit(arguments[0]),
                         (SqlExpression)Visit(wherePredicateMethodCall.Object!));
                 }
+                
+                // As above, but for Contains on HashSet<T>
+                if (predicateMethod.DeclaringType?.IsGenericType == true &&
+                    predicateMethod.DeclaringType.GetGenericTypeDefinition() == typeof(HashSet<>) &&
+                    predicateMethod.Name == nameof(HashSet<int>.Contains) &&
+                    predicateMethod.GetParameters().Length == 1 &&
+                    predicateArguments[0] is ParameterExpression parameterExpression3 &&
+                    parameterExpression3 == wherePredicate.Parameters[0])
+                {
+                    return _sqlExpressionFactory.ContainedBy(
+                        (SqlExpression)Visit(arguments[0]),
+                        (SqlExpression)Visit(wherePredicateMethodCall.Object!));
+                }
+
             }
         }
 
