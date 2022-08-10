@@ -16,9 +16,11 @@ public class ArrayArrayQueryTest : ArrayQueryTest<ArrayArrayQueryTest.ArrayArray
         await base.Index_with_constant(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray""[1] = 3");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."IntArray"[1] = 3
+""");
     }
 
     public override async Task Index_with_parameter(bool async)
@@ -26,11 +28,13 @@ WHERE s.""IntArray""[1] = 3");
         await base.Index_with_parameter(async);
 
         AssertSql(
-            @"@__x_0='0'
+"""
+@__x_0='0'
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray""[@__x_0 + 1] = 3");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."IntArray"[@__x_0 + 1] = 3
+""");
     }
 
     public override async Task Nullable_index_with_constant(bool async)
@@ -38,9 +42,11 @@ WHERE s.""IntArray""[@__x_0 + 1] = 3");
         await base.Nullable_index_with_constant(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableIntArray""[1] = 3");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."NullableIntArray"[1] = 3
+""");
     }
 
     public override async Task Nullable_value_array_index_compare_to_null(bool async)
@@ -48,9 +54,11 @@ WHERE s.""NullableIntArray""[1] = 3");
         await base.Nullable_value_array_index_compare_to_null(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE (s.""NullableIntArray""[3] IS NULL)");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE (s."NullableIntArray"[3] IS NULL)
+""");
     }
 
     public override async Task Non_nullable_value_array_index_compare_to_null(bool async)
@@ -58,9 +66,11 @@ WHERE (s.""NullableIntArray""[3] IS NULL)");
         await base.Non_nullable_value_array_index_compare_to_null(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE FALSE");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE FALSE
+""");
     }
 
     public override async Task Nullable_reference_array_index_compare_to_null(bool async)
@@ -68,9 +78,11 @@ WHERE FALSE");
         await base.Nullable_reference_array_index_compare_to_null(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE (s.""NullableStringArray""[3] IS NULL)");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE (s."NullableStringArray"[3] IS NULL)
+""");
     }
 
     public override async Task Non_nullable_reference_array_index_compare_to_null(bool async)
@@ -78,9 +90,11 @@ WHERE (s.""NullableStringArray""[3] IS NULL)");
         await base.Non_nullable_reference_array_index_compare_to_null(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE FALSE");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE FALSE
+""");
     }
 
     [ConditionalTheory]
@@ -93,9 +107,11 @@ WHERE FALSE");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE get_byte(s.""Bytea"", 0) = 3");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE get_byte(s."Bytea", 0) = 3
+""");
     }
 
     #endregion
@@ -107,11 +123,13 @@ WHERE get_byte(s.""Bytea"", 0) = 3");
         await base.SequenceEqual_with_parameter(async);
 
         AssertSql(
-            @"@__arr_0={ '3', '4' } (DbType = Object)
+"""
+@__arr_0={ '3', '4' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" = @__arr_0");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."IntArray" = @__arr_0
+""");
     }
 
     public override async Task SequenceEqual_with_array_literal(bool async)
@@ -119,9 +137,11 @@ WHERE s.""IntArray"" = @__arr_0");
         await base.SequenceEqual_with_array_literal(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" = ARRAY[3,4]::integer[]");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."IntArray" = ARRAY[3,4]::integer[]
+""");
     }
 
     public override async Task SequenceEqual_over_nullable_with_parameter(bool async)
@@ -129,11 +149,13 @@ WHERE s.""IntArray"" = ARRAY[3,4]::integer[]");
         await base.SequenceEqual_over_nullable_with_parameter(async);
 
         AssertSql(
-            @"@__arr_0={ '3', '4', NULL } (DbType = Object)
+"""
+@__arr_0={ '3', '4', NULL } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableIntArray"" = @__arr_0");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."NullableIntArray" = @__arr_0
+""");
     }
 
     #endregion SequenceEqual
@@ -145,9 +167,11 @@ WHERE s.""NullableIntArray"" = @__arr_0");
         await base.Array_column_Any_equality_operator(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""StringArray"" @> ARRAY['3']::text[]");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."StringArray" @> ARRAY['3']::text[]
+""");
     }
 
     public override async Task Array_column_Any_Equals(bool async)
@@ -155,9 +179,11 @@ WHERE s.""StringArray"" @> ARRAY['3']::text[]");
         await base.Array_column_Any_Equals(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""StringArray"" @> ARRAY['3']::text[]");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."StringArray" @> ARRAY['3']::text[]
+""");
     }
 
     public override async Task Array_column_Contains_literal_item(bool async)
@@ -165,9 +191,11 @@ WHERE s.""StringArray"" @> ARRAY['3']::text[]");
         await base.Array_column_Contains_literal_item(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" @> ARRAY[3]::integer[]");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."IntArray" @> ARRAY[3]::integer[]
+""");
     }
 
     public override async Task Array_column_Contains_parameter_item(bool async)
@@ -175,11 +203,13 @@ WHERE s.""IntArray"" @> ARRAY[3]::integer[]");
         await base.Array_column_Contains_parameter_item(async);
 
         AssertSql(
-            @"@__p_0='3'
+"""
+@__p_0='3'
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" @> ARRAY[@__p_0]::integer[]");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."IntArray" @> ARRAY[@__p_0]::integer[]
+""");
     }
 
     public override async Task Array_column_Contains_column_item(bool async)
@@ -187,9 +217,11 @@ WHERE s.""IntArray"" @> ARRAY[@__p_0]::integer[]");
         await base.Array_column_Contains_column_item(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" @> ARRAY[s.""Id"" + 2]::integer[]");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."IntArray" @> ARRAY[s."Id" + 2]::integer[]
+""");
     }
 
     public override async Task Array_column_Contains_null_constant(bool async)
@@ -197,9 +229,11 @@ WHERE s.""IntArray"" @> ARRAY[s.""Id"" + 2]::integer[]");
         await base.Array_column_Contains_null_constant(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE (array_position(s.""NullableStringArray"", NULL) IS NOT NULL)");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE (array_position(s."NullableStringArray", NULL) IS NOT NULL)
+""");
     }
 
     public override void Array_column_Contains_null_parameter_does_not_work()
@@ -215,9 +249,11 @@ WHERE (array_position(s.""NullableStringArray"", NULL) IS NOT NULL)");
             ctx.SomeEntities.Count(e => e.StringArray.Contains(p)));
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""SomeEntities"" AS s
-WHERE s.""StringArray"" @> ARRAY[NULL]::text[]");
+"""
+SELECT count(*)::int
+FROM "SomeEntities" AS s
+WHERE s."StringArray" @> ARRAY[NULL]::text[]
+""");
     }
 
     public override async Task Nullable_array_column_Contains_literal_item(bool async)
@@ -225,9 +261,11 @@ WHERE s.""StringArray"" @> ARRAY[NULL]::text[]");
         await base.Nullable_array_column_Contains_literal_item(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableIntArray"" @> ARRAY[3]::integer[]");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."NullableIntArray" @> ARRAY[3]::integer[]
+""");
     }
 
     public override async Task Array_constant_Contains_column(bool async)
@@ -238,9 +276,11 @@ WHERE s.""NullableIntArray"" @> ARRAY[3]::integer[]");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" IN ('foo', 'xxx')");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."NullableText" IN ('foo', 'xxx')
+""");
     }
 
     public override async Task Array_param_Contains_nullable_column(bool async)
@@ -253,11 +293,13 @@ WHERE s.""NullableText"" IN ('foo', 'xxx')");
             entryCount: 1);
 
         AssertSql(
-            @"@__array_0={ 'foo', 'xxx' } (DbType = Object)
+"""
+@__array_0={ 'foo', 'xxx' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" = ANY (@__array_0) OR ((s.""NullableText"" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."NullableText" = ANY (@__array_0) OR ((s."NullableText" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))
+""");
     }
 
     public override async Task Array_param_Contains_non_nullable_column(bool async)
@@ -270,11 +312,13 @@ WHERE s.""NullableText"" = ANY (@__array_0) OR ((s.""NullableText"" IS NULL) AND
             entryCount: 1);
 
         AssertSql(
-            @"@__array_0={ '1' } (DbType = Object)
+"""
+@__array_0={ '1' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""Id"" = ANY (@__array_0)");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."Id" = ANY (@__array_0)
+""");
     }
 
     public override void Array_param_with_null_Contains_non_nullable_not_found()
@@ -286,11 +330,13 @@ WHERE s.""Id"" = ANY (@__array_0)");
         Assert.Equal(0, ctx.SomeEntities.Count(e => array.Contains(e.NonNullableText)));
 
         AssertSql(
-            @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
+"""
+@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT count(*)::int
-FROM ""SomeEntities"" AS s
-WHERE s.""NonNullableText"" = ANY (@__array_0)");
+FROM "SomeEntities" AS s
+WHERE s."NonNullableText" = ANY (@__array_0)
+""");
     }
 
     public override void Array_param_with_null_Contains_non_nullable_not_found_negated()
@@ -302,11 +348,13 @@ WHERE s.""NonNullableText"" = ANY (@__array_0)");
         Assert.Equal(2, ctx.SomeEntities.Count(e => !array.Contains(e.NonNullableText)));
 
         AssertSql(
-            @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
+"""
+@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT count(*)::int
-FROM ""SomeEntities"" AS s
-WHERE NOT (s.""NonNullableText"" = ANY (@__array_0) AND ((s.""NonNullableText"" = ANY (@__array_0) IS NOT NULL)))");
+FROM "SomeEntities" AS s
+WHERE NOT (s."NonNullableText" = ANY (@__array_0) AND ((s."NonNullableText" = ANY (@__array_0) IS NOT NULL)))
+""");
     }
 
     public override void Array_param_with_null_Contains_nullable_not_found()
@@ -318,11 +366,13 @@ WHERE NOT (s.""NonNullableText"" = ANY (@__array_0) AND ((s.""NonNullableText"" 
         Assert.Equal(0, ctx.SomeEntities.Count(e => array.Contains(e.NullableText)));
 
         AssertSql(
-            @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
+"""
+@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT count(*)::int
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" = ANY (@__array_0) OR ((s.""NullableText"" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))");
+FROM "SomeEntities" AS s
+WHERE s."NullableText" = ANY (@__array_0) OR ((s."NullableText" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))
+""");
     }
 
     public override void Array_param_with_null_Contains_nullable_not_found_negated()
@@ -334,11 +384,13 @@ WHERE s.""NullableText"" = ANY (@__array_0) OR ((s.""NullableText"" IS NULL) AND
         Assert.Equal(2, ctx.SomeEntities.Count(e => !array.Contains(e.NullableText)));
 
         AssertSql(
-            @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
+"""
+@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT count(*)::int
-FROM ""SomeEntities"" AS s
-WHERE NOT (s.""NullableText"" = ANY (@__array_0) AND ((s.""NullableText"" = ANY (@__array_0) IS NOT NULL))) AND ((s.""NullableText"" IS NOT NULL) OR (array_position(@__array_0, NULL) IS NULL))");
+FROM "SomeEntities" AS s
+WHERE NOT (s."NullableText" = ANY (@__array_0) AND ((s."NullableText" = ANY (@__array_0) IS NOT NULL))) AND ((s."NullableText" IS NOT NULL) OR (array_position(@__array_0, NULL) IS NULL))
+""");
     }
 
     public override async Task Array_param_Contains_column_with_ToString(bool async)
@@ -351,11 +403,13 @@ WHERE NOT (s.""NullableText"" = ANY (@__array_0) AND ((s.""NullableText"" = ANY 
             entryCount: 1);
 
         AssertSql(
-            @"@__values_0={ '1', '999' } (DbType = Object)
+"""
+@__values_0={ '1', '999' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""Id""::text = ANY (@__values_0)");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."Id"::text = ANY (@__values_0)
+""");
     }
 
     public override async Task Byte_array_parameter_contains_column(bool async)
@@ -369,11 +423,13 @@ WHERE s.""Id""::text = ANY (@__values_0)");
 
         // Note: EF Core prints the parameter as a bytea, but it's actually a smallint[] (otherwise ANY would fail)
         AssertSql(
-            @"@__values_0='0x14' (DbType = Object)
+"""
+@__values_0='0x14' (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""Byte"" = ANY (@__values_0)");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."Byte" = ANY (@__values_0)
+""");
     }
 
     public override async Task Array_param_Contains_value_converted_column_enum_to_int(bool async)
@@ -386,11 +442,13 @@ WHERE s.""Byte"" = ANY (@__values_0)");
             entryCount: 1);
 
         AssertSql(
-            @"@__array_0={ '-2', '-3' } (DbType = Object)
+"""
+@__array_0={ '-2', '-3' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""EnumConvertedToInt"" = ANY (@__array_0)");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."EnumConvertedToInt" = ANY (@__array_0)
+""");
     }
 
     public override async Task Array_param_Contains_value_converted_column_enum_to_string(bool async)
@@ -403,11 +461,13 @@ WHERE s.""EnumConvertedToInt"" = ANY (@__array_0)");
             entryCount: 1);
 
         AssertSql(
-            @"@__array_0={ 'Two', 'Three' } (DbType = Object)
+"""
+@__array_0={ 'Two', 'Three' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""EnumConvertedToString"" = ANY (@__array_0)");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."EnumConvertedToString" = ANY (@__array_0)
+""");
     }
 
     public override async Task Array_param_Contains_value_converted_column_nullable_enum_to_string(bool async)
@@ -420,11 +480,13 @@ WHERE s.""EnumConvertedToString"" = ANY (@__array_0)");
             entryCount: 1);
 
         AssertSql(
-            @"@__array_0={ 'Two', 'Three' } (DbType = Object)
+"""
+@__array_0={ 'Two', 'Three' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableEnumConvertedToString"" = ANY (@__array_0) OR ((s.""NullableEnumConvertedToString"" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."NullableEnumConvertedToString" = ANY (@__array_0) OR ((s."NullableEnumConvertedToString" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))
+""");
     }
 
     public override async Task Array_param_Contains_value_converted_column_nullable_enum_to_string_with_non_nullable_lambda(bool async)
@@ -437,11 +499,13 @@ WHERE s.""NullableEnumConvertedToString"" = ANY (@__array_0) OR ((s.""NullableEn
             entryCount: 1);
 
         AssertSql(
-            @"@__array_0={ 'Two', 'Three' } (DbType = Object)
+"""
+@__array_0={ 'Two', 'Three' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableEnumConvertedToStringWithNonNullableLambda"" = ANY (@__array_0) OR ((s.""NullableEnumConvertedToStringWithNonNullableLambda"" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."NullableEnumConvertedToStringWithNonNullableLambda" = ANY (@__array_0) OR ((s."NullableEnumConvertedToStringWithNonNullableLambda" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))
+""");
     }
 
     public override async Task Array_column_Contains_value_converted_param(bool async)
@@ -454,11 +518,13 @@ WHERE s.""NullableEnumConvertedToStringWithNonNullableLambda"" = ANY (@__array_0
             entryCount: 1);
 
         AssertSql(
-            @"@__item_0='Eight' (Nullable = false)
+"""
+@__item_0='Eight' (Nullable = false)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""ValueConvertedArray"" @> ARRAY[@__item_0]::text[]");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."ValueConvertedArray" @> ARRAY[@__item_0]::text[]
+""");
     }
 
     public override async Task Array_column_Contains_value_converted_constant(bool async)
@@ -469,9 +535,11 @@ WHERE s.""ValueConvertedArray"" @> ARRAY[@__item_0]::text[]");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""ValueConvertedArray"" @> ARRAY['Eight']::text[]");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."ValueConvertedArray" @> ARRAY['Eight']::text[]
+""");
     }
 
     public override async Task Array_param_Contains_value_converted_array_column(bool async)
@@ -484,11 +552,13 @@ WHERE s.""ValueConvertedArray"" @> ARRAY['Eight']::text[]");
             entryCount: 1);
 
         AssertSql(
-            @"@__p_0={ 'Eight', 'Nine' } (DbType = Object)
+"""
+@__p_0={ 'Eight', 'Nine' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""ValueConvertedArray"" <@ @__p_0");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."ValueConvertedArray" <@ @__p_0
+""");
     }
 
     public override async Task Array_column_Contains_in_scalar_subquery(bool async)
@@ -496,14 +566,16 @@ WHERE s.""ValueConvertedArray"" <@ @__p_0");
         await base.Array_column_Contains_in_scalar_subquery(async);
 
         AssertSql(
-            @"SELECT s.""Id""
-FROM ""SomeEntityContainers"" AS s
+"""
+SELECT s."Id"
+FROM "SomeEntityContainers" AS s
 WHERE 3 = ANY ((
-    SELECT s0.""NullableIntArray""
-    FROM ""SomeEntities"" AS s0
-    WHERE s.""Id"" = s0.""ArrayContainerEntityId""
-    ORDER BY s0.""Id"" NULLS FIRST
-    LIMIT 1)::integer[])");
+    SELECT s0."NullableIntArray"
+    FROM "SomeEntities" AS s0
+    WHERE s."Id" = s0."ArrayContainerEntityId"
+    ORDER BY s0."Id" NULLS FIRST
+    LIMIT 1)::integer[])
+""");
     }
 
     #endregion Containment
@@ -518,9 +590,11 @@ WHERE 3 = ANY ((
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE cardinality(s.""IntArray"") = 2");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE cardinality(s."IntArray") = 2
+""");
     }
 
     public override async Task Nullable_array_Length(bool async)
@@ -531,9 +605,11 @@ WHERE cardinality(s.""IntArray"") = 2");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE cardinality(s.""NullableIntArray"") = 3");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE cardinality(s."NullableIntArray") = 3
+""");
     }
 
     public override async Task Array_Length_on_EF_Property(bool async)
@@ -544,9 +620,11 @@ WHERE cardinality(s.""NullableIntArray"") = 3");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE cardinality(s.""IntArray"") = 2");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE cardinality(s."IntArray") = 2
+""");
     }
 
     #endregion Length/Count
@@ -558,9 +636,11 @@ WHERE cardinality(s.""IntArray"") = 2");
         await base.Any_no_predicate(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE cardinality(s.""IntArray"") > 0");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE cardinality(s."IntArray") > 0
+""");
     }
 
     public override async Task Any_like(bool async)
@@ -574,9 +654,11 @@ WHERE cardinality(s.""IntArray"") > 0");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" LIKE ANY (ARRAY['a%','b%','c%']::text[])");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."NullableText" LIKE ANY (ARRAY['a%','b%','c%']::text[])
+""");
     }
 
     public override async Task Any_ilike(bool async)
@@ -590,9 +672,11 @@ WHERE s.""NullableText"" LIKE ANY (ARRAY['a%','b%','c%']::text[])");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" ILIKE ANY (ARRAY['a%','b%','c%']::text[])");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."NullableText" ILIKE ANY (ARRAY['a%','b%','c%']::text[])
+""");
     }
 
     public override async Task Any_like_anonymous(bool async)
@@ -611,11 +695,13 @@ WHERE s.""NullableText"" ILIKE ANY (ARRAY['a%','b%','c%']::text[])");
             entryCount: 1);
 
         AssertSql(
-            @"@__patternsActual_0={ 'a%', 'b%', 'c%' } (DbType = Object)
+"""
+@__patternsActual_0={ 'a%', 'b%', 'c%' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" LIKE ANY (@__patternsActual_0)");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."NullableText" LIKE ANY (@__patternsActual_0)
+""");
     }
 
     public override async Task All_like(bool async)
@@ -629,9 +715,11 @@ WHERE s.""NullableText"" LIKE ANY (@__patternsActual_0)");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" LIKE ALL (ARRAY['b%','ba%']::text[])");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."NullableText" LIKE ALL (ARRAY['b%','ba%']::text[])
+""");
     }
 
     public override async Task All_ilike(bool async)
@@ -645,9 +733,11 @@ WHERE s.""NullableText"" LIKE ALL (ARRAY['b%','ba%']::text[])");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""NullableText"" ILIKE ALL (ARRAY['B%','ba%']::text[])");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."NullableText" ILIKE ALL (ARRAY['B%','ba%']::text[])
+""");
     }
 
     public override async Task Any_Contains_on_constant_array(bool async)
@@ -655,9 +745,11 @@ WHERE s.""NullableText"" ILIKE ALL (ARRAY['B%','ba%']::text[])");
         await base.Any_Contains_on_constant_array(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE ARRAY[2,3]::integer[] && s.""IntArray""");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE ARRAY[2,3]::integer[] && s."IntArray"
+""");
     }
 
     public override async Task Any_Contains_between_column_and_List(bool async)
@@ -665,11 +757,13 @@ WHERE ARRAY[2,3]::integer[] && s.""IntArray""");
         await base.Any_Contains_between_column_and_List(async);
 
         AssertSql(
-            @"@__ints_0={ '2', '3' } (DbType = Object)
+"""
+@__ints_0={ '2', '3' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" && @__ints_0");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."IntArray" && @__ints_0
+""");
     }
 
     public override async Task Any_Contains_between_column_and_array(bool async)
@@ -677,11 +771,13 @@ WHERE s.""IntArray"" && @__ints_0");
         await base.Any_Contains_between_column_and_array(async);
 
         AssertSql(
-            @"@__ints_0={ '2', '3' } (DbType = Object)
+"""
+@__ints_0={ '2', '3' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""IntArray"" && @__ints_0");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."IntArray" && @__ints_0
+""");
     }
 
     public override async Task Any_Contains_between_column_and_other_type(bool async)
@@ -694,11 +790,13 @@ WHERE s.""IntArray"" && @__ints_0");
             entryCount: 1);
 
         AssertSql(
-            @"@__list_0={ 'Eight' } (DbType = Object)
+"""
+@__list_0={ 'Eight' } (DbType = Object)
 
-SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE s.""ValueConvertedArray"" && @__list_0");
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."ValueConvertedArray" && @__list_0
+""");
     }
 
     public override async Task All_Contains(bool async)
@@ -706,9 +804,11 @@ WHERE s.""ValueConvertedArray"" && @__list_0");
         await base.All_Contains(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE ARRAY[5,6]::integer[] <@ s.""IntArray""");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE ARRAY[5,6]::integer[] <@ s."IntArray"
+""");
     }
 
     #endregion Any/All
@@ -720,9 +820,11 @@ WHERE ARRAY[5,6]::integer[] <@ s.""IntArray""");
         await base.Append(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE array_append(s.""IntArray"", 5) = ARRAY[3,4,5]::integer[]");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE array_append(s."IntArray", 5) = ARRAY[3,4,5]::integer[]
+""");
     }
 
     public override async Task Concat(bool async)
@@ -730,9 +832,11 @@ WHERE array_append(s.""IntArray"", 5) = ARRAY[3,4,5]::integer[]");
         await base.Concat(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE array_cat(s.""IntArray"", ARRAY[5,6]::integer[]) = ARRAY[3,4,5,6]::integer[]");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE array_cat(s."IntArray", ARRAY[5,6]::integer[]) = ARRAY[3,4,5,6]::integer[]
+""");
     }
 
     public override async Task Array_IndexOf1(bool async)
@@ -743,9 +847,11 @@ WHERE array_cat(s.""IntArray"", ARRAY[5,6]::integer[]) = ARRAY[3,4,5,6]::integer
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE COALESCE(array_position(s.""IntArray"", 6) - 1, -1) = 1");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE COALESCE(array_position(s."IntArray", 6) - 1, -1) = 1
+""");
     }
 
     public override async Task Array_IndexOf2(bool async)
@@ -756,9 +862,11 @@ WHERE COALESCE(array_position(s.""IntArray"", 6) - 1, -1) = 1");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE COALESCE(array_position(s.""IntArray"", 6, 2) - 1, -1) = 1");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE COALESCE(array_position(s."IntArray", 6, 2) - 1, -1) = 1
+""");
     }
 
     public override async Task String_Join(bool async)
@@ -766,9 +874,11 @@ WHERE COALESCE(array_position(s.""IntArray"", 6, 2) - 1, -1) = 1");
         await base.String_Join(async);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ArrayContainerEntityId"", s.""Byte"", s.""ByteArray"", s.""Bytea"", s.""EnumConvertedToInt"", s.""EnumConvertedToString"", s.""IntArray"", s.""IntList"", s.""NonNullableText"", s.""NullableEnumConvertedToString"", s.""NullableEnumConvertedToStringWithNonNullableLambda"", s.""NullableIntArray"", s.""NullableIntList"", s.""NullableStringArray"", s.""NullableStringList"", s.""NullableText"", s.""StringArray"", s.""StringList"", s.""ValueConvertedArray"", s.""ValueConvertedList"", s.""Varchar10"", s.""Varchar15""
-FROM ""SomeEntities"" AS s
-WHERE array_to_string(s.""IntArray"", ', ', '') = '3, 4'");
+"""
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE array_to_string(s."IntArray", ', ', '') = '3, 4'
+""");
     }
 
     #endregion Other translations

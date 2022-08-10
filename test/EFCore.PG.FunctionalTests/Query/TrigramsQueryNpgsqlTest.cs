@@ -191,9 +191,11 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .ToArray();
 
         AssertSql(
-            @"SELECT t.""Id"", t.""Text""
-FROM ""TrigramsTestEntities"" AS t
-WHERE ((COALESCE(t.""Text"", '') || ' ') || COALESCE(t.""Text"", '')) % 'query'");
+"""
+SELECT t."Id", t."Text"
+FROM "TrigramsTestEntities" AS t
+WHERE ((COALESCE(t."Text", '') || ' ') || COALESCE(t."Text", '')) % 'query'
+""");
     }
 
     #endregion

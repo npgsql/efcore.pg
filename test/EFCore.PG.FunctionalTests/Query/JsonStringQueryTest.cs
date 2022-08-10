@@ -54,9 +54,11 @@ public class JsonStringQueryTest : IClassFixture<JsonStringQueryTest.JsonStringQ
             e => e.CustomerJsonb == @"{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}"));
 
         AssertSql(
-            @"SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
-FROM ""JsonEntities"" AS j
-WHERE j.""CustomerJsonb"" = '{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}'");
+"""
+SELECT j."Id", j."CustomerJson", j."CustomerJsonb"
+FROM "JsonEntities" AS j
+WHERE j."CustomerJsonb" = '{"Name":"Test customer","Age":80,"IsVip":false,"Statistics":null,"Orders":null}'
+""");
     }
 
     [Fact]
@@ -70,19 +72,23 @@ WHERE j.""CustomerJsonb"" = '{""Name"":""Test customer"",""Age"":80,""IsVip"":fa
         Assert.Equal(actual, expected);
 
         AssertSql(
-            @"@__p_0='1'
+"""
+@__p_0='1'
 
-SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
-FROM ""JsonEntities"" AS j
-WHERE j.""Id"" = @__p_0
-LIMIT 1",
+SELECT j."Id", j."CustomerJson", j."CustomerJsonb"
+FROM "JsonEntities" AS j
+WHERE j."Id" = @__p_0
+LIMIT 1
+""",
             //
-            @"@__expected_0='{""Age"": 25, ""Name"": ""Joe"", ""IsVip"": false, ""Orders"": [{""Price"": 99.5, ""ShippingDate"": ""2019-10-01"", ""ShippingAddress"": ""Some address 1""}, {""Price"": 23, ""ShippingDate"": ""2019-10-10"", ""ShippingAddress"": ""Some address 2""}], ""Statistics"": {""Nested"": {""IntArray"": [3, 4], ""SomeProperty"": 10}, ""Visits"": 4, ""Purchases"": 3}}' (DbType = Object)
+"""
+@__expected_0='{"Age": 25, "Name": "Joe", "IsVip": false, "Orders": [{"Price": 99.5, "ShippingDate": "2019-10-01", "ShippingAddress": "Some address 1"}, {"Price": 23, "ShippingDate": "2019-10-10", "ShippingAddress": "Some address 2"}], "Statistics": {"Nested": {"IntArray": [3, 4], "SomeProperty": 10}, "Visits": 4, "Purchases": 3}}' (DbType = Object)
 
-SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
-FROM ""JsonEntities"" AS j
-WHERE j.""CustomerJsonb"" = @__expected_0
-LIMIT 2");
+SELECT j."Id", j."CustomerJson", j."CustomerJsonb"
+FROM "JsonEntities" AS j
+WHERE j."CustomerJsonb" = @__expected_0
+LIMIT 2
+""");
     }
 
     #region Functions
@@ -98,11 +104,13 @@ LIMIT 2");
         Assert.Equal(1, count);
 
         AssertSql(
-            @"@__element_1='{""Name"": ""Joe"", ""Age"": 25}' (DbType = Object)
+"""
+@__element_1='{"Name": "Joe", "Age": 25}' (DbType = Object)
 
 SELECT count(*)::int
-FROM ""JsonEntities"" AS j
-WHERE j.""CustomerJsonb"" @> @__element_1");
+FROM "JsonEntities" AS j
+WHERE j."CustomerJsonb" @> @__element_1
+""");
     }
 
     [Fact]
@@ -115,9 +123,11 @@ WHERE j.""CustomerJsonb"" @> @__element_1");
         Assert.Equal(1, count);
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""JsonEntities"" AS j
-WHERE j.""CustomerJsonb"" @> '{""Name"": ""Joe"", ""Age"": 25}'");
+"""
+SELECT count(*)::int
+FROM "JsonEntities" AS j
+WHERE j."CustomerJsonb" @> '{"Name": "Joe", "Age": 25}'
+""");
     }
 
     [Fact]
@@ -131,11 +141,13 @@ WHERE j.""CustomerJsonb"" @> '{""Name"": ""Joe"", ""Age"": 25}'");
         Assert.Equal(1, count);
 
         AssertSql(
-            @"@__element_1='{""Name"": ""Joe"", ""Age"": 25}' (DbType = Object)
+"""
+@__element_1='{"Name": "Joe", "Age": 25}' (DbType = Object)
 
 SELECT count(*)::int
-FROM ""JsonEntities"" AS j
-WHERE @__element_1 <@ j.""CustomerJsonb""");
+FROM "JsonEntities" AS j
+WHERE @__element_1 <@ j."CustomerJsonb"
+""");
     }
 
     [Fact]
@@ -148,9 +160,11 @@ WHERE @__element_1 <@ j.""CustomerJsonb""");
         Assert.Equal(1, count);
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""JsonEntities"" AS j
-WHERE '{""Name"": ""Joe"", ""Age"": 25}' <@ j.""CustomerJsonb""");
+"""
+SELECT count(*)::int
+FROM "JsonEntities" AS j
+WHERE '{"Name": "Joe", "Age": 25}' <@ j."CustomerJsonb"
+""");
     }
 
     [Fact]
@@ -163,9 +177,11 @@ WHERE '{""Name"": ""Joe"", ""Age"": 25}' <@ j.""CustomerJsonb""");
         Assert.Equal(2, count);
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""JsonEntities"" AS j
-WHERE j.""CustomerJsonb"" ? 'Age'");
+"""
+SELECT count(*)::int
+FROM "JsonEntities" AS j
+WHERE j."CustomerJsonb" ? 'Age'
+""");
     }
 
     [Fact]
@@ -178,9 +194,11 @@ WHERE j.""CustomerJsonb"" ? 'Age'");
         Assert.Equal(2, count);
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""JsonEntities"" AS j
-WHERE j.""CustomerJsonb"" ?| ARRAY['foo','Age']::text[]");
+"""
+SELECT count(*)::int
+FROM "JsonEntities" AS j
+WHERE j."CustomerJsonb" ?| ARRAY['foo','Age']::text[]
+""");
     }
 
     [Fact]
@@ -193,9 +211,11 @@ WHERE j.""CustomerJsonb"" ?| ARRAY['foo','Age']::text[]");
         Assert.Equal(0, count);
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""JsonEntities"" AS j
-WHERE j.""CustomerJsonb"" ?& ARRAY['foo','Age']::text[]");
+"""
+SELECT count(*)::int
+FROM "JsonEntities" AS j
+WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
+""");
     }
 
     #endregion Functions

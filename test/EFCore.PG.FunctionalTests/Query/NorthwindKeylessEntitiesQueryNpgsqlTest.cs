@@ -17,9 +17,11 @@ public class NorthwindKeylessEntitiesQueryNpgsqlTest : NorthwindKeylessEntitiesQ
         await Assert.ThrowsAsync<PostgresException>(() => base.KeylessEntity_with_nav_defining_query(async));
 
         AssertSql(
-            @"SELECT c.""CompanyName"", c.""OrderCount"", c.""SearchTerm""
-FROM ""CustomerQueryWithQueryFilter"" AS c
-WHERE c.""OrderCount"" > 0");
+"""
+SELECT c."CompanyName", c."OrderCount", c."SearchTerm"
+FROM "CustomerQueryWithQueryFilter" AS c
+WHERE c."OrderCount" > 0
+""");
     }
 
     private void AssertSql(params string[] expected)

@@ -24,10 +24,12 @@ public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgs
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"SELECT t.""Id"", t.""SomeInt""
-FROM ""TestEntities"" AS t
-WHERE t.""SomeInt"" IN (8, 9)
-LIMIT 2");
+"""
+SELECT t."Id", t."SomeInt"
+FROM "TestEntities" AS t
+WHERE t."SomeInt" IN (8, 9)
+LIMIT 2
+""");
     }
 
     #region Support

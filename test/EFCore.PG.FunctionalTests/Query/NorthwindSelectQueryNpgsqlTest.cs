@@ -15,8 +15,10 @@ public class NorthwindSelectQueryNpgsqlTest : NorthwindSelectQueryRelationalTest
         await base.Select_datetime_DayOfWeek_component(async);
 
         AssertSql(
-            @"SELECT floor(date_part('dow', o.""OrderDate""))::int
-FROM ""Orders"" AS o");
+"""
+SELECT floor(date_part('dow', o."OrderDate"))::int
+FROM "Orders" AS o
+""");
     }
 
     public override async Task Correlated_collection_after_distinct_with_complex_projection_not_containing_original_identifier(bool async)

@@ -28,9 +28,11 @@ public class BuiltInDataTypesNpgsqlTest : BuiltInDataTypesTestBase<BuiltInDataTy
         Assert.Empty(results);
 
         AssertSql(
-            @"SELECT m.""Int""
-FROM ""MappedNullableDataTypes"" AS m
-WHERE m.""TimeSpanAsTime"" = TIME '00:01:02'");
+"""
+SELECT m."Int"
+FROM "MappedNullableDataTypes" AS m
+WHERE m."TimeSpanAsTime" = TIME '00:01:02'
+""");
     }
 
     [Fact]
@@ -46,11 +48,13 @@ WHERE m.""TimeSpanAsTime"" = TIME '00:01:02'");
         Assert.Empty(results);
 
         AssertSql(
-            @"@__timeSpan_0='02:01:00' (Nullable = true)
+"""
+@__timeSpan_0='02:01:00' (Nullable = true)
 
-SELECT m.""Int""
-FROM ""MappedNullableDataTypes"" AS m
-WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
+SELECT m."Int"
+FROM "MappedNullableDataTypes" AS m
+WHERE m."TimeSpanAsTime" = @__timeSpan_0
+""");
     }
 
     [Fact]
@@ -912,14 +916,20 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
         _ = context.Set<MappedDataTypes>().Sum(m => m.ShortAsSmallint);
 
         AssertSql(
-            @"SELECT COALESCE(sum(m.""LongAsBigint""), 0.0)::bigint
-FROM ""MappedDataTypes"" AS m",
+"""
+SELECT COALESCE(sum(m."LongAsBigint"), 0.0)::bigint
+FROM "MappedDataTypes" AS m
+""",
             //
-            @"SELECT COALESCE(sum(m.""Int""), 0)::int
-FROM ""MappedDataTypes"" AS m",
+"""
+SELECT COALESCE(sum(m."Int"), 0)::int
+FROM "MappedDataTypes" AS m
+""",
             //
-            @"SELECT COALESCE(sum(m.""ShortAsSmallint""::int), 0)::int
-FROM ""MappedDataTypes"" AS m");
+"""
+SELECT COALESCE(sum(m."ShortAsSmallint"::int), 0)::int
+FROM "MappedDataTypes" AS m
+""");
     }
 
     [ConditionalFact]

@@ -26,10 +26,12 @@ public class CitextQueryTest : IClassFixture<CitextQueryTest.CitextQueryFixture>
 
         Assert.Equal(1, result.Id);
         AssertSql(
-            @"SELECT s.""Id"", s.""CaseInsensitiveText""
-FROM ""SomeEntities"" AS s
-WHERE (s.""CaseInsensitiveText"" IS NOT NULL) AND (s.""CaseInsensitiveText"" LIKE 'some%')
-LIMIT 2");
+"""
+SELECT s."Id", s."CaseInsensitiveText"
+FROM "SomeEntities" AS s
+WHERE (s."CaseInsensitiveText" IS NOT NULL) AND (s."CaseInsensitiveText" LIKE 'some%')
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -41,13 +43,15 @@ LIMIT 2");
 
         Assert.Equal(1, result.Id);
         AssertSql(
-            @"@__param_0='some'
+"""
+@__param_0='some'
 @__param_0_1='some'
 
-SELECT s.""Id"", s.""CaseInsensitiveText""
-FROM ""SomeEntities"" AS s
-WHERE @__param_0 = '' OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND (s.""CaseInsensitiveText"" LIKE @__param_0_1 || '%' ESCAPE '') AND left(s.""CaseInsensitiveText"", length(@__param_0))::citext = @__param_0::citext)
-LIMIT 2");
+SELECT s."Id", s."CaseInsensitiveText"
+FROM "SomeEntities" AS s
+WHERE @__param_0 = '' OR ((s."CaseInsensitiveText" IS NOT NULL) AND (s."CaseInsensitiveText" LIKE @__param_0_1 || '%' ESCAPE '') AND left(s."CaseInsensitiveText", length(@__param_0))::citext = @__param_0::citext)
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -59,12 +63,14 @@ LIMIT 2");
 
         Assert.Equal(1, result.Id);
         AssertSql(
-            @"@__param_0='SomeTextWithExtraStuff'
+"""
+@__param_0='SomeTextWithExtraStuff'
 
-SELECT s.""Id"", s.""CaseInsensitiveText""
-FROM ""SomeEntities"" AS s
-WHERE s.""CaseInsensitiveText"" = '' OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND (@__param_0 LIKE s.""CaseInsensitiveText"" || '%' ESCAPE '') AND left(@__param_0, length(s.""CaseInsensitiveText""))::citext = s.""CaseInsensitiveText""::citext)
-LIMIT 2");
+SELECT s."Id", s."CaseInsensitiveText"
+FROM "SomeEntities" AS s
+WHERE s."CaseInsensitiveText" = '' OR ((s."CaseInsensitiveText" IS NOT NULL) AND (@__param_0 LIKE s."CaseInsensitiveText" || '%' ESCAPE '') AND left(@__param_0, length(s."CaseInsensitiveText"))::citext = s."CaseInsensitiveText"::citext)
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -75,10 +81,12 @@ LIMIT 2");
 
         Assert.Equal(1, result.Id);
         AssertSql(
-            @"SELECT s.""Id"", s.""CaseInsensitiveText""
-FROM ""SomeEntities"" AS s
-WHERE (s.""CaseInsensitiveText"" IS NOT NULL) AND (s.""CaseInsensitiveText"" LIKE '%sometext')
-LIMIT 2");
+"""
+SELECT s."Id", s."CaseInsensitiveText"
+FROM "SomeEntities" AS s
+WHERE (s."CaseInsensitiveText" IS NOT NULL) AND (s."CaseInsensitiveText" LIKE '%sometext')
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -90,13 +98,15 @@ LIMIT 2");
 
         Assert.Equal(1, result.Id);
         AssertSql(
-            @"@__param_0='sometext'
+"""
+@__param_0='sometext'
 @__param_0_1='sometext'
 
-SELECT s.""Id"", s.""CaseInsensitiveText""
-FROM ""SomeEntities"" AS s
-WHERE @__param_0 = '' OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND right(s.""CaseInsensitiveText"", length(@__param_0_1))::citext = @__param_0::citext)
-LIMIT 2");
+SELECT s."Id", s."CaseInsensitiveText"
+FROM "SomeEntities" AS s
+WHERE @__param_0 = '' OR ((s."CaseInsensitiveText" IS NOT NULL) AND right(s."CaseInsensitiveText", length(@__param_0_1))::citext = @__param_0::citext)
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -108,12 +118,14 @@ LIMIT 2");
 
         Assert.Equal(1, result.Id);
         AssertSql(
-            @"@__param_0='ExtraStuffThenSomeText'
+"""
+@__param_0='ExtraStuffThenSomeText'
 
-SELECT s.""Id"", s.""CaseInsensitiveText""
-FROM ""SomeEntities"" AS s
-WHERE s.""CaseInsensitiveText"" = '' OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND right(@__param_0, length(s.""CaseInsensitiveText""))::citext = s.""CaseInsensitiveText""::citext)
-LIMIT 2");
+SELECT s."Id", s."CaseInsensitiveText"
+FROM "SomeEntities" AS s
+WHERE s."CaseInsensitiveText" = '' OR ((s."CaseInsensitiveText" IS NOT NULL) AND right(@__param_0, length(s."CaseInsensitiveText"))::citext = s."CaseInsensitiveText"::citext)
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -124,10 +136,12 @@ LIMIT 2");
 
         Assert.Equal(1, result.Id);
         AssertSql(
-            @"SELECT s.""Id"", s.""CaseInsensitiveText""
-FROM ""SomeEntities"" AS s
-WHERE strpos(s.""CaseInsensitiveText"", 'ometex') > 0
-LIMIT 2");
+"""
+SELECT s."Id", s."CaseInsensitiveText"
+FROM "SomeEntities" AS s
+WHERE strpos(s."CaseInsensitiveText", 'ometex') > 0
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -139,12 +153,14 @@ LIMIT 2");
 
         Assert.Equal(1, result.Id);
         AssertSql(
-            @"@__param_0='ometex'
+"""
+@__param_0='ometex'
 
-SELECT s.""Id"", s.""CaseInsensitiveText""
-FROM ""SomeEntities"" AS s
-WHERE @__param_0 = '' OR strpos(s.""CaseInsensitiveText"", @__param_0) > 0
-LIMIT 2");
+SELECT s."Id", s."CaseInsensitiveText"
+FROM "SomeEntities" AS s
+WHERE @__param_0 = '' OR strpos(s."CaseInsensitiveText", @__param_0) > 0
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -156,12 +172,14 @@ LIMIT 2");
 
         Assert.Equal(1, result.Id);
         AssertSql(
-            @"@__param_0='ExtraSometextExtra'
+"""
+@__param_0='ExtraSometextExtra'
 
-SELECT s.""Id"", s.""CaseInsensitiveText""
-FROM ""SomeEntities"" AS s
-WHERE s.""CaseInsensitiveText"" = '' OR strpos(@__param_0, s.""CaseInsensitiveText"") > 0
-LIMIT 2");
+SELECT s."Id", s."CaseInsensitiveText"
+FROM "SomeEntities" AS s
+WHERE s."CaseInsensitiveText" = '' OR strpos(@__param_0, s."CaseInsensitiveText") > 0
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -172,10 +190,12 @@ LIMIT 2");
 
         Assert.Equal(1, result.Id);
         AssertSql(
-            @"SELECT s.""Id"", s.""CaseInsensitiveText""
-FROM ""SomeEntities"" AS s
-WHERE (strpos(s.""CaseInsensitiveText"", 'ometex') - 1) = 1
-LIMIT 2");
+"""
+SELECT s."Id", s."CaseInsensitiveText"
+FROM "SomeEntities" AS s
+WHERE (strpos(s."CaseInsensitiveText", 'ometex') - 1) = 1
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -187,12 +207,14 @@ LIMIT 2");
 
         Assert.Equal(1, result.Id);
         AssertSql(
-            @"@__param_0='ometex'
+"""
+@__param_0='ometex'
 
-SELECT s.""Id"", s.""CaseInsensitiveText""
-FROM ""SomeEntities"" AS s
-WHERE (strpos(s.""CaseInsensitiveText"", @__param_0) - 1) = 1
-LIMIT 2");
+SELECT s."Id", s."CaseInsensitiveText"
+FROM "SomeEntities" AS s
+WHERE (strpos(s."CaseInsensitiveText", @__param_0) - 1) = 1
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -204,12 +226,14 @@ LIMIT 2");
 
         Assert.Equal(1, result.Id);
         AssertSql(
-            @"@__param_0='ExtraSometextExtra'
+"""
+@__param_0='ExtraSometextExtra'
 
-SELECT s.""Id"", s.""CaseInsensitiveText""
-FROM ""SomeEntities"" AS s
-WHERE (strpos(@__param_0, s.""CaseInsensitiveText"") - 1) = 5
-LIMIT 2");
+SELECT s."Id", s."CaseInsensitiveText"
+FROM "SomeEntities" AS s
+WHERE (strpos(@__param_0, s."CaseInsensitiveText") - 1) = 5
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -220,10 +244,12 @@ LIMIT 2");
 
         Assert.Equal(1, result.Id);
         AssertSql(
-            @"SELECT s.""Id"", s.""CaseInsensitiveText""
-FROM ""SomeEntities"" AS s
-WHERE replace(s.""CaseInsensitiveText"", 'Te', 'Ne') = 'SomeNext'
-LIMIT 2");
+"""
+SELECT s."Id", s."CaseInsensitiveText"
+FROM "SomeEntities" AS s
+WHERE replace(s."CaseInsensitiveText", 'Te', 'Ne') = 'SomeNext'
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -235,12 +261,14 @@ LIMIT 2");
 
         Assert.Equal(1, result.Id);
         AssertSql(
-            @"@__param_0='Te'
+"""
+@__param_0='Te'
 
-SELECT s.""Id"", s.""CaseInsensitiveText""
-FROM ""SomeEntities"" AS s
-WHERE replace(s.""CaseInsensitiveText"", @__param_0, 'Ne') = 'SomeNext'
-LIMIT 2");
+SELECT s."Id", s."CaseInsensitiveText"
+FROM "SomeEntities" AS s
+WHERE replace(s."CaseInsensitiveText", @__param_0, 'Ne') = 'SomeNext'
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -252,12 +280,14 @@ LIMIT 2");
 
         Assert.Equal(1, result.Id);
         AssertSql(
-            @"@__param_0='ExtraSometextExtra'
+"""
+@__param_0='ExtraSometextExtra'
 
-SELECT s.""Id"", s.""CaseInsensitiveText""
-FROM ""SomeEntities"" AS s
-WHERE replace(@__param_0, s.""CaseInsensitiveText"", 'NewStuff') = 'ExtraNewStuffExtra'
-LIMIT 2");
+SELECT s."Id", s."CaseInsensitiveText"
+FROM "SomeEntities" AS s
+WHERE replace(@__param_0, s."CaseInsensitiveText", 'NewStuff') = 'ExtraNewStuffExtra'
+LIMIT 2
+""");
     }
 
     protected CitextQueryContext CreateContext() => Fixture.CreateContext();

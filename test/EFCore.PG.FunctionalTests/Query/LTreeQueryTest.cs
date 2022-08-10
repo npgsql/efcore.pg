@@ -34,9 +34,11 @@ public class LTreeQueryTest : IClassFixture<LTreeQueryTest.LTreeQueryFixture>
 
         Assert.Equal(1, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE l.""Path"" = 'Top.Science'");
+"""
+SELECT count(*)::int
+FROM "LTreeEntities" AS l
+WHERE l."Path" = 'Top.Science'
+""");
     }
 
     [ConditionalFact]
@@ -48,11 +50,13 @@ WHERE l.""Path"" = 'Top.Science'");
 
         Assert.Equal(1, count);
         AssertSql(
-            @"@__p_0='Top.Science' (Nullable = false) (DbType = Object)
+"""
+@__p_0='Top.Science' (Nullable = false) (DbType = Object)
 
 SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE l.""Path"" = @__p_0");
+FROM "LTreeEntities" AS l
+WHERE l."Path" = @__p_0
+""");
     }
 
     [ConditionalFact]
@@ -63,9 +67,11 @@ WHERE l.""Path"" = @__p_0");
 
         Assert.Equal(1, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE l.""PathAsString"" = 'Top.Science'");
+"""
+SELECT count(*)::int
+FROM "LTreeEntities" AS l
+WHERE l."PathAsString" = 'Top.Science'
+""");
     }
 
     [ConditionalFact]
@@ -76,9 +82,11 @@ WHERE l.""PathAsString"" = 'Top.Science'");
 
         Assert.Equal(4, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE l.""Path""::text LIKE 'Top.Science%'");
+"""
+SELECT count(*)::int
+FROM "LTreeEntities" AS l
+WHERE l."Path"::text LIKE 'Top.Science%'
+""");
     }
 
     [ConditionalFact]
@@ -89,9 +97,11 @@ WHERE l.""Path""::text LIKE 'Top.Science%'");
 
         Assert.Equal(4, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE 'Top.Science' @> l.""Path""");
+"""
+SELECT count(*)::int
+FROM "LTreeEntities" AS l
+WHERE 'Top.Science' @> l."Path"
+""");
     }
 
     [ConditionalFact]
@@ -102,9 +112,11 @@ WHERE 'Top.Science' @> l.""Path""");
 
         Assert.Equal(4, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE l.""Path"" <@ 'Top.Science'");
+"""
+SELECT count(*)::int
+FROM "LTreeEntities" AS l
+WHERE l."Path" <@ 'Top.Science'
+""");
     }
 
     [ConditionalFact]
@@ -115,10 +127,12 @@ WHERE l.""Path"" <@ 'Top.Science'");
 
         Assert.Equal(4, entity.Id);
         AssertSql(
-            @"SELECT l.""Id"", l.""Path"", l.""PathAsString""
-FROM ""LTreeEntities"" AS l
-WHERE l.""Path"" ~ '*.Astrophysics'
-LIMIT 2");
+"""
+SELECT l."Id", l."Path", l."PathAsString"
+FROM "LTreeEntities" AS l
+WHERE l."Path" ~ '*.Astrophysics'
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -130,12 +144,14 @@ LIMIT 2");
 
         Assert.Equal(4, entity.Id);
         AssertSql(
-            @"@__lqueries_0={ '*.Astrophysics', '*.Geology' } (DbType = Object)
+"""
+@__lqueries_0={ '*.Astrophysics', '*.Geology' } (DbType = Object)
 
-SELECT l.""Id"", l.""Path"", l.""PathAsString""
-FROM ""LTreeEntities"" AS l
-WHERE l.""Path"" ? @__lqueries_0
-LIMIT 2");
+SELECT l."Id", l."Path", l."PathAsString"
+FROM "LTreeEntities" AS l
+WHERE l."Path" ? @__lqueries_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -146,9 +162,11 @@ LIMIT 2");
 
         Assert.Equal(3, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE l.""Path"" @ 'Astro*'");
+"""
+SELECT count(*)::int
+FROM "LTreeEntities" AS l
+WHERE l."Path" @ 'Astro*'
+""");
     }
 
     [ConditionalFact]
@@ -159,10 +177,12 @@ WHERE l.""Path"" @ 'Astro*'");
 
         Assert.Equal(2, entity.Id);
         AssertSql(
-            @"SELECT l.""Id"", l.""Path"", l.""PathAsString""
-FROM ""LTreeEntities"" AS l
-WHERE (l.""Path""::text || '.Astronomy') = 'Top.Science.Astronomy'
-LIMIT 2");
+"""
+SELECT l."Id", l."Path", l."PathAsString"
+FROM "LTreeEntities" AS l
+WHERE (l."Path"::text || '.Astronomy') = 'Top.Science.Astronomy'
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -174,11 +194,13 @@ LIMIT 2");
 
         Assert.Equal(4, count);
         AssertSql(
-            @"@__ltrees_0={ 'Top.Science', 'Top.Art' } (DbType = Object)
+"""
+@__ltrees_0={ 'Top.Science', 'Top.Art' } (DbType = Object)
 
 SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE @__ltrees_0 @> l.""Path""");
+FROM "LTreeEntities" AS l
+WHERE @__ltrees_0 @> l."Path"
+""");
     }
 
     [ConditionalFact]
@@ -190,11 +212,13 @@ WHERE @__ltrees_0 @> l.""Path""");
 
         Assert.Equal(3, count);
         AssertSql(
-            @"@__ltrees_0={ 'Top.Science.Astronomy', 'Top.Art' } (DbType = Object)
+"""
+@__ltrees_0={ 'Top.Science.Astronomy', 'Top.Art' } (DbType = Object)
 
 SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE @__ltrees_0 <@ l.""Path""");
+FROM "LTreeEntities" AS l
+WHERE @__ltrees_0 <@ l."Path"
+""");
     }
 
     [ConditionalFact]
@@ -206,11 +230,13 @@ WHERE @__ltrees_0 <@ l.""Path""");
         _ = ctx.LTreeEntities.Count(_ => ltrees.Any(t => t.MatchesLQuery("*.Astrophysics")));
 
         AssertSql(
-            @"@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
+"""
+@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
 
 SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE @__ltrees_0 ~ '*.Astrophysics'");
+FROM "LTreeEntities" AS l
+WHERE @__ltrees_0 ~ '*.Astrophysics'
+""");
     }
 
     [ConditionalFact]
@@ -224,12 +250,14 @@ WHERE @__ltrees_0 ~ '*.Astrophysics'");
         _ = ctx.LTreeEntities.Count(_ => ltrees.Any(t => lqueries.Any(q => t.MatchesLQuery(q))));
 
         AssertSql(
-            @"@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
+"""
+@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
 @__lqueries_1={ '*.Astrophysics', '*.Geology' } (DbType = Object)
 
 SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE @__ltrees_0 ? @__lqueries_1");
+FROM "LTreeEntities" AS l
+WHERE @__ltrees_0 ? @__lqueries_1
+""");
     }
 
     [ConditionalFact]
@@ -241,11 +269,13 @@ WHERE @__ltrees_0 ? @__lqueries_1");
         _ = ctx.LTreeEntities.Count(_ => ltrees.Any(t => t.MatchesLTxtQuery("Astro*")));
 
         AssertSql(
-            @"@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
+"""
+@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
 
 SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE @__ltrees_0 @ 'Astro*'");
+FROM "LTreeEntities" AS l
+WHERE @__ltrees_0 @ 'Astro*'
+""");
     }
 
     [ConditionalFact]
@@ -258,11 +288,13 @@ WHERE @__ltrees_0 @ 'Astro*'");
 
         Assert.Equal(4, count);
         AssertSql(
-            @"@__ltrees_0={ 'Top.Science', 'Top.Hobbies' } (DbType = Object)
+"""
+@__ltrees_0={ 'Top.Science', 'Top.Hobbies' } (DbType = Object)
 
 SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE @__ltrees_0 ?@> l.""Path"" = 'Top.Science'");
+FROM "LTreeEntities" AS l
+WHERE @__ltrees_0 ?@> l."Path" = 'Top.Science'
+""");
     }
 
     [ConditionalFact]
@@ -275,11 +307,13 @@ WHERE @__ltrees_0 ?@> l.""Path"" = 'Top.Science'");
 
         Assert.Equal(3, count);
         AssertSql(
-            @"@__ltrees_0={ 'Top.Science.Astronomy', 'Top.Hobbies.Amateurs_Astronomy' } (DbType = Object)
+"""
+@__ltrees_0={ 'Top.Science.Astronomy', 'Top.Hobbies.Amateurs_Astronomy' } (DbType = Object)
 
 SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE @__ltrees_0 ?<@ l.""Path"" = 'Top.Science.Astronomy'");
+FROM "LTreeEntities" AS l
+WHERE @__ltrees_0 ?<@ l."Path" = 'Top.Science.Astronomy'
+""");
     }
 
     [ConditionalFact]
@@ -291,11 +325,13 @@ WHERE @__ltrees_0 ?<@ l.""Path"" = 'Top.Science.Astronomy'");
         _ = ctx.LTreeEntities.Count(_ => ltrees.FirstOrDefault(l => l.MatchesLQuery("*.Astrophysics")) == "Top.Science.Astronomy.Astrophysics");
 
         AssertSql(
-            @"@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
+"""
+@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
 
 SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE @__ltrees_0 ?~ '*.Astrophysics' = 'Top.Science.Astronomy.Astrophysics'");
+FROM "LTreeEntities" AS l
+WHERE @__ltrees_0 ?~ '*.Astrophysics' = 'Top.Science.Astronomy.Astrophysics'
+""");
     }
 
     [ConditionalFact]
@@ -307,11 +343,13 @@ WHERE @__ltrees_0 ?~ '*.Astrophysics' = 'Top.Science.Astronomy.Astrophysics'");
         _ = ctx.LTreeEntities.Count(_ => ltrees.FirstOrDefault(l => l.MatchesLTxtQuery("Astro*")) == "Top.Science.Astronomy.Astrophysics");
 
         AssertSql(
-            @"@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
+"""
+@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
 
 SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE @__ltrees_0 ?@ 'Astro*' = 'Top.Science.Astronomy.Astrophysics'");
+FROM "LTreeEntities" AS l
+WHERE @__ltrees_0 ?@ 'Astro*' = 'Top.Science.Astronomy.Astrophysics'
+""");
     }
 
     [ConditionalFact]
@@ -323,9 +361,11 @@ WHERE @__ltrees_0 ?@ 'Astro*' = 'Top.Science.Astronomy.Astrophysics'");
 
         Assert.Equal(7, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE subltree(l.""Path"", 0, 1) = 'Top'");
+"""
+SELECT count(*)::int
+FROM "LTreeEntities" AS l
+WHERE subltree(l."Path", 0, 1) = 'Top'
+""");
     }
 
     [ConditionalFact]
@@ -337,9 +377,11 @@ WHERE subltree(l.""Path"", 0, 1) = 'Top'");
 
         Assert.Equal(4, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE subpath(l.""Path"", 0, 2) = 'Top.Science'");
+"""
+SELECT count(*)::int
+FROM "LTreeEntities" AS l
+WHERE subpath(l."Path", 0, 2) = 'Top.Science'
+""");
     }
 
     [ConditionalFact]
@@ -352,10 +394,12 @@ WHERE subpath(l.""Path"", 0, 2) = 'Top.Science'");
 
         Assert.Equal(4, result.Id);
         AssertSql(
-            @"SELECT l.""Id"", l.""Path"", l.""PathAsString""
-FROM ""LTreeEntities"" AS l
-WHERE nlevel(l.""Path"") > 2 AND subpath(l.""Path"", 2) = 'Astronomy.Astrophysics'
-LIMIT 2");
+"""
+SELECT l."Id", l."Path", l."PathAsString"
+FROM "LTreeEntities" AS l
+WHERE nlevel(l."Path") > 2 AND subpath(l."Path", 2) = 'Astronomy.Astrophysics'
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -367,9 +411,11 @@ LIMIT 2");
 
         Assert.Equal(2, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE nlevel(l.""Path"") = 2");
+"""
+SELECT count(*)::int
+FROM "LTreeEntities" AS l
+WHERE nlevel(l."Path") = 2
+""");
     }
 
     [ConditionalFact]
@@ -381,9 +427,11 @@ WHERE nlevel(l.""Path"") = 2");
 
         Assert.Equal(3, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE index(l.""Path"", 'Astronomy') <> -1");
+"""
+SELECT count(*)::int
+FROM "LTreeEntities" AS l
+WHERE index(l."Path", 'Astronomy') <> -1
+""");
     }
 
     [ConditionalFact]
@@ -395,9 +443,11 @@ WHERE index(l.""Path"", 'Astronomy') <> -1");
 
         Assert.Equal(0, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE index(l.""Path"", 'Top', 1) <> -1");
+"""
+SELECT count(*)::int
+FROM "LTreeEntities" AS l
+WHERE index(l."Path", 'Top', 1) <> -1
+""");
     }
 
     [ConditionalFact]
@@ -409,9 +459,11 @@ WHERE index(l.""Path"", 'Top', 1) <> -1");
 
         Assert.Equal(6, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""LTreeEntities"" AS l
-WHERE lca(ARRAY[l.""Path"",'Top.Hobbies']::ltree[]) = 'Top'");
+"""
+SELECT count(*)::int
+FROM "LTreeEntities" AS l
+WHERE lca(ARRAY[l."Path",'Top.Hobbies']::ltree[]) = 'Top'
+""");
     }
 
     #region Support

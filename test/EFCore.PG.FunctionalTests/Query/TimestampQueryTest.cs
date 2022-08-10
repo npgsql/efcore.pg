@@ -98,9 +98,11 @@ public class TimestampQueryTest : QueryTestBase<TimestampQueryTest.TimestampQuer
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE e.""TimestampDateTime"" = TIMESTAMP '1998-04-12 15:26:38'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE e."TimestampDateTime" = TIMESTAMP '1998-04-12 15:26:38'
+""");
     }
 
     [ConditionalTheory]
@@ -116,10 +118,11 @@ WHERE e.""TimestampDateTime"" = TIMESTAMP '1998-04-12 15:26:38'");
 
         // The string representation of our local DateTime is generated with the local time zone (by the EF Core test infra),
         // so we can't assert on it.
-        Assert.Contains(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE e.""TimestampDateTime"" = @__dateTime_0",
+        Assert.Contains("""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE e."TimestampDateTime" = @__dateTime_0
+""",
             Fixture.TestSqlLoggerFactory.SqlStatements.Single());
     }
 
@@ -137,11 +140,13 @@ WHERE e.""TimestampDateTime"" = @__dateTime_0",
             entryCount: 1);
 
         AssertSql(
-            @"@__dateTime_0='1998-04-12T15:26:38.0000000'
+"""
+@__dateTime_0='1998-04-12T15:26:38.0000000'
 
-SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE e.""TimestampDateTime"" = @__dateTime_0");
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE e."TimestampDateTime" = @__dateTime_0
+""");
     }
 
     [ConditionalFact]
@@ -176,9 +181,11 @@ WHERE e.""TimestampDateTime"" = @__dateTime_0");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE e.""TimestamptzDateTime"" = TIMESTAMPTZ '1998-04-12 13:26:38Z'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE e."TimestamptzDateTime" = TIMESTAMPTZ '1998-04-12 13:26:38Z'
+""");
     }
 
     [ConditionalTheory]
@@ -193,11 +200,13 @@ WHERE e.""TimestamptzDateTime"" = TIMESTAMPTZ '1998-04-12 13:26:38Z'");
             entryCount: 1);
 
         AssertSql(
-            @"@__dateTime_0='1998-04-12T13:26:38.0000000Z' (DbType = DateTime)
+"""
+@__dateTime_0='1998-04-12T13:26:38.0000000Z' (DbType = DateTime)
 
-SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE e.""TimestamptzDateTime"" = @__dateTime_0");
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE e."TimestamptzDateTime" = @__dateTime_0
+""");
     }
 
     [ConditionalFact]
@@ -268,9 +277,11 @@ WHERE e.""TimestamptzDateTime"" = @__dateTime_0");
         Assert.Equal(1, count);
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""Entities"" AS e
-WHERE e.""TimestamptzDateTime"" = e.""TimestampDateTime""::timestamptz");
+"""
+SELECT count(*)::int
+FROM "Entities" AS e
+WHERE e."TimestamptzDateTime" = e."TimestampDateTime"::timestamptz
+""");
     }
 
     [ConditionalFact]
@@ -287,9 +298,11 @@ WHERE e.""TimestamptzDateTime"" = e.""TimestampDateTime""::timestamptz");
         Assert.Equal(1, count);
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""Entities"" AS e
-WHERE e.""TimestamptzDateTime""::timestamp = e.""TimestampDateTime""");
+"""
+SELECT count(*)::int
+FROM "Entities" AS e
+WHERE e."TimestamptzDateTime"::timestamp = e."TimestampDateTime"
+""");
     }
 
     #endregion Comparisons
@@ -308,11 +321,13 @@ WHERE e.""TimestamptzDateTime""::timestamp = e.""TimestampDateTime""");
             entryCount: 2);
 
         AssertSql(
-            @"@__myDatetime_0='2015-04-10T00:00:00.0000000'
+"""
+@__myDatetime_0='2015-04-10T00:00:00.0000000'
 
-SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE now()::timestamp <> @__myDatetime_0");
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE now()::timestamp <> @__myDatetime_0
+""");
     }
 
     [ConditionalTheory]
@@ -327,11 +342,13 @@ WHERE now()::timestamp <> @__myDatetime_0");
             entryCount: 2);
 
         AssertSql(
-            @"@__myDatetime_0='2015-04-10T00:00:00.0000000Z' (DbType = DateTime)
+"""
+@__myDatetime_0='2015-04-10T00:00:00.0000000Z' (DbType = DateTime)
 
-SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE now() <> @__myDatetime_0");
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE now() <> @__myDatetime_0
+""");
     }
 
     #endregion Now
@@ -349,9 +366,11 @@ WHERE now() <> @__myDatetime_0");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE date_trunc('day', e.""TimestamptzDateTime"", 'UTC') = TIMESTAMPTZ '1998-04-12 00:00:00Z'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE date_trunc('day', e."TimestamptzDateTime", 'UTC') = TIMESTAMPTZ '1998-04-12 00:00:00Z'
+""");
     }
 
     [ConditionalTheory]
@@ -364,9 +383,11 @@ WHERE date_trunc('day', e.""TimestamptzDateTime"", 'UTC') = TIMESTAMPTZ '1998-04
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE date_trunc('day', e.""TimestampDateTime"") = TIMESTAMP '1998-04-12 00:00:00'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE date_trunc('day', e."TimestampDateTime") = TIMESTAMP '1998-04-12 00:00:00'
+""");
     }
 
     #endregion
@@ -385,9 +406,11 @@ WHERE date_trunc('day', e.""TimestampDateTime"") = TIMESTAMP '1998-04-12 00:00:0
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE (e.""TimestampDateTimeOffset"" AT TIME ZONE 'UTC') = TIMESTAMP '1998-04-12 13:26:38'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE (e."TimestampDateTimeOffset" AT TIME ZONE 'UTC') = TIMESTAMP '1998-04-12 13:26:38'
+""");
     }
 
     [ConditionalTheory]
@@ -403,9 +426,11 @@ WHERE (e.""TimestampDateTimeOffset"" AT TIME ZONE 'UTC') = TIMESTAMP '1998-04-12
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE e.""TimestampDateTimeOffset"" = TIMESTAMPTZ '1998-04-12 13:26:38Z'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE e."TimestampDateTimeOffset" = TIMESTAMPTZ '1998-04-12 13:26:38Z'
+""");
     }
 
     [ConditionalFact]
@@ -424,9 +449,11 @@ WHERE e.""TimestampDateTimeOffset"" = TIMESTAMPTZ '1998-04-12 13:26:38Z'");
         Assert.Equal(1, count);
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""Entities"" AS e
-WHERE e.""TimestampDateTimeOffset""::timestamp = TIMESTAMP '1998-04-12 15:26:38'");
+"""
+SELECT count(*)::int
+FROM "Entities" AS e
+WHERE e."TimestampDateTimeOffset"::timestamp = TIMESTAMP '1998-04-12 15:26:38'
+""");
     }
 
     [ConditionalTheory] // #2220
@@ -438,8 +465,10 @@ WHERE e.""TimestampDateTimeOffset""::timestamp = TIMESTAMP '1998-04-12 15:26:38'
             ss => ss.Set<Entity>().Select(e => new { e.TimestampDateTimeOffset.Date }));
 
         AssertSql(
-            @"SELECT date_trunc('day', e.""TimestampDateTimeOffset"" AT TIME ZONE 'UTC') AS ""Date""
-FROM ""Entities"" AS e");
+"""
+SELECT date_trunc('day', e."TimestampDateTimeOffset" AT TIME ZONE 'UTC') AS "Date"
+FROM "Entities" AS e
+""");
 
         // Additional check to make sure Unspecified DateTimes are returned, as per the .NET DateTimeOffset.Date behavior
         // (AssertQuery above doesn't confirm this since Kind isn't taken into account for DateTime comparisons)
@@ -465,9 +494,11 @@ FROM ""Entities"" AS e");
                 new DateTime(e.TimestampDateTime.Year, e.TimestampDateTime.Month, 1) == new DateTime(1998, 4, 12)));
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE make_date(date_part('year', e.""TimestampDateTime"")::int, date_part('month', e.""TimestampDateTime"")::int, 1) = TIMESTAMP '1998-04-12 00:00:00'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE make_date(date_part('year', e."TimestampDateTime")::int, date_part('month', e."TimestampDateTime")::int, 1) = TIMESTAMP '1998-04-12 00:00:00'
+""");
     }
 
     [ConditionalTheory]
@@ -480,9 +511,11 @@ WHERE make_date(date_part('year', e.""TimestampDateTime"")::int, date_part('mont
                 new DateTime(e.TimestampDateTime.Year, e.TimestampDateTime.Month, 1, 0, 0, 0) == new DateTime(1998, 4, 12)));
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE make_timestamp(date_part('year', e.""TimestampDateTime"")::int, date_part('month', e.""TimestampDateTime"")::int, 1, 0, 0, 0::double precision) = TIMESTAMP '1998-04-12 00:00:00'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE make_timestamp(date_part('year', e."TimestampDateTime")::int, date_part('month', e."TimestampDateTime")::int, 1, 0, 0, 0::double precision) = TIMESTAMP '1998-04-12 00:00:00'
+""");
     }
 
     [ConditionalTheory]
@@ -495,9 +528,11 @@ WHERE make_timestamp(date_part('year', e.""TimestampDateTime"")::int, date_part(
                 new DateTime(e.TimestampDateTime.Year, e.TimestampDateTime.Month, 1, 0, 0, 0, DateTimeKind.Local) == new DateTime(1996, 9, 11)));
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE make_timestamp(date_part('year', e.""TimestampDateTime"")::int, date_part('month', e.""TimestampDateTime"")::int, 1, 0, 0, 0::double precision) = TIMESTAMP '1996-09-11 00:00:00'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE make_timestamp(date_part('year', e."TimestampDateTime")::int, date_part('month', e."TimestampDateTime")::int, 1, 0, 0, 0::double precision) = TIMESTAMP '1996-09-11 00:00:00'
+""");
     }
 
     [ConditionalTheory]
@@ -513,9 +548,11 @@ WHERE make_timestamp(date_part('year', e.""TimestampDateTime"")::int, date_part(
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE make_timestamptz(date_part('year', e.""TimestamptzDateTime"")::int, date_part('month', e.""TimestamptzDateTime"")::int, 1, 0, 0, 0::double precision, 'UTC') = TIMESTAMPTZ '1998-04-01 00:00:00Z'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE make_timestamptz(date_part('year', e."TimestamptzDateTime")::int, date_part('month', e."TimestamptzDateTime")::int, 1, 0, 0, 0::double precision, 'UTC') = TIMESTAMPTZ '1998-04-01 00:00:00Z'
+""");
     }
 
     #endregion DateTime constructors
@@ -532,9 +569,11 @@ WHERE make_timestamptz(date_part('year', e.""TimestamptzDateTime"")::int, date_p
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE (e.""TimestampDateTime"" AT TIME ZONE 'UTC') = TIMESTAMPTZ '1998-04-12 15:26:38Z'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE (e."TimestampDateTime" AT TIME ZONE 'UTC') = TIMESTAMPTZ '1998-04-12 15:26:38Z'
+""");
     }
 
     [ConditionalTheory]
@@ -547,9 +586,11 @@ WHERE (e.""TimestampDateTime"" AT TIME ZONE 'UTC') = TIMESTAMPTZ '1998-04-12 15:
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE (e.""TimestamptzDateTime"" AT TIME ZONE 'UTC') = TIMESTAMP '1998-04-12 13:26:38'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE (e."TimestamptzDateTime" AT TIME ZONE 'UTC') = TIMESTAMP '1998-04-12 13:26:38'
+""");
     }
 
     [ConditionalTheory]
@@ -562,9 +603,11 @@ WHERE (e.""TimestamptzDateTime"" AT TIME ZONE 'UTC') = TIMESTAMP '1998-04-12 13:
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE (e.""TimestamptzDateTime"" AT TIME ZONE 'UTC') = TIMESTAMP '1998-04-12 13:26:38'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE (e."TimestamptzDateTime" AT TIME ZONE 'UTC') = TIMESTAMP '1998-04-12 13:26:38'
+""");
     }
 
     [ConditionalFact]
@@ -596,9 +639,11 @@ WHERE (e.""TimestamptzDateTime"" AT TIME ZONE 'UTC') = TIMESTAMP '1998-04-12 13:
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE (e.""TimestamptzDateTime"" AT TIME ZONE 'Europe/Berlin') = TIMESTAMP '1998-04-12 15:26:38'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE (e."TimestamptzDateTime" AT TIME ZONE 'Europe/Berlin') = TIMESTAMP '1998-04-12 15:26:38'
+""");
     }
 
     [ConditionalFact]
@@ -626,9 +671,11 @@ WHERE (e.""TimestamptzDateTime"" AT TIME ZONE 'Europe/Berlin') = TIMESTAMP '1998
         Assert.Equal(1, count);
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""Entities"" AS e
-WHERE e.""TimestampDateTime""::timestamptz = TIMESTAMPTZ '1998-04-12 13:26:38Z'");
+"""
+SELECT count(*)::int
+FROM "Entities" AS e
+WHERE e."TimestampDateTime"::timestamptz = TIMESTAMPTZ '1998-04-12 13:26:38Z'
+""");
     }
 
     [ConditionalFact]
@@ -658,9 +705,11 @@ WHERE e.""TimestampDateTime""::timestamptz = TIMESTAMPTZ '1998-04-12 13:26:38Z'"
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE CAST((e.""TimestamptzDateTime"" AT TIME ZONE 'UTC') AS date) = DATE '1998-04-12'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE CAST((e."TimestamptzDateTime" AT TIME ZONE 'UTC') AS date) = DATE '1998-04-12'
+""");
     }
 
     [ConditionalTheory]
@@ -674,9 +723,11 @@ WHERE CAST((e.""TimestamptzDateTime"" AT TIME ZONE 'UTC') AS date) = DATE '1998-
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE e.""TimestampDateTime""::date = DATE '1998-04-12'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE e."TimestampDateTime"::date = DATE '1998-04-12'
+""");
     }
 
     [ConditionalTheory]
@@ -690,9 +741,11 @@ WHERE e.""TimestampDateTime""::date = DATE '1998-04-12'");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE (CAST((e.""TimestamptzDateTime"" AT TIME ZONE 'UTC') AS date) + TIME '15:26:38') = TIMESTAMP '1998-04-12 15:26:38'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE (CAST((e."TimestamptzDateTime" AT TIME ZONE 'UTC') AS date) + TIME '15:26:38') = TIMESTAMP '1998-04-12 15:26:38'
+""");
     }
 
     #endregion DateOnly
@@ -710,9 +763,11 @@ WHERE (CAST((e.""TimestamptzDateTime"" AT TIME ZONE 'UTC') AS date) + TIME '15:2
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE e.""TimestampDateTime""::time without time zone = TIME '15:26:38'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE e."TimestampDateTime"::time without time zone = TIME '15:26:38'
+""");
     }
 
     [ConditionalTheory]
@@ -726,9 +781,11 @@ WHERE e.""TimestampDateTime""::time without time zone = TIME '15:26:38'");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE CAST((e.""TimestamptzDateTime"" AT TIME ZONE 'UTC') AS time without time zone) = TIME '13:26:38'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE CAST((e."TimestamptzDateTime" AT TIME ZONE 'UTC') AS time without time zone) = TIME '13:26:38'
+""");
     }
 
     [ConditionalTheory]
@@ -742,9 +799,11 @@ WHERE CAST((e.""TimestamptzDateTime"" AT TIME ZONE 'UTC') AS time without time z
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""TimestampDateTime"", e.""TimestampDateTimeArray"", e.""TimestampDateTimeOffset"", e.""TimestampDateTimeOffsetArray"", e.""TimestampDateTimeRange"", e.""TimestamptzDateTime"", e.""TimestamptzDateTimeArray"", e.""TimestamptzDateTimeRange""
-FROM ""Entities"" AS e
-WHERE CAST((e.""TimestamptzDateTime"" AT TIME ZONE 'UTC') AS time without time zone) = TIME '13:26:38'");
+"""
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE CAST((e."TimestamptzDateTime" AT TIME ZONE 'UTC') AS time without time zone) = TIME '13:26:38'
+""");
     }
 
     #endregion TimeOnly

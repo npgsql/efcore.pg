@@ -35,8 +35,10 @@ public class SpatialQueryNpgsqlGeographyTest
         await base.Area(async);
 
         AssertSql(
-            @"SELECT p.""Id"", ST_Area(p.""Polygon"") AS ""Area""
-FROM ""PolygonEntity"" AS p");
+"""
+SELECT p."Id", ST_Area(p."Polygon") AS "Area"
+FROM "PolygonEntity" AS p
+""");
     }
 
     public override async Task AsBinary(bool async)
@@ -44,8 +46,10 @@ FROM ""PolygonEntity"" AS p");
         await base.AsBinary(async);
 
         AssertSql(
-            @"SELECT p.""Id"", ST_AsBinary(p.""Point"") AS ""Binary""
-FROM ""PointEntity"" AS p");
+"""
+SELECT p."Id", ST_AsBinary(p."Point") AS "Binary"
+FROM "PointEntity" AS p
+""");
     }
 
     public override async Task AsText(bool async)
@@ -53,8 +57,10 @@ FROM ""PointEntity"" AS p");
         await base.AsText(async);
 
         AssertSql(
-            @"SELECT p.""Id"", ST_AsText(p.""Point"") AS ""Text""
-FROM ""PointEntity"" AS p");
+"""
+SELECT p."Id", ST_AsText(p."Point") AS "Text"
+FROM "PointEntity" AS p
+""");
     }
 
     public override async Task Buffer(bool async)
@@ -62,8 +68,10 @@ FROM ""PointEntity"" AS p");
         await base.Buffer(async);
 
         AssertSql(
-            @"SELECT p.""Id"", ST_Buffer(p.""Polygon"", 1.0) AS ""Buffer""
-FROM ""PolygonEntity"" AS p");
+"""
+SELECT p."Id", ST_Buffer(p."Polygon", 1.0) AS "Buffer"
+FROM "PolygonEntity" AS p
+""");
     }
 
     public override async Task Buffer_quadrantSegments(bool async)
@@ -71,8 +79,10 @@ FROM ""PolygonEntity"" AS p");
         await base.Buffer_quadrantSegments(async);
 
         AssertSql(
-            @"SELECT p.""Id"", ST_Buffer(p.""Polygon"", 1.0, 8) AS ""Buffer""
-FROM ""PolygonEntity"" AS p");
+"""
+SELECT p."Id", ST_Buffer(p."Polygon", 1.0, 8) AS "Buffer"
+FROM "PolygonEntity" AS p
+""");
     }
 
     public override async Task Centroid(bool async)
@@ -80,8 +90,10 @@ FROM ""PolygonEntity"" AS p");
         await base.Centroid(async);
 
         AssertSql(
-            @"SELECT p.""Id"", ST_Centroid(p.""Polygon"") AS ""Centroid""
-FROM ""PolygonEntity"" AS p");
+"""
+SELECT p."Id", ST_Centroid(p."Polygon") AS "Centroid"
+FROM "PolygonEntity" AS p
+""");
     }
 
     [ConditionalTheory]
@@ -103,11 +115,13 @@ FROM ""PolygonEntity"" AS p");
             });
 
         AssertSql(
-            @$"@__point_1='POINT (0 1)' (DbType = Object)
+$"""
+@__point_1='POINT (0 1)' (DbType = Object)
 @__useSpheroid_2='{useSpheroid}'
 
-SELECT p.""Id"", ST_Distance(p.""Point"", @__point_1, @__useSpheroid_2) AS ""Distance""
-FROM ""PointEntity"" AS p");
+SELECT p."Id", ST_Distance(p."Point", @__point_1, @__useSpheroid_2) AS "Distance"
+FROM "PointEntity" AS p
+""");
     }
 
     [ConditionalTheory]
@@ -129,10 +143,12 @@ FROM ""PointEntity"" AS p");
             });
 
         AssertSql(
-            @"@__point_1='POINT (0 1)' (DbType = Object)
+"""
+@__point_1='POINT (0 1)' (DbType = Object)
 
-SELECT p.""Id"", p.""Point"" <-> @__point_1 AS ""Distance""
-FROM ""PointEntity"" AS p");
+SELECT p."Id", p."Point" <-> @__point_1 AS "Distance"
+FROM "PointEntity" AS p
+""");
     }
 
     public override async Task GeometryType(bool async)
@@ -145,11 +161,13 @@ FROM ""PointEntity"" AS p");
             x => x.Id);
 
         AssertSql(
-            @"SELECT p.""Id"", CASE
-    WHEN (p.""Point"" IS NULL) THEN NULL
-    ELSE lower(GeometryType(p.""Point""))
-END AS ""GeometryType""
-FROM ""PointEntity"" AS p");
+"""
+SELECT p."Id", CASE
+    WHEN (p."Point" IS NULL) THEN NULL
+    ELSE lower(GeometryType(p."Point"))
+END AS "GeometryType"
+FROM "PointEntity" AS p
+""");
     }
 
     public override async Task Intersection(bool async)
@@ -157,10 +175,12 @@ FROM ""PointEntity"" AS p");
         await base.Intersection(async);
 
         AssertSql(
-            @"@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
+"""
+@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
 
-SELECT p.""Id"", ST_Intersection(p.""Polygon"", @__polygon_0) AS ""Intersection""
-FROM ""PolygonEntity"" AS p");
+SELECT p."Id", ST_Intersection(p."Polygon", @__polygon_0) AS "Intersection"
+FROM "PolygonEntity" AS p
+""");
     }
 
     public override async Task Intersects(bool async)
@@ -168,10 +188,12 @@ FROM ""PolygonEntity"" AS p");
         await base.Intersects(async);
 
         AssertSql(
-            @"@__lineString_0='LINESTRING (0.5 -0.5, 0.5 0.5)' (DbType = Object)
+"""
+@__lineString_0='LINESTRING (0.5 -0.5, 0.5 0.5)' (DbType = Object)
 
-SELECT l.""Id"", ST_Intersects(l.""LineString"", @__lineString_0) AS ""Intersects""
-FROM ""LineStringEntity"" AS l");
+SELECT l."Id", ST_Intersects(l."LineString", @__lineString_0) AS "Intersects"
+FROM "LineStringEntity" AS l
+""");
     }
 
     public override async Task IsWithinDistance(bool async)
@@ -179,10 +201,12 @@ FROM ""LineStringEntity"" AS l");
         await base.IsWithinDistance(async);
 
         AssertSql(
-            @"@__point_0='POINT (0 1)' (DbType = Object)
+"""
+@__point_0='POINT (0 1)' (DbType = Object)
 
-SELECT p.""Id"", ST_DWithin(p.""Point"", @__point_0, 1.0) AS ""IsWithinDistance""
-FROM ""PointEntity"" AS p");
+SELECT p."Id", ST_DWithin(p."Point", @__point_0, 1.0) AS "IsWithinDistance"
+FROM "PointEntity" AS p
+""");
     }
 
     [ConditionalTheory]
@@ -212,12 +236,13 @@ FROM ""PointEntity"" AS p");
             });
 
         AssertSql(
-            @$"@__point_1='POINT (0 1)' (DbType = Object)
+$"""
+@__point_1='POINT (0 1)' (DbType = Object)
 @__useSpheroid_2='{useSpheroid}'
 
-SELECT p.""Id"", ST_DWithin(p.""Point"", @__point_1, 1.0, @__useSpheroid_2) AS ""IsWithinDistance""
-FROM ""PointEntity"" AS p"
-        );
+SELECT p."Id", ST_DWithin(p."Point", @__point_1, 1.0, @__useSpheroid_2) AS "IsWithinDistance"
+FROM "PointEntity" AS p
+""");
     }
 
     public override async Task Length(bool async)
@@ -225,8 +250,10 @@ FROM ""PointEntity"" AS p"
         await base.Length(async);
 
         AssertSql(
-            @"SELECT l.""Id"", ST_Length(l.""LineString"") AS ""Length""
-FROM ""LineStringEntity"" AS l");
+"""
+SELECT l."Id", ST_Length(l."LineString") AS "Length"
+FROM "LineStringEntity" AS l
+""");
     }
 
     public override async Task SRID(bool async)
@@ -234,8 +261,10 @@ FROM ""LineStringEntity"" AS l");
         await base.SRID(async);
 
         AssertSql(
-            @"SELECT p.""Id"", ST_SRID(p.""Point"") AS ""SRID""
-FROM ""PointEntity"" AS p");
+"""
+SELECT p."Id", ST_SRID(p."Point") AS "SRID"
+FROM "PointEntity" AS p
+""");
     }
 
     public override async Task ToBinary(bool async)
@@ -243,8 +272,10 @@ FROM ""PointEntity"" AS p");
         await base.ToBinary(async);
 
         AssertSql(
-            @"SELECT p.""Id"", ST_AsBinary(p.""Point"") AS ""Binary""
-FROM ""PointEntity"" AS p");
+"""
+SELECT p."Id", ST_AsBinary(p."Point") AS "Binary"
+FROM "PointEntity" AS p
+""");
     }
 
     public override async Task ToText(bool async)
@@ -252,8 +283,10 @@ FROM ""PointEntity"" AS p");
         await base.ToText(async);
 
         AssertSql(
-            @"SELECT p.""Id"", ST_AsText(p.""Point"") AS ""Text""
-FROM ""PointEntity"" AS p");
+"""
+SELECT p."Id", ST_AsText(p."Point") AS "Text"
+FROM "PointEntity" AS p
+""");
     }
 
     #region Not supported on geography

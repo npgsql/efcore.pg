@@ -31,8 +31,10 @@ public class TPTGearsOfWarQueryNpgsqlTest : TPTGearsOfWarQueryRelationalTestBase
             ss => ss.Set<Mission>().Select(m => m.Timeline > DateTimeOffset.UtcNow));
 
         AssertSql(
-            @"SELECT m.""Timeline"" > now()
-FROM ""Missions"" AS m");
+"""
+SELECT m."Timeline" > now()
+FROM "Missions" AS m
+""");
     }
 
     public override async Task DateTimeOffset_Contains_Less_than_Greater_than(bool async)
@@ -48,13 +50,15 @@ FROM ""Missions"" AS m");
                 m => start <= m.Timeline.Date && m.Timeline < end && dates.Contains(m.Timeline)));
 
         AssertSql(
-            @"@__start_0='1902-01-01T10:00:00.1234567+00:00' (DbType = DateTime)
+"""
+@__start_0='1902-01-01T10:00:00.1234567+00:00' (DbType = DateTime)
 @__end_1='1902-01-03T10:00:00.1234567+00:00' (DbType = DateTime)
 @__dates_2={ '1902-01-02T10:00:00.1234567+00:00' } (DbType = Object)
 
-SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
-FROM ""Missions"" AS m
-WHERE @__start_0 <= date_trunc('day', m.""Timeline"" AT TIME ZONE 'UTC')::timestamptz AND m.""Timeline"" < @__end_1 AND m.""Timeline"" = ANY (@__dates_2)");
+SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+FROM "Missions" AS m
+WHERE @__start_0 <= date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamptz AND m."Timeline" < @__end_1 AND m."Timeline" = ANY (@__dates_2)
+""");
     }
 
     public override async Task DateTimeOffset_Date_returns_datetime(bool async)
@@ -66,11 +70,13 @@ WHERE @__start_0 <= date_trunc('day', m.""Timeline"" AT TIME ZONE 'UTC')::timest
             ss => ss.Set<Mission>().Where(m => m.Timeline.Date.ToLocalTime() >= dateTimeOffset.Date));
 
         AssertSql(
-            @"@__dateTimeOffset_Date_0='0002-03-01T00:00:00.0000000'
+"""
+@__dateTimeOffset_Date_0='0002-03-01T00:00:00.0000000'
 
-SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
-FROM ""Missions"" AS m
-WHERE date_trunc('day', m.""Timeline"" AT TIME ZONE 'UTC')::timestamp >= @__dateTimeOffset_Date_0");
+SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+FROM "Missions" AS m
+WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamp >= @__dateTimeOffset_Date_0
+""");
     }
 
     public override async Task Where_datetimeoffset_date_component(bool async)
@@ -82,9 +88,11 @@ WHERE date_trunc('day', m.""Timeline"" AT TIME ZONE 'UTC')::timestamp >= @__date
                   select m);
 
         AssertSql(
-            @"SELECT m.""Id"", m.""CodeName"", m.""Date"", m.""Duration"", m.""Rating"", m.""Time"", m.""Timeline""
-FROM ""Missions"" AS m
-WHERE date_trunc('day', m.""Timeline"" AT TIME ZONE 'UTC') > TIMESTAMPTZ '0001-01-01 00:00:00Z'");
+"""
+SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+FROM "Missions" AS m
+WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC') > TIMESTAMPTZ '0001-01-01 00:00:00Z'
+""");
     }
 
     // Not supported by design: we support getting a local DateTime via DateTime.Now (based on PG TimeZone), but there's no way to get a

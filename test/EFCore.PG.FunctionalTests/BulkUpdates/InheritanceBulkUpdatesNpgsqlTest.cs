@@ -15,8 +15,10 @@ public class InheritanceBulkUpdatesNpgsqlTest : InheritanceBulkUpdatesTestBase<I
         await base.Delete_where_hierarchy(async);
 
         AssertSql(
-            @"DELETE FROM ""Animals"" AS a
-WHERE a.""Name"" = 'Great spotted kiwi'");
+"""
+DELETE FROM "Animals" AS a
+WHERE a."Name" = 'Great spotted kiwi'
+""");
     }
 
     public override async Task Delete_where_hierarchy_derived(bool async)
@@ -24,8 +26,10 @@ WHERE a.""Name"" = 'Great spotted kiwi'");
         await base.Delete_where_hierarchy_derived(async);
 
         AssertSql(
-            @"DELETE FROM ""Animals"" AS a
-WHERE a.""Discriminator"" = 'Kiwi' AND a.""Name"" = 'Great spotted kiwi'");
+"""
+DELETE FROM "Animals" AS a
+WHERE a."Discriminator" = 'Kiwi' AND a."Name" = 'Great spotted kiwi'
+""");
     }
 
     public override async Task Delete_where_using_hierarchy(bool async)
@@ -33,11 +37,13 @@ WHERE a.""Discriminator"" = 'Kiwi' AND a.""Name"" = 'Great spotted kiwi'");
         await base.Delete_where_using_hierarchy(async);
 
         AssertSql(
-            @"DELETE FROM ""Countries"" AS c
+"""
+DELETE FROM "Countries" AS c
 WHERE (
     SELECT count(*)::int
-    FROM ""Animals"" AS a
-    WHERE c.""Id"" = a.""CountryId"" AND a.""CountryId"" > 0) > 0");
+    FROM "Animals" AS a
+    WHERE c."Id" = a."CountryId" AND a."CountryId" > 0) > 0
+""");
     }
 
     public override async Task Delete_where_using_hierarchy_derived(bool async)
@@ -45,11 +51,13 @@ WHERE (
         await base.Delete_where_using_hierarchy_derived(async);
 
         AssertSql(
-            @"DELETE FROM ""Countries"" AS c
+"""
+DELETE FROM "Countries" AS c
 WHERE (
     SELECT count(*)::int
-    FROM ""Animals"" AS a
-    WHERE c.""Id"" = a.""CountryId"" AND a.""Discriminator"" = 'Kiwi' AND a.""CountryId"" > 0) > 0");
+    FROM "Animals" AS a
+    WHERE c."Id" = a."CountryId" AND a."Discriminator" = 'Kiwi' AND a."CountryId" > 0) > 0
+""");
     }
 
     public override async Task Delete_where_keyless_entity_mapped_to_sql_query(bool async)

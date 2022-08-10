@@ -38,9 +38,11 @@ public class EnumQueryTest : QueryTestBase<EnumQueryTest.EnumFixture>
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
-FROM test.""SomeEntities"" AS s
-WHERE s.""MappedEnum"" = 'sad'::test.mapped_enum");
+"""
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+FROM test."SomeEntities" AS s
+WHERE s."MappedEnum" = 'sad'::test.mapped_enum
+""");
     }
 
     [ConditionalTheory]
@@ -55,9 +57,11 @@ WHERE s.""MappedEnum"" = 'sad'::test.mapped_enum");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
-FROM test.""SomeEntities"" AS s
-WHERE s.""SchemaQualifiedEnum"" = 'Happy (PgName)'::test.schema_qualified_enum");
+"""
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+FROM test."SomeEntities" AS s
+WHERE s."SchemaQualifiedEnum" = 'Happy (PgName)'::test.schema_qualified_enum
+""");
     }
 
     [ConditionalTheory]
@@ -73,11 +77,13 @@ WHERE s.""SchemaQualifiedEnum"" = 'Happy (PgName)'::test.schema_qualified_enum")
             entryCount: 1);
 
         AssertSql(
-            @"@__sad_0='Sad' (DbType = Object)
+"""
+@__sad_0='Sad' (DbType = Object)
 
-SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
-FROM test.""SomeEntities"" AS s
-WHERE s.""MappedEnum"" = @__sad_0");
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+FROM test."SomeEntities" AS s
+WHERE s."MappedEnum" = @__sad_0
+""");
     }
 
     [ConditionalTheory]
@@ -93,11 +99,13 @@ WHERE s.""MappedEnum"" = @__sad_0");
             entryCount: 1);
 
         AssertSql(
-            @"@__sad_0='1'
+"""
+@__sad_0='1'
 
-SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
-FROM test.""SomeEntities"" AS s
-WHERE s.""UnmappedEnum"" = @__sad_0");
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+FROM test."SomeEntities" AS s
+WHERE s."UnmappedEnum" = @__sad_0
+""");
     }
 
     [ConditionalTheory]
@@ -113,11 +121,13 @@ WHERE s.""UnmappedEnum"" = @__sad_0");
             entryCount: 1);
 
         AssertSql(
-            @"@__sad_0='1'
+"""
+@__sad_0='1'
 
-SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
-FROM test.""SomeEntities"" AS s
-WHERE s.""UnmappedEnum"" = @__sad_0");
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+FROM test."SomeEntities" AS s
+WHERE s."UnmappedEnum" = @__sad_0
+""");
     }
 
     [ConditionalTheory]
@@ -133,11 +143,13 @@ WHERE s.""UnmappedEnum"" = @__sad_0");
             entryCount: 1);
 
         AssertSql(
-            @"@__sad_0='Sad' (DbType = Object)
+"""
+@__sad_0='Sad' (DbType = Object)
 
-SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
-FROM test.""SomeEntities"" AS s
-WHERE s.""MappedEnum"" = @__sad_0");
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+FROM test."SomeEntities" AS s
+WHERE s."MappedEnum" = @__sad_0
+""");
     }
 
     [ConditionalTheory]
@@ -153,9 +165,11 @@ WHERE s.""MappedEnum"" = @__sad_0");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
-FROM test.""SomeEntities"" AS s
-WHERE strpos(s.""MappedEnum""::text, 'sa') > 0");
+"""
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+FROM test."SomeEntities" AS s
+WHERE strpos(s."MappedEnum"::text, 'sa') > 0
+""");
 
     }
 
@@ -172,11 +186,13 @@ WHERE strpos(s.""MappedEnum""::text, 'sa') > 0");
             entryCount: 1);
 
         AssertSql(
-            @"@__values_0='0x01' (DbType = Object)
+"""
+@__values_0='0x01' (DbType = Object)
 
-SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
-FROM test.""SomeEntities"" AS s
-WHERE s.""ByteEnum"" = ANY (@__values_0)");
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+FROM test."SomeEntities" AS s
+WHERE s."ByteEnum" = ANY (@__values_0)
+""");
     }
 
     [ConditionalTheory]
@@ -192,11 +208,13 @@ WHERE s.""ByteEnum"" = ANY (@__values_0)");
             entryCount: 1);
 
         AssertSql(
-            @"@__values_0='0x01' (DbType = Object)
+"""
+@__values_0='0x01' (DbType = Object)
 
-SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
-FROM test.""SomeEntities"" AS s
-WHERE s.""UnmappedByteEnum"" = ANY (@__values_0)");
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+FROM test."SomeEntities" AS s
+WHERE s."UnmappedByteEnum" = ANY (@__values_0)
+""");
     }
 
     #endregion
