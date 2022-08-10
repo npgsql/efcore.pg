@@ -29,10 +29,12 @@ public class RangeQueryNpgsqlTest : IClassFixture<RangeQueryNpgsqlTest.RangeQuer
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE r.""IntRange"" @> 3
-LIMIT 2");
+"""
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE r."IntRange" @> 3
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -45,12 +47,14 @@ LIMIT 2");
         Assert.Equal(2, result.Id);
 
         AssertSql(
-            @"@__range_0='[8,13]' (DbType = Object)
+"""
+@__range_0='[8,13]' (DbType = Object)
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE r.""IntRange"" @> @__range_0
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE r."IntRange" @> @__range_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -62,12 +66,14 @@ LIMIT 2");
         Assert.Equal(2, result.Id);
 
         AssertSql(
-            @"@__range_0='[8,13]' (DbType = Object)
+"""
+@__range_0='[8,13]' (DbType = Object)
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE @__range_0 <@ r.""IntRange""
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE @__range_0 <@ r."IntRange"
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -79,12 +85,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__range_0='[1,10]' (DbType = Object)
+"""
+@__range_0='[1,10]' (DbType = Object)
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE r.""IntRange"" = @__range_0
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE r."IntRange" = @__range_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -96,12 +104,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__range_0='[1,10]' (DbType = Object)
+"""
+@__range_0='[1,10]' (DbType = Object)
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE r.""IntRange"" = @__range_0
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE r."IntRange" = @__range_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -113,12 +123,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__range_0='[-5,4]' (DbType = Object)
+"""
+@__range_0='[-5,4]' (DbType = Object)
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE r.""IntRange"" && @__range_0
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE r."IntRange" && @__range_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -130,12 +142,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__range_0='[11,15]' (DbType = Object)
+"""
+@__range_0='[11,15]' (DbType = Object)
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE r.""IntRange"" << @__range_0
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE r."IntRange" << @__range_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -147,12 +161,14 @@ LIMIT 2");
         Assert.Equal(2, result.Id);
 
         AssertSql(
-            @"@__range_0='[0,4]' (DbType = Object)
+"""
+@__range_0='[0,4]' (DbType = Object)
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE r.""IntRange"" >> @__range_0
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE r."IntRange" >> @__range_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -164,12 +180,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__range_0='[2,20]' (DbType = Object)
+"""
+@__range_0='[2,20]' (DbType = Object)
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE @__range_0 &> r.""IntRange""
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE @__range_0 &> r."IntRange"
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -181,12 +199,14 @@ LIMIT 2");
         Assert.Equal(2, result.Id);
 
         AssertSql(
-            @"@__range_0='[1,13]' (DbType = Object)
+"""
+@__range_0='[1,13]' (DbType = Object)
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE @__range_0 &< r.""IntRange""
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE @__range_0 &< r."IntRange"
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -198,12 +218,14 @@ LIMIT 2");
         Assert.Equal(2, result.Id);
 
         AssertSql(
-            @"@__range_0='[2,4]' (DbType = Object)
+"""
+@__range_0='[2,4]' (DbType = Object)
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE @__range_0 -|- r.""IntRange""
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE @__range_0 -|- r."IntRange"
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -215,12 +237,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__range_0='[-2,7]' (DbType = Object)
+"""
+@__range_0='[-2,7]' (DbType = Object)
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE r.""IntRange"" + @__range_0 = '[-2,10]'::int4range
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE r."IntRange" + @__range_0 = '[-2,10]'::int4range
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -238,14 +262,16 @@ LIMIT 2");
         Assert.Equal(new NpgsqlRange<int>[] { new(1, true, 16, false) }, union);
 
         AssertSql(
-            @"SELECT range_agg(t.""IntRange"")
+"""
+SELECT range_agg(t."IntRange")
 FROM (
-    SELECT r.""IntRange"", TRUE AS ""Key""
-    FROM ""RangeTestEntities"" AS r
-    WHERE r.""Id"" IN (1, 2)
+    SELECT r."IntRange", TRUE AS "Key"
+    FROM "RangeTestEntities" AS r
+    WHERE r."Id" IN (1, 2)
 ) AS t
-GROUP BY t.""Key""
-LIMIT 2");
+GROUP BY t."Key"
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -257,12 +283,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__range_0='[-2,3]' (DbType = Object)
+"""
+@__range_0='[-2,3]' (DbType = Object)
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE r.""IntRange"" * @__range_0 = '[1,3]'::int4range
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE r."IntRange" * @__range_0 = '[1,3]'::int4range
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -280,14 +308,16 @@ LIMIT 2");
         Assert.Equal(new NpgsqlRange<int>(5, true, 11, false), intersection);
 
         AssertSql(
-            @"SELECT range_intersect_agg(t.""IntRange"")
+"""
+SELECT range_intersect_agg(t."IntRange")
 FROM (
-    SELECT r.""IntRange"", TRUE AS ""Key""
-    FROM ""RangeTestEntities"" AS r
-    WHERE r.""Id"" IN (1, 2)
+    SELECT r."IntRange", TRUE AS "Key"
+    FROM "RangeTestEntities" AS r
+    WHERE r."Id" IN (1, 2)
 ) AS t
-GROUP BY t.""Key""
-LIMIT 2");
+GROUP BY t."Key"
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -299,12 +329,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__range_0='[1,2]' (DbType = Object)
+"""
+@__range_0='[1,2]' (DbType = Object)
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE r.""IntRange"" - @__range_0 = '[3,10]'::int4range
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE r."IntRange" - @__range_0 = '[3,10]'::int4range
+LIMIT 2
+""");
     }
 
     #endregion Operators
@@ -319,10 +351,12 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE lower(r.""IntRange"") = 1
-LIMIT 2");
+"""
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE lower(r."IntRange") = 1
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -333,10 +367,12 @@ LIMIT 2");
         Assert.Equal(2, result.Id);
 
         AssertSql(
-            @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE upper(r.""IntRange"") = 16
-LIMIT 2");
+"""
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE upper(r."IntRange") = 16
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -347,10 +383,12 @@ LIMIT 2");
         Assert.Equal(2, result.Id);
 
         AssertSql(
-            @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE isempty(r.""IntRange"" * '[1,2]'::int4range)
-LIMIT 2");
+"""
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE isempty(r."IntRange" * '[1,2]'::int4range)
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -361,9 +399,11 @@ LIMIT 2");
         Assert.Equal(0, count);
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""RangeTestEntities"" AS r
-WHERE NOT (lower_inc(r.""IntRange""))");
+"""
+SELECT count(*)::int
+FROM "RangeTestEntities" AS r
+WHERE NOT (lower_inc(r."IntRange"))
+""");
     }
 
     [ConditionalFact]
@@ -374,9 +414,11 @@ WHERE NOT (lower_inc(r.""IntRange""))");
         Assert.Equal(0, count);
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""RangeTestEntities"" AS r
-WHERE upper_inc(r.""IntRange"")");
+"""
+SELECT count(*)::int
+FROM "RangeTestEntities" AS r
+WHERE upper_inc(r."IntRange")
+""");
     }
 
     [ConditionalFact]
@@ -387,9 +429,11 @@ WHERE upper_inc(r.""IntRange"")");
         Assert.Equal(0, count);
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""RangeTestEntities"" AS r
-WHERE lower_inf(r.""IntRange"")");
+"""
+SELECT count(*)::int
+FROM "RangeTestEntities" AS r
+WHERE lower_inf(r."IntRange")
+""");
     }
 
     [ConditionalFact]
@@ -400,9 +444,11 @@ WHERE lower_inf(r.""IntRange"")");
         Assert.Equal(0, count);
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""RangeTestEntities"" AS r
-WHERE upper_inf(r.""IntRange"")");
+"""
+SELECT count(*)::int
+FROM "RangeTestEntities" AS r
+WHERE upper_inf(r."IntRange")
+""");
     }
 
     [ConditionalFact]
@@ -413,10 +459,12 @@ WHERE upper_inf(r.""IntRange"")");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE range_merge(r.""IntRange"", '[12,13]'::int4range) = '[1,13]'::int4range
-LIMIT 2");
+"""
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE range_merge(r."IntRange", '[12,13]'::int4range) = '[1,13]'::int4range
+LIMIT 2
+""");
     }
 
     #endregion Functions
@@ -431,10 +479,12 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE r.""IntRange"" @> 3
-LIMIT 2");
+"""
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE r."IntRange" @> 3
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -446,12 +496,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__p_0='3'
+"""
+@__p_0='3'
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE r.""LongRange"" @> @__p_0
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE r."LongRange" @> @__p_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -463,12 +515,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__p_0='3'
+"""
+@__p_0='3'
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE r.""DecimalRange"" @> @__p_0
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE r."DecimalRange" @> @__p_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -480,12 +534,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__value_0='01/03/2020' (DbType = Date)
+"""
+@__value_0='01/03/2020' (DbType = Date)
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE r.""DateOnlyDateRange"" @> @__value_0
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE r."DateOnlyDateRange" @> @__value_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -497,12 +553,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__value_0='2020-01-03T00:00:00.0000000'
+"""
+@__value_0='2020-01-03T00:00:00.0000000'
 
-SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE r.""DateTimeDateRange"" @> @__value_0
-LIMIT 2");
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE r."DateTimeDateRange" @> @__value_0
+LIMIT 2
+""");
     }
 
     #endregion Built-in ranges
@@ -519,10 +577,12 @@ LIMIT 2");
         Assert.Equal(15.0, result.UserDefinedRange.UpperBound);
 
         AssertSql(
-            @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE upper(r.""UserDefinedRange"") > 12.0
-LIMIT 2");
+"""
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE upper(r."UserDefinedRange") > 12.0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -535,10 +595,12 @@ LIMIT 2");
         Assert.Equal(15.0, result.UserDefinedRangeWithSchema.UpperBound);
 
         AssertSql(
-            @"SELECT r.""Id"", r.""DateOnlyDateRange"", r.""DateTimeDateRange"", r.""DecimalRange"", r.""IntRange"", r.""LongRange"", r.""UserDefinedRange"", r.""UserDefinedRangeWithSchema""
-FROM ""RangeTestEntities"" AS r
-WHERE upper(r.""UserDefinedRangeWithSchema"")::double precision > 12.0
-LIMIT 2");
+"""
+SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
+FROM "RangeTestEntities" AS r
+WHERE upper(r."UserDefinedRangeWithSchema")::double precision > 12.0
+LIMIT 2
+""");
     }
 
     #endregion

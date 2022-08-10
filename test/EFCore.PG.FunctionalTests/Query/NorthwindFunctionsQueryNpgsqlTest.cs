@@ -21,9 +21,11 @@ public class NorthwindFunctionsQueryNpgsqlTest : NorthwindFunctionsQueryRelation
         await base.IsNullOrWhiteSpace_in_predicate(async);
 
         AssertSql(
-            @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
-FROM ""Customers"" AS c
-WHERE (c.""Region"" IS NULL) OR btrim(c.""Region"", E' \t\n\r') = ''");
+"""
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE (c."Region" IS NULL) OR btrim(c."Region", E' \t\n\r') = ''
+""");
     }
 
     // PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though
@@ -170,9 +172,11 @@ WHERE (c.""Region"" IS NULL) OR btrim(c.""Region"", E' \t\n\r') = ''");
         await base.Where_guid_newguid(async);
 
         AssertSql(
-            @$"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
-FROM ""Customers"" AS c
-WHERE {UuidGenerationFunction}() <> '00000000-0000-0000-0000-000000000000'");
+$"""
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE {UuidGenerationFunction}() <> '00000000-0000-0000-0000-000000000000'
+""");
     }
 
     [ConditionalTheory]
@@ -185,9 +189,11 @@ WHERE {UuidGenerationFunction}() <> '00000000-0000-0000-0000-000000000000'");
             entryCount: 2155);
 
         AssertSql(
-            @$"SELECT o.""OrderID"", o.""ProductID"", o.""Discount"", o.""Quantity"", o.""UnitPrice""
-FROM ""Order Details"" AS o
-ORDER BY {UuidGenerationFunction}() NULLS FIRST");
+$"""
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY {UuidGenerationFunction}() NULLS FIRST
+""");
     }
 
     #endregion
@@ -283,9 +289,11 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST");
         await base.String_Join_over_non_nullable_column(async);
 
         AssertSql(
-            @"SELECT c.""City"", COALESCE(string_agg(c.""CustomerID"", '|'), '') AS ""Customers""
-FROM ""Customers"" AS c
-GROUP BY c.""City""");
+"""
+SELECT c."City", COALESCE(string_agg(c."CustomerID", '|'), '') AS "Customers"
+FROM "Customers" AS c
+GROUP BY c."City"
+""");
     }
 
     public override async Task String_Join_over_nullable_column(bool async)
@@ -293,9 +301,11 @@ GROUP BY c.""City""");
         await base.String_Join_over_nullable_column(async);
 
         AssertSql(
-            @"SELECT c.""City"", COALESCE(string_agg(COALESCE(c.""Region"", ''), '|'), '') AS ""Regions""
-FROM ""Customers"" AS c
-GROUP BY c.""City""");
+"""
+SELECT c."City", COALESCE(string_agg(COALESCE(c."Region", ''), '|'), '') AS "Regions"
+FROM "Customers" AS c
+GROUP BY c."City"
+""");
     }
 
     public override async Task String_Join_with_predicate(bool async)
@@ -303,9 +313,11 @@ GROUP BY c.""City""");
         await base.String_Join_with_predicate(async);
 
         AssertSql(
-            @"SELECT c.""City"", COALESCE(string_agg(c.""CustomerID"", '|') FILTER (WHERE length(c.""ContactName"")::int > 10), '') AS ""Customers""
-FROM ""Customers"" AS c
-GROUP BY c.""City""");
+"""
+SELECT c."City", COALESCE(string_agg(c."CustomerID", '|') FILTER (WHERE length(c."ContactName")::int > 10), '') AS "Customers"
+FROM "Customers" AS c
+GROUP BY c."City"
+""");
     }
 
     public override async Task String_Join_with_ordering(bool async)
@@ -313,9 +325,11 @@ GROUP BY c.""City""");
         await base.String_Join_with_ordering(async);
 
         AssertSql(
-            @"SELECT c.""City"", COALESCE(string_agg(c.""CustomerID"", '|' ORDER BY c.""CustomerID"" DESC NULLS LAST), '') AS ""Customers""
-FROM ""Customers"" AS c
-GROUP BY c.""City""");
+"""
+SELECT c."City", COALESCE(string_agg(c."CustomerID", '|' ORDER BY c."CustomerID" DESC NULLS LAST), '') AS "Customers"
+FROM "Customers" AS c
+GROUP BY c."City"
+""");
     }
 
     public override async Task String_Concat(bool async)
@@ -323,9 +337,11 @@ GROUP BY c.""City""");
         await base.String_Concat(async);
 
         AssertSql(
-            @"SELECT c.""City"", COALESCE(string_agg(c.""CustomerID"", ''), '') AS ""Customers""
-FROM ""Customers"" AS c
-GROUP BY c.""City""");
+"""
+SELECT c."City", COALESCE(string_agg(c."CustomerID", ''), '') AS "Customers"
+FROM "Customers" AS c
+GROUP BY c."City"
+""");
     }
 
     [ConditionalTheory]
@@ -357,9 +373,11 @@ GROUP BY c.""City""");
             f => Assert.Equal("(171) 555-9199", f));
 
         AssertSql(
-            @"SELECT c.""City"", array_agg(c.""Fax"" ORDER BY c.""Fax"" NULLS FIRST) AS ""FaxNumbers""
-FROM ""Customers"" AS c
-GROUP BY c.""City""");
+"""
+SELECT c."City", array_agg(c."Fax" ORDER BY c."Fax" NULLS FIRST) AS "FaxNumbers"
+FROM "Customers" AS c
+GROUP BY c."City"
+""");
     }
 
     [ConditionalTheory]
@@ -391,9 +409,11 @@ GROUP BY c.""City""");
             f => Assert.Equal("(171) 555-9199", f));
 
         AssertSql(
-            @"SELECT c.""City"", json_agg(c.""Fax"" ORDER BY c.""Fax"" NULLS FIRST) AS ""FaxNumbers""
-FROM ""Customers"" AS c
-GROUP BY c.""City""");
+"""
+SELECT c."City", json_agg(c."Fax" ORDER BY c."Fax" NULLS FIRST) AS "FaxNumbers"
+FROM "Customers" AS c
+GROUP BY c."City"
+""");
     }
 
     [ConditionalTheory]
@@ -425,9 +445,11 @@ GROUP BY c.""City""");
             f => Assert.Equal("(171) 555-9199", f));
 
         AssertSql(
-            @"SELECT c.""City"", jsonb_agg(c.""Fax"" ORDER BY c.""Fax"" NULLS FIRST) AS ""FaxNumbers""
-FROM ""Customers"" AS c
-GROUP BY c.""City""");
+"""
+SELECT c."City", jsonb_agg(c."Fax" ORDER BY c."Fax" NULLS FIRST) AS "FaxNumbers"
+FROM "Customers" AS c
+GROUP BY c."City"
+""");
     }
 
     #endregion Aggregate functions
@@ -463,9 +485,11 @@ GROUP BY c.""City""");
             london.Companies);
 
         AssertSql(
-            @"SELECT c.""City"", json_object_agg(c.""CompanyName"", c.""ContactName"" ORDER BY c.""CompanyName"" NULLS FIRST) AS ""Companies""
-FROM ""Customers"" AS c
-GROUP BY c.""City""");
+"""
+SELECT c."City", json_object_agg(c."CompanyName", c."ContactName" ORDER BY c."CompanyName" NULLS FIRST) AS "Companies"
+FROM "Customers" AS c
+GROUP BY c."City"
+""");
     }
 
     [ConditionalTheory]
@@ -503,9 +527,11 @@ GROUP BY c.""City""");
             london.Companies);
 
         AssertSql(
-            @"SELECT c.""City"", json_object_agg(c.""CompanyName"", c.""ContactName"") AS ""Companies""
-FROM ""Customers"" AS c
-GROUP BY c.""City""");
+"""
+SELECT c."City", json_object_agg(c."CompanyName", c."ContactName") AS "Companies"
+FROM "Customers" AS c
+GROUP BY c."City"
+""");
     }
 
     [ConditionalTheory]
@@ -544,9 +570,11 @@ GROUP BY c.""City""");
             companiesDictionary);
 
         AssertSql(
-            @"SELECT c.""City"", jsonb_object_agg(c.""CompanyName"", c.""ContactName"") AS ""Companies""
-FROM ""Customers"" AS c
-GROUP BY c.""City""");
+"""
+SELECT c."City", jsonb_object_agg(c."CompanyName", c."ContactName") AS "Companies"
+FROM "Customers" AS c
+GROUP BY c."City"
+""");
     }
 
     [ConditionalTheory]
@@ -584,9 +612,11 @@ GROUP BY c.""City""");
             london.Companies);
 
         AssertSql(
-            @"SELECT c.""City"", jsonb_object_agg(c.""CompanyName"", c.""ContactName"") AS ""Companies""
-FROM ""Customers"" AS c
-GROUP BY c.""City""");
+"""
+SELECT c."City", jsonb_object_agg(c."CompanyName", c."ContactName") AS "Companies"
+FROM "Customers" AS c
+GROUP BY c."City"
+""");
     }
 
     #endregion JsonObjectAgg
@@ -617,9 +647,11 @@ GROUP BY c.""City""");
         Assert.Equal(7.759999999999856, product9.PopulationStandardDeviation.Value, 5);
 
         AssertSql(
-            @"SELECT o.""ProductID"", stddev_samp(o.""UnitPrice"") AS ""SampleStandardDeviation"", stddev_pop(o.""UnitPrice"") AS ""PopulationStandardDeviation""
-FROM ""Order Details"" AS o
-GROUP BY o.""ProductID""");
+"""
+SELECT o."ProductID", stddev_samp(o."UnitPrice") AS "SampleStandardDeviation", stddev_pop(o."UnitPrice") AS "PopulationStandardDeviation"
+FROM "Order Details" AS o
+GROUP BY o."ProductID"
+""");
     }
 
     [ConditionalTheory]
@@ -647,9 +679,11 @@ GROUP BY o.""ProductID""");
         Assert.Equal(60.217599999997766, product9.PopulationStandardDeviation.Value, 5);
 
         AssertSql(
-            @"SELECT o.""ProductID"", var_samp(o.""UnitPrice"") AS ""SampleStandardDeviation"", var_pop(o.""UnitPrice"") AS ""PopulationStandardDeviation""
-FROM ""Order Details"" AS o
-GROUP BY o.""ProductID""");
+"""
+SELECT o."ProductID", var_samp(o."UnitPrice") AS "SampleStandardDeviation", var_pop(o."UnitPrice") AS "PopulationStandardDeviation"
+FROM "Order Details" AS o
+GROUP BY o."ProductID"
+""");
     }
 
     [ConditionalTheory]
@@ -694,9 +728,11 @@ GROUP BY o.""ProductID""");
         Assert.Equal(7.399999983608723, product9.RegrSXY.Value, 5);
 
         AssertSql(
-            @"SELECT o.""ProductID"", corr(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""Correlation"", covar_pop(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""CovariancePopulation"", covar_samp(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""CovarianceSample"", regr_avgx(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrAverageX"", regr_avgy(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrAverageY"", regr_count(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrCount"", regr_intercept(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrIntercept"", regr_r2(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrR2"", regr_slope(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrSlope"", regr_sxx(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrSXX"", regr_sxy(o.""Quantity""::double precision, o.""Discount""::double precision) AS ""RegrSXY""
-FROM ""Order Details"" AS o
-GROUP BY o.""ProductID""");
+"""
+SELECT o."ProductID", corr(o."Quantity"::double precision, o."Discount"::double precision) AS "Correlation", covar_pop(o."Quantity"::double precision, o."Discount"::double precision) AS "CovariancePopulation", covar_samp(o."Quantity"::double precision, o."Discount"::double precision) AS "CovarianceSample", regr_avgx(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrAverageX", regr_avgy(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrAverageY", regr_count(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrCount", regr_intercept(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrIntercept", regr_r2(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrR2", regr_slope(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrSlope", regr_sxx(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrSXX", regr_sxy(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrSXY"
+FROM "Order Details" AS o
+GROUP BY o."ProductID"
+""");
     }
 
     #endregion Statistics

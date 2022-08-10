@@ -24,11 +24,13 @@ public class NorthwindSetOperationsQueryNpgsqlTest
                 .Union(ss.Set<Order>().Select(o => new { OrderID = (int?)o.OrderID, o.CustomerID })));
 
         AssertSql(
-            @"SELECT NULL AS ""OrderID"", o.""CustomerID""
-FROM ""Orders"" AS o
+"""
+SELECT NULL AS "OrderID", o."CustomerID"
+FROM "Orders" AS o
 UNION
-SELECT o0.""OrderID"", o0.""CustomerID""
-FROM ""Orders"" AS o0");
+SELECT o0."OrderID", o0."CustomerID"
+FROM "Orders" AS o0
+""");
     }
 
     [ConditionalTheory]
@@ -42,14 +44,16 @@ FROM ""Orders"" AS o0");
                 .Union(ss.Set<Order>().Select(o => new { OrderID = (int?)o.OrderID, o.CustomerID })));
 
         AssertSql(
-            @"SELECT NULL::int AS ""OrderID"", o.""CustomerID""
-FROM ""Orders"" AS o
+"""
+SELECT NULL::int AS "OrderID", o."CustomerID"
+FROM "Orders" AS o
 UNION
-SELECT NULL AS ""OrderID"", o0.""CustomerID""
-FROM ""Orders"" AS o0
+SELECT NULL AS "OrderID", o0."CustomerID"
+FROM "Orders" AS o0
 UNION
-SELECT o1.""OrderID"", o1.""CustomerID""
-FROM ""Orders"" AS o1");
+SELECT o1."OrderID", o1."CustomerID"
+FROM "Orders" AS o1
+""");
     }
 
     [ConditionalTheory]
@@ -64,17 +68,19 @@ FROM ""Orders"" AS o1");
                 .Union(ss.Set<Order>().Select(o => new { OrderID = (int?)o.OrderID, o.CustomerID })));
 
         AssertSql(
-            @"SELECT NULL::int AS ""OrderID"", o.""CustomerID""
-FROM ""Orders"" AS o
+"""
+SELECT NULL::int AS "OrderID", o."CustomerID"
+FROM "Orders" AS o
 UNION
-SELECT NULL AS ""OrderID"", o0.""CustomerID""
-FROM ""Orders"" AS o0
+SELECT NULL AS "OrderID", o0."CustomerID"
+FROM "Orders" AS o0
 UNION
-SELECT NULL AS ""OrderID"", o1.""CustomerID""
-FROM ""Orders"" AS o1
+SELECT NULL AS "OrderID", o1."CustomerID"
+FROM "Orders" AS o1
 UNION
-SELECT o2.""OrderID"", o2.""CustomerID""
-FROM ""Orders"" AS o2");
+SELECT o2."OrderID", o2."CustomerID"
+FROM "Orders" AS o2
+""");
     }
 
     [ConditionalTheory]
@@ -90,20 +96,22 @@ FROM ""Orders"" AS o2");
                 .Union(ss.Set<Order>().Select(o => new { OrderID = (int?)o.OrderID, o.CustomerID })));
 
         AssertSql(
-            @"SELECT NULL::int AS ""OrderID"", o.""CustomerID""
-FROM ""Orders"" AS o
+"""
+SELECT NULL::int AS "OrderID", o."CustomerID"
+FROM "Orders" AS o
 UNION
-SELECT NULL AS ""OrderID"", o0.""CustomerID""
-FROM ""Orders"" AS o0
+SELECT NULL AS "OrderID", o0."CustomerID"
+FROM "Orders" AS o0
 UNION
-SELECT NULL AS ""OrderID"", o1.""CustomerID""
-FROM ""Orders"" AS o1
+SELECT NULL AS "OrderID", o1."CustomerID"
+FROM "Orders" AS o1
 UNION
-SELECT NULL AS ""OrderID"", o2.""CustomerID""
-FROM ""Orders"" AS o2
+SELECT NULL AS "OrderID", o2."CustomerID"
+FROM "Orders" AS o2
 UNION
-SELECT o3.""OrderID"", o3.""CustomerID""
-FROM ""Orders"" AS o3");
+SELECT o3."OrderID", o3."CustomerID"
+FROM "Orders" AS o3
+""");
     }
 
     [ConditionalTheory]
@@ -124,44 +132,46 @@ FROM ""Orders"" AS o3");
                 .CustomerID));
 
         AssertSql(
-            @"SELECT t0.""OrderID"", t0.""CustomerID""
+"""
+SELECT t0."OrderID", t0."CustomerID"
 FROM (
-    SELECT NULL::int AS ""OrderID"", o.""CustomerID""
-    FROM ""Orders"" AS o
+    SELECT NULL::int AS "OrderID", o."CustomerID"
+    FROM "Orders" AS o
     UNION
-    SELECT NULL AS ""OrderID"", o0.""CustomerID""
-    FROM ""Orders"" AS o0
+    SELECT NULL AS "OrderID", o0."CustomerID"
+    FROM "Orders" AS o0
     UNION
-    SELECT o1.""OrderID"", o1.""CustomerID""
-    FROM ""Orders"" AS o1
+    SELECT o1."OrderID", o1."CustomerID"
+    FROM "Orders" AS o1
 ) AS t0
-WHERE t0.""CustomerID"" = (
-    SELECT t1.""CustomerID""
+WHERE t0."CustomerID" = (
+    SELECT t1."CustomerID"
     FROM (
-        SELECT NULL::int AS ""OrderID"", o2.""CustomerID""
-        FROM ""Orders"" AS o2
+        SELECT NULL::int AS "OrderID", o2."CustomerID"
+        FROM "Orders" AS o2
         UNION
-        SELECT NULL AS ""OrderID"", o3.""CustomerID""
-        FROM ""Orders"" AS o3
+        SELECT NULL AS "OrderID", o3."CustomerID"
+        FROM "Orders" AS o3
         UNION
-        SELECT o4.""OrderID"", o4.""CustomerID""
-        FROM ""Orders"" AS o4
+        SELECT o4."OrderID", o4."CustomerID"
+        FROM "Orders" AS o4
     ) AS t1
-    ORDER BY t1.""CustomerID"" NULLS FIRST
-    LIMIT 1) OR ((t0.""CustomerID"" IS NULL) AND ((
-    SELECT t1.""CustomerID""
+    ORDER BY t1."CustomerID" NULLS FIRST
+    LIMIT 1) OR ((t0."CustomerID" IS NULL) AND ((
+    SELECT t1."CustomerID"
     FROM (
-        SELECT NULL::int AS ""OrderID"", o2.""CustomerID""
-        FROM ""Orders"" AS o2
+        SELECT NULL::int AS "OrderID", o2."CustomerID"
+        FROM "Orders" AS o2
         UNION
-        SELECT NULL AS ""OrderID"", o3.""CustomerID""
-        FROM ""Orders"" AS o3
+        SELECT NULL AS "OrderID", o3."CustomerID"
+        FROM "Orders" AS o3
         UNION
-        SELECT o4.""OrderID"", o4.""CustomerID""
-        FROM ""Orders"" AS o4
+        SELECT o4."OrderID", o4."CustomerID"
+        FROM "Orders" AS o4
     ) AS t1
-    ORDER BY t1.""CustomerID"" NULLS FIRST
-    LIMIT 1) IS NULL))");
+    ORDER BY t1."CustomerID" NULLS FIRST
+    LIMIT 1) IS NULL))
+""");
     }
 
     public override async Task Client_eval_Union_FirstOrDefault(bool async)

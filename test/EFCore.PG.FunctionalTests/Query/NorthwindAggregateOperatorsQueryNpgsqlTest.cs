@@ -28,17 +28,21 @@ public class NorthwindAggregateOperatorsQueryNpgsqlTest : NorthwindAggregateOper
 
         // Note: PostgreSQL doesn't support uint, but value converters make this into bigint
         AssertSql(
-            @"@__ids_0={ '0', '1' } (DbType = Object)
+"""
+@__ids_0={ '0', '1' } (DbType = Object)
 
-SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
-FROM ""Employees"" AS e
-WHERE e.""EmployeeID"" = ANY (@__ids_0)",
+SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
+FROM "Employees" AS e
+WHERE e."EmployeeID" = ANY (@__ids_0)
+""",
             //
-            @"@__ids_0={ '0' } (DbType = Object)
+"""
+@__ids_0={ '0' } (DbType = Object)
 
-SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
-FROM ""Employees"" AS e
-WHERE e.""EmployeeID"" = ANY (@__ids_0)");
+SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
+FROM "Employees" AS e
+WHERE e."EmployeeID" = ANY (@__ids_0)
+""");
     }
 
     public override async Task Contains_with_local_nullable_uint_array_closure(bool async)
@@ -48,17 +52,21 @@ WHERE e.""EmployeeID"" = ANY (@__ids_0)");
         // Note: PostgreSQL doesn't support uint, but value converters make this into bigint
 
         AssertSql(
-            @"@__ids_0={ '0', '1' } (DbType = Object)
+"""
+@__ids_0={ '0', '1' } (DbType = Object)
 
-SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
-FROM ""Employees"" AS e
-WHERE e.""EmployeeID"" = ANY (@__ids_0)",
+SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
+FROM "Employees" AS e
+WHERE e."EmployeeID" = ANY (@__ids_0)
+""",
             //
-            @"@__ids_0={ '0' } (DbType = Object)
+"""
+@__ids_0={ '0' } (DbType = Object)
 
-SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
-FROM ""Employees"" AS e
-WHERE e.""EmployeeID"" = ANY (@__ids_0)");
+SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
+FROM "Employees" AS e
+WHERE e."EmployeeID" = ANY (@__ids_0)
+""");
     }
 
     public override async Task Contains_with_local_anonymous_type_array_closure(bool async)

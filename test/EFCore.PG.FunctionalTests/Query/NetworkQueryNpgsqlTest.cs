@@ -40,11 +40,13 @@ public class NetworkQueryNpgsqlTest : IClassFixture<NetworkQueryNpgsqlTest.Netwo
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Cidr"" = @__cidr_1
-FROM ""NetTestEntities"" AS n
-WHERE n.""Cidr"" >>= @__cidr_1");
+SELECT n."Cidr" = @__cidr_1
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" >>= @__cidr_1
+""");
     }
 
     #endregion
@@ -59,9 +61,11 @@ WHERE n.""Cidr"" >>= @__cidr_1");
 
         Assert.Equal(9, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Inet"" = n.""TextInet""::inet OR ((n.""Inet"" IS NULL) AND (n.""TextInet"" IS NULL))");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Inet" = n."TextInet"::inet OR ((n."Inet" IS NULL) AND (n."TextInet" IS NULL))
+""");
     }
 
     [Fact]
@@ -72,9 +76,11 @@ WHERE n.""Inet"" = n.""TextInet""::inet OR ((n.""Inet"" IS NULL) AND (n.""TextIn
 
         Assert.Equal(9, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Macaddr"" = n.""TextMacaddr""::macaddr OR ((n.""Macaddr"" IS NULL) AND (n.""TextMacaddr"" IS NULL))");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Macaddr" = n."TextMacaddr"::macaddr OR ((n."Macaddr" IS NULL) AND (n."TextMacaddr" IS NULL))
+""");
     }
 
     [Fact]
@@ -85,9 +91,11 @@ WHERE n.""Macaddr"" = n.""TextMacaddr""::macaddr OR ((n.""Macaddr"" IS NULL) AND
 
         Assert.Equal(1, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Inet"" = INET '192.168.1.2'");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Inet" = INET '192.168.1.2'
+""");
     }
 
     [Fact]
@@ -98,9 +106,11 @@ WHERE n.""Inet"" = INET '192.168.1.2'");
 
         Assert.Equal(1, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Macaddr"" = MACADDR '123456000002'");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Macaddr" = MACADDR '123456000002'
+""");
     }
 
     [Fact]
@@ -135,9 +145,11 @@ WHERE n.""Macaddr"" = MACADDR '123456000002'");
 
         Assert.Equal(6, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Inet"" < INET '192.168.1.7'");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Inet" < INET '192.168.1.7'
+""");
     }
 
     [Fact]
@@ -150,11 +162,13 @@ WHERE n.""Inet"" < INET '192.168.1.7'");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Cidr"" < @__cidr_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" < @__cidr_1
+""");
     }
 
     [Fact]
@@ -165,9 +179,11 @@ WHERE n.""Cidr"" < @__cidr_1");
 
         Assert.Equal(6, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Macaddr"" < MACADDR '123456000007'");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Macaddr" < MACADDR '123456000007'
+""");
     }
 
     [ConditionalFact]
@@ -179,9 +195,11 @@ WHERE n.""Macaddr"" < MACADDR '123456000007'");
 
         Assert.Equal(6, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Macaddr8"" < MACADDR8 '08002B0102030407'");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Macaddr8" < MACADDR8 '08002B0102030407'
+""");
     }
 
     [Fact]
@@ -192,9 +210,11 @@ WHERE n.""Macaddr8"" < MACADDR8 '08002B0102030407'");
 
         Assert.Equal(7, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Inet"" <= INET '192.168.1.7'");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Inet" <= INET '192.168.1.7'
+""");
     }
 
     [Fact]
@@ -207,11 +227,13 @@ WHERE n.""Inet"" <= INET '192.168.1.7'");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Cidr"" <= @__cidr_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" <= @__cidr_1
+""");
     }
 
     [Fact]
@@ -222,9 +244,11 @@ WHERE n.""Cidr"" <= @__cidr_1");
 
         Assert.Equal(7, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Macaddr"" <= MACADDR '123456000007'");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Macaddr" <= MACADDR '123456000007'
+""");
     }
 
     [ConditionalFact]
@@ -236,9 +260,11 @@ WHERE n.""Macaddr"" <= MACADDR '123456000007'");
 
         Assert.Equal(7, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Macaddr8"" <= MACADDR8 '08002B0102030407'");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Macaddr8" <= MACADDR8 '08002B0102030407'
+""");
     }
 
     [Fact]
@@ -249,9 +275,11 @@ WHERE n.""Macaddr8"" <= MACADDR8 '08002B0102030407'");
 
         Assert.Equal(3, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Inet"" >= INET '192.168.1.7'");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Inet" >= INET '192.168.1.7'
+""");
     }
 
     [Fact]
@@ -264,11 +292,13 @@ WHERE n.""Inet"" >= INET '192.168.1.7'");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Cidr"" >= @__cidr_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" >= @__cidr_1
+""");
     }
 
     [Fact]
@@ -279,9 +309,11 @@ WHERE n.""Cidr"" >= @__cidr_1");
 
         Assert.Equal(3, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Macaddr"" >= MACADDR '123456000007'");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Macaddr" >= MACADDR '123456000007'
+""");
     }
 
     [ConditionalFact]
@@ -293,9 +325,11 @@ WHERE n.""Macaddr"" >= MACADDR '123456000007'");
 
         Assert.Equal(3, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Macaddr8"" >= MACADDR8 '08002B0102030407'");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Macaddr8" >= MACADDR8 '08002B0102030407'
+""");
     }
 
     [Fact]
@@ -306,9 +340,11 @@ WHERE n.""Macaddr8"" >= MACADDR8 '08002B0102030407'");
 
         Assert.Equal(2, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Inet"" > INET '192.168.1.7'");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Inet" > INET '192.168.1.7'
+""");
     }
 
     [Fact]
@@ -321,11 +357,13 @@ WHERE n.""Inet"" > INET '192.168.1.7'");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Cidr"" > @__cidr_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" > @__cidr_1
+""");
     }
 
     [Fact]
@@ -336,9 +374,11 @@ WHERE n.""Cidr"" > @__cidr_1");
 
         Assert.Equal(2, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Macaddr"" > MACADDR '123456000007'");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Macaddr" > MACADDR '123456000007'
+""");
     }
 
     [ConditionalFact]
@@ -350,9 +390,11 @@ WHERE n.""Macaddr"" > MACADDR '123456000007'");
 
         Assert.Equal(2, count);
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Macaddr8"" > MACADDR8 '08002B0102030407'");
+"""
+SELECT count(*)::int
+FROM "NetTestEntities" AS n
+WHERE n."Macaddr8" > MACADDR8 '08002B0102030407'
+""");
     }
 
     #endregion
@@ -369,11 +411,13 @@ WHERE n.""Macaddr8"" > MACADDR8 '08002B0102030407'");
             .ToArray();
 
         AssertSql(
-            @"@__inet_1='0.0.0.0' (DbType = Object)
+"""
+@__inet_1='0.0.0.0' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Inet"" << @__inet_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Inet" << @__inet_1
+""");
     }
 
     [Fact]
@@ -386,11 +430,13 @@ WHERE n.""Inet"" << @__inet_1");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Inet"" << @__cidr_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Inet" << @__cidr_1
+""");
     }
 
     [Fact]
@@ -403,11 +449,13 @@ WHERE n.""Inet"" << @__cidr_1");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Cidr"" << @__cidr_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" << @__cidr_1
+""");
     }
 
     [Fact]
@@ -420,11 +468,13 @@ WHERE n.""Cidr"" << @__cidr_1");
             .ToArray();
 
         AssertSql(
-            @"@__inet_1='0.0.0.0' (DbType = Object)
+"""
+@__inet_1='0.0.0.0' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Inet"" <<= @__inet_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Inet" <<= @__inet_1
+""");
     }
 
     [Fact]
@@ -437,11 +487,13 @@ WHERE n.""Inet"" <<= @__inet_1");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Inet"" <<= @__cidr_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Inet" <<= @__cidr_1
+""");
     }
 
     [Fact]
@@ -454,11 +506,13 @@ WHERE n.""Inet"" <<= @__cidr_1");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Cidr"" <<= @__cidr_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" <<= @__cidr_1
+""");
     }
 
     [Fact]
@@ -471,11 +525,13 @@ WHERE n.""Cidr"" <<= @__cidr_1");
             .ToArray();
 
         AssertSql(
-            @"@__inet_1='0.0.0.0' (DbType = Object)
+"""
+@__inet_1='0.0.0.0' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Inet"" >> @__inet_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Inet" >> @__inet_1
+""");
     }
 
     [Fact]
@@ -488,11 +544,13 @@ WHERE n.""Inet"" >> @__inet_1");
             .ToArray();
 
         AssertSql(
-            @"@__inet_1='0.0.0.0' (DbType = Object)
+"""
+@__inet_1='0.0.0.0' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Cidr"" >> @__inet_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" >> @__inet_1
+""");
     }
 
     [Fact]
@@ -505,11 +563,13 @@ WHERE n.""Cidr"" >> @__inet_1");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Cidr"" >> @__cidr_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" >> @__cidr_1
+""");
     }
 
     [Fact]
@@ -522,11 +582,13 @@ WHERE n.""Cidr"" >> @__cidr_1");
             .ToArray();
 
         AssertSql(
-            @"@__inet_1='0.0.0.0' (DbType = Object)
+"""
+@__inet_1='0.0.0.0' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Inet"" >>= @__inet_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Inet" >>= @__inet_1
+""");
     }
 
     [Fact]
@@ -539,11 +601,13 @@ WHERE n.""Inet"" >>= @__inet_1");
             .ToArray();
 
         AssertSql(
-            @"@__inet_1='0.0.0.0' (DbType = Object)
+"""
+@__inet_1='0.0.0.0' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Cidr"" >>= @__inet_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" >>= @__inet_1
+""");
     }
 
     [Fact]
@@ -556,11 +620,13 @@ WHERE n.""Cidr"" >>= @__inet_1");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Cidr"" >>= @__cidr_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" >>= @__cidr_1
+""");
     }
 
     [Fact]
@@ -573,11 +639,13 @@ WHERE n.""Cidr"" >>= @__cidr_1");
             .ToArray();
 
         AssertSql(
-            @"@__inet_1='0.0.0.0' (DbType = Object)
+"""
+@__inet_1='0.0.0.0' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Inet"" && @__inet_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Inet" && @__inet_1
+""");
     }
 
     [Fact]
@@ -590,11 +658,13 @@ WHERE n.""Inet"" && @__inet_1");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Inet"" && @__cidr_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Inet" && @__cidr_1
+""");
     }
 
     [Fact]
@@ -607,11 +677,13 @@ WHERE n.""Inet"" && @__cidr_1");
             .ToArray();
 
         AssertSql(
-            @"@__inet_1='0.0.0.0' (DbType = Object)
+"""
+@__inet_1='0.0.0.0' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Cidr"" && @__inet_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" && @__inet_1
+""");
     }
 
     [Fact]
@@ -624,11 +696,13 @@ WHERE n.""Cidr"" && @__inet_1");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE n.""Cidr"" && @__cidr_1");
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" && @__cidr_1
+""");
     }
 
     #endregion
@@ -644,8 +718,10 @@ WHERE n.""Cidr"" && @__cidr_1");
             .ToArray();
 
         AssertSql(
-            @"SELECT ~n.""Inet""
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT ~n."Inet"
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -657,8 +733,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT ~n.""Cidr""
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT ~n."Cidr"
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -670,8 +748,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT ~n.""Macaddr""
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT ~n."Macaddr"
+FROM "NetTestEntities" AS n
+""");
     }
 
     [ConditionalFact]
@@ -684,8 +764,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT ~n.""Macaddr8""
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT ~n."Macaddr8"
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -697,11 +779,13 @@ FROM ""NetTestEntities"" AS n");
 
         Assert.Equal(0, count);
         AssertSql(
-            @"@__inet_1='0.0.0.0' (DbType = Object)
+"""
+@__inet_1='0.0.0.0' (DbType = Object)
 
 SELECT count(*)::int
-FROM ""NetTestEntities"" AS n
-WHERE n.""Inet"" = (n.""Inet"" & @__inet_1) OR (n.""Inet"" IS NULL)");
+FROM "NetTestEntities" AS n
+WHERE n."Inet" = (n."Inet" & @__inet_1) OR (n."Inet" IS NULL)
+""");
     }
 
     [Fact]
@@ -714,10 +798,12 @@ WHERE n.""Inet"" = (n.""Inet"" & @__inet_1) OR (n.""Inet"" IS NULL)");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Cidr"" & @__cidr_1
-FROM ""NetTestEntities"" AS n");
+SELECT n."Cidr" & @__cidr_1
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -730,10 +816,12 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"@__macaddr_1='000000000000' (DbType = Object)
+"""
+@__macaddr_1='000000000000' (DbType = Object)
 
-SELECT n.""Macaddr"" & @__macaddr_1
-FROM ""NetTestEntities"" AS n");
+SELECT n."Macaddr" & @__macaddr_1
+FROM "NetTestEntities" AS n
+""");
     }
 
     [ConditionalFact]
@@ -746,8 +834,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT n.""Macaddr8"" & n.""Macaddr8""
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT n."Macaddr8" & n."Macaddr8"
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -760,10 +850,12 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"@__inet_1='0.0.0.0' (DbType = Object)
+"""
+@__inet_1='0.0.0.0' (DbType = Object)
 
-SELECT n.""Inet"" | @__inet_1
-FROM ""NetTestEntities"" AS n");
+SELECT n."Inet" | @__inet_1
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -776,10 +868,12 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Cidr"" | @__cidr_1
-FROM ""NetTestEntities"" AS n");
+SELECT n."Cidr" | @__cidr_1
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -792,10 +886,12 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"@__macaddr_1='000000000000' (DbType = Object)
+"""
+@__macaddr_1='000000000000' (DbType = Object)
 
-SELECT n.""Macaddr"" | @__macaddr_1
-FROM ""NetTestEntities"" AS n");
+SELECT n."Macaddr" | @__macaddr_1
+FROM "NetTestEntities" AS n
+""");
     }
 
     [ConditionalFact]
@@ -808,8 +904,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT n.""Macaddr8"" | n.""Macaddr8""
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT n."Macaddr8" | n."Macaddr8"
+FROM "NetTestEntities" AS n
+""");
     }
 
     #endregion
@@ -824,10 +922,12 @@ FROM ""NetTestEntities"" AS n");
 
         Assert.Equal(actual, IPAddress.Parse("192.168.1.1"));
         AssertSql(
-            @"SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE (n.""Inet"" + 1) = INET '192.168.1.2'
-LIMIT 2");
+"""
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE (n."Inet" + 1) = INET '192.168.1.2'
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -839,8 +939,10 @@ LIMIT 2");
             .ToArray();
 
         AssertSql(
-            @"SELECT n.""Cidr"" + 1
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT n."Cidr" + 1
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -851,10 +953,12 @@ FROM ""NetTestEntities"" AS n");
 
         Assert.Equal(actual, IPAddress.Parse("192.168.1.2"));
         AssertSql(
-            @"SELECT n.""Id"", n.""Cidr"", n.""Inet"", n.""Macaddr"", n.""Macaddr8"", n.""TextInet"", n.""TextMacaddr""
-FROM ""NetTestEntities"" AS n
-WHERE (n.""Inet"" - 1) = INET '192.168.1.1'
-LIMIT 2");
+"""
+SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE (n."Inet" - 1) = INET '192.168.1.1'
+LIMIT 2
+""");
     }
 
     [Fact]
@@ -866,8 +970,10 @@ LIMIT 2");
             .ToArray();
 
         AssertSql(
-            @"SELECT n.""Cidr"" - 1
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT n."Cidr" - 1
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -880,10 +986,12 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"@__inet_1='0.0.0.0' (DbType = Object)
+"""
+@__inet_1='0.0.0.0' (DbType = Object)
 
-SELECT n.""Inet"" - @__inet_1
-FROM ""NetTestEntities"" AS n");
+SELECT n."Inet" - @__inet_1
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -896,10 +1004,12 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT n.""Cidr"" - @__cidr_1
-FROM ""NetTestEntities"" AS n");
+SELECT n."Cidr" - @__cidr_1
+FROM "NetTestEntities" AS n
+""");
     }
 
     #endregion
@@ -915,8 +1025,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT abbrev(n.""Inet"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT abbrev(n."Inet")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -928,8 +1040,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT abbrev(n.""Cidr"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT abbrev(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -941,8 +1055,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT broadcast(n.""Inet"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT broadcast(n."Inet")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -954,8 +1070,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT broadcast(n.""Cidr"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT broadcast(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -967,8 +1085,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT family(n.""Inet"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT family(n."Inet")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -980,8 +1100,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT family(n.""Cidr"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT family(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -993,8 +1115,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT host(n.""Inet"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT host(n."Inet")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1006,8 +1130,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT host(n.""Cidr"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT host(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1019,8 +1145,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT hostmask(n.""Inet"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT hostmask(n."Inet")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1032,8 +1160,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT hostmask(n.""Cidr"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT hostmask(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1045,8 +1175,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT masklen(n.""Inet"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT masklen(n."Inet")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1058,8 +1190,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT masklen(n.""Cidr"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT masklen(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1071,8 +1205,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT netmask(n.""Inet"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT netmask(n."Inet")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1084,8 +1220,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT netmask(n.""Cidr"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT netmask(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1097,8 +1235,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT network(n.""Inet"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT network(n."Inet")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1110,8 +1250,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT network(n.""Cidr"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT network(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1123,8 +1265,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT set_masklen(n.""Inet"", 0)
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT set_masklen(n."Inet", 0)
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1136,8 +1280,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT set_masklen(n.""Cidr"", 0)
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT set_masklen(n."Cidr", 0)
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1149,8 +1295,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT text(n.""Inet"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT text(n."Inet")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1162,8 +1310,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT text(n.""Cidr"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT text(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1176,10 +1326,12 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"@__inet_1='0.0.0.0' (DbType = Object)
+"""
+@__inet_1='0.0.0.0' (DbType = Object)
 
-SELECT inet_same_family(n.""Inet"", @__inet_1)
-FROM ""NetTestEntities"" AS n");
+SELECT inet_same_family(n."Inet", @__inet_1)
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1192,10 +1344,12 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT inet_same_family(n.""Cidr"", @__cidr_1)
-FROM ""NetTestEntities"" AS n");
+SELECT inet_same_family(n."Cidr", @__cidr_1)
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1208,10 +1362,12 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"@__inet_1='0.0.0.0' (DbType = Object)
+"""
+@__inet_1='0.0.0.0' (DbType = Object)
 
-SELECT inet_merge(n.""Inet"", @__inet_1)
-FROM ""NetTestEntities"" AS n");
+SELECT inet_merge(n."Inet", @__inet_1)
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1224,10 +1380,12 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
+"""
+@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
-SELECT inet_merge(n.""Cidr"", @__cidr_1)
-FROM ""NetTestEntities"" AS n");
+SELECT inet_merge(n."Cidr", @__cidr_1)
+FROM "NetTestEntities" AS n
+""");
     }
 
     [Fact]
@@ -1239,8 +1397,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT trunc(n.""Macaddr"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT trunc(n."Macaddr")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [ConditionalFact]
@@ -1253,8 +1413,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT trunc(n.""Macaddr8"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT trunc(n."Macaddr8")
+FROM "NetTestEntities" AS n
+""");
     }
 
     [ConditionalFact]
@@ -1267,8 +1429,10 @@ FROM ""NetTestEntities"" AS n");
             .ToArray();
 
         AssertSql(
-            @"SELECT macaddr8_set7bit(n.""Macaddr8"")
-FROM ""NetTestEntities"" AS n");
+"""
+SELECT macaddr8_set7bit(n."Macaddr8")
+FROM "NetTestEntities" AS n
+""");
     }
 
     #endregion

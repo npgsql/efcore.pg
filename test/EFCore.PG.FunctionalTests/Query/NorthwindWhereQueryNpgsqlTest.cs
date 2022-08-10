@@ -26,9 +26,11 @@ public class NorthwindWhereQueryNpgsqlTest : NorthwindWhereQueryRelationalTestBa
         await base.Where_datetime_today(async);
 
         AssertSql(
-            @"SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
-FROM ""Employees"" AS e
-WHERE date_trunc('day', now()::timestamp) = date_trunc('day', now()::timestamp)");
+"""
+SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
+FROM "Employees" AS e
+WHERE date_trunc('day', now()::timestamp) = date_trunc('day', now()::timestamp)
+""");
     }
 
     public override async Task Where_datetime_date_component(bool async)
@@ -36,11 +38,13 @@ WHERE date_trunc('day', now()::timestamp) = date_trunc('day', now()::timestamp)"
         await base.Where_datetime_date_component(async);
 
         AssertSql(
-            @"@__myDatetime_0='1998-05-04T00:00:00.0000000'
+"""
+@__myDatetime_0='1998-05-04T00:00:00.0000000'
 
-SELECT o.""OrderID"", o.""CustomerID"", o.""EmployeeID"", o.""OrderDate""
-FROM ""Orders"" AS o
-WHERE date_trunc('day', o.""OrderDate"") = @__myDatetime_0");
+SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+FROM "Orders" AS o
+WHERE date_trunc('day', o."OrderDate") = @__myDatetime_0
+""");
     }
 
     public override async Task Where_date_add_year_constant_component(bool async)
@@ -48,9 +52,11 @@ WHERE date_trunc('day', o.""OrderDate"") = @__myDatetime_0");
         await base.Where_date_add_year_constant_component(async);
 
         AssertSql(
-            @"SELECT o.""OrderID"", o.""CustomerID"", o.""EmployeeID"", o.""OrderDate""
-FROM ""Orders"" AS o
-WHERE date_part('year', o.""OrderDate"" + INTERVAL '-1 years')::int = 1997");
+"""
+SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+FROM "Orders" AS o
+WHERE date_part('year', o."OrderDate" + INTERVAL '-1 years')::int = 1997
+""");
     }
 
     public override async Task Where_datetime_year_component(bool async)
@@ -58,9 +64,11 @@ WHERE date_part('year', o.""OrderDate"" + INTERVAL '-1 years')::int = 1997");
         await base.Where_datetime_year_component(async);
 
         AssertSql(
-            @"SELECT o.""OrderID"", o.""CustomerID"", o.""EmployeeID"", o.""OrderDate""
-FROM ""Orders"" AS o
-WHERE date_part('year', o.""OrderDate"")::int = 1998");
+"""
+SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+FROM "Orders" AS o
+WHERE date_part('year', o."OrderDate")::int = 1998
+""");
     }
 
     public override async Task Where_datetime_month_component(bool async)
@@ -68,9 +76,11 @@ WHERE date_part('year', o.""OrderDate"")::int = 1998");
         await base.Where_datetime_month_component(async);
 
         AssertSql(
-            @"SELECT o.""OrderID"", o.""CustomerID"", o.""EmployeeID"", o.""OrderDate""
-FROM ""Orders"" AS o
-WHERE date_part('month', o.""OrderDate"")::int = 4");
+"""
+SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+FROM "Orders" AS o
+WHERE date_part('month', o."OrderDate")::int = 4
+""");
     }
 
     public override async Task Where_datetime_dayOfYear_component(bool async)
@@ -78,9 +88,11 @@ WHERE date_part('month', o.""OrderDate"")::int = 4");
         await base.Where_datetime_dayOfYear_component(async);
 
         AssertSql(
-            @"SELECT o.""OrderID"", o.""CustomerID"", o.""EmployeeID"", o.""OrderDate""
-FROM ""Orders"" AS o
-WHERE date_part('doy', o.""OrderDate"")::int = 68");
+"""
+SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+FROM "Orders" AS o
+WHERE date_part('doy', o."OrderDate")::int = 68
+""");
     }
 
     public override async Task Where_datetime_day_component(bool async)
@@ -88,9 +100,11 @@ WHERE date_part('doy', o.""OrderDate"")::int = 68");
         await base.Where_datetime_day_component(async);
 
         AssertSql(
-            @"SELECT o.""OrderID"", o.""CustomerID"", o.""EmployeeID"", o.""OrderDate""
-FROM ""Orders"" AS o
-WHERE date_part('day', o.""OrderDate"")::int = 4");
+"""
+SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+FROM "Orders" AS o
+WHERE date_part('day', o."OrderDate")::int = 4
+""");
     }
 
     public override async Task Where_datetime_hour_component(bool async)
@@ -98,9 +112,11 @@ WHERE date_part('day', o.""OrderDate"")::int = 4");
         await base.Where_datetime_hour_component(async);
 
         AssertSql(
-            @"SELECT o.""OrderID"", o.""CustomerID"", o.""EmployeeID"", o.""OrderDate""
-FROM ""Orders"" AS o
-WHERE date_part('hour', o.""OrderDate"")::int = 14");
+"""
+SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+FROM "Orders" AS o
+WHERE date_part('hour', o."OrderDate")::int = 14
+""");
     }
 
     public override async Task Where_datetime_minute_component(bool async)
@@ -108,9 +124,11 @@ WHERE date_part('hour', o.""OrderDate"")::int = 14");
         await base.Where_datetime_minute_component(async);
 
         AssertSql(
-            @"SELECT o.""OrderID"", o.""CustomerID"", o.""EmployeeID"", o.""OrderDate""
-FROM ""Orders"" AS o
-WHERE date_part('minute', o.""OrderDate"")::int = 23");
+"""
+SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+FROM "Orders" AS o
+WHERE date_part('minute', o."OrderDate")::int = 23
+""");
     }
 
     public override async Task Where_datetime_second_component(bool async)
@@ -118,9 +136,11 @@ WHERE date_part('minute', o.""OrderDate"")::int = 23");
         await base.Where_datetime_second_component(async);
 
         AssertSql(
-            @"SELECT o.""OrderID"", o.""CustomerID"", o.""EmployeeID"", o.""OrderDate""
-FROM ""Orders"" AS o
-WHERE date_part('second', o.""OrderDate"")::int = 44");
+"""
+SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+FROM "Orders" AS o
+WHERE date_part('second', o."OrderDate")::int = 44
+""");
     }
 
     public override Task Where_datetime_millisecond_component(bool async)
@@ -179,9 +199,11 @@ WHERE date_part('second', o.""OrderDate"")::int = 44");
             entryCount: 6);
 
         AssertSql(
-            @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
-FROM ""Customers"" AS c
-WHERE (c.""City"") = ('London')");
+"""
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE (c."City") = ('London')
+""");
     }
 
     public override async Task Where_compare_tuple_constructed_multi_value_equal(bool async)
@@ -193,9 +215,11 @@ WHERE (c.""City"") = ('London')");
             entryCount: 4);
 
         AssertSql(
-            @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
-FROM ""Customers"" AS c
-WHERE (c.""City"", c.""Country"") = ('Sao Paulo', 'Brazil')");
+"""
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE (c."City", c."Country") = ('Sao Paulo', 'Brazil')
+""");
     }
 
     public override async Task Where_compare_tuple_constructed_multi_value_not_equal(bool async)
@@ -207,9 +231,11 @@ WHERE (c.""City"", c.""Country"") = ('Sao Paulo', 'Brazil')");
             entryCount: 87);
 
         AssertSql(
-            @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
-FROM ""Customers"" AS c
-WHERE (c.""City"", c.""Country"") <> ('Sao Paulo', 'Brazil')");
+"""
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE (c."City", c."Country") <> ('Sao Paulo', 'Brazil')
+""");
     }
 
     public override async Task Where_compare_tuple_create_constructed_equal(bool async)
@@ -250,9 +276,11 @@ WHERE (c.""City"", c.""Country"") <> ('Sao Paulo', 'Brazil')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""Customers"" AS c
-WHERE (c.""City"", c.""CustomerID"") > ('Buenos Aires', 'OCEAN')");
+"""
+SELECT count(*)::int
+FROM "Customers" AS c
+WHERE (c."City", c."CustomerID") > ('Buenos Aires', 'OCEAN')
+""");
     }
 
     [ConditionalFact]
@@ -267,9 +295,11 @@ WHERE (c.""City"", c.""CustomerID"") > ('Buenos Aires', 'OCEAN')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""Orders"" AS o
-WHERE (o.""CustomerID"", o.""OrderID"") > ('ALFKI', 10702)");
+"""
+SELECT count(*)::int
+FROM "Orders" AS o
+WHERE (o."CustomerID", o."OrderID") > ('ALFKI', 10702)
+""");
     }
 
     [ConditionalFact]
@@ -286,11 +316,13 @@ WHERE (o.""CustomerID"", o.""OrderID"") > ('ALFKI', 10702)");
             .CountAsync();
 
         AssertSql(
-            @"@__city1_1='Buenos Aires'
+"""
+@__city1_1='Buenos Aires'
 
 SELECT count(*)::int
-FROM ""Customers"" AS c
-WHERE (c.""City"", c.""CustomerID"") > (@__city1_1, 'OCEAN')");
+FROM "Customers" AS c
+WHERE (c."City", c."CustomerID") > (@__city1_1, 'OCEAN')
+""");
     }
 
     [ConditionalFact]
@@ -307,11 +339,13 @@ WHERE (c.""City"", c.""CustomerID"") > (@__city1_1, 'OCEAN')");
             .CountAsync();
 
         AssertSql(
-            @"@__city1_1='Buenos Aires'
+"""
+@__city1_1='Buenos Aires'
 
 SELECT count(*)::int
-FROM ""Customers"" AS c
-WHERE (c.""City"", c.""CustomerID"") > (@__city1_1, 'OCEAN')");
+FROM "Customers" AS c
+WHERE (c."City", c."CustomerID") > (@__city1_1, 'OCEAN')
+""");
     }
 
     [ConditionalFact]
@@ -326,9 +360,11 @@ WHERE (c.""City"", c.""CustomerID"") > (@__city1_1, 'OCEAN')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""Customers"" AS c
-WHERE (c.""City"", c.""CustomerID"") < ('Buenos Aires', 'OCEAN')");
+"""
+SELECT count(*)::int
+FROM "Customers" AS c
+WHERE (c."City", c."CustomerID") < ('Buenos Aires', 'OCEAN')
+""");
     }
 
     [ConditionalFact]
@@ -343,9 +379,11 @@ WHERE (c.""City"", c.""CustomerID"") < ('Buenos Aires', 'OCEAN')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""Customers"" AS c
-WHERE (c.""City"", c.""CustomerID"") >= ('Buenos Aires', 'OCEAN')");
+"""
+SELECT count(*)::int
+FROM "Customers" AS c
+WHERE (c."City", c."CustomerID") >= ('Buenos Aires', 'OCEAN')
+""");
     }
 
     [ConditionalFact]
@@ -360,9 +398,11 @@ WHERE (c.""City"", c.""CustomerID"") >= ('Buenos Aires', 'OCEAN')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""Customers"" AS c
-WHERE (c.""City"", c.""CustomerID"") <= ('Buenos Aires', 'OCEAN')");
+"""
+SELECT count(*)::int
+FROM "Customers" AS c
+WHERE (c."City", c."CustomerID") <= ('Buenos Aires', 'OCEAN')
+""");
     }
 
     [ConditionalFact]
@@ -377,9 +417,11 @@ WHERE (c.""City"", c.""CustomerID"") <= ('Buenos Aires', 'OCEAN')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""Customers"" AS c
-WHERE (c.""City"", c.""CustomerID"") > ('Buenos Aires', 'OCEAN')");
+"""
+SELECT count(*)::int
+FROM "Customers" AS c
+WHERE (c."City", c."CustomerID") > ('Buenos Aires', 'OCEAN')
+""");
     }
 
     [ConditionalFact]
@@ -409,9 +451,11 @@ WHERE (c.""City"", c.""CustomerID"") > ('Buenos Aires', 'OCEAN')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""Customers"" AS c
-WHERE (c.""City"", c.""CustomerID"") = ('Buenos Aires', 'OCEAN')");
+"""
+SELECT count(*)::int
+FROM "Customers" AS c
+WHERE (c."City", c."CustomerID") = ('Buenos Aires', 'OCEAN')
+""");
     }
 
     [ConditionalFact]
@@ -424,9 +468,11 @@ WHERE (c.""City"", c.""CustomerID"") = ('Buenos Aires', 'OCEAN')");
             .CountAsync();
 
         AssertSql(
-            @"SELECT count(*)::int
-FROM ""Customers"" AS c
-WHERE (c.""City"", c.""CustomerID"") <> ('Buenos Aires', 'OCEAN')");
+"""
+SELECT count(*)::int
+FROM "Customers" AS c
+WHERE (c."City", c."CustomerID") <> ('Buenos Aires', 'OCEAN')
+""");
     }
 
     #endregion Row value comparisons

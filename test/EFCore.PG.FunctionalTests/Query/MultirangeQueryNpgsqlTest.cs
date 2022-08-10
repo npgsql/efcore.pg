@@ -30,12 +30,14 @@ public class MultirangeQueryNpgsqlTest : IClassFixture<MultirangeQueryNpgsqlTest
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__value_0='3'
+"""
+@__value_0='3'
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" @> @__value_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" @> @__value_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -51,12 +53,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__multirange_0={ '[1,2]' } (DbType = Object)
+"""
+@__multirange_0={ '[1,2]' } (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" @> @__multirange_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" @> @__multirange_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -72,12 +76,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__range_0='[1,2]' (DbType = Object)
+"""
+@__range_0='[1,2]' (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" @> @__range_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" @> @__range_0
+LIMIT 2
+""");
     }
 
 
@@ -94,12 +100,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__multirange_0={ '[1,2]' } (DbType = Object)
+"""
+@__multirange_0={ '[1,2]' } (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE @__multirange_0 <@ t.""IntMultirange""
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE @__multirange_0 <@ t."IntMultirange"
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -115,12 +123,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__multirange_0={ '[0,5]', '[7,10]' } (DbType = Object)
+"""
+@__multirange_0={ '[0,5]', '[7,10]' } (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" = @__multirange_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" = @__multirange_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -136,12 +146,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__multirange_0={ '[0,5]', '[7,10]' } (DbType = Object)
+"""
+@__multirange_0={ '[0,5]', '[7,10]' } (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" = @__multirange_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" = @__multirange_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -157,12 +169,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__multirange_0={ '[-3,0]', '[100,101]' } (DbType = Object)
+"""
+@__multirange_0={ '[-3,0]', '[100,101]' } (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" && @__multirange_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" && @__multirange_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -178,12 +192,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__range_0='[-3,0]' (DbType = Object)
+"""
+@__range_0='[-3,0]' (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" && @__range_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" && @__range_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -199,12 +215,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__multirange_0={ '[11,13]', '[15,16]' } (DbType = Object)
+"""
+@__multirange_0={ '[11,13]', '[15,16]' } (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" << @__multirange_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" << @__multirange_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -220,12 +238,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__range_0='[11,13]' (DbType = Object)
+"""
+@__range_0='[11,13]' (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" << @__range_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" << @__range_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -241,12 +261,14 @@ LIMIT 2");
         Assert.Equal(2, id);
 
         AssertSql(
-            @"@__multirange_0={ '[-10,-7]', '[-5,3]' } (DbType = Object)
+"""
+@__multirange_0={ '[-10,-7]', '[-5,3]' } (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" >> @__multirange_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" >> @__multirange_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -262,12 +284,14 @@ LIMIT 2");
         Assert.Equal(2, id);
 
         AssertSql(
-            @"@__range_0='[-5,3]' (DbType = Object)
+"""
+@__range_0='[-5,3]' (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" >> @__range_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" >> @__range_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -283,12 +307,14 @@ LIMIT 2");
         Assert.Equal(2, id);
 
         AssertSql(
-            @"@__multirange_0={ '[2,7]', '[13,18]' } (DbType = Object)
+"""
+@__multirange_0={ '[2,7]', '[13,18]' } (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" &> @__multirange_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" &> @__multirange_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -304,12 +330,14 @@ LIMIT 2");
         Assert.Equal(2, id);
 
         AssertSql(
-            @"@__range_0='[2,7]' (DbType = Object)
+"""
+@__range_0='[2,7]' (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" &> @__range_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" &> @__range_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -325,12 +353,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__multirange_0={ '[-5,-3]', '[13,18]' } (DbType = Object)
+"""
+@__multirange_0={ '[-5,-3]', '[13,18]' } (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" &< @__multirange_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" &< @__multirange_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -346,12 +376,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__range_0='[13,18]' (DbType = Object)
+"""
+@__range_0='[13,18]' (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" &< @__range_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" &< @__range_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -367,12 +399,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__multirange_0={ '[-5,-4]', '[-2,-1]' } (DbType = Object)
+"""
+@__multirange_0={ '[-5,-4]', '[-2,-1]' } (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" -|- @__multirange_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" -|- @__multirange_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -388,12 +422,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__range_0='[-2,-1]' (DbType = Object)
+"""
+@__range_0='[-2,-1]' (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" -|- @__range_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" -|- @__range_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -409,12 +445,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__multirange_0={ '[-5,-1]' } (DbType = Object)
+"""
+@__multirange_0={ '[-5,-1]' } (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" + @__multirange_0 = '{[-5,5], [7,10]}'::int4multirange
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" + @__multirange_0 = '{[-5,5], [7,10]}'::int4multirange
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -430,12 +468,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__multirange_0={ '[-5,1]', '[9,13]' } (DbType = Object)
+"""
+@__multirange_0={ '[-5,1]', '[9,13]' } (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" * @__multirange_0 = '{[0,1], [9,10]}'::int4multirange
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" * @__multirange_0 = '{[0,1], [9,10]}'::int4multirange
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -456,14 +496,16 @@ LIMIT 2");
         }, intersection);
 
         AssertSql(
-            @"SELECT range_intersect_agg(t0.""IntMultirange"")
+"""
+SELECT range_intersect_agg(t0."IntMultirange")
 FROM (
-    SELECT t.""IntMultirange"", TRUE AS ""Key""
-    FROM ""TestEntities"" AS t
-    WHERE t.""Id"" IN (1, 2)
+    SELECT t."IntMultirange", TRUE AS "Key"
+    FROM "TestEntities" AS t
+    WHERE t."Id" IN (1, 2)
 ) AS t0
-GROUP BY t0.""Key""
-LIMIT 2");
+GROUP BY t0."Key"
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -479,12 +521,14 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"@__multirange_0={ '[2,3]' } (DbType = Object)
+"""
+@__multirange_0={ '[2,3]' } (DbType = Object)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" - @__multirange_0 = '{[0,1], [4,5], [7,10]}'::int4multirange
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" - @__multirange_0 = '{[0,1], [4,5], [7,10]}'::int4multirange
+LIMIT 2
+""");
     }
 
     #endregion
@@ -504,10 +548,12 @@ LIMIT 2");
         Assert.Equal(2, id);
 
         AssertSql(
-            @"SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE NOT (isempty(t.""IntMultirange"" * '{[18,19]}'::int4multirange))
-LIMIT 2");
+"""
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE NOT (isempty(t."IntMultirange" * '{[18,19]}'::int4multirange))
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -521,10 +567,12 @@ LIMIT 2");
         Assert.Equal(1, id);
 
         AssertSql(
-            @"SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE range_merge(t.""IntMultirange"") = '[0,10]'::int4range
-LIMIT 2");
+"""
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE range_merge(t."IntMultirange") = '[0,10]'::int4range
+LIMIT 2
+""");
     }
 
     #endregion
@@ -540,12 +588,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__value_0='3'
+"""
+@__value_0='3'
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""IntMultirange"" @> @__value_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" @> @__value_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -557,12 +607,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__p_0='3'
+"""
+@__p_0='3'
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""LongMultirange"" @> @__p_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."LongMultirange" @> @__p_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -574,12 +626,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__p_0='3'
+"""
+@__p_0='3'
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""DecimalMultirange"" @> @__p_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."DecimalMultirange" @> @__p_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -591,12 +645,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__value_0='01/03/2020' (DbType = Date)
+"""
+@__value_0='01/03/2020' (DbType = Date)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""DateOnlyDateMultirange"" @> @__value_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."DateOnlyDateMultirange" @> @__value_0
+LIMIT 2
+""");
     }
 
     [ConditionalFact]
@@ -608,12 +664,14 @@ LIMIT 2");
         Assert.Equal(1, result.Id);
 
         AssertSql(
-            @"@__value_0='2020-01-03T00:00:00.0000000' (DbType = Date)
+"""
+@__value_0='2020-01-03T00:00:00.0000000' (DbType = Date)
 
-SELECT t.""Id"", t.""DateOnlyDateMultirange"", t.""DateTimeDateMultirange"", t.""DecimalMultirange"", t.""IntMultirange"", t.""LongMultirange""
-FROM ""TestEntities"" AS t
-WHERE t.""DateTimeDateMultirange"" @> @__value_0
-LIMIT 2");
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."DateTimeDateMultirange" @> @__value_0
+LIMIT 2
+""");
     }
 
     #endregion Built-in multiranges

@@ -23,9 +23,11 @@ public class BigIntegerQueryTest : QueryTestBase<BigIntegerQueryTest.BigIntegerQ
             entryCount: 2);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""BigInteger""
-FROM ""Entities"" AS e
-WHERE abs(e.""BigInteger"") = 1");
+"""
+SELECT e."Id", e."BigInteger"
+FROM "Entities" AS e
+WHERE abs(e."BigInteger") = 1
+""");
     }
 
     [ConditionalTheory]
@@ -38,9 +40,11 @@ WHERE abs(e.""BigInteger"") = 1");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""BigInteger""
-FROM ""Entities"" AS e
-WHERE power(e.""BigInteger"", 2) = 4");
+"""
+SELECT e."Id", e."BigInteger"
+FROM "Entities" AS e
+WHERE power(e."BigInteger", 2) = 4
+""");
     }
 
     [ConditionalTheory]
@@ -53,9 +57,11 @@ WHERE power(e.""BigInteger"", 2) = 4");
             entryCount: 3);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""BigInteger""
-FROM ""Entities"" AS e
-WHERE GREATEST(e.""BigInteger"", 1) = 1");
+"""
+SELECT e."Id", e."BigInteger"
+FROM "Entities" AS e
+WHERE GREATEST(e."BigInteger", 1) = 1
+""");
     }
 
     [ConditionalTheory]
@@ -68,9 +74,11 @@ WHERE GREATEST(e.""BigInteger"", 1) = 1");
             entryCount: 3);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""BigInteger""
-FROM ""Entities"" AS e
-WHERE LEAST(e.""BigInteger"", 1) = 1");
+"""
+SELECT e."Id", e."BigInteger"
+FROM "Entities" AS e
+WHERE LEAST(e."BigInteger", 1) = 1
+""");
     }
 
     [ConditionalTheory]
@@ -83,9 +91,11 @@ WHERE LEAST(e.""BigInteger"", 1) = 1");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""BigInteger""
-FROM ""Entities"" AS e
-WHERE e.""BigInteger"" = 0");
+"""
+SELECT e."Id", e."BigInteger"
+FROM "Entities" AS e
+WHERE e."BigInteger" = 0
+""");
     }
 
     [ConditionalTheory]
@@ -98,9 +108,11 @@ WHERE e.""BigInteger"" = 0");
             entryCount: 1);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""BigInteger""
-FROM ""Entities"" AS e
-WHERE e.""BigInteger"" = 1");
+"""
+SELECT e."Id", e."BigInteger"
+FROM "Entities" AS e
+WHERE e."BigInteger" = 1
+""");
     }
 
     [ConditionalTheory]
@@ -113,9 +125,11 @@ WHERE e.""BigInteger"" = 1");
             entryCount: 2);
 
         AssertSql(
-            @"SELECT e.""Id"", e.""BigInteger""
-FROM ""Entities"" AS e
-WHERE (e.""BigInteger"" % 2) = 0");
+"""
+SELECT e."Id", e."BigInteger"
+FROM "Entities" AS e
+WHERE (e."BigInteger" % 2) = 0
+""");
     }
 
     private void AssertSql(params string[] expected)

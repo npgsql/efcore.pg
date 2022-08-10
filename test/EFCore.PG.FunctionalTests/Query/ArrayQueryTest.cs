@@ -398,8 +398,10 @@ public abstract class ArrayQueryTest<TFixture> : QueryTestBase<TFixture>
             elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
 
         AssertSql(
-            @"SELECT ARRAY[s.""NullableText"",s.""NonNullableText""]::text[]
-FROM ""SomeEntities"" AS s");
+"""
+SELECT ARRAY[s."NullableText",s."NonNullableText"]::text[]
+FROM "SomeEntities" AS s
+""");
     }
 
     [Theory]
@@ -431,8 +433,10 @@ FROM ""SomeEntities"" AS s");
             elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
 
         AssertSql(
-            @"SELECT ARRAY[s.""Varchar10"",s.""Varchar15""]::varchar(15)[]
-FROM ""SomeEntities"" AS s");
+"""
+SELECT ARRAY[s."Varchar10",s."Varchar15"]::varchar(15)[]
+FROM "SomeEntities" AS s
+""");
     }
 
     [Theory] // #2342
@@ -446,8 +450,10 @@ FROM ""SomeEntities"" AS s");
             elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
 
         AssertSql(
-            @"SELECT ARRAY[s.""NonNullableText"",s.""Varchar15""]::text[]
-FROM ""SomeEntities"" AS s");
+"""
+SELECT ARRAY[s."NonNullableText",s."Varchar15"]::text[]
+FROM "SomeEntities" AS s
+""");
     }
 
     [Theory] // #2342
@@ -461,8 +467,10 @@ FROM ""SomeEntities"" AS s");
             elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
 
         AssertSql(
-            @"SELECT ARRAY[s.""Id""::text,s.""Varchar15""]::text[]
-FROM ""SomeEntities"" AS s");
+"""
+SELECT ARRAY[s."Id"::text,s."Varchar15"]::text[]
+FROM "SomeEntities" AS s
+""");
     }
 
     #endregion
