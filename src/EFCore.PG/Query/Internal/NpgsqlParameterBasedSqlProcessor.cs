@@ -16,7 +16,7 @@ public class NpgsqlParameterBasedSqlProcessor : RelationalParameterBasedSqlProce
     {
         queryExpression = base.Optimize(queryExpression, parametersValues, out canCache);
 
-        queryExpression = new NonQueryConvertingExpressionVisitor().Process(queryExpression);
+        queryExpression = new NpgsqlDeleteConvertingExpressionVisitor().Process(queryExpression);
 
         return queryExpression;
     }
