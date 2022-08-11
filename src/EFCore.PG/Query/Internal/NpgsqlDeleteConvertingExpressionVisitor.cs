@@ -6,7 +6,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 ///     Converts the relational <see cref="NonQueryExpression" /> into a PG-specific <see cref="PostgresDeleteExpression" />, which
 ///     precisely models a DELETE statement in PostgreSQL. This is done to handle the PG-specific USING syntax for table joining.
 /// </summary>
-public class NonQueryConvertingExpressionVisitor : ExpressionVisitor
+public class NpgsqlDeleteConvertingExpressionVisitor : ExpressionVisitor
 {
     public virtual Expression Process(Expression node)
         => node switch

@@ -207,20 +207,6 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         }
     }
 
-    protected override void GenerateRootCommand(Expression rootExpression)
-    {
-        switch (rootExpression)
-        {
-            case PostgresDeleteExpression pgDeleteExpression:
-                VisitPostgresDelete(pgDeleteExpression);
-                return;
-
-            default:
-                base.GenerateRootCommand(rootExpression);
-                return;
-        }
-    }
-
     // NonQueryConvertingExpressionVisitor converts the relational DeleteExpression to PostgresDeleteExpression, so we should never
     // get here
     protected override Expression VisitDelete(DeleteExpression deleteExpression)
@@ -244,6 +230,74 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         }
 
         return pgDeleteExpression;
+    }
+
+    protected override Expression VisitUpdate(UpdateExpression updateExpression)
+    {
+        var selectExpression = updateExpression.SelectExpression;
+
+        if (selectExpression.Offset == null
+            && selectExpression.Limit == null
+            && selectExpression.Having == null
+            && selectExpression.Orderings.Count == 0
+            && selectExpression.GroupBy.Count == 0
+            && selectExpression.Tables.Count == 1
+            && selectExpression.Tables[0] == updateExpression.Table
+            && selectExpression.Projection.Count == 0)
+        {
+            Sql.Append("UPDATE ");
+            Visit(updateExpression.Table);
+            Sql.AppendLine();
+
+            using (Sql.Indent())
+            {
+                Sql.Append("SET ");
+                GenerateList(updateExpression.SetColumnValues,
+                    e =>
+                    {
+                        Sql
+                            .Append(_sqlGenerationHelper.DelimitIdentifier(e.Column.Name))
+                            .Append(" = ");
+
+                        Visit(e.Value);
+                    },
+                    joinAction: e => e.AppendLine(","));
+            }
+
+            var first = true;
+            for (var i = 0; i < selectExpression.Tables.Count; i++)
+            {
+                var table = selectExpression.Tables[i];
+
+                if (table == updateExpression.Table)
+                {
+                    continue;
+                }
+
+                if (first)
+                {
+                    Sql.Append("FROM ");
+                    first = false;
+                }
+                else
+                {
+                    Sql.AppendLine();
+                }
+
+                Visit(table);
+            }
+
+            if (selectExpression.Predicate != null)
+            {
+                Sql.AppendLine().Append("WHERE ");
+                Visit(selectExpression.Predicate);
+            }
+
+            return updateExpression;
+        }
+
+        throw new InvalidOperationException(
+            RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(nameof(RelationalQueryableExtensions.ExecuteUpdate)));
     }
 
     protected virtual Expression VisitPostgresNewArray(PostgresNewArrayExpression postgresNewArrayExpression)
