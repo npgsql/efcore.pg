@@ -11,12 +11,21 @@ public class TransactionNpgsqlTest : TransactionTestBase<TransactionNpgsqlTest.T
     {
     }
 
-    public override Task SaveChanges_can_be_used_with_no_transaction(bool async)
+    public override Task SaveChanges_can_be_used_with_AutoTransactionBehavior_Never(bool async)
     {
         // Npgsql batches the inserts, creating an implicit transaction which fails the test
         // (see https://github.com/npgsql/npgsql/issues/1307)
         return Task.CompletedTask;
     }
+
+#pragma warning disable CS0618 // AutoTransactionsEnabled is obsolete
+    public override Task SaveChanges_can_be_used_with_AutoTransactionsEnabled_false(bool async)
+    {
+        // Npgsql batches the inserts, creating an implicit transaction which fails the test
+        // (see https://github.com/npgsql/npgsql/issues/1307)
+        return Task.CompletedTask;
+    }
+#pragma warning restore CS0618
 
     protected override DbContext CreateContextWithConnectionString()
     {

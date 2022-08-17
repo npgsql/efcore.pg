@@ -14,10 +14,6 @@ public class Ef6GroupByNpgsqlTest : Ef6GroupByTestBase<Ef6GroupByNpgsqlTest.Ef6G
         // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/27155")]
-    public override Task Average_Grouped_from_LINQ_101(bool async)
-        => base.Average_Grouped_from_LINQ_101(async);
-
     public override async Task Whats_new_2021_sample_3(bool async)
     {
         await base.Whats_new_2021_sample_3(async);

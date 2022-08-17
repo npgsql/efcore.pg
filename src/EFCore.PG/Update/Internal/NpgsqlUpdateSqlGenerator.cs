@@ -34,7 +34,7 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
 
         requiresTransaction = false;
 
-        return readOperations.Count > 0 ? ResultSetMapping.LastInResultSet : ResultSetMapping.NoResultSet;
+        return readOperations.Count > 0 ? ResultSetMapping.LastInResultSet : ResultSetMapping.NoResults;
     }
 
     protected virtual void AppendInsertCommand(
@@ -97,7 +97,7 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
 
         AppendDeleteCommand(commandStringBuilder, name, schema, Array.Empty<IColumnModification>(), conditionOperations);
 
-        return ResultSetMapping.NoResultSet;
+        return ResultSetMapping.NoResults;
     }
 
     public override void AppendObtainNextSequenceValueOperation(StringBuilder commandStringBuilder, string name, string? schema)
