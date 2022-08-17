@@ -5,6 +5,9 @@ public class NpgsqlComplianceTest : RelationalComplianceTestBase
     protected override ICollection<Type> IgnoredTestBases { get; } = new HashSet<Type>
     {
         // Not implemented
+        typeof(StoredProcedureUpdateTestBase<>),
+        typeof(JsonUpdateTestBase),
+        typeof(JsonQueryTestBase<>),
         typeof(FromSqlSprocQueryTestBase<>),
         typeof(UdfDbFunctionTestBase<>),
         typeof(UpdateSqlGeneratorTestBase),

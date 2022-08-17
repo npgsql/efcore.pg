@@ -1,7 +1,9 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Text;
 using Microsoft.EntityFrameworkCore.TestModels.StoreValueGenerationModel;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
@@ -348,6 +350,8 @@ WHERE "Id" = @p1;
 
     public class StoreValueGenerationNpgsqlFixture : StoreValueGenerationFixtureBase
     {
+        private string? _cleanDataSql;
+
         protected override ITestStoreFactory TestStoreFactory
             => NpgsqlTestStoreFactory.Instance;
 
@@ -392,6 +396,29 @@ WHERE "Id" = @p1;
                         .ValueGenerated = ValueGenerated.OnAddOrUpdate;
                 }
             }
+        }
+
+        public override void CleanData()
+        {
+            using var context = CreateContext();
+            context.Database.ExecuteSqlRaw(_cleanDataSql ??= GetCleanDataSql());
+        }
+
+        private string GetCleanDataSql()
+        {
+            var context = CreateContext();
+            var builder = new StringBuilder();
+
+            var helper = context.GetService<ISqlGenerationHelper>();
+            var tables = context.Model.GetEntityTypes()
+                .SelectMany(e => e.GetTableMappings().Select(m => helper.DelimitIdentifier(m.Table.Name, m.Table.Schema)));
+
+            foreach (var table in tables)
+            {
+                builder.AppendLine($"TRUNCATE TABLE {table} RESTART IDENTITY;");
+            }
+
+            return builder.ToString();
         }
     }
 }
