@@ -10,7 +10,20 @@ public class NorthwindBulkUpdatesNpgsqlTest : NorthwindBulkUpdatesTestBase<North
         : base(fixture)
     {
         ClearLog();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+    }
+
+    public override async Task Delete_Where_TagWith(bool async)
+    {
+        await base.Delete_Where_TagWith(async);
+
+        AssertSql(
+"""
+-- MyDelete
+
+DELETE FROM "Order Details" AS o
+WHERE o."OrderID" < 10300
+""");
     }
 
     public override async Task Delete_Where(bool async)
@@ -209,12 +222,32 @@ WHERE o."OrderID" < (
     {
         await base.Delete_Where_predicate_with_GroupBy_aggregate_2(async);
 
-        AssertSql();
+        AssertSql(
+"""
+DELETE FROM "Order Details" AS o
+USING "Orders" AS o0
+WHERE o."OrderID" = o0."OrderID" AND EXISTS (
+    SELECT 1
+    FROM "Orders" AS o1
+    GROUP BY o1."CustomerID"
+    HAVING count(*)::int > 9 AND (
+        SELECT o2."OrderID"
+        FROM "Orders" AS o2
+        WHERE o1."CustomerID" = o2."CustomerID" OR ((o1."CustomerID" IS NULL) AND (o2."CustomerID" IS NULL))
+        LIMIT 1) = o0."OrderID")
+""");
     }
 
     public override async Task Delete_GroupBy_Where_Select(bool async)
     {
         await base.Delete_GroupBy_Where_Select(async);
+
+        AssertSql();
+    }
+
+    public override async Task Delete_GroupBy_Where_Select_2(bool async)
+    {
+        await base.Delete_GroupBy_Where_Select_2(async);
 
         AssertSql();
     }
@@ -443,7 +476,23 @@ WHERE EXISTS (
 """);
     }
 
-        public override async Task Delete_with_join(bool async)
+    public override async Task Delete_Where_optional_navigation_predicate(bool async)
+    {
+        await base.Delete_Where_optional_navigation_predicate(async);
+
+        AssertSql(
+"""
+DELETE FROM "Order Details" AS o
+WHERE EXISTS (
+    SELECT 1
+    FROM "Order Details" AS o0
+    INNER JOIN "Orders" AS o1 ON o0."OrderID" = o1."OrderID"
+    LEFT JOIN "Customers" AS c ON o1."CustomerID" = c."CustomerID"
+    WHERE (c."City" IS NOT NULL) AND (c."City" LIKE 'Se%') AND o0."OrderID" = o."OrderID" AND o0."ProductID" = o."ProductID")
+""");
+    }
+
+    public override async Task Delete_with_join(bool async)
     {
         await base.Delete_with_join(async);
 
@@ -551,6 +600,20 @@ WHERE EXISTS (
 """);
     }
 
+    public override async Task Update_Where_set_constant_TagWith(bool async)
+    {
+        await base.Update_Where_set_constant_TagWith(async);
+
+        AssertExecuteUpdateSql(
+"""
+-- MyUpdate
+
+UPDATE "Customers" AS c
+    SET "ContactName" = 'Updated'
+WHERE c."CustomerID" LIKE 'F%'
+""");
+    }
+
     public override async Task Update_Where_set_constant(bool async)
     {
         await base.Update_Where_set_constant(async);
@@ -559,6 +622,18 @@ WHERE EXISTS (
 """
 UPDATE "Customers" AS c
     SET "ContactName" = 'Updated'
+WHERE c."CustomerID" LIKE 'F%'
+""");
+    }
+
+    public override async Task Update_Where_set_default(bool async)
+    {
+        await base.Update_Where_set_default(async);
+
+        AssertExecuteUpdateSql(
+"""
+UPDATE "Customers" AS c
+    SET "ContactName" = DEFAULT
 WHERE c."CustomerID" LIKE 'F%'
 """);
     }
@@ -780,7 +855,21 @@ WHERE c."CustomerID" = (
     {
         await base.Update_Where_GroupBy_First_set_constant_3(async);
 
-        AssertExecuteUpdateSql();
+        AssertExecuteUpdateSql(
+"""
+UPDATE "Customers" AS c
+    SET "ContactName" = 'Updated'
+WHERE EXISTS (
+    SELECT 1
+    FROM "Orders" AS o
+    GROUP BY o."CustomerID"
+    HAVING count(*)::int > 11 AND (
+        SELECT c0."CustomerID"
+        FROM "Orders" AS o0
+        LEFT JOIN "Customers" AS c0 ON o0."CustomerID" = c0."CustomerID"
+        WHERE o."CustomerID" = o0."CustomerID" OR ((o."CustomerID" IS NULL) AND (o0."CustomerID" IS NULL))
+        LIMIT 1) = c."CustomerID")
+""");
     }
 
     public override async Task Update_Where_Distinct_set_constant(bool async)
@@ -821,14 +910,9 @@ WHERE o."OrderID" = t."OrderID"
 """
 UPDATE "Order Details" AS o
     SET "Quantity" = 1::smallint
-FROM (
-    SELECT o0."OrderID", o0."ProductID", o0."Discount", o0."Quantity", o0."UnitPrice", o1."OrderID" AS "OrderID0", c."CustomerID"
-    FROM "Order Details" AS o0
-    INNER JOIN "Orders" AS o1 ON o0."OrderID" = o1."OrderID"
-    LEFT JOIN "Customers" AS c ON o1."CustomerID" = c."CustomerID"
-    WHERE c."City" = 'Seattle'
-) AS t
-WHERE o."OrderID" = t."OrderID" AND o."ProductID" = t."ProductID"
+FROM "Orders" AS o0
+LEFT JOIN "Customers" AS c ON o0."CustomerID" = c."CustomerID"
+WHERE o."OrderID" = o0."OrderID" AND c."City" = 'Seattle'
 """);
     }
 
@@ -1083,7 +1167,7 @@ FROM (
 WHERE c.""CustomerID"" LIKE 'F%'");
     }
 
-    [ConditionalTheory(Skip = "invalid reference to FROM-clause entry for table c")]
+    // [ConditionalTheory(Skip = "invalid reference to FROM-clause entry for table c")]
     public override async Task Update_with_cross_apply_set_constant(bool async)
     {
         await base.Update_with_cross_apply_set_constant(async);
@@ -1093,11 +1177,16 @@ WHERE c.""CustomerID"" LIKE 'F%'");
 UPDATE "Customers" AS c
     SET "ContactName" = 'Updated'
 FROM (
-    SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
-    FROM "Orders" AS o
-    WHERE o."OrderID" < 10300 AND date_part('year', o."OrderDate")::int < length(c."ContactName")::int
-) AS t
-WHERE c."CustomerID" LIKE 'F%'
+    SELECT c0."CustomerID", c0."Address", c0."City", c0."CompanyName", c0."ContactName", c0."ContactTitle", c0."Country", c0."Fax", c0."Phone", c0."PostalCode", c0."Region", t."OrderID", t."CustomerID" AS "CustomerID0", t."EmployeeID", t."OrderDate"
+    FROM "Customers" AS c0
+    JOIN LATERAL (
+        SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+        FROM "Orders" AS o
+        WHERE o."OrderID" < 10300 AND date_part('year', o."OrderDate")::int < length(c0."ContactName")::int
+    ) AS t ON TRUE
+    WHERE c0."CustomerID" LIKE 'F%'
+) AS t0
+WHERE c."CustomerID" = t0."CustomerID"
 """);
     }
 
@@ -1119,6 +1208,72 @@ FROM (
     WHERE c0.""CustomerID"" LIKE 'F%'
 ) AS t0
 WHERE c.""CustomerID"" = t0.""CustomerID""");
+    }
+
+    public override async Task Update_with_cross_join_left_join_set_constant(bool async)
+    {
+        await base.Update_with_cross_join_left_join_set_constant(async);
+
+        AssertExecuteUpdateSql(
+"""
+UPDATE "Customers" AS c
+    SET "ContactName" = 'Updated'
+FROM (
+    SELECT c0."CustomerID", c0."Address", c0."City", c0."CompanyName", c0."ContactName", c0."ContactTitle", c0."Country", c0."Fax", c0."Phone", c0."PostalCode", c0."Region"
+    FROM "Customers" AS c0
+    WHERE (c0."City" IS NOT NULL) AND (c0."City" LIKE 'S%')
+) AS t
+LEFT JOIN (
+    SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+    FROM "Orders" AS o
+    WHERE o."OrderID" < 10300
+) AS t0 ON c."CustomerID" = t0."CustomerID"
+WHERE c."CustomerID" LIKE 'F%'
+""");
+    }
+
+    public override async Task Update_with_cross_join_cross_apply_set_constant(bool async)
+    {
+        await base.Update_with_cross_join_cross_apply_set_constant(async);
+
+        AssertExecuteUpdateSql(
+"""
+UPDATE "Customers" AS c
+    SET "ContactName" = 'Updated'
+FROM (
+    SELECT c0."CustomerID", c0."Address", c0."City", c0."CompanyName", c0."ContactName", c0."ContactTitle", c0."Country", c0."Fax", c0."Phone", c0."PostalCode", c0."Region"
+    FROM "Customers" AS c0
+    WHERE (c0."City" IS NOT NULL) AND (c0."City" LIKE 'S%')
+) AS t
+JOIN LATERAL (
+    SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+    FROM "Orders" AS o
+    WHERE o."OrderID" < 10300 AND date_part('year', o."OrderDate")::int < length(c."ContactName")::int
+) AS t0 ON TRUE
+WHERE c."CustomerID" LIKE 'F%'
+""");
+    }
+
+    public override async Task Update_with_cross_join_outer_apply_set_constant(bool async)
+    {
+        await base.Update_with_cross_join_outer_apply_set_constant(async);
+
+        AssertExecuteUpdateSql(
+"""
+UPDATE "Customers" AS c
+    SET "ContactName" = 'Updated'
+FROM (
+    SELECT c0."CustomerID", c0."Address", c0."City", c0."CompanyName", c0."ContactName", c0."ContactTitle", c0."Country", c0."Fax", c0."Phone", c0."PostalCode", c0."Region"
+    FROM "Customers" AS c0
+    WHERE (c0."City" IS NOT NULL) AND (c0."City" LIKE 'S%')
+) AS t
+LEFT JOIN LATERAL (
+    SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+    FROM "Orders" AS o
+    WHERE o."OrderID" < 10300 AND date_part('year', o."OrderDate")::int < length(c."ContactName")::int
+) AS t0 ON TRUE
+WHERE c."CustomerID" LIKE 'F%'
+""");
     }
 
     public override async Task Update_FromSql_set_constant(bool async)
@@ -1152,7 +1307,17 @@ WHERE o.""OrderID"" = t0.""OrderID""");
     {
         await base.Update_Where_Join_set_property_from_joined_single_result_table(async);
 
-        AssertExecuteUpdateSql();
+        AssertExecuteUpdateSql(
+"""
+UPDATE "Customers" AS c
+    SET "City" = date_part('year', (
+        SELECT o."OrderDate"
+        FROM "Orders" AS o
+        WHERE c."CustomerID" = o."CustomerID"
+        ORDER BY o."OrderDate" DESC NULLS LAST
+        LIMIT 1))::int::text
+WHERE c."CustomerID" LIKE 'F%'
+""");
     }
 
     public override async Task Update_Where_Join_set_property_from_joined_table(bool async)

@@ -17,8 +17,14 @@ public sealed class PostgresDeleteExpression : Expression, IPrintableExpression
     /// </summary>
     public SqlExpression? Predicate { get; }
 
-    public PostgresDeleteExpression(TableExpression table, IReadOnlyList<TableExpressionBase> fromItems, SqlExpression? predicate)
-        => (Table, FromItems, Predicate) = (table, fromItems, predicate);
+    /// <summary>
+    ///     The list of tags applied to this <see cref="DeleteExpression" />.
+    /// </summary>
+    public ISet<string> Tags { get; }
+
+    public PostgresDeleteExpression(
+        TableExpression table, IReadOnlyList<TableExpressionBase> fromItems, SqlExpression? predicate, ISet<string> tags)
+        => (Table, FromItems, Predicate, Tags) = (table, fromItems, predicate, tags);
 
     /// <inheritdoc />
     public override Type Type
@@ -36,10 +42,20 @@ public sealed class PostgresDeleteExpression : Expression, IPrintableExpression
     public PostgresDeleteExpression Update(SqlExpression? predicate)
         => predicate == Predicate
             ? this
-            : new PostgresDeleteExpression(Table, FromItems, predicate);
+            : new PostgresDeleteExpression(Table, FromItems, predicate, Tags);
 
     public void Print(ExpressionPrinter expressionPrinter)
     {
+        if (Tags.Count > 0)
+        {
+            foreach (var tag in Tags)
+            {
+                expressionPrinter.Append($"-- {tag}");
+            }
+
+            expressionPrinter.AppendLine();
+        }
+
         expressionPrinter.AppendLine($"DELETE FROM {Table.Name} AS {Table.Alias}");
 
         if (FromItems.Count > 0)

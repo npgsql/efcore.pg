@@ -207,6 +207,21 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         }
     }
 
+    protected override void GenerateRootCommand(Expression queryExpression)
+    {
+        switch (queryExpression)
+        {
+            case PostgresDeleteExpression pgDeleteExpression:
+                GenerateTagsHeaderComment(pgDeleteExpression.Tags);
+                VisitPostgresDelete(pgDeleteExpression);
+                return;
+
+            default:
+                base.GenerateRootCommand(queryExpression);
+                return;
+        }
+    }
+
     // NonQueryConvertingExpressionVisitor converts the relational DeleteExpression to PostgresDeleteExpression, so we should never
     // get here
     protected override Expression VisitDelete(DeleteExpression deleteExpression)
