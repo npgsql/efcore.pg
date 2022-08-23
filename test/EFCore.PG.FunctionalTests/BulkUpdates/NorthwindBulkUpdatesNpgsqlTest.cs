@@ -1167,7 +1167,6 @@ FROM (
 WHERE c.""CustomerID"" LIKE 'F%'");
     }
 
-    // [ConditionalTheory(Skip = "invalid reference to FROM-clause entry for table c")]
     public override async Task Update_with_cross_apply_set_constant(bool async)
     {
         await base.Update_with_cross_apply_set_constant(async);
@@ -1210,6 +1209,7 @@ FROM (
 WHERE c.""CustomerID"" = t0.""CustomerID""");
     }
 
+    [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/2478")]
     public override async Task Update_with_cross_join_left_join_set_constant(bool async)
     {
         await base.Update_with_cross_join_left_join_set_constant(async);
@@ -1232,6 +1232,7 @@ WHERE c."CustomerID" LIKE 'F%'
 """);
     }
 
+    [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/2478")]
     public override async Task Update_with_cross_join_cross_apply_set_constant(bool async)
     {
         await base.Update_with_cross_join_cross_apply_set_constant(async);
@@ -1254,6 +1255,7 @@ WHERE c."CustomerID" LIKE 'F%'
 """);
     }
 
+    [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/2478")]
     public override async Task Update_with_cross_join_outer_apply_set_constant(bool async)
     {
         await base.Update_with_cross_join_outer_apply_set_constant(async);
