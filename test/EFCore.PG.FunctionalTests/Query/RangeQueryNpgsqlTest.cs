@@ -256,7 +256,7 @@ LIMIT 2
         var union = context.RangeTestEntities
             .Where(x => x.Id == 1 || x.Id == 2)
             .GroupBy(x => true)
-            .Select(g => EF.Functions.RangeAgg(g.Select(x => x.IntRange)))
+            .Select(g => g.Select(x => x.IntRange).RangeAgg())
             .Single();
 
         Assert.Equal(new NpgsqlRange<int>[] { new(1, true, 16, false) }, union);
@@ -302,7 +302,7 @@ LIMIT 2
         var intersection = context.RangeTestEntities
             .Where(x => x.Id == 1 || x.Id == 2)
             .GroupBy(x => true)
-            .Select(g => EF.Functions.RangeIntersectAgg(g.Select(x => x.IntRange)))
+            .Select(g => g.Select(x => x.IntRange).RangeIntersectAgg())
             .Single();
 
         Assert.Equal(new NpgsqlRange<int>(5, true, 11, false), intersection);
