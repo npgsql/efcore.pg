@@ -97,3 +97,6 @@ range1.Intersect(range2)              | [range1 * range2](https://www.postgresql
 range1.Except(range2)                 | [range1 - range2](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 range1.Merge(range2)                  | [range_merge(range1, range2)](https://www.postgresql.org/docs/current/functions-range.html#RANGE-FUNCTIONS-TABLE)
 multirange.Merge()                    | [range_merge(multirange)](https://www.postgresql.org/docs/current/functions-range.html#MULTIRANGE-FUNCTIONS-TABLE)
+ranges.RangeAgg()                     | [range_agg(ranges)](https://www.postgresql.org/docs/current/functions-aggregate.html)
+ranges.RangeIntersectAgg()            | [range_intersect_agg(ranges)](https://www.postgresql.org/docs/current/functions-aggregate.html)
+multiranges.RangeIntersectAgg()       | [range_intersect_agg(multiranges)](https://www.postgresql.org/docs/current/functions-aggregate.html)                | Added in 7.0, See [Aggregate functions](#aggregate-functions).
