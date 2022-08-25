@@ -212,26 +212,26 @@ public static class NpgsqlRangeDbFunctionsExtensions
     /// Computes the intersection of the non-null input ranges. Corresponds to the PostgreSQL <c>range_intersect_agg</c> aggregate function.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
-    /// <param name="input">The ranges to be aggregated via intersection into a multirange.</param>
+    /// <param name="input">The ranges on which to perform the intersection operation.</param>
     /// <seealso href="https://www.postgresql.org/docs/current/functions-aggregate.html">PostgreSQL documentation for aggregate functions.</seealso>
     /// <exception cref="NotSupportedException">
     /// <see cref="RangeIntersectAgg{T}(IEnumerable{NpgsqlRange{T}}" /> is only intended for use via SQL translation as part of an EF Core
     /// LINQ query.
     /// </exception>
     public static NpgsqlRange<T> RangeIntersectAgg<T>(this IEnumerable<NpgsqlRange<T>> input)
-        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(RangeAgg)));
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(RangeIntersectAgg)));
 
     /// <summary>
     /// Computes the intersection of the non-null input multiranges.
     /// Corresponds to the PostgreSQL <c>range_intersect_agg</c> aggregate function.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
-    /// <param name="input">The ranges to be aggregated via intersection into a multirange.</param>
+    /// <param name="input">The multiranges on which to perform the intersection operation.</param>
     /// <seealso href="https://www.postgresql.org/docs/current/functions-aggregate.html">PostgreSQL documentation for aggregate functions.</seealso>
     /// <exception cref="NotSupportedException">
     /// <see cref="RangeIntersectAgg{T}(IEnumerable{NpgsqlRange{T}[]}" /> is only intended for use via SQL translation as part of an EF Core
     /// LINQ query.
     /// </exception>
     public static NpgsqlRange<T>[] RangeIntersectAgg<T>(this IEnumerable<NpgsqlRange<T>[]> input)
-        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(RangeAgg)));
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(RangeIntersectAgg)));
 }

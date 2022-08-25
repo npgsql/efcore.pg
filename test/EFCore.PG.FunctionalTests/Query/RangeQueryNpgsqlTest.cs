@@ -294,7 +294,7 @@ LIMIT 2
     }
 
     [ConditionalFact]
-    [MinimumPostgresVersion(14, 0)] // Multiranges were introduced in PostgreSQL 14
+    [MinimumPostgresVersion(14, 0)] // range_intersect_agg was introduced in PostgreSQL 14
     public void Intersect_aggregate()
     {
         using var context = CreateContext();

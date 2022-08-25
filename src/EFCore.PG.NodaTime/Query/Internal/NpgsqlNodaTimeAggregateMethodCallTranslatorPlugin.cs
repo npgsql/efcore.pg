@@ -4,7 +4,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal;
 
 public class NpgsqlNodaTimeAggregateMethodCallTranslatorPlugin : IAggregateMethodCallTranslatorPlugin
 {
-    public NpgsqlNodaTimeAggregateMethodCallTranslatorPlugin(ISqlExpressionFactory sqlExpressionFactory)
+    public NpgsqlNodaTimeAggregateMethodCallTranslatorPlugin(
+        ISqlExpressionFactory sqlExpressionFactory,
+        IRelationalTypeMappingSource typeMappingSource)
     {
         if (sqlExpressionFactory is not NpgsqlSqlExpressionFactory npgsqlSqlExpressionFactory)
         {
@@ -13,7 +15,7 @@ public class NpgsqlNodaTimeAggregateMethodCallTranslatorPlugin : IAggregateMetho
 
         Translators = new IAggregateMethodCallTranslator[]
         {
-            new NpgsqlNodaTimeAggregateMethodTranslator(npgsqlSqlExpressionFactory)
+            new NpgsqlNodaTimeAggregateMethodTranslator(npgsqlSqlExpressionFactory, typeMappingSource)
         };
     }
 
@@ -25,9 +27,15 @@ public class NpgsqlNodaTimeAggregateMethodTranslator : IAggregateMethodCallTrans
     private static readonly bool[][] FalseArrays = { Array.Empty<bool>(), new[] { false } };
 
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+    private readonly IRelationalTypeMappingSource _typeMappingSource;
 
-    public NpgsqlNodaTimeAggregateMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
-        => _sqlExpressionFactory = sqlExpressionFactory;
+    public NpgsqlNodaTimeAggregateMethodTranslator(
+        NpgsqlSqlExpressionFactory sqlExpressionFactory,
+        IRelationalTypeMappingSource typeMappingSource)
+    {
+        _sqlExpressionFactory = sqlExpressionFactory;
+        _typeMappingSource = typeMappingSource;
+    }
 
     public virtual SqlExpression? Translate(
         MethodInfo method,
@@ -40,30 +48,25 @@ public class NpgsqlNodaTimeAggregateMethodTranslator : IAggregateMethodCallTrans
             return null;
         }
 
-        switch (method.Name)
+        return method.Name switch
         {
-            case nameof(NpgsqlNodaTimeDbFunctionsExtensions.Sum):
-                return _sqlExpressionFactory.AggregateFunction(
-                    "sum",
-                    new[] { sqlExpression },
-                    source,
-                    nullable: true,
-                    argumentsPropagateNullability: FalseArrays[1],
-                    returnType: sqlExpression.Type,
-                    sqlExpression.TypeMapping);
+            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Sum) => _sqlExpressionFactory.AggregateFunction(
+                "sum", new[] { sqlExpression }, source, nullable: true, argumentsPropagateNullability: FalseArrays[1],
+                returnType: sqlExpression.Type, sqlExpression.TypeMapping),
 
-            case nameof(NpgsqlNodaTimeDbFunctionsExtensions.Average):
-                return _sqlExpressionFactory.AggregateFunction(
-                    "avg",
-                    new[] { sqlExpression },
-                    source,
-                    nullable: true,
-                    argumentsPropagateNullability: FalseArrays[1],
-                    returnType: sqlExpression.Type,
-                    sqlExpression.TypeMapping);
+            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Average) => _sqlExpressionFactory.AggregateFunction(
+                "avg", new[] { sqlExpression }, source, nullable: true, argumentsPropagateNullability: FalseArrays[1],
+                returnType: sqlExpression.Type, sqlExpression.TypeMapping),
 
-            default:
-                return null;
-        }
+            nameof(NpgsqlNodaTimeDbFunctionsExtensions.RangeAgg) => _sqlExpressionFactory.AggregateFunction(
+                "range_agg", new[] { sqlExpression }, source, nullable: true, argumentsPropagateNullability: FalseArrays[1],
+                returnType: method.ReturnType, _typeMappingSource.FindMapping(method.ReturnType)),
+
+            nameof(NpgsqlNodaTimeDbFunctionsExtensions.RangeIntersectAgg) => _sqlExpressionFactory.AggregateFunction(
+                "range_intersect_agg", new[] { sqlExpression }, source, nullable: true, argumentsPropagateNullability: FalseArrays[1],
+                returnType: sqlExpression.Type, sqlExpression.TypeMapping),
+
+            _ => null
+        };
     }
 }
