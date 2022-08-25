@@ -54,37 +54,7 @@ public static class NpgsqlAggregateDbFunctionsExtensions
     public static TimeSpan? Average(this DbFunctions _, IEnumerable<TimeSpan> input)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Average)));
 
-    #region Range
-
-    /// <summary>
-    /// Computes the union of the non-null input ranges. Corresponds to the PostgreSQL <c>range_agg</c> aggregate function.
-    /// </summary>
-    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
-    /// <param name="input">The ranges to be aggregated via union into a multirange.</param>
-    /// <seealso href="https://www.postgresql.org/docs/current/functions-aggregate.html">PostgreSQL documentation for aggregate functions.</seealso>
-    public static NpgsqlRange<T>[] RangeAgg<T>(this DbFunctions _, IEnumerable<NpgsqlRange<T>> input)
-        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(RangeAgg)));
-
-    /// <summary>
-    /// Computes the intersection of the non-null input ranges. Corresponds to the PostgreSQL <c>range_intersect_agg</c> aggregate function.
-    /// </summary>
-    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
-    /// <param name="input">The ranges to be aggregated via intersection into a multirange.</param>
-    /// <seealso href="https://www.postgresql.org/docs/current/functions-aggregate.html">PostgreSQL documentation for aggregate functions.</seealso>
-    public static NpgsqlRange<T> RangeIntersectAgg<T>(this DbFunctions _, IEnumerable<NpgsqlRange<T>> input)
-        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(RangeAgg)));
-
-    /// <summary>
-    /// Computes the intersection of the non-null input multiranges.
-    /// Corresponds to the PostgreSQL <c>range_intersect_agg</c> aggregate function.
-    /// </summary>
-    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
-    /// <param name="input">The ranges to be aggregated via intersection into a multirange.</param>
-    /// <seealso href="https://www.postgresql.org/docs/current/functions-aggregate.html">PostgreSQL documentation for aggregate functions.</seealso>
-    public static NpgsqlRange<T>[] RangeIntersectAgg<T>(this DbFunctions _, IEnumerable<NpgsqlRange<T>[]> input)
-        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(RangeAgg)));
-
-    #endregion Range
+    // See additional range aggregate functions in NpgsqlRangeDbfunctionsExtensions
 
     #region JsonObjectAgg
 

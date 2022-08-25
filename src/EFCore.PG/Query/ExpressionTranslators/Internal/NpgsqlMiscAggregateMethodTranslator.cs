@@ -106,28 +106,6 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
                         returnType: arrayClrType,
                         _typeMappingSource.FindMapping(arrayClrType, "jsonb"));
 
-                case nameof(NpgsqlAggregateDbFunctionsExtensions.RangeAgg):
-                    arrayClrType = sqlExpression.Type.MakeArrayType();
-
-                    return _sqlExpressionFactory.AggregateFunction(
-                        "range_agg",
-                        new[] { sqlExpression },
-                        source,
-                        nullable: true,
-                        argumentsPropagateNullability: FalseArrays[1],
-                        returnType: arrayClrType,
-                        _typeMappingSource.FindMapping(arrayClrType));
-
-                case nameof(NpgsqlAggregateDbFunctionsExtensions.RangeIntersectAgg):
-                    return _sqlExpressionFactory.AggregateFunction(
-                        "range_intersect_agg",
-                        new[] { sqlExpression },
-                        source,
-                        nullable: true,
-                        argumentsPropagateNullability: FalseArrays[1],
-                        returnType: sqlExpression.Type,
-                        sqlExpression.TypeMapping);
-
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.Sum):
                     return _sqlExpressionFactory.AggregateFunction(
                         "sum",
@@ -170,6 +148,34 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
                         argumentsPropagateNullability: FalseArrays[2],
                         returnType: method.ReturnType,
                         _typeMappingSource.FindMapping(method.ReturnType, isJsonb ? "jsonb" : "json"));
+            }
+        }
+
+        if (method.DeclaringType == typeof(NpgsqlRangeDbFunctionsExtensions))
+        {
+            switch (method.Name)
+            {
+                case nameof(NpgsqlRangeDbFunctionsExtensions.RangeAgg):
+                    var arrayClrType = sqlExpression.Type.MakeArrayType();
+
+                    return _sqlExpressionFactory.AggregateFunction(
+                        "range_agg",
+                        new[] { sqlExpression },
+                        source,
+                        nullable: true,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        returnType: arrayClrType,
+                        _typeMappingSource.FindMapping(arrayClrType));
+
+                case nameof(NpgsqlRangeDbFunctionsExtensions.RangeIntersectAgg):
+                    return _sqlExpressionFactory.AggregateFunction(
+                        "range_intersect_agg",
+                        new[] { sqlExpression },
+                        source,
+                        nullable: true,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        returnType: sqlExpression.Type,
+                        sqlExpression.TypeMapping);
             }
         }
 

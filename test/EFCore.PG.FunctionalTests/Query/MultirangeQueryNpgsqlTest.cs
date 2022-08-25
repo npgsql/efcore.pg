@@ -486,7 +486,7 @@ LIMIT 2
         var intersection = context.TestEntities
             .Where(x => x.Id == 1 || x.Id == 2)
             .GroupBy(x => true)
-            .Select(g => EF.Functions.RangeIntersectAgg(g.Select(x => x.IntMultirange)))
+            .Select(g => g.Select(x => x.IntMultirange).RangeIntersectAgg())
             .Single();
 
         Assert.Equal(new NpgsqlRange<int>[]
