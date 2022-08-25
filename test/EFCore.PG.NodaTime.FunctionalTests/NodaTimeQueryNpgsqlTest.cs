@@ -1198,6 +1198,66 @@ WHERE @__interval_0 @> n."Instant"
 """);
     }
 
+    [ConditionalTheory]
+    [MinimumPostgresVersion(14, 0)] // Multiranges were introduced in PostgreSQL 14
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Interval_RangeAgg(bool async)
+    {
+        using var context = CreateContext();
+
+        var query = context.NodaTimeTypes
+            .GroupBy(x => true)
+            .Select(g => EF.Functions.RangeAgg(g.Select(x => x.Interval)));
+
+        var union = async
+            ? await query.SingleAsync()
+            : query.Single();
+
+        var start = Instant.FromUtc(2018, 4, 20, 10, 31, 33).Plus(Duration.FromMilliseconds(666));
+        Assert.Equal(new Interval[] { new(start, start + Duration.FromDays(5)) }, union);
+
+        AssertSql(
+"""
+SELECT range_agg(t."Interval")
+FROM (
+    SELECT n."Interval", TRUE AS "Key"
+    FROM "NodaTimeTypes" AS n
+) AS t
+GROUP BY t."Key"
+LIMIT 2
+""");
+    }
+
+    [ConditionalTheory]
+    [MinimumPostgresVersion(14, 0)] // range_intersect_agg was introduced in PostgreSQL 14
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Interval_Intersect_aggregate(bool async)
+    {
+        using var context = CreateContext();
+
+        var query = context.NodaTimeTypes
+            .GroupBy(x => true)
+            .Select(g => EF.Functions.RangeIntersectAgg(g.Select(x => x.Interval)));
+
+        var intersection = async
+            ? await query.SingleAsync()
+            : query.Single();
+
+        var start = Instant.FromUtc(2018, 4, 20, 10, 31, 33).Plus(Duration.FromMilliseconds(666));
+        Assert.Equal(new Interval(start, start + Duration.FromDays(5)), intersection);
+
+        AssertSql(
+"""
+SELECT range_intersect_agg(t."Interval")
+FROM (
+    SELECT n."Interval", TRUE AS "Key"
+    FROM "NodaTimeTypes" AS n
+) AS t
+GROUP BY t."Key"
+LIMIT 2
+""");
+    }
+
     #endregion Interval
 
     #region DateInterval
@@ -1334,6 +1394,64 @@ WHERE n."DateInterval" * @__dateInterval_0 = '[2018-04-22,2018-04-24]'::daterang
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE n."DateInterval" + @__dateInterval_0 = '[2018-04-20,2018-04-26]'::daterange
+""");
+    }
+
+    [ConditionalTheory]
+    [MinimumPostgresVersion(14, 0)] // Multiranges were introduced in PostgreSQL 14
+    [MemberData(nameof(IsAsyncData))]
+    public async Task DateInterval_RangeAgg(bool async)
+    {
+        using var context = CreateContext();
+
+        var query = context.NodaTimeTypes
+            .GroupBy(x => true)
+            .Select(g => EF.Functions.RangeAgg(g.Select(x => x.DateInterval)));
+
+        var union = async
+            ? await query.SingleAsync()
+            : query.Single();
+
+        Assert.Equal(new DateInterval[] { new(new(2018, 4, 20), new(2018, 4, 24)) }, union);
+
+        AssertSql(
+"""
+SELECT range_agg(t."DateInterval")
+FROM (
+    SELECT n."DateInterval", TRUE AS "Key"
+    FROM "NodaTimeTypes" AS n
+) AS t
+GROUP BY t."Key"
+LIMIT 2
+""");
+    }
+
+    [ConditionalTheory]
+    [MinimumPostgresVersion(14, 0)] // range_intersect_agg was introduced in PostgreSQL 14
+    [MemberData(nameof(IsAsyncData))]
+    public async Task DateInterval_Intersect_aggregate(bool async)
+    {
+        using var context = CreateContext();
+
+        var query = context.NodaTimeTypes
+            .GroupBy(x => true)
+            .Select(g => EF.Functions.RangeIntersectAgg(g.Select(x => x.DateInterval)));
+
+        var intersection = async
+            ? await query.SingleAsync()
+            : query.Single();
+
+        Assert.Equal(new(new(2018, 4, 20), new(2018, 4, 24)), intersection);
+
+        AssertSql(
+"""
+SELECT range_intersect_agg(t."DateInterval")
+FROM (
+    SELECT n."DateInterval", TRUE AS "Key"
+    FROM "NodaTimeTypes" AS n
+) AS t
+GROUP BY t."Key"
+LIMIT 2
 """);
     }
 

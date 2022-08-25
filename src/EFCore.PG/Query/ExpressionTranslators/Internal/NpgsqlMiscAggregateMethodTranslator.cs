@@ -69,42 +69,36 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
             switch (method.Name)
             {
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.ArrayAgg):
-                    var arrayClrType = sqlExpression.Type.MakeArrayType();
-
                     return _sqlExpressionFactory.AggregateFunction(
                         "array_agg",
                         new[] { sqlExpression },
                         source,
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[1],
-                        returnType: arrayClrType,
+                        returnType: method.ReturnType,
                         typeMapping: sqlExpression.TypeMapping is null
                             ? null
-                            : new NpgsqlArrayArrayTypeMapping(arrayClrType, sqlExpression.TypeMapping));
+                            : new NpgsqlArrayArrayTypeMapping(method.ReturnType, sqlExpression.TypeMapping));
 
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.JsonAgg):
-                    arrayClrType = sqlExpression.Type.MakeArrayType();
-
                     return _sqlExpressionFactory.AggregateFunction(
                         "json_agg",
                         new[] { sqlExpression },
                         source,
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[1],
-                        returnType: arrayClrType,
-                        _typeMappingSource.FindMapping(arrayClrType, "json"));
+                        returnType: method.ReturnType,
+                        _typeMappingSource.FindMapping(method.ReturnType, "json"));
 
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.JsonbAgg):
-                    arrayClrType = sqlExpression.Type.MakeArrayType();
-
                     return _sqlExpressionFactory.AggregateFunction(
                         "jsonb_agg",
                         new[] { sqlExpression },
                         source,
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[1],
-                        returnType: arrayClrType,
-                        _typeMappingSource.FindMapping(arrayClrType, "jsonb"));
+                        returnType: method.ReturnType,
+                        _typeMappingSource.FindMapping(method.ReturnType, "jsonb"));
 
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.Sum):
                     return _sqlExpressionFactory.AggregateFunction(
