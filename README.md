@@ -37,6 +37,8 @@ public class Blog
 }
 ```
 
+The above example is designed to work with typical PostgreSQL installations where a "postgres" database already exists. The provider automatically connects to this database for administration like creating and deleting other databases. If running the example using a PostgreSQL installation from a cloud provider, where no "postgres" database already exists, comment out the line `await ctx.Database.EnsureDeletedAsync();`. See https://github.com/npgsql/efcore.pg/issues/2477 for more info.
+
 Aside from providing general EF Core support for PostgreSQL, the provider also exposes some PostgreSQL-specific capabilities, allowing you to query JSON, array or range columns, as well as many other advanced features. For more information, see the [the Npgsql site](http://www.npgsql.org/efcore/index.html). For information about EF Core in general, see the [EF Core website](https://docs.microsoft.com/ef/core/).
 
 ## Related packages
