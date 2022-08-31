@@ -128,10 +128,41 @@ WHERE l."Path" <@ 'Top.Science'
         Assert.Equal(4, entity.Id);
         AssertSql(
 """
-SELECT l."Id", l."Path", l."PathAsString"
+SELECT l."Id", l."Path", l."PathAsString", l."SomeString"
 FROM "LTreeEntities" AS l
 WHERE l."Path" ~ '*.Astrophysics'
 LIMIT 2
+""");
+    }
+
+    [ConditionalFact] // #2487
+    public void LTree_matches_LQuery_with_string_column()
+    {
+        using var ctx = CreateContext();
+        var entity = ctx.LTreeEntities.Single(l => l.Path.MatchesLQuery(l.SomeString));
+
+        Assert.Equal(4, entity.Id);
+        AssertSql(
+"""
+SELECT l."Id", l."Path", l."PathAsString", l."SomeString"
+FROM "LTreeEntities" AS l
+WHERE l."Path" ~ l."SomeString"::lquery
+LIMIT 2
+""");
+    }
+
+    [ConditionalFact] // #2487
+    public void LTree_matches_LQuery_with_concat()
+    {
+        using var ctx = CreateContext();
+        var count = ctx.LTreeEntities.Count(l => l.Path.MatchesLQuery("*.Astrophysics." + l.Id));
+
+        Assert.Equal(0, count);
+        AssertSql(
+"""
+SELECT count(*)::int
+FROM "LTreeEntities" AS l
+WHERE l."Path" ~ CAST(('*.Astrophysics.' || l."Id"::text) AS lquery)
 """);
     }
 
@@ -147,7 +178,7 @@ LIMIT 2
 """
 @__lqueries_0={ '*.Astrophysics', '*.Geology' } (DbType = Object)
 
-SELECT l."Id", l."Path", l."PathAsString"
+SELECT l."Id", l."Path", l."PathAsString", l."SomeString"
 FROM "LTreeEntities" AS l
 WHERE l."Path" ? @__lqueries_0
 LIMIT 2
@@ -178,7 +209,7 @@ WHERE l."Path" @ 'Astro*'
         Assert.Equal(2, entity.Id);
         AssertSql(
 """
-SELECT l."Id", l."Path", l."PathAsString"
+SELECT l."Id", l."Path", l."PathAsString", l."SomeString"
 FROM "LTreeEntities" AS l
 WHERE (l."Path"::text || '.Astronomy') = 'Top.Science.Astronomy'
 LIMIT 2
@@ -395,7 +426,7 @@ WHERE subpath(l."Path", 0, 2) = 'Top.Science'
         Assert.Equal(4, result.Id);
         AssertSql(
 """
-SELECT l."Id", l."Path", l."PathAsString"
+SELECT l."Id", l."Path", l."PathAsString", l."SomeString"
 FROM "LTreeEntities" AS l
 WHERE nlevel(l."Path") > 2 AND subpath(l."Path", 2) = 'Astronomy.Astrophysics'
 LIMIT 2
@@ -495,6 +526,7 @@ WHERE lca(ARRAY[l."Path",'Top.Hobbies']::ltree[]) = 'Top'
             foreach (var ltreeEntity in ltreeEntities)
             {
                 ltreeEntity.PathAsString = ltreeEntity.Path;
+                ltreeEntity.SomeString = "*.Astrophysics";
             }
 
             context.LTreeEntities.AddRange(ltreeEntities);
@@ -512,6 +544,9 @@ WHERE lca(ARRAY[l."Path",'Top.Hobbies']::ltree[]) = 'Top'
         [Required]
         [Column(TypeName = "ltree")]
         public string PathAsString { get; set; }
+
+        [Required]
+        public string SomeString { get; set; }
     }
 
     public class LTreeQueryFixture : SharedStoreFixtureBase<LTreeQueryContext>

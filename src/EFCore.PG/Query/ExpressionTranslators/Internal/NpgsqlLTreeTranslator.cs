@@ -57,32 +57,32 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
                 nameof(LTree.IsAncestorOf)
                     => new PostgresBinaryExpression(
                         PostgresExpressionType.Contains,
-                        _sqlExpressionFactory.ApplyTypeMapping(instance!, _ltreeTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(arguments[0], _ltreeTypeMapping),
+                        ApplyTypeMappingOrConvert(instance!, _ltreeTypeMapping),
+                        ApplyTypeMappingOrConvert(arguments[0], _ltreeTypeMapping),
                         typeof(bool),
                         _boolTypeMapping),
 
                 nameof(LTree.IsDescendantOf)
                     => new PostgresBinaryExpression(
                         PostgresExpressionType.ContainedBy,
-                        _sqlExpressionFactory.ApplyTypeMapping(instance!, _ltreeTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(arguments[0], _ltreeTypeMapping),
+                        ApplyTypeMappingOrConvert(instance!, _ltreeTypeMapping),
+                        ApplyTypeMappingOrConvert(arguments[0], _ltreeTypeMapping),
                         typeof(bool),
                         _boolTypeMapping),
 
                 nameof(LTree.MatchesLQuery)
                     => new PostgresBinaryExpression(
                         PostgresExpressionType.LTreeMatches,
-                        _sqlExpressionFactory.ApplyTypeMapping(instance!, _ltreeTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(arguments[0], _lqueryTypeMapping),
+                        ApplyTypeMappingOrConvert(instance!, _ltreeTypeMapping),
+                        ApplyTypeMappingOrConvert(arguments[0], _lqueryTypeMapping),
                         typeof(bool),
                         _boolTypeMapping),
 
                 nameof(LTree.MatchesLTxtQuery)
                     => new PostgresBinaryExpression(
                         PostgresExpressionType.LTreeMatches,
-                        _sqlExpressionFactory.ApplyTypeMapping(instance!, _ltreeTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(arguments[0], _ltxtqueryTypeMapping),
+                        ApplyTypeMappingOrConvert(instance!, _ltreeTypeMapping),
+                        ApplyTypeMappingOrConvert(arguments[0], _ltxtqueryTypeMapping),
                         typeof(bool),
                         _boolTypeMapping),
 
@@ -171,7 +171,7 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
                 {
                     return new PostgresBinaryExpression(
                         PostgresExpressionType.LTreeMatchesAny,
-                        _sqlExpressionFactory.ApplyTypeMapping(Visit(predicateInstance), _ltreeTypeMapping),
+                        ApplyTypeMappingOrConvert(Visit(predicateInstance), _ltreeTypeMapping),
                         _sqlExpressionFactory.ApplyTypeMapping(Visit(array), _lqueryArrayTypeMapping),
                         typeof(bool),
                         _boolTypeMapping);
@@ -184,7 +184,7 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
                     return new PostgresBinaryExpression(
                         PostgresExpressionType.Contains,
                         _sqlExpressionFactory.ApplyTypeMapping(Visit(array), _ltreeArrayTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(Visit(predicateArguments[0]), _ltreeTypeMapping),
+                        ApplyTypeMappingOrConvert(Visit(predicateArguments[0]), _ltreeTypeMapping),
                         typeof(bool),
                         _boolTypeMapping);
                 }
@@ -196,7 +196,7 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
                     return new PostgresBinaryExpression(
                         PostgresExpressionType.ContainedBy,
                         _sqlExpressionFactory.ApplyTypeMapping(Visit(array), _ltreeArrayTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(Visit(predicateArguments[0]), _ltreeTypeMapping),
+                        ApplyTypeMappingOrConvert(Visit(predicateArguments[0]), _ltreeTypeMapping),
                         typeof(bool),
                         _boolTypeMapping);
                 }
@@ -208,7 +208,7 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
                     return new PostgresBinaryExpression(
                         PostgresExpressionType.LTreeMatches,
                         _sqlExpressionFactory.ApplyTypeMapping(Visit(array), _ltreeArrayTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(Visit(predicateArguments[0]), _lqueryTypeMapping),
+                        ApplyTypeMappingOrConvert(Visit(predicateArguments[0]), _lqueryTypeMapping),
                         typeof(bool),
                         _boolTypeMapping);
                 }
@@ -220,7 +220,7 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
                     return new PostgresBinaryExpression(
                         PostgresExpressionType.LTreeMatches,
                         _sqlExpressionFactory.ApplyTypeMapping(Visit(array), _ltreeArrayTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(Visit(predicateArguments[0]), _ltxtqueryTypeMapping),
+                        ApplyTypeMappingOrConvert(Visit(predicateArguments[0]), _ltxtqueryTypeMapping),
                         typeof(bool),
                         _boolTypeMapping);
                 }
@@ -267,7 +267,7 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
                     return new PostgresBinaryExpression(
                         PostgresExpressionType.LTreeFirstAncestor,
                         _sqlExpressionFactory.ApplyTypeMapping(Visit(array), _ltreeArrayTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(Visit(predicateArguments[0]), _ltreeTypeMapping),
+                        ApplyTypeMappingOrConvert(Visit(predicateArguments[0]), _ltreeTypeMapping),
                         typeof(LTree),
                         _ltreeTypeMapping);
                 }
@@ -279,7 +279,7 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
                     return new PostgresBinaryExpression(
                         PostgresExpressionType.LTreeFirstDescendent,
                         _sqlExpressionFactory.ApplyTypeMapping(Visit(array), _ltreeArrayTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(Visit(predicateArguments[0]), _ltreeTypeMapping),
+                        ApplyTypeMappingOrConvert(Visit(predicateArguments[0]), _ltreeTypeMapping),
                         typeof(LTree),
                         _ltreeTypeMapping);
                 }
@@ -291,7 +291,7 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
                     return new PostgresBinaryExpression(
                         PostgresExpressionType.LTreeFirstMatches,
                         _sqlExpressionFactory.ApplyTypeMapping(Visit(array), _ltreeArrayTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(Visit(predicateArguments[0]), _lqueryTypeMapping),
+                        ApplyTypeMappingOrConvert(Visit(predicateArguments[0]), _lqueryTypeMapping),
                         typeof(LTree),
                         _ltreeTypeMapping);
                 }
@@ -303,7 +303,7 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
                     return new PostgresBinaryExpression(
                         PostgresExpressionType.LTreeFirstMatches,
                         _sqlExpressionFactory.ApplyTypeMapping(Visit(array), _ltreeArrayTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(Visit(predicateArguments[0]), _ltxtqueryTypeMapping),
+                        ApplyTypeMappingOrConvert(Visit(predicateArguments[0]), _ltxtqueryTypeMapping),
                         typeof(string),
                         _ltreeTypeMapping);
                 }
@@ -315,4 +315,18 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
         SqlExpression Visit(Expression expression)
             => (SqlExpression)sqlTranslatingExpressionVisitor.Visit(expression);
     }
+
+    // Applying e.g. the LQuery type mapping on a function operator is a bit tricky.
+    // If it's a constant, we can just apply the mapping: the constant will get rendered as an untyped string literal, and PG will
+    // coerce it as the function parameter.
+    // If it's a parameter, we can also just apply the mapping (which causes NpgsqlDbType to be set to LQuery).
+    // For anything else, we may need an explicit cast to LQuery, e.g. a plain text column or a concatenation between strings;
+    // apply the default type mapping and then apply an additional Convert node if the resulting mapping isn't what we need.
+    private SqlExpression ApplyTypeMappingOrConvert(SqlExpression sqlExpression, RelationalTypeMapping typeMapping)
+        => sqlExpression is SqlConstantExpression or SqlParameterExpression
+            ? _sqlExpressionFactory.ApplyTypeMapping(sqlExpression, typeMapping)
+            : _sqlExpressionFactory.ApplyDefaultTypeMapping(sqlExpression) is var expressionWithDefaultTypeMapping
+            && expressionWithDefaultTypeMapping.TypeMapping!.StoreType == typeMapping.StoreType
+                ? expressionWithDefaultTypeMapping
+                : _sqlExpressionFactory.Convert(expressionWithDefaultTypeMapping, typeMapping.ClrType, typeMapping);
 }
