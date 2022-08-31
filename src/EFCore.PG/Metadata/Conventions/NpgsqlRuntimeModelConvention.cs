@@ -21,7 +21,10 @@ public class NpgsqlRuntimeModelConvention : RelationalRuntimeModelConvention
 
     /// <inheritdoc />
     protected override void ProcessModelAnnotations(
-        Dictionary<string, object?> annotations, IModel model, RuntimeModel runtimeModel, bool runtime)
+        Dictionary<string, object?> annotations,
+        IModel model,
+        RuntimeModel runtimeModel,
+        bool runtime)
     {
         base.ProcessModelAnnotations(annotations, model, runtimeModel, runtime);
 
@@ -48,7 +51,10 @@ public class NpgsqlRuntimeModelConvention : RelationalRuntimeModelConvention
 
     /// <inheritdoc />
     protected override void ProcessEntityTypeAnnotations(
-        IDictionary<string, object?> annotations, IEntityType entityType, RuntimeEntityType runtimeEntityType, bool runtime)
+        Dictionary<string, object?> annotations,
+        IEntityType entityType,
+        RuntimeEntityType runtimeEntityType,
+        bool runtime)
     {
         base.ProcessEntityTypeAnnotations(annotations, entityType, runtimeEntityType, runtime);
 

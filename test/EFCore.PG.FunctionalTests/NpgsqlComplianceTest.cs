@@ -6,7 +6,7 @@ public class NpgsqlComplianceTest : RelationalComplianceTestBase
     {
         // Not implemented
         typeof(StoredProcedureUpdateTestBase<>),
-        typeof(JsonUpdateTestBase),
+        typeof(JsonUpdateTestBase<>),
         typeof(JsonQueryTestBase<>),
         typeof(FromSqlSprocQueryTestBase<>),
         typeof(UdfDbFunctionTestBase<>),
