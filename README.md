@@ -1,6 +1,6 @@
 # Npgsql Entity Framework Core provider for PostgreSQL
 
-[![stable](https://img.shields.io/nuget/v/Npgsql.EntityFrameworkCore.PostgreSQL.svg?label=stable)](https://www.nuget.org/packages/Npgsql/)
+[![stable](https://img.shields.io/nuget/v/Npgsql.EntityFrameworkCore.PostgreSQL.svg?label=stable)](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL/)
 [![next patch](https://img.shields.io/myget/npgsql/v/Npgsql.EntityFrameworkCore.PostgreSQL.svg?label=next%20patch)](https://www.myget.org/feed/npgsql/package/nuget/Npgsql.EntityFrameworkCore.PostgreSQL)
 [![daily builds (vnext)](https://img.shields.io/myget/npgsql-vnext/v/Npgsql.EntityFrameworkCore.PostgreSQL.svg?label=vNext)](https://www.myget.org/feed/npgsql-vnext/package/nuget/Npgsql.EntityFrameworkCore.PostgreSQL)
 [![build](https://github.com/npgsql/efcore.pg/actions/workflows/build.yml/badge.svg)](https://github.com/npgsql/efcore.pg/actions/workflows/build.yml)
