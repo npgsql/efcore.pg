@@ -672,7 +672,6 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
 
-    /// <inheritdoc />
 //        protected override Expression VisitDefault(DefaultExpression e)
 //        {
 //            // LOWER(range) and UPPER(range) return null on empty or infinite bounds.

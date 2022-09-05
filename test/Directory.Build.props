@@ -3,6 +3,9 @@
   <Import Project="..\Directory.Build.props" />
 
   <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
     <!-- There's lots of use of internal EF Core APIs from the tests, suppress the analyzer warnings for those -->
     <NoWarn>$(NoWarn);xUnit1003;xUnit1004;xUnit1013;EF1001</NoWarn>
   </PropertyGroup>
