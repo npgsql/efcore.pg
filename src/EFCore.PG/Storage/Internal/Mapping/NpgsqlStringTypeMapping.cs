@@ -8,28 +8,51 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 /// </summary>
 public class NpgsqlStringTypeMapping : StringTypeMapping, INpgsqlTypeMapping
 {
-    /// <inheritdoc />
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual NpgsqlDbType NpgsqlDbType { get; }
 
-    // ReSharper disable once PublicConstructorInAbstractClass
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlTypeMapping"/> class.
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    /// <param name="storeType">The database type to map.</param>
-    /// <param name="npgsqlDbType">The database type used by Npgsql.</param>
     public NpgsqlStringTypeMapping(string storeType, NpgsqlDbType npgsqlDbType)
         : base(storeType, System.Data.DbType.String)
         => NpgsqlDbType = npgsqlDbType;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected NpgsqlStringTypeMapping(
         RelationalTypeMappingParameters parameters,
         NpgsqlDbType npgsqlDbType)
         : base(parameters)
         => NpgsqlDbType = npgsqlDbType;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
         => new NpgsqlStringTypeMapping(parameters, NpgsqlDbType);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override void ConfigureParameter(DbParameter parameter)
     {
         if (parameter is not NpgsqlParameter npgsqlParameter)

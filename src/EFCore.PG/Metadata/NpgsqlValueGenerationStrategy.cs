@@ -1,5 +1,11 @@
 ﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
+/// <summary>
+///     Defines strategies to use when generating values for database columns.
+/// </summary>
+/// <remarks>
+///     See <see href="https://aka.ms/efcore-docs-conventions">Model building conventions</see>.
+/// </remarks>
 public enum NpgsqlValueGenerationStrategy
 {
     /// <summary>
@@ -46,13 +52,22 @@ public enum NpgsqlValueGenerationStrategy
     Sequence
 }
 
+/// <summary>
+///     Extension methods over <see cref="NpgsqlValueGenerationStrategy" />.
+/// </summary>
 public static class NpgsqlValueGenerationStrategyExtensions
 {
+    /// <summary>
+    ///     Whether the given strategy is either <see cref="NpgsqlValueGenerationStrategy.IdentityByDefaultColumn" /> or
+    ///     <see cref="NpgsqlValueGenerationStrategy.IdentityAlwaysColumn"/>.
+    /// </summary>
     public static bool IsIdentity(this NpgsqlValueGenerationStrategy strategy)
-        => strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn ||
-            strategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
+        => strategy is NpgsqlValueGenerationStrategy.IdentityByDefaultColumn or NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
 
+    /// <summary>
+    ///     Whether the given strategy is either <see cref="NpgsqlValueGenerationStrategy.IdentityByDefaultColumn" /> or
+    ///     <see cref="NpgsqlValueGenerationStrategy.IdentityAlwaysColumn"/>.
+    /// </summary>
     public static bool IsIdentity(this NpgsqlValueGenerationStrategy? strategy)
-        => strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn ||
-            strategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
+        => strategy is NpgsqlValueGenerationStrategy.IdentityByDefaultColumn or NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
 }

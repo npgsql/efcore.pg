@@ -43,15 +43,51 @@ public static class NpgsqlDbFunctionsExtensions
     public static string Reverse(this DbFunctions _, string value)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Reverse)));
 
+    /// <summary>
+    ///     Returns whether the row value represented by <paramref name="a" /> is greater than the row value represented by
+    ///     <paramref name="b" />.
+    /// </summary>
+    /// <remarks>
+    ///     For more information on row value comparisons, see
+    ///     <see href="https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON">the PostgreSQL documentation
+    ///     </see>.
+    /// </remarks>
     public static bool GreaterThan(this DbFunctions _, ITuple a, ITuple b)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(GreaterThan)));
 
+    /// <summary>
+    ///     Returns whether the row value represented by <paramref name="a" /> is less than the row value represented by
+    ///     <paramref name="b" />.
+    /// </summary>
+    /// <remarks>
+    ///     For more information on row value comparisons, see
+    ///     <see href="https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON">the PostgreSQL documentation
+    ///     </see>.
+    /// </remarks>
     public static bool LessThan(this DbFunctions _, ITuple a, ITuple b)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LessThan)));
 
+    /// <summary>
+    ///     Returns whether the row value represented by <paramref name="a" /> is greater than or equal to the row value represented by
+    ///     <paramref name="b" />.
+    /// </summary>
+    /// <remarks>
+    ///     For more information on row value comparisons, see
+    ///     <see href="https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON">the PostgreSQL documentation
+    ///     </see>.
+    /// </remarks>
     public static bool GreaterThanOrEqual(this DbFunctions _, ITuple a, ITuple b)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(GreaterThanOrEqual)));
 
+    /// <summary>
+    ///     Returns whether the row value represented by <paramref name="a" /> is less than or equal to the row value represented by
+    ///     <paramref name="b" />.
+    /// </summary>
+    /// <remarks>
+    ///     For more information on row value comparisons, see
+    ///     <see href="https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON">the PostgreSQL documentation
+    ///     </see>.
+    /// </remarks>
     public static bool LessThanOrEqual(this DbFunctions _, ITuple a, ITuple b)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LessThanOrEqual)));
 }

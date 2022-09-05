@@ -8,7 +8,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 public class NpgsqlRuntimeModelConvention : RelationalRuntimeModelConvention
 {
     /// <summary>
-    /// Creates a new instance of <see cref="RelationalModelConvention"/>.
+    /// Creates a new instance of <see cref="NpgsqlRuntimeModelConvention"/>.
     /// </summary>
     /// <param name="dependencies">Parameter object containing dependencies for this convention.</param>
     /// <param name="relationalDependencies">Parameter object containing relational dependencies for this convention.</param>

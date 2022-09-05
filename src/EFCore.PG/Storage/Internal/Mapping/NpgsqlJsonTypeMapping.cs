@@ -9,6 +9,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 /// </summary>
 public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
 {
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlJsonTypeMapping(string storeType, Type clrType)
         : base(storeType, clrType, storeType == "jsonb" ? NpgsqlDbType.Jsonb : NpgsqlDbType.Json)
     {
@@ -18,19 +24,49 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
         }
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected NpgsqlJsonTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
         : base(parameters, npgsqlDbType)
     {
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual bool IsJsonb => StoreType == "jsonb";
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
         => new NpgsqlJsonTypeMapping(parameters, NpgsqlDbType);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected virtual string EscapeSqlLiteral(string literal)
         => Check.NotNull(literal, nameof(literal)).Replace("'", "''");
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
     {
         switch (value)
@@ -59,15 +95,22 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
         }
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override Expression GenerateCodeLiteral(object value)
         => value switch
         {
-            JsonDocument document => Expression.Call(ParseMethod, Expression.Constant(document.RootElement.ToString()), DefaultJsonDocumentOptions),
-            JsonElement element   => Expression.Property(
+            JsonDocument document => Expression.Call(
+                ParseMethod, Expression.Constant(document.RootElement.ToString()), DefaultJsonDocumentOptions),
+            JsonElement element => Expression.Property(
                 Expression.Call(ParseMethod, Expression.Constant(element.ToString()), DefaultJsonDocumentOptions),
                 nameof(JsonDocument.RootElement)),
-            string s              => Expression.Constant(s),
-            _                     => throw new NotSupportedException("Cannot generate code literals for JSON POCOs")
+            string s => Expression.Constant(s),
+            _ => throw new NotSupportedException("Cannot generate code literals for JSON POCOs")
         };
 
     private static readonly Expression DefaultJsonDocumentOptions = Expression.New(typeof(JsonDocumentOptions));

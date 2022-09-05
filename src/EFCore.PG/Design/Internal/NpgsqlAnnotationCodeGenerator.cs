@@ -4,6 +4,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal;
 
+/// <summary>
+///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+///     any release. You should only use it directly in your code with extreme caution and knowing that
+///     doing so can result in application failures when updating to a new Entity Framework Core release.
+/// </summary>
 public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
 {
     #region MethodInfos
@@ -111,9 +117,21 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
 
     #endregion MethodInfos
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlAnnotationCodeGenerator(AnnotationCodeGeneratorDependencies dependencies)
         : base(dependencies) {}
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override bool IsHandledByConvention(IModel model, IAnnotation annotation)
     {
         Check.NotNull(model, nameof(model));
@@ -128,6 +146,12 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         return false;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override bool IsHandledByConvention(IIndex index, IAnnotation annotation)
     {
         Check.NotNull(index, nameof(index));
@@ -142,6 +166,12 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         return false;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override bool IsHandledByConvention(IProperty property, IAnnotation annotation)
     {
         Check.NotNull(property, nameof(property));
@@ -166,6 +196,12 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         return false;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override IReadOnlyList<MethodCallCodeFragment> GenerateFluentApiCalls(
         IModel model,
         IDictionary<string, IAnnotation> annotations)
@@ -180,6 +216,12 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         return fragments;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override MethodCallCodeFragment? GenerateFluentApi(IModel model, IAnnotation annotation)
     {
         Check.NotNull(model, nameof(model));
@@ -229,6 +271,12 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         return null;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override MethodCallCodeFragment? GenerateFluentApi(IEntityType entityType, IAnnotation annotation)
     {
         Check.NotNull(entityType, nameof(entityType));
@@ -242,6 +290,12 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         return null;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override IReadOnlyList<MethodCallCodeFragment> GenerateFluentApiCalls(
         IProperty property,
         IDictionary<string, IAnnotation> annotations)
@@ -340,6 +394,12 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
             identityOptions.NumbersToCache == 1 ? null : (long?)identityOptions.NumbersToCache);
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override MethodCallCodeFragment? GenerateFluentApi(IIndex index, IAnnotation annotation)
         => annotation.Name switch
         {

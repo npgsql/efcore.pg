@@ -50,11 +50,16 @@ public class PostgresUnknownBinaryExpression : SqlExpression, IEquatable<Postgre
     protected override Expression VisitChildren(ExpressionVisitor visitor)
         => Update((SqlExpression)visitor.Visit(Left), (SqlExpression)visitor.Visit(Right));
 
+    /// <summary>
+    ///     Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
+    ///     return this expression.
+    /// </summary>
     public virtual PostgresUnknownBinaryExpression Update(SqlExpression left, SqlExpression right)
         => left == Left && right == Right
             ? this
             : new PostgresUnknownBinaryExpression(left, right, Operator, Type, TypeMapping);
 
+    /// <inheritdoc />
     public virtual bool Equals(PostgresUnknownBinaryExpression? other)
         => ReferenceEquals(this, other) ||
             other is not null &&
@@ -62,10 +67,13 @@ public class PostgresUnknownBinaryExpression : SqlExpression, IEquatable<Postgre
             Right.Equals(other.Right) &&
             Operator == other.Operator;
 
+    /// <inheritdoc />
     public override bool Equals(object? obj) => obj is PostgresUnknownBinaryExpression e && Equals(e);
 
+    /// <inheritdoc />
     public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Left, Right, Operator);
 
+    /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)
     {
         expressionPrinter.Visit(Left);

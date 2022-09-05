@@ -48,6 +48,10 @@ public class PostgresILikeExpression : SqlExpression, IEquatable<PostgresILikeEx
             (SqlExpression)visitor.Visit(Pattern),
             EscapeChar is null ? null : (SqlExpression)visitor.Visit(EscapeChar));
 
+    /// <summary>
+    ///     Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
+    ///     return this expression.
+    /// </summary>
     public virtual PostgresILikeExpression Update(
         SqlExpression match,
         SqlExpression pattern,
@@ -71,6 +75,7 @@ public class PostgresILikeExpression : SqlExpression, IEquatable<PostgresILikeEx
     /// <inheritdoc />
     public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Match, Pattern, EscapeChar);
 
+    /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)
     {
         expressionPrinter.Visit(Match);

@@ -7,6 +7,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
+/// <summary>
+///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+///     any release. You should only use it directly in your code with extreme caution and knowing that
+///     doing so can result in application failures when updating to a new Entity Framework Core release.
+/// </summary>
 [UsedImplicitly]
 public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMapping<TGeometry, TGeometry>, INpgsqlTypeMapping
 {
@@ -16,15 +22,39 @@ public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMappin
     public virtual NpgsqlDbType NpgsqlDbType
         => _isGeography ? NpgsqlDbType.Geography : NpgsqlDbType.Geometry;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlGeometryTypeMapping(string storeType, bool isGeography) : base(converter: null, storeType)
         => _isGeography = isGeography;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected NpgsqlGeometryTypeMapping(RelationalTypeMappingParameters parameters)
         : base(parameters, converter: null) {}
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
         => new NpgsqlGeometryTypeMapping<TGeometry>(parameters);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override void ConfigureParameter(DbParameter parameter)
     {
         base.ConfigureParameter(parameter);
@@ -32,6 +62,12 @@ public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMappin
         ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
     {
         var geometry = (Geometry)value;
@@ -56,9 +92,27 @@ public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMappin
         return builder.ToString();
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override string AsText(object value) => ((Geometry)value).AsText();
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override int GetSrid(object value) => ((Geometry)value).SRID;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override Type WKTReaderType => typeof(WKTReader);
 }

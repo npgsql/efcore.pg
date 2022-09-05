@@ -2,13 +2,31 @@ using System.Text;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
 
+/// <summary>
+///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+///     any release. You should only use it directly in your code with extreme caution and knowing that
+///     doing so can result in application failures when updating to a new Entity Framework Core release.
+/// </summary>
 public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
 {
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlUpdateSqlGenerator(UpdateSqlGeneratorDependencies dependencies)
         : base(dependencies)
     {
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override ResultSetMapping AppendInsertOperation(
         StringBuilder commandStringBuilder,
         IReadOnlyModificationCommand command,
@@ -16,6 +34,12 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
         out bool requiresTransaction)
         => AppendInsertOperation(commandStringBuilder, command, commandPosition, overridingSystemValue: false, out requiresTransaction);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual ResultSetMapping AppendInsertOperation(
         StringBuilder commandStringBuilder,
         IReadOnlyModificationCommand command,
@@ -37,6 +61,12 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
         return readOperations.Count > 0 ? ResultSetMapping.LastInResultSet : ResultSetMapping.NoResults;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected virtual void AppendInsertCommand(
         StringBuilder commandStringBuilder,
         string name,
@@ -58,6 +88,12 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
         commandStringBuilder.AppendLine(SqlGenerationHelper.StatementTerminator);
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override ResultSetMapping AppendUpdateOperation(
         StringBuilder commandStringBuilder,
         IReadOnlyModificationCommand command,
@@ -81,6 +117,12 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
         return ResultSetMapping.LastInResultSet;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override ResultSetMapping AppendDeleteOperation(
         StringBuilder commandStringBuilder,
         IReadOnlyModificationCommand command,
@@ -100,6 +142,12 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
         return ResultSetMapping.NoResults;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override void AppendObtainNextSequenceValueOperation(StringBuilder commandStringBuilder, string name, string? schema)
     {
         commandStringBuilder.Append("nextval('");

@@ -13,6 +13,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal;
 /// </remarks>
 public class NpgsqlNodaTimeMethodCallTranslatorPlugin : IMethodCallTranslatorPlugin
 {
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlNodaTimeMethodCallTranslatorPlugin(
         IRelationalTypeMappingSource typeMappingSource,
         ISqlExpressionFactory sqlExpressionFactory)
@@ -23,9 +29,21 @@ public class NpgsqlNodaTimeMethodCallTranslatorPlugin : IMethodCallTranslatorPlu
         };
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual IEnumerable<IMethodCallTranslator> Translators { get; }
 }
 
+/// <summary>
+///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+///     any release. You should only use it directly in your code with extreme caution and knowing that
+///     doing so can result in application failures when updating to a new Entity Framework Core release.
+/// </summary>
 public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
 {
     private readonly IRelationalTypeMappingSource _typeMappingSource;
@@ -76,6 +94,12 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
         new[] { true, true },
     };
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlNodaTimeMethodCallTranslator(
         IRelationalTypeMappingSource typeMappingSource,
         NpgsqlSqlExpressionFactory sqlExpressionFactory)
@@ -180,6 +204,12 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
         return null;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual SqlExpression? TranslatePeriod(
         SqlExpression? instance,
         MethodInfo method,
@@ -254,6 +284,12 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
         }
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual SqlExpression? TranslateInterval(
         SqlExpression? instance,
         MethodInfo method,
@@ -273,6 +309,12 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
         return null;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual SqlExpression? TranslateDateInterval(
         SqlExpression? instance,
         MethodInfo method,

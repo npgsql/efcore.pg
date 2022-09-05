@@ -67,6 +67,12 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
         _sqlGenerationHelper = sqlGenerationHelper;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected NpgsqlRangeTypeMapping(
         RelationalTypeMappingParameters parameters,
         NpgsqlDbType npgsqlDbType,
@@ -78,12 +84,30 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
         _sqlGenerationHelper = sqlGenerationHelper;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
         => new NpgsqlRangeTypeMapping(parameters, NpgsqlDbType, SubtypeMapping, _sqlGenerationHelper);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
         => $"'{GenerateEmbeddedNonNullSqlLiteral(value)}'::{StoreType}";
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
     {
         InitializeAccessors(ClrType, SubtypeMapping.ClrType);
@@ -135,6 +159,12 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
         return NpgsqlDbType.Range | subtypeNpgsqlDbType;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override Expression GenerateCodeLiteral(object value)
     {
         InitializeAccessors(ClrType, SubtypeMapping.ClrType);

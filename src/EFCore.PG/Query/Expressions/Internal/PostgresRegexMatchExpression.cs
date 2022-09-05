@@ -2,6 +2,9 @@ using System.Text.RegularExpressions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
+/// <summary>
+///     Represents a PostgreSQL regular expression match expression.
+/// </summary>
 public class PostgresRegexMatchExpression : SqlExpression, IEquatable<PostgresRegexMatchExpression>
 {
     /// <inheritdoc />
@@ -45,11 +48,16 @@ public class PostgresRegexMatchExpression : SqlExpression, IEquatable<PostgresRe
     protected override Expression VisitChildren(ExpressionVisitor visitor)
         => Update((SqlExpression)visitor.Visit(Match), (SqlExpression)visitor.Visit(Pattern));
 
+    /// <summary>
+    ///     Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
+    ///     return this expression.
+    /// </summary>
     public virtual PostgresRegexMatchExpression Update(SqlExpression match, SqlExpression pattern)
         => match != Match || pattern != Pattern
             ? new PostgresRegexMatchExpression(match, pattern, Options, TypeMapping)
             : this;
 
+    /// <inheritdoc />
     public virtual bool Equals(PostgresRegexMatchExpression? other)
         => ReferenceEquals(this, other) ||
             other is not null &&
@@ -58,9 +66,11 @@ public class PostgresRegexMatchExpression : SqlExpression, IEquatable<PostgresRe
             Pattern.Equals(other.Pattern) &&
             Options.Equals(other.Options);
 
+    /// <inheritdoc />
     public override bool Equals(object? other)
         => other is PostgresRegexMatchExpression otherRegexMatch && Equals(otherRegexMatch);
 
+    /// <inheritdoc />
     public override int GetHashCode()
         => HashCode.Combine(base.GetHashCode(), Match, Pattern, Options);
 

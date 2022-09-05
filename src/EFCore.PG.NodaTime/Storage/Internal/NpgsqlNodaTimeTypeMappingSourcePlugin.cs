@@ -4,14 +4,20 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
+/// <summary>
+///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+///     any release. You should only use it directly in your code with extreme caution and knowing that
+///     doing so can result in application failures when updating to a new Entity Framework Core release.
+/// </summary>
 public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourcePlugin
 {
 #if DEBUG
     internal static bool LegacyTimestampBehavior;
     internal static bool DisableDateTimeInfinityConversions;
 #else
-        internal static readonly bool LegacyTimestampBehavior;
-        internal static readonly bool DisableDateTimeInfinityConversions;
+    internal static readonly bool LegacyTimestampBehavior;
+    internal static readonly bool DisableDateTimeInfinityConversions;
 #endif
 
     static NpgsqlNodaTimeTypeMappingSourcePlugin()
@@ -20,7 +26,20 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
         DisableDateTimeInfinityConversions = AppContext.TryGetSwitch("Npgsql.DisableDateTimeInfinityConversions", out enabled) && enabled;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
 
     #region TypeMapping
@@ -210,9 +229,21 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
         ClrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual RelationalTypeMapping? FindMapping(in RelationalTypeMappingInfo mappingInfo)
         => FindExistingMapping(mappingInfo) ?? FindArrayMapping(mappingInfo);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected virtual RelationalTypeMapping? FindExistingMapping(in RelationalTypeMappingInfo mappingInfo)
     {
         var clrType = mappingInfo.ClrType;
@@ -270,6 +301,12 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
             : mapping;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     // TODO: This is duplicated from NpgsqlTypeMappingSource
     protected virtual RelationalTypeMapping? FindArrayMapping(in RelationalTypeMappingInfo mappingInfo)
     {

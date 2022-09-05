@@ -47,15 +47,20 @@ public class PostgresJsonTraversalExpression : SqlExpression, IEquatable<Postgre
             (SqlExpression)visitor.Visit(Expression),
             Path.Select(p => (SqlExpression)visitor.Visit(p)).ToArray());
 
-    public virtual PostgresJsonTraversalExpression Update(
-        SqlExpression expression,
-        IReadOnlyList<SqlExpression> path)
+    /// <summary>
+    ///     Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
+    ///     return this expression.
+    /// </summary>
+    public virtual PostgresJsonTraversalExpression Update(SqlExpression expression, IReadOnlyList<SqlExpression> path)
         => expression == Expression &&
             path.Count == Path.Count &&
             path.Zip(Path, (x, y) => (x, y)).All(tup => tup.x == tup.y)
                 ? this
                 : new PostgresJsonTraversalExpression(expression, path, ReturnsText, Type, TypeMapping);
 
+    /// <summary>
+    ///     Appends an additional path component to this <see cref="PostgresJsonTraversalExpression" /> and returns the result.
+    /// </summary>
     public virtual PostgresJsonTraversalExpression Append(SqlExpression pathComponent)
     {
         var newPath = new SqlExpression[Path.Count + 1];
@@ -83,6 +88,7 @@ public class PostgresJsonTraversalExpression : SqlExpression, IEquatable<Postgre
     /// <inheritdoc />
     public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Expression, Path);
 
+    /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)
     {
         expressionPrinter.Visit(Expression);

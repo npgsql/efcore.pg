@@ -1,11 +1,13 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 /// <summary>
-/// The validator that enforces rules for Npgsql.
+///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+///     any release. You should only use it directly in your code with extreme caution and knowing that
+///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
 public class NpgsqlModelValidator : RelationalModelValidator
 {
@@ -14,7 +16,12 @@ public class NpgsqlModelValidator : RelationalModelValidator
     /// </summary>
     private readonly Version _postgresVersion;
 
-    /// <inheritdoc />
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlModelValidator(
         ModelValidatorDependencies dependencies,
         RelationalModelValidatorDependencies relationalDependencies,
@@ -22,6 +29,12 @@ public class NpgsqlModelValidator : RelationalModelValidator
         : base(dependencies, relationalDependencies)
         => _postgresVersion = npgsqlSingletonOptions.PostgresVersion;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override void Validate(IModel model, IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
     {
         base.Validate(model, logger);
@@ -65,6 +78,12 @@ public class NpgsqlModelValidator : RelationalModelValidator
         }
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override void ValidateValueGeneration(
         IEntityType entityType,
         IKey key,
@@ -82,6 +101,12 @@ public class NpgsqlModelValidator : RelationalModelValidator
         }
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected virtual void ValidateIndexIncludeProperties(IModel model)
     {
         foreach (var index in model.GetEntityTypes().SelectMany(t => t.GetDeclaredIndexes()))

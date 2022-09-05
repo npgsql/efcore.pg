@@ -11,6 +11,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal;
 /// </remarks>
 public class NpgsqlNodaTimeMemberTranslatorPlugin : IMemberTranslatorPlugin
 {
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlNodaTimeMemberTranslatorPlugin(
         IRelationalTypeMappingSource typeMappingSource,
         ISqlExpressionFactory sqlExpressionFactory)
@@ -21,9 +27,21 @@ public class NpgsqlNodaTimeMemberTranslatorPlugin : IMemberTranslatorPlugin
         };
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual IEnumerable<IMemberTranslator> Translators { get; }
 }
 
+/// <summary>
+///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+///     any release. You should only use it directly in your code with extreme caution and knowing that
+///     doing so can result in application failures when updating to a new Entity Framework Core release.
+/// </summary>
 public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
 {
     private static readonly MemberInfo SystemClock_Instance =
@@ -58,6 +76,12 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
     private readonly RelationalTypeMapping _periodTypeMapping;
     private readonly RelationalTypeMapping _localDateTimeTypeMapping;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlNodaTimeMemberTranslator(
         IRelationalTypeMappingSource typeMappingSource,
         NpgsqlSqlExpressionFactory sqlExpressionFactory)
@@ -333,7 +357,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
     /// <summary>
     /// Constructs the date_part expression.
     /// </summary>
-    /// <param name="e">The member expression.</param>
+    /// <param name="instance">The expression.</param>
     /// <param name="partName">The name of the date_part to construct.</param>
     /// <param name="floor">True if the result should be wrapped with floor(...); otherwise, false.</param>
     /// <returns>

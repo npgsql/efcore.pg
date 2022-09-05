@@ -92,6 +92,7 @@ public class NpgsqlStoreGenerationConvention : StoreGenerationConvention
         base.ProcessPropertyAnnotationChanged(propertyBuilder, name, annotation, oldAnnotation, context);
     }
 
+    /// <inheritdoc />
     protected override void Validate(IConventionProperty property, in StoreObjectIdentifier storeObject)
     {
         if (property.GetValueGenerationStrategyConfigurationSource() is not null)

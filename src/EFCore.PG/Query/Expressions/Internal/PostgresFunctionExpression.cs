@@ -9,9 +9,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 [DebuggerDisplay("{" + nameof(ToString) + "()}")]
 public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<PostgresFunctionExpression>
 {
+    /// <inheritdoc />
     public new virtual IReadOnlyList<SqlExpression> Arguments
         => base.Arguments!;
 
+    /// <inheritdoc />
     public new virtual IReadOnlyList<bool> ArgumentsPropagateNullability
         => base.ArgumentsPropagateNullability!;
 
@@ -43,6 +45,9 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
     /// </summary>
     public virtual IReadOnlyList<string?> ArgumentSeparators { get; }
 
+    /// <summary>
+    ///     Creates an instance of <see cref="PostgresFunctionExpression" /> with named arguments.
+    /// </summary>
     public static PostgresFunctionExpression CreateWithNamedArguments(
         string name,
         IEnumerable<SqlExpression> arguments,
@@ -62,6 +67,9 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
             nullable: nullable, argumentsPropagateNullability: argumentsPropagateNullability, type: type, typeMapping: typeMapping);
     }
 
+    /// <summary>
+    ///     Creates an instance of <see cref="PostgresFunctionExpression" /> with argument separators.
+    /// </summary>
     public static PostgresFunctionExpression CreateWithArgumentSeparators(
         string name,
         IEnumerable<SqlExpression> arguments,
@@ -81,6 +89,9 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
             nullable: nullable, argumentsPropagateNullability: argumentsPropagateNullability, type: type, typeMapping: typeMapping);
     }
 
+    /// <summary>
+    ///     Creates a new instance of <see cref="PostgresFunctionExpression" />.
+    /// </summary>
     public PostgresFunctionExpression(
         string name,
         IEnumerable<SqlExpression> arguments,
@@ -111,6 +122,7 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
         AggregateOrderings = aggregateOrderings;
     }
 
+    /// <inheritdoc />
     protected override Expression VisitChildren(ExpressionVisitor visitor)
     {
         Check.NotNull(visitor, nameof(visitor));
@@ -180,6 +192,7 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
             : this;
     }
 
+    /// <inheritdoc />
     public override SqlFunctionExpression ApplyTypeMapping(RelationalTypeMapping? typeMapping)
         => new PostgresFunctionExpression(
             Name,
@@ -192,6 +205,7 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
             IsNullable,
             ArgumentsPropagateNullability, Type, typeMapping ?? TypeMapping);
 
+    /// <inheritdoc />
     public override SqlFunctionExpression Update(SqlExpression? instance, IReadOnlyList<SqlExpression>? arguments)
     {
         Check.NotNull(arguments, nameof(arguments));
@@ -211,6 +225,10 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
             : this;
     }
 
+    /// <summary>
+    ///     Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
+    ///     return this expression.
+    /// </summary>
     public virtual PostgresFunctionExpression UpdateAggregateComponents(
         SqlExpression? predicate,
         IReadOnlyList<OrderingExpression> orderings)
@@ -267,9 +285,11 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
         }
     }
 
+    /// <inheritdoc />
     public override bool Equals(object? obj)
         => obj is PostgresFunctionExpression pgFunction && Equals(pgFunction);
 
+    /// <inheritdoc />
     public virtual bool Equals(PostgresFunctionExpression? other)
         => ReferenceEquals(this, other)
             || other is not null
@@ -280,6 +300,7 @@ public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<Post
             && (AggregatePredicate is null && other.AggregatePredicate is null
                 || AggregatePredicate != null && AggregatePredicate.Equals(other.AggregatePredicate));
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         var hash = new HashCode();

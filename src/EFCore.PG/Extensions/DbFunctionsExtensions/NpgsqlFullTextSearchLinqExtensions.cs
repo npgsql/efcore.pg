@@ -3,6 +3,9 @@
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore;
 
+/// <summary>
+///     Provides EF Core extension methods for Npgsql full-text search types.
+/// </summary>
 [SuppressMessage("ReSharper", "UnusedParameter.Global")]
 public static class NpgsqlFullTextSearchLinqExtensions
 {

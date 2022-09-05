@@ -8,6 +8,19 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
 
+/// <summary>
+///     PostgreSQL-specific implementation of <see cref="MigrationsSqlGenerator" />.
+/// </summary>
+/// <remarks>
+///     <para>
+///         The service lifetime is <see cref="ServiceLifetime.Scoped" />. This means that each <see cref="DbContext" /> instance will use
+///         its own instance of this service. The implementation may depend on other services registered with any lifetime. The
+///         implementation does not need to be thread-safe.
+///     </para>
+///     <para>
+///         See <see href="https://aka.ms/efcore-docs-migrations">Database migrations</see>.
+///     </para>
+/// </remarks>
 public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 {
     private IReadOnlyList<MigrationOperation> _operations = null!;
@@ -18,6 +31,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     /// </summary>
     private readonly Version _postgresVersion;
 
+    /// <summary>
+    ///     Creates a new <see cref="NpgsqlMigrationsSqlGenerator" /> instance.
+    /// </summary>
+    /// <param name="dependencies">Parameter object containing dependencies for this service.</param>
+    /// <param name="npgsqlSingletonOptions">The singleton options to use.</param>
     public NpgsqlMigrationsSqlGenerator(
         MigrationsSqlGeneratorDependencies dependencies,
         INpgsqlSingletonOptions npgsqlSingletonOptions)
@@ -28,6 +46,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             ?? throw new InvalidOperationException("No string type mapping found");
     }
 
+    /// <inheritdoc />
     public override IReadOnlyList<MigrationCommand> Generate(
         IReadOnlyList<MigrationOperation> operations,
         IModel? model = null,
@@ -128,6 +147,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
+    /// <inheritdoc />
     protected override void Generate(MigrationOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         Check.NotNull(operation, nameof(operation));
@@ -150,6 +170,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
     #region Standard migrations
 
+    /// <inheritdoc />
     protected override void Generate(
         CreateTableOperation operation,
         IModel? model,
@@ -245,6 +266,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
+    /// <inheritdoc />
     protected override void Generate(AlterTableOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         var madeChanges = false;
@@ -328,6 +350,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
+    /// <inheritdoc />
     protected override void Generate(
         DropColumnOperation operation,
         IModel? model,
@@ -343,6 +366,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         base.Generate(operation, model, builder, terminate);
     }
 
+    /// <inheritdoc />
     protected override void Generate(
         AddColumnOperation operation,
         IModel? model,
@@ -396,6 +420,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
+    /// <inheritdoc />
     protected override void Generate(AlterColumnOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         Check.NotNull(operation, nameof(operation));
@@ -744,6 +769,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         EndStatement(builder);
     }
 
+    /// <inheritdoc />
     protected override void Generate(RenameIndexOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         Check.NotNull(operation, nameof(operation));
@@ -759,6 +785,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         EndStatement(builder);
     }
 
+    /// <inheritdoc />
     protected override void Generate(RenameSequenceOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         Check.NotNull(operation, nameof(operation));
@@ -782,6 +809,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         EndStatement(builder);
     }
 
+    /// <inheritdoc />
     protected override void Generate(RenameTableOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         Check.NotNull(operation, nameof(operation));
@@ -805,6 +833,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         EndStatement(builder);
     }
 
+    /// <inheritdoc />
     protected override void Generate(
         CreateIndexOperation operation,
         IModel? model,
@@ -861,6 +890,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
+    /// <inheritdoc />
     protected override void IndexOptions(CreateIndexOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         if (_postgresVersion.AtLeast(11) &&
@@ -876,6 +906,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         base.IndexOptions(operation, model, builder);
     }
 
+    /// <inheritdoc />
     protected override void Generate(EnsureSchemaOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         Check.NotNull(operation, nameof(operation));
@@ -912,10 +943,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         EndStatement(builder);
     }
 
-    protected virtual void Generate(
-        NpgsqlCreateDatabaseOperation operation,
-        IModel? model,
-        MigrationCommandListBuilder builder)
+    /// <inheritdoc />
+    protected virtual void Generate(NpgsqlCreateDatabaseOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -953,10 +982,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         EndStatement(builder, suppressTransaction: true);
     }
 
-    public virtual void Generate(
-        NpgsqlDropDatabaseOperation operation,
-        IModel? model,
-        MigrationCommandListBuilder builder)
+    /// <inheritdoc />
+    public virtual void Generate(NpgsqlDropDatabaseOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -980,6 +1007,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         EndStatement(builder, suppressTransaction: true);
     }
 
+    /// <inheritdoc />
     protected override void Generate(
         AlterDatabaseOperation operation,
         IModel? model,
@@ -1005,6 +1033,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         builder.EndCommand();
     }
 
+    /// <inheritdoc />
     protected virtual void GenerateCreateExtension(
         PostgresExtension extension,
         IModel? model,
@@ -1043,10 +1072,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
     #region Collation management
 
-    protected virtual void GenerateCollationStatements(
-        AlterDatabaseOperation operation,
-        IModel? model,
-        MigrationCommandListBuilder builder)
+    /// <inheritdoc />
+    protected virtual void GenerateCollationStatements(AlterDatabaseOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         foreach (var collationToCreate in operation.GetPostgresCollations()
                      .Where(ne => operation.GetOldPostgresCollations().All(oe => oe.Name != ne.Name || oe.Schema != ne.Schema)))
@@ -1076,10 +1103,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
-    protected virtual void GenerateCreateCollation(
-        PostgresCollation collation,
-        IModel? model,
-        MigrationCommandListBuilder builder)
+    /// <inheritdoc />
+    protected virtual void GenerateCreateCollation(PostgresCollation collation, IModel? model, MigrationCommandListBuilder builder)
     {
         var schema = collation.Schema ?? model?.GetDefaultSchema();
 
@@ -1130,10 +1155,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             .AppendLine(");");
     }
 
-    protected virtual void GenerateDropCollation(
-        PostgresCollation collation,
-        IModel? model,
-        MigrationCommandListBuilder builder)
+    /// <inheritdoc />
+    protected virtual void GenerateDropCollation(PostgresCollation collation, IModel? model, MigrationCommandListBuilder builder)
     {
         var schema = collation.Schema ?? model?.GetDefaultSchema();
 
@@ -1147,10 +1170,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
     #region Enum management
 
-    protected virtual void GenerateEnumStatements(
-        AlterDatabaseOperation operation,
-        IModel? model,
-        MigrationCommandListBuilder builder)
+    /// <inheritdoc />
+    protected virtual void GenerateEnumStatements(AlterDatabaseOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         foreach (var enumTypeToCreate in operation.GetPostgresEnums()
                      .Where(ne => operation.GetOldPostgresEnums().All(oe => oe.Name != ne.Name || oe.Schema != ne.Schema)))
@@ -1200,10 +1221,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
-    protected virtual void GenerateCreateEnum(
-        PostgresEnum enumType,
-        IModel? model,
-        MigrationCommandListBuilder builder)
+    /// <inheritdoc />
+    protected virtual void GenerateCreateEnum(PostgresEnum enumType, IModel? model, MigrationCommandListBuilder builder)
     {
         var schema = enumType.Schema ?? model?.GetDefaultSchema();
 
@@ -1232,10 +1251,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         builder.AppendLine(");");
     }
 
-    protected virtual void GenerateDropEnum(
-        PostgresEnum enumType,
-        IModel? model,
-        MigrationCommandListBuilder builder)
+    /// <inheritdoc />
+    protected virtual void GenerateDropEnum(PostgresEnum enumType, IModel? model, MigrationCommandListBuilder builder)
     {
         var schema = enumType.Schema ?? model?.GetDefaultSchema();
 
@@ -1245,6 +1262,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             .AppendLine(";");
     }
 
+    /// <inheritdoc />
     protected virtual void GenerateAddEnumLabel(
         PostgresEnum enumType,
         string addedLabel,
@@ -1280,10 +1298,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
     #region Range management
 
-    protected virtual void GenerateRangeStatements(
-        AlterDatabaseOperation operation,
-        IModel? model,
-        MigrationCommandListBuilder builder)
+    /// <inheritdoc />
+    protected virtual void GenerateRangeStatements(AlterDatabaseOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         foreach (var rangeTypeToCreate in operation.GetPostgresRanges()
                      .Where(ne => operation.GetOldPostgresRanges().All(oe => oe.Name != ne.Name)))
@@ -1305,10 +1321,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
-    protected virtual void GenerateCreateRange(
-        PostgresRange rangeType,
-        IModel? model,
-        MigrationCommandListBuilder builder)
+    /// <inheritdoc />
+    protected virtual void GenerateCreateRange(PostgresRange rangeType, IModel? model, MigrationCommandListBuilder builder)
     {
         var schema = rangeType.Schema ?? model?.GetDefaultSchema();
 
@@ -1358,10 +1372,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             .AppendLine(");");
     }
 
-    protected virtual void GenerateDropRange(
-        PostgresRange rangeType,
-        IModel? model,
-        MigrationCommandListBuilder builder)
+    /// <inheritdoc />
+    protected virtual void GenerateDropRange(PostgresRange rangeType, IModel? model, MigrationCommandListBuilder builder)
     {
         var schema = rangeType.Schema ?? model?.GetDefaultSchema();
 
@@ -1373,6 +1385,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
     #endregion Range management
 
+    /// <inheritdoc />
     protected override void Generate(
         DropIndexOperation operation,
         IModel? model,
@@ -1393,10 +1406,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
-    protected override void Generate(
-        RenameColumnOperation operation,
-        IModel? model,
-        MigrationCommandListBuilder builder)
+    /// <inheritdoc />
+    protected override void Generate(RenameColumnOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -1450,6 +1461,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
+    /// <inheritdoc />
     protected override void Generate(CreateSequenceOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         Check.NotNull(operation, nameof(operation));
@@ -1474,6 +1486,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
     #region Utilities
 
+    /// <inheritdoc />
     protected override void ColumnDefinition(
         string? schema,
         string table,
@@ -1591,11 +1604,12 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     }
 
     // Note: this definition is only used for creating new identity columns, not for alterations.
+    /// <inheritdoc />
     protected virtual void IdentityDefinition(
         ColumnOperation operation,
         MigrationCommandListBuilder builder)
     {
-        if (!(operation[NpgsqlAnnotationNames.ValueGenerationStrategy] is NpgsqlValueGenerationStrategy strategy) ||
+        if (operation[NpgsqlAnnotationNames.ValueGenerationStrategy] is not NpgsqlValueGenerationStrategy strategy ||
             !strategy.IsIdentity())
         {
             return;
@@ -1834,6 +1848,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             .AppendLine(";");
     }
 
+    /// <inheritdoc />
     protected virtual void RecreateIndexes(IColumn? column, MigrationOperation currentOperation, MigrationCommandListBuilder builder)
     {
         foreach (var index in GetIndexesToRebuild())

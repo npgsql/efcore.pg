@@ -5,12 +5,24 @@ using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
+/// <summary>
+///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+///     any release. You should only use it directly in your code with extreme caution and knowing that
+///     doing so can result in application failures when updating to a new Entity Framework Core release.
+/// </summary>
 public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
 {
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
     private readonly RelationalTypeMapping _stringTypeMapping;
     private readonly RelationalTypeMapping _jsonbTypeMapping;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlJsonDbFunctionsTranslator(
         IRelationalTypeMappingSource typeMappingSource,
         NpgsqlSqlExpressionFactory sqlExpressionFactory,
@@ -21,6 +33,12 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
         _jsonbTypeMapping = typeMappingSource.FindMapping("jsonb")!;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual SqlExpression? Translate(
         SqlExpression? instance,
         MethodInfo method,

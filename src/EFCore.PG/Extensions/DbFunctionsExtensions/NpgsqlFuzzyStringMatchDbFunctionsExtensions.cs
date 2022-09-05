@@ -1,6 +1,13 @@
 ﻿// ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore;
 
+/// <summary>
+///     Provides CLR methods that get translated to database functions when used in LINQ to Entities queries.
+///     The methods on this class are accessed via <see cref="EF.Functions" />.
+/// </summary>
+/// <remarks>
+///     See <see href="https://aka.ms/efcore-docs-database-functions">Database functions</see>.
+/// </remarks>
 public static class NpgsqlFuzzyStringMatchDbFunctionsExtensions
 {
     /// <summary>

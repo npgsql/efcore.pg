@@ -11,6 +11,7 @@ using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExten
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
+/// <inheritdoc />
 public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
 {
     private readonly NpgsqlTypeMappingSource _typeMappingSource;
@@ -20,32 +21,48 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     private static Type? _nodaTimeDurationType;
     private static Type? _nodaTimePeriodType;
 
+    /// <summary>
+    ///     Creates a new instance of the <see cref="NpgsqlSqlExpressionFactory" /> class.
+    /// </summary>
+    /// <param name="dependencies">Parameter object containing dependencies for this class.</param>
     public NpgsqlSqlExpressionFactory(SqlExpressionFactoryDependencies dependencies)
         : base(dependencies)
     {
         _typeMappingSource = (NpgsqlTypeMappingSource)dependencies.TypeMappingSource;
-        _boolTypeMapping = (RelationalTypeMapping)_typeMappingSource.FindMapping(typeof(bool), dependencies.Model)!;
-        _doubleTypeMapping = (RelationalTypeMapping)_typeMappingSource.FindMapping(typeof(double), dependencies.Model)!;
+        _boolTypeMapping = _typeMappingSource.FindMapping(typeof(bool), dependencies.Model)!;
+        _doubleTypeMapping = _typeMappingSource.FindMapping(typeof(double), dependencies.Model)!;
     }
 
     #region Expression factory methods
 
+    /// <summary>
+    ///     Creates a new <see cref="PostgresRegexMatchExpression" />, corresponding to the PostgreSQL-specific <c>~</c> operator.
+    /// </summary>
     public virtual PostgresRegexMatchExpression RegexMatch(
         SqlExpression match, SqlExpression pattern, RegexOptions options)
         => (PostgresRegexMatchExpression)ApplyDefaultTypeMapping(new PostgresRegexMatchExpression(match, pattern, options, null));
 
+    /// <summary>
+    ///     Creates a new <see cref="PostgresAnyExpression" />, corresponding to the PostgreSQL-specific <c>= ANY</c> operator.
+    /// </summary>
     public virtual PostgresAnyExpression Any(
         SqlExpression item,
         SqlExpression array,
         PostgresAnyOperatorType operatorType)
         => (PostgresAnyExpression)ApplyDefaultTypeMapping(new PostgresAnyExpression(item, array, operatorType, null));
 
+    /// <summary>
+    ///     Creates a new <see cref="PostgresAllExpression" />, corresponding to the PostgreSQL-specific <c>LIKE ALL</c> operator.
+    /// </summary>
     public virtual PostgresAllExpression All(
         SqlExpression item,
         SqlExpression array,
         PostgresAllOperatorType operatorType)
         => (PostgresAllExpression)ApplyDefaultTypeMapping(new PostgresAllExpression(item, array, operatorType, null));
 
+    /// <summary>
+    ///     Creates a new <see cref="PostgresArrayIndexExpression" />, corresponding to the PostgreSQL-specific array subscripting operator.
+    /// </summary>
     public virtual PostgresArrayIndexExpression ArrayIndex(
         SqlExpression array,
         SqlExpression index,
@@ -61,11 +78,17 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             typeMapping);
     }
 
+    /// <summary>
+    ///     Creates a new <see cref="AtTimeZoneExpression" />, for converting a timestamp to UTC.
+    /// </summary>
     public virtual AtTimeZoneExpression AtUtc(
         SqlExpression timestamp,
         RelationalTypeMapping? typeMapping = null)
         => AtTimeZone(timestamp, Constant("UTC"), timestamp.Type);
 
+    /// <summary>
+    ///     Creates a new <see cref="AtTimeZoneExpression" />, for converting a timestamp to another time zone.
+    /// </summary>
     public virtual AtTimeZoneExpression AtTimeZone(
         SqlExpression timestamp,
         SqlExpression timeZone,
@@ -95,12 +118,19 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             typeMapping);
     }
 
+    /// <summary>
+    ///     Creates a new <see cref="AtTimeZoneExpression" />, for performing a PostgreSQL-specific case-insensitive string match
+    ///     (<c>ILIKE</c>).
+    /// </summary>
     public virtual PostgresILikeExpression ILike(
         SqlExpression match,
         SqlExpression pattern,
         SqlExpression? escapeChar = null)
         => (PostgresILikeExpression)ApplyDefaultTypeMapping(new PostgresILikeExpression(match, pattern, escapeChar, null));
 
+    /// <summary>
+    ///     Creates a new <see cref="PostgresJsonTraversalExpression" />, for traversing inside a JSON document.
+    /// </summary>
     public virtual PostgresJsonTraversalExpression JsonTraversal(
         SqlExpression expression,
         bool returnsText,
@@ -108,6 +138,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         RelationalTypeMapping? typeMapping = null)
         => JsonTraversal(expression, Array.Empty<SqlExpression>(), returnsText, type, typeMapping);
 
+    /// <summary>
+    ///     Creates a new <see cref="PostgresJsonTraversalExpression" />, for traversing inside a JSON document.
+    /// </summary>
     public virtual PostgresJsonTraversalExpression JsonTraversal(
         SqlExpression expression,
         IEnumerable<SqlExpression> path,
@@ -122,8 +155,8 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             typeMapping);
 
     /// <summary>
-    /// Constructs either a <see cref="PostgresNewArrayExpression"/>, or, if all provided expressions are constants,
-    /// a single <see cref="SqlConstantExpression"/> for the entire array.
+    ///     Constructs either a <see cref="PostgresNewArrayExpression"/>, or, if all provided expressions are constants, a single
+    ///     <see cref="SqlConstantExpression"/> for the entire array.
     /// </summary>
     public virtual SqlExpression NewArrayOrConstant(
         IReadOnlyList<SqlExpression> expressions,
@@ -166,12 +199,16 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         throw new ArgumentException("Must be an array or generic list", nameof(type));
     }
 
+    /// <summary>
+    ///     Creates a new <see cref="PostgresNewArrayExpression" />, for creating a new PostgreSQL array.
+    /// </summary>
     public virtual PostgresNewArrayExpression NewArray(
         IReadOnlyList<SqlExpression> expressions,
         Type type,
         RelationalTypeMapping? typeMapping = null)
         => (PostgresNewArrayExpression)ApplyTypeMapping(new PostgresNewArrayExpression(expressions, type, typeMapping), typeMapping);
 
+    /// <inheritdoc />
     public override SqlBinaryExpression? MakeBinary(
         ExpressionType operatorType,
         SqlExpression left,
@@ -217,6 +254,14 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         return base.MakeBinary(operatorType, left, right, typeMapping);
     }
 
+    /// <summary>
+    ///     Creates a new <see cref="PostgresBinaryExpression" /> with the given arguments.
+    /// </summary>
+    /// <param name="operatorType">An <see cref="T:System.Linq.Expressions.ExpressionType" /> representing SQL unary operator.</param>
+    /// <param name="left">The left operand of binary operation.</param>
+    /// <param name="right">The right operand of binary operation.</param>
+    /// <param name="typeMapping">A type mapping to be assigned to the created expression.</param>
+    /// <returns>A <see cref="PostgresBinaryExpression" /> with the given arguments.</returns>
     public virtual PostgresBinaryExpression MakePostgresBinary(
         PostgresExpressionType operatorType,
         SqlExpression left,
@@ -256,6 +301,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             new PostgresBinaryExpression(operatorType, left, right, returnType, null), typeMapping);
     }
 
+    /// <summary>
+    ///     Creates a new <see cref="PostgresBinaryExpression" />, for checking whether one value contains another.
+    /// </summary>
     public virtual PostgresBinaryExpression Contains(SqlExpression left, SqlExpression right)
     {
         Check.NotNull(left, nameof(left));
@@ -264,6 +312,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         return MakePostgresBinary(PostgresExpressionType.Contains, left, right);
     }
 
+    /// <summary>
+    ///     Creates a new <see cref="PostgresBinaryExpression" />, for checking whether one value is contained by another.
+    /// </summary>
     public virtual PostgresBinaryExpression ContainedBy(SqlExpression left, SqlExpression right)
     {
         Check.NotNull(left, nameof(left));
@@ -272,6 +323,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         return MakePostgresBinary(PostgresExpressionType.ContainedBy, left, right);
     }
 
+    /// <summary>
+    ///     Creates a new <see cref="PostgresBinaryExpression" />, for checking whether one value overlaps with another.
+    /// </summary>
     public virtual PostgresBinaryExpression Overlaps(SqlExpression left, SqlExpression right)
     {
         Check.NotNull(left, nameof(left));
@@ -280,6 +334,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         return MakePostgresBinary(PostgresExpressionType.Overlaps, left, right);
     }
 
+    /// <summary>
+    ///     Creates a new <see cref="PostgresFunctionExpression" /> for a PostgreSQL aggregate function call..
+    /// </summary>
     public virtual PostgresFunctionExpression AggregateFunction(
         string name,
         IEnumerable<SqlExpression> arguments,
@@ -310,6 +367,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
 
     #endregion Expression factory methods
 
+    /// <inheritdoc />
     [return: NotNullIfNotNull("sqlExpression")]
     public override SqlExpression? ApplyTypeMapping(SqlExpression? sqlExpression, RelationalTypeMapping? typeMapping)
     {

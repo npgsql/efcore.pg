@@ -1,8 +1,9 @@
-
-
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore;
 
+/// <summary>
+///     Provides Npgsql-specific spatial extension methods on <see cref="DbFunctions"/>.
+/// </summary>
 public static class NpgsqlNetTopologySuiteDbFunctionsExtensions
 {
     /// <summary>
@@ -34,6 +35,7 @@ public static class NpgsqlNetTopologySuiteDbFunctionsExtensions
     /// <remarks>
     /// See https://postgis.net/docs/ST_DWithin.html.
     /// </remarks>
+    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
     /// <param name="geometry">The origin geometry.</param>
     /// <param name="anotherGeometry">The geometry to check the distance to.</param>
     /// <param name="distance">The distance value to compare.</param>
@@ -49,6 +51,7 @@ public static class NpgsqlNetTopologySuiteDbFunctionsExtensions
     /// <remarks>
     /// See https://postgis.net/docs/ST_Distance.html.
     /// </remarks>
+    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
     /// <param name="geometry">The origin geometry.</param>
     /// <param name="anotherGeometry">The geometry from which to compute the distance.</param>
     /// <param name="useSpheroid">Whether to use sphere or spheroid distance measurement.</param>
@@ -63,6 +66,7 @@ public static class NpgsqlNetTopologySuiteDbFunctionsExtensions
     /// <remarks>
     /// See https://postgis.net/docs/ST_Distance.html.
     /// </remarks>
+    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
     /// <param name="geometry">The origin geometry.</param>
     /// <param name="anotherGeometry">The geometry from which to compute the distance.</param>
     /// <returns>The 2D distance between the geometries.</returns>

@@ -4,11 +4,23 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
+/// <summary>
+///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+///     any release. You should only use it directly in your code with extreme caution and knowing that
+///     doing so can result in application failures when updating to a new Entity Framework Core release.
+/// </summary>
 public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
 {
     private readonly INpgsqlRelationalConnection _connection;
     private readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlDatabaseCreator(
         RelationalDatabaseCreatorDependencies dependencies,
         INpgsqlRelationalConnection connection,
@@ -19,10 +31,28 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
         _rawSqlCommandBuilder = rawSqlCommandBuilder;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual TimeSpan RetryDelay { get; set; } = TimeSpan.FromMilliseconds(500);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual TimeSpan RetryTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override void Create()
     {
         using (var masterConnection = _connection.CreateMasterConnection())
@@ -32,9 +62,7 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
                 Dependencies.MigrationCommandExecutor
                     .ExecuteNonQuery(CreateCreateOperations(), masterConnection);
             }
-            catch (PostgresException e) when (
-                e.SqlState == "23505" && e.ConstraintName == "pg_database_datname_index"
-            )
+            catch (PostgresException e) when (e.SqlState == "23505" && e.ConstraintName == "pg_database_datname_index")
             {
                 // This occurs when two connections are trying to create the same database concurrently
                 // (happens in the tests). Simply ignore the error.
@@ -46,6 +74,12 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
         Exists();
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override async Task CreateAsync(CancellationToken cancellationToken = default)
     {
         using (var masterConnection = _connection.CreateMasterConnection())
@@ -56,9 +90,7 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
                     .ExecuteNonQueryAsync(CreateCreateOperations(), masterConnection, cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch (PostgresException e) when (
-                e.SqlState == "23505" && e.ConstraintName == "pg_database_datname_index"
-            )
+            catch (PostgresException e) when (e.SqlState == "23505" && e.ConstraintName == "pg_database_datname_index")
             {
                 // This occurs when two connections are trying to create the same database concurrently
                 // (happens in the tests). Simply ignore the error.
@@ -70,6 +102,12 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
         await ExistsAsync(cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override bool HasTables()
         => Dependencies.ExecutionStrategy
             .Execute(
@@ -83,6 +121,12 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
                             Dependencies.CurrentContext.Context,
                             Dependencies.CommandLogger))!);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override Task<bool> HasTablesAsync(CancellationToken cancellationToken = default)
         => Dependencies.ExecutionStrategy.ExecuteAsync(
             _connection,
@@ -135,9 +179,21 @@ WHERE
             });
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override bool Exists()
         => Exists(async: false).GetAwaiter().GetResult();
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override Task<bool> ExistsAsync(CancellationToken cancellationToken = default)
         => Exists(async: true, cancellationToken);
 
@@ -212,6 +268,12 @@ WHERE
     // Login failed is thrown when database does not exist (See Issue #776)
     private static bool IsDoesNotExist(PostgresException exception) => exception.SqlState == "3D000";
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override void Delete()
     {
         ClearAllPools();
@@ -223,6 +285,12 @@ WHERE
         }
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override async Task DeleteAsync(CancellationToken cancellationToken = default)
     {
         ClearAllPools();
@@ -235,6 +303,12 @@ WHERE
         }
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override void CreateTables()
     {
         var designTimeModel = Dependencies.CurrentContext.Context.GetService<IDesignTimeModel>().Model;
@@ -275,6 +349,12 @@ WHERE
         }
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override async Task CreateTablesAsync(CancellationToken cancellationToken = default)
     {
         var designTimeModel = Dependencies.CurrentContext.Context.GetService<IDesignTimeModel>().Model;
