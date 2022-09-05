@@ -30,10 +30,28 @@ public class NpgsqlCharacterStringTypeMapping : NpgsqlStringTypeMapping
             (x, y) => EqualsWithoutTrailingWhitespace(x, y),
             x => GetHashCodeWithoutTrailingWhitespace(x));
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override ValueComparer Comparer => ClrType == typeof(string) ? CharacterValueComparer : base.Comparer;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override ValueComparer KeyComparer => Comparer;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlCharacterStringTypeMapping(string storeType, int size = 1)
         : this(new RelationalTypeMappingParameters(
             new CoreTypeMappingParameters(typeof(string)),
@@ -44,11 +62,23 @@ public class NpgsqlCharacterStringTypeMapping : NpgsqlStringTypeMapping
             size,
             fixedLength: true)) {}
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected NpgsqlCharacterStringTypeMapping(RelationalTypeMappingParameters parameters)
         : base(parameters, NpgsqlDbType.Char)
     {
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
         => new NpgsqlCharacterStringTypeMapping(new RelationalTypeMappingParameters(
             parameters.CoreParameters,
@@ -61,6 +91,12 @@ public class NpgsqlCharacterStringTypeMapping : NpgsqlStringTypeMapping
             parameters.Precision,
             parameters.Scale));
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override void ConfigureParameter(DbParameter parameter)
     {
         if (parameter.Value is string value)

@@ -11,6 +11,9 @@ public static class NpgsqlEntityTypeExtensions
 {
     #region Storage parameters
 
+    /// <summary>
+    ///     Gets all table storage parameters for the table mapped to the entity type.
+    /// </summary>
     public static Dictionary<string, object?> GetStorageParameters(this IReadOnlyEntityType entityType)
         => entityType.GetAnnotations()
             .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal))
@@ -19,6 +22,9 @@ public static class NpgsqlEntityTypeExtensions
                 a => a.Value
             );
 
+    /// <summary>
+    ///     Gets a table storage parameter for the table mapped to the entity type.
+    /// </summary>
     public static string? GetStorageParameter(this IEntityType entityType, string parameterName)
     {
         Check.NotEmpty(parameterName, nameof(parameterName));
@@ -26,6 +32,9 @@ public static class NpgsqlEntityTypeExtensions
         return (string?)entityType[NpgsqlAnnotationNames.StorageParameterPrefix + parameterName];
     }
 
+    /// <summary>
+    ///     Sets a table storage parameter for the table mapped to the entity type.
+    /// </summary>
     public static void SetStorageParameter(
         this IMutableEntityType entityType,
         string parameterName,
@@ -36,6 +45,9 @@ public static class NpgsqlEntityTypeExtensions
         entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.StorageParameterPrefix + parameterName, parameterValue);
     }
 
+    /// <summary>
+    ///     Sets a table storage parameter for the table mapped to the entity type.
+    /// </summary>
     public static object SetStorageParameter(
         this IConventionEntityType entityType,
         string parameterName,
@@ -49,6 +61,9 @@ public static class NpgsqlEntityTypeExtensions
         return parameterName;
     }
 
+    /// <summary>
+    ///     Gets the configuration source fo a table storage parameter for the table mapped to the entity type.
+    /// </summary>
     public static ConfigurationSource? GetStorageParameterConfigurationSource(
         this IConventionEntityType index,
         string parameterName)
@@ -62,12 +77,21 @@ public static class NpgsqlEntityTypeExtensions
 
     #region Unlogged
 
+    /// <summary>
+    ///     Gets whether the table to which the entity is mapped is unlogged.
+    /// </summary>
     public static bool GetIsUnlogged(this IReadOnlyEntityType entityType)
         => entityType[NpgsqlAnnotationNames.UnloggedTable] as bool? ?? false;
 
+    /// <summary>
+    ///     Sets whether the table to which the entity is mapped is unlogged.
+    /// </summary>
     public static void SetIsUnlogged(this IMutableEntityType entityType, bool unlogged)
         => entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.UnloggedTable, unlogged);
 
+    /// <summary>
+    ///     Sets whether the table to which the entity is mapped is unlogged.
+    /// </summary>
     public static bool SetIsUnlogged(
         this IConventionEntityType entityType,
         bool unlogged,
@@ -78,6 +102,9 @@ public static class NpgsqlEntityTypeExtensions
         return unlogged;
     }
 
+    /// <summary>
+    ///     Gets the configuration source for whether the table to which the entity is mapped is unlogged.
+    /// </summary>
     public static ConfigurationSource? GetIsUnloggedConfigurationSource(this IConventionEntityType index)
         => index.FindAnnotation(NpgsqlAnnotationNames.UnloggedTable)?.GetConfigurationSource();
 
@@ -85,6 +112,9 @@ public static class NpgsqlEntityTypeExtensions
 
     #region CockroachDb interleave in parent
 
+    /// <summary>
+    ///     Gets the CockroachDB-specific interleave-in-parent setting for the table to which the entity is mapped.
+    /// </summary>
     public static CockroachDbInterleaveInParent GetCockroachDbInterleaveInParent(this IReadOnlyEntityType entityType)
         => new(entityType);
 

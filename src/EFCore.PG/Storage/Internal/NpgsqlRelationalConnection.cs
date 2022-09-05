@@ -6,6 +6,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
+/// <summary>
+///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+///     any release. You should only use it directly in your code with extreme caution and knowing that
+///     doing so can result in application failures when updating to a new Entity Framework Core release.
+/// </summary>
 public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationalConnection
 {
     private ProvideClientCertificatesCallback? ProvideClientCertificatesCallback { get; }
@@ -17,6 +23,12 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     /// </summary>
     protected override bool SupportsAmbientTransactions => true;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlRelationalConnection(RelationalConnectionDependencies dependencies)
         : base(dependencies)
     {
@@ -31,6 +43,12 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
         }
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override DbConnection CreateDbConnection()
     {
         var conn = new NpgsqlConnection(ConnectionString);
@@ -55,6 +73,12 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
         return conn;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual INpgsqlRelationalConnection CreateMasterConnection()
     {
         var adminDb = Dependencies.ContextOptions.FindExtension<NpgsqlOptionsExtension>()?.AdminDatabase
@@ -78,6 +102,12 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
         return new NpgsqlRelationalConnection(Dependencies with { ContextOptions = optionsBuilder.Options });
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     [AllowNull]
     public new virtual NpgsqlConnection DbConnection
     {
@@ -85,10 +115,22 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
         set => base.DbConnection = value;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     // Accessing Transaction.Current is expensive, so don't do it if Enlist is false in the connection string
     public override Transaction? CurrentAmbientTransaction
         => DbConnection.Settings.Enlist ? Transaction.Current : null;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual NpgsqlRelationalConnection CloneWith(string connectionString)
     {
         var clonedDbConnection = DbConnection.CloneWith(connectionString);

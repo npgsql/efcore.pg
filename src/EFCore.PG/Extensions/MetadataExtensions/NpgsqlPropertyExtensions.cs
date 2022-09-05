@@ -5,6 +5,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore;
 
+/// <summary>
+///     Property extension methods for Npgsql-specific metadata.
+/// </summary>
+/// <remarks>
+///     See <see href="https://aka.ms/efcore-docs-modeling">Modeling entity types and relationships</see>.
+/// </remarks>
 public static class NpgsqlPropertyExtensions
 {
     #region Hi-lo

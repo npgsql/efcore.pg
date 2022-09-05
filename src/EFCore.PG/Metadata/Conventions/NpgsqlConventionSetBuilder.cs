@@ -2,13 +2,31 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 
-[EntityFrameworkInternal]
+/// <summary>
+///     A builder for building conventions for Npgsql.
+/// </summary>
+/// <remarks>
+///     <para>
+///         The service lifetime is <see cref="ServiceLifetime.Scoped" /> and multiple registrations are allowed. This means that each
+///         <see cref="DbContext" /> instance will use its own set of instances of this service. The implementations may depend on other
+///         services registered with any lifetime. The implementations do not need to be thread-safe.
+///     </para>
+///     <para>
+///         See <see href="https://aka.ms/efcore-docs-conventions">Model building conventions</see>, and
+///     </para>
+/// </remarks>
 public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
 {
     private readonly IRelationalTypeMappingSource _typeMappingSource;
     private readonly Version _postgresVersion;
 
-    [EntityFrameworkInternal]
+    /// <summary>
+    ///     Creates a new <see cref="NpgsqlConventionSetBuilder" /> instance.
+    /// </summary>
+    /// <param name="dependencies">The core dependencies for this service.</param>
+    /// <param name="relationalDependencies">The relational dependencies for this service.</param>
+    /// <param name="typeMappingSource">The type mapping source to use.</param>
+    /// <param name="npgsqlSingletonOptions">The singleton options to use.</param>
     public NpgsqlConventionSetBuilder(
         ProviderConventionSetBuilderDependencies dependencies,
         RelationalConventionSetBuilderDependencies relationalDependencies,
@@ -20,7 +38,7 @@ public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
         _postgresVersion = npgsqlSingletonOptions.PostgresVersion;
     }
 
-    [EntityFrameworkInternal]
+    /// <inheritdoc />
     public override ConventionSet CreateConventionSet()
     {
         var conventionSet = base.CreateConventionSet();

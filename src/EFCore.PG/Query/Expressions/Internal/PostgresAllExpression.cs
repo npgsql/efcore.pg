@@ -50,6 +50,13 @@ public class PostgresAllExpression : SqlExpression, IEquatable<PostgresAllExpres
         OperatorType = operatorType;
     }
 
+    /// <summary>
+    ///     Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
+    ///     return this expression.
+    /// </summary>
+    /// <param name="item">The <see cref="Item" /> property of the result.</param>
+    /// <param name="array">The <see cref="Array" /> property of the result.</param>
+    /// <returns>This expression if no children changed, or an expression with the updated children.</returns>
     public virtual PostgresAllExpression Update(SqlExpression item, SqlExpression array)
         => item != Item || array != Array
             ? new PostgresAllExpression(item, array, OperatorType, TypeMapping)
@@ -102,6 +109,13 @@ public class PostgresAllExpression : SqlExpression, IEquatable<PostgresAllExpres
 /// </summary>
 public enum PostgresAllOperatorType
 {
+    /// <summary>
+    ///     Represents a PostgreSQL LIKE ALL operator.
+    /// </summary>
     Like,
+    
+    /// <summary>
+    ///     Represents a PostgreSQL ILIKE ALL operator.
+    /// </summary>
     ILike,
 }

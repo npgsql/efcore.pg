@@ -31,7 +31,7 @@ public static class NpgsqlRangeDbFunctionsExtensions
     /// <value>true</value> if the range contains the specified range; otherwise, <value>false</value>.
     /// </returns>
     /// <exception cref="NotSupportedException">
-    /// <see cref="Contains{T}(NpgsqlRange{T}, NpgsqlRange{T}" /> is only intended for use via SQL translation as part of an EF Core LINQ
+    /// <see cref="Contains{T}(NpgsqlRange{T}, NpgsqlRange{T})" /> is only intended for use via SQL translation as part of an EF Core LINQ
     /// query.
     /// </exception>
     public static bool Contains<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)
@@ -199,7 +199,6 @@ public static class NpgsqlRangeDbFunctionsExtensions
     /// <summary>
     /// Computes the union of the non-null input ranges. Corresponds to the PostgreSQL <c>range_agg</c> aggregate function.
     /// </summary>
-    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
     /// <param name="input">The ranges to be aggregated via union into a multirange.</param>
     /// <seealso href="https://www.postgresql.org/docs/current/functions-aggregate.html">PostgreSQL documentation for aggregate functions.</seealso>
     /// <exception cref="NotSupportedException">
@@ -211,11 +210,10 @@ public static class NpgsqlRangeDbFunctionsExtensions
     /// <summary>
     /// Computes the intersection of the non-null input ranges. Corresponds to the PostgreSQL <c>range_intersect_agg</c> aggregate function.
     /// </summary>
-    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
     /// <param name="input">The ranges on which to perform the intersection operation.</param>
     /// <seealso href="https://www.postgresql.org/docs/current/functions-aggregate.html">PostgreSQL documentation for aggregate functions.</seealso>
     /// <exception cref="NotSupportedException">
-    /// <see cref="RangeIntersectAgg{T}(IEnumerable{NpgsqlRange{T}}" /> is only intended for use via SQL translation as part of an EF Core
+    /// <see cref="RangeIntersectAgg{T}(IEnumerable{NpgsqlRange{T}})" /> is only intended for use via SQL translation as part of an EF Core
     /// LINQ query.
     /// </exception>
     public static NpgsqlRange<T> RangeIntersectAgg<T>(this IEnumerable<NpgsqlRange<T>> input)
@@ -225,11 +223,10 @@ public static class NpgsqlRangeDbFunctionsExtensions
     /// Computes the intersection of the non-null input multiranges.
     /// Corresponds to the PostgreSQL <c>range_intersect_agg</c> aggregate function.
     /// </summary>
-    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
     /// <param name="input">The multiranges on which to perform the intersection operation.</param>
     /// <seealso href="https://www.postgresql.org/docs/current/functions-aggregate.html">PostgreSQL documentation for aggregate functions.</seealso>
     /// <exception cref="NotSupportedException">
-    /// <see cref="RangeIntersectAgg{T}(IEnumerable{NpgsqlRange{T}[]}" /> is only intended for use via SQL translation as part of an EF Core
+    /// <see cref="RangeIntersectAgg{T}(IEnumerable{NpgsqlRange{T}[]})" /> is only intended for use via SQL translation as part of an EF Core
     /// LINQ query.
     /// </exception>
     public static NpgsqlRange<T>[] RangeIntersectAgg<T>(this IEnumerable<NpgsqlRange<T>[]> input)

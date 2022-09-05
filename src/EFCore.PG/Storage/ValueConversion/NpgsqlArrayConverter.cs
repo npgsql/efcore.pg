@@ -6,8 +6,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 /// </summary>
 public class NpgsqlArrayConverter<TModelArray, TProviderArray> : ValueConverter<TModelArray, TProviderArray>, INpgsqlArrayConverter
 {
+    /// <summary>
+    ///     The value converter for the element type of the array.
+    /// </summary>
     public virtual ValueConverter ElementConverter { get; }
 
+    /// <summary>
+    ///     Constructs a new instance of <see cref="NpgsqlArrayConverter{TModelArray, TProviderArray}" />.
+    /// </summary>
     public NpgsqlArrayConverter(ValueConverter elementConverter)
         : base(
             ToArrayProviderExpression(elementConverter.ConvertToProviderExpression),

@@ -6,11 +6,11 @@ using System.Runtime.CompilerServices;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 /// <summary>
-/// An expression that represents a PostgreSQL-specific row value expression in a SQL tree.
+///     An expression that represents a PostgreSQL-specific row value expression in a SQL tree.
 /// </summary>
 /// <remarks>
-/// See the <see href="https://www.postgresql.org/docs/current/sql-expressions.html#SQL-SYNTAX-ROW-CONSTRUCTORS">PostgreSQL docs</see>
-/// for more information.
+///     See the <see href="https://www.postgresql.org/docs/current/sql-expressions.html#SQL-SYNTAX-ROW-CONSTRUCTORS">PostgreSQL docs</see>
+///     for more information.
 /// </remarks>
 public class PostgresRowValueExpression : SqlExpression, IEquatable<PostgresRowValueExpression>
 {
@@ -19,6 +19,9 @@ public class PostgresRowValueExpression : SqlExpression, IEquatable<PostgresRowV
     /// </summary>
     public virtual IReadOnlyList<SqlExpression> Values { get; }
 
+    /// <summary>
+    ///     A type mapping representing a row value type.
+    /// </summary>
     public static RelationalTypeMapping TypeMappingInstance => RowValueTypeMapping.Instance;
 
     /// <inheritdoc />
@@ -60,6 +63,10 @@ public class PostgresRowValueExpression : SqlExpression, IEquatable<PostgresRowV
         return newRowValues is null ? this : new PostgresRowValueExpression(newRowValues, Type);
     }
 
+    /// <summary>
+    ///     Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
+    ///     return this expression.
+    /// </summary>
     public virtual PostgresRowValueExpression Update(IReadOnlyList<SqlExpression> values)
         => values.Count == Values.Count && values.Zip(Values, (x, y) => (x, y)).All(tup => tup.x == tup.y)
             ? this

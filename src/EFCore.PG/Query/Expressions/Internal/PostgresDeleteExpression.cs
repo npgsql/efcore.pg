@@ -1,5 +1,8 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
+/// <summary>
+///     An SQL expression that represents a PostgreSQL DELETE operation.
+/// </summary>
 public sealed class PostgresDeleteExpression : Expression, IPrintableExpression
 {
     /// <summary>
@@ -17,6 +20,9 @@ public sealed class PostgresDeleteExpression : Expression, IPrintableExpression
     /// </summary>
     public SqlExpression? Predicate { get; }
 
+    /// <summary>
+    ///     Creates a new instance of the <see cref="PostgresDeleteExpression" /> class.
+    /// </summary>
     public PostgresDeleteExpression(TableExpression table, IReadOnlyList<TableExpressionBase> fromItems, SqlExpression? predicate)
         => (Table, FromItems, Predicate) = (table, fromItems, predicate);
 
@@ -28,16 +34,23 @@ public sealed class PostgresDeleteExpression : Expression, IPrintableExpression
     public override ExpressionType NodeType
         => ExpressionType.Extension;
 
+    /// <inheritdoc />
     protected override Expression VisitChildren(ExpressionVisitor visitor)
         => Predicate is null
             ? this
             : Update((SqlExpression?)visitor.Visit(Predicate));
 
+    /// <summary>
+    ///     Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
+    ///     return this expression.
+    /// </summary>
+    /// <param name="predicate">The <see cref="Predicate" /> property of the result.</param>
     public PostgresDeleteExpression Update(SqlExpression? predicate)
         => predicate == Predicate
             ? this
             : new PostgresDeleteExpression(Table, FromItems, predicate);
 
+    /// <inheritdoc />
     public void Print(ExpressionPrinter expressionPrinter)
     {
         expressionPrinter.AppendLine($"DELETE FROM {Table.Name} AS {Table.Alias}");

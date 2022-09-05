@@ -4,6 +4,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore;
 
+/// <summary>
+///     Model extension methods for Npgsql-specific metadata.
+/// </summary>
+/// <remarks>
+///     See <see href="https://aka.ms/efcore-docs-modeling">Modeling entity types and relationships</see>.
+/// </remarks>
 public static class NpgsqlModelExtensions
 {
     /// <summary>
@@ -259,6 +265,12 @@ public static class NpgsqlModelExtensions
 
     #region PostgreSQL Extensions
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static PostgresExtension GetOrAddPostgresExtension(
         this IMutableModel model,
         string? schema,
@@ -266,9 +278,21 @@ public static class NpgsqlModelExtensions
         string? version)
         => PostgresExtension.GetOrAddPostgresExtension(model, schema, name, version);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static IReadOnlyList<PostgresExtension> GetPostgresExtensions(this IReadOnlyModel model)
         => PostgresExtension.GetPostgresExtensions(model).ToArray();
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static PostgresExtension GetOrAddPostgresExtension(
         this IConventionModel model,
         string? schema,
@@ -280,6 +304,12 @@ public static class NpgsqlModelExtensions
 
     #region Enum types
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static PostgresEnum GetOrAddPostgresEnum(
         this IMutableModel model,
         string? schema,
@@ -287,6 +317,12 @@ public static class NpgsqlModelExtensions
         string[] labels)
         => PostgresEnum.GetOrAddPostgresEnum(model, schema, name, labels);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static IReadOnlyList<PostgresEnum> GetPostgresEnums(this IReadOnlyModel model)
         => PostgresEnum.GetPostgresEnums(model).ToArray();
 
@@ -294,6 +330,12 @@ public static class NpgsqlModelExtensions
 
     #region Range types
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static PostgresRange GetOrAddPostgresRange(
         this IMutableModel model,
         string? schema,
@@ -313,6 +355,12 @@ public static class NpgsqlModelExtensions
             collation,
             subtypeDiff);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static IReadOnlyList<PostgresRange> PostgresRanges(this IReadOnlyModel model)
         => PostgresRange.GetPostgresRanges(model).ToArray();
 
@@ -320,12 +368,30 @@ public static class NpgsqlModelExtensions
 
     #region Database Template
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static string? GetDatabaseTemplate(this IReadOnlyModel model)
         => (string?)model[NpgsqlAnnotationNames.DatabaseTemplate];
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static void SetDatabaseTemplate(this IMutableModel model, string? template)
         => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DatabaseTemplate, template);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static string? SetDatabaseTemplate(
         this IConventionModel model,
         string? template,
@@ -338,6 +404,12 @@ public static class NpgsqlModelExtensions
         return template;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static ConfigurationSource? GetDatabaseTemplateConfigurationSource(this IConventionModel model)
         => model.FindAnnotation(NpgsqlAnnotationNames.DatabaseTemplate)?.GetConfigurationSource();
 
@@ -345,12 +417,30 @@ public static class NpgsqlModelExtensions
 
     #region Tablespace
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static string? GetTablespace(this IReadOnlyModel model)
         => (string?)model[NpgsqlAnnotationNames.Tablespace];
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static void SetTablespace(this IMutableModel model, string? tablespace)
         => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Tablespace, tablespace);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static string? SetTablespace(
         this IConventionModel model,
         string? tablespace,
@@ -363,6 +453,12 @@ public static class NpgsqlModelExtensions
         return tablespace;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static ConfigurationSource? GetTablespaceConfigurationSource(this IConventionModel model)
         => model.FindAnnotation(NpgsqlAnnotationNames.Tablespace)?.GetConfigurationSource();
 
@@ -370,6 +466,12 @@ public static class NpgsqlModelExtensions
 
     #region Collation management
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static PostgresCollation GetOrAddCollation(
         this IMutableModel model,
         string? schema,
@@ -387,6 +489,12 @@ public static class NpgsqlModelExtensions
             provider,
             deterministic);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static IReadOnlyList<PostgresCollation> GetCollations(this IReadOnlyModel model)
         => PostgresCollation.GetCollations(model).ToArray();
 

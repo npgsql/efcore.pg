@@ -3,6 +3,12 @@
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore;
 
+/// <summary>
+///     Npgsql-specific extension methods for <see cref="EntityTypeBuilder" />.
+/// </summary>
+/// <remarks>
+///     See <see href="https://aka.ms/efcore-docs-modeling">Modeling entity types and relationships</see>.
+/// </remarks>
 public static class NpgsqlEntityTypeBuilderExtensions
 {
     #region xmin
@@ -282,6 +288,9 @@ public static class NpgsqlEntityTypeBuilderExtensions
 
     #region CockroachDB Interleave-in-parent
 
+    /// <summary>
+    ///     Specifies that the CockroachDB-specific "interleave in parent" feature should be used.
+    /// </summary>
     public static EntityTypeBuilder UseCockroachDbInterleaveInParent(
         this EntityTypeBuilder entityTypeBuilder,
         Type parentTableType,
@@ -310,6 +319,9 @@ public static class NpgsqlEntityTypeBuilderExtensions
         return entityTypeBuilder;
     }
 
+    /// <summary>
+    ///     Specifies that the CockroachDB-specific "interleave in parent" feature should be used.
+    /// </summary>
     public static EntityTypeBuilder<TEntity> UseCockroachDbInterleaveInParent<TEntity>(
         this EntityTypeBuilder<TEntity> entityTypeBuilder,
         Type parentTableType,

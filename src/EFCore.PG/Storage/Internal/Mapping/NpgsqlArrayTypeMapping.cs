@@ -29,6 +29,12 @@ public abstract class NpgsqlArrayTypeMapping : RelationalTypeMapping
     /// </summary>
     public virtual bool IsElementNullable { get; }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected NpgsqlArrayTypeMapping(
         RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping, bool isElementNullable)
         : base(parameters)
@@ -52,6 +58,12 @@ public abstract class NpgsqlArrayTypeMapping : RelationalTypeMapping
     /// </summary>
     public abstract NpgsqlArrayTypeMapping MakeNonNullable();
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override CoreTypeMapping Clone(ValueConverter? converter)
     {
         // When the mapping is cloned to apply a value converter, we need to also apply that value converter to the element, otherwise
@@ -71,8 +83,20 @@ public abstract class NpgsqlArrayTypeMapping : RelationalTypeMapping
             $"Value converters for array or List properties must be configured via {nameof(NpgsqlPropertyBuilderExtensions.HasPostgresArrayConversion)}.");
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected abstract RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping);
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
     {
         var elementMapping = ElementMapping;
@@ -105,6 +129,12 @@ public abstract class NpgsqlArrayTypeMapping : RelationalTypeMapping
     // the list-to-array mapping needs to know how to generate an SQL literal for an array.
     // This is because in cases such as ctx.SomeListColumn.SequenceEquals(new[] { 1, 2, 3}), the list mapping
     // from the left side gets applied to the right side.
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
     {
         var type = value.GetType();
@@ -138,6 +168,12 @@ public abstract class NpgsqlArrayTypeMapping : RelationalTypeMapping
         return sb.ToString();
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override void ConfigureParameter(DbParameter parameter)
     {
         var npgsqlParameter = parameter as NpgsqlParameter;
@@ -163,19 +199,43 @@ public abstract class NpgsqlArrayTypeMapping : RelationalTypeMapping
             ? elementType.IsNullableType()
             : isElementNullable ?? true;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected class NullableEqualityComparer<T> : IEqualityComparer<T?>
         where T : struct
     {
         private readonly IEqualityComparer<T> _underlyingComparer;
 
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         public NullableEqualityComparer(IEqualityComparer<T> underlyingComparer)
             => _underlyingComparer = underlyingComparer;
 
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         public bool Equals(T? x, T? y)
             => x is null
                 ? y is null
                 : y.HasValue && _underlyingComparer.Equals(x.Value, y.Value);
 
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         public int GetHashCode(T? obj)
             => obj is null ? 0 : _underlyingComparer.GetHashCode(obj.Value);
     }

@@ -2,6 +2,12 @@ using System.Runtime.CompilerServices;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
+/// <summary>
+///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+///     any release. You should only use it directly in your code with extreme caution and knowing that
+///     doing so can result in application failures when updating to a new Entity Framework Core release.
+/// </summary>
 public class NpgsqlEvaluatableExpressionFilter : RelationalEvaluatableExpressionFilter
 {
     private static readonly MethodInfo TsQueryParse =
@@ -10,6 +16,12 @@ public class NpgsqlEvaluatableExpressionFilter : RelationalEvaluatableExpression
     private static readonly MethodInfo TsVectorParse =
         typeof(NpgsqlTsVector).GetRuntimeMethod(nameof(NpgsqlTsVector.Parse), new[] { typeof(string) })!;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlEvaluatableExpressionFilter(
         EvaluatableExpressionFilterDependencies dependencies,
         RelationalEvaluatableExpressionFilterDependencies relationalDependencies)
@@ -17,6 +29,12 @@ public class NpgsqlEvaluatableExpressionFilter : RelationalEvaluatableExpression
     {
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override bool IsEvaluatableExpression(Expression expression, IModel model)
     {
         switch (expression)

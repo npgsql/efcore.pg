@@ -37,6 +37,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         _postgresVersion = postgresVersion;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override Expression VisitExtension(Expression extensionExpression)
         => extensionExpression switch
         {
@@ -117,6 +123,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         // No TOP() in PostgreSQL, see GenerateLimitOffset
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override Expression VisitCrossApply(CrossApplyExpression crossApplyExpression)
     {
         Sql.Append("JOIN LATERAL ");
@@ -141,6 +153,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         return crossApplyExpression;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override Expression VisitOuterApply(OuterApplyExpression outerApplyExpression)
     {
         Sql.Append("LEFT JOIN LATERAL ");
@@ -209,9 +227,21 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
     // NonQueryConvertingExpressionVisitor converts the relational DeleteExpression to PostgresDeleteExpression, so we should never
     // get here
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override Expression VisitDelete(DeleteExpression deleteExpression)
         => throw new InvalidOperationException("Inconceivable!");
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected virtual Expression VisitPostgresDelete(PostgresDeleteExpression pgDeleteExpression)
     {
         Sql.Append("DELETE FROM ");
@@ -232,6 +262,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         return pgDeleteExpression;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected virtual Expression VisitPostgresNewArray(PostgresNewArrayExpression postgresNewArrayExpression)
     {
         Debug.Assert(postgresNewArrayExpression.TypeMapping is not null);
@@ -257,6 +293,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         return postgresNewArrayExpression;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected virtual Expression VisitPostgresBinary(PostgresBinaryExpression binaryExpression)
     {
         Check.NotNull(binaryExpression, nameof(binaryExpression));
@@ -356,6 +398,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         return binaryExpression;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected virtual Expression VisitArrayIndex(SqlBinaryExpression expression)
     {
         Visit(expression.Left);
@@ -365,6 +413,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         return expression;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override Expression VisitSqlUnary(SqlUnaryExpression sqlUnaryExpression)
     {
         Debug.Assert(sqlUnaryExpression.TypeMapping is not null);
@@ -435,6 +489,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         return base.VisitSqlUnary(sqlUnaryExpression);
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override void GenerateSetOperationOperand(SetOperationBase setOperation, SelectExpression operand)
     {
         // PostgreSQL allows ORDER BY and LIMIT in set operation operands, but requires parentheses
@@ -452,6 +512,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         base.GenerateSetOperationOperand(setOperation, operand);
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override Expression VisitCollate(CollateExpression collateExpresion)
     {
         Check.NotNull(collateExpresion, nameof(collateExpresion));
@@ -465,6 +531,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         return collateExpresion;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual Expression VisitArrayAll(PostgresAllExpression expression)
     {
         Visit(expression.Item);
@@ -486,6 +558,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         return expression;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual Expression VisitArrayAny(PostgresAnyExpression expression)
     {
         Visit(expression.Item);
@@ -572,6 +650,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         return expression;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual Expression VisitRowValue(PostgresRowValueExpression rowValueExpression)
     {
         Sql.Append("(");

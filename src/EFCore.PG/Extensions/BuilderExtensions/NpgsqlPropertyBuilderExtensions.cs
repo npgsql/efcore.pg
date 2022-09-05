@@ -451,31 +451,31 @@ public static class NpgsqlPropertyBuilderExtensions
     #region Identity options
 
     /// <summary>
-    /// Sets the sequence options on an identity column.
-    /// The column must be set as identity via <see cref="UseIdentityColumn(PropertyBuilder)"/> or
-    /// <see cref="UseIdentityAlwaysColumn(PropertyBuilder)"/>.
+    ///     Sets the sequence options on an identity column. The column must be set as identity via
+    ///     <see cref="UseIdentityColumn(PropertyBuilder)"/> or <see cref="UseIdentityAlwaysColumn(PropertyBuilder)"/>.
     /// </summary>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="startValue">
-    /// The starting value for the sequence.
-    /// The default starting value is <see cref="minValue"/> for ascending sequences and <see cref="maxValue"/> for descending ones.
+    ///     The starting value for the sequence.
+    ///     The default starting value is <paramref name="minValue" /> for ascending sequences and <paramref name="maxValue" /> for
+    ///     descending     ones.
     /// </param>
     /// <param name="incrementBy">The amount to increment between values. Defaults to 1.</param>
     /// <param name="minValue">
-    /// The minimum value for the sequence.
-    /// The default for an ascending sequence is 1. The default for a descending sequence is the minimum value of the data type.
+    ///     The minimum value for the sequence.
+    ///     The default for an ascending sequence is 1. The default for a descending sequence is the minimum value of the data type.
     /// </param>
     /// <param name="maxValue">
-    /// The maximum value for the sequence.
-    /// The default for an ascending sequence is the maximum value of the data type. The default for a descending sequence is -1.
+    ///     The maximum value for the sequence.
+    ///     The default for an ascending sequence is the maximum value of the data type. The default for a descending sequence is -1.
     /// </param>
     /// <param name="cyclic">
-    /// Sets whether or not the sequence will start again from the beginning once the maximum value is reached.
-    /// Defaults to false.
+    ///     Sets whether or not the sequence will start again from the beginning once the maximum value is reached.
+    ///     Defaults to false.
     /// </param>
     /// <param name="numbersToCache">
-    /// Specifies how many sequence numbers are to be preallocated and stored in memory for faster access.
-    /// The minimum value is 1 (only one value can be generated at a time, i.e., no cache), and this is also the default.
+    ///     Specifies how many sequence numbers are to be pre0allocated and stored in memory for faster access.
+    ///     The minimum value is 1 (only one value can be generated at a time, i.e., no cache), and this is also the default.
     /// </param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
     public static PropertyBuilder HasIdentityOptions(
@@ -498,31 +498,31 @@ public static class NpgsqlPropertyBuilderExtensions
     }
 
     /// <summary>
-    /// Sets the sequence options on an identity column.
-    /// The column must be set as identity via <see cref="UseIdentityColumn(PropertyBuilder)"/> or
-    /// <see cref="UseIdentityAlwaysColumn(PropertyBuilder)"/>.
+    ///     Sets the sequence options on an identity column. The column must be set as identity via
+    ///     <see cref="UseIdentityColumn(PropertyBuilder)"/> or <see cref="UseIdentityAlwaysColumn(PropertyBuilder)"/>.
     /// </summary>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="startValue">
-    /// The starting value for the sequence.
-    /// The default starting value is <see cref="minValue"/> for ascending sequences and <see cref="maxValue"/> for descending ones.
+    ///     The starting value for the sequence.
+    ///     The default starting value is <paramref name="minValue"/> for ascending sequences and <paramref name="maxValue"/> for descending
+    ///     ones.
     /// </param>
     /// <param name="incrementBy">The amount to increment between values. Defaults to 1.</param>
     /// <param name="minValue">
-    /// The minimum value for the sequence.
-    /// The default for an ascending sequence is 1. The default for a descending sequence is the minimum value of the data type.
+    ///     The minimum value for the sequence.
+    ///     The default for an ascending sequence is 1. The default for a descending sequence is the minimum value of the data type.
     /// </param>
     /// <param name="maxValue">
-    /// The maximum value for the sequence.
-    /// The default for an ascending sequence is the maximum value of the data type. The default for a descending sequence is -1.
+    ///     The maximum value for the sequence.
+    ///     The default for an ascending sequence is the maximum value of the data type. The default for a descending sequence is -1.
     /// </param>
     /// <param name="cyclic">
-    /// Sets whether or not the sequence will start again from the beginning once the maximum value is reached.
-    /// Defaults to false.
+    ///     Sets whether or not the sequence will start again from the beginning once the maximum value is reached.
+    ///     Defaults to false.
     /// </param>
     /// <param name="numbersToCache">
-    /// Specifies how many sequence numbers are to be preallocated and stored in memory for faster access.
-    /// The minimum value is 1 (only one value can be generated at a time, i.e., no cache), and this is also the default.
+    ///     Specifies how many sequence numbers are to be pre-allocated and stored in memory for faster access.
+    ///     The minimum value is 1 (only one value can be generated at a time, i.e., no cache), and this is also the default.
     /// </param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
     public static PropertyBuilder<TProperty> HasIdentityOptions<TProperty>(
@@ -537,31 +537,31 @@ public static class NpgsqlPropertyBuilderExtensions
             (PropertyBuilder)propertyBuilder, startValue, incrementBy, minValue, maxValue, cyclic, numbersToCache);
 
     /// <summary>
-    /// Sets the sequence options on an identity column.
-    /// The column must be set as identity via <see cref="UseIdentityColumn(PropertyBuilder)"/> or
-    /// <see cref="UseIdentityAlwaysColumn(PropertyBuilder)"/>.
+    ///     Sets the sequence options on an identity column. The column must be set as identity via
+    ///     <see cref="UseIdentityColumn(PropertyBuilder)"/> or <see cref="UseIdentityAlwaysColumn(PropertyBuilder)"/>.
     /// </summary>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="startValue">
-    /// The starting value for the sequence.
-    /// The default starting value is <see cref="minValue"/> for ascending sequences and <see cref="maxValue"/> for descending ones.
+    ///     The starting value for the sequence.
+    ///     The default starting value is <paramref name="minValue"/> for ascending sequences and <paramref name="maxValue"/> for descending
+    ///     ones.
     /// </param>
     /// <param name="incrementBy">The amount to increment between values. Defaults to 1.</param>
     /// <param name="minValue">
-    /// The minimum value for the sequence.
-    /// The default for an ascending sequence is 1. The default for a descending sequence is the minimum value of the data type.
+    ///     The minimum value for the sequence.
+    ///     The default for an ascending sequence is 1. The default for a descending sequence is the minimum value of the data type.
     /// </param>
     /// <param name="maxValue">
-    /// The maximum value for the sequence.
-    /// The default for an ascending sequence is the maximum value of the data type. The default for a descending sequence is -1.
+    ///     The maximum value for the sequence.
+    ///     The default for an ascending sequence is the maximum value of the data type. The default for a descending sequence is -1.
     /// </param>
     /// <param name="cyclic">
-    /// Sets whether or not the sequence will start again from the beginning once the maximum value is reached.
-    /// Defaults to false.
+    ///     Sets whether or not the sequence will start again from the beginning once the maximum value is reached.
+    ///     Defaults to false.
     /// </param>
     /// <param name="numbersToCache">
-    /// Specifies how many sequence numbers are to be preallocated and stored in memory for faster access.
-    /// The minimum value is 1 (only one value can be generated at a time, i.e., no cache), and this is also the default.
+    ///     Specifies how many sequence numbers are to be pre-allocated and stored in memory for faster access.
+    ///     The minimum value is 1 (only one value can be generated at a time, i.e., no cache), and this is also the default.
     /// </param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
     public static IConventionPropertyBuilder? HasIdentityOptions(
@@ -589,29 +589,29 @@ public static class NpgsqlPropertyBuilderExtensions
     }
 
     /// <summary>
-    /// Returns a value indicating whether the sequence options can be set on the identity column.
+    ///     Returns a value indicating whether the sequence options can be set on the identity column.
     /// </summary>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="startValue">
-    /// The starting value for the sequence.
-    /// The default starting value is <see cref="minValue"/> for ascending sequences and <see cref="maxValue"/> for descending ones.
+    ///     The starting value for the sequence. The default starting value is <paramref name="minValue"/> for ascending sequences and
+    ///     <paramref name="maxValue"/> for descending ones.
     /// </param>
     /// <param name="incrementBy">The amount to increment between values. Defaults to 1.</param>
     /// <param name="minValue">
-    /// The minimum value for the sequence.
-    /// The default for an ascending sequence is 1. The default for a descending sequence is the minimum value of the data type.
+    ///     The minimum value for the sequence.
+    ///     The default for an ascending sequence is 1. The default for a descending sequence is the minimum value of the data type.
     /// </param>
     /// <param name="maxValue">
-    /// The maximum value for the sequence.
-    /// The default for an ascending sequence is the maximum value of the data type. The default for a descending sequence is -1.
+    ///     The maximum value for the sequence.
+    ///     The default for an ascending sequence is the maximum value of the data type. The default for a descending sequence is -1.
     /// </param>
     /// <param name="cyclic">
-    /// Sets whether or not the sequence will start again from the beginning once the maximum value is reached.
-    /// Defaults to false.
+    ///     Sets whether or not the sequence will start again from the beginning once the maximum value is reached.
+    ///     Defaults to false.
     /// </param>
     /// <param name="numbersToCache">
-    /// Specifies how many sequence numbers are to be preallocated and stored in memory for faster access.
-    /// The minimum value is 1 (only one value can be generated at a time, i.e., no cache), and this is also the default.
+    ///     Specifies how many sequence numbers are to be pre-allocated and stored in memory for faster access.
+    ///     The minimum value is 1 (only one value can be generated at a time, i.e., no cache), and this is also the default.
     /// </param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
     public static bool CanSetIdentityOptions(
@@ -642,6 +642,9 @@ public static class NpgsqlPropertyBuilderExtensions
 
     #region Array value conversion
 
+    /// <summary>
+    ///     Configures a PostgreSQL array conversion.
+    /// </summary>
     public static PropertyBuilder<TElementProperty[]> HasPostgresArrayConversion<TElementProperty, TElementProvider>(
         this PropertyBuilder<TElementProperty[]> propertyBuilder,
         Expression<Func<TElementProperty, TElementProvider>> convertToProviderExpression,
@@ -650,6 +653,9 @@ public static class NpgsqlPropertyBuilderExtensions
             new ValueConverter<TElementProperty, TElementProvider>(
                 convertToProviderExpression, convertFromProviderExpression));
 
+    /// <summary>
+    ///     Configures a PostgreSQL array conversion.
+    /// </summary>
     public static PropertyBuilder<List<TElementProperty>> HasPostgresArrayConversion<TElementProperty, TElementProvider>(
         this PropertyBuilder<List<TElementProperty>> propertyBuilder,
         Expression<Func<TElementProperty, TElementProvider>> convertToProviderExpression,
@@ -659,12 +665,18 @@ public static class NpgsqlPropertyBuilderExtensions
                 new ValueConverter<TElementProperty, TElementProvider>(
                     convertToProviderExpression, convertFromProviderExpression)));
 
+    /// <summary>
+    ///     Configures a PostgreSQL array conversion.
+    /// </summary>
     public static PropertyBuilder<TElementProperty[]> HasPostgresArrayConversion<TElementProperty, TElementProvider>(
         this PropertyBuilder<TElementProperty[]> propertyBuilder,
         ValueConverter elementValueConverter)
         => propertyBuilder.HasConversion(
             new NpgsqlArrayConverter<TElementProperty[], TElementProvider[]>(elementValueConverter));
 
+    /// <summary>
+    ///     Configures a PostgreSQL array conversion.
+    /// </summary>
     public static PropertyBuilder<List<TElementProperty>> HasPostgresArrayConversion<TElementProperty, TElementProvider>(
         this PropertyBuilder<List<TElementProperty>> propertyBuilder,
         ValueConverter elementValueConverter)

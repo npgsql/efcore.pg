@@ -52,7 +52,7 @@ public static class NpgsqlMultirangeDbFunctionsExtensions
     /// <param name="multirange2">The specified multirange to locate in the multirange.</param>
     /// <returns><value>true</value> if the multirange contains the specified multirange; otherwise, <value>false</value>.</returns>
     /// <exception cref="NotSupportedException">
-    /// <see cref="Contains{T}(List{NpgsqlRange{T}}, List{NpgsqlRange{T}}" /> is only intended for use via SQL translation as part of an EF
+    /// <see cref="Contains{T}(List{NpgsqlRange{T}}, List{NpgsqlRange{T}})" /> is only intended for use via SQL translation as part of an EF
     /// Core LINQ query.
     /// </exception>
     public static bool Contains<T>(this List<NpgsqlRange<T>> multirange1, List<NpgsqlRange<T>> multirange2)
@@ -607,7 +607,7 @@ public static class NpgsqlMultirangeDbFunctionsExtensions
     /// <param name="multirange">The multirange.</param>
     /// <returns>The smallest range that includes the entire multirange.</returns>
     /// <exception cref="NotSupportedException">
-    /// <see cref="Merge{T}(List{NpgsqlRange{T}}" /> is only intended for use via SQL translation as part of an EF
+    /// <see cref="Merge{T}(List{NpgsqlRange{T}})" /> is only intended for use via SQL translation as part of an EF
     /// Core LINQ query.
     /// </exception>
     public static NpgsqlRange<T> Merge<T>(this List<NpgsqlRange<T>> multirange)

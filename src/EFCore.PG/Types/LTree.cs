@@ -130,10 +130,24 @@ public readonly struct LTree : IEquatable<LTree>
     public static LTree LongestCommonAncestor(params LTree[] others)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LongestCommonAncestor)));
 
+    /// <summary>
+    ///     Converts an <see cref="LTree" /> type to a string.
+    /// </summary>
     public static implicit operator LTree(string value) => new(value);
+    
+    /// <summary>
+    ///     Converts a string to an <see cref="LTree" /> type.
+    /// </summary>
     public static implicit operator string(LTree ltree) => ltree._value;
 
+    /// <summary>
+    ///     Compares two <see cref="LTree" /> instances for equality.
+    /// </summary>
     public static bool operator ==(LTree x, LTree y) => x._value == y._value;
+    
+    /// <summary>
+    ///     Compares two <see cref="LTree" /> instances for inequality.
+    /// </summary>
     public static bool operator !=(LTree x, LTree y) => x._value != y._value;
 
     /// <inheritdocs />

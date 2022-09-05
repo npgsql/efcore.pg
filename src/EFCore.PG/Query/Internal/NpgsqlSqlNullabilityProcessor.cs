@@ -54,8 +54,13 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
             _ => base.VisitCustomSqlExpression(sqlExpression, allowOptimizedExpansion, out nullable)
         };
 
-    protected virtual SqlExpression VisitAny(
-        PostgresAnyExpression anyExpression, bool allowOptimizedExpansion, out bool nullable)
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected virtual SqlExpression VisitAny(PostgresAnyExpression anyExpression, bool allowOptimizedExpansion, out bool nullable)
     {
         Check.NotNull(anyExpression, nameof(anyExpression));
 
@@ -122,8 +127,13 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
                         typeof(int)))));
     }
 
-    protected virtual SqlExpression VisitAll(
-        PostgresAllExpression allExpression, bool allowOptimizedExpansion, out bool nullable)
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected virtual SqlExpression VisitAll(PostgresAllExpression allExpression, bool allowOptimizedExpansion, out bool nullable)
     {
         Check.NotNull(allExpression, nameof(allExpression));
 
@@ -144,6 +154,12 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         return updated;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected virtual SqlExpression VisitArrayIndex(
         PostgresArrayIndexExpression arrayIndexExpression, bool allowOptimizedExpansion, out bool nullable)
     {
@@ -157,8 +173,13 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         return arrayIndexExpression.Update(array, index);
     }
 
-    protected virtual SqlExpression VisitBinary(
-        PostgresBinaryExpression binaryExpression, bool allowOptimizedExpansion, out bool nullable)
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected virtual SqlExpression VisitBinary(PostgresBinaryExpression binaryExpression, bool allowOptimizedExpansion, out bool nullable)
     {
         Check.NotNull(binaryExpression, nameof(binaryExpression));
 
@@ -182,6 +203,12 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         return binaryExpression.Update(left, right);
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override SqlExpression VisitSqlFunction(
         SqlFunctionExpression sqlFunctionExpression,
         bool allowOptimizedExpansion,
@@ -255,8 +282,13 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         }
     }
 
-    protected virtual SqlExpression VisitILike(
-        PostgresILikeExpression iLikeExpression, bool allowOptimizedExpansion, out bool nullable)
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected virtual SqlExpression VisitILike(PostgresILikeExpression iLikeExpression, bool allowOptimizedExpansion, out bool nullable)
     {
         Check.NotNull(iLikeExpression, nameof(iLikeExpression));
 
@@ -275,6 +307,12 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
                 : visited;
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected virtual SqlExpression VisitNewArray(
         PostgresNewArrayExpression newArrayExpression, bool allowOptimizedExpansion, out bool nullable)
     {
@@ -306,6 +344,12 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
             : new PostgresNewArrayExpression(newInitializers, newArrayExpression.Type, newArrayExpression.TypeMapping);
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected virtual SqlExpression VisitRegexMatch(
         PostgresRegexMatchExpression regexMatchExpression, bool allowOptimizedExpansion, out bool nullable)
     {
@@ -319,6 +363,12 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         return regexMatchExpression.Update(match, pattern);
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected virtual SqlExpression VisitJsonTraversal(
         PostgresJsonTraversalExpression jsonTraversalExpression, bool allowOptimizedExpansion, out bool nullable)
     {
@@ -353,6 +403,12 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         return jsonTraversalExpression.Update(expression, newPath?.ToArray() ?? jsonTraversalExpression.Path);
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected virtual SqlExpression VisitRowValueExpression(
         PostgresRowValueExpression rowValueExpression,
         bool allowOptimizedExpansion,

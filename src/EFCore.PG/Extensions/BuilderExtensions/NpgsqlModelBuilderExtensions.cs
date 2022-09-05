@@ -6,7 +6,7 @@ using Npgsql.NameTranslation;
 namespace Microsoft.EntityFrameworkCore;
 
 /// <summary>
-/// Npgsql specific extension methods for <see cref="ModelBuilder"/>.
+/// Npgsql-specific extension methods for <see cref="ModelBuilder"/>.
 /// </summary>
 public static class NpgsqlModelBuilderExtensions
 {
@@ -493,9 +493,10 @@ public static class NpgsqlModelBuilderExtensions
 
     #region Templates
 
-    public static ModelBuilder UseDatabaseTemplate(
-        this ModelBuilder modelBuilder,
-        string templateDatabaseName)
+    /// <summary>
+    ///     Specifies the PostgreSQL database to use as a template when creating a new database for this model.
+    /// </summary>
+    public static ModelBuilder UseDatabaseTemplate(this ModelBuilder modelBuilder, string templateDatabaseName)
     {
         Check.NotNull(modelBuilder, nameof(modelBuilder));
         Check.NotEmpty(templateDatabaseName, nameof(templateDatabaseName));
@@ -573,6 +574,9 @@ public static class NpgsqlModelBuilderExtensions
 
     #region Tablespaces
 
+    /// <summary>
+    ///     Specifies the PostgreSQL tablespace in which to place the new database created for this model.
+    /// </summary>
     public static ModelBuilder UseTablespace(
         this ModelBuilder modelBuilder,
         string tablespace)

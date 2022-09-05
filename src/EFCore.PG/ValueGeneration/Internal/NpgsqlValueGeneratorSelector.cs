@@ -3,6 +3,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
 
+/// <summary>
+///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+///     any release. You should only use it directly in your code with extreme caution and knowing that
+///     doing so can result in application failures when updating to a new Entity Framework Core release.
+/// </summary>
 public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
 {
     private readonly INpgsqlSequenceValueGeneratorFactory _sequenceFactory;
@@ -10,6 +16,12 @@ public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
     private readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
     private readonly IRelationalCommandDiagnosticsLogger _commandLogger;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlValueGeneratorSelector(
         ValueGeneratorSelectorDependencies dependencies,
         INpgsqlSequenceValueGeneratorFactory sequenceFactory,
@@ -30,6 +42,12 @@ public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
     /// </summary>
     public new virtual INpgsqlValueGeneratorCache Cache => (INpgsqlValueGeneratorCache)base.Cache;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override ValueGenerator Select(IProperty property, IEntityType entityType)
     {
         Check.NotNull(property, nameof(property));
@@ -46,6 +64,12 @@ public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
                 : base.Select(property, entityType);
     }
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override ValueGenerator Create(IProperty property, IEntityType entityType)
     {
         Check.NotNull(property, nameof(property));

@@ -3,10 +3,20 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 
+/// <summary>
+///     A convention that discovers certain common PostgreSQL extensions based on store types used in the model (e.g. hstore).
+/// </summary>
+/// <remarks>
+///     See <see href="https://aka.ms/efcore-docs-conventions">Model building conventions</see>.
+/// </remarks>
 public class NpgsqlPostgresExtensionDiscoveryConvention : IModelFinalizingConvention
 {
     private readonly IRelationalTypeMappingSource _typeMappingSource;
 
+    /// <summary>
+    ///     Creates a new instance of <see cref="NpgsqlPostgresExtensionDiscoveryConvention" />.
+    /// </summary>
+    /// <param name="typeMappingSource">The type mapping source to use.</param>
     public NpgsqlPostgresExtensionDiscoveryConvention(IRelationalTypeMappingSource typeMappingSource)
     {
         _typeMappingSource = typeMappingSource;

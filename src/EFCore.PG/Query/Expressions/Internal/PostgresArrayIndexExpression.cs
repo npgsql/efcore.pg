@@ -19,6 +19,13 @@ public class PostgresArrayIndexExpression : SqlExpression, IEquatable<PostgresAr
     /// </summary>
     public virtual SqlExpression Index { get; }
 
+    /// <summary>
+    ///     Creates a new instance of the <see cref="PostgresArrayIndexExpression" /> class.
+    /// </summary>
+    /// <param name="array">The array tp index into.</param>
+    /// <param name="index">An position in the array to index into.</param>
+    /// <param name="type">The <see cref="Type" /> of the expression.</param>
+    /// <param name="typeMapping">The <see cref="RelationalTypeMapping" /> associated with the expression.</param>
     public PostgresArrayIndexExpression(
         SqlExpression array,
         SqlExpression index,
@@ -48,6 +55,13 @@ public class PostgresArrayIndexExpression : SqlExpression, IEquatable<PostgresAr
         Index = index;
     }
 
+    /// <summary>
+    ///     Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
+    ///     return this expression.
+    /// </summary>
+    /// <param name="array">The <see cref="Array" /> property of the result.</param>
+    /// <param name="index">The <see cref="Index" /> property of the result.</param>
+    /// <returns>This expression if no children changed, or an expression with the updated children.</returns>
     public virtual PostgresArrayIndexExpression Update(SqlExpression array, SqlExpression index)
         => array == Array && index == Index
             ? this
@@ -57,6 +71,7 @@ public class PostgresArrayIndexExpression : SqlExpression, IEquatable<PostgresAr
     protected override Expression VisitChildren(ExpressionVisitor visitor)
         => Update((SqlExpression)visitor.Visit(Array), (SqlExpression)visitor.Visit(Index));
 
+    /// <inheritdoc />
     public virtual bool Equals(PostgresArrayIndexExpression? other)
         => ReferenceEquals(this, other) ||
             other is not null &&
@@ -64,10 +79,13 @@ public class PostgresArrayIndexExpression : SqlExpression, IEquatable<PostgresAr
             Array.Equals(other.Array) &&
             Index.Equals(other.Index);
 
+    /// <inheritdoc />
     public override bool Equals(object? obj) => obj is PostgresArrayIndexExpression e && Equals(e);
 
+    /// <inheritdoc />
     public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Array, Index);
 
+    /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)
     {
         expressionPrinter.Visit(Array);
@@ -76,5 +94,6 @@ public class PostgresArrayIndexExpression : SqlExpression, IEquatable<PostgresAr
         expressionPrinter.Append("]");
     }
 
+    /// <inheritdoc />
     public override string ToString() => $"{Array}[{Index}]";
 }
