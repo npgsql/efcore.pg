@@ -63,29 +63,34 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
             // When given a timestamptz, date_trunc performs the truncation with respect to TimeZone; to avoid that, we use the overload
             // accepting a time zone, and pass UTC. For regular timestamp (or in legacy timestamp mode), we use the simpler overload without
             // a time zone.
-            if (NpgsqlTypeMappingSource.LegacyTimestampBehavior || instance?.TypeMapping is NpgsqlTimestampTypeMapping)
+            switch (instance?.TypeMapping)
             {
-                return _sqlExpressionFactory.Function(
-                    "date_trunc",
-                    new[] { _sqlExpressionFactory.Constant("day"), instance! },
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[2],
-                    returnType,
-                    instance!.TypeMapping);
-            }
+                case NpgsqlTimestampTypeMapping:
+                case NpgsqlTimestampTzTypeMapping when NpgsqlTypeMappingSource.LegacyTimestampBehavior:
+                    return _sqlExpressionFactory.Function(
+                        "date_trunc",
+                        new[] { _sqlExpressionFactory.Constant("day"), instance! },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[2],
+                        returnType,
+                        instance.TypeMapping);
 
-            if (instance?.TypeMapping is NpgsqlTimestampTzTypeMapping)
-            {
-                return _sqlExpressionFactory.Function(
-                    "date_trunc",
-                    new[] { _sqlExpressionFactory.Constant("day"), instance, _sqlExpressionFactory.Constant("UTC") },
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[3],
-                    returnType,
-                    instance.TypeMapping);
-            }
+                case NpgsqlTimestampTzTypeMapping:
+                    return _sqlExpressionFactory.Function(
+                        "date_trunc",
+                        new[] { _sqlExpressionFactory.Constant("day"), instance, _sqlExpressionFactory.Constant("UTC") },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[3],
+                        returnType,
+                        instance.TypeMapping);
 
-            return null;
+                // If DateTime.Date is invoked on a PostgreSQL date, simply no-op.
+                case NpgsqlDateTypeMapping:
+                    return instance;
+
+                default:
+                    return null;
+            }
         }
 
         return member.Name switch
