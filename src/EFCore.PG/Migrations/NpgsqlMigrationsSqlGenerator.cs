@@ -61,39 +61,22 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
         void AddSequenceBumpingForSeeding()
         {
-            // For all tables where we had data seeding insertions, get any identity/serial columns for those tables.
+            // For all tables where we had data seeding insertions, find all columns mapped to properties with identity/serial value
+            // generation strategy. We'll bump the sequences for those columns.
             var seededGeneratedColumns = operations
                 .OfType<InsertDataOperation>()
                 .Select(o => new { o.Schema, o.Table })
                 .Distinct()
-                .Select(
-                    t => new
-                    {
-                        t.Schema,
-                        t.Table,
-                        Columns = (model?.GetRelationalModel().FindTable(t.Table, t.Schema)
-                                    ?.EntityTypeMappings.Select(m => m.EntityType)
-                                ?? Enumerable.Empty<IEntityType>())
-                            .SelectMany(
-                                e => e.GetDeclaredProperties()
-                                    .Where(
-                                        p => p.GetValueGenerationStrategy() switch
-                                        {
-                                            NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => true,
-                                            NpgsqlValueGenerationStrategy.IdentityAlwaysColumn => true,
-                                            NpgsqlValueGenerationStrategy.SerialColumn => true,
-                                            _ => false
-                                        })
-                                    .Select(p => p.GetColumnName(StoreObjectIdentifier.Table(t.Table, t.Schema))))
-                    })
                 .SelectMany(
-                    t => t.Columns.Select(
-                        p => new
-                        {
-                            t.Schema,
-                            t.Table,
-                            Column = p!,
-                        }))
+                    t => model?.GetRelationalModel().FindTable(t.Table, t.Schema)?.Columns
+                            .Where(
+                                c => c.PropertyMappings.Any(
+                                    p => p.Property.GetValueGenerationStrategy() is
+                                        NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
+                                        or NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
+                                        or NpgsqlValueGenerationStrategy.SerialColumn))
+                        ?? Enumerable.Empty<IColumn>())
+                .Distinct()
                 .ToArray();
 
             if (!seededGeneratedColumns.Any())
@@ -108,9 +91,9 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 // Weirdly, pg_get_serial_sequence accepts a standard quoted "schema"."table" inside its first
                 // parameter string literal, but the second one is a column name that shouldn't be double-quoted...
 
-                var table = Dependencies.SqlGenerationHelper.DelimitIdentifier(c.Table, c.Schema);
-                var column = Dependencies.SqlGenerationHelper.DelimitIdentifier(c.Column!);
-                var unquotedColumn = c.Column.Replace("'", "''");
+                var table = Dependencies.SqlGenerationHelper.DelimitIdentifier(c.Table.Name, c.Table.Schema);
+                var column = Dependencies.SqlGenerationHelper.DelimitIdentifier(c.Name);
+                var unquotedColumn = c.Name.Replace("'", "''");
 
                 // When generating idempotent scripts, migration DDL is enclosed in anonymous DO blocks,
                 // where PERFORM must be used instead of SELECT
