@@ -114,7 +114,7 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
 
         AppendUpdateCommand(commandStringBuilder, name, schema, writeOperations, readOperations, conditionOperations);
 
-        return ResultSetMapping.LastInResultSet;
+        return readOperations.Count > 0 ? ResultSetMapping.LastInResultSet : ResultSetMapping.NoResults;
     }
 
     /// <summary>
