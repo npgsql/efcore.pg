@@ -49,49 +49,40 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
 
         try
         {
-            while (true)
-            {
-                // Find the next propagating command, if any
-                int nextPropagating;
-                for (nextPropagating = commandIndex;
-                     nextPropagating < ModificationCommands.Count &&
-                     !ResultSetMappings[nextPropagating].HasFlag(ResultSetMapping.HasResultRow);
-                     nextPropagating++)
-                {
-                }
+            bool? onResultSet = null;
 
-                // Go over all non-propagating commands before the next propagating one,
-                // make sure they executed
-                for (; commandIndex < nextPropagating; commandIndex++)
+            for (; commandIndex < ModificationCommands.Count; commandIndex++)
+            {
+                // Note that in the PG provider, we never transmit rows affected via the result set - it's always transmitted separately via
+                // the PG wire protocol and exposed on the reader (see below).
+                // As a result, if there's a result set we know that it contains values to be propagated back into the entity instance.
+                if (ResultSetMappings[commandIndex].HasFlag(ResultSetMapping.HasResultRow))
                 {
-#pragma warning disable 618
-                    if (npgsqlReader.Statements[commandIndex].Rows == 0)
+                    var modificationCommand = ModificationCommands[commandIndex];
+
+                    if (!reader.Read())
                     {
                         ThrowAggregateUpdateConcurrencyException(reader, commandIndex, 1, 0);
                     }
-#pragma warning restore 618
+
+                    modificationCommand.PropagateResults(reader);
+
+                    onResultSet = npgsqlReader.NextResult();
                 }
 
-                if (nextPropagating == ModificationCommands.Count)
-                {
-                    Debug.Assert(!npgsqlReader.NextResult(), "Expected less resultsets");
-                    break;
-                }
-
-                // Propagate to results from the reader to the ModificationCommand
-
-                var modificationCommand = ModificationCommands[commandIndex];
-
-                if (!reader.Read())
+                // TODO: when EF Core adds support for DbBatch (https://github.com/dotnet/efcore/issues/18990), we can start using that
+                // standardized API for fetching the rows affected by an individual command in a batch.
+#pragma warning disable 618
+                if (npgsqlReader.Statements[commandIndex].Rows == 0)
                 {
                     ThrowAggregateUpdateConcurrencyException(reader, commandIndex, 1, 0);
                 }
+#pragma warning restore 618
+            }
 
-                modificationCommand.PropagateResults(reader);
-
-                npgsqlReader.NextResult();
-
-                commandIndex++;
+            if (onResultSet == true)
+            {
+                Dependencies.UpdateLogger.UnexpectedTrailingResultSetWhenSaving();
             }
         }
         catch (Exception ex) when (ex is not DbUpdateException and not OperationCanceledException)
@@ -121,51 +112,42 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
 
         try
         {
-            while (true)
-            {
-                // Find the next propagating command, if any
-                int nextPropagating;
-                for (nextPropagating = commandIndex;
-                     nextPropagating < ModificationCommands.Count &&
-                     !ResultSetMappings[nextPropagating].HasFlag(ResultSetMapping.HasResultRow);
-                     nextPropagating++)
-                {
-                }
+            bool? onResultSet = null;
 
-                // Go over all non-propagating commands before the next propagating one,
-                // make sure they executed
-                for (; commandIndex < nextPropagating; commandIndex++)
+            for (; commandIndex < ModificationCommands.Count; commandIndex++)
+            {
+                // Note that in the PG provider, we never transmit rows affected via the result set - it's transmitted via the PG wire
+                // protocol and exposed on the reader (see above).
+                // As a result, if there's a result set we know that it contains values to be propagated back into the entity instance.
+                if (ResultSetMappings[commandIndex].HasFlag(ResultSetMapping.HasResultRow))
                 {
-#pragma warning disable 618
-                    if (npgsqlReader.Statements[commandIndex].Rows == 0)
+                    var modificationCommand = ModificationCommands[commandIndex];
+
+                    if (!(await reader.ReadAsync(cancellationToken).ConfigureAwait(false)))
                     {
                         await ThrowAggregateUpdateConcurrencyExceptionAsync(reader, commandIndex, 1, 0, cancellationToken)
                             .ConfigureAwait(false);
                     }
-#pragma warning restore 618
+
+                    modificationCommand.PropagateResults(reader);
+
+                    onResultSet = await npgsqlReader.NextResultAsync(cancellationToken).ConfigureAwait(false);
                 }
 
-                if (nextPropagating == ModificationCommands.Count)
-                {
-                    Debug.Assert(!(await npgsqlReader.NextResultAsync(cancellationToken).ConfigureAwait(false)), "Expected less resultsets");
-                    break;
-                }
-
-                // Extract result from the command and propagate it
-
-                var modificationCommand = ModificationCommands[commandIndex];
-
-                if (!(await reader.ReadAsync(cancellationToken).ConfigureAwait(false)))
+                // TODO: when EF Core adds support for DbBatch (https://github.com/dotnet/efcore/issues/18990), we can start using that
+                // standardized API for fetching the rows affected by an individual command in a batch.
+#pragma warning disable 618
+                if (npgsqlReader.Statements[commandIndex].Rows == 0)
                 {
                     await ThrowAggregateUpdateConcurrencyExceptionAsync(reader, commandIndex, 1, 0, cancellationToken)
                         .ConfigureAwait(false);
                 }
+#pragma warning restore 618
+            }
 
-                modificationCommand.PropagateResults(reader);
-
-                await npgsqlReader.NextResultAsync(cancellationToken).ConfigureAwait(false);
-
-                commandIndex++;
+            if (onResultSet == true)
+            {
+                Dependencies.UpdateLogger.UnexpectedTrailingResultSetWhenSaving();
             }
         }
         catch (Exception ex) when (ex is not DbUpdateException and not OperationCanceledException)
