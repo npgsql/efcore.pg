@@ -511,11 +511,52 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             builder.AppendLine(";");
         }
 
-        if (operation.IsNullable != operation.OldColumn.IsNullable)
+        if (operation.IsNullable && !operation.OldColumn.IsNullable)
         {
             builder
                 .Append(alterBase)
-                .Append(operation.IsNullable ? "DROP NOT NULL" : "SET NOT NULL")
+                .Append("DROP NOT NULL")
+                .AppendLine(";");
+        }
+        else if (!operation.IsNullable && operation.OldColumn.IsNullable)
+        {
+            // The column is being made non-nullable. Generate an update statement before doing that, to convert any existing null values to
+            // the default value (otherwise PostgreSQL fails).
+            if (operation.DefaultValueSql is not null || operation.DefaultValue is not null)
+            {
+                string defaultValueSql;
+                if (operation.DefaultValueSql is not null)
+                {
+                    defaultValueSql = operation.DefaultValueSql;
+                }
+                else
+                {
+                    Check.DebugAssert(operation.DefaultValue is not null, "operation.DefaultValue is not null");
+
+                    var typeMapping = (type != null
+                            ? Dependencies.TypeMappingSource.FindMapping(operation.DefaultValue.GetType(), type)
+                            : null)
+                        ?? Dependencies.TypeMappingSource.GetMappingForValue(operation.DefaultValue);
+
+                    defaultValueSql = typeMapping.GenerateSqlLiteral(operation.DefaultValue);
+                }
+
+                builder
+                    .Append("UPDATE ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
+                    .Append(" SET ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                    .Append(" = ")
+                    .Append(defaultValueSql)
+                    .Append(" WHERE ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                    .Append(" IS NULL")
+                    .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+            }
+
+            builder
+                .Append(alterBase)
+                .Append("SET NOT NULL")
                 .AppendLine(";");
         }
 
