@@ -55,7 +55,7 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
                 int nextPropagating;
                 for (nextPropagating = commandIndex;
                      nextPropagating < ModificationCommands.Count &&
-                     !ModificationCommands[nextPropagating].RequiresResultPropagation;
+                     !ResultSetMappings[nextPropagating].HasFlag(ResultSetMapping.HasResultRow);
                      nextPropagating++)
                 {
                 }
@@ -86,8 +86,6 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
                 {
                     ThrowAggregateUpdateConcurrencyException(reader, commandIndex, 1, 0);
                 }
-
-                Check.DebugAssert(modificationCommand.RequiresResultPropagation, "RequiresResultPropagation is false");
 
                 modificationCommand.PropagateResults(reader);
 
@@ -129,7 +127,7 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
                 int nextPropagating;
                 for (nextPropagating = commandIndex;
                      nextPropagating < ModificationCommands.Count &&
-                     !ModificationCommands[nextPropagating].RequiresResultPropagation;
+                     !ResultSetMappings[nextPropagating].HasFlag(ResultSetMapping.HasResultRow);
                      nextPropagating++)
                 {
                 }
@@ -162,8 +160,6 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
                     await ThrowAggregateUpdateConcurrencyExceptionAsync(reader, commandIndex, 1, 0, cancellationToken)
                         .ConfigureAwait(false);
                 }
-
-                Check.DebugAssert(modificationCommand.RequiresResultPropagation, "RequiresResultPropagation is false");
 
                 modificationCommand.PropagateResults(reader);
 

@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
-    <EFCoreVersion>7.0.0-rc.1.22426.7</EFCoreVersion>
-    <MicrosoftExtensionsVersion>7.0.0-rc.1.22426.10</MicrosoftExtensionsVersion>
+    <EFCoreVersion>7.0.0-rc.2.22462.15</EFCoreVersion>
+    <MicrosoftExtensionsVersion>7.0.0-rc.2.22462.6</MicrosoftExtensionsVersion>
     <NpgsqlVersion>7.0.0-preview.7</NpgsqlVersion>
   </PropertyGroup>
 
@@ -22,7 +22,7 @@
 
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.3.1" />
-    <PackageVersion Include="xunit" Version="2.4.2-pre.9" />
+    <PackageVersion Include="xunit" Version="2.4.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.0.1" />
   </ItemGroup>

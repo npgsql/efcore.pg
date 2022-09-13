@@ -3,7 +3,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class ManyToManyTrackingNpgsqlTest : ManyToManyTrackingTestBase<ManyToManyTrackingNpgsqlTest.ManyToManyTrackingNpgsqlFixture>
+public class ManyToManyTrackingNpgsqlTest : ManyToManyTrackingRelationalTestBase<
+    ManyToManyTrackingNpgsqlTest.ManyToManyTrackingNpgsqlFixture>
 {
     public ManyToManyTrackingNpgsqlTest(ManyToManyTrackingNpgsqlFixture fixture)
         : base(fixture)
@@ -13,7 +14,7 @@ public class ManyToManyTrackingNpgsqlTest : ManyToManyTrackingTestBase<ManyToMan
     protected override void UseTransaction(DatabaseFacade facade, IDbContextTransaction transaction)
         => facade.UseTransaction(transaction.GetDbTransaction());
 
-    public class ManyToManyTrackingNpgsqlFixture : ManyToManyTrackingFixtureBase
+    public class ManyToManyTrackingNpgsqlFixture : ManyToManyTrackingRelationalFixture
     {
         protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
 

@@ -5,10 +5,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.BulkUpdates;
 public class TPCInheritanceBulkUpdatesNpgsqlTest
     : TPCInheritanceBulkUpdatesTestBase<TPCInheritanceBulkUpdatesNpgsqlFixture>
 {
-    public TPCInheritanceBulkUpdatesNpgsqlTest(TPCInheritanceBulkUpdatesNpgsqlFixture fixture)
+    public TPCInheritanceBulkUpdatesNpgsqlTest(
+        TPCInheritanceBulkUpdatesNpgsqlFixture fixture,
+        ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
         ClearLog();
+        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     public override async Task Delete_where_hierarchy(bool async)
@@ -80,7 +83,28 @@ WHERE (
         AssertSql();
     }
 
-        public override async Task Update_where_hierarchy(bool async)
+    public override async Task Delete_GroupBy_Where_Select_First_3(bool async)
+    {
+        await base.Delete_GroupBy_Where_Select_First_3(async);
+
+        AssertSql();
+    }
+
+    public override async Task Delete_GroupBy_Where_Select_First(bool async)
+    {
+        await base.Delete_GroupBy_Where_Select_First(async);
+
+        AssertSql();
+    }
+
+    public override async Task Delete_GroupBy_Where_Select_First_2(bool async)
+    {
+        await base.Delete_GroupBy_Where_Select_First_2(async);
+
+        AssertSql();
+    }
+
+    public override async Task Update_where_hierarchy(bool async)
     {
         await base.Update_where_hierarchy(async);
 
@@ -99,9 +123,11 @@ WHERE (
         await base.Update_where_hierarchy_derived(async);
 
         AssertExecuteUpdateSql(
-            @"UPDATE ""Kiwi"" AS k
-    SET ""Name"" = 'Kiwi'
-WHERE k.""Name"" = 'Great spotted kiwi'");
+"""
+UPDATE "Kiwi" AS k
+SET "Name" = 'Kiwi'
+WHERE k."Name" = 'Great spotted kiwi'
+""");
     }
 
     public override async Task Update_where_using_hierarchy(bool async)
@@ -109,18 +135,20 @@ WHERE k.""Name"" = 'Great spotted kiwi'");
         await base.Update_where_using_hierarchy(async);
 
         AssertExecuteUpdateSql(
-            @"UPDATE ""Countries"" AS c
-    SET ""Name"" = 'Monovia'
+"""
+UPDATE "Countries" AS c
+SET "Name" = 'Monovia'
 WHERE (
     SELECT count(*)::int
     FROM (
-        SELECT e.""Id"", e.""CountryId"", e.""Name"", e.""Species"", e.""EagleId"", e.""IsFlightless"", e.""Group"", NULL AS ""FoundOn"", 'Eagle' AS ""Discriminator""
-        FROM ""Eagle"" AS e
+        SELECT e."Id", e."CountryId", e."Name", e."Species", e."EagleId", e."IsFlightless", e."Group", NULL AS "FoundOn", 'Eagle' AS "Discriminator"
+        FROM "Eagle" AS e
         UNION ALL
-        SELECT k.""Id"", k.""CountryId"", k.""Name"", k.""Species"", k.""EagleId"", k.""IsFlightless"", NULL AS ""Group"", k.""FoundOn"", 'Kiwi' AS ""Discriminator""
-        FROM ""Kiwi"" AS k
+        SELECT k."Id", k."CountryId", k."Name", k."Species", k."EagleId", k."IsFlightless", NULL AS "Group", k."FoundOn", 'Kiwi' AS "Discriminator"
+        FROM "Kiwi" AS k
     ) AS t
-    WHERE c.""Id"" = t.""CountryId"" AND t.""CountryId"" > 0) > 0");
+    WHERE c."Id" = t."CountryId" AND t."CountryId" > 0) > 0
+""");
     }
 
     public override async Task Update_where_using_hierarchy_derived(bool async)
@@ -128,15 +156,17 @@ WHERE (
         await base.Update_where_using_hierarchy_derived(async);
 
         AssertExecuteUpdateSql(
-            @"UPDATE ""Countries"" AS c
-    SET ""Name"" = 'Monovia'
+"""
+UPDATE "Countries" AS c
+SET "Name" = 'Monovia'
 WHERE (
     SELECT count(*)::int
     FROM (
-        SELECT k.""Id"", k.""CountryId"", k.""Name"", k.""Species"", k.""EagleId"", k.""IsFlightless"", NULL AS ""Group"", k.""FoundOn"", 'Kiwi' AS ""Discriminator""
-        FROM ""Kiwi"" AS k
+        SELECT k."Id", k."CountryId", k."Name", k."Species", k."EagleId", k."IsFlightless", NULL AS "Group", k."FoundOn", 'Kiwi' AS "Discriminator"
+        FROM "Kiwi" AS k
     ) AS t
-    WHERE c.""Id"" = t.""CountryId"" AND t.""CountryId"" > 0) > 0");
+    WHERE c."Id" = t."CountryId" AND t."CountryId" > 0) > 0
+""");
     }
 
     public override async Task Update_where_keyless_entity_mapped_to_sql_query(bool async)

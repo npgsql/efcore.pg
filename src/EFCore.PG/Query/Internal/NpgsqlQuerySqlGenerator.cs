@@ -62,6 +62,22 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         };
 
     /// <inheritdoc />
+    protected override void GenerateRootCommand(Expression queryExpression)
+    {
+        switch (queryExpression)
+        {
+            case PostgresDeleteExpression postgresDeleteExpression:
+                GenerateTagsHeaderComment(postgresDeleteExpression.Tags);
+                VisitPostgresDelete(postgresDeleteExpression);
+                break;
+
+            default:
+                base.GenerateRootCommand(queryExpression);
+                break;
+        }
+    }
+
+    /// <inheritdoc />
     protected override void GenerateLimitOffset(SelectExpression selectExpression)
     {
         Check.NotNull(selectExpression, nameof(selectExpression));

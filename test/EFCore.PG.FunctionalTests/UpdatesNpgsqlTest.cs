@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore.TestModels.UpdatesModel;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlFixture>
+public class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlTest.UpdatesNpgsqlFixture>
 {
     // ReSharper disable once UnusedParameter.Local
     public UpdatesNpgsqlTest(UpdatesNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
@@ -49,5 +50,25 @@ public class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlFixture>
         Assert.Equal(
             "IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameT~1",
             entityType2.GetIndexes().Single().GetDatabaseName());
+    }
+
+    public class UpdatesNpgsqlFixture : UpdatesRelationalFixture
+    {
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
+        {
+            base.OnModelCreating(modelBuilder, context);
+
+            modelBuilder.HasPostgresExtension("uuid-ossp");
+
+            modelBuilder.Entity<ProductBase>()
+                .Property(p => p.Id).HasDefaultValueSql("uuid_generate_v4()");
+
+            modelBuilder.Entity<Product>().HasIndex(p => new { p.Name, p.Price }).IsUnique().HasFilter(@"""Name"" IS NOT NULL");
+
+            modelBuilder.Entity<Rodney>().Property(r => r.Concurrency).HasColumnType("timestamp without time zone");
+        }
     }
 }

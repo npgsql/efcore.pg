@@ -21,10 +21,19 @@ public sealed class PostgresDeleteExpression : Expression, IPrintableExpression
     public SqlExpression? Predicate { get; }
 
     /// <summary>
+    ///     The list of tags applied to this <see cref="DeleteExpression" />.
+    /// </summary>
+    public ISet<string> Tags { get; }
+
+    /// <summary>
     ///     Creates a new instance of the <see cref="PostgresDeleteExpression" /> class.
     /// </summary>
-    public PostgresDeleteExpression(TableExpression table, IReadOnlyList<TableExpressionBase> fromItems, SqlExpression? predicate)
-        => (Table, FromItems, Predicate) = (table, fromItems, predicate);
+    public PostgresDeleteExpression(
+        TableExpression table,
+        IReadOnlyList<TableExpressionBase> fromItems,
+        SqlExpression? predicate,
+        ISet<string> tags)
+        => (Table, FromItems, Predicate, Tags) = (table, fromItems, predicate, tags);
 
     /// <inheritdoc />
     public override Type Type
@@ -48,7 +57,7 @@ public sealed class PostgresDeleteExpression : Expression, IPrintableExpression
     public PostgresDeleteExpression Update(SqlExpression? predicate)
         => predicate == Predicate
             ? this
-            : new PostgresDeleteExpression(Table, FromItems, predicate);
+            : new PostgresDeleteExpression(Table, FromItems, predicate, Tags);
 
     /// <inheritdoc />
     public void Print(ExpressionPrinter expressionPrinter)
