@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -971,7 +972,33 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
         await base.Alter_column_make_required();
 
         AssertSql(
-            @"ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET NOT NULL;
+            @"UPDATE ""People"" SET ""SomeColumn"" = '' WHERE ""SomeColumn"" IS NULL;
+ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET NOT NULL;
+ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET DEFAULT '';");
+    }
+
+    public virtual async Task Alter_column_make_required_with_null_data()
+    {
+        await Test(
+            builder => builder.Entity(
+                "People", e =>
+                {
+                    e.Property<int>("Id");
+                    e.Property<string>("SomeColumn");
+                    e.HasData(new Dictionary<string, object?> { { "Id", 1 }, { "SomeColumn", null } });
+                }),
+            builder => { },
+            builder => builder.Entity("People").Property<string>("SomeColumn").IsRequired(),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var column = Assert.Single(table.Columns, c => c.Name != "Id");
+                Assert.False(column.IsNullable);
+            });
+
+        AssertSql(
+            @"UPDATE ""People"" SET ""SomeColumn"" = '' WHERE ""SomeColumn"" IS NULL;
+ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET NOT NULL;
 ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET DEFAULT '';");
     }
 
@@ -980,7 +1007,8 @@ ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET DEFAULT '';");
         await base.Alter_column_make_required_with_index();
 
         AssertSql(
-            @"ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET NOT NULL;
+            @"UPDATE ""People"" SET ""SomeColumn"" = '' WHERE ""SomeColumn"" IS NULL;
+ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET NOT NULL;
 ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET DEFAULT '';");
     }
 
@@ -989,7 +1017,8 @@ ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET DEFAULT '';");
         await base.Alter_column_make_required_with_composite_index();
 
         AssertSql(
-            @"ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET NOT NULL;
+            @"UPDATE ""People"" SET ""FirstName"" = '' WHERE ""FirstName"" IS NULL;
+ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET NOT NULL;
 ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET DEFAULT '';");
     }
 
