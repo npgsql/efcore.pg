@@ -123,7 +123,7 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     /// </summary>
     // Accessing Transaction.Current is expensive, so don't do it if Enlist is false in the connection string
     public override Transaction? CurrentAmbientTransaction
-        => DbConnection.Settings.Enlist ? Transaction.Current : null;
+        => ConnectionString is null || !ConnectionString.Contains("Enlist=false") ? Transaction.Current : null;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
