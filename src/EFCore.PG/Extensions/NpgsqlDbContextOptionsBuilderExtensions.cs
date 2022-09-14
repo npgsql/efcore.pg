@@ -173,9 +173,7 @@ public static class NpgsqlDbContextOptionsBuilderExtensions
         var coreOptionsExtension = optionsBuilder.Options.FindExtension<CoreOptionsExtension>()
             ?? new CoreOptionsExtension();
 
-        coreOptionsExtension = coreOptionsExtension.WithWarningsConfiguration(
-            coreOptionsExtension.WarningsConfiguration.TryWithExplicit(
-                RelationalEventId.AmbientTransactionWarning, WarningBehavior.Throw));
+        coreOptionsExtension = RelationalOptionsExtension.WithDefaultWarningConfiguration(coreOptionsExtension);
 
         ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(coreOptionsExtension);
     }
