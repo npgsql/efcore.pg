@@ -132,7 +132,7 @@ WHERE
 
     private void DropCollations(NpgsqlConnection conn)
     {
-        if (conn.Settings.ServerCompatibilityMode == ServerCompatibilityMode.Redshift)
+        if (conn.PostgreSqlVersion < new Version(9, 1))
         {
             return;
         }

@@ -171,7 +171,7 @@ public class NpgsqlDatabaseModelFactory : DatabaseModelFactory
 
     private static void PopulateGlobalDatabaseInfo(NpgsqlConnection connection, DatabaseModel databaseModel)
     {
-        if (connection.Settings.ServerCompatibilityMode == ServerCompatibilityMode.Redshift)
+        if (connection.PostgreSqlVersion < new Version(8, 4))
         {
             return;
         }
@@ -1052,11 +1052,6 @@ JOIN pg_namespace ns ON ns.oid=extnamespace";
         string internalSchemas,
         IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
     {
-        if (connection.Settings.ServerCompatibilityMode == ServerCompatibilityMode.Redshift)
-        {
-            return;
-        }
-
         var commandText = @$"
 SELECT
     nspname, collname, collprovider, collcollate, collctype,
