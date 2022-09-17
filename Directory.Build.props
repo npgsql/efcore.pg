@@ -14,7 +14,7 @@
 
     <Copyright>Copyright 2022 © The Npgsql Development Team</Copyright>
     <Company>Npgsql</Company>
-    <VersionPrefix>7.0.0-rc.1</VersionPrefix>
+    <VersionPrefix>7.0.0-rc.2</VersionPrefix>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/npgsql/efcore.pg</PackageProjectUrl>
