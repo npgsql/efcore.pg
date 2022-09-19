@@ -100,7 +100,12 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
             _ => null
         };
 
-        SqlExpression Jsonb(SqlExpression e) => _sqlExpressionFactory.ApplyTypeMapping(e, _jsonbTypeMapping);
+        SqlExpression Jsonb(SqlExpression e)
+            => e.TypeMapping?.StoreType == "jsonb"
+                ? e
+                : e is SqlConstantExpression or SqlParameterExpression
+                    ? _sqlExpressionFactory.ApplyTypeMapping(e, _jsonbTypeMapping)
+                    : _sqlExpressionFactory.Convert(e, typeof(string), _jsonbTypeMapping);
 
         static SqlExpression RemoveConvert(SqlExpression e)
         {

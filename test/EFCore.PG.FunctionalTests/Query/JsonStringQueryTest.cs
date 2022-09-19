@@ -55,7 +55,7 @@ public class JsonStringQueryTest : IClassFixture<JsonStringQueryTest.JsonStringQ
 
         AssertSql(
 """
-SELECT j."Id", j."CustomerJson", j."CustomerJsonb"
+SELECT j."Id", j."CustomerJson", j."CustomerJsonb", j."SomeString"
 FROM "JsonEntities" AS j
 WHERE j."CustomerJsonb" = '{"Name":"Test customer","Age":80,"IsVip":false,"Statistics":null,"Orders":null}'
 """);
@@ -75,7 +75,7 @@ WHERE j."CustomerJsonb" = '{"Name":"Test customer","Age":80,"IsVip":false,"Stati
 """
 @__p_0='1'
 
-SELECT j."Id", j."CustomerJson", j."CustomerJsonb"
+SELECT j."Id", j."CustomerJson", j."CustomerJsonb", j."SomeString"
 FROM "JsonEntities" AS j
 WHERE j."Id" = @__p_0
 LIMIT 1
@@ -84,7 +84,7 @@ LIMIT 1
 """
 @__expected_0='{"Age": 25, "Name": "Joe", "IsVip": false, "Orders": [{"Price": 99.5, "ShippingDate": "2019-10-01", "ShippingAddress": "Some address 1"}, {"Price": 23, "ShippingDate": "2019-10-10", "ShippingAddress": "Some address 2"}], "Statistics": {"Nested": {"IntArray": [3, 4], "SomeProperty": 10}, "Visits": 4, "Purchases": 3}}' (DbType = Object)
 
-SELECT j."Id", j."CustomerJson", j."CustomerJsonb"
+SELECT j."Id", j."CustomerJson", j."CustomerJsonb", j."SomeString"
 FROM "JsonEntities" AS j
 WHERE j."CustomerJsonb" = @__expected_0
 LIMIT 2
@@ -127,6 +127,23 @@ WHERE j."CustomerJsonb" @> @__element_1
 SELECT count(*)::int
 FROM "JsonEntities" AS j
 WHERE j."CustomerJsonb" @> '{"Name": "Joe", "Age": 25}'
+""");
+    }
+
+    [Fact]
+    public void JsonContains_with_string_column()
+    {
+        using var ctx = CreateContext();
+
+        var count = ctx.JsonEntities.Count(e => EF.Functions.JsonContains(e.CustomerJsonb, @"{""Name"": """ + e.SomeString + @""", ""Age"": 25}"));
+
+        Assert.Equal(1, count);
+
+        AssertSql(
+"""
+SELECT count(*)::int
+FROM "JsonEntities" AS j
+WHERE j."CustomerJsonb" @> CAST((('{"Name": "' || COALESCE(j."SomeString", '')) || '", "Age": 25}') AS jsonb)
 """);
     }
 
@@ -293,8 +310,8 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
             const string array = "[1, 2, 3]";
 
             context.JsonEntities.AddRange(
-                new JsonEntity { Id = 1, CustomerJsonb = customer1, CustomerJson = customer1 },
-                new JsonEntity { Id = 2, CustomerJsonb = customer2, CustomerJson = customer2 },
+                new JsonEntity { Id = 1, CustomerJsonb = customer1, CustomerJson = customer1, SomeString = "Joe" },
+                new JsonEntity { Id = 2, CustomerJsonb = customer2, CustomerJson = customer2, SomeString = "Moe" },
                 new JsonEntity { Id = 3, CustomerJsonb = array, CustomerJson = array });
             context.SaveChanges();
         }
@@ -308,6 +325,8 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
         public string CustomerJsonb { get; set; }
         [Column(TypeName = "json")]
         public string CustomerJson { get; set; }
+
+        public string SomeString { get; set; }
     }
 
     public class JsonStringQueryFixture : SharedStoreFixtureBase<JsonStringQueryContext>
