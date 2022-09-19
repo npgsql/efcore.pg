@@ -58,7 +58,7 @@ public class JsonStringQueryTest : IClassFixture<JsonStringQueryTest.JsonStringQ
 
         Assert.Empty(ctx.JsonEntities.Where(e => e.CustomerJsonb == @"{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}"));
         AssertSql(
-            @"SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
+            @"SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb"", j.""SomeString""
 FROM ""JsonEntities"" AS j
 WHERE j.""CustomerJsonb"" = '{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}'");
     }
@@ -74,14 +74,14 @@ WHERE j.""CustomerJsonb"" = '{""Name"":""Test customer"",""Age"":80,""IsVip"":fa
         AssertSql(
             @"@__p_0='1'
 
-SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
+SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb"", j.""SomeString""
 FROM ""JsonEntities"" AS j
 WHERE j.""Id"" = @__p_0
 LIMIT 1",
             //
             @"@__expected_0='{""Age"": 25, ""Name"": ""Joe"", ""IsVip"": false, ""Orders"": [{""Price"": 99.5, ""ShippingDate"": ""2019-10-01"", ""ShippingAddress"": ""Some address 1""}, {""Price"": 23, ""ShippingDate"": ""2019-10-10"", ""ShippingAddress"": ""Some address 2""}], ""Statistics"": {""Nested"": {""IntArray"": [3, 4], ""SomeProperty"": 10}, ""Visits"": 4, ""Purchases"": 3}}' (DbType = Object)
 
-SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
+SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb"", j.""SomeString""
 FROM ""JsonEntities"" AS j
 WHERE j.""CustomerJsonb"" = @__expected_0
 LIMIT 2");
@@ -121,6 +121,21 @@ LIMIT 2");
             @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
 WHERE j.""CustomerJsonb"" @> '{""Name"": ""Joe"", ""Age"": 25}'");
+    }
+
+    [Fact]
+    public void JsonContains_with_string_column()
+    {
+        using var ctx = CreateContext();
+
+        var count = ctx.JsonEntities.Count(e => EF.Functions.JsonContains(e.CustomerJsonb, @"{""Name"": """ + e.SomeString + @""", ""Age"": 25}"));
+
+        Assert.Equal(1, count);
+
+        AssertSql(
+            @"SELECT COUNT(*)::INT
+FROM ""JsonEntities"" AS j
+WHERE j.""CustomerJsonb"" @> CAST((('{""Name"": ""' || COALESCE(j.""SomeString"", '')) || '"", ""Age"": 25}') AS jsonb)");
     }
 
     [Fact]
@@ -269,8 +284,8 @@ WHERE j.""CustomerJsonb"" ?& ARRAY['foo','Age']::text[]");
                 }";
 
             context.JsonEntities.AddRange(
-                new JsonEntity { Id = 1, CustomerJsonb = customer1, CustomerJson = customer1 },
-                new JsonEntity { Id = 2, CustomerJsonb = customer2, CustomerJson = customer2 });
+                new JsonEntity { Id = 1, CustomerJsonb = customer1, CustomerJson = customer1, SomeString = "Joe" },
+                new JsonEntity { Id = 2, CustomerJsonb = customer2, CustomerJson = customer2, SomeString = "Moe" });
             context.SaveChanges();
         }
     }
@@ -283,6 +298,8 @@ WHERE j.""CustomerJsonb"" ?& ARRAY['foo','Age']::text[]");
         public string CustomerJsonb { get; set; }
         [Column(TypeName = "json")]
         public string CustomerJson { get; set; }
+
+        public string SomeString { get; set; }
     }
 
     public class JsonStringQueryFixture : SharedStoreFixtureBase<JsonStringQueryContext>
