@@ -955,9 +955,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
 
         builder.AppendLine(
-            $@"    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = '{schemaName}') THEN
-        CREATE SCHEMA {DelimitIdentifier(operation.Name)};
-    END IF;");
+            $@"    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = '{schemaName}') THEN"
+            + Environment.NewLine
+            + $"        CREATE SCHEMA {DelimitIdentifier(operation.Name)};"
+            + Environment.NewLine
+            + "    END IF;");
 
         if (!Options.HasFlag(MigrationsSqlGenerationOptions.Idempotent))
         {
