@@ -674,6 +674,46 @@ WHERE c."CustomerID" LIKE 'F%'
 """);
     }
 
+    public override async Task Update_Where_set_parameter_from_closure_array(bool async)
+    {
+        await base.Update_Where_set_parameter_from_closure_array(async);
+
+        AssertExecuteUpdateSql(
+"""
+@__p_0='Abc'
+
+UPDATE "Customers" AS c
+SET "ContactName" = @__p_0
+WHERE c."CustomerID" LIKE 'F%'
+""");
+    }
+
+    public override async Task Update_Where_set_parameter_from_inline_list(bool async)
+    {
+        await base.Update_Where_set_parameter_from_inline_list(async);
+
+        AssertExecuteUpdateSql(
+"""
+UPDATE "Customers" AS c
+SET "ContactName" = 'Abc'
+WHERE c."CustomerID" LIKE 'F%'
+""");
+    }
+
+    public override async Task Update_Where_set_parameter_from_multilevel_property_access(bool async)
+    {
+        await base.Update_Where_set_parameter_from_multilevel_property_access(async);
+
+        AssertExecuteUpdateSql(
+"""
+@__container_Containee_Property_0='Abc'
+
+UPDATE "Customers" AS c
+SET "ContactName" = @__container_Containee_Property_0
+WHERE c."CustomerID" LIKE 'F%'
+""");
+    }
+
     // Test is non-deterministic because of lack of ordering
     public override Task Update_Where_Skip_set_constant(bool async)
         => Task.CompletedTask;

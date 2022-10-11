@@ -26,8 +26,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     // ReSharper disable once FieldCanBeMadeReadOnly.Global
     internal static bool DisableDateTimeInfinityConversions;
 #else
-        internal static readonly bool LegacyTimestampBehavior;
-        internal static readonly bool DisableDateTimeInfinityConversions;
+    internal static readonly bool LegacyTimestampBehavior;
+    internal static readonly bool DisableDateTimeInfinityConversions;
 #endif
 
     static NpgsqlTypeMappingSource()

@@ -1,3 +1,4 @@
+using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
@@ -60,6 +61,9 @@ public class LoggingNpgsqlTest : LoggingRelationalTestBase<NpgsqlDbContextOption
         => new DbContextOptionsBuilder()
             .UseInternalServiceProvider(services.AddEntityFrameworkNpgsql().BuildServiceProvider())
             .UseNpgsql("Data Source=LoggingNpgsqlTest.db", relationalAction);
+
+    protected override TestLogger CreateTestLogger()
+        => new TestLogger<NpgsqlLoggingDefinitions>();
 
     protected override string ProviderName => "Npgsql.EntityFrameworkCore.PostgreSQL";
 
