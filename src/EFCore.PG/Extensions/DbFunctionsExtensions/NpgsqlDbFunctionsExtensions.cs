@@ -56,38 +56,59 @@ public static class NpgsqlDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(GreaterThan)));
 
     /// <summary>
-    ///     Returns whether the row value represented by <paramref name="a" /> is less than the row value represented by
-    ///     <paramref name="b" />.
+    /// Returns whether the row value represented by <paramref name="a" /> is less than the row value represented by <paramref name="b" />.
     /// </summary>
     /// <remarks>
-    ///     For more information on row value comparisons, see
-    ///     <see href="https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON">the PostgreSQL documentation
-    ///     </see>.
+    /// For more information on row value comparisons, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON">the PostgreSQL documentation
+    /// </see>.
     /// </remarks>
     public static bool LessThan(this DbFunctions _, ITuple a, ITuple b)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LessThan)));
 
     /// <summary>
-    ///     Returns whether the row value represented by <paramref name="a" /> is greater than or equal to the row value represented by
-    ///     <paramref name="b" />.
+    /// Returns whether the row value represented by <paramref name="a" /> is greater than or equal to the row value represented by
+    /// <paramref name="b" />.
     /// </summary>
     /// <remarks>
-    ///     For more information on row value comparisons, see
-    ///     <see href="https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON">the PostgreSQL documentation
-    ///     </see>.
+    /// For more information on row value comparisons, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON">the PostgreSQL documentation
+    /// </see>.
     /// </remarks>
     public static bool GreaterThanOrEqual(this DbFunctions _, ITuple a, ITuple b)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(GreaterThanOrEqual)));
 
     /// <summary>
-    ///     Returns whether the row value represented by <paramref name="a" /> is less than or equal to the row value represented by
-    ///     <paramref name="b" />.
+    /// Returns whether the row value represented by <paramref name="a" /> is less than or equal to the row value represented by
+    /// <paramref name="b" />.
     /// </summary>
     /// <remarks>
-    ///     For more information on row value comparisons, see
-    ///     <see href="https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON">the PostgreSQL documentation
-    ///     </see>.
+    /// For more information on row value comparisons, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON">the PostgreSQL documentation
+    /// </see>.
     /// </remarks>
     public static bool LessThanOrEqual(this DbFunctions _, ITuple a, ITuple b)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LessThanOrEqual)));
+
+    /// <summary>
+    /// Returns the distance between two dates as a number of days, particularly suitable for sorting where the appropriate index is
+    /// defined.
+    /// </summary>
+    /// <remarks>
+    /// This requires the <c>btree_gist</c> built-in PostgreSQL extension, see
+    /// <see href="https://www.postgresql.org/docs/current/btree-gist.html"/>.
+    /// </remarks>
+    public static int Distance(this DbFunctions _, DateOnly a, DateOnly b)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Distance)));
+
+    /// <summary>
+    /// Returns the distance between two timestamps as a PostgreSQL <c>interval</c>, particularly suitable for sorting where the appropriate
+    /// index is defined.
+    /// </summary>
+    /// <remarks>
+    /// This requires the <c>btree_gist</c> built-in PostgreSQL extension, see
+    /// <see href="https://www.postgresql.org/docs/current/btree-gist.html"/>.
+    /// </remarks>
+    public static TimeSpan Distance(this DbFunctions _, DateTime a, DateTime b)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Distance)));
 }

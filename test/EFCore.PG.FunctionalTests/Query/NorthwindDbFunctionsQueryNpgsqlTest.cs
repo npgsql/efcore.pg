@@ -11,7 +11,7 @@ public class NorthwindDbFunctionsQueryNpgsqlTest : NorthwindDbFunctionsQueryRela
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     #region Like / ILike
@@ -140,6 +140,23 @@ WHERE c."ContactName" COLLATE "POSIX" = 'maria anders'
     #endregion Collation
 
     #region Others
+
+    [Fact]
+    public void Distance_with_timestamp()
+    {
+        using var context = CreateContext();
+        var closestOrder = context.Orders.OrderBy(o => EF.Functions.Distance(o.OrderDate.Value, new DateTime(1997, 06, 28))).First();
+
+        Assert.Equal(10582, closestOrder.OrderID);
+
+        AssertSql(
+"""
+SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+FROM "Orders" AS o
+ORDER BY o."OrderDate" <-> TIMESTAMP '1997-06-28 00:00:00' NULLS FIRST
+LIMIT 1
+""");
+    }
 
     [Fact]
     public void String_reverse()

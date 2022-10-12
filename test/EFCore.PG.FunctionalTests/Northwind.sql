@@ -7,6 +7,7 @@ GO
 
 CREATE EXTENSION "uuid-ossp";
 CREATE EXTENSION "unaccent";
+CREATE EXTENSION "btree_gist"; -- For the <-> (distance) operator
 
 CREATE TABLE "Employees" (
 	"EmployeeID" SERIAL,

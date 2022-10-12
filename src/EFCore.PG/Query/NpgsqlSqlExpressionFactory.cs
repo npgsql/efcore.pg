@@ -292,7 +292,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 returnType = typeof(bool);
                 break;
 
-            case PostgresExpressionType.PostgisDistanceKnn:
+            case PostgresExpressionType.Distance:
                 returnType = typeof(double);
                 break;
         }
@@ -690,7 +690,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         var right = postgresBinaryExpression.Right;
 
         Type resultType;
-        RelationalTypeMapping? resultTypeMapping;
+        RelationalTypeMapping? resultTypeMapping = null;
         RelationalTypeMapping? inferredTypeMapping;
         var operatorType = postgresBinaryExpression.OperatorType;
         switch (operatorType)
@@ -774,11 +774,30 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 break;
             }
 
-            case PostgresExpressionType.PostgisDistanceKnn:
+            case PostgresExpressionType.Distance:
             {
                 inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
-                resultType = typeof(double);
-                resultTypeMapping = _doubleTypeMapping;
+
+                resultType = inferredTypeMapping?.StoreTypeNameBase switch
+                {
+                    "geometry" or "geography" => typeof(double),
+
+                    "date" => typeof(int),
+
+                    "interval" when left.Type.FullName is "NodaTime.Period" or "NodaTime.Duration"
+                        => _nodaTimePeriodType ??= left.Type.Assembly.GetType("NodaTime.Period")!,
+                    "interval" => typeof(TimeSpan),
+
+                    "timestamp" or "timestamptz" or "timestamp with time zone" or "timestamp without time zone"
+                        when left.Type.FullName is "NodaTime.Instant" or "NodaTime.LocalDateTime" or "NodaTime.ZonedDateTime"
+                        => _nodaTimePeriodType ??= left.Type.Assembly.GetType("NodaTime.Period")!,
+                    "timestamp" or "timestamptz" or "timestamp with time zone" or "timestamp without time zone"
+                        => typeof(TimeSpan),
+
+                    null => throw new InvalidOperationException("No inferred type mapping for distance operator"),
+                    _ => throw new InvalidOperationException(
+                        $"PostgreSQL type '{inferredTypeMapping.StoreTypeNameBase}' isn't supported with the distance operator")
+                };
                 break;
             }
 
@@ -791,7 +810,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             ApplyTypeMapping(left, inferredTypeMapping),
             ApplyTypeMapping(right, inferredTypeMapping),
             resultType,
-            resultTypeMapping);
+            resultTypeMapping ?? _typeMappingSource.FindMapping(resultType));
 
         (SqlExpression, SqlExpression) InferContainmentMappings(SqlExpression container, SqlExpression containee)
         {

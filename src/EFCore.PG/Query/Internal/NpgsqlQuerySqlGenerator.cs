@@ -391,7 +391,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 PostgresExpressionType.LTreeFirstMatches
                     when binaryExpression.Right.TypeMapping.StoreType == "ltxtquery" => "?@",
 
-                PostgresExpressionType.PostgisDistanceKnn => "<->",
+                PostgresExpressionType.Distance => "<->",
 
                 _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {binaryExpression.OperatorType}")
             })

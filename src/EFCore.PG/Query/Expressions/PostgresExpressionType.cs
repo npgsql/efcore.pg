@@ -22,6 +22,12 @@ public enum PostgresExpressionType
     /// </summary>
     Overlaps,                     // &&
 
+    /// <summary>
+    ///     Represents a PostgreSQL operator for finding the distance between two things (e.g. 2D distance between two geometries,
+    ///     between timestamps...)
+    /// </summary>
+    Distance,                     // <->
+
     #endregion General operators
 
     #region Network
@@ -153,9 +159,4 @@ public enum PostgresExpressionType
     LTreeFirstMatches,            // ?~ or ?@
 
     #endregion LTree
-
-    /// <summary>
-    ///     Represents a PostgreSQL operator for finding the 2D distance between two geometries.
-    /// </summary>
-    PostgisDistanceKnn            // <->
 }

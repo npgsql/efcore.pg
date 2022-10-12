@@ -58,6 +58,52 @@ public static class NpgsqlNodaTimeDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Average)));
 
     /// <summary>
+    /// Returns the distance between two instants as a <see cref="Period" />, particularly suitable for sorting where the appropriate index
+    /// is defined.
+    /// </summary>
+    /// <remarks>
+    /// This requires the <c>btree_gist</c> built-in PostgreSQL extension, see
+    /// <see href="https://www.postgresql.org/docs/current/btree-gist.html"/>.
+    /// </remarks>
+    public static int Distance(this DbFunctions _, Instant a, Instant b)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Distance)));
+
+    /// <summary>
+    /// Returns the distance between two zoned timestamps as a <see cref="Period" />, particularly suitable for sorting where the
+    /// appropriate index is defined.
+    /// </summary>
+    /// <remarks>
+    /// This requires the <c>btree_gist</c> built-in PostgreSQL extension, see
+    /// <see href="https://www.postgresql.org/docs/current/btree-gist.html"/>.
+    /// </remarks>
+    public static int Distance(this DbFunctions _, ZonedDateTime a, ZonedDateTime b)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Distance)));
+
+    /// <summary>
+    /// Returns the distance between two local timestamps as a <see cref="Period" />, particularly suitable for sorting where the
+    /// appropriate index is defined.
+    /// </summary>
+    /// <remarks>
+    /// This requires the <c>btree_gist</c> built-in PostgreSQL extension, see
+    /// <see href="https://www.postgresql.org/docs/current/btree-gist.html"/>.
+    /// </remarks>
+    public static int Distance(this DbFunctions _, LocalDateTime a, LocalDateTime b)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Distance)));
+
+    /// <summary>
+    /// Returns the distance between two dates as a number of days, particularly suitable for sorting where the appropriate index is
+    /// defined.
+    /// </summary>
+    /// <remarks>
+    /// This requires the <c>btree_gist</c> built-in PostgreSQL extension, see
+    /// <see href="https://www.postgresql.org/docs/current/btree-gist.html"/>.
+    /// </remarks>
+    public static int Distance(this DbFunctions _, LocalDate a, LocalDate b)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Distance)));
+
+    #region Aggregate functions
+
+    /// <summary>
     /// Computes the union of the non-null input intervals. Corresponds to the PostgreSQL <c>range_agg</c> aggregate function.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
@@ -136,4 +182,6 @@ public static class NpgsqlNodaTimeDbFunctionsExtensions
     /// </exception>
     public static DateInterval[] RangeIntersectAgg(this DbFunctions _, IEnumerable<DateInterval[]> input)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(RangeIntersectAgg)));
+
+    #endregion Aggregate functions
 }

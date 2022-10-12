@@ -12,6 +12,7 @@ public class NorthwindNpgsqlContext : NorthwindRelationalContext
 
         modelBuilder.HasPostgresExtension("uuid-ossp");
         modelBuilder.HasPostgresExtension("unaccent");
+        modelBuilder.HasPostgresExtension("btree_gist"); // For the <-> (distance) operator
 
         modelBuilder.Entity<Order>().Property(o => o.OrderDate).HasColumnType("timestamp without time zone");
 

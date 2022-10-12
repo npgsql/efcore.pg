@@ -136,7 +136,7 @@ public class PostgresBinaryExpression : SqlExpression
                 PostgresExpressionType.LTreeFirstMatches
                     when Right.TypeMapping?.StoreType == "ltxtquery" => "?@",
 
-                PostgresExpressionType.PostgisDistanceKnn => "<->",
+                PostgresExpressionType.Distance => "<->",
 
                 _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
             })
