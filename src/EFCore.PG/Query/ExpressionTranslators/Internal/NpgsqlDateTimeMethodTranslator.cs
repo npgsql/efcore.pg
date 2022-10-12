@@ -1,3 +1,4 @@
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
@@ -43,11 +44,17 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
         = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.ToLocalTime), Array.Empty<Type>())!;
     private static readonly MethodInfo DateTime_SpecifyKind
         = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.SpecifyKind), new[] { typeof(DateTime), typeof(DateTimeKind) })!;
+    private static readonly MethodInfo DateTime_Distance
+        = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
+            nameof(NpgsqlDbFunctionsExtensions.Distance), new[] { typeof(DbFunctions), typeof(DateTime), typeof(DateTime) })!;
 
     private static readonly MethodInfo DateOnly_FromDateTime
         = typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.FromDateTime), new[] { typeof(DateTime) })!;
     private static readonly MethodInfo DateOnly_ToDateTime
         = typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.ToDateTime), new[] { typeof(TimeOnly) })!;
+    private static readonly MethodInfo DateOnly_Distance
+        = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
+            nameof(NpgsqlDbFunctionsExtensions.Distance), new[] { typeof(DbFunctions), typeof(DateOnly), typeof(DateOnly) })!;
 
     private static readonly MethodInfo TimeOnly_FromDateTime
         = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.FromDateTime), new[] { typeof(DateTime) })!;
@@ -160,7 +167,43 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments)
     {
-        if (instance is not null)
+        if (instance is null)
+        {
+            if (method == DateTime_SpecifyKind)
+            {
+                if (arguments[1] is not SqlConstantExpression { Value: DateTimeKind kind })
+                {
+                    throw new InvalidOperationException("Translating SpecifyKind is only supported with a constant Kind argument");
+                }
+
+                var typeMapping = arguments[0].TypeMapping;
+
+                if (typeMapping is not NpgsqlTimestampTypeMapping and not NpgsqlTimestampTzTypeMapping)
+                {
+                    throw new InvalidOperationException("Translating SpecifyKind is only supported on timestamp/timestamptz columns");
+                }
+
+                if (kind == DateTimeKind.Utc)
+                {
+                    return typeMapping is NpgsqlTimestampTypeMapping
+                        ? _sqlExpressionFactory.AtUtc(arguments[0])
+                        : arguments[0];
+                }
+
+                if (kind is DateTimeKind.Unspecified or DateTimeKind.Local)
+                {
+                    return typeMapping is NpgsqlTimestampTzTypeMapping
+                        ? _sqlExpressionFactory.AtUtc(arguments[0])
+                        : arguments[0];
+                }
+            }
+
+            if (method == DateTime_Distance)
+            {
+                return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.Distance, arguments[1], arguments[2]);
+            }
+        }
+        else
         {
             if (method == DateTime_ToUniversalTime)
             {
@@ -173,35 +216,6 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
             }
         }
 
-        if (method == DateTime_SpecifyKind)
-        {
-            if (arguments[1] is not SqlConstantExpression { Value: DateTimeKind kind })
-            {
-                throw new InvalidOperationException("Translating SpecifyKind is only supported with a constant Kind argument");
-            }
-
-            var typeMapping = arguments[0].TypeMapping;
-
-            if (typeMapping is not NpgsqlTimestampTypeMapping and not NpgsqlTimestampTzTypeMapping)
-            {
-                throw new InvalidOperationException("Translating SpecifyKind is only supported on timestamp/timestamptz columns");
-            }
-
-            if (kind == DateTimeKind.Utc)
-            {
-                return typeMapping is NpgsqlTimestampTypeMapping
-                    ? _sqlExpressionFactory.AtUtc(arguments[0])
-                    : arguments[0];
-            }
-
-            if (kind is DateTimeKind.Unspecified or DateTimeKind.Local)
-            {
-                return typeMapping is NpgsqlTimestampTzTypeMapping
-                    ? _sqlExpressionFactory.AtUtc(arguments[0])
-                    : arguments[0];
-            }
-        }
-
         return null;
     }
 
@@ -210,24 +224,31 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments)
     {
-        if (method == DateOnly_FromDateTime)
+        if (instance is null)
         {
-            // Note: converting timestamptz to date performs a timezone conversion, which is not what .NET DateOnly.FromDateTime does.
-            // So if our operand is a timestamptz, we first change the type to timestamp with AT TIME ZONE 'UTC' (returns the same value
-            // but as a timestamptz).
-            // If our operand is already timestamp, no need to do anything. We throw for anything else to avoid accidentally applying
-            // AT TIME ZONE to a non-timestamptz, which would do a timezone conversion
-            var dateTime = arguments[0].TypeMapping switch
+            if (method == DateOnly_FromDateTime)
             {
-                NpgsqlTimestampTypeMapping => arguments[0],
-                NpgsqlTimestampTzTypeMapping => _sqlExpressionFactory.AtUtc(arguments[0]),
-                _ => throw new NotSupportedException("Can only apply TimeOnly.FromDateTime on a timestamp or timestamptz column")
-            };
+                // Note: converting timestamptz to date performs a timezone conversion, which is not what .NET DateOnly.FromDateTime does.
+                // So if our operand is a timestamptz, we first change the type to timestamp with AT TIME ZONE 'UTC' (returns the same value
+                // but as a timestamptz).
+                // If our operand is already timestamp, no need to do anything. We throw for anything else to avoid accidentally applying
+                // AT TIME ZONE to a non-timestamptz, which would do a timezone conversion
+                var dateTime = arguments[0].TypeMapping switch
+                {
+                    NpgsqlTimestampTypeMapping => arguments[0],
+                    NpgsqlTimestampTzTypeMapping => _sqlExpressionFactory.AtUtc(arguments[0]),
+                    _ => throw new NotSupportedException("Can only apply TimeOnly.FromDateTime on a timestamp or timestamptz column")
+                };
 
-            return _sqlExpressionFactory.Convert(dateTime, typeof(DateOnly), _typeMappingSource.FindMapping(typeof(DateOnly)));
+                return _sqlExpressionFactory.Convert(dateTime, typeof(DateOnly), _typeMappingSource.FindMapping(typeof(DateOnly)));
+            }
+
+            if (method == DateOnly_Distance)
+            {
+                return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.Distance, arguments[1], arguments[2]);
+            }
         }
-
-        if (instance is not null)
+        else
         {
             if (method == DateOnly_ToDateTime)
             {

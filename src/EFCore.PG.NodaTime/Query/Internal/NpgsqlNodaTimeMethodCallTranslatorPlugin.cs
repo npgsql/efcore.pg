@@ -57,12 +57,25 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
         typeof(Instant).GetRuntimeMethod(nameof(Instant.InZone), new[] { typeof(DateTimeZone)})!;
     private static readonly MethodInfo Instant_ToDateTimeUtc =
         typeof(Instant).GetRuntimeMethod(nameof(Instant.ToDateTimeUtc), Type.EmptyTypes)!;
+    private static readonly MethodInfo Instant_Distance =
+        typeof(NpgsqlNodaTimeDbFunctionsExtensions).GetRuntimeMethod(
+            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance), new[] { typeof(DbFunctions), typeof(Instant), typeof(Instant) })!;
 
     private static readonly MethodInfo ZonedDateTime_ToInstant =
         typeof(ZonedDateTime).GetRuntimeMethod(nameof(ZonedDateTime.ToInstant), Type.EmptyTypes)!;
+    private static readonly MethodInfo ZonedDateTime_Distance =
+        typeof(NpgsqlNodaTimeDbFunctionsExtensions).GetRuntimeMethod(
+            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance), new[] { typeof(DbFunctions), typeof(ZonedDateTime), typeof(ZonedDateTime) })!;
 
     private static readonly MethodInfo LocalDateTime_InZoneLeniently =
         typeof(LocalDateTime).GetRuntimeMethod(nameof(LocalDateTime.InZoneLeniently), new[] { typeof(DateTimeZone) })!;
+    private static readonly MethodInfo LocalDateTime_Distance =
+        typeof(NpgsqlNodaTimeDbFunctionsExtensions).GetRuntimeMethod(
+            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance), new[] { typeof(DbFunctions), typeof(LocalDateTime), typeof(LocalDateTime) })!;
+
+    private static readonly MethodInfo LocalDate_Distance =
+        typeof(NpgsqlNodaTimeDbFunctionsExtensions).GetRuntimeMethod(
+            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance), new[] { typeof(DbFunctions), typeof(LocalDate), typeof(LocalDate) })!;
 
     private static readonly MethodInfo Period_FromYears   = typeof(Period).GetRuntimeMethod(nameof(Period.FromYears),        new[] { typeof(int) })!;
     private static readonly MethodInfo Period_FromMonths  = typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths),       new[] { typeof(int) })!;
@@ -116,6 +129,35 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
+        var translated =
+            TranslateInstant(instance, method, arguments)
+            ?? TranslateZonedDateTime(instance, method, arguments)
+            ?? TranslateLocalDateTime(instance, method, arguments)
+            ?? TranslateLocalDate(instance, method, arguments)
+            ?? TranslatePeriod(instance, method, arguments, logger)
+            ?? TranslateInterval(instance, method, arguments, logger)
+            ?? TranslateDateInterval(instance, method, arguments, logger);
+
+        if (translated is not null)
+        {
+            return translated;
+        }
+
+        if (method == IDateTimeZoneProvider_get_Item && instance is PendingDateTimeZoneProviderExpression)
+        {
+            // We're translating an expression such as 'DateTimeZoneProviders.Tzdb["Europe/Berlin"]'.
+            // Note that the .NET ype of that expression is DateTimeZone, but we just return the string ID for the time zone.
+            return arguments[0];
+        }
+
+        return null;
+    }
+
+    private SqlExpression? TranslateInstant(
+        SqlExpression? instance,
+        MethodInfo method,
+        IReadOnlyList<SqlExpression> arguments)
+    {
         if (method == SystemClock_GetCurrentInstant)
         {
             return NpgsqlNodaTimeTypeMappingSourcePlugin.LegacyTimestampBehavior
@@ -143,6 +185,32 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
             return instance;
         }
 
+        if (method == Instant_InZone)
+        {
+            return new PendingZonedDateTimeExpression(instance!, arguments[0]);
+        }
+
+        if (method == Instant_ToDateTimeUtc)
+        {
+            return _sqlExpressionFactory.Convert(
+                instance!,
+                typeof(DateTime),
+                _typeMappingSource.FindMapping(typeof(DateTime), "timestamp with time zone"));
+        }
+
+        if (method == Instant_Distance)
+        {
+            return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.Distance, arguments[1], arguments[2]);
+        }
+
+        return null;
+    }
+
+    private SqlExpression? TranslateZonedDateTime(
+        SqlExpression? instance,
+        MethodInfo method,
+        IReadOnlyList<SqlExpression> arguments)
+    {
         if (method == ZonedDateTime_ToInstant)
         {
             // We get here with the expression localDateTime.InZoneLeniently(DateTimeZoneProviders.Tzdb["Europe/Berlin"]).ToInstant()
@@ -159,63 +227,56 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
             return instance;
         }
 
-        if (method == IDateTimeZoneProvider_get_Item && instance is PendingDateTimeZoneProviderExpression)
+        if (method == ZonedDateTime_Distance)
         {
-            // We're translating an expression such as 'DateTimeZoneProviders.Tzdb["Europe/Berlin"]'.
-            // Note that the .NET ype of that expression is DateTimeZone, but we just return the string ID for the time zone.
-            return arguments[0];
-        }
-
-        if (method == Instant_InZone)
-        {
-            return new PendingZonedDateTimeExpression(instance!, arguments[0]);
-        }
-
-        if (method == LocalDateTime_InZoneLeniently)
-        {
-            return new PendingZonedDateTimeExpression(instance!, arguments[0]);
-        }
-
-        if (method == Instant_ToDateTimeUtc)
-        {
-            return _sqlExpressionFactory.Convert(
-                instance!,
-                typeof(DateTime),
-                _typeMappingSource.FindMapping(typeof(DateTime), "timestamp with time zone"));
-        }
-
-        var declaringType = method.DeclaringType;
-
-        if (declaringType == typeof(Period))
-        {
-            return TranslatePeriod(instance, method, arguments, logger);
-        }
-
-        if (declaringType == typeof(Interval))
-        {
-            return TranslateInterval(instance, method, arguments, logger);
-        }
-
-        if (declaringType == typeof(DateInterval))
-        {
-            return TranslateDateInterval(instance, method, arguments, logger);
+            return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.Distance, arguments[1], arguments[2]);
         }
 
         return null;
     }
 
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public virtual SqlExpression? TranslatePeriod(
+    private SqlExpression? TranslateLocalDateTime(
+        SqlExpression? instance,
+        MethodInfo method,
+        IReadOnlyList<SqlExpression> arguments)
+    {
+        if (method == LocalDateTime_InZoneLeniently)
+        {
+            return new PendingZonedDateTimeExpression(instance!, arguments[0]);
+        }
+
+        if (method == LocalDateTime_Distance)
+        {
+            return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.Distance, arguments[1], arguments[2]);
+        }
+
+        return null;
+    }
+
+    private SqlExpression? TranslateLocalDate(
+        SqlExpression? instance,
+        MethodInfo method,
+        IReadOnlyList<SqlExpression> arguments)
+    {
+        if (method == LocalDate_Distance)
+        {
+            return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.Distance, arguments[1], arguments[2]);
+        }
+
+        return null;
+    }
+
+    private SqlExpression? TranslatePeriod(
         SqlExpression? instance,
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
+        if (method.DeclaringType != typeof(Period))
+        {
+            return null;
+        }
+
         if (method == Period_FromYears)
         {
             return IntervalPart("years", arguments[0]);
@@ -284,62 +345,40 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
         }
     }
 
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public virtual SqlExpression? TranslateInterval(
+    private SqlExpression? TranslateInterval(
         SqlExpression? instance,
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (instance is null)
-        {
-            return null;
-        }
-
         if (method == Interval_Contains)
         {
-            return _sqlExpressionFactory.Contains(instance, arguments[0]);
+            return _sqlExpressionFactory.Contains(instance!, arguments[0]);
         }
 
         return null;
     }
 
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public virtual SqlExpression? TranslateDateInterval(
+    private SqlExpression? TranslateDateInterval(
         SqlExpression? instance,
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (instance is null)
-        {
-            return null;
-        }
-
         if (method == DateInterval_Contains_LocalDate
             || method == DateInterval_Contains_DateInterval)
         {
-            return _sqlExpressionFactory.Contains(instance, arguments[0]);
+            return _sqlExpressionFactory.Contains(instance!, arguments[0]);
         }
 
         if (method == DateInterval_Intersection)
         {
-            return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeIntersect, instance, arguments[0]);
+            return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeIntersect, instance!, arguments[0]);
         }
 
         if (method == DateInterval_Union)
         {
-            return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeUnion, instance, arguments[0]);
+            return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeUnion, instance!, arguments[0]);
         }
 
         return null;

@@ -9,7 +9,7 @@ public class NodaTimeQueryNpgsqlTest : QueryTestBase<NodaTimeQueryNpgsqlTest.Nod
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     [ConditionalTheory]
@@ -373,6 +373,24 @@ WHERE (n."LocalDateTime" AT TIME ZONE n."TimeZoneId") = @__ToInstant_0
 """);
     }
 
+    [ConditionalFact]
+    public async Task LocalDateTime_Distance()
+    {
+        await using var context = CreateContext();
+        var closest = await context.NodaTimeTypes
+            .OrderBy(t => EF.Functions.Distance(t.LocalDateTime, new LocalDateTime(2018, 4, 1, 0, 0, 0))).FirstAsync();
+
+        Assert.Equal(1, closest.Id);
+
+        AssertSql(
+"""
+SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
+FROM "NodaTimeTypes" AS n
+ORDER BY n."LocalDateTime" <-> TIMESTAMP '2018-04-01T00:00:00' NULLS FIRST
+LIMIT 1
+""");
+    }
+
     #endregion LocalDateTime
 
     #region LocalDate
@@ -442,6 +460,23 @@ WHERE date_part('doy', n."LocalDate")::int = 110
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('day', n."LocalDate")::int = 20
+""");
+    }
+
+    [ConditionalFact]
+    public async Task LocalDate_Distance()
+    {
+        await using var context = CreateContext();
+        var closest = await context.NodaTimeTypes.OrderBy(t => EF.Functions.Distance(t.LocalDate, new LocalDate(2018, 4, 1))).FirstAsync();
+
+        Assert.Equal(1, closest.Id);
+
+        AssertSql(
+"""
+SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
+FROM "NodaTimeTypes" AS n
+ORDER BY n."LocalDate" <-> DATE '2018-04-01' NULLS FIRST
+LIMIT 1
 """);
     }
 
@@ -1565,6 +1600,23 @@ WHERE n."Instant" < NOW()
 """);
     }
 
+    [ConditionalFact]
+    public async Task Instant_Distance()
+    {
+        await using var context = CreateContext();
+        var closest = await context.NodaTimeTypes.OrderBy(t => EF.Functions.Distance(t.Instant, new LocalDateTime(2018, 4, 1, 0, 0, 0).InUtc().ToInstant())).FirstAsync();
+
+        Assert.Equal(1, closest.Id);
+
+        AssertSql(
+"""
+SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
+FROM "NodaTimeTypes" AS n
+ORDER BY n."Instant" <-> TIMESTAMPTZ '2018-04-01T00:00:00Z' NULLS FIRST
+LIMIT 1
+""");
+    }
+
     #endregion
 
     #region ZonedDateTime
@@ -1765,6 +1817,26 @@ WHERE n."ZonedDateTime" = @__ToInstant_0
 """);
     }
 
+    [ConditionalFact]
+    public async Task ZonedDateTime_Distance()
+    {
+        await using var context = CreateContext();
+        var closest = await context.NodaTimeTypes
+            .OrderBy(t => EF.Functions.Distance(t.ZonedDateTime, new ZonedDateTime(new LocalDateTime(2018, 4, 1, 0, 0, 0), DateTimeZone.Utc, Offset.Zero))).FirstAsync();
+
+        Assert.Equal(1, closest.Id);
+
+        AssertSql(
+"""
+@__p_1='2018-04-01T00:00:00 UTC (+00)' (DbType = DateTime)
+
+SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
+FROM "NodaTimeTypes" AS n
+ORDER BY n."ZonedDateTime" <-> @__p_1 NULLS FIRST
+LIMIT 1
+""");
+    }
+
     #endregion ZonedDateTime
 
     #region Support
@@ -1786,6 +1858,13 @@ WHERE n."ZonedDateTime" = @__ToInstant_0
         // ReSharper disable once MemberHidesStaticFromOuterClass
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<NodaTimeTypes> NodaTimeTypes { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.HasPostgresExtension("btree_gist");
+        }
 
         public static void Seed(NodaTimeContext context)
         {

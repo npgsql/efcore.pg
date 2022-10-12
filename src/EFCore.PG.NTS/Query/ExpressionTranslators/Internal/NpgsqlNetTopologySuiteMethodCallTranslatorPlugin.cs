@@ -109,7 +109,7 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
                 arguments[1].TypeMapping),
 
             nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.DistanceKnn) => _sqlExpressionFactory.MakePostgresBinary(
-                PostgresExpressionType.PostgisDistanceKnn,
+                PostgresExpressionType.Distance,
                 arguments[1],
                 arguments[2]),
 
