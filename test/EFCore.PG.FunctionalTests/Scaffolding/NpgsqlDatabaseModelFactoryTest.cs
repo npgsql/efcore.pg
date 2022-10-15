@@ -29,16 +29,18 @@ public class NpgsqlDatabaseModelFactoryTest : IClassFixture<NpgsqlDatabaseModelF
     {
         var supportsDataType = TestEnvironment.PostgresVersion >= new Version(10, 0);
 
-        Test($@"
-CREATE SEQUENCE ""DefaultFacetsSequence"";
+        Test(
+$"""
+CREATE SEQUENCE "DefaultFacetsSequence";
 
-CREATE SEQUENCE db2.""CustomFacetsSequence""
+CREATE SEQUENCE db2."CustomFacetsSequence"
     {(supportsDataType ? "AS int" : null)}
     START WITH 1
     INCREMENT BY 2
     MAXVALUE 8
     MINVALUE -3
-    CYCLE;",
+    CYCLE;
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -63,18 +65,21 @@ CREATE SEQUENCE db2.""CustomFacetsSequence""
                 Assert.Equal(-3, customSequence.MinValue);
                 Assert.Equal(8, customSequence.MaxValue);
             },
-            @"
-DROP SEQUENCE ""DefaultFacetsSequence"";
-DROP SEQUENCE db2.""CustomFacetsSequence""");
+"""
+DROP SEQUENCE "DefaultFacetsSequence";
+DROP SEQUENCE db2."CustomFacetsSequence"
+""");
     }
 
     [ConditionalFact]
     [MinimumPostgresVersion(11, 0)]
     public void Sequence_min_max_start_values_are_null_if_default()
-        => Test(@"
-CREATE SEQUENCE ""SmallIntSequence"" AS smallint;
-CREATE SEQUENCE ""IntSequence"" AS int;
-CREATE SEQUENCE ""BigIntSequence"" AS bigint;",
+        => Test(
+"""
+CREATE SEQUENCE "SmallIntSequence" AS smallint;
+CREATE SEQUENCE "IntSequence" AS int;
+CREATE SEQUENCE "BigIntSequence" AS bigint;
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -88,16 +93,19 @@ CREATE SEQUENCE ""BigIntSequence"" AS bigint;",
                         Assert.Null(s.MaxValue);
                     });
             },
-            @"
-DROP SEQUENCE ""SmallIntSequence"";
-DROP SEQUENCE ""IntSequence"";
-DROP SEQUENCE ""BigIntSequence"";");
+"""
+DROP SEQUENCE "SmallIntSequence";
+DROP SEQUENCE "IntSequence";
+DROP SEQUENCE "BigIntSequence";
+""");
 
     [Fact]
     public void Filter_sequences_based_on_schema()
-        => Test(@"
-CREATE SEQUENCE ""Sequence"";
-CREATE SEQUENCE db2.""Sequence""",
+        => Test(
+"""
+CREATE SEQUENCE "Sequence";
+CREATE SEQUENCE db2."Sequence"
+""",
             Enumerable.Empty<string>(),
             new[] { "db2" },
             dbModel =>
@@ -108,9 +116,10 @@ CREATE SEQUENCE db2.""Sequence""",
                 Assert.Equal("Sequence", sequence.Name);
                 Assert.Equal("bigint", sequence.StoreType);
             },
-            @"
-DROP SEQUENCE ""Sequence"";
-DROP SEQUENCE db2.""Sequence"";");
+"""
+DROP SEQUENCE "Sequence";
+DROP SEQUENCE db2."Sequence";
+""");
 
     #endregion
 
@@ -130,9 +139,11 @@ DROP SEQUENCE db2.""Sequence"";");
 
     [Fact]
     public void Create_tables()
-        => Test(@"
-CREATE TABLE ""Everest"" ( id int );
-CREATE TABLE ""Denali"" ( id int );",
+        => Test(
+"""
+CREATE TABLE "Everest" (id int);
+CREATE TABLE "Denali" (id int);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -150,9 +161,10 @@ CREATE TABLE ""Denali"" ( id int );",
                         Assert.Equal("Everest", e.Name);
                     });
             },
-            @"
-DROP TABLE ""Everest"";
-DROP TABLE ""Denali"";");
+"""
+DROP TABLE "Everest";
+DROP TABLE "Denali";
+""");
 
     #endregion
 
@@ -160,9 +172,11 @@ DROP TABLE ""Denali"";");
 
     [Fact]
     public void Filter_schemas()
-        => Test(@"
-CREATE TABLE db2.""K2"" ( Id int, A varchar, UNIQUE (A ) );
-CREATE TABLE ""Kilimanjaro"" ( Id int, B varchar, UNIQUE (B));",
+        => Test(
+"""
+CREATE TABLE db2."K2" (Id int, A varchar, UNIQUE (A));
+CREATE TABLE "Kilimanjaro" (Id int, B varchar, UNIQUE (B));
+""",
             Enumerable.Empty<string>(),
             new[] { "db2" },
             dbModel =>
@@ -174,16 +188,18 @@ CREATE TABLE ""Kilimanjaro"" ( Id int, B varchar, UNIQUE (B));",
                 Assert.Equal(1, table.UniqueConstraints.Count);
                 Assert.Empty(table.ForeignKeys);
             },
-            @"
-DROP TABLE ""Kilimanjaro"";
-
-DROP TABLE db2.""K2"";");
+"""
+DROP TABLE "Kilimanjaro";
+DROP TABLE db2."K2";
+""");
 
     [Fact]
     public void Filter_tables()
-        => Test(@"
-CREATE TABLE ""K2"" ( Id int, A varchar, UNIQUE (A ) );
-CREATE TABLE ""Kilimanjaro"" ( Id int, B varchar, UNIQUE (B), FOREIGN KEY (B) REFERENCES ""K2"" (A) );",
+        => Test(
+"""
+CREATE TABLE "K2" (Id int, A varchar, UNIQUE (A));
+CREATE TABLE "Kilimanjaro" (Id int, B varchar, UNIQUE (B), FOREIGN KEY (B) REFERENCES "K2" (A));
+""",
             new[] { "K2" },
             Enumerable.Empty<string>(),
             dbModel =>
@@ -195,15 +211,18 @@ CREATE TABLE ""Kilimanjaro"" ( Id int, B varchar, UNIQUE (B), FOREIGN KEY (B) RE
                 Assert.Equal(1, table.UniqueConstraints.Count);
                 Assert.Empty(table.ForeignKeys);
             },
-            @"
-DROP TABLE ""Kilimanjaro"";
-DROP TABLE ""K2"";");
+"""
+DROP TABLE "Kilimanjaro";
+DROP TABLE "K2";
+""");
 
     [Fact]
     public void Filter_tables_with_qualified_name()
-        => Test(@"
-CREATE TABLE ""K.2"" ( Id int, A varchar, UNIQUE (A ) );
-CREATE TABLE ""Kilimanjaro"" ( Id int, B varchar, UNIQUE (B) );",
+        => Test(
+"""
+CREATE TABLE "K.2" (Id int, A varchar, UNIQUE (A));
+CREATE TABLE "Kilimanjaro" (Id int, B varchar, UNIQUE (B));
+""",
             new[] { @"""K.2""" },
             Enumerable.Empty<string>(),
             dbModel =>
@@ -215,16 +234,19 @@ CREATE TABLE ""Kilimanjaro"" ( Id int, B varchar, UNIQUE (B) );",
                 Assert.Equal(1, table.UniqueConstraints.Count);
                 Assert.Empty(table.ForeignKeys);
             },
-            @"
-DROP TABLE ""Kilimanjaro"";
-DROP TABLE ""K.2"";");
+"""
+DROP TABLE "Kilimanjaro";
+DROP TABLE "K.2";
+""");
 
     [Fact]
     public void Filter_tables_with_schema_qualified_name1()
-        => Test(@"
-CREATE TABLE public.""K2"" ( Id int, A varchar, UNIQUE (A ) );
-CREATE TABLE db2.""K2"" ( Id int, A varchar, UNIQUE (A ) );
-CREATE TABLE ""Kilimanjaro"" ( Id int, B varchar, UNIQUE (B) );",
+        => Test(
+"""
+CREATE TABLE public."K2" (Id int, A varchar, UNIQUE (A));
+CREATE TABLE db2."K2" (Id int, A varchar, UNIQUE (A));
+CREATE TABLE "Kilimanjaro" (Id int, B varchar, UNIQUE (B));
+""",
             new[] { "public.K2" },
             Enumerable.Empty<string>(),
             dbModel =>
@@ -236,17 +258,20 @@ CREATE TABLE ""Kilimanjaro"" ( Id int, B varchar, UNIQUE (B) );",
                 Assert.Equal(1, table.UniqueConstraints.Count);
                 Assert.Empty(table.ForeignKeys);
             },
-            @"
-DROP TABLE ""Kilimanjaro"";
-DROP TABLE ""K2"";
-DROP TABLE db2.""K2"";");
+"""
+DROP TABLE "Kilimanjaro";
+DROP TABLE "K2";
+DROP TABLE db2."K2";
+""");
 
     [Fact]
     public void Filter_tables_with_schema_qualified_name2()
-        => Test(@"
-CREATE TABLE ""K.2"" ( Id int, A varchar, UNIQUE (A ) );
-CREATE TABLE ""db.2"".""K.2"" ( Id int, A varchar, UNIQUE (A ) );
-CREATE TABLE ""db.2"".""Kilimanjaro"" ( Id int, B varchar, UNIQUE (B) );",
+        => Test(
+"""
+CREATE TABLE "K.2" (Id int, A varchar, UNIQUE (A));
+CREATE TABLE "db.2"."K.2" (Id int, A varchar, UNIQUE (A));
+CREATE TABLE "db.2"."Kilimanjaro" (Id int, B varchar, UNIQUE (B));
+""",
             new[] { @"""db.2"".""K.2""" },
             Enumerable.Empty<string>(),
             dbModel =>
@@ -258,17 +283,20 @@ CREATE TABLE ""db.2"".""Kilimanjaro"" ( Id int, B varchar, UNIQUE (B) );",
                 Assert.Equal(1, table.UniqueConstraints.Count);
                 Assert.Empty(table.ForeignKeys);
             },
-            @"
-DROP TABLE ""db.2"".""Kilimanjaro"";
-DROP TABLE ""K.2"";
-DROP TABLE ""db.2"".""K.2"";");
+"""
+DROP TABLE "db.2"."Kilimanjaro";
+DROP TABLE "K.2";
+DROP TABLE "db.2"."K.2";
+""");
 
     [Fact]
     public void Filter_tables_with_schema_qualified_name3()
-        => Test(@"
-CREATE TABLE ""K.2"" ( Id int, A varchar, UNIQUE (A ) );
-CREATE TABLE ""db2"".""K.2"" ( Id int, A varchar, UNIQUE (A ) );
-CREATE TABLE ""Kilimanjaro"" ( Id int, B varchar, UNIQUE (B) );",
+        => Test(
+"""
+CREATE TABLE "K.2" (Id int, A varchar, UNIQUE (A));
+CREATE TABLE "db2"."K.2" (Id int, A varchar, UNIQUE (A));
+CREATE TABLE "Kilimanjaro" (Id int, B varchar, UNIQUE (B));
+""",
             new[] { @"public.""K.2""" },
             Enumerable.Empty<string>(),
             dbModel =>
@@ -280,17 +308,20 @@ CREATE TABLE ""Kilimanjaro"" ( Id int, B varchar, UNIQUE (B) );",
                 Assert.Equal(1, table.UniqueConstraints.Count);
                 Assert.Empty(table.ForeignKeys);
             },
-            @"
-DROP TABLE ""Kilimanjaro"";
-DROP TABLE ""K.2"";
-DROP TABLE db2.""K.2"";");
+"""
+DROP TABLE "Kilimanjaro";
+DROP TABLE "K.2";
+DROP TABLE db2."K.2";
+""");
 
     [Fact]
     public void Filter_tables_with_schema_qualified_name4()
-        => Test(@"
-CREATE TABLE ""K2"" ( Id int, A varchar, UNIQUE (A ) );
-CREATE TABLE ""db.2"".""K2"" ( Id int, A varchar, UNIQUE (A ) );
-CREATE TABLE ""db.2"".""Kilimanjaro"" ( Id int, B varchar, UNIQUE (B) );",
+        => Test(
+"""
+CREATE TABLE "K2" (Id int, A varchar, UNIQUE (A));
+CREATE TABLE "db.2"."K2" (Id int, A varchar, UNIQUE (A));
+CREATE TABLE "db.2"."Kilimanjaro" (Id int, B varchar, UNIQUE (B));
+""",
             new[] { @"""db.2"".K2" },
             Enumerable.Empty<string>(),
             dbModel =>
@@ -302,49 +333,52 @@ CREATE TABLE ""db.2"".""Kilimanjaro"" ( Id int, B varchar, UNIQUE (B) );",
                 Assert.Equal(1, table.UniqueConstraints.Count);
                 Assert.Empty(table.ForeignKeys);
             },
-            @"
-DROP TABLE ""db.2"".""Kilimanjaro"";
-DROP TABLE ""K2"";
-DROP TABLE ""db.2"".""K2"";");
+"""
+DROP TABLE "db.2"."Kilimanjaro";
+DROP TABLE "K2";
+DROP TABLE "db.2"."K2";
+""");
 
     [Fact]
     public void Complex_filtering_validation()
-        => Test(@"
-CREATE SEQUENCE public.""Sequence"";
-CREATE SEQUENCE ""db2"".""Sequence"";
+        => Test(
+"""
+CREATE SEQUENCE public."Sequence";
+CREATE SEQUENCE "db2"."Sequence";
 
-CREATE TABLE ""db.2"".""QuotedTableName"" ( ""Id"" int PRIMARY KEY );
-CREATE TABLE ""db.2"".""Table.With.Dot"" ( ""Id"" int PRIMARY KEY );
-CREATE TABLE ""db.2"".""SimpleTableName"" ( ""Id"" int PRIMARY KEY );
-CREATE TABLE ""db.2"".""JustTableName"" ( ""Id"" int PRIMARY KEY );
+CREATE TABLE "db.2"."QuotedTableName" ("Id" int PRIMARY KEY);
+CREATE TABLE "db.2"."Table.With.Dot" ("Id" int PRIMARY KEY);
+CREATE TABLE "db.2"."SimpleTableName" ("Id" int PRIMARY KEY);
+CREATE TABLE "db.2"."JustTableName" ("Id" int PRIMARY KEY);
 
-CREATE TABLE ""public"".""QuotedTableName"" ( ""Id"" int PRIMARY KEY );
-CREATE TABLE ""public"".""Table.With.Dot"" ( ""Id"" int PRIMARY KEY );
-CREATE TABLE ""public"".""SimpleTableName"" ( ""Id"" int PRIMARY KEY );
-CREATE TABLE ""public"".""JustTableName"" ( ""Id"" int PRIMARY KEY );
+CREATE TABLE public."QuotedTableName" ("Id" int PRIMARY KEY);
+CREATE TABLE public."Table.With.Dot" ("Id" int PRIMARY KEY);
+CREATE TABLE public."SimpleTableName" ("Id" int PRIMARY KEY);
+CREATE TABLE public."JustTableName" ("Id" int PRIMARY KEY);
 
-CREATE TABLE ""db2"".""QuotedTableName"" ( ""Id"" int PRIMARY KEY );
-CREATE TABLE ""db2"".""Table.With.Dot"" ( ""Id"" int PRIMARY KEY );
-CREATE TABLE ""db2"".""SimpleTableName"" ( ""Id"" int PRIMARY KEY );
-CREATE TABLE ""db2"".""JustTableName"" ( ""Id"" int PRIMARY KEY );
+CREATE TABLE db2."QuotedTableName" ("Id" int PRIMARY KEY);
+CREATE TABLE db2."Table.With.Dot" ("Id" int PRIMARY KEY);
+CREATE TABLE db2."SimpleTableName" ("Id" int PRIMARY KEY);
+CREATE TABLE db2."JustTableName" ("Id" int PRIMARY KEY);
 
-CREATE TABLE ""db2"".""PrincipalTable"" (
-    ""Id"" int PRIMARY KEY,
-    ""UC1"" text,
-    ""UC2"" int,
-    ""Index1"" bit,
-    ""Index2"" bigint,
-    CONSTRAINT ""UX"" UNIQUE (""UC1"", ""UC2"")
+CREATE TABLE "db2"."PrincipalTable" (
+    "Id" int PRIMARY KEY,
+    "UC1" text,
+    "UC2" int,
+    "Index1" bit,
+    "Index2" bigint,
+    CONSTRAINT "UX" UNIQUE ("UC1", "UC2")
 );
 
-CREATE INDEX ""IX_COMPOSITE"" ON ""db2"".""PrincipalTable"" ( ""Index2"", ""Index1"" );
+CREATE INDEX "IX_COMPOSITE" ON "db2"."PrincipalTable" ("Index2", "Index1");
 
-CREATE TABLE ""db2"".""DependentTable"" (
-    ""Id"" int PRIMARY KEY,
-    ""ForeignKeyId1"" text,
-    ""ForeignKeyId2"" int,
-    FOREIGN KEY (""ForeignKeyId1"", ""ForeignKeyId2"") REFERENCES ""db2"".""PrincipalTable""(""UC1"", ""UC2"") ON DELETE CASCADE
-);",
+CREATE TABLE "db2"."DependentTable" (
+    "Id" int PRIMARY KEY,
+    "ForeignKeyId1" text,
+    "ForeignKeyId2" int,
+    FOREIGN KEY ("ForeignKeyId1", "ForeignKeyId2") REFERENCES "db2"."PrincipalTable"("UC1", "UC2") ON DELETE CASCADE
+);
+""",
             new[] { @"""db.2"".""QuotedTableName""", @"""db.2"".SimpleTableName", @"public.""Table.With.Dot""", @"public.""SimpleTableName""", @"""JustTableName""" },
             new[] { "db2" },
             dbModel =>
@@ -378,26 +412,27 @@ CREATE TABLE ""db2"".""DependentTable"" (
                 // ReSharper disable once PossibleNullReferenceException
                 Assert.Single(dependentTable.ForeignKeys);
             },
-            @"
-DROP SEQUENCE ""public"".""Sequence"";
-DROP SEQUENCE ""db2"".""Sequence"";
+"""
+DROP SEQUENCE public."Sequence";
+DROP SEQUENCE db2."Sequence";
 
-DROP TABLE ""db.2"".""QuotedTableName"";
-DROP TABLE ""db.2"".""Table.With.Dot"";
-DROP TABLE ""db.2"".""SimpleTableName"";
-DROP TABLE ""db.2"".""JustTableName"";
+DROP TABLE "db.2"."QuotedTableName";
+DROP TABLE "db.2"."Table.With.Dot";
+DROP TABLE "db.2"."SimpleTableName";
+DROP TABLE "db.2"."JustTableName";
 
-DROP TABLE ""public"".""QuotedTableName"";
-DROP TABLE ""public"".""Table.With.Dot"";
-DROP TABLE ""public"".""SimpleTableName"";
-DROP TABLE ""public"".""JustTableName"";
+DROP TABLE public."QuotedTableName";
+DROP TABLE public."Table.With.Dot";
+DROP TABLE public."SimpleTableName";
+DROP TABLE public."JustTableName";
 
-DROP TABLE ""db2"".""QuotedTableName"";
-DROP TABLE ""db2"".""Table.With.Dot"";
-DROP TABLE ""db2"".""SimpleTableName"";
-DROP TABLE ""db2"".""JustTableName"";
-DROP TABLE ""db2"".""DependentTable"";
-DROP TABLE ""db2"".""PrincipalTable"";");
+DROP TABLE db2."QuotedTableName";
+DROP TABLE db2."Table.With.Dot";
+DROP TABLE db2."SimpleTableName";
+DROP TABLE db2."JustTableName";
+DROP TABLE db2."DependentTable";
+DROP TABLE db2."PrincipalTable";
+""");
 
     #endregion
 
@@ -405,11 +440,13 @@ DROP TABLE ""db2"".""PrincipalTable"";");
 
     [Fact]
     public void Create_columns()
-        => Test(@"
-CREATE TABLE ""Blogs"" (
-    ""Id"" int,
-    ""Name"" text NOT NULL
-);",
+        => Test(
+"""
+CREATE TABLE "Blogs" (
+    "Id" int,
+    "Name" text NOT NULL
+);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -433,12 +470,9 @@ CREATE TABLE ""Blogs"" (
     public void Create_view_columns()
     {
         Test(
-            @"
-CREATE VIEW ""BlogsView""
- AS
-SELECT
- 100::int AS ""Id"",
- ''::text AS ""Name"";",
+"""
+CREATE VIEW "BlogsView" AS SELECT 100::int AS "Id", ''::text AS "Name";
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -464,12 +498,9 @@ SELECT
     public void Create_materialized_view_columns()
     {
         Test(
-            @"
-CREATE MATERIALIZED VIEW ""BlogsView""
- AS
-SELECT
- 100::int AS ""Id"",
- ''::text AS ""Name"";",
+"""
+CREATE MATERIALIZED VIEW "BlogsView" AS SELECT 100::int AS "Id", ''::text AS "Name";
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -493,10 +524,10 @@ SELECT
 
     [Fact]
     public void Create_primary_key()
-        => Test(@"
-CREATE TABLE ""PrimaryKeyTable"" (
-    ""Id"" int PRIMARY KEY
-);",
+        => Test(
+"""
+CREATE TABLE "PrimaryKeyTable" ("Id" int PRIMARY KEY);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -512,17 +543,19 @@ CREATE TABLE ""PrimaryKeyTable"" (
 
     [Fact]
     public void Create_unique_constraints()
-        => Test(@"
-CREATE TABLE ""UniqueConstraint"" (
-    ""Id"" int,
-    ""Name"" int Unique,
-    ""IndexProperty"" int,
-    ""Unq1"" int,
-    ""Unq2"" int,
-    UNIQUE (""Unq1"", ""Unq2"")
+        => Test(
+"""
+CREATE TABLE "UniqueConstraint" (
+    "Id" int,
+    "Name" int Unique,
+    "IndexProperty" int,
+    "Unq1" int,
+    "Unq2" int,
+    UNIQUE ("Unq1", "Unq2")
 );
 
-CREATE INDEX ""IX_INDEX"" on ""UniqueConstraint"" ( ""IndexProperty"" );",
+CREATE INDEX "IX_INDEX" on "UniqueConstraint" ("IndexProperty");
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -545,17 +578,19 @@ CREATE INDEX ""IX_INDEX"" on ""UniqueConstraint"" ( ""IndexProperty"" );",
 
     [Fact]
     public void Create_indexes()
-        => Test(@"
-CREATE TABLE ""IndexTable"" (
-    ""Id"" int,
-    ""Name"" int,
-    ""IndexProperty"" int,
-    ""ConstraintProperty"" int,
-    UNIQUE (""ConstraintProperty"")
+        => Test(
+"""
+CREATE TABLE "IndexTable" (
+    "Id" int,
+    "Name" int,
+    "IndexProperty" int,
+    "ConstraintProperty" int,
+    UNIQUE ("ConstraintProperty")
 );
 
-CREATE INDEX ""IX_NAME"" on ""IndexTable"" ( ""Name"" );
-CREATE INDEX ""IX_INDEX"" on ""IndexTable"" ( ""IndexProperty"" );",
+CREATE INDEX "IX_NAME" on "IndexTable" ("Name");
+CREATE INDEX "IX_INDEX" on "IndexTable" ("IndexProperty");
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -578,21 +613,23 @@ CREATE INDEX ""IX_INDEX"" on ""IndexTable"" ( ""IndexProperty"" );",
 
     [Fact]
     public void Create_foreign_keys()
-        => Test(@"
-CREATE TABLE ""PrincipalTable"" (
-    ""Id"" int PRIMARY KEY
+        => Test(
+"""
+CREATE TABLE "PrincipalTable" (
+    "Id" int PRIMARY KEY
 );
 
-CREATE TABLE ""FirstDependent"" (
-    ""Id"" int PRIMARY KEY,
-    ""ForeignKeyId"" int,
-    FOREIGN KEY (""ForeignKeyId"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE CASCADE
+CREATE TABLE "FirstDependent" (
+    "Id" int PRIMARY KEY,
+    "ForeignKeyId" int,
+    FOREIGN KEY ("ForeignKeyId") REFERENCES "PrincipalTable"("Id") ON DELETE CASCADE
 );
 
-CREATE TABLE ""SecondDependent"" (
-    ""Id"" int PRIMARY KEY,
-    FOREIGN KEY (""Id"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE NO ACTION
-);",
+CREATE TABLE "SecondDependent" (
+    "Id" int PRIMARY KEY,
+    FOREIGN KEY ("Id") REFERENCES "PrincipalTable"("Id") ON DELETE NO ACTION
+);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -619,10 +656,11 @@ CREATE TABLE ""SecondDependent"" (
                 Assert.Equal(new List<string> { "Id" }, secondFk.PrincipalColumns.Select(ic => ic.Name).ToList());
                 Assert.Equal(ReferentialAction.NoAction, secondFk.OnDelete);
             },
-            @"
-DROP TABLE ""SecondDependent"";
-DROP TABLE ""FirstDependent"";
-DROP TABLE ""PrincipalTable"";");
+"""
+DROP TABLE "SecondDependent";
+DROP TABLE "FirstDependent";
+DROP TABLE "PrincipalTable";
+""");
 
     #endregion
 
@@ -631,18 +669,21 @@ DROP TABLE ""PrincipalTable"";");
     [Fact]
     public void Column_with_domain_assigns_underlying_store_type()
     {
-        Fixture.TestStore.ExecuteNonQuery(@"
+        Fixture.TestStore.ExecuteNonQuery(
+"""
 CREATE DOMAIN public.text_domain AS text;
 CREATE DOMAIN db2.text_domain AS int;
 CREATE DOMAIN public.char_domain AS char(3);
-");
+""");
 
-        Test(@"
+        Test(
+"""
 CREATE TABLE domains (
     id int,
     text_domain public.text_domain NULL,
     char_domain public.char_domain NULL
-)",
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -656,23 +697,26 @@ CREATE TABLE domains (
                 var nonDomainColumn = Assert.Single(dbModel.Tables.Single().Columns.Where(c => c.Name == "id"));
                 Assert.Equal("integer", nonDomainColumn?.StoreType);
             },
-            @"
+"""
 DROP TABLE domains;
 DROP DOMAIN public.text_domain;
 DROP DOMAIN public.char_domain;
-DROP DOMAIN db2.text_domain;");
+DROP DOMAIN db2.text_domain;
+""");
     }
 
     // Note: in PostgreSQL decimal is simply an alias for numeric
     [Fact]
     public void Decimal_numeric_types_have_precision_scale()
-        => Test(@"
-CREATE TABLE ""NumericColumns"" (
-    ""Id"" int,
-    ""numericColumn"" numeric NOT NULL,
-    ""numeric152Column"" numeric(15, 2) NOT NULL,
-    ""numeric18Column"" numeric(18) NOT NULL
-)",
+        => Test(
+"""
+CREATE TABLE "NumericColumns" (
+    "Id" int,
+    "numericColumn" numeric NOT NULL,
+    "numeric152Column" numeric(15, 2) NOT NULL,
+    "numeric18Column" numeric(18) NOT NULL
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -687,16 +731,18 @@ CREATE TABLE ""NumericColumns"" (
 
     [Fact]
     public void Specific_max_length_are_add_to_store_type()
-        => Test(@"
-CREATE TABLE ""LengthColumns"" (
-    ""Id"" int,
-    ""char10Column"" char(10) NULL,
-    ""varchar66Column"" varchar(66) NULL,
-    ""bit111Column"" bit(111) NULL,
-    ""varbit123Column"" varbit(123) NULL,
-    ""varchar66ArrayColumn"" varchar(66)[] NULL,
-    ""varbit123ArrayColumn"" varbit(123)[] NULL
-)",
+        => Test(
+"""
+CREATE TABLE "LengthColumns" (
+    "Id" int,
+    "char10Column" char(10) NULL,
+    "varchar66Column" varchar(66) NULL,
+    "bit111Column" bit(111) NULL,
+    "varbit123Column" varbit(123) NULL,
+    "varchar66ArrayColumn" varchar(66)[] NULL,
+    "varbit123ArrayColumn" varbit(123)[] NULL
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -714,15 +760,17 @@ CREATE TABLE ""LengthColumns"" (
 
     [Fact]
     public void Datetime_types_have_precision_if_non_null_scale()
-        => Test(@"
-CREATE TABLE ""LengthColumns"" (
-    ""Id"" int,
-    ""time1Column"" time(1) NULL,
-    ""timetz2Column"" timetz(2) NULL,
-    ""timestamp3Column"" timestamp(3) NULL,
-    ""timestamptz4Column"" timestamptz(4) NULL,
-    ""interval5Column"" interval(5) NULL
-)",
+        => Test(
+"""
+CREATE TABLE "LengthColumns" (
+    "Id" int,
+    "time1Column" time(1) NULL,
+    "timetz2Column" timetz(2) NULL,
+    "timestamp3Column" timestamp(3) NULL,
+    "timestamptz4Column" timestamptz(4) NULL,
+    "interval5Column" interval(5) NULL
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -739,33 +787,35 @@ CREATE TABLE ""LengthColumns"" (
 
     [Fact]
     public void Store_types_without_any_facets()
-        => Test(@"
-CREATE TABLE ""NoFacetTypes"" (
-    ""Id"" int,
-    ""boolColumn"" bool,
-    ""byteaColumn"" bytea,
-    ""floatColumn"" float4,
-    ""doubleColumn"" float8,
-    ""decimalColumn"" decimal,
-    ""moneyColumn"" money,
-    ""guidColumn"" uuid,
-    ""shortColumn"" int2,
-    ""intColumn"" int4,
-    ""longColumn"" int8,
-    ""textColumn"" text,
-    ""jsonbColumn"" jsonb,
-    ""jsonColumn"" json,
-    ""timestampColumn"" timestamp,
+        => Test(
+"""
+CREATE TABLE "NoFacetTypes" (
+    "Id" int,
+    "boolColumn" bool,
+    "byteaColumn" bytea,
+    "floatColumn" float4,
+    "doubleColumn" float8,
+    "decimalColumn" decimal,
+    "moneyColumn" money,
+    "guidColumn" uuid,
+    "shortColumn" int2,
+    "intColumn" int4,
+    "longColumn" int8,
+    "textColumn" text,
+    "jsonbColumn" jsonb,
+    "jsonColumn" json,
+    "timestampColumn" timestamp,
     /* TODO: timestamptz */
-    ""intervalColumn"" interval,
-    ""timetzColumn"" timetz,
-    ""macaddrColumn"" macaddr,
-    ""inetColumn"" inet,
-    ""pointColumn"" point,
-    ""lineColumn"" line,
-    ""xidColumn"" xid,
-    ""textArrayColumn"" text[]
-)",
+    "intervalColumn" interval,
+    "timetzColumn" timetz,
+    "macaddrColumn" macaddr,
+    "inetColumn" inet,
+    "pointColumn" point,
+    "lineColumn" line,
+    "xidColumn" xid,
+    "textArrayColumn" text[]
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -799,11 +849,13 @@ CREATE TABLE ""NoFacetTypes"" (
 
     [Fact]
     public void Default_values_are_stored()
-        => Test(@"
-CREATE TABLE ""DefaultValues"" (
-    ""Id"" int,
-    ""FixedDefaultValue"" timestamp NOT NULL DEFAULT ('1999-01-08')
-)",
+        => Test(
+"""
+CREATE TABLE "DefaultValues" (
+    "Id" int,
+    "FixedDefaultValue" timestamp NOT NULL DEFAULT ('1999-01-08')
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -816,13 +868,15 @@ CREATE TABLE ""DefaultValues"" (
     [ConditionalFact]
     [MinimumPostgresVersion(12, 0)]
     public void Computed_values_are_stored()
-        => Test(@"
-CREATE TABLE ""ComputedValues"" (
-    ""Id"" int,
-    ""A"" int NOT NULL,
-    ""B"" int NOT NULL,
-    ""SumOfAAndB"" int GENERATED ALWAYS AS (""A"" + ""B"") STORED
-)",
+        => Test(
+"""
+CREATE TABLE "ComputedValues" (
+    "Id" int,
+    "A" int NOT NULL,
+    "B" int NOT NULL,
+    "SumOfAAndB" int GENERATED ALWAYS AS ("A" + "B") STORED
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -840,31 +894,33 @@ CREATE TABLE ""ComputedValues"" (
 
     [Fact]
     public void Default_value_matching_clr_default_is_not_stored()
-        => Test(@"
-CREATE DOMAIN ""decimalDomain"" AS decimal(6);
+        => Test(
+"""
+CREATE DOMAIN "decimalDomain" AS decimal(6);
 
-CREATE TABLE ""DefaultValues"" (
-    ""IgnoredDefault1"" int DEFAULT NULL,
-    ""IgnoredDefault2"" int NOT NULL DEFAULT NULL,
-    ""IgnoredDefault9"" int NOT NULL DEFAULT 0,
-    ""IgnoredDefault14"" smallint NOT NULL DEFAULT 0,
-    ""IgnoredDefault3"" bigint NOT NULL DEFAULT 0,
-    ""IgnoredDefault15"" decimal NOT NULL DEFAULT 0,
-    ""IgnoredDefault16"" decimal NOT NULL DEFAULT 0.0,
-    ""IgnoredDefault17"" ""decimalDomain"" NOT NULL DEFAULT 0,
-    ""IgnoredDefault10"" money NOT NULL DEFAULT 0,
-    ""IgnoredDefault19"" money NOT NULL DEFAULT 0.0,
-    ""IgnoredDefault21"" float4 NOT NULL DEFAULT 0.0,
-    ""IgnoredDefault7"" float8 NOT NULL DEFAULT 0,
-    ""IgnoredDefault18"" float8 NOT NULL DEFAULT 0.0,
-    ""IgnoredDefault24"" float8 NOT NULL DEFAULT 0E0,
-    ""IgnoredDefault4"" bool NOT NULL DEFAULT false,
-    ""IgnoredDefault25"" date NOT NULL DEFAULT '0001-01-01',
-    ""IgnoredDefault26"" timestamp NOT NULL DEFAULT '1900-01-01T00:00:00.000',
-    ""IgnoredDefault27"" interval NOT NULL DEFAULT '00:00:00',
-    ""IgnoredDefault32"" time NOT NULL DEFAULT '00:00:00',
-    ""IgnoredDefault34"" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'
-)",
+CREATE TABLE "DefaultValues" (
+    "IgnoredDefault1" int DEFAULT NULL,
+    "IgnoredDefault2" int NOT NULL DEFAULT NULL,
+    "IgnoredDefault9" int NOT NULL DEFAULT 0,
+    "IgnoredDefault14" smallint NOT NULL DEFAULT 0,
+    "IgnoredDefault3" bigint NOT NULL DEFAULT 0,
+    "IgnoredDefault15" decimal NOT NULL DEFAULT 0,
+    "IgnoredDefault16" decimal NOT NULL DEFAULT 0.0,
+    "IgnoredDefault17" "decimalDomain" NOT NULL DEFAULT 0,
+    "IgnoredDefault10" money NOT NULL DEFAULT 0,
+    "IgnoredDefault19" money NOT NULL DEFAULT 0.0,
+    "IgnoredDefault21" float4 NOT NULL DEFAULT 0.0,
+    "IgnoredDefault7" float8 NOT NULL DEFAULT 0,
+    "IgnoredDefault18" float8 NOT NULL DEFAULT 0.0,
+    "IgnoredDefault24" float8 NOT NULL DEFAULT 0E0,
+    "IgnoredDefault4" bool NOT NULL DEFAULT false,
+    "IgnoredDefault25" date NOT NULL DEFAULT '0001-01-01',
+    "IgnoredDefault26" timestamp NOT NULL DEFAULT '1900-01-01T00:00:00.000',
+    "IgnoredDefault27" interval NOT NULL DEFAULT '00:00:00',
+    "IgnoredDefault32" time NOT NULL DEFAULT '00:00:00',
+    "IgnoredDefault34" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -875,18 +931,21 @@ CREATE TABLE ""DefaultValues"" (
                     columns,
                     t => Assert.Null(t.DefaultValueSql));
             },
-            @"
-DROP TABLE ""DefaultValues"";
-DROP DOMAIN ""decimalDomain"";");
+"""
+DROP TABLE "DefaultValues";
+DROP DOMAIN "decimalDomain";
+""");
 
     [Fact]
     public void ValueGenerated_is_set_for_default_and_serial_column()
-        => Test(@"
-CREATE TABLE ""ValueGeneratedProperties"" (
-    ""Id"" SERIAL,
-    ""NoValueGenerationColumn"" text,
-    ""FixedDefaultValue"" timestamp NOT NULL DEFAULT ('1999-01-08')
-)",
+        => Test(
+"""
+CREATE TABLE "ValueGeneratedProperties" (
+    "Id" SERIAL,
+    "NoValueGenerationColumn" text,
+    "FixedDefaultValue" timestamp NOT NULL DEFAULT ('1999-01-08')
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -902,11 +961,13 @@ CREATE TABLE ""ValueGeneratedProperties"" (
     [ConditionalFact]
     [MinimumPostgresVersion(10, 0)]
     public void ValueGenerated_is_set_for_identity_column()
-        => Test(@"
-CREATE TABLE ""ValueGeneratedProperties"" (
-    ""Id1"" INT GENERATED ALWAYS AS IDENTITY,
-    ""Id2"" INT GENERATED BY DEFAULT AS IDENTITY
-)",
+        => Test(
+"""
+CREATE TABLE "ValueGeneratedProperties" (
+    "Id1" INT GENERATED ALWAYS AS IDENTITY,
+    "Id2" INT GENERATED BY DEFAULT AS IDENTITY
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -921,13 +982,15 @@ CREATE TABLE ""ValueGeneratedProperties"" (
     [ConditionalFact]
     [MinimumPostgresVersion(12, 0)]
     public void ValueGenerated_is_set_for_computed_column()
-        => Test(@"
-CREATE TABLE ""ValueGeneratedProperties"" (
-    ""Id"" INT GENERATED ALWAYS AS IDENTITY,
-    ""A"" int NOT NULL,
-    ""B"" int NOT NULL,
-    ""SumOfAAndB"" int GENERATED ALWAYS AS (""A"" + ""B"") STORED
-)",
+        => Test(
+"""
+CREATE TABLE "ValueGeneratedProperties" (
+    "Id" INT GENERATED ALWAYS AS IDENTITY,
+    "A" int NOT NULL,
+    "B" int NOT NULL,
+    "SumOfAAndB" int GENERATED ALWAYS AS ("A" + "B") STORED
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -940,12 +1003,14 @@ CREATE TABLE ""ValueGeneratedProperties"" (
 
     [Fact]
     public void Column_nullability_is_set()
-        => Test(@"
-CREATE TABLE ""NullableColumns"" (
-    ""Id"" int,
-    ""NullableInt"" int NULL,
-    ""NonNullableInt"" int NOT NULL
-)",
+        => Test(
+"""
+CREATE TABLE "NullableColumns" (
+    "Id" int,
+    "NullableInt" int NULL,
+    "NonNullableInt" int NOT NULL
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -959,14 +1024,16 @@ CREATE TABLE ""NullableColumns"" (
 
     [Fact]
     public void Column_nullability_is_set_with_domain()
-        => Test(@"
+        => Test(
+"""
 CREATE DOMAIN non_nullable_int AS int NOT NULL;
 
-CREATE TABLE ""NullableColumnsDomain"" (
-    ""Id"" int,
-    ""NullableInt"" non_nullable_int NULL,
-    ""NonNullString"" non_nullable_int NOT NULL
-)",
+CREATE TABLE "NullableColumnsDomain" (
+    "Id" int,
+    "NullableInt" non_nullable_int NULL,
+    "NonNullString" non_nullable_int NOT NULL
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -976,17 +1043,20 @@ CREATE TABLE ""NullableColumnsDomain"" (
                 Assert.False(columns.Single(c => c.Name == "NullableInt").IsNullable);
                 Assert.False(columns.Single(c => c.Name == "NonNullString").IsNullable);
             },
-            @"
-DROP TABLE ""NullableColumnsDomain"";
-DROP DOMAIN non_nullable_int;");
+"""
+DROP TABLE "NullableColumnsDomain";
+DROP DOMAIN non_nullable_int;
+""");
 
     [Fact]
     public void System_columns_are_not_created()
-        => Test(@"
-CREATE TABLE ""SystemColumnsTable""
+        => Test(
+"""
+CREATE TABLE "SystemColumnsTable"
 (
-     ""Id"" int NOT NULL PRIMARY KEY
-)",
+     "Id" int NOT NULL PRIMARY KEY
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1003,12 +1073,14 @@ CREATE TABLE ""SystemColumnsTable""
 
     [Fact]
     public void Create_composite_primary_key()
-        => Test(@"
-CREATE TABLE ""CompositePrimaryKeyTable"" (
-    ""Id1"" int,
-    ""Id2"" int,
-    PRIMARY KEY (""Id2"", ""Id1"")
-)",
+        => Test(
+"""
+CREATE TABLE "CompositePrimaryKeyTable" (
+    "Id1" int,
+    "Id2" int,
+    PRIMARY KEY ("Id2", "Id1")
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1023,12 +1095,14 @@ CREATE TABLE ""CompositePrimaryKeyTable"" (
 
     [Fact]
     public void Set_primary_key_name_from_index()
-        => Test(@"
-CREATE TABLE ""PrimaryKeyName"" (
-    ""Id1"" int,
-    ""Id2"" int,
-    CONSTRAINT ""MyPK"" PRIMARY KEY ( ""Id2"" )
-)",
+        => Test(
+"""
+CREATE TABLE "PrimaryKeyName" (
+    "Id1" int,
+    "Id2" int,
+    CONSTRAINT "MyPK" PRIMARY KEY ( "Id2" )
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1048,12 +1122,14 @@ CREATE TABLE ""PrimaryKeyName"" (
 
     [Fact]
     public void Create_composite_unique_constraint()
-        => Test(@"
-CREATE TABLE ""CompositeUniqueConstraintTable"" (
-    ""Id1"" int,
-    ""Id2"" int,
-    CONSTRAINT ""UX"" UNIQUE (""Id2"", ""Id1"")
-);",
+        => Test(
+"""
+CREATE TABLE "CompositeUniqueConstraintTable" (
+    "Id1" int,
+    "Id2" int,
+    CONSTRAINT "UX" UNIQUE ("Id2", "Id1")
+);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1070,12 +1146,14 @@ CREATE TABLE ""CompositeUniqueConstraintTable"" (
 
     [Fact]
     public void Set_unique_constraint_name_from_index()
-        => Test(@"
-CREATE TABLE ""UniqueConstraintName"" (
-    ""Id1"" int,
-    ""Id2"" int,
-    CONSTRAINT ""MyUC"" UNIQUE ( ""Id2"" )
-);",
+        => Test(
+"""
+CREATE TABLE "UniqueConstraintName" (
+    "Id1" int,
+    "Id2" int,
+    CONSTRAINT "MyUC" UNIQUE ( "Id2" )
+);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1098,13 +1176,15 @@ CREATE TABLE ""UniqueConstraintName"" (
 
     [Fact]
     public void Create_composite_index()
-        => Test(@"
-CREATE TABLE ""CompositeIndexTable"" (
-    ""Id1"" int,
-    ""Id2"" int
+        => Test(
+"""
+CREATE TABLE "CompositeIndexTable" (
+    "Id1" int,
+    "Id2" int
 );
 
-CREATE INDEX ""IX_COMPOSITE"" ON ""CompositeIndexTable"" ( ""Id2"", ""Id1"" );",
+CREATE INDEX "IX_COMPOSITE" ON "CompositeIndexTable" ( "Id2", "Id1" );
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1121,13 +1201,15 @@ CREATE INDEX ""IX_COMPOSITE"" ON ""CompositeIndexTable"" ( ""Id2"", ""Id1"" );",
 
     [Fact]
     public void Set_unique_true_for_unique_index()
-        => Test(@"
-CREATE TABLE ""UniqueIndexTable"" (
-    ""Id1"" int,
-    ""Id2"" int
+        => Test(
+"""
+CREATE TABLE "UniqueIndexTable" (
+    "Id1" int,
+    "Id2" int
 );
 
-CREATE UNIQUE INDEX ""IX_UNIQUE"" ON ""UniqueIndexTable"" ( ""Id2"" );",
+CREATE UNIQUE INDEX "IX_UNIQUE" ON "UniqueIndexTable" ( "Id2" );
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1146,13 +1228,15 @@ CREATE UNIQUE INDEX ""IX_UNIQUE"" ON ""UniqueIndexTable"" ( ""Id2"" );",
 
     [Fact]
     public void Set_filter_for_filtered_index()
-        => Test(@"
-CREATE TABLE ""FilteredIndexTable"" (
-    ""Id1"" int,
-    ""Id2"" int NULL
+        => Test(
+"""
+CREATE TABLE "FilteredIndexTable" (
+    "Id1" int,
+    "Id2" int NULL
 );
 
-CREATE UNIQUE INDEX ""IX_UNIQUE"" ON ""FilteredIndexTable"" ( ""Id2"" ) WHERE ""Id2"" > 10;",
+CREATE UNIQUE INDEX "IX_UNIQUE" ON "FilteredIndexTable" ( "Id2" ) WHERE "Id2" > 10;
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1174,19 +1258,21 @@ CREATE UNIQUE INDEX ""IX_UNIQUE"" ON ""FilteredIndexTable"" ( ""Id2"" ) WHERE ""
 
     [Fact]
     public void Create_composite_foreign_key()
-        => Test(@"
-CREATE TABLE ""PrincipalTable"" (
-    ""Id1"" int,
-    ""Id2"" int,
-    PRIMARY KEY (""Id1"", ""Id2"")
+        => Test(
+"""
+CREATE TABLE "PrincipalTable" (
+    "Id1" int,
+    "Id2" int,
+    PRIMARY KEY ("Id1", "Id2")
 );
 
-CREATE TABLE ""DependentTable"" (
-    ""Id"" int PRIMARY KEY,
-    ""ForeignKeyId1"" int,
-    ""ForeignKeyId2"" int,
-    FOREIGN KEY (""ForeignKeyId1"", ""ForeignKeyId2"") REFERENCES ""PrincipalTable""(""Id1"", ""Id2"") ON DELETE CASCADE
-);",
+CREATE TABLE "DependentTable" (
+    "Id" int PRIMARY KEY,
+    "ForeignKeyId1" int,
+    "ForeignKeyId2" int,
+    FOREIGN KEY ("ForeignKeyId1", "ForeignKeyId2") REFERENCES "PrincipalTable"("Id1", "Id2") ON DELETE CASCADE
+);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1202,28 +1288,31 @@ CREATE TABLE ""DependentTable"" (
                 Assert.Equal(new List<string> { "Id1", "Id2" }, fk.PrincipalColumns.Select(ic => ic.Name).ToList());
                 Assert.Equal(ReferentialAction.Cascade, fk.OnDelete);
             },
-            @"
-DROP TABLE ""DependentTable"";
-DROP TABLE ""PrincipalTable"";");
+"""
+DROP TABLE "DependentTable";
+DROP TABLE "PrincipalTable";
+""");
 
     [Fact]
     public void Create_multiple_foreign_key_in_same_table()
-        => Test(@"
-CREATE TABLE ""PrincipalTable"" (
-    ""Id"" int PRIMARY KEY
+        => Test(
+"""
+CREATE TABLE "PrincipalTable" (
+    "Id" int PRIMARY KEY
 );
 
-CREATE TABLE ""AnotherPrincipalTable"" (
-    ""Id"" int PRIMARY KEY
+CREATE TABLE "AnotherPrincipalTable" (
+    "Id" int PRIMARY KEY
 );
 
-CREATE TABLE ""DependentTable"" (
-    ""Id"" int PRIMARY KEY,
-    ""ForeignKeyId1"" int,
-    ""ForeignKeyId2"" int,
-    FOREIGN KEY (""ForeignKeyId1"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE CASCADE,
-    FOREIGN KEY (""ForeignKeyId2"") REFERENCES ""AnotherPrincipalTable""(""Id"") ON DELETE CASCADE
-);",
+CREATE TABLE "DependentTable" (
+    "Id" int PRIMARY KEY,
+    "ForeignKeyId1" int,
+    "ForeignKeyId2" int,
+    FOREIGN KEY ("ForeignKeyId1") REFERENCES "PrincipalTable"("Id") ON DELETE CASCADE,
+    FOREIGN KEY ("ForeignKeyId2") REFERENCES "AnotherPrincipalTable"("Id") ON DELETE CASCADE
+);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1254,24 +1343,27 @@ CREATE TABLE ""DependentTable"" (
                 Assert.Equal(new List<string> { "Id" }, anotherPrincipalFk.PrincipalColumns.Select(ic => ic.Name).ToList());
                 Assert.Equal(ReferentialAction.Cascade, anotherPrincipalFk.OnDelete);
             },
-            @"
-DROP TABLE ""DependentTable"";
-DROP TABLE ""AnotherPrincipalTable"";
-DROP TABLE ""PrincipalTable"";");
+"""
+DROP TABLE "DependentTable";
+DROP TABLE "AnotherPrincipalTable";
+DROP TABLE "PrincipalTable";
+""");
 
     [Fact]
     public void Create_foreign_key_referencing_unique_constraint()
-        => Test(@"
-CREATE TABLE ""PrincipalTable"" (
-    ""Id1"" int,
-    ""Id2"" int UNIQUE
+        => Test(
+"""
+CREATE TABLE "PrincipalTable" (
+    "Id1" int,
+    "Id2" int UNIQUE
 );
 
-CREATE TABLE ""DependentTable"" (
-    ""Id"" int PRIMARY KEY,
-    ""ForeignKeyId"" int,
-    FOREIGN KEY (""ForeignKeyId"") REFERENCES ""PrincipalTable""(""Id2"") ON DELETE CASCADE
-);",
+CREATE TABLE "DependentTable" (
+    "Id" int PRIMARY KEY,
+    "ForeignKeyId" int,
+    FOREIGN KEY ("ForeignKeyId") REFERENCES "PrincipalTable"("Id2") ON DELETE CASCADE
+);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1287,22 +1379,25 @@ CREATE TABLE ""DependentTable"" (
                 Assert.Equal(new List<string> { "Id2" }, fk.PrincipalColumns.Select(ic => ic.Name).ToList());
                 Assert.Equal(ReferentialAction.Cascade, fk.OnDelete);
             },
-            @"
-DROP TABLE ""DependentTable"";
-DROP TABLE ""PrincipalTable"";");
+"""
+DROP TABLE "DependentTable";
+DROP TABLE "PrincipalTable";
+""");
 
     [Fact]
     public void Set_name_for_foreign_key()
-        => Test(@"
-CREATE TABLE ""PrincipalTable"" (
-    ""Id"" int PRIMARY KEY
+        => Test(
+"""
+CREATE TABLE "PrincipalTable" (
+    "Id" int PRIMARY KEY
 );
 
-CREATE TABLE ""DependentTable"" (
-    ""Id"" int PRIMARY KEY,
-    ""ForeignKeyId"" int,
-    CONSTRAINT ""MYFK"" FOREIGN KEY (""ForeignKeyId"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE CASCADE
-);",
+CREATE TABLE "DependentTable" (
+    "Id" int PRIMARY KEY,
+    "ForeignKeyId" int,
+    CONSTRAINT "MYFK" FOREIGN KEY ("ForeignKeyId") REFERENCES "PrincipalTable"("Id") ON DELETE CASCADE
+);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1320,30 +1415,33 @@ CREATE TABLE ""DependentTable"" (
                 // ReSharper disable once StringLiteralTypo
                 Assert.Equal("MYFK", fk.Name);
             },
-            @"
-DROP TABLE ""DependentTable"";
-DROP TABLE ""PrincipalTable"";");
+"""
+DROP TABLE "DependentTable";
+DROP TABLE "PrincipalTable";
+""");
 
     [Fact]
     public void Set_referential_action_for_foreign_key()
-        => Test(@"
-CREATE TABLE ""PrincipalTable"" (
-    ""Id"" int PRIMARY KEY
+        => Test(
+"""
+CREATE TABLE "PrincipalTable" (
+    "Id" int PRIMARY KEY
 );
 
-CREATE TABLE ""DependentTable"" (
-    ""Id"" int PRIMARY KEY,
-    ""ForeignKeySetNullId"" int,
-    ""ForeignKeyCascadeId"" int,
-    ""ForeignKeyNoActionId"" int,
-    ""ForeignKeyRestrictId"" int,
-    ""ForeignKeySetDefaultId"" int,
-    FOREIGN KEY (""ForeignKeySetNullId"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE SET NULL,
-    FOREIGN KEY (""ForeignKeyCascadeId"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE CASCADE,
-    FOREIGN KEY (""ForeignKeyNoActionId"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE NO ACTION,
-    FOREIGN KEY (""ForeignKeyRestrictId"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE RESTRICT,
-    FOREIGN KEY (""ForeignKeySetDefaultId"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE SET DEFAULT
-);",
+CREATE TABLE "DependentTable" (
+    "Id" int PRIMARY KEY,
+    "ForeignKeySetNullId" int,
+    "ForeignKeyCascadeId" int,
+    "ForeignKeyNoActionId" int,
+    "ForeignKeyRestrictId" int,
+    "ForeignKeySetDefaultId" int,
+    FOREIGN KEY ("ForeignKeySetNullId") REFERENCES "PrincipalTable"("Id") ON DELETE SET NULL,
+    FOREIGN KEY ("ForeignKeyCascadeId") REFERENCES "PrincipalTable"("Id") ON DELETE CASCADE,
+    FOREIGN KEY ("ForeignKeyNoActionId") REFERENCES "PrincipalTable"("Id") ON DELETE NO ACTION,
+    FOREIGN KEY ("ForeignKeyRestrictId") REFERENCES "PrincipalTable"("Id") ON DELETE RESTRICT,
+    FOREIGN KEY ("ForeignKeySetDefaultId") REFERENCES "PrincipalTable"("Id") ON DELETE SET DEFAULT
+);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1365,9 +1463,10 @@ CREATE TABLE ""DependentTable"" (
                 Assert.Equal(ReferentialAction.Restrict,   table.ForeignKeys.Single(fk => fk.Columns.Single().Name == "ForeignKeyRestrictId").OnDelete);
                 Assert.Equal(ReferentialAction.SetDefault, table.ForeignKeys.Single(fk => fk.Columns.Single().Name == "ForeignKeySetDefaultId").OnDelete);
             },
-            @"
-DROP TABLE ""DependentTable"";
-DROP TABLE ""PrincipalTable"";");
+"""
+DROP TABLE "DependentTable";
+DROP TABLE "PrincipalTable";
+""");
 
     #endregion
 
@@ -1375,10 +1474,10 @@ DROP TABLE ""PrincipalTable"";");
 
     [Fact]
     public void Warn_missing_schema()
-        => Test(@"
-CREATE TABLE ""Blank"" (
-    ""Id"" int
-)",
+        => Test(
+"""
+CREATE TABLE "Blank" ("Id" int)
+""",
             Enumerable.Empty<string>(),
             new[] { "MySchema" },
             dbModel =>
@@ -1394,10 +1493,10 @@ CREATE TABLE ""Blank"" (
 
     [Fact]
     public void Warn_missing_table()
-        => Test(@"
-CREATE TABLE ""Blank"" (
-    ""Id"" int
-)",
+        => Test(
+"""
+CREATE TABLE "Blank" ("Id" int)
+""",
             new[] { "MyTable" },
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1413,16 +1512,18 @@ CREATE TABLE ""Blank"" (
 
     [Fact]
     public void Warn_missing_principal_table_for_foreign_key()
-        => Test(@"
-CREATE TABLE ""PrincipalTable"" (
-    ""Id"" int PRIMARY KEY
+        => Test(
+"""
+CREATE TABLE "PrincipalTable" (
+    "Id" int PRIMARY KEY
 );
 
-CREATE TABLE ""DependentTable"" (
-    ""Id"" int PRIMARY KEY,
-    ""ForeignKeyId"" int,
-    CONSTRAINT ""MYFK"" FOREIGN KEY (""ForeignKeyId"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE CASCADE
-);",
+CREATE TABLE "DependentTable" (
+    "Id" int PRIMARY KEY,
+    "ForeignKeyId" int,
+    CONSTRAINT "MYFK" FOREIGN KEY ("ForeignKeyId") REFERENCES "PrincipalTable"("Id") ON DELETE CASCADE
+);
+""",
             new[] { "DependentTable" },
             Enumerable.Empty<string>(),
             _ =>
@@ -1434,9 +1535,10 @@ CREATE TABLE ""DependentTable"" (
                     NpgsqlResources.LogPrincipalTableNotInSelectionSet(new TestLogger<NpgsqlLoggingDefinitions>()).GenerateMessage(
                         "MYFK", "public.DependentTable", "public.PrincipalTable"), Message);
             },
-            @"
-DROP TABLE ""DependentTable"";
-DROP TABLE ""PrincipalTable"";");
+"""
+DROP TABLE "DependentTable";
+DROP TABLE "PrincipalTable";
+""");
 
     #endregion
 
@@ -1444,12 +1546,14 @@ DROP TABLE ""PrincipalTable"";");
 
     [Fact]
     public void SequenceSerial() =>
-        Test(@"
+        Test(
+"""
 CREATE TABLE serial_sequence (id serial PRIMARY KEY);
-CREATE TABLE ""SerialSequence"" (""Id"" serial PRIMARY KEY);
+CREATE TABLE "SerialSequence" ("Id" serial PRIMARY KEY);
 CREATE SCHEMA my_schema;
 CREATE TABLE my_schema.serial_sequence_in_schema (Id serial PRIMARY KEY);
-CREATE TABLE my_schema.""SerialSequenceInSchema"" (""Id"" serial PRIMARY KEY);",
+CREATE TABLE my_schema."SerialSequenceInSchema" ("Id" serial PRIMARY KEY);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1465,13 +1569,19 @@ CREATE TABLE my_schema.""SerialSequenceInSchema"" (""Id"" serial PRIMARY KEY);",
                     Assert.Equal(NpgsqlValueGenerationStrategy.SerialColumn, (NpgsqlValueGenerationStrategy)column[NpgsqlAnnotationNames.ValueGenerationStrategy]);
                 }
             },
-            @"DROP TABLE serial_sequence; DROP TABLE ""SerialSequence""; DROP SCHEMA my_schema CASCADE");
+"""
+DROP TABLE serial_sequence;
+DROP TABLE "SerialSequence";
+DROP SCHEMA my_schema CASCADE
+""");
 
     [Fact]
     public void SequenceNonSerial() =>
-        Test(@"
-CREATE SEQUENCE ""SomeSequence"";
-CREATE TABLE ""NonSerialSequence"" (""Id"" integer PRIMARY KEY DEFAULT nextval('""SomeSequence""'))",
+        Test(
+"""
+CREATE SEQUENCE "SomeSequence";
+CREATE TABLE "NonSerialSequence" ("Id" integer PRIMARY KEY DEFAULT nextval('"SomeSequence"'))
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1485,19 +1595,22 @@ CREATE TABLE ""NonSerialSequence"" (""Id"" integer PRIMARY KEY DEFAULT nextval('
 
                 Assert.Single(dbModel.Sequences.Where(s => s.Name == "SomeSequence"));
             },
-            @"
-DROP TABLE ""NonSerialSequence"";
-DROP SEQUENCE ""SomeSequence""");
+"""
+DROP TABLE "NonSerialSequence";
+DROP SEQUENCE "SomeSequence";
+""");
 
     [ConditionalFact]
     [MinimumPostgresVersion(10, 0)]
     public void Identity()
-        => Test(@"
+        => Test(
+"""
 CREATE TABLE identity (
     id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     a int GENERATED ALWAYS AS IDENTITY,
     b int GENERATED BY DEFAULT AS IDENTITY
-)",
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1522,13 +1635,15 @@ CREATE TABLE identity (
     [ConditionalFact]
     [MinimumPostgresVersion(10, 0)]
     public void Identity_with_sequence_options_all()
-        => Test(@"
+        => Test(
+"""
 CREATE TABLE identity (
     with_options int GENERATED BY DEFAULT AS IDENTITY (START WITH 5 INCREMENT BY 2 MINVALUE 3 MAXVALUE 2000 CYCLE CACHE 10),
     without_options int GENERATED BY DEFAULT AS IDENTITY,
     bigint_without_options bigint GENERATED BY DEFAULT AS IDENTITY,
     smallint_without_options smallint GENERATED BY DEFAULT AS IDENTITY
-)",
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1569,12 +1684,13 @@ CREATE TABLE identity (
     [Fact]
     public void Column_collation_is_set()
         => Test(
-            @"
+"""
 CREATE TABLE columns_with_collation (
     id int,
     default_collation TEXT,
-    non_default_collation TEXT COLLATE ""POSIX""
-);",
+    non_default_collation TEXT COLLATE "POSIX"
+);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1599,10 +1715,12 @@ CREATE TABLE columns_with_collation (
 
     [Fact]
     public void Index_method()
-        => Test(@"
-CREATE TABLE ""IndexMethod"" (a int, b int);
-CREATE INDEX ix_a ON ""IndexMethod"" USING hash (a);
-CREATE INDEX ix_b ON ""IndexMethod"" (b);",
+        => Test(
+"""
+CREATE TABLE "IndexMethod" (a int, b int);
+CREATE INDEX ix_a ON "IndexMethod" USING hash (a);
+CREATE INDEX ix_b ON "IndexMethod" (b);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1626,10 +1744,12 @@ CREATE INDEX ix_b ON ""IndexMethod"" (b);",
 
     [Fact]
     public void Index_operators()
-        => Test(@"
-CREATE TABLE ""IndexOperators"" (a text, b text);
-CREATE INDEX ix_with ON ""IndexOperators"" (a, b varchar_pattern_ops);
-CREATE INDEX ix_without ON ""IndexOperators"" (a, b);",
+        => Test(
+"""
+CREATE TABLE "IndexOperators" (a text, b text);
+CREATE INDEX ix_with ON "IndexOperators" (a, b varchar_pattern_ops);
+CREATE INDEX ix_without ON "IndexOperators" (a, b);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1646,10 +1766,12 @@ CREATE INDEX ix_without ON ""IndexOperators"" (a, b);",
 
     [Fact]
     public void Index_collation()
-        => Test(@"
-CREATE TABLE ""IndexCollation"" (a text, b text);
-CREATE INDEX ix_with ON ""IndexCollation"" (a, b COLLATE ""POSIX"");
-CREATE INDEX ix_without ON ""IndexCollation"" (a, b);",
+        => Test(
+"""
+CREATE TABLE "IndexCollation" (a text, b text);
+CREATE INDEX ix_with ON "IndexCollation" (a, b COLLATE "POSIX");
+CREATE INDEX ix_without ON "IndexCollation" (a, b);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1671,14 +1793,16 @@ CREATE INDEX ix_without ON ""IndexCollation"" (a, b);",
     [InlineData("brin", new bool[0])]
     [InlineData("btree", new[] { false, true })]
     public void Index_IsDescending(string method, bool[] expected)
-        => Test(@"
-CREATE TABLE ""IndexSortOrder"" (a text, b text, c tsvector);
-CREATE INDEX ix_gin ON ""IndexSortOrder"" USING gin (c);
-CREATE INDEX ix_gist ON ""IndexSortOrder"" USING gist (c);
-CREATE INDEX ix_hash ON ""IndexSortOrder"" USING hash (a);
-CREATE INDEX ix_brin ON ""IndexSortOrder"" USING brin (a);
-CREATE INDEX ix_btree ON ""IndexSortOrder"" USING btree (a ASC, b DESC);
-CREATE INDEX ix_without ON ""IndexSortOrder"" (a, b);",
+        => Test(
+"""
+CREATE TABLE "IndexSortOrder" (a text, b text, c tsvector);
+CREATE INDEX ix_gin ON "IndexSortOrder" USING gin (c);
+CREATE INDEX ix_gist ON "IndexSortOrder" USING gist (c);
+CREATE INDEX ix_hash ON "IndexSortOrder" USING hash (a);
+CREATE INDEX ix_brin ON "IndexSortOrder" USING brin (a);
+CREATE INDEX ix_btree ON "IndexSortOrder" USING btree (a ASC, b DESC);
+CREATE INDEX ix_without ON "IndexSortOrder" (a, b);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1696,10 +1820,12 @@ CREATE INDEX ix_without ON ""IndexSortOrder"" (a, b);",
 
     [Fact]
     public void Index_null_sort_order()
-        => Test(@"
-CREATE TABLE ""IndexNullSortOrder"" (a text, b text);
-CREATE INDEX ix_with ON ""IndexNullSortOrder"" (a NULLS FIRST, b DESC NULLS LAST);
-CREATE INDEX ix_without ON ""IndexNullSortOrder"" (a, b);",
+        => Test(
+"""
+CREATE TABLE "IndexNullSortOrder" (a text, b text);
+CREATE INDEX ix_with ON "IndexNullSortOrder" (a NULLS FIRST, b DESC NULLS LAST);
+CREATE INDEX ix_without ON "IndexNullSortOrder" (a, b);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1717,10 +1843,12 @@ CREATE INDEX ix_without ON ""IndexNullSortOrder"" (a, b);",
     [ConditionalFact]
     [MinimumPostgresVersion(11, 0)]
     public void Index_covering()
-        => Test(@"
-CREATE TABLE ""IndexCovering"" (a text, b text, c text);
-CREATE INDEX ix_with ON ""IndexCovering"" (a) INCLUDE (b, c);
-CREATE INDEX ix_without ON ""IndexCovering"" (a, b, c);",
+        => Test(
+"""
+CREATE TABLE "IndexCovering" (a text, b text, c text);
+CREATE INDEX ix_with ON "IndexCovering" (a) INCLUDE (b, c);
+CREATE INDEX ix_without ON "IndexCovering" (a, b, c);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1742,10 +1870,12 @@ CREATE INDEX ix_without ON ""IndexCovering"" (a, b, c);",
 
     [Fact]
     public void Comments()
-        => Test(@"
+        => Test(
+"""
 CREATE TABLE comment (a int);
 COMMENT ON TABLE comment IS 'table comment';
-COMMENT ON COLUMN comment.a IS 'column comment'",
+COMMENT ON COLUMN comment.a IS 'column comment'
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1759,10 +1889,12 @@ COMMENT ON COLUMN comment.a IS 'column comment'",
     [ConditionalFact]
     [MinimumPostgresVersion(11, 0)]
     public void Sequence_types()
-        => Test(@"
-CREATE SEQUENCE ""SmallIntSequence"" AS smallint;
-CREATE SEQUENCE ""IntSequence"" AS int;
-CREATE SEQUENCE ""BigIntSequence"" AS bigint;",
+        => Test(
+"""
+CREATE SEQUENCE "SmallIntSequence" AS smallint;
+CREATE SEQUENCE "IntSequence" AS int;
+CREATE SEQUENCE "BigIntSequence" AS bigint;
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1774,17 +1906,20 @@ CREATE SEQUENCE ""BigIntSequence"" AS bigint;",
                 var bigSequence = dbModel.Sequences.Single(s => s.Name == "BigIntSequence");
                 Assert.Equal("bigint", bigSequence.StoreType);
             },
-            @"
-DROP SEQUENCE ""SmallIntSequence"";
-DROP SEQUENCE ""IntSequence"";
-DROP SEQUENCE ""BigIntSequence"";");
+"""
+DROP SEQUENCE "SmallIntSequence";
+DROP SEQUENCE "IntSequence";
+DROP SEQUENCE "BigIntSequence";
+""");
 
     [Fact]
     public void Dropped_columns()
-        => Test(@"
-CREATE TABLE foo (id int primary key);
+        => Test(
+"""
+CREATE TABLE foo (id int PRIMARY KEY);
 ALTER TABLE foo DROP COLUMN id;
-ALTER TABLE foo ADD COLUMN id2 int primary key;",
+ALTER TABLE foo ADD COLUMN id2 int PRIMARY KEY;
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1795,9 +1930,11 @@ ALTER TABLE foo ADD COLUMN id2 int primary key;",
 
     [Fact]
     public void Postgres_extensions()
-        => Test(@"
+        => Test(
+"""
 CREATE EXTENSION hstore;
-CREATE EXTENSION pgcrypto SCHEMA db2;",
+CREATE EXTENSION pgcrypto SCHEMA db2;
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1819,10 +1956,12 @@ CREATE EXTENSION pgcrypto SCHEMA db2;",
 
     [Fact]
     public void Enums()
-        => Test(@"
+        => Test(
+"""
 CREATE TYPE mood AS ENUM ('happy', 'sad');
 CREATE TYPE db2.mood AS ENUM ('excited', 'depressed');
-CREATE TABLE foo (mood mood UNIQUE);",
+CREATE TABLE foo (mood mood UNIQUE);
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1847,14 +1986,20 @@ CREATE TABLE foo (mood mood UNIQUE);",
                 Assert.Empty(table.UniqueConstraints);
                 Assert.Empty(table.Indexes);
             },
-            "DROP TABLE foo; DROP TYPE mood; DROP TYPE db2.mood;");
+"""
+DROP TABLE foo;
+DROP TYPE mood;
+DROP TYPE db2.mood;
+""");
 
     [Fact]
     public void Bug453()
-        => Test(@"
+        => Test(
+"""
 CREATE TYPE mood AS ENUM ('happy', 'sad');
 CREATE TABLE foo (mood mood, some_num int UNIQUE);
-CREATE TABLE bar (foreign_key int REFERENCES foo(some_num))",
+CREATE TABLE bar (foreign_key int REFERENCES foo(some_num));
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
@@ -1862,7 +2007,11 @@ CREATE TABLE bar (foreign_key int REFERENCES foo(some_num))",
                 // Enum columns are left out of the model for now (a warning is logged).
                 Assert.Equal(1, dbModel.Tables.Single(t => t.Name == "foo").Columns.Count);
             },
-            "DROP TABLE bar; DROP TABLE foo; DROP TYPE mood;");
+"""
+DROP TABLE bar;
+DROP TABLE foo;
+DROP TYPE mood;
+""");
 
     [Fact]
     public void Column_default_type_names_are_scaffolded()
@@ -1870,13 +2019,14 @@ CREATE TABLE bar (foreign_key int REFERENCES foo(some_num))",
         var options = new NpgsqlSingletonOptions();
         options.Initialize(new DbContextOptionsBuilder().Options);
 
-        Test(@"
+        Test(
+"""
 CREATE TABLE column_types (
     smallint smallint,
     integer integer,
     bigint bigint,
     real real,
-    ""double precision"" double precision,
+    "double precision" double precision,
     money money,
     numeric numeric,
     boolean boolean,
@@ -1885,21 +2035,22 @@ CREATE TABLE column_types (
     text text,
     jsonb jsonb,
     json json,
-    ""character varying"" character varying,
-    ""character(1)"" character,
-    ""character(2)"" character(2),
-    ""timestamp without time zone"" timestamp,
-    ""timestamp with time zone"" timestamptz,
-    ""time without time zone"" time,
-    ""time with time zone"" timetz,
+    "character varying" character varying,
+    "character(1)" character,
+    "character(2)" character(2),
+    "timestamp without time zone" timestamp,
+    "timestamp with time zone" timestamptz,
+    "time without time zone" time,
+    "time with time zone" timetz,
     interval interval,
     macaddr macaddr,
     inet inet,
-    ""bit(1)"" bit,
-    ""bit varying"" varbit,
+    "bit(1)" bit,
+    "bit varying" varbit,
     point point,
     line line
-)",
+)
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
             dbModel =>
