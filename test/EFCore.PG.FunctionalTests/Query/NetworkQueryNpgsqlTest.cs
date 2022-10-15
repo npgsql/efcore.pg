@@ -64,7 +64,7 @@ WHERE n."Cidr" >>= @__cidr_1
 """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
-WHERE n."Inet" = n."TextInet"::inet OR ((n."Inet" IS NULL) AND (n."TextInet" IS NULL))
+WHERE n."Inet" = n."TextInet"::inet OR (((n."Inet" IS NULL)) AND ((n."TextInet" IS NULL)))
 """);
     }
 
@@ -79,7 +79,7 @@ WHERE n."Inet" = n."TextInet"::inet OR ((n."Inet" IS NULL) AND (n."TextInet" IS 
 """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
-WHERE n."Macaddr" = n."TextMacaddr"::macaddr OR ((n."Macaddr" IS NULL) AND (n."TextMacaddr" IS NULL))
+WHERE n."Macaddr" = n."TextMacaddr"::macaddr OR (((n."Macaddr" IS NULL)) AND ((n."TextMacaddr" IS NULL)))
 """);
     }
 
@@ -784,7 +784,7 @@ FROM "NetTestEntities" AS n
 
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
-WHERE n."Inet" = (n."Inet" & @__inet_1) OR (n."Inet" IS NULL)
+WHERE n."Inet" = (n."Inet" & @__inet_1) OR ((n."Inet" IS NULL))
 """);
     }
 

@@ -208,13 +208,16 @@ LEFT JOIN "OwnedReferenceExtras1" AS o0 ON e."Id" = o0."EntityOneId"
         await base.Normal_entity_owning_a_split_reference_with_main_fragment_sharing_custom_projection(async);
 
         AssertSql(
-            @"SELECT e.""Id"", CASE
-    WHEN (e.""OwnedReference_Id"" IS NOT NULL) AND (e.""OwnedReference_OwnedIntValue1"" IS NOT NULL) AND (e.""OwnedReference_OwnedIntValue2"" IS NOT NULL) THEN o.""OwnedIntValue4""
-END AS ""OwnedIntValue4"", CASE
-    WHEN (e.""OwnedReference_Id"" IS NOT NULL) AND (e.""OwnedReference_OwnedIntValue1"" IS NOT NULL) AND (e.""OwnedReference_OwnedIntValue2"" IS NOT NULL) THEN o.""OwnedStringValue4""
-END AS ""OwnedStringValue4""
-FROM ""EntityOnes"" AS e
-LEFT JOIN ""OwnedReferenceExtras2"" AS o ON e.""Id"" = o.""EntityOneId""");
+"""
+SELECT e."Id", CASE
+    WHEN ((e."OwnedReference_Id" IS NOT NULL)) AND ((e."OwnedReference_OwnedIntValue1" IS NOT NULL)) AND ((e."OwnedReference_OwnedIntValue2" IS NOT NULL)) AND ((o0."OwnedIntValue3" IS NOT NULL)) AND ((o."OwnedIntValue4" IS NOT NULL)) THEN o."OwnedIntValue4"
+END AS "OwnedIntValue4", CASE
+    WHEN ((e."OwnedReference_Id" IS NOT NULL)) AND ((e."OwnedReference_OwnedIntValue1" IS NOT NULL)) AND ((e."OwnedReference_OwnedIntValue2" IS NOT NULL)) AND ((o0."OwnedIntValue3" IS NOT NULL)) AND ((o."OwnedIntValue4" IS NOT NULL)) THEN o."OwnedStringValue4"
+END AS "OwnedStringValue4"
+FROM "EntityOnes" AS e
+LEFT JOIN "OwnedReferenceExtras2" AS o ON e."Id" = o."EntityOneId"
+LEFT JOIN "OwnedReferenceExtras1" AS o0 ON e."Id" = o0."EntityOneId"
+""");
     }
 
     [ConditionalTheory(Skip = "Issue29075")]
@@ -313,20 +316,6 @@ INNER JOIN "SplitEntityOnePart2" AS s1 ON s."Id" = s1."Id"
 """);
     }
 
-    public override async Task Split_entity_owning_a_split_reference_with_table_sharing_2(bool async)
-    {
-        await base.Split_entity_owning_a_split_reference_with_table_sharing_2(async);
-
-        AssertSql();
-    }
-
-    public override async Task Split_entity_owning_a_split_reference_with_table_sharing_3(bool async)
-    {
-        await base.Split_entity_owning_a_split_reference_with_table_sharing_3(async);
-
-        AssertSql();
-    }
-
     public override async Task Split_entity_owning_a_split_reference_with_table_sharing_4(bool async)
     {
         await base.Split_entity_owning_a_split_reference_with_table_sharing_4(async);
@@ -339,13 +328,6 @@ INNER JOIN "SplitEntityOnePart3" AS s0 ON s."Id" = s0."Id"
 INNER JOIN "SplitEntityOnePart2" AS s1 ON s."Id" = s1."Id"
 LEFT JOIN "OwnedReferencePart3" AS o ON s."Id" = o."EntityOneId"
 """);
-    }
-
-    public override async Task Split_entity_owning_a_split_reference_with_table_sharing_5(bool async)
-    {
-        await base.Split_entity_owning_a_split_reference_with_table_sharing_5(async);
-
-        AssertSql();
     }
 
     [ConditionalTheory(Skip = "Issue29075")]
