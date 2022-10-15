@@ -57,7 +57,7 @@ WHERE s."NullableIntList"[1] = 3
 """
 SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE (s."NullableIntList"[3] IS NULL)
+WHERE s."NullableIntList"[3] IS NULL
 """);
     }
 
@@ -81,7 +81,7 @@ WHERE FALSE
 """
 SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE (s."NullableStringList"[3] IS NULL)
+WHERE s."NullableStringList"[3] IS NULL
 """);
     }
 
@@ -215,7 +215,7 @@ WHERE s."IntList" @> ARRAY[s."Id" + 2]::integer[]
 """
 SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE (array_position(s."NullableStringList", NULL) IS NOT NULL)
+WHERE array_position(s."NullableStringList", NULL) IS NOT NULL
 """);
     }
 
@@ -281,7 +281,7 @@ WHERE s."NullableText" IN ('foo', 'xxx')
 
 SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."NullableText" = ANY (@__array_0) OR (((s."NullableText" IS NULL)) AND ((array_position(@__array_0, NULL) IS NOT NULL)))
+WHERE s."NullableText" = ANY (@__array_0) OR ((s."NullableText" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))
 """);
 
     }
@@ -347,7 +347,7 @@ WHERE s."NonNullableText" = ANY (@__array_0)
 
 SELECT count(*)::int
 FROM "SomeEntities" AS s
-WHERE NOT (s."NonNullableText" = ANY (@__array_0) AND ((s."NonNullableText" = ANY (@__array_0) IS NOT NULL)))
+WHERE NOT (s."NonNullableText" = ANY (@__array_0) AND (s."NonNullableText" = ANY (@__array_0) IS NOT NULL))
 """);
     }
 
@@ -370,7 +370,7 @@ WHERE NOT (s."NonNullableText" = ANY (@__array_0) AND ((s."NonNullableText" = AN
 
 SELECT count(*)::int
 FROM "SomeEntities" AS s
-WHERE s."NullableText" = ANY (@__array_0) OR (((s."NullableText" IS NULL)) AND ((array_position(@__array_0, NULL) IS NOT NULL)))
+WHERE s."NullableText" = ANY (@__array_0) OR ((s."NullableText" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))
 """);
     }
 
@@ -393,7 +393,7 @@ WHERE s."NullableText" = ANY (@__array_0) OR (((s."NullableText" IS NULL)) AND (
 
 SELECT count(*)::int
 FROM "SomeEntities" AS s
-WHERE NOT (s."NullableText" = ANY (@__array_0) AND ((s."NullableText" = ANY (@__array_0) IS NOT NULL))) AND (((s."NullableText" IS NOT NULL)) OR ((array_position(@__array_0, NULL) IS NULL)))
+WHERE NOT (s."NullableText" = ANY (@__array_0) AND (s."NullableText" = ANY (@__array_0) IS NOT NULL)) AND ((s."NullableText" IS NOT NULL) OR (array_position(@__array_0, NULL) IS NULL))
 """);
     }
 
@@ -488,7 +488,7 @@ WHERE s."EnumConvertedToString" = ANY (@__array_0)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."NullableEnumConvertedToString" = ANY (@__array_0) OR (((s."NullableEnumConvertedToString" IS NULL)) AND ((array_position(@__array_0, NULL) IS NOT NULL)))
+WHERE s."NullableEnumConvertedToString" = ANY (@__array_0) OR ((s."NullableEnumConvertedToString" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))
 """);
     }
 
@@ -507,7 +507,7 @@ WHERE s."NullableEnumConvertedToString" = ANY (@__array_0) OR (((s."NullableEnum
 
 SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."NullableEnumConvertedToStringWithNonNullableLambda" = ANY (@__array_0) OR (((s."NullableEnumConvertedToStringWithNonNullableLambda" IS NULL)) AND ((array_position(@__array_0, NULL) IS NOT NULL)))
+WHERE s."NullableEnumConvertedToStringWithNonNullableLambda" = ANY (@__array_0) OR ((s."NullableEnumConvertedToStringWithNonNullableLambda" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))
 """);
     }
 

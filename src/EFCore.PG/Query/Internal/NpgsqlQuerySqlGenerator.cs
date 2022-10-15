@@ -478,21 +478,6 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 Sql.Append("!!");
                 Visit(sqlUnaryExpression.Operand);
                 return sqlUnaryExpression;
-
-            // EF uses unary Equal and NotEqual to represent is-null checking.
-            // These need to be surrounded in parentheses in various cases (e.g. where TRUE = x IS NOT NULL),
-            // see
-            case ExpressionType.Equal:
-                Sql.Append("(");
-                Visit(sqlUnaryExpression.Operand);
-                Sql.Append(" IS NULL)");
-                return sqlUnaryExpression;
-
-            case ExpressionType.NotEqual:
-                Sql.Append("(");
-                Visit(sqlUnaryExpression.Operand);
-                Sql.Append(" IS NOT NULL)");
-                return sqlUnaryExpression;
         }
 
         return base.VisitSqlUnary(sqlUnaryExpression);

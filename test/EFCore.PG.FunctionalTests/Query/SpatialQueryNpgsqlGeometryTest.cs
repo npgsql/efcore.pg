@@ -102,7 +102,7 @@ FROM "PolygonEntity" AS p
 """
 SELECT p."Group" AS "Id", ST_Collect(p."Point") AS "Combined"
 FROM "PointEntity" AS p
-WHERE (p."Point" IS NOT NULL)
+WHERE p."Point" IS NOT NULL
 GROUP BY p."Group"
 """);
     }
@@ -115,7 +115,7 @@ GROUP BY p."Group"
 """
 SELECT p."Group" AS "Id", ST_Extent(p."Point")::geometry AS "Combined"
 FROM "PointEntity" AS p
-WHERE (p."Point" IS NOT NULL)
+WHERE p."Point" IS NOT NULL
 GROUP BY p."Group"
 """);
     }
@@ -152,7 +152,7 @@ FROM "PolygonEntity" AS p
 """
 SELECT p."Group" AS "Id", ST_ConvexHull(ST_Collect(p."Point")) AS "ConvexHull"
 FROM "PointEntity" AS p
-WHERE (p."Point" IS NOT NULL)
+WHERE p."Point" IS NOT NULL
 GROUP BY p."Group"
 """);
     }
@@ -277,7 +277,7 @@ FROM "PolygonEntity" AS p
         AssertSql(
 """
 SELECT p."Id", CASE
-    WHEN (p."Point" IS NULL) THEN NULL
+    WHEN p."Point" IS NULL THEN NULL
     ELSE lower(GeometryType(p."Point"))
 END AS "GeometryType"
 FROM "PointEntity" AS p
@@ -673,7 +673,7 @@ FROM "PolygonEntity" AS p
 """
 SELECT p."Group" AS "Id", ST_Union(p."Point") AS "Union"
 FROM "PointEntity" AS p
-WHERE (p."Point" IS NOT NULL)
+WHERE p."Point" IS NOT NULL
 GROUP BY p."Group"
 """);
     }

@@ -210,9 +210,9 @@ LEFT JOIN "OwnedReferenceExtras1" AS o0 ON e."Id" = o0."EntityOneId"
         AssertSql(
 """
 SELECT e."Id", CASE
-    WHEN ((e."OwnedReference_Id" IS NOT NULL)) AND ((e."OwnedReference_OwnedIntValue1" IS NOT NULL)) AND ((e."OwnedReference_OwnedIntValue2" IS NOT NULL)) AND ((o0."OwnedIntValue3" IS NOT NULL)) AND ((o."OwnedIntValue4" IS NOT NULL)) THEN o."OwnedIntValue4"
+    WHEN (e."OwnedReference_Id" IS NOT NULL) AND (e."OwnedReference_OwnedIntValue1" IS NOT NULL) AND (e."OwnedReference_OwnedIntValue2" IS NOT NULL) AND (o0."OwnedIntValue3" IS NOT NULL) AND (o."OwnedIntValue4" IS NOT NULL) THEN o."OwnedIntValue4"
 END AS "OwnedIntValue4", CASE
-    WHEN ((e."OwnedReference_Id" IS NOT NULL)) AND ((e."OwnedReference_OwnedIntValue1" IS NOT NULL)) AND ((e."OwnedReference_OwnedIntValue2" IS NOT NULL)) AND ((o0."OwnedIntValue3" IS NOT NULL)) AND ((o."OwnedIntValue4" IS NOT NULL)) THEN o."OwnedStringValue4"
+    WHEN (e."OwnedReference_Id" IS NOT NULL) AND (e."OwnedReference_OwnedIntValue1" IS NOT NULL) AND (e."OwnedReference_OwnedIntValue2" IS NOT NULL) AND (o0."OwnedIntValue3" IS NOT NULL) AND (o."OwnedIntValue4" IS NOT NULL) THEN o."OwnedStringValue4"
 END AS "OwnedStringValue4"
 FROM "EntityOnes" AS e
 LEFT JOIN "OwnedReferenceExtras2" AS o ON e."Id" = o."EntityOneId"
@@ -366,9 +366,9 @@ LEFT JOIN "OwnedReferencePart3" AS o0 ON b."Id" = o0."BaseEntityId"
         AssertSql(
 """
 SELECT b."Id", b."BaseValue", m."MiddleValue", s."SiblingValue", l."LeafValue", CASE
-    WHEN (l."Id" IS NOT NULL) THEN 'LeafEntity'
-    WHEN (s."Id" IS NOT NULL) THEN 'SiblingEntity'
-    WHEN (m."Id" IS NOT NULL) THEN 'MiddleEntity'
+    WHEN l."Id" IS NOT NULL THEN 'LeafEntity'
+    WHEN s."Id" IS NOT NULL THEN 'SiblingEntity'
+    WHEN m."Id" IS NOT NULL THEN 'MiddleEntity'
 END AS "Discriminator", b."OwnedReference_Id", b."OwnedReference_OwnedIntValue1", b."OwnedReference_OwnedIntValue2", o0."OwnedIntValue3", o."OwnedIntValue4", b."OwnedReference_OwnedStringValue1", b."OwnedReference_OwnedStringValue2", o0."OwnedStringValue3", o."OwnedStringValue4"
 FROM "BaseEntity" AS b
 LEFT JOIN "MiddleEntity" AS m ON b."Id" = m."Id"
@@ -399,9 +399,9 @@ LEFT JOIN "OwnedReferencePart3" AS o0 ON b."Id" = o0."MiddleEntityId"
         AssertSql(
 """
 SELECT b."Id", b."BaseValue", m."MiddleValue", s."SiblingValue", l."LeafValue", CASE
-    WHEN (l."Id" IS NOT NULL) THEN 'LeafEntity'
-    WHEN (s."Id" IS NOT NULL) THEN 'SiblingEntity'
-    WHEN (m."Id" IS NOT NULL) THEN 'MiddleEntity'
+    WHEN l."Id" IS NOT NULL THEN 'LeafEntity'
+    WHEN s."Id" IS NOT NULL THEN 'SiblingEntity'
+    WHEN m."Id" IS NOT NULL THEN 'MiddleEntity'
 END AS "Discriminator", m."Id", m."OwnedReference_Id", m."OwnedReference_OwnedIntValue1", m."OwnedReference_OwnedIntValue2", o0."OwnedIntValue3", o."OwnedIntValue4", m."OwnedReference_OwnedStringValue1", m."OwnedReference_OwnedStringValue2", o0."OwnedStringValue3", o."OwnedStringValue4"
 FROM "BaseEntity" AS b
 LEFT JOIN "MiddleEntity" AS m ON b."Id" = m."Id"
@@ -432,9 +432,9 @@ LEFT JOIN "OwnedReferencePart3" AS o0 ON b."Id" = o0."LeafEntityId"
         AssertSql(
 """
 SELECT b."Id", b."BaseValue", m."MiddleValue", s."SiblingValue", l."LeafValue", CASE
-    WHEN (l."Id" IS NOT NULL) THEN 'LeafEntity'
-    WHEN (s."Id" IS NOT NULL) THEN 'SiblingEntity'
-    WHEN (m."Id" IS NOT NULL) THEN 'MiddleEntity'
+    WHEN l."Id" IS NOT NULL THEN 'LeafEntity'
+    WHEN s."Id" IS NOT NULL THEN 'SiblingEntity'
+    WHEN m."Id" IS NOT NULL THEN 'MiddleEntity'
 END AS "Discriminator", l."Id", l."OwnedReference_Id", l."OwnedReference_OwnedIntValue1", l."OwnedReference_OwnedIntValue2", o0."OwnedIntValue3", o."OwnedIntValue4", l."OwnedReference_OwnedStringValue1", l."OwnedReference_OwnedStringValue2", o0."OwnedStringValue3", o."OwnedStringValue4"
 FROM "BaseEntity" AS b
 LEFT JOIN "MiddleEntity" AS m ON b."Id" = m."Id"

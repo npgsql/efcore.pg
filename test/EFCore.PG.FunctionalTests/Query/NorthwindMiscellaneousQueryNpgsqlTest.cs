@@ -29,7 +29,7 @@ public class NorthwindMiscellaneousQueryNpgsqlTest : NorthwindMiscellaneousQuery
 """
 SELECT o."OrderDate" + INTERVAL '1 years' AS "OrderDate"
 FROM "Orders" AS o
-WHERE (o."OrderDate" IS NOT NULL)
+WHERE o."OrderDate" IS NOT NULL
 """);
     }
 
@@ -55,7 +55,7 @@ WHERE (o."OrderDate" IS NOT NULL)
 
 SELECT o."OrderDate" + CAST((@__years_0::text || ' years') AS interval) AS "OrderDate"
 FROM "Orders" AS o
-WHERE (o."OrderDate" IS NOT NULL)
+WHERE o."OrderDate" IS NOT NULL
 """);
     }
 
@@ -89,7 +89,7 @@ WHERE (o."OrderDate" - INTERVAL '1 00:00:00') = TIMESTAMP '1997-10-08 00:00:00'
 """
 SELECT floor(date_part('day', date_trunc('day', now()::timestamp) - date_trunc('day', o."OrderDate")))::int AS "Elapsed"
 FROM "Orders" AS o
-WHERE (o."OrderDate" IS NOT NULL)
+WHERE o."OrderDate" IS NOT NULL
 LIMIT 1
 """);
     }
@@ -242,7 +242,7 @@ WHERE c."CustomerID" IN ('ALFKI', 'ANATR')
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Region" = ANY (@__regions_0) OR (((c."Region" IS NULL)) AND ((array_position(@__regions_0, NULL) IS NOT NULL)))
+WHERE c."Region" = ANY (@__regions_0) OR ((c."Region" IS NULL) AND (array_position(@__regions_0, NULL) IS NOT NULL))
 """);
     }
 
@@ -267,7 +267,7 @@ WHERE c."Region" = ANY (@__regions_0) OR (((c."Region" IS NULL)) AND ((array_pos
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Region" = ANY (@__regions_0) OR (((c."Region" IS NULL)) AND ((array_position(@__regions_0, NULL) IS NOT NULL)))
+WHERE c."Region" = ANY (@__regions_0) OR ((c."Region" IS NULL) AND (array_position(@__regions_0, NULL) IS NOT NULL))
 """);
     }
 

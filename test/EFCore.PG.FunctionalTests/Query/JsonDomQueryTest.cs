@@ -374,7 +374,7 @@ LIMIT 2
 """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE ((j."CustomerElement"->>'Name' IS NOT NULL)) AND (j."CustomerElement"->>'Name' LIKE 'J%')
+WHERE (j."CustomerElement"->>'Name' IS NOT NULL) AND (j."CustomerElement"->>'Name' LIKE 'J%')
 LIMIT 2
 """);
     }
