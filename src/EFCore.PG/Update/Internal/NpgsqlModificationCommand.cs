@@ -64,6 +64,7 @@ public class NpgsqlModificationCommand : ModificationCommand
 
                 case IColumn:
                 case IStoreStoredProcedureParameter:
+                case null when columnModification.JsonPath is not null:
                     continue;
 
                 default:

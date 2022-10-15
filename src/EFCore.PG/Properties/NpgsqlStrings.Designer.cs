@@ -60,6 +60,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
                 index1, entityType1, index2, entityType2, table, indexName, includedColumns1, includedColumns2);
 
         /// <summary>
+        ///     The EF Core 7.0 JSON support isn't currently supported by the Npgsql provider. To map to JSON, see https://www.npgsql.org/efcore/mapping/json.html.
+        /// </summary>
+        public static string Ef7JsonMappingNotSupported
+            => GetString("Ef7JsonMappingNotSupported");
+
+        /// <summary>
         ///     The 'FreeText' method is not supported because the query has switched to client-evaluation. Inspect the log to determine which query expressions are triggering client-evaluation.
         /// </summary>
         public static string FreeTextFunctionOnClient
