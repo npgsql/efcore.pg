@@ -194,6 +194,20 @@ public class NpgsqlModelValidator : RelationalModelValidator
     }
 
     /// <inheritdoc />
+    protected override void ValidateJsonEntities(
+        IModel model,
+        IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
+    {
+        foreach (var entityType in model.GetEntityTypes())
+        {
+            if (entityType.IsMappedToJson())
+            {
+                throw new InvalidOperationException(NpgsqlStrings.Ef7JsonMappingNotSupported);
+            }
+        }
+    }
+
+    /// <inheritdoc />
     protected override void ValidateCompatible(
         IProperty property,
         IProperty duplicateProperty,

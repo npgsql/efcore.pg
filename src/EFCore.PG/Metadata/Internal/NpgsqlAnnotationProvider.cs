@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
 /// <summary>
@@ -127,11 +129,11 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
                     .ToArray());
         }
 
-        // Model validation ensures that these facets are the same on all mapped properties
-        var property = column.PropertyMappings.First().Property;
-
-        if (property.GetCompressionMethod() is { } compressionMethod)
+        // JSON columns have no property mappings so all annotations that rely on property mappings should be skipped for them
+        if (column is not JsonColumn
+            && column.PropertyMappings.FirstOrDefault()?.Property.GetCompressionMethod() is { } compressionMethod)
         {
+            // Model validation ensures that these facets are the same on all mapped properties
             yield return new Annotation(NpgsqlAnnotationNames.CompressionMethod, compressionMethod);
         }
     }
