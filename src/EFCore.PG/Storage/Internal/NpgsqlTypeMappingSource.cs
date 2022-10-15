@@ -5,6 +5,7 @@ using System.Data;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
@@ -491,6 +492,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         base.FindMapping(mappingInfo) ??
         FindBaseMapping(mappingInfo)?.Clone(mappingInfo) ??
         FindArrayMapping(mappingInfo)?.Clone(mappingInfo) ??
+        FindRowValueMapping(mappingInfo)?.Clone(mappingInfo) ??
         FindUserRangeMapping(mappingInfo);
 
     /// <summary>
@@ -702,6 +704,18 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
 
         return null;
     }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected virtual RelationalTypeMapping? FindRowValueMapping(in RelationalTypeMappingInfo mappingInfo)
+        => mappingInfo.ClrType is { } clrType
+            && clrType.IsAssignableTo(typeof(ITuple))
+                ? new NpgsqlRowValueTypeMapping(clrType)
+                : null;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

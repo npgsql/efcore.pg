@@ -262,7 +262,7 @@ WHERE (c."City", c."Country") <> ('Sao Paulo', 'Brazil')
         AssertSql();
     }
 
-    #region Row value comparisons
+    #region Row values
 
     [ConditionalFact]
     public async Task Row_value_GreaterThan()
@@ -475,7 +475,29 @@ WHERE (c."City", c."CustomerID") <> ('Buenos Aires', 'OCEAN')
 """);
     }
 
-    #endregion Row value comparisons
+    [ConditionalFact]
+    public async Task Row_value_project()
+    {
+        await using var ctx = CreateContext();
+
+        var (customerId, orderDate) = await ctx.Orders
+            .Where(o => o.OrderID == 10248)
+            .Select(o => ValueTuple.Create(o.CustomerID, o.OrderDate))
+            .SingleAsync();
+
+        Assert.Equal("VINET", customerId);
+        Assert.Equal(new DateTime(1996, 7, 4), orderDate);
+
+        AssertSql(
+"""
+SELECT (o."CustomerID", o."OrderDate")
+FROM "Orders" AS o
+WHERE o."OrderID" = 10248
+LIMIT 2
+""");
+    }
+
+    #endregion Row values
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
