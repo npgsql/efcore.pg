@@ -13,13 +13,6 @@ public class GearsOfWarQueryNpgsqlTest : GearsOfWarQueryRelationalTestBase<Gears
         // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    // This test attempts to project a Tuple<,> out of the database. In Npgsql specifically, we map Tuple and ValueTuple to row values,
-    // e.g. for row value comparisons ((a, b) > (3, 4)). However, we do not yet support reading row values from the database.
-    // At the ADO level, we do support reading them (records), but currently return them as object[]; we could change the ADO mapping
-    // to be a ValueTuple/Tuple instead, at which point we could map Tuple/ValueTuple in EF Core as a supported primitive type.
-    public override Task Select_null_propagation_negative4(bool async)
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Select_null_propagation_negative4(async));
-
     #region Byte array
 
     public override async Task Byte_array_contains_literal(bool async)

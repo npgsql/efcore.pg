@@ -19,11 +19,6 @@ public class PostgresRowValueExpression : SqlExpression, IEquatable<PostgresRowV
     /// </summary>
     public virtual IReadOnlyList<SqlExpression> Values { get; }
 
-    /// <summary>
-    ///     A type mapping representing a row value type.
-    /// </summary>
-    public static RelationalTypeMapping TypeMappingInstance => RowValueTypeMapping.Instance;
-
     /// <inheritdoc />
     public PostgresRowValueExpression(IReadOnlyList<SqlExpression> values, Type type, RelationalTypeMapping? typeMapping = null)
         : base(type, typeMapping)
@@ -130,22 +125,5 @@ public class PostgresRowValueExpression : SqlExpression, IEquatable<PostgresRowV
         }
 
         return hashCode.ToHashCode();
-    }
-
-    /// <summary>
-    /// Every node in the SQL tree must have a type mapping, but row values aren't actual values (in the sense that they can be sent as
-    /// parameters, or have a literal representation). So we have a dummy type mapping for that.
-    /// </summary>
-    private sealed class RowValueTypeMapping : RelationalTypeMapping
-    {
-        internal static RowValueTypeMapping Instance { get; } = new();
-
-        private RowValueTypeMapping()
-            : base(new(new(), storeType: "rowvalue"))
-        {
-        }
-
-        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => this;
     }
 }

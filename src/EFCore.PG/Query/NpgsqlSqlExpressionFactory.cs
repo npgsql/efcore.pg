@@ -386,7 +386,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 PostgresILikeExpression e      => ApplyTypeMappingOnILike(e),
                 PostgresNewArrayExpression e   => ApplyTypeMappingOnNewArray(e, typeMapping),
                 PostgresRegexMatchExpression e => ApplyTypeMappingOnRegexMatch(e),
-                PostgresRowValueExpression e   => ApplyTypeMappingOnRowValue(e),
+                PostgresRowValueExpression e   => ApplyTypeMappingOnRowValue(e, typeMapping),
 
                 _ => base.ApplyTypeMapping(sqlExpression, typeMapping)
             };
@@ -562,7 +562,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             _boolTypeMapping);
     }
 
-    private SqlExpression ApplyTypeMappingOnRowValue(PostgresRowValueExpression postgresRowValueExpression)
+    private SqlExpression ApplyTypeMappingOnRowValue(
+        PostgresRowValueExpression postgresRowValueExpression,
+        RelationalTypeMapping? typeMapping)
     {
         // If the row value is in a binary expression (e.g. a comparison, (a, b) > (5, 6)), we have special type inference code
         // to infer from the other row value in ApplyTypeMappingOnSqlBinary.
@@ -574,8 +576,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             updatedValues[i] = ApplyDefaultTypeMapping(postgresRowValueExpression.Values[i]);
         }
 
-        return new PostgresRowValueExpression(
-            updatedValues, postgresRowValueExpression.Type, PostgresRowValueExpression.TypeMappingInstance);
+        return new PostgresRowValueExpression(updatedValues, postgresRowValueExpression.Type, typeMapping);
     }
 
     private SqlExpression ApplyTypeMappingOnAny(PostgresAnyExpression postgresAnyExpression)

@@ -11,10 +11,6 @@ public class TPCGearsOfWarQueryNpgsqlTest : TPCGearsOfWarQueryRelationalTestBase
         //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-        // See GearsOfWarQueryNpgsqlTest.Select_null_propagation_negative4
-    public override Task Select_null_propagation_negative4(bool async)
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Select_null_propagation_negative4(async));
-
     [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/2039")]
     public override Task Where_DateOnly_Year(bool async)
         => base.Where_DateOnly_Year(async);
