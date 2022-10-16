@@ -503,9 +503,10 @@ FROM "SomeEntities" AS s
     [MemberData(nameof(IsAsyncData))]
     public abstract Task Array_IndexOf2(bool async);
 
+    // Note: see NorthwindFunctionsQueryNpgsqlTest.String_Join_non_aggregate for regular use without an array column/parameter
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
-    public virtual Task String_Join(bool async)
+    public virtual Task String_Join_with_array_parameter(bool async)
         => AssertQuery(
             async,
             ss => ss.Set<ArrayEntity>()

@@ -13,7 +13,7 @@ public class NorthwindFunctionsQueryNpgsqlTest : NorthwindFunctionsQueryRelation
         : base(fixture)
     {
         ClearLog();
-        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     public override async Task IsNullOrWhiteSpace_in_predicate(bool async)
@@ -43,6 +43,28 @@ WHERE (c."Region" IS NULL) OR btrim(c."Region", E' \t\n\r') = ''
     // Convert on DateTime not yet supported
     public override Task Convert_ToString(bool async)
         => AssertTranslationFailed(() => base.Convert_ToString(async));
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task String_Join_non_aggregate(bool async)
+    {
+        var param = "param";
+        string nullParam = null;
+
+        await AssertQuery(
+            async,
+            ss => ss.Set<Customer>().Where(c => string.Join("|", c.CustomerID, c.CompanyName, param, nullParam, "constant", null) == "ALFKI|Alfreds Futterkiste|param||constant|"),
+            entryCount: 1);
+
+        AssertSql(
+"""
+@__param_0='param'
+
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE concat_ws('|', c."CustomerID", COALESCE(c."CompanyName", ''), COALESCE(@__param_0, ''), COALESCE(NULL, ''), 'constant', '') = 'ALFKI|Alfreds Futterkiste|param||constant|'
+""");
+    }
 
     #region Substring
 

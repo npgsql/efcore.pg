@@ -44,26 +44,6 @@ public class NpgsqlArrayTranslator : IMethodCallTranslator, IMemberTranslator
         typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .Single(m => m.Name == nameof(Enumerable.SequenceEqual) && m.GetParameters().Length == 2);
 
-    private static readonly MethodInfo String_Join1 =
-        typeof(string).GetMethod(nameof(string.Join), new[] { typeof(string), typeof(object[]) })!;
-
-    private static readonly MethodInfo String_Join2 =
-        typeof(string).GetMethod(nameof(string.Join), new[] { typeof(string), typeof(string[]) })!;
-
-    private static readonly MethodInfo String_Join3 =
-        typeof(string).GetMethod(nameof(string.Join), new[] { typeof(char), typeof(object[]) })!;
-
-    private static readonly MethodInfo String_Join4 =
-        typeof(string).GetMethod(nameof(string.Join), new[] { typeof(char), typeof(string[]) })!;
-
-    private static readonly MethodInfo String_Join_generic1 =
-        typeof(string).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(m => m.Name == nameof(string.Join) && m.IsGenericMethod && m.GetParameters().Length == 2 && m.GetParameters()[0].ParameterType == typeof(string));
-
-    private static readonly MethodInfo String_Join_generic2 =
-        typeof(string).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(m => m.Name == nameof(string.Join) && m.IsGenericMethod && m.GetParameters().Length == 2 && m.GetParameters()[0].ParameterType == typeof(char));
-
     #endregion Methods
 
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
@@ -122,23 +102,6 @@ public class NpgsqlArrayTranslator : IMethodCallTranslator, IMemberTranslator
             }
 
             return TranslateCommon(arguments[0], arguments.Slice(1));
-        }
-
-        if (method.DeclaringType == typeof(string)
-            && (method == String_Join1
-                || method == String_Join2
-                || method == String_Join3
-                || method == String_Join4
-                || method.IsClosedFormOf(String_Join_generic1)
-                || method.IsClosedFormOf(String_Join_generic2))
-            && !IsMappedToNonArray(arguments[0]))
-        {
-            return _sqlExpressionFactory.Function(
-                "array_to_string",
-                new[] { arguments[1], arguments[0], _sqlExpressionFactory.Constant("") },
-                nullable: true,
-                argumentsPropagateNullability: TrueArrays[3],
-                typeof(string));
         }
 
         // Not an array/list
