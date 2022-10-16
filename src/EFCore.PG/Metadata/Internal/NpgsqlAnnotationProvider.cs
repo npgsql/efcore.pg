@@ -190,12 +190,14 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
                     .ToArray());
         }
 
-        var isCreatedConcurrently = modelIndex.IsCreatedConcurrently();
-        if (isCreatedConcurrently.HasValue)
+        if (modelIndex.IsCreatedConcurrently() is { } isCreatedConcurrently)
         {
-            yield return new Annotation(
-                NpgsqlAnnotationNames.CreatedConcurrently,
-                isCreatedConcurrently.Value);
+            yield return new Annotation(NpgsqlAnnotationNames.CreatedConcurrently, isCreatedConcurrently);
+        }
+
+        if (modelIndex.GetAreNullsDistinct() is { } nullsDistinct)
+        {
+            yield return new Annotation(NpgsqlAnnotationNames.NullsDistinct, nullsDistinct);
         }
 
         // Support legacy annotation for index ordering

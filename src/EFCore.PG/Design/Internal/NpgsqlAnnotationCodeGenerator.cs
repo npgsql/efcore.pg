@@ -115,6 +115,10 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         = typeof(NpgsqlIndexBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlIndexBuilderExtensions.IncludeProperties), typeof(IndexBuilder), typeof(string[]));
 
+    private static readonly MethodInfo IndexAreNullsDistinctMethodInfo
+        = typeof(NpgsqlIndexBuilderExtensions).GetRequiredRuntimeMethod(
+            nameof(NpgsqlIndexBuilderExtensions.AreNullsDistinct), typeof(IndexBuilder), typeof(bool));
+
     #endregion MethodInfos
 
     /// <summary>
@@ -416,6 +420,8 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
                 => new MethodCallCodeFragment(IndexHasNullSortOrderMethodInfo, annotation.Value),
             NpgsqlAnnotationNames.IndexInclude
                 => new MethodCallCodeFragment(IndexIncludePropertiesMethodInfo, annotation.Value),
+            NpgsqlAnnotationNames.NullsDistinct
+                => new MethodCallCodeFragment(IndexAreNullsDistinctMethodInfo, annotation.Value),
             _ => null
         };
 

@@ -666,6 +666,93 @@ public static class NpgsqlIndexBuilderExtensions
 
     #endregion Created concurrently
 
+    #region NULLS distinct
+
+    /// <summary>
+    /// Specifies whether for a unique index, null values should be considered distinct (not equal).
+    /// The default is that they are distinct, so that a unique index could contain multiple null values in a column.
+    /// </summary>
+    /// <remarks>
+    /// https://www.postgresql.org/docs/current/sql-createindex.html
+    /// </remarks>
+    /// <param name="indexBuilder">The builder for the index being configured.</param>
+    /// <param name="nullsDistinct">Whether nulls should be considered distinct.</param>
+    /// <returns>A builder to further configure the index.</returns>
+    public static IndexBuilder AreNullsDistinct(
+        this IndexBuilder indexBuilder,
+        bool nullsDistinct = true)
+    {
+        Check.NotNull(indexBuilder, nameof(indexBuilder));
+
+        indexBuilder.Metadata.SetAreNullsDistinct(nullsDistinct);
+
+        return indexBuilder;
+    }
+
+    /// <summary>
+    /// Specifies whether for a unique index, null values should be considered distinct (not equal).
+    /// The default is that they are distinct, so that a unique index could contain multiple null values in a column.
+    /// </summary>
+    /// <remarks>
+    /// https://www.postgresql.org/docs/current/sql-createindex.html
+    /// </remarks>
+    /// <param name="indexBuilder">The builder for the index being configured.</param>
+    /// <param name="nullsDistinct">Whether nulls should be considered distinct.</param>
+    /// <returns>A builder to further configure the index.</returns>
+    public static IndexBuilder<TEntity> AreNullsDistinct<TEntity>(
+        this IndexBuilder<TEntity> indexBuilder,
+        bool nullsDistinct = true)
+        => (IndexBuilder<TEntity>)AreNullsDistinct((IndexBuilder)indexBuilder, nullsDistinct);
+
+    /// <summary>
+    /// Specifies whether for a unique index, null values should be considered distinct (not equal).
+    /// The default is that they are distinct, so that a unique index could contain multiple null values in a column.
+    /// </summary>
+    /// <remarks>
+    /// https://www.postgresql.org/docs/current/sql-createindex.html
+    /// </remarks>
+    /// <param name="indexBuilder">The builder for the index being configured.</param>
+    /// <param name="nullsDistinct">Whether nulls should be considered distinct.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <returns>A builder to further configure the index.</returns>
+    public static IConventionIndexBuilder? AreNullsDistinct(
+        this IConventionIndexBuilder indexBuilder,
+        bool nullsDistinct = true,
+        bool fromDataAnnotation = false)
+    {
+        if (indexBuilder.CanSetAreNullsDistinct(nullsDistinct, fromDataAnnotation))
+        {
+            indexBuilder.Metadata.SetAreNullsDistinct(nullsDistinct, fromDataAnnotation);
+
+            return indexBuilder;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Specifies whether for a unique index, null values should be considered distinct (not equal).
+    /// The default is that they are distinct, so that a unique index could contain multiple null values in a column.
+    /// </summary>
+    /// <remarks>
+    /// https://www.postgresql.org/docs/current/sql-createindex.html
+    /// </remarks>
+    /// <param name="indexBuilder">The builder for the index being configured.</param>
+    /// <param name="nullsDistinct">Whether nulls should be considered distinct.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <returns><c>true</c> if the index can be configured with the method</returns>
+    public static bool CanSetAreNullsDistinct(
+        this IConventionIndexBuilder indexBuilder,
+        bool nullsDistinct = true,
+        bool fromDataAnnotation = false)
+    {
+        Check.NotNull(indexBuilder, nameof(indexBuilder));
+
+        return indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.NullsDistinct, nullsDistinct, fromDataAnnotation);
+    }
+
+    #endregion NULLS distinct
+
     #region Sort order (legacy)
 
     /// <summary>

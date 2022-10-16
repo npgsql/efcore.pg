@@ -918,13 +918,17 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     protected override void IndexOptions(CreateIndexOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         if (_postgresVersion.AtLeast(11) &&
-            operation[NpgsqlAnnotationNames.IndexInclude] is string[] includeColumns &&
-            includeColumns.Length > 0)
+            operation[NpgsqlAnnotationNames.IndexInclude] is string[] { Length: > 0 } includeColumns)
         {
             builder
                 .Append(" INCLUDE (")
                 .Append(ColumnList(includeColumns))
                 .Append(")");
+        }
+
+        if (operation[NpgsqlAnnotationNames.NullsDistinct] is false)
+        {
+            builder.Append(" NULLS NOT DISTINCT");
         }
 
         base.IndexOptions(operation, model, builder);

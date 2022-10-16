@@ -300,6 +300,52 @@ public static class NpgsqlIndexExtensions
 
     #endregion Created concurrently
 
+    #region NULLS distinct
+
+    /// <summary>
+    /// Returns whether for a unique index, null values should be considered distinct (not equal).
+    /// The default is that they are distinct, so that a unique index could contain multiple null values in a column.
+    /// </summary>
+    /// <remarks>
+    /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+    /// </remarks>
+    public static bool? GetAreNullsDistinct(this IReadOnlyIndex index)
+        => (bool?)index[NpgsqlAnnotationNames.NullsDistinct];
+
+    /// <summary>
+    /// Sets whether for a unique index, null values should be considered distinct (not equal).
+    /// The default is that they are distinct, so that a unique index could contain multiple null values in a column.
+    /// </summary>
+    /// <remarks>
+    /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+    /// </remarks>
+    public static void SetAreNullsDistinct(this IMutableIndex index, bool? nullsDistinct)
+        => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.NullsDistinct, nullsDistinct);
+
+    /// <summary>
+    /// Sets whether for a unique index, null values should be considered distinct (not equal).
+    /// The default is that they are distinct, so that a unique index could contain multiple null values in a column.
+    /// </summary>
+    /// <remarks>
+    /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+    /// </remarks>
+    public static bool? SetAreNullsDistinct(this IConventionIndex index, bool? nullsDistinct, bool fromDataAnnotation = false)
+    {
+        index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.NullsDistinct, nullsDistinct, fromDataAnnotation);
+
+        return nullsDistinct;
+    }
+
+    /// <summary>
+    /// Returns the <see cref="ConfigurationSource" /> for whether nulls are considered distinct.
+    /// </summary>
+    /// <param name="index">The index.</param>
+    /// <returns>The <see cref="ConfigurationSource" />.</returns>
+    public static ConfigurationSource? GetAreNullsDistinctConfigurationSource(this IConventionIndex index)
+        => index.FindAnnotation(NpgsqlAnnotationNames.NullsDistinct)?.GetConfigurationSource();
+
+    #endregion NULLS distinct
+
     #region ToTsVector
 
     /// <summary>
