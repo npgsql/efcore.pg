@@ -547,6 +547,7 @@ SELECT
   cls.relname AS cls_relname,
   idxcls.relname AS idx_relname,
   indisunique,
+  {(connection.PostgreSqlVersion >= new Version(15, 0) ? "indnullsnotdistinct" : "false AS indnullsnotdistinct")},
   {(connection.PostgreSqlVersion >= new Version(11, 0) ? "indnkeyatts" : "indnatts AS indnkeyatts")},
   {(connection.PostgreSqlVersion >= new Version(9, 6) ? "pg_indexam_has_property(am.oid, 'can_order') as amcanorder" : "amcanorder")},
   indkey,
@@ -723,6 +724,11 @@ WHERE
                         {
                             index[NpgsqlAnnotationNames.IndexNullSortOrder] = nullSortOrders;
                         }
+                    }
+
+                    if (record.GetValueOrDefault<bool>("indnullsnotdistinct"))
+                    {
+                        index[NpgsqlAnnotationNames.NullsDistinct] = false;
                     }
 
                     table.Indexes.Add(index);

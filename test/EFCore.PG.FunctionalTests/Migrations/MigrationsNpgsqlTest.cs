@@ -2242,6 +2242,49 @@ DROP SEQUENCE "People_Id_old_seq";
             @"CREATE INDEX ""IX_Blogs_Title_Description"" ON ""Blogs"" USING GIN (to_tsvector('simple', ""Title"" || ' ' || coalesce(""Description"", '')));");
     }
 
+    [ConditionalFact]
+    [MinimumPostgresVersion(15, 0)]
+    public virtual async Task Create_index_with_nulls_not_distinct()
+    {
+        await Test(
+            builder => builder.Entity(
+                "People", e =>
+                {
+                    e.Property<int>("Id");
+                    e.Property<int>("Age");
+                }),
+            _ => { },
+            builder => builder.Entity("People", b =>
+            {
+                b.HasIndex(new[] { "Age" }, "IX_NullsDistinct")
+                    .IsUnique();
+
+                b.HasIndex(new[] { "Age" }, "IX_NullsNotDistinct")
+                    .IsUnique()
+                    .AreNullsDistinct(false);
+            }),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+
+                Assert.Null(
+                    Assert.Single(table.Indexes, i => i.Name == "IX_NullsDistinct")[NpgsqlAnnotationNames.NullsDistinct]);
+
+                Assert.Equal(
+                    false,
+                    Assert.Single(table.Indexes, i => i.Name == "IX_NullsNotDistinct")[NpgsqlAnnotationNames.NullsDistinct]);
+            });
+
+        AssertSql(
+"""
+CREATE UNIQUE INDEX "IX_NullsDistinct" ON "People" ("Age");
+""",
+                //
+"""
+CREATE UNIQUE INDEX "IX_NullsNotDistinct" ON "People" ("Age") NULLS NOT DISTINCT;
+""");
+    }
+
     public override async Task Alter_index_change_sort_order()
     {
         await base.Alter_index_change_sort_order();

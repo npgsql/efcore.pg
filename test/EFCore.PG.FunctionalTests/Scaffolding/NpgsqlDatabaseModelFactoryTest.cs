@@ -1868,6 +1868,30 @@ CREATE INDEX ix_without ON "IndexCovering" (a, b, c);
             },
             @"DROP TABLE ""IndexCovering""");
 
+    [ConditionalFact]
+    [MinimumPostgresVersion(15, 0)]
+    public void Index_are_nulls_distinct()
+        => Test(
+"""
+CREATE TABLE "IndexNullsDistinct" (a text);
+CREATE INDEX "IX_NullsDistinct" ON "IndexNullsDistinct" (a);
+CREATE INDEX "IX_NullsNotDistinct" ON "IndexNullsDistinct" (a) NULLS NOT DISTINCT;
+""",
+            Enumerable.Empty<string>(),
+            Enumerable.Empty<string>(),
+            dbModel =>
+            {
+                var table = dbModel.Tables.Single();
+
+                Assert.Null(
+                    Assert.Single(table.Indexes, i => i.Name == "IX_NullsDistinct")[NpgsqlAnnotationNames.NullsDistinct]);
+
+                Assert.Equal(
+                    false,
+                    Assert.Single(table.Indexes, i => i.Name == "IX_NullsNotDistinct")[NpgsqlAnnotationNames.NullsDistinct]);
+            },
+            @"DROP TABLE ""IndexNullsDistinct""");
+
     [Fact]
     public void Comments()
         => Test(

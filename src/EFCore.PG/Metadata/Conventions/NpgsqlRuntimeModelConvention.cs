@@ -106,6 +106,7 @@ public class NpgsqlRuntimeModelConvention : RelationalRuntimeModelConvention
             annotations.Remove(NpgsqlAnnotationNames.IndexNullSortOrder);
             annotations.Remove(NpgsqlAnnotationNames.IndexInclude);
             annotations.Remove(NpgsqlAnnotationNames.CreatedConcurrently);
+            annotations.Remove(NpgsqlAnnotationNames.NullsDistinct);
         }
     }
 }
