@@ -876,9 +876,10 @@ WHERE COALESCE(array_position(s."IntList", 6, 2) - 1, -1) = 1
 """);
     }
 
-    public override async Task String_Join(bool async)
+    // Note: see NorthwindFunctionsQueryNpgsqlTest.String_Join_non_aggregate for regular use without an array column/parameter
+    public override async Task String_Join_with_array_parameter(bool async)
     {
-        await base.String_Join(async);
+        await base.String_Join_with_array_parameter(async);
 
         AssertSql(
 """
