@@ -1049,21 +1049,25 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             throw new NotSupportedException("PostgreSQL does not support altering the collation on an existing database.");
         }
 
+        foreach (var postgresExtension in PostgresExtension.GetPostgresExtensions(operation).Concat(GetLegacyPostgresExtensions(operation)))
+        {
+            GenerateEnsureExtension(postgresExtension, model, builder);
+        }
+
+
+        // TODO: Legacy
         GenerateCollationStatements(operation, model, builder);
         GenerateEnumStatements(operation, model, builder);
         GenerateRangeStatements(operation, model, builder);
 
-        foreach (var extension in operation.GetPostgresExtensions())
-        {
-            GenerateCreateExtension(extension, model, builder);
-        }
-
         builder.EndCommand();
     }
 
-    /// <inheritdoc />
-    protected virtual void GenerateCreateExtension(
-        PostgresExtension extension,
+    /// <summary>
+    ///     Generates SQL to ensure that a PostgreSQL extension is created in the database.
+    /// </summary>
+    protected virtual void GenerateEnsureExtension(
+        IPostgresExtension extension,
         IModel? model,
         MigrationCommandListBuilder builder)
     {
@@ -2149,4 +2153,38 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     }
 
     #endregion
+
+    #region Legacy stuff
+
+    private IEnumerable<IPostgresExtension> GetLegacyPostgresExtensions(AlterDatabaseOperation operation)
+    {
+        foreach (var annotation in operation.GetAnnotations())
+        {
+            if (!annotation.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal)
+                ||annotation.Value is not string value
+                || string.IsNullOrEmpty(value))
+            {
+                continue;
+            }
+
+            var schemaNameValue = value.Split(',').Select(x => x.Trim()).Select(x => x == "" || x == "''" ? null : x).ToArray();
+            var schemaAndName = annotation.Name.Substring(NpgsqlAnnotationNames.PostgresExtensionPrefix.Length).Split('.');
+            switch (schemaAndName.Length)
+            {
+                case 1:
+                    yield return new PostgresExtension(
+                        name: schemaAndName[0], schema: null, version: null, model: null, ConfigurationSource.Explicit);
+                    continue;
+                case 2:
+                    yield return new PostgresExtension(
+                        name: schemaAndName[1], schema: schemaAndName[0], version: schemaNameValue[2], model: null,
+                        ConfigurationSource.Explicit);
+                    continue;
+                default:
+                    throw new ArgumentException($"Cannot parse extension name from annotation: {annotation.Name}");
+            }
+        }
+    }
+
+    #endregion LegacyStuff
 }

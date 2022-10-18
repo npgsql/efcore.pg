@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using System.Transactions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -319,7 +320,7 @@ WHERE
         var reloadTypes =
             operations.OfType<AlterDatabaseOperation>()
                 .Any(o =>
-                    o.GetPostgresExtensions().Any() ||
+                    PostgresExtension.GetPostgresExtensions(o).Any() ||
                     o.GetPostgresEnums().Any() ||
                     o.GetPostgresRanges().Any());
 
@@ -365,7 +366,7 @@ WHERE
         var reloadTypes =
             operations.OfType<AlterDatabaseOperation>()
                 .Any(o =>
-                    o.GetPostgresExtensions().Any() ||
+                    PostgresExtension.GetPostgresExtensions(o).Any() ||
                     o.GetPostgresEnums().Any() ||
                     o.GetPostgresRanges().Any());
 

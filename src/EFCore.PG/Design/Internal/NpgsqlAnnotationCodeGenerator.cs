@@ -14,110 +14,108 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
 {
     #region MethodInfos
 
-    private static readonly MethodInfo ModelHasPostgresExtensionMethodInfo1
-        = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
-            nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension), typeof(ModelBuilder), typeof(string));
-
-    private static readonly MethodInfo ModelHasPostgresExtensionMethodInfo2
+    // ReSharper disable InconsistentNaming
+    private static readonly MethodInfo Model_HasPostgresExtension
         = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension), typeof(ModelBuilder), typeof(string), typeof(string), typeof(string));
 
-    private static readonly MethodInfo ModelHasPostgresEnumMethodInfo1
+    private static readonly MethodInfo Model_HasPostgresEnum1
         = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlModelBuilderExtensions.HasPostgresEnum), typeof(ModelBuilder), typeof(string), typeof(string[]));
 
-    private static readonly MethodInfo ModelHasPostgresEnumMethodInfo2
+    private static readonly MethodInfo Model_HasPostgresEnum2
         = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlModelBuilderExtensions.HasPostgresEnum), typeof(ModelBuilder), typeof(string), typeof(string), typeof(string[]));
 
-    private static readonly MethodInfo ModelHasPostgresRangeMethodInfo1
+    private static readonly MethodInfo Model_HasPostgresRange1
         = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlModelBuilderExtensions.HasPostgresRange), typeof(ModelBuilder), typeof(string), typeof(string));
 
-    private static readonly MethodInfo ModelHasPostgresRangeMethodInfo2
+    private static readonly MethodInfo Model_HasPostgresRange2
         = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlModelBuilderExtensions.HasPostgresRange), typeof(ModelBuilder), typeof(string), typeof(string),typeof(string), typeof(string),typeof(string), typeof(string),typeof(string));
 
-    private static readonly MethodInfo ModelUseSerialColumnsMethodInfo
+    private static readonly MethodInfo Model_UseSerialColumns
         = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlModelBuilderExtensions.UseSerialColumns), typeof(ModelBuilder));
 
-    private static readonly MethodInfo ModelUseIdentityAlwaysColumnsMethodInfo
+    private static readonly MethodInfo Model_UseIdentityAlwaysColumns
         = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlModelBuilderExtensions.UseIdentityAlwaysColumns), typeof(ModelBuilder));
 
-    private static readonly MethodInfo ModelUseIdentityByDefaultColumnsMethodInfo
+    private static readonly MethodInfo Model_UseIdentityByDefaultColumns
         = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns), typeof(ModelBuilder));
 
-    private static readonly MethodInfo ModelUseHiLoMethodInfo
+    private static readonly MethodInfo Model_UseHiLo
         = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlModelBuilderExtensions.UseHiLo), typeof(ModelBuilder), typeof(string), typeof(string));
 
-    private static readonly MethodInfo ModelHasAnnotationMethodInfo
+    private static readonly MethodInfo Model_HasAnnotation
         = typeof(ModelBuilder).GetRequiredRuntimeMethod(
             nameof(ModelBuilder.HasAnnotation), typeof(string), typeof(object));
 
-    private static readonly MethodInfo ModelUseKeySequencesMethodInfo
+    private static readonly MethodInfo Model_UseKeySequences
         = typeof(NpgsqlModelBuilderExtensions).GetRuntimeMethod(
             nameof(NpgsqlModelBuilderExtensions.UseKeySequences), new[] { typeof(ModelBuilder), typeof(string), typeof(string) })!;
 
-    private static readonly MethodInfo EntityTypeIsUnloggedMethodInfo
+    private static readonly MethodInfo EntityType_IsUnlogged
         = typeof(NpgsqlEntityTypeBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlEntityTypeBuilderExtensions.IsUnlogged), typeof(EntityTypeBuilder), typeof(bool));
 
-    private static readonly MethodInfo PropertyUseSerialColumnMethodInfo
+    private static readonly MethodInfo Property_UseSerialColumn
         = typeof(NpgsqlPropertyBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlPropertyBuilderExtensions.UseSerialColumn), typeof(PropertyBuilder));
 
-    private static readonly MethodInfo PropertyUseIdentityAlwaysColumnMethodInfo
+    private static readonly MethodInfo Property_UseIdentityAlwaysColumn
         = typeof(NpgsqlPropertyBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn), typeof(PropertyBuilder));
 
-    private static readonly MethodInfo PropertyUseIdentityByDefaultColumnMethodInfo
+    private static readonly MethodInfo Property_UseIdentityByDefaultColumn
         = typeof(NpgsqlPropertyBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn), typeof(PropertyBuilder));
 
-    private static readonly MethodInfo PropertyUseHiLoMethodInfo
+    private static readonly MethodInfo Property_UseHiLo
         = typeof(NpgsqlPropertyBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlPropertyBuilderExtensions.UseHiLo), typeof(PropertyBuilder), typeof(string), typeof(string));
 
-    private static readonly MethodInfo PropertyHasIdentityOptionsMethodInfo
+    private static readonly MethodInfo Property_HasIdentityOptions
         = typeof(NpgsqlPropertyBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlPropertyBuilderExtensions.HasIdentityOptions), typeof(PropertyBuilder), typeof(long?), typeof(long?),
             typeof(long?), typeof(long?), typeof(bool?), typeof(long?));
 
-    private static readonly MethodInfo PropertyUseSequenceMethodInfo
+    private static readonly MethodInfo Property_UseSequence
         = typeof(NpgsqlPropertyBuilderExtensions).GetRuntimeMethod(
             nameof(NpgsqlPropertyBuilderExtensions.UseSequence), new[] { typeof(PropertyBuilder), typeof(string), typeof(string) })!;
 
-    private static readonly MethodInfo IndexUseCollationMethodInfo
+    private static readonly MethodInfo Index_UseCollation
         = typeof(NpgsqlIndexBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlIndexBuilderExtensions.UseCollation), typeof(IndexBuilder), typeof(string[]));
 
-    private static readonly MethodInfo IndexHasMethodMethodInfo
+    private static readonly MethodInfo Index_HasMethod
         = typeof(NpgsqlIndexBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlIndexBuilderExtensions.HasMethod), typeof(IndexBuilder), typeof(string));
 
-    private static readonly MethodInfo IndexHasOperatorsMethodInfo
+    private static readonly MethodInfo Index_HasOperators
         = typeof(NpgsqlIndexBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlIndexBuilderExtensions.HasOperators), typeof(IndexBuilder), typeof(string[]));
 
-    private static readonly MethodInfo IndexHasSortOrderMethodInfo
+    private static readonly MethodInfo Index_HasSortOrder
         = typeof(NpgsqlIndexBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlIndexBuilderExtensions.HasSortOrder), typeof(IndexBuilder), typeof(SortOrder[]));
 
-    private static readonly MethodInfo IndexHasNullSortOrderMethodInfo
+    private static readonly MethodInfo Index_HasNullSortOrder
         = typeof(NpgsqlIndexBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlIndexBuilderExtensions.HasNullSortOrder), typeof(IndexBuilder), typeof(NullSortOrder[]));
 
-    private static readonly MethodInfo IndexIncludePropertiesMethodInfo
+    private static readonly MethodInfo Index_IncludeProperties
         = typeof(NpgsqlIndexBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlIndexBuilderExtensions.IncludeProperties), typeof(IndexBuilder), typeof(string[]));
 
-    private static readonly MethodInfo IndexAreNullsDistinctMethodInfo
+    private static readonly MethodInfo Index_AreNullsDistinct
         = typeof(NpgsqlIndexBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlIndexBuilderExtensions.AreNullsDistinct), typeof(IndexBuilder), typeof(bool));
+    // ReSharper restore InconsistentNaming
 
     #endregion MethodInfos
 
@@ -217,6 +215,20 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
             fragments.Add(valueGenerationStrategy);
         }
 
+        if (TryGetAndRemove(annotations, NpgsqlAnnotationNames.PostgresExtensions, out SortedDictionary<(string, string?), IPostgresExtension>? postgresExtensions))
+        {
+            foreach (var postgresExtension in postgresExtensions.Values)
+            {
+                var schema = postgresExtension.Schema is "public" ? null : postgresExtension.Schema;
+
+                fragments.Add(postgresExtension.Version is not null
+                    ? new MethodCallCodeFragment(Model_HasPostgresExtension, schema, postgresExtension.Name, postgresExtension.Version)
+                    : schema is not null
+                        ? new MethodCallCodeFragment(Model_HasPostgresExtension, schema, postgresExtension.Name)
+                        : new MethodCallCodeFragment(Model_HasPostgresExtension, postgresExtension.Name));
+            }
+        }
+
         return fragments;
     }
 
@@ -231,22 +243,13 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         Check.NotNull(model, nameof(model));
         Check.NotNull(annotation, nameof(annotation));
 
-        if (annotation.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal))
-        {
-            var extension = new PostgresExtension(model, annotation.Name);
-
-            return extension.Schema is "public" or null
-                ? new MethodCallCodeFragment(ModelHasPostgresExtensionMethodInfo1, extension.Name)
-                : new MethodCallCodeFragment(ModelHasPostgresExtensionMethodInfo2, extension.Schema, extension.Name);
-        }
-
         if (annotation.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal))
         {
             var enumTypeDef = new PostgresEnum(model, annotation.Name);
 
             return enumTypeDef.Schema is null
-                ? new MethodCallCodeFragment(ModelHasPostgresEnumMethodInfo1, enumTypeDef.Name, enumTypeDef.Labels)
-                : new MethodCallCodeFragment(ModelHasPostgresEnumMethodInfo2, enumTypeDef.Schema, enumTypeDef.Name, enumTypeDef.Labels);
+                ? new MethodCallCodeFragment(Model_HasPostgresEnum1, enumTypeDef.Name, enumTypeDef.Labels)
+                : new MethodCallCodeFragment(Model_HasPostgresEnum2, enumTypeDef.Schema, enumTypeDef.Name, enumTypeDef.Labels);
         }
 
         if (annotation.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal))
@@ -259,10 +262,10 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
                 rangeTypeDef.Collation is null &&
                 rangeTypeDef.SubtypeDiff is null)
             {
-                return new MethodCallCodeFragment(ModelHasPostgresRangeMethodInfo1, rangeTypeDef.Name, rangeTypeDef.Subtype);
+                return new MethodCallCodeFragment(Model_HasPostgresRange1, rangeTypeDef.Name, rangeTypeDef.Subtype);
             }
 
-            return new MethodCallCodeFragment(ModelHasPostgresRangeMethodInfo2,
+            return new MethodCallCodeFragment(Model_HasPostgresRange2,
                 rangeTypeDef.Schema,
                 rangeTypeDef.Name,
                 rangeTypeDef.Subtype,
@@ -288,7 +291,7 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
 
         if (annotation.Name == NpgsqlAnnotationNames.UnloggedTable)
         {
-            return new MethodCallCodeFragment(EntityTypeIsUnloggedMethodInfo, annotation.Value);
+            return new MethodCallCodeFragment(EntityType_IsUnlogged, annotation.Value);
         }
 
         return null;
@@ -329,20 +332,20 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         switch (strategy)
         {
             case NpgsqlValueGenerationStrategy.SerialColumn:
-                return new(onModel ? ModelUseSerialColumnsMethodInfo : PropertyUseSerialColumnMethodInfo);
+                return new(onModel ? Model_UseSerialColumns : Property_UseSerialColumn);
 
             case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
-                return new(onModel ? ModelUseIdentityAlwaysColumnsMethodInfo : PropertyUseIdentityAlwaysColumnMethodInfo);
+                return new(onModel ? Model_UseIdentityAlwaysColumns : Property_UseIdentityAlwaysColumn);
 
             case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
-                return new(onModel ? ModelUseIdentityByDefaultColumnsMethodInfo : PropertyUseIdentityByDefaultColumnMethodInfo);
+                return new(onModel ? Model_UseIdentityByDefaultColumns : Property_UseIdentityByDefaultColumn);
 
             case NpgsqlValueGenerationStrategy.SequenceHiLo:
             {
                 var name = GetAndRemove<string>(NpgsqlAnnotationNames.HiLoSequenceName)!;
                 var schema = GetAndRemove<string>(NpgsqlAnnotationNames.HiLoSequenceSchema);
                 return new(
-                    onModel ? ModelUseHiLoMethodInfo : PropertyUseHiLoMethodInfo,
+                    onModel ? Model_UseHiLo : Property_UseHiLo,
                     (name, schema) switch
                     {
                         (null, null) => Array.Empty<object>(),
@@ -358,7 +361,7 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
 
                 var schema = GetAndRemove<string>(NpgsqlAnnotationNames.SequenceSchema);
                 return new MethodCallCodeFragment(
-                    onModel ? ModelUseKeySequencesMethodInfo : PropertyUseSequenceMethodInfo,
+                    onModel ? Model_UseKeySequences : Property_UseSequence,
                     (name: nameOrSuffix, schema) switch
                     {
                         (null, null) => Array.Empty<object>(),
@@ -367,7 +370,7 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
                     });
             }
             case NpgsqlValueGenerationStrategy.None:
-                return new(ModelHasAnnotationMethodInfo, NpgsqlAnnotationNames.ValueGenerationStrategy, NpgsqlValueGenerationStrategy.None);
+                return new(Model_HasAnnotation, NpgsqlAnnotationNames.ValueGenerationStrategy, NpgsqlValueGenerationStrategy.None);
 
             default:
                 throw new ArgumentOutOfRangeException(strategy.ToString());
@@ -389,7 +392,7 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
 
         var identityOptions = IdentitySequenceOptionsData.Deserialize(annotationValue);
         return new(
-            PropertyHasIdentityOptionsMethodInfo,
+            Property_HasIdentityOptions,
             identityOptions.StartValue,
             identityOptions.IncrementBy == 1 ? null : (long?)identityOptions.IncrementBy,
             identityOptions.MinValue,
@@ -408,20 +411,20 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         => annotation.Name switch
         {
             RelationalAnnotationNames.Collation
-                => new MethodCallCodeFragment(IndexUseCollationMethodInfo, annotation.Value),
+                => new MethodCallCodeFragment(Index_UseCollation, annotation.Value),
 
             NpgsqlAnnotationNames.IndexMethod
-                => new MethodCallCodeFragment(IndexHasMethodMethodInfo, annotation.Value),
+                => new MethodCallCodeFragment(Index_HasMethod, annotation.Value),
             NpgsqlAnnotationNames.IndexOperators
-                => new MethodCallCodeFragment(IndexHasOperatorsMethodInfo, annotation.Value),
+                => new MethodCallCodeFragment(Index_HasOperators, annotation.Value),
             NpgsqlAnnotationNames.IndexSortOrder
-                => new MethodCallCodeFragment(IndexHasSortOrderMethodInfo, annotation.Value),
+                => new MethodCallCodeFragment(Index_HasSortOrder, annotation.Value),
             NpgsqlAnnotationNames.IndexNullSortOrder
-                => new MethodCallCodeFragment(IndexHasNullSortOrderMethodInfo, annotation.Value),
+                => new MethodCallCodeFragment(Index_HasNullSortOrder, annotation.Value),
             NpgsqlAnnotationNames.IndexInclude
-                => new MethodCallCodeFragment(IndexIncludePropertiesMethodInfo, annotation.Value),
+                => new MethodCallCodeFragment(Index_IncludeProperties, annotation.Value),
             NpgsqlAnnotationNames.NullsDistinct
-                => new MethodCallCodeFragment(IndexAreNullsDistinctMethodInfo, annotation.Value),
+                => new MethodCallCodeFragment(Index_AreNullsDistinct, annotation.Value),
             _ => null
         };
 

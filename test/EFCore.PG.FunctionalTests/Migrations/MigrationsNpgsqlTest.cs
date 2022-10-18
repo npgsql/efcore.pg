@@ -2716,13 +2716,12 @@ SELECT setval(
             builder => builder.HasPostgresExtension("citext"),
             model =>
             {
-                var citext = Assert.Single(model.GetPostgresExtensions());
+                var citext = Assert.Single(PostgresExtension.GetPostgresExtensions(model));
                 Assert.Equal("citext", citext.Name);
                 Assert.Equal("public", citext.Schema);
             });
 
-        AssertSql(
-            @"CREATE EXTENSION IF NOT EXISTS citext;");
+        AssertSql("CREATE EXTENSION IF NOT EXISTS citext;");
     }
 
     [Fact]
@@ -2733,20 +2732,24 @@ SELECT setval(
             builder => builder.HasPostgresExtension("some_schema", "citext"),
             model =>
             {
-                var citext = Assert.Single(model.GetPostgresExtensions());
+                var citext = Assert.Single(PostgresExtension.GetPostgresExtensions(model));
                 Assert.Equal("citext", citext.Name);
                 Assert.Equal("some_schema", citext.Schema);
             });
 
         AssertSql(
-            @"DO $EF$
+"""
+DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'some_schema') THEN
         CREATE SCHEMA some_schema;
     END IF;
-END $EF$;",
+END $EF$;
+""",
             //
-            @"CREATE EXTENSION IF NOT EXISTS citext SCHEMA some_schema;");
+"""
+CREATE EXTENSION IF NOT EXISTS citext SCHEMA some_schema;
+""");
     }
 
     #endregion

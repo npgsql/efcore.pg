@@ -238,10 +238,7 @@
   <data name="StoredProcedureResultColumnsNotSupported" xml:space="preserve">
     <value>The entity type '{entityType}' is mapped to the stored procedure '{sproc}', which is configured with result columns. PostgreSQL stored procedures do not support result columns; use output parameters instead.</value>
   </data>
-  <data name="StoredProcedureReturnValuesNotSupported" xml:space="preserve">
-    <value>The entity type '{entityType}' is mapped to the stored procedure '{sproc}', which is configured with result columns. PostgreSQL stored procedures do not support return values; use output parameters instead.</value>
-  </data>
   <data name="StoredProcedureReturnValueNotSupported" xml:space="preserve">
-    <value>The entity type '{entityType}' is mapped to the stored procedure '{sproc}', which is configured with result columns. PostgreSQL stored procedures do not support return values; use output parameters instead.</value>
+    <value>The entity type '{entityType}' is mapped to the stored procedure '{sproc}', which is configured with a return value. PostgreSQL stored procedures do not support return values; use an output parameter instead.</value>
   </data>
 </root>

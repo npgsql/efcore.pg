@@ -1048,7 +1048,7 @@ JOIN pg_namespace ns ON ns.oid=extnamespace";
                 continue;
             }
 
-            databaseModel.GetOrAddPostgresExtension(schema, name, version);
+            PostgresExtension.AddPostgresExtension(databaseModel, name, schema, version, ConfigurationSource.Explicit);
         }
     }
 
