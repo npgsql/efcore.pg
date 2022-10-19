@@ -67,7 +67,7 @@ public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
             conventionSet.PropertyAnnotationChangedConventions, (RelationalValueGenerationConvention)valueGenerationConvention);
 
         conventionSet.ModelFinalizingConventions.Add(valueGenerationStrategyConvention);
-        conventionSet.ModelFinalizingConventions.Add(new NpgsqlPostgresExtensionDiscoveryConvention(_typeMappingSource));
+        conventionSet.ModelFinalizingConventions.Add(new NpgsqlPostgresModelFinalizingConvention(_typeMappingSource));
         ReplaceConvention(conventionSet.ModelFinalizingConventions, storeGenerationConvention);
         ReplaceConvention(
             conventionSet.ModelFinalizingConventions,
