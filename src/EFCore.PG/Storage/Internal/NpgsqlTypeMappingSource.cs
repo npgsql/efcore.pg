@@ -574,34 +574,49 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             // we proceed with a CLR type lookup (if the type doesn't exist at all the failure will come later).
         }
 
-        if (clrType is null ||
-            !ClrTypeMappings.TryGetValue(clrType, out var mapping) ||
-            // Special case for byte[] mapped as smallint[] - don't return bytea mapping
-            storeTypeName is not null && storeTypeName == "smallint[]")
+        if (clrType is not null)
         {
-            return null;
-        }
-
-        if (mappingInfo.Size.HasValue)
-        {
-            if (clrType == typeof(string))
+            if (ClrTypeMappings.TryGetValue(clrType, out var mapping))
             {
-                mapping = mappingInfo.IsFixedLength ?? false ? _char : _varchar;
+                // Handle types with the size facet (string, bitarray)
+                if (mappingInfo.Size.HasValue)
+                {
+                    if (clrType == typeof(string))
+                    {
+                        mapping = mappingInfo.IsFixedLength ?? false ? _char : _varchar;
 
-                // See #342 for when size > 10485760
-                return mappingInfo.Size <= 10485760
-                    ? mapping.Clone($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size)
-                    : _text;
+                        // See #342 for when size > 10485760
+                        return mappingInfo.Size <= 10485760
+                            ? mapping.Clone($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size)
+                            : _text;
+                    }
+
+                    if (clrType == typeof(BitArray))
+                    {
+                        mapping = mappingInfo.IsFixedLength ?? false ? _bit : _varbit;
+                        return mapping.Clone($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size);
+                    }
+                }
+
+                if (storeTypeName == "smallint[]" && clrType == typeof(byte[]))
+                {
+                    // PostgreSQL has no tinyint (single-byte) type, but we allow mapping CLR byte to PG smallint (2-bytes).
+                    // The same applies to arrays - as always - so byte[] should be mappable to smallint[].
+                    // However, byte[] also has a base mapping to bytea, which is the default. So when the user explicitly specified
+                    // mapping to smallint[], we don't return that to allow the array mapping to work.
+                    return null;
+                }
+
+                return mapping;
             }
 
-            if (clrType == typeof(BitArray))
+            if (clrType == typeof(uint) && mappingInfo.IsRowVersion == true)
             {
-                mapping = mappingInfo.IsFixedLength ?? false ? _bit : _varbit;
-                return mapping.Clone($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size);
+                return _xid;
             }
         }
 
-        return mapping;
+        return null;
     }
 
     /// <summary>
