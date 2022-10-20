@@ -1,8 +1,8 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class SerializationNpgsqlTest : SerializationTestBase<F1NpgsqlFixture>
+public class SerializationNpgsqlTest : SerializationTestBase<F1BytesNpgsqlFixture>
 {
-    public SerializationNpgsqlTest(F1NpgsqlFixture fixture)
+    public SerializationNpgsqlTest(F1BytesNpgsqlFixture fixture)
         : base(fixture)
     {
     }

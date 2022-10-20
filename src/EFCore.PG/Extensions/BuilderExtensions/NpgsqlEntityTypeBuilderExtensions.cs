@@ -11,45 +11,6 @@ namespace Microsoft.EntityFrameworkCore;
 /// </remarks>
 public static class NpgsqlEntityTypeBuilderExtensions
 {
-    #region xmin
-
-    /// <summary>
-    /// Configures using the auto-updating system column <c>xmin</c> as the optimistic concurrency token.
-    /// </summary>
-    /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
-    /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-    /// <remarks>
-    ///     See <see href="https://www.npgsql.org/efcore/modeling/concurrency.html">Concurrency tokens</see>
-    ///     for more information on using optimistic concurrency in PostgreSQL.
-    /// </remarks>
-    public static EntityTypeBuilder UseXminAsConcurrencyToken(
-        this EntityTypeBuilder entityTypeBuilder)
-    {
-        Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
-
-        entityTypeBuilder.Property<uint>("xmin")
-            .HasColumnType("xid")
-            .ValueGeneratedOnAddOrUpdate()
-            .IsConcurrencyToken();
-
-        return entityTypeBuilder;
-    }
-
-    /// <summary>
-    /// Configures using the auto-updating system column <c>xmin</c> as the optimistic concurrency token.
-    /// </summary>
-    /// <remarks>
-    /// See http://www.npgsql.org/efcore/miscellaneous.html#optimistic-concurrency-and-concurrency-tokens
-    /// </remarks>
-    /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
-    /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-    public static EntityTypeBuilder<TEntity> UseXminAsConcurrencyToken<TEntity>(
-        this EntityTypeBuilder<TEntity> entityTypeBuilder)
-        where TEntity : class
-        => (EntityTypeBuilder<TEntity>)UseXminAsConcurrencyToken((EntityTypeBuilder)entityTypeBuilder);
-
-    #endregion xmin
-
     #region Generated tsvector column
 
     // Note: actual configuration for generated TsVector properties is on the property
@@ -334,77 +295,41 @@ public static class NpgsqlEntityTypeBuilderExtensions
     #region Obsolete
 
     /// <summary>
-    /// Sets a PostgreSQL storage parameter on the table created for this entity.
+    /// Configures using the auto-updating system column <c>xmin</c> as the optimistic concurrency token.
     /// </summary>
+    /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+    /// <returns>The same builder instance so that multiple calls can be chained.</returns>
     /// <remarks>
-    /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+    ///     See <see href="https://www.npgsql.org/efcore/modeling/concurrency.html">Concurrency tokens</see>
+    ///     for more information on using optimistic concurrency in PostgreSQL.
     /// </remarks>
-    /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
-    /// <param name="parameterName"> The name of the storage parameter. </param>
-    /// <param name="parameterValue"> The value of the storage parameter. </param>
-    /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-    [Obsolete("Use HasStorageParameter")]
-    public static EntityTypeBuilder SetStorageParameter(
-        this EntityTypeBuilder entityTypeBuilder,
-        string parameterName,
-        object? parameterValue)
-        => HasStorageParameter(entityTypeBuilder, parameterName, parameterValue);
+    [Obsolete("Use EF Core's standard IsRowVersion() or [Timestamp], see https://learn.microsoft.com/ef/core/saving/concurrency")]
+    public static EntityTypeBuilder UseXminAsConcurrencyToken(
+        this EntityTypeBuilder entityTypeBuilder)
+    {
+        Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
+
+        entityTypeBuilder.Property<uint>("xmin")
+            .HasColumnType("xid")
+            .ValueGeneratedOnAddOrUpdate()
+            .IsConcurrencyToken();
+
+        return entityTypeBuilder;
+    }
 
     /// <summary>
-    /// Sets a PostgreSQL storage parameter on the table created for this entity.
+    /// Configures using the auto-updating system column <c>xmin</c> as the optimistic concurrency token.
     /// </summary>
     /// <remarks>
-    /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+    /// See http://www.npgsql.org/efcore/miscellaneous.html#optimistic-concurrency-and-concurrency-tokens
     /// </remarks>
-    /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
-    /// <param name="parameterName"> The name of the storage parameter. </param>
-    /// <param name="parameterValue"> The value of the storage parameter. </param>
-    /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-    [Obsolete("Use HasStorageParameter")]
-    public static EntityTypeBuilder<TEntity> SetStorageParameter<TEntity>(
-        this EntityTypeBuilder<TEntity> entityTypeBuilder,
-        string parameterName,
-        object? parameterValue)
+    /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+    /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+    [Obsolete("Use EF Core's standard IsRowVersion() or [Timestamp], see https://learn.microsoft.com/ef/core/saving/concurrency")]
+    public static EntityTypeBuilder<TEntity> UseXminAsConcurrencyToken<TEntity>(
+        this EntityTypeBuilder<TEntity> entityTypeBuilder)
         where TEntity : class
-        => HasStorageParameter(entityTypeBuilder, parameterName, parameterValue);
-
-    /// <summary>
-    /// Sets a PostgreSQL storage parameter on the table created for this entity.
-    /// </summary>
-    /// <remarks>
-    /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
-    /// </remarks>
-    /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
-    /// <param name="parameterName"> The name of the storage parameter. </param>
-    /// <param name="parameterValue"> The value of the storage parameter. </param>
-    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
-    /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-    [Obsolete("Use HasStorageParameter")]
-    public static IConventionEntityTypeBuilder? SetStorageParameter(
-        this IConventionEntityTypeBuilder entityTypeBuilder,
-        string parameterName,
-        object? parameterValue,
-        bool fromDataAnnotation = false)
-        => HasStorageParameter(entityTypeBuilder, parameterName, parameterValue, fromDataAnnotation);
-
-    /// <summary>
-    /// Returns a value indicating whether the PostgreSQL storage parameter on the table created for this entity.
-    /// </summary>
-    /// <remarks>
-    /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
-    /// </remarks>
-    /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
-    /// <param name="parameterName"> The name of the storage parameter. </param>
-    /// <param name="parameterValue"> The value of the storage parameter. </param>
-    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
-    /// <returns><c>true</c> if the mapped table can be configured as with the storage parameter.</returns>
-    [Obsolete("Use CanSetStorageParameter")]
-    public static bool CanSetSetStorageParameter(
-        this IConventionEntityTypeBuilder entityTypeBuilder,
-        string parameterName,
-        object? parameterValue,
-        bool fromDataAnnotation = false)
-        => CanSetStorageParameter(entityTypeBuilder, parameterName, parameterValue, fromDataAnnotation);
+        => (EntityTypeBuilder<TEntity>)UseXminAsConcurrencyToken((EntityTypeBuilder)entityTypeBuilder);
 
     #endregion Obsolete
 }
