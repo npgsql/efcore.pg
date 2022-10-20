@@ -9,20 +9,49 @@ Entity Framework Core supports the concept of optimistic concurrency - a propert
 
 Although applications can update concurrency tokens themselves, we frequently rely on the database automatically updating a column on update - a "last modified" timestamp, an SQL Server `rowversion`, etc. Unfortunately PostgreSQL doesn't have such auto-updating columns - but there is one feature that can be used for concurrency token. All PostgreSQL tables have a set of [implicit and hidden system columns](https://www.postgresql.org/docs/current/ddl-system-columns.html), among which `xmin` holds the ID of the latest updating transaction. Since this value automatically gets updated every time the row is changed, it is ideal for use as a concurrency token.
 
-To enable this feature on an entity, insert the following code into your context's `OnModelCreating` method:
+Starting with version 7.0, you can map a `uint` property to the PostgreSQL `xmin` system column using the standard EF Core mechanisms:
+
+### [Data Annotations](#tab/data-annotations)
+
+```c#
+public class SomeEntity
+{
+    public int Id { get; set; }
+
+    [Timestamp]
+    public uint Version { get; set; }
+}
+```
+
+### [Fluent API](#tab/fluent-api)
+
+```c#
+class MyContext : DbContext
+{
+    public DbSet<SomeEntity> SomeEntities { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<SomeEntity>()
+            .Property(b => b.Version)
+            .IsRowVersion();
+    }
+}
+
+public class SomeEntity
+{
+    public int Id { get; set; }
+    public uint Version { get; set; }
+}
+```
+
+***
+
+In older version of the provider, use the following instead:
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
-    => modelBuilder.Entity<Blog>()
-                   .UseXminAsConcurrencyToken();
-```
-
-Note that by default, this will set up a [shadow property](https://docs.microsoft.com/ef/core/modeling/shadow-properties) called `xmin` on your entity. This means that when you load an entity from the database, the value of `xmin` will be stored in the context, making it [impossible to use that instance with another context](https://stackoverflow.com/a/60871156) (without reloading the entity). If you plan to pass instances between different contexts, consider adding an `xmin` property of type `uint` on your entity; this will automatically cause the concurrency token to be stored on the instance instead:
-
-```c#
-class Blog
 {
-    ...
-    public uint xmin { get; set; }
+    modelBuilder.Entity<Blog>().UseXminAsConcurrencyToken();
 }
 ```

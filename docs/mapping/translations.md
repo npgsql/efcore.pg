@@ -42,7 +42,9 @@ stringValue.TrimStart(trimChar)                               | ltrim(stringValu
 EF.Functions.Reverse(value)                                   | reverse(value)
 Regex.IsMatch(stringValue, "^A+")                             | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options)
 Regex.IsMatch(stringValue, "^A+", regexOptions)               | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options)
-string.Join(", ", strings)<sup>1</sup>                        | [string_agg(strings, ', ')](https://www.postgresql.org/docs/current/functions-aggregate.html#FUNCTIONS-AGGREGATE-TABLE) | Added in 7.0, see [Aggregate functions](#aggregate-functions).
+string.Join(", ", a, b)                                       | [concat_ws(', ', a, b)](https://www.postgresql.org/docs/current/functions-string.html#FUNCTIONS-STRING-OTHER) | Added in 7.0 (previously array_to_string)
+string.Join(", ", array)                                      | [array_to_string(array, ', ', '')](https://www.postgresql.org/docs/current/functions-array.html#ARRAY-FUNCTIONS-TABLE)
+string.Join(", ", agg_strings)                                | [string_agg(agg_strings, ', ')](https://www.postgresql.org/docs/current/functions-aggregate.html#FUNCTIONS-AGGREGATE-TABLE) | Added in 7.0, see [Aggregate functions](#aggregate-functions).
 
 ## Date and time functions
 
@@ -267,7 +269,7 @@ The PostgreSQL aggregate functions are documented [here](https://www.postgresql.
 
 | .NET                                                                               | SQL
 | ---------------------------------------------------------------------------------- | --------------------
-| string.Join(", ", strings)                                                         | string_agg(strings, ', ')
+| string.Join(", ", agg_strings)                                                     | string_agg(agg_strings, ', ')
 | EF.Functions.ArrayAgg(values)                                                      | array_agg(values)
 | EF.Functions.JsonbAgg(values)                                                      | jsonb_agg(values)
 | EF.Functions.JsonAgg(values)                                                       | json_agg(values)

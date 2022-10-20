@@ -1,5 +1,8 @@
 # JSON Mapping
 
+> [!NOTE]
+> EF Core 7.0 introduced support for [JSON columns](https://learn.microsoft.com/ef/core/what-is-new/ef-core-7.0/whatsnew#json-columns). Npgsql's JSON support - detailed below - is different, and has been available since version 3.0. We plan to adopt EF's JSON support in version 8.0.
+
 PostgreSQL has rich, built-in support for storing JSON columns and efficiently performing complex queries operations on them. Newcomers can read more about the PostgreSQL support on [the JSON types page](https://www.postgresql.org/docs/current/datatype-json.html), and on the [functions and operators page](https://www.postgresql.org/docs/current/functions-json.html). Note that the below mapping mechanisms support both the `jsonb` and `json` types, although the former is almost always preferred for efficiency reasons.
 
 The Npgsql EF Core provider allows you to map PostgreSQL JSON columns in three different ways:
@@ -7,9 +10,6 @@ The Npgsql EF Core provider allows you to map PostgreSQL JSON columns in three d
 1. As simple strings
 2. As strongly-typed user-defined types (POCOs)
 3. As [System.Text.Json](https://devblogs.microsoft.com/dotnet/try-the-new-system-text-json-apis/) DOM types (JsonDocument or JsonElement)
-
-> [!NOTE]
-> Mapping to POCO or to System.Text.Json types was introduced in version 3.0.0
 
 ## String mapping
 
