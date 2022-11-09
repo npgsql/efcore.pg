@@ -458,14 +458,18 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     /// </summary>
     protected virtual void SetupEnumMappings(ISqlGenerationHelper sqlGenerationHelper)
     {
+#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
         _adoUserTypeMappingsGetMethodInfo ??= NpgsqlConnection.GlobalTypeMapper.GetType().GetProperty("UserTypeMappings")?.GetMethod;
+#pragma warning restore CS0618
 
         if (_adoUserTypeMappingsGetMethodInfo is null)
         {
             return;
         }
 
+#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
         var adoUserTypeMappings = (IDictionary<string, IUserTypeMapping>)_adoUserTypeMappingsGetMethodInfo.Invoke(NpgsqlConnection.GlobalTypeMapper, Array.Empty<object>())!;
+#pragma warning restore CS0618
 
         foreach (var adoUserTypeMapping in adoUserTypeMappings.Values.OfType<IUserEnumTypeMapping>())
         {

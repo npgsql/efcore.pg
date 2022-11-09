@@ -9,7 +9,9 @@ public class SpatialQueryNpgsqlFixture : SpatialQueryRelationalFixture
 
     protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
     {
+#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
         NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite();
+#pragma warning restore CS0618
 
         return base.AddServices(serviceCollection)
             .AddEntityFrameworkNpgsqlNetTopologySuite();

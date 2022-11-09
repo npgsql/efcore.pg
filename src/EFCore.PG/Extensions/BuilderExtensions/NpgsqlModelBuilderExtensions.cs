@@ -478,10 +478,9 @@ public static class NpgsqlModelBuilderExtensions
         INpgsqlNameTranslator? nameTranslator = null)
         where TEnum : struct, Enum
     {
-        if (nameTranslator is null)
-        {
-            nameTranslator = NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator;
-        }
+#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
+        nameTranslator ??= NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator;
+#pragma warning restore CS0618
 
         return modelBuilder.HasPostgresEnum(
             schema,

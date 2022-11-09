@@ -35,7 +35,9 @@ public class NpgsqlEnumTypeMapping : RelationalTypeMapping
             throw new ArgumentException($"Enum type mappings require a CLR enum. {enumType.FullName} is not an enum.");
         }
 
+#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
         nameTranslator ??= NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator;
+#pragma warning restore CS0618
 
         _nameTranslator = nameTranslator;
         _sqlGenerationHelper = sqlGenerationHelper;

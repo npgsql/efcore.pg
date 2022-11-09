@@ -233,10 +233,12 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
 
         static EnumContext()
         {
+#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
             NpgsqlConnection.GlobalTypeMapper.MapEnum<MappedEnum>("test.mapped_enum");
             NpgsqlConnection.GlobalTypeMapper.MapEnum<InferredEnum>("test.inferred_enum");
             NpgsqlConnection.GlobalTypeMapper.MapEnum<ByteEnum>("test.byte_enum");
             NpgsqlConnection.GlobalTypeMapper.MapEnum<SchemaQualifiedEnum>("test.schema_qualified_enum");
+#pragma warning restore CS0618
         }
 
         public EnumContext(DbContextOptions options) : base(options) {}

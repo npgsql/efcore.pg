@@ -53,7 +53,9 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     /// <summary>
     /// The specified <see cref="ProvidePasswordCallback"/>.
     /// </summary>
+#pragma warning disable CS0618 // ProvidePasswordCallback is obsolete
     public virtual ProvidePasswordCallback? ProvidePasswordCallback { get; private set; }
+#pragma warning restore CS0618
 
     /// <summary>
     /// True if reverse null ordering is enabled; otherwise, false.
@@ -250,6 +252,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     /// Returns a copy of the current instance with the specified <see cref="ProvidePasswordCallback"/>.
     /// </summary>
     /// <param name="callback">The specified callback.</param>
+#pragma warning disable CS0618 // ProvidePasswordCallback is obsolete
     public virtual NpgsqlOptionsExtension WithProvidePasswordCallback(ProvidePasswordCallback? callback)
     {
         var clone = (NpgsqlOptionsExtension)Clone();
@@ -258,6 +261,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
 
         return clone;
     }
+#pragma warning restore CS0618
 
     #endregion Authentication
 

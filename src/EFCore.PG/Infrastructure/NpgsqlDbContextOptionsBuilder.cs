@@ -108,25 +108,24 @@ public class NpgsqlDbContextOptionsBuilder
     /// Configures the <see cref="DbContext"/> to use the specified <see cref="ProvideClientCertificatesCallback"/>.
     /// </summary>
     /// <param name="callback">The callback to use.</param>
-    public virtual NpgsqlDbContextOptionsBuilder ProvideClientCertificatesCallback(
-        ProvideClientCertificatesCallback? callback)
+    public virtual NpgsqlDbContextOptionsBuilder ProvideClientCertificatesCallback(ProvideClientCertificatesCallback? callback)
         => WithOption(e => e.WithProvideClientCertificatesCallback(callback));
 
     /// <summary>
     /// Configures the <see cref="DbContext"/> to use the specified <see cref="RemoteCertificateValidationCallback"/>.
     /// </summary>
     /// <param name="callback">The callback to use.</param>
-    public virtual NpgsqlDbContextOptionsBuilder RemoteCertificateValidationCallback(
-        RemoteCertificateValidationCallback? callback)
+    public virtual NpgsqlDbContextOptionsBuilder RemoteCertificateValidationCallback(RemoteCertificateValidationCallback? callback)
         => WithOption(e => e.WithRemoteCertificateValidationCallback(callback));
 
     /// <summary>
     /// Configures the <see cref="DbContext"/> to use the specified <see cref="ProvidePasswordCallback"/>.
     /// </summary>
     /// <param name="callback">The callback to use.</param>
-    public virtual NpgsqlDbContextOptionsBuilder ProvidePasswordCallback(
-        ProvidePasswordCallback? callback)
+#pragma warning disable CS0618 // ProvidePasswordCallback is obsolete
+    public virtual NpgsqlDbContextOptionsBuilder ProvidePasswordCallback(ProvidePasswordCallback? callback)
         => WithOption(e => e.WithProvidePasswordCallback(callback));
+#pragma warning restore CS0618
 
     #endregion Authentication
 
