@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text.RegularExpressions;
@@ -269,6 +270,131 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         }
 
         return pgDeleteExpression;
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected override Expression VisitUpdate(UpdateExpression updateExpression)
+    {
+        var selectExpression = updateExpression.SelectExpression;
+
+        if (selectExpression.Offset == null
+            && selectExpression.Limit == null
+            && selectExpression.Having == null
+            && selectExpression.Orderings.Count == 0
+            && selectExpression.GroupBy.Count == 0
+            && selectExpression.Projection.Count == 0
+            && (selectExpression.Tables.Count == 1
+                || !ReferenceEquals(selectExpression.Tables[0], updateExpression.Table)
+                || selectExpression.Tables[1] is InnerJoinExpression
+                || selectExpression.Tables[1] is CrossJoinExpression))
+        {
+            Sql.Append("UPDATE ");
+            Visit(updateExpression.Table);
+            Sql.AppendLine();
+            Sql.Append("SET ");
+            Sql.Append(
+                $"{_sqlGenerationHelper.DelimitIdentifier(updateExpression.ColumnValueSetters[0].Column.Name)} = ");
+            Visit(updateExpression.ColumnValueSetters[0].Value);
+            using (Sql.Indent())
+            {
+                foreach (var columnValueSetter in updateExpression.ColumnValueSetters.Skip(1))
+                {
+                    Sql.AppendLine(",");
+                    Sql.Append($"{_sqlGenerationHelper.DelimitIdentifier(columnValueSetter.Column.Name)} = ");
+                    Visit(columnValueSetter.Value);
+                }
+            }
+
+            var predicate = selectExpression.Predicate;
+            var firstTable = true;
+            OuterReferenceFindingExpressionVisitor? visitor = null;
+
+            if (selectExpression.Tables.Count > 1)
+            {
+                Sql.AppendLine().Append("FROM ");
+
+                for (var i = 0; i < selectExpression.Tables.Count; i++)
+                {
+                    var table = selectExpression.Tables[i];
+                    var joinExpression = table as JoinExpressionBase;
+
+                    if (ReferenceEquals(updateExpression.Table, joinExpression?.Table ?? table))
+                    {
+                        LiftPredicate(table);
+                        continue;
+                    }
+
+                    visitor ??= new OuterReferenceFindingExpressionVisitor(updateExpression.Table);
+
+                    // PostgreSQL doesn't support referencing the main update table from anywhere except for the UPDATE WHERE clause.
+                    // This specifically makes it impossible to have joins which reference the main table in their predicate (ON ...).
+                    // Because of this, we detect all such inner joins and lift their predicates to the main WHERE clause (where a reference to the
+                    // main table is allowed), producing UPDATE ... FROM x, y WHERE y.foreign_key = x.id instead of INNER JOIN ... ON.
+                    if (firstTable)
+                    {
+                        LiftPredicate(table);
+                        table = joinExpression?.Table ?? table;
+                    }
+                    else if (joinExpression is InnerJoinExpression innerJoinExpression
+                             && visitor.ContainsReferenceToMainTable(innerJoinExpression.JoinPredicate))
+                    {
+                        LiftPredicate(innerJoinExpression);
+
+                        Sql.AppendLine(",");
+                        using (Sql.Indent())
+                        {
+                            Visit(innerJoinExpression.Table);
+                        }
+
+                        continue;
+                    }
+
+                    if (firstTable)
+                    {
+                        firstTable = false;
+                    }
+                    else
+                    {
+                        Sql.AppendLine();
+                    }
+
+                    Visit(table);
+
+                    void LiftPredicate(TableExpressionBase joinTable)
+                    {
+                        if (joinTable is PredicateJoinExpressionBase predicateJoinExpression)
+                        {
+                            Check.DebugAssert(joinExpression is not LeftJoinExpression, "Cannot lift predicate for left join");
+
+                            predicate = predicate == null
+                                ? predicateJoinExpression.JoinPredicate
+                                : new SqlBinaryExpression(
+                                    ExpressionType.AndAlso,
+                                    predicateJoinExpression.JoinPredicate,
+                                    predicate,
+                                    typeof(bool),
+                                    predicate.TypeMapping);
+                        }
+                    }
+                }
+            }
+
+            if (predicate != null)
+            {
+                Sql.AppendLine().Append("WHERE ");
+                Visit(predicate);
+            }
+
+            return updateExpression;
+        }
+
+        throw new InvalidOperationException(
+            RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(nameof(RelationalQueryableExtensions.ExecuteUpdate)));
     }
 
     /// <summary>
@@ -889,6 +1015,43 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             }
 
             generationAction(items[i]);
+        }
+    }
+
+    private sealed class OuterReferenceFindingExpressionVisitor : ExpressionVisitor
+    {
+        private readonly TableExpression _mainTable;
+        private bool _containsReference;
+
+        public OuterReferenceFindingExpressionVisitor(TableExpression mainTable)
+            => _mainTable = mainTable;
+
+        public bool ContainsReferenceToMainTable(SqlExpression sqlExpression)
+        {
+            _containsReference = false;
+
+            Visit(sqlExpression);
+
+            return _containsReference;
+        }
+
+        [return: NotNullIfNotNull("expression")]
+        public override Expression? Visit(Expression? expression)
+        {
+            if (_containsReference)
+            {
+                return expression;
+            }
+
+            if (expression is ColumnExpression columnExpression
+                && columnExpression.Table == _mainTable)
+            {
+                _containsReference = true;
+
+                return expression;
+            }
+
+            return base.Visit(expression);
         }
     }
 }

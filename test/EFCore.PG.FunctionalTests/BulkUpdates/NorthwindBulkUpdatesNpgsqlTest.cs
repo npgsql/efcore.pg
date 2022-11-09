@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.BulkUpdates;
+using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.BulkUpdates;
 
@@ -1253,70 +1254,88 @@ WHERE c."CustomerID" = t0."CustomerID"
 """);
     }
 
-    [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/2478")]
+    [ConditionalTheory]
     public override async Task Update_with_cross_join_left_join_set_constant(bool async)
     {
         await base.Update_with_cross_join_left_join_set_constant(async);
 
         AssertExecuteUpdateSql(
-            @"UPDATE [c]
-SET [c].[ContactName] = N'Updated'
-FROM [Customers] AS [c]
-CROSS JOIN (
-    SELECT [c0].[CustomerID], [c0].[Address], [c0].[City], [c0].[CompanyName], [c0].[ContactName], [c0].[ContactTitle], [c0].[Country], [c0].[Fax], [c0].[Phone], [c0].[PostalCode], [c0].[Region]
-    FROM [Customers] AS [c0]
-    WHERE [c0].[City] IS NOT NULL AND ([c0].[City] LIKE N'S%')
-) AS [t]
-LEFT JOIN (
-    SELECT [o].[OrderID], [o].[CustomerID], [o].[EmployeeID], [o].[OrderDate]
-    FROM [Orders] AS [o]
-    WHERE [o].[OrderID] < 10300
-) AS [t0] ON [c].[CustomerID] = [t0].[CustomerID]
-WHERE [c].[CustomerID] LIKE N'F%'");
+"""
+UPDATE "Customers" AS c
+SET "ContactName" = 'Updated'
+FROM (
+    SELECT c0."CustomerID", c0."Address", c0."City", c0."CompanyName", c0."ContactName", c0."ContactTitle", c0."Country", c0."Fax", c0."Phone", c0."PostalCode", c0."Region", t."CustomerID" AS "CustomerID0", t."Address" AS "Address0", t."City" AS "City0", t."CompanyName" AS "CompanyName0", t."ContactName" AS "ContactName0", t."ContactTitle" AS "ContactTitle0", t."Country" AS "Country0", t."Fax" AS "Fax0", t."Phone" AS "Phone0", t."PostalCode" AS "PostalCode0", t."Region" AS "Region0", t0."OrderID", t0."CustomerID" AS "CustomerID1", t0."EmployeeID", t0."OrderDate"
+    FROM "Customers" AS c0
+    CROSS JOIN (
+        SELECT c1."CustomerID", c1."Address", c1."City", c1."CompanyName", c1."ContactName", c1."ContactTitle", c1."Country", c1."Fax", c1."Phone", c1."PostalCode", c1."Region"
+        FROM "Customers" AS c1
+        WHERE (c1."City" IS NOT NULL) AND (c1."City" LIKE 'S%')
+    ) AS t
+    LEFT JOIN (
+        SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+        FROM "Orders" AS o
+        WHERE o."OrderID" < 10300
+    ) AS t0 ON c0."CustomerID" = t0."CustomerID"
+    WHERE c0."CustomerID" LIKE 'F%'
+) AS t1
+WHERE c."CustomerID" = t1."CustomerID"
+""");
     }
 
-    [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/2478")]
+    [ConditionalTheory]
     public override async Task Update_with_cross_join_cross_apply_set_constant(bool async)
     {
         await base.Update_with_cross_join_cross_apply_set_constant(async);
 
         AssertExecuteUpdateSql(
-            @"UPDATE [c]
-SET [c].[ContactName] = N'Updated'
-FROM [Customers] AS [c]
-CROSS JOIN (
-    SELECT [c0].[CustomerID], [c0].[Address], [c0].[City], [c0].[CompanyName], [c0].[ContactName], [c0].[ContactTitle], [c0].[Country], [c0].[Fax], [c0].[Phone], [c0].[PostalCode], [c0].[Region]
-    FROM [Customers] AS [c0]
-    WHERE [c0].[City] IS NOT NULL AND ([c0].[City] LIKE N'S%')
-) AS [t]
-CROSS APPLY (
-    SELECT [o].[OrderID], [o].[CustomerID], [o].[EmployeeID], [o].[OrderDate]
-    FROM [Orders] AS [o]
-    WHERE [o].[OrderID] < 10300 AND DATEPART(year, [o].[OrderDate]) < CAST(LEN([c].[ContactName]) AS int)
-) AS [t0]
-WHERE [c].[CustomerID] LIKE N'F%'");
+"""
+UPDATE "Customers" AS c
+SET "ContactName" = 'Updated'
+FROM (
+    SELECT c0."CustomerID", c0."Address", c0."City", c0."CompanyName", c0."ContactName", c0."ContactTitle", c0."Country", c0."Fax", c0."Phone", c0."PostalCode", c0."Region", t0."OrderID", t0."CustomerID" AS "CustomerID0", t0."EmployeeID", t0."OrderDate", t."CustomerID" AS "CustomerID1"
+    FROM "Customers" AS c0
+    CROSS JOIN (
+        SELECT c1."CustomerID"
+        FROM "Customers" AS c1
+        WHERE (c1."City" IS NOT NULL) AND (c1."City" LIKE 'S%')
+    ) AS t
+    JOIN LATERAL (
+        SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+        FROM "Orders" AS o
+        WHERE o."OrderID" < 10300 AND date_part('year', o."OrderDate")::int < length(c0."ContactName")::int
+    ) AS t0 ON TRUE
+    WHERE c0."CustomerID" LIKE 'F%'
+) AS t1
+WHERE c."CustomerID" = t1."CustomerID"
+""");
     }
 
-    [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/2478")]
+    [ConditionalTheory]
     public override async Task Update_with_cross_join_outer_apply_set_constant(bool async)
     {
         await base.Update_with_cross_join_outer_apply_set_constant(async);
 
         AssertExecuteUpdateSql(
-            @"UPDATE [c]
-SET [c].[ContactName] = N'Updated'
-FROM [Customers] AS [c]
-CROSS JOIN (
-    SELECT [c0].[CustomerID], [c0].[Address], [c0].[City], [c0].[CompanyName], [c0].[ContactName], [c0].[ContactTitle], [c0].[Country], [c0].[Fax], [c0].[Phone], [c0].[PostalCode], [c0].[Region]
-    FROM [Customers] AS [c0]
-    WHERE [c0].[City] IS NOT NULL AND ([c0].[City] LIKE N'S%')
-) AS [t]
-OUTER APPLY (
-    SELECT [o].[OrderID], [o].[CustomerID], [o].[EmployeeID], [o].[OrderDate]
-    FROM [Orders] AS [o]
-    WHERE [o].[OrderID] < 10300 AND DATEPART(year, [o].[OrderDate]) < CAST(LEN([c].[ContactName]) AS int)
-) AS [t0]
-WHERE [c].[CustomerID] LIKE N'F%'");
+"""
+UPDATE "Customers" AS c
+SET "ContactName" = 'Updated'
+FROM (
+    SELECT c0."CustomerID", c0."Address", c0."City", c0."CompanyName", c0."ContactName", c0."ContactTitle", c0."Country", c0."Fax", c0."Phone", c0."PostalCode", c0."Region", t."CustomerID" AS "CustomerID0", t."Address" AS "Address0", t."City" AS "City0", t."CompanyName" AS "CompanyName0", t."ContactName" AS "ContactName0", t."ContactTitle" AS "ContactTitle0", t."Country" AS "Country0", t."Fax" AS "Fax0", t."Phone" AS "Phone0", t."PostalCode" AS "PostalCode0", t."Region" AS "Region0", t0."OrderID", t0."CustomerID" AS "CustomerID1", t0."EmployeeID", t0."OrderDate"
+    FROM "Customers" AS c0
+    CROSS JOIN (
+        SELECT c1."CustomerID", c1."Address", c1."City", c1."CompanyName", c1."ContactName", c1."ContactTitle", c1."Country", c1."Fax", c1."Phone", c1."PostalCode", c1."Region"
+        FROM "Customers" AS c1
+        WHERE (c1."City" IS NOT NULL) AND (c1."City" LIKE 'S%')
+    ) AS t
+    LEFT JOIN LATERAL (
+        SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
+        FROM "Orders" AS o
+        WHERE o."OrderID" < 10300 AND date_part('year', o."OrderDate")::int < length(c0."ContactName")::int
+    ) AS t0 ON TRUE
+    WHERE c0."CustomerID" LIKE 'F%'
+) AS t1
+WHERE c."CustomerID" = t1."CustomerID"
+""");
     }
 
     public override async Task Update_FromSql_set_constant(bool async)
@@ -1396,6 +1415,30 @@ SET "City" = date_part('year', (
     ORDER BY o."OrderDate" DESC NULLS LAST
     LIMIT 1))::int::text
 WHERE c."CustomerID" LIKE 'F%'
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Update_with_two_inner_joins(bool async)
+    {
+        await AssertUpdate(
+            async,
+            ss => ss
+                .Set<OrderDetail>()
+                .Where(od => od.Product.Discontinued && od.Order.OrderDate > new DateTime(1990, 1, 1)),
+            e => e,
+            s => s.SetProperty(od => od.Quantity, 1),
+            rowsAffectedCount: 228,
+            (b, a) => Assert.All(a, od => Assert.Equal(1, od.Quantity)));
+
+        AssertExecuteUpdateSql(
+"""
+UPDATE "Order Details" AS o
+SET "Quantity" = 1::smallint
+FROM "Products" AS p,
+    "Orders" AS o0
+WHERE o."OrderID" = o0."OrderID" AND o."ProductID" = p."ProductID" AND p."Discontinued" AND o0."OrderDate" > TIMESTAMP '1990-01-01 00:00:00'
 """);
     }
 
