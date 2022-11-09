@@ -5,6 +5,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
 public class SpatialNpgsqlFixture : SpatialFixtureBase
 {
+#pragma warning disable CS0618 // GlobalTypeMapper is obsolete
+    public SpatialNpgsqlFixture()
+    {
+        NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite();
+    }
+#pragma warning restore CS0618
+
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 

@@ -1899,6 +1899,13 @@ LIMIT 1
     {
         protected override string StoreName => "NodaTimeTest";
 
+#pragma warning disable CS0618 // GlobalTypeMapper is obsolete
+        public NodaTimeQueryNpgsqlFixture()
+        {
+            NpgsqlConnection.GlobalTypeMapper.UseNodaTime();
+        }
+#pragma warning restore CS0618
+
         // Set the PostgreSQL TimeZone parameter to something local, to ensure that operations which take TimeZone into account
         // don't depend on the database's time zone, and also that operations which shouldn't take TimeZone into account indeed
         // don't.
