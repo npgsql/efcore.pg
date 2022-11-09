@@ -18,9 +18,6 @@
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/npgsql/efcore.pg</PackageProjectUrl>
     <PackageIcon>postgresql.png</PackageIcon>
-
-    <!-- TODO: Remove this when releasing 7.0 -->
-    <NoWarn>$(NoWarn);NU1605</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
