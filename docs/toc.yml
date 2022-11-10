@@ -6,12 +6,12 @@
     href: release-notes/7.0.md
   - name: "6.0"
     href: release-notes/6.0.md
-  - name: "5.0"
-    href: release-notes/5.0.md
   - name: "3.1"
     href: release-notes/3.1.md
   - name: Out of support
     items:
+    - name: "5.0"
+      href: release-notes/5.0.md
     - name: "2.2"
       href: release-notes/2.2.md
     - name: "2.1"
