@@ -158,7 +158,7 @@ See also [Aggregate statistics functions](#aggregate-statistics-functions).
 The following allow expressing [comparisons over SQL row values](https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON). This are particularly useful for implementing efficient pagination, see [the EF Core docs](https://docs.microsoft.com/ef/core/querying/pagination) for more information.
 
 > [!NOTE]
-> All of the below are being introduced in version 7.0 of the provider.
+> All of the below were introduced in version 7.0 of the provider.
 
 .NET                                                                              | SQL
 --------------------------------------------------------------------------------- | ----------------
