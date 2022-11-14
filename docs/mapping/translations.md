@@ -151,7 +151,7 @@ Math.Tan(a)             | tan(a)             |
 Math.Truncate(d)        | trunc(d)           |
 EF.Functions.Random()   | random()           | Added in 6.0
 
-See also [Aggregate statistics functions](#aggregate-statistics-functions).
+See also [Aggregate statistics functions](#aggregate-functions).
 
 ## Row value comparisons
 
@@ -210,7 +210,7 @@ EF.Functions.Set7BitMac8(macaddr8)               | [macaddr8_set7bit(macaddr8)](
 The below translations provide functionality for determining the similarity of alphanumeric text based on trigram matching, using the [`pg_trgm`](https://www.postgresql.org/docs/current/pgtrgm.html) extension which is bundled with standard PostgreSQL distributions. All the below parameters are strings.
 
 > [!NOTE]
-> Prior to version 6.0, to use these translations, your project must depend on the [Npgsql.EntityFrameworkCore.PostgreSQL.Trigrams](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.Trigrams/) package, and call <xref:Microsoft.EntityFrameworkCore.NpgsqlTrigramsDbContextOptionsBuilderExtensions.UseTrigrams%2A> in your `OnModelConfiguring`.
+> Prior to version 6.0, to use these translations, your project must depend on the [Npgsql.EntityFrameworkCore.PostgreSQL.Trigrams](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.Trigrams/) package, and call `UseTrigrams()` in your `OnModelConfiguring`.
 
 .NET                                                              | SQL
 ----------------------------------------------------------------- | --------------------

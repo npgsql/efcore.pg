@@ -45,4 +45,4 @@ array.Any(s => EF.Functions.Like(string, s))  | [string LIKE ANY (array)](https:
 array.Any(s => EF.Functions.ILike(string, s)) | [string ILIKE ANY (array)](https://www.postgresql.org/docs/current/functions-comparisons.html#id-1.5.8.30.16)                            |
 array.All(s => EF.Functions.Like(string, s))  | [string LIKE ALL (array)](https://www.postgresql.org/docs/current/functions-comparisons.html#id-1.5.8.30.16)                             |
 array.All(s => EF.Functions.ILike(string, s)) | [string ILIKE ALL (array)](https://www.postgresql.org/docs/current/functions-comparisons.html#id-1.5.8.30.16)                            |
-EF.Functions.ArrayAgg(values)                 | [array_agg(values)](https://www.postgresql.org/docs/current/functions-aggregate.html#FUNCTIONS-AGGREGATE-TABLE)                          | Added in 7.0, See [Aggregate functions](#aggregate-functions).
+EF.Functions.ArrayAgg(values)                 | [array_agg(values)](https://www.postgresql.org/docs/current/functions-aggregate.html#FUNCTIONS-AGGREGATE-TABLE)                          | Added in 7.0, See [Aggregate functions](translations.md#aggregate-functions).

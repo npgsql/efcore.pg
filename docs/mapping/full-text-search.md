@@ -34,7 +34,7 @@ public class Product
 }
 ```
 
-Setting up the column to be auto-updated depends on your PostgreSQL version. On PostgreSQL 12 and above, the column can be a simple [generated column](../modeling/generated-properties.md#computed-columns-on-add-or-update), and version 5.0.0 contains sugar for setting that up. In previous versions, you must manually set up database triggers that update the column instead.
+Setting up the column to be auto-updated depends on your PostgreSQL version. On PostgreSQL 12 and above, the column can be a simple [generated column](../modeling/generated-properties.md#computed-columns), and version 5.0.0 contains sugar for setting that up. In previous versions, you must manually set up database triggers that update the column instead.
 
 #### [PostgreSQL 12+](#tab/pg12)
 
