@@ -10,7 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 /// </summary>
 public class NpgsqlOptionsExtension : RelationalOptionsExtension
 {
-    private DbDataSource? _dataSource, _calculatedDataSource;
+    private bool _isDataSourceExplicitlySet;
     private DbContextOptionsExtensionInfo? _info;
     private readonly List<UserRangeDefinition> _userRangeDefinitions;
 
@@ -18,7 +18,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     ///     The <see cref="DbDataSource" />, or <see langword="null" /> if a connection string or <see cref="DbConnection" /> was used
     ///     instead of a <see cref="DbDataSource" />.
     /// </summary>
-    public virtual DbDataSource? DataSource => _calculatedDataSource;
+    public virtual DbDataSource? DataSource { get; private set; }
 
     /// <summary>
     /// The name of the database for administrative operations.
@@ -75,7 +75,8 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     /// <param name="copyFrom">The instance to copy.</param>
     public NpgsqlOptionsExtension(NpgsqlOptionsExtension copyFrom) : base(copyFrom)
     {
-        _dataSource = copyFrom._dataSource;
+        DataSource = copyFrom.DataSource;
+        _isDataSourceExplicitlySet = copyFrom._isDataSourceExplicitlySet;
         AdminDatabase = copyFrom.AdminDatabase;
         PostgresVersion = copyFrom.PostgresVersion;
         UseRedshift = copyFrom.UseRedshift;
@@ -106,7 +107,30 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
         var clone = (NpgsqlOptionsExtension)Clone();
 
-        clone._dataSource = dataSource;
+        clone.DataSource = dataSource;
+        clone._isDataSourceExplicitlySet = true;
+
+        return clone;
+    }
+
+    /// <inheritdoc />
+    public override RelationalOptionsExtension WithConnectionString(string? connectionString)
+    {
+        var clone = (NpgsqlOptionsExtension)base.WithConnectionString(connectionString);
+
+        clone.DataSource = null;
+        clone._isDataSourceExplicitlySet = false;
+
+        return clone;
+    }
+
+    /// <inheritdoc />
+    public override RelationalOptionsExtension WithConnection(DbConnection? connection)
+    {
+        var clone = (NpgsqlOptionsExtension)base.WithConnection(connection);
+
+        clone.DataSource = null;
+        clone._isDataSourceExplicitlySet = false;
 
         return clone;
     }
@@ -203,10 +227,12 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         base.Validate(options);
 
         // If we don't have an explicitly-configured data source, try to get one from the application service provider.
-        _calculatedDataSource = _dataSource
-            ?? options.FindExtension<CoreOptionsExtension>()?.ApplicationServiceProvider?.GetService<NpgsqlDataSource>();
+        if (!_isDataSourceExplicitlySet)
+        {
+            DataSource ??= options.FindExtension<CoreOptionsExtension>()?.ApplicationServiceProvider?.GetService<NpgsqlDataSource>();
+        }
 
-        if (_calculatedDataSource is not null
+        if (DataSource is not null
             && (ProvideClientCertificatesCallback is not null
                 || RemoteCertificateValidationCallback is not null
                 || ProvidePasswordCallback is not null))
@@ -379,9 +405,9 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
                     hashCode.Add(userRangeDefinition);
                 }
 
-                if (Extension._dataSource is not null)
+                if (Extension.DataSource is not null)
                 {
-                    hashCode.Add(Extension._dataSource.ConnectionString);
+                    hashCode.Add(Extension.DataSource.ConnectionString);
                 }
 
                 hashCode.Add(Extension.AdminDatabase);
