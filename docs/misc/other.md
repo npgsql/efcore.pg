@@ -21,7 +21,7 @@ protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         options => options.EnableRetryOnFailure());
 ```
 
-This strategy relies on the `IsTransient` property of `NpgsqlException`. Both this property and the retrying strategy are new and should be considered somewhat experimental - please report any issues.
+This strategy relies on the `IsTransient` property of `NpgsqlException`.
 
 ## Certificate authentication
 
