@@ -104,6 +104,18 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 By default, for GUID key properties, a random GUID is generated client-side by the EF provider and sent to the database.
 
+To generate GUID's client-side for non-key properties, configure them as follows:
+
+```c#
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder
+        .Entity<Blog>()
+        .Property(b => b.SomeGuidProperty)
+        .HasValueGenerator<GuidValueGenerator>();
+}
+```
+
 If you prefer to generate values in the database instead, you can do so by specifying `HasDefaultValueSql` on your property, and call the function to generate the value in the SQL expression. Which function to use depends on your PostgreSQL version:
 
 ### [PG 13+](#tab/13)
