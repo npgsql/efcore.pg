@@ -43,7 +43,7 @@ public class PostgresRowValueExpression : SqlExpression, IEquatable<PostgresRowV
             if (visited != rowValue && newRowValues is null)
             {
                 newRowValues = new SqlExpression[Values.Count];
-                for (var j = 0; j < i; i++)
+                for (var j = 0; j < i; j++)
                 {
                     newRowValues[j] = Values[j];
                 }
