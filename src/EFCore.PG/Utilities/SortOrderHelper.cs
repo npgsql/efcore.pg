@@ -18,7 +18,7 @@ internal static class SortOrderHelper
             var nullSortOrder = nullSortOrders[i];
 
             // We need to consider the ASC/DESC sort order to determine the default NULLS FIRST/LAST sort order.
-            if (isDescendingValues is not null && isDescendingValues[i])
+            if (isDescendingValues is not null && (isDescendingValues.Count == 0 || isDescendingValues[i]))
             {
                 // NULLS FIRST is the default when DESC is specified.
                 if (nullSortOrder != NullSortOrder.NullsFirst)
