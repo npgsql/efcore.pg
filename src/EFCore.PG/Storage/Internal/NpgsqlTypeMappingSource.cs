@@ -493,11 +493,11 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     /// </summary>
     protected override RelationalTypeMapping? FindMapping(in RelationalTypeMappingInfo mappingInfo) =>
         // First, try any plugins, allowing them to override built-in mappings (e.g. NodaTime)
-        base.FindMapping(mappingInfo) ??
-        FindBaseMapping(mappingInfo)?.Clone(mappingInfo) ??
-        FindArrayMapping(mappingInfo)?.Clone(mappingInfo) ??
-        FindRowValueMapping(mappingInfo)?.Clone(mappingInfo) ??
-        FindUserRangeMapping(mappingInfo);
+        base.FindMapping(mappingInfo)
+        ?? FindBaseMapping(mappingInfo)?.Clone(mappingInfo)
+        ?? FindArrayMapping(mappingInfo)?.Clone(mappingInfo)
+        ?? FindRowValueMapping(mappingInfo)?.Clone(mappingInfo)
+        ?? FindUserRangeMapping(mappingInfo);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
