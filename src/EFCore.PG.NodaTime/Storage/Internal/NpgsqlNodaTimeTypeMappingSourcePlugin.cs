@@ -217,9 +217,16 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
     }
 
     public virtual RelationalTypeMapping? FindMapping(in RelationalTypeMappingInfo mappingInfo)
-        => FindExistingMapping(mappingInfo) ?? FindArrayMapping(mappingInfo);
+        => FindBaseMapping(mappingInfo)?.Clone(mappingInfo)
+            ?? FindArrayMapping(mappingInfo)?.Clone(mappingInfo);
 
-    protected virtual RelationalTypeMapping? FindExistingMapping(in RelationalTypeMappingInfo mappingInfo)
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected virtual RelationalTypeMapping? FindBaseMapping(in RelationalTypeMappingInfo mappingInfo)
     {
         var clrType = mappingInfo.ClrType;
         var storeTypeName = mappingInfo.StoreTypeName;
@@ -264,16 +271,9 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
             }
         }
 
-        if (clrType is null || !ClrTypeMappings.TryGetValue(clrType, out var mapping))
-        {
-            return null;
-        }
-
-        // All PostgreSQL date/time types accept a precision except for date
-        // TODO: Cache size/precision/scale mappings?
-        return mappingInfo.Precision.HasValue && mapping.ClrType != typeof(LocalDate)
-            ? mapping.Clone($"{mapping.StoreType}({mappingInfo.Precision.Value})", null)
-            : mapping;
+        return clrType is not null && ClrTypeMappings.TryGetValue(clrType, out var mapping)
+            ? mapping
+            : null;
     }
 
     // TODO: This is duplicated from NpgsqlTypeMappingSource

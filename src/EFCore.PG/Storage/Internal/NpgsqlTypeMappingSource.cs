@@ -456,10 +456,10 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
 
     protected override RelationalTypeMapping? FindMapping(in RelationalTypeMappingInfo mappingInfo) =>
         // First, try any plugins, allowing them to override built-in mappings (e.g. NodaTime)
-        base.FindMapping(mappingInfo) ??
-        FindBaseMapping(mappingInfo)?.Clone(mappingInfo) ??
-        FindArrayMapping(mappingInfo)?.Clone(mappingInfo) ??
-        FindUserRangeMapping(mappingInfo);
+        base.FindMapping(mappingInfo)
+        ?? FindBaseMapping(mappingInfo)?.Clone(mappingInfo)
+        ?? FindArrayMapping(mappingInfo)?.Clone(mappingInfo)
+        ?? FindUserRangeMapping(mappingInfo);
 
     protected virtual RelationalTypeMapping? FindBaseMapping(in RelationalTypeMappingInfo mappingInfo)
     {
