@@ -26,8 +26,14 @@ public class NpgsqlNodaTimeTypeMappingTest
     {
         var mapping = GetMapping(typeof(Instant), "timestamp");
         Assert.Same(typeof(Instant), mapping.ClrType);
-        Assert.Equal("timestamp without time zone", mapping.StoreType);
+        Assert.Equal("timestamp", mapping.StoreType);
     }
+
+    [Fact]
+    public void Instant_with_precision()
+        => Assert.Equal(
+            "timestamp(3) with time zone",
+            Mapper.FindMapping(typeof(Instant), "timestamp with time zone", precision: 3)!.StoreType);
 
     [Fact]
     public void GenerateSqlLiteral_returns_LocalDateTime_literal()
@@ -520,26 +526,21 @@ public class NpgsqlNodaTimeTypeMappingTest
 
     [Fact]
     public void Duration_is_properly_mapped()
-    {
-        var mapping = GetMapping(typeof(Duration));
-
-        Assert.Equal("interval", mapping.StoreType);
-        Assert.Same(typeof(Duration), mapping.ClrType);
-
-        Assert.Same(mapping, GetMapping(typeof(Duration), "interval"));
-    }
+        => Assert.All(new[] { GetMapping(typeof(Duration)), GetMapping(typeof(Duration), "interval") },
+            m =>
+            {
+                Assert.Equal("interval", m.StoreType);
+                Assert.Same(typeof(Duration), m.ClrType);
+            });
 
     [Fact]
     public void Period_is_properly_mapped()
-    {
-        var mapping = GetMapping(typeof(Period));
-
-        Assert.Equal("interval", mapping.StoreType);
-        Assert.Same(typeof(Period), mapping.ClrType);
-
-        Assert.Same(mapping, GetMapping(typeof(Period)));
-        Assert.Same(mapping, GetMapping(typeof(Period), "interval"));
-    }
+        => Assert.All(new[] { GetMapping(typeof(Period)), GetMapping(typeof(Period), "interval") },
+            m =>
+            {
+                Assert.Equal("interval", m.StoreType);
+                Assert.Same(typeof(Period), m.ClrType);
+            });
 
     [Fact]
     public void GenerateSqlLiteral_returns_Period_literal()

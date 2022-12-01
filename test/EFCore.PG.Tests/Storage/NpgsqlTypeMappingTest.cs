@@ -29,6 +29,12 @@ public class NpgsqlTypeMappingTest
         => Assert.Same(typeof(DateTime), GetMapping("timestamp with time zone").ClrType);
 
     [Fact]
+    public void DateTime_with_precision()
+        => Assert.Equal(
+            "timestamp(3) with time zone",
+            Mapper.FindMapping(typeof(DateTime), "timestamp with time zone", precision: 3)!.StoreType);
+
+    [Fact]
     public void GenerateSqlLiteral_returns_date_literal()
     {
         Assert.Equal(
