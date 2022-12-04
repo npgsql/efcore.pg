@@ -733,7 +733,16 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         var options = expression.Options;
 
         Visit(expression.Match);
-        Sql.Append(" ~ ");
+
+        if (options.HasFlag(RegexOptions.IgnoreCase))
+        {
+            Sql.Append(" ~* ");
+            options &= ~RegexOptions.IgnoreCase;
+        }
+        else
+        {
+            Sql.Append(" ~ ");
+        }
 
         // PG regexps are single-line by default
         if (options == RegexOptions.Singleline)
@@ -742,19 +751,22 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             return expression;
         }
 
-        Sql.Append("('(?");
-        if (options.HasFlag(RegexOptions.IgnoreCase))
+        var constantPattern = (expression.Pattern as SqlConstantExpression)?.Value as string;
+
+        if (constantPattern is null)
         {
-            Sql.Append("i");
+            Sql.Append("(");
         }
+
+        Sql.Append("'(?");
 
         if (options.HasFlag(RegexOptions.Multiline))
         {
             Sql.Append("n");
         }
         else if (!options.HasFlag(RegexOptions.Singleline))
-            // In .NET's default mode, . doesn't match newlines but PostgreSQL it does.
         {
+            // In .NET's default mode, . doesn't match newlines but in PostgreSQL it does.
             Sql.Append("p");
         }
 
@@ -763,9 +775,23 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             Sql.Append("x");
         }
 
-        Sql.Append(")' || ");
-        Visit(expression.Pattern);
         Sql.Append(")");
+
+        if (constantPattern is null)
+        {
+            Sql.Append("' || ");
+            Visit(expression.Pattern);
+            Sql.Append(")");
+        }
+        else
+        {
+            Sql.Append(constantPattern);
+            Sql.Append("'");
+        }
+
+        // Sql.Append(")' || ");
+        // Visit(expression.Pattern);
+        // Sql.Append(")");
 
         return expression;
     }

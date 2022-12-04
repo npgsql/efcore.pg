@@ -105,14 +105,40 @@ WHERE concat_ws('|', c."CustomerID", COALESCE(c."CompanyName", ''), COALESCE(@__
 
     [Theory]
     [MemberData(nameof(IsAsyncData))]
-    public async Task Regex_IsMatch(bool async)
+    public async Task Regex_IsMatch_with_constant_pattern(bool async)
     {
         await AssertQuery(
             async,
             cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A")),
             entryCount: 4);
 
-        AssertContainsSqlFragment(@"WHERE c.""CompanyName"" ~ ('(?p)' || '^A')");
+        AssertSql(
+"""
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CompanyName" ~ '(?p)^A'
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_IsMatch_with_parameter_pattern(bool async)
+    {
+        var pattern = "^A";
+
+        await AssertQuery(
+            async,
+            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, pattern)),
+            entryCount: 4);
+
+        AssertSql(
+"""
+@__pattern_0='^A'
+
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CompanyName" ~ ('(?p)' || @__pattern_0)
+""");
     }
 
     [Theory]
@@ -124,60 +150,101 @@ WHERE concat_ws('|', c."CustomerID", COALESCE(c."CompanyName", ''), COALESCE(@__
             cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.None)),
             entryCount: 4);
 
-        AssertContainsSqlFragment(@"WHERE c.""CompanyName"" ~ ('(?p)' || '^A')");
+        AssertSql(
+"""
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CompanyName" ~ '(?p)^A'
+""");
     }
 
     [Theory]
     [MemberData(nameof(IsAsyncData))]
-    public async Task Regex_IsMatchOptionsIgnoreCase(bool async)
+    public async Task Regex_IsMatch_with_IgnoreCase(bool async)
     {
         await AssertQuery(
             async,
             cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^a", RegexOptions.IgnoreCase)),
             entryCount: 4);
 
-        AssertContainsSqlFragment(@"WHERE c.""CompanyName"" ~ ('(?ip)' || '^a')");
+        AssertSql(
+"""
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CompanyName" ~* '(?p)^a'
+""");
     }
 
     [Theory]
     [MemberData(nameof(IsAsyncData))]
-    public async Task Regex_IsMatchOptionsMultiline(bool async)
+    public async Task Regex_IsMatch_with_Multiline(bool async)
     {
         await AssertQuery(
             async,
             cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Multiline)),
             entryCount: 4);
 
-        AssertContainsSqlFragment(@"WHERE c.""CompanyName"" ~ ('(?n)' || '^A')");
+        AssertSql(
+"""
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CompanyName" ~ '(?n)^A'
+""");
     }
 
-    // ReSharper disable once IdentifierTypo
     [Theory]
     [MemberData(nameof(IsAsyncData))]
-    public async Task Regex_IsMatchOptionsSingleline(bool async)
+    public async Task Regex_IsMatch_with_Singleline(bool async)
     {
         await AssertQuery(
             async,
             cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Singleline)),
             entryCount: 4);
 
-        AssertContainsSqlFragment(@"WHERE c.""CompanyName"" ~ '^A'");
+        AssertSql(
+"""
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CompanyName" ~ '^A'
+""");
     }
 
     [Theory]
     [MemberData(nameof(IsAsyncData))]
-    public async Task Regex_IsMatchOptionsIgnorePatternWhitespace(bool async)
+    public async Task Regex_IsMatch_with_Singleline_and_IgnoreCase(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^a", RegexOptions.Singleline | RegexOptions.IgnoreCase)),
+            entryCount: 4);
+
+        AssertSql(
+            """
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CompanyName" ~* '^a'
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_IsMatch_with_IgnorePatternWhitespace(bool async)
     {
         await AssertQuery(
             async,
             cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^ A", RegexOptions.IgnorePatternWhitespace)),
             entryCount: 4);
 
-        AssertContainsSqlFragment(@"WHERE c.""CompanyName"" ~ ('(?px)' || '^ A')");
+        AssertSql(
+"""
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CompanyName" ~ '(?px)^ A'
+""");
     }
 
     [Fact]
-    public void Regex_IsMatchOptionsUnsupported()
+    public void Regex_IsMatch_with_unsupported_option()
         => Assert.Throws<InvalidOperationException>(() =>
             Fixture.CreateContext().Customers.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.RightToLeft)).ToList());
 
@@ -785,7 +852,4 @@ GROUP BY o."ProductID"
 
     protected override void ClearLog()
         => Fixture.TestSqlLoggerFactory.Clear();
-
-    private void AssertContainsSqlFragment(string expectedFragment)
-        => Assert.Contains(Fixture.TestSqlLoggerFactory.SqlStatements, s => s.Contains(expectedFragment));
 }
