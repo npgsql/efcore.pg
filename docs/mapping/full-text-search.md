@@ -56,7 +56,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 }
 ```
 
-#### [Older Versions](#tab/older)
+#### [Older Versions](#tab/pg-lt-12)
 
 First, modify the `OnModelCreating()` of your context class to add an index as follows:
 
@@ -119,7 +119,7 @@ modelBuilder.Entity<Blog>()
     .IsTsVectorExpressionIndex("english");
 ```
 
-#### [Older Versions](#tab/older)
+#### [Older Versions](#tab/lt-v5)
 
 Create a migration which will contain the index creation SQL (`dotnet ef migrations add ...`). At this point, open the generated migration with your editor and add the following:
 
