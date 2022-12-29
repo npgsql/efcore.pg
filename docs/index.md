@@ -3,7 +3,7 @@
 [![stable](https://img.shields.io/nuget/v/Npgsql.EntityFrameworkCore.PostgreSQL.svg?label=stable)](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL/)
 [![unstable](https://img.shields.io/myget/npgsql-unstable/vpre/Npgsql.EntityFrameworkCore.PostgreSQL.svg?label=unstable)](https://www.myget.org/feed/npgsql-unstable/package/nuget/Npgsql.EntityFrameworkCore.PostgreSQL)
 [![next patch](https://img.shields.io/myget/npgsql/v/Npgsql.EntityFrameworkCore.PostgreSQL.svg?label=next%20patch)](https://www.myget.org/feed/npgsql/package/nuget/Npgsql.EntityFrameworkCore.PostgreSQL)
-[![build](https://img.shields.io/github/workflow/status/npgsql/efcore.pg/Build)](https://github.com/npgsql/efcore.pg/actions)
+[![build](https://img.shields.io/github/actions/workflow/status/npgsql/efcore.pg/workflows/build.yml?branch=main)](https://github.com/npgsql/efcore.pg/actions)
 [![gitter](https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg)](https://gitter.im/npgsql/npgsql)
 
 Npgsql has an Entity Framework (EF) Core provider. It behaves like other EF Core providers (e.g. SQL Server), so the [general EF Core docs](https://docs.microsoft.com/ef/core/index) apply here as well. If you're just getting started with EF Core, those docs are the best place to start.
