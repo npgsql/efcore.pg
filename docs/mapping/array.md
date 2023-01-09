@@ -27,7 +27,7 @@ The provider can also translate CLR array operations to the corresponding SQL op
 
 .NET                                          | SQL                                                                                                                                      | Notes
 --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----
-array[1]                                      | [array[1]](https://www.postgresql.org/docs/current/static/arrays.html#ARRAYS-ACCESSING)                                                  |
+array[0]                                      | [array[1]](https://www.postgresql.org/docs/current/static/arrays.html#ARRAYS-ACCESSING)                                                  |
 array.Length / list.Count                     | [cardinality(array)](https://www.postgresql.org/docs/current/static/functions-array.html#ARRAY-FUNCTIONS-TABLE)                          |
 array1 == array2                              | [array1 = array2](https://www.postgresql.org/docs/current/static/arrays.html)                                                            |
 array1.SequenceEqual(array2)                  | [array1 = array2](https://www.postgresql.org/docs/current/static/arrays.html)                                                            |
