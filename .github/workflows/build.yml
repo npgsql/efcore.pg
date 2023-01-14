@@ -43,6 +43,9 @@ jobs:
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
+        with:
+          dotnet-quality: 'daily'
+          dotnet-version: 8.0.x
 
       - name: Build
         run: dotnet build --configuration Debug
@@ -150,6 +153,9 @@ jobs:
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
+        with:
+          dotnet-quality: 'daily'
+          dotnet-version: 8.0.x
 
       - name: Pack
         run: dotnet pack --configuration Release --property:PackageOutputPath="$PWD/nupkgs" --version-suffix "ci.$(date -u +%Y%m%dT%H%M%S)+sha.${GITHUB_SHA:0:9}" -p:ContinuousIntegrationBuild=true
@@ -182,6 +188,9 @@ jobs:
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
+        with:
+          dotnet-quality: 'daily'
+          dotnet-version: 8.0.x
 
       - name: Pack
         run: dotnet pack --configuration Release --output nupkgs -p:ContinuousIntegrationBuild=true
