@@ -129,8 +129,9 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     private readonly NpgsqlPolygonTypeMapping      _polygon            = new();
     private readonly NpgsqlCircleTypeMapping       _circle             = new();
 
-    // uint mappings
+    // uint/ulong mappings
     private readonly NpgsqlUintTypeMapping         _xid                = new("xid", NpgsqlDbType.Xid);
+    private readonly NpgsqlULongTypeMapping        _xid8               = new("xid8", NpgsqlDbType.Xid8);
     private readonly NpgsqlUintTypeMapping         _oid                = new("oid", NpgsqlDbType.Oid);
     private readonly NpgsqlUintTypeMapping         _cid                = new("cid", NpgsqlDbType.Cid);
     private readonly NpgsqlUintTypeMapping         _regtype            = new("regtype", NpgsqlDbType.Regtype);
@@ -326,6 +327,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { "circle",                      new[] { _circle                       } },
 
             { "xid",                         new[] { _xid                          } },
+            { "xid8",                        new[] { _xid8                         } },
             { "oid",                         new[] { _oid                          } },
             { "cid",                         new[] { _cid                          } },
             { "regtype",                     new[] { _regtype                      } },
@@ -533,7 +535,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
                 }
 
                 // Map arbitrary user POCOs to JSON
-                if (storeTypeName == "jsonb" || storeTypeName == "json")
+                if (storeTypeName is "jsonb" or "json")
                 {
                     return new NpgsqlJsonTypeMapping(storeTypeName, clrType);
                 }
@@ -614,9 +616,17 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
                 return mapping;
             }
 
-            if (clrType == typeof(uint) && mappingInfo.IsRowVersion == true)
+            if (mappingInfo.IsRowVersion == true)
             {
-                return _xid;
+                if (clrType == typeof(uint))
+                {
+                    return _xid;
+                }
+
+                if (clrType == typeof(ulong))
+                {
+                    return _xid8;
+                }
             }
         }
 

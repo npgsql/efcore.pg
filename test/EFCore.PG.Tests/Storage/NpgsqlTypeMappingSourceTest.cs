@@ -35,6 +35,8 @@ public class NpgsqlTypeMappingSourceTest
     [InlineData("geometry(pointz, 4326)", typeof(Point), null, false)]
     [InlineData("geography(LineStringZM)", typeof(LineString), null, false)]
     [InlineData("geometry(POLYGONM)", typeof(Polygon), null, false)]
+    [InlineData("xid", typeof(uint), null, false)]
+    [InlineData("xid8", typeof(ulong), null, false)]
     public void By_StoreType(string typeName, Type type, int? size, bool fixedLength)
     {
         var mapping = CreateTypeMappingSource().FindMapping(typeName);
@@ -138,6 +140,8 @@ public class NpgsqlTypeMappingSourceTest
     [InlineData("dummyrange", typeof(NpgsqlRange<DummyType>))]
     [InlineData("geometry", typeof(Geometry))]
     [InlineData("geometry(Point, 4326)", typeof(Geometry))]
+    [InlineData("xid", typeof(uint))]
+    [InlineData("xid8", typeof(ulong))]
     public void By_StoreType_with_ClrType(string storeType, Type clrType)
     {
         var mapping = CreateTypeMappingSource().FindMapping(clrType, storeType);
