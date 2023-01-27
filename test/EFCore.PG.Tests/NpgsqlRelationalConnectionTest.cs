@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
+﻿using System.Transactions;
+using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
@@ -77,6 +78,44 @@ public class NpgsqlRelationalConnectionTest
         using var master = connection.CreateAdminConnection();
 
         Assert.Equal(@"Host=localhost;Database=template0;Username=some_user;Password=some_password;Pooling=False;Multiplexing=False", master.ConnectionString);
+    }
+
+    [Theory]
+    [InlineData("false")]
+    [InlineData("False")]
+    [InlineData("FALSE")]
+    public void CurrentAmbientTransaction_returns_null_with_enlist_set_to_false(string falseValue)
+    {
+        var options = new DbContextOptionsBuilder()
+            .UseNpgsql(
+                @"Host=localhost;Database=NpgsqlConnectionTest;Username=some_user;Password=some_password;Enlist=" + falseValue)
+            .Options;
+
+        Transaction.Current = new CommittableTransaction();
+
+        using var connection = CreateConnection(options);
+        Assert.Null(connection.CurrentAmbientTransaction);
+
+        Transaction.Current = null;
+    }
+
+    [Theory]
+    [InlineData(";Enlist=true")]
+    [InlineData("")] // Enlist is true by default
+    public void CurrentAmbientTransaction_returns_transaction_with_enlist_enabled(string enlist)
+    {
+        var options = new DbContextOptionsBuilder()
+            .UseNpgsql(
+                @"Host=localhost;Database=NpgsqlConnectionTest;Username=some_user;Password=some_password" + enlist)
+            .Options;
+
+        var transaction = new CommittableTransaction();
+        Transaction.Current = transaction;
+
+        using var connection = CreateConnection(options);
+        Assert.Equal(transaction, connection.CurrentAmbientTransaction);
+
+        Transaction.Current = null;
     }
 
     [ConditionalFact]
