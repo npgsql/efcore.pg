@@ -4,8 +4,12 @@ using System.Text.RegularExpressions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
+// ReSharper disable VirtualMemberCallInConstructor
+
 public class NpgsqlTestStore : RelationalTestStore
 {
+    private readonly NpgsqlDataSource _dataSource;
+
     private readonly string _scriptPath;
     private readonly string _additionalSql;
 
@@ -27,11 +31,14 @@ public class NpgsqlTestStore : RelationalTestStore
         string name,
         string scriptPath = null,
         string additionalSql = null,
-        string connectionStringOptions = null)
-        => new(name, scriptPath, additionalSql, connectionStringOptions);
+        string connectionStringOptions = null,
+        Action<NpgsqlDataSourceBuilder> dataSourceBuilderAction = null)
+        => new(name, scriptPath, additionalSql, dataSourceBuilderAction);
 
-    public static NpgsqlTestStore Create(string name, string connectionStringOptions = null)
-        => new(name, connectionStringOptions: connectionStringOptions, shared: false);
+    public static NpgsqlTestStore Create(
+        string name,
+        Action<NpgsqlDataSourceBuilder> dataSourceBuilderAction = null)
+        => new(name, dataSourceBuilderAction: dataSourceBuilderAction, shared: false);
 
     public static NpgsqlTestStore CreateInitialized(string name)
         => new NpgsqlTestStore(name, shared: false)
@@ -41,7 +48,7 @@ public class NpgsqlTestStore : RelationalTestStore
         string name,
         string scriptPath = null,
         string additionalSql = null,
-        string connectionStringOptions = null,
+        Action<NpgsqlDataSourceBuilder> dataSourceBuilderAction = null,
         bool shared = true)
         : base(name, shared)
     {
@@ -55,10 +62,11 @@ public class NpgsqlTestStore : RelationalTestStore
 
         _additionalSql = additionalSql;
 
-        // ReSharper disable VirtualMemberCallInConstructor
-        ConnectionString = CreateConnectionString(Name, connectionStringOptions);
-        Connection = new NpgsqlConnection(ConnectionString);
-        // ReSharper restore VirtualMemberCallInConstructor
+        ConnectionString = CreateConnectionString(Name);
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(ConnectionString);
+        dataSourceBuilderAction?.Invoke(dataSourceBuilder);
+        _dataSource = dataSourceBuilder.Build();
+        Connection = _dataSource.CreateConnection();
     }
 
     // ReSharper disable once MemberCanBePrivate.Global
@@ -100,7 +108,7 @@ public class NpgsqlTestStore : RelationalTestStore
     }
 
     public override DbContextOptionsBuilder AddProviderOptions(DbContextOptionsBuilder builder)
-        => builder.UseNpgsql(Connection, b => b.ApplyConfiguration()
+        => builder.UseNpgsql(_dataSource, b => b.ApplyConfiguration()
             .CommandTimeout(CommandTimeout)
             // The tests are written with the assumption that NULLs are sorted first (SQL Server and .NET behavior), but PostgreSQL
             // sorts NULLs last by default. This configures the provider to emit NULLS FIRST.
@@ -415,20 +423,18 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
         return command;
     }
 
-    public static string CreateConnectionString(string name, string options = null)
-    {
-        var builder = new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection) { Database = name };
-
-        if (options is not null)
-        {
-            builder.Options = options;
-        }
-
-        return builder.ConnectionString;
-    }
+    public static string CreateConnectionString(string name)
+        => new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection) { Database = name }.ConnectionString;
 
     private static string CreateAdminConnectionString() => CreateConnectionString("postgres");
 
     public override void Clean(DbContext context)
         => context.Database.EnsureClean();
+
+    public override void Dispose()
+    {
+        base.Dispose();
+
+        _dataSource.Dispose();
+    }
 }

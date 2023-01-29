@@ -874,7 +874,7 @@ WHERE CAST((e."TimestamptzDateTime" AT TIME ZONE 'UTC') AS time without time zon
         // don't depend on the database's time zone, and also that operations which shouldn't take TimeZone into account indeed
         // don't.
         protected override ITestStoreFactory TestStoreFactory
-            => NpgsqlTestStoreFactory.WithConnectionStringOptions("-c TimeZone=Europe/Berlin");
+            => NpgsqlTestStoreFactory.WithDataSourceConfiguration(b => b.ConnectionStringBuilder.Options = "-c TimeZone=Europe/Berlin");
 
         public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
 
