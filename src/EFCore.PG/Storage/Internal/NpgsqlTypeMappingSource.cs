@@ -68,8 +68,6 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     /// </summary>
     private readonly Dictionary<Type, List<NpgsqlMultirangeTypeMapping>> _multirangeTypeMappings;
 
-    private static MethodInfo? _adoUserTypeMappingsGetMethodInfo;
-
     private readonly bool _supportsMultiranges;
 
     #region Mappings
@@ -206,7 +204,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlTypeMappingSource(TypeMappingSourceDependencies dependencies,
+    public NpgsqlTypeMappingSource(
+        TypeMappingSourceDependencies dependencies,
         RelationalTypeMappingSourceDependencies relationalDependencies,
         ISqlGenerationHelper sqlGenerationHelper,
         INpgsqlSingletonOptions npgsqlSingletonOptions)
@@ -441,7 +440,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
         ClrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
 
-        LoadUserDefinedTypeMappings(sqlGenerationHelper);
+        LoadUserDefinedTypeMappings(sqlGenerationHelper, npgsqlSingletonOptions.DataSource as NpgsqlDataSource);
 
         _userRangeDefinitions = npgsqlSingletonOptions?.UserRangeDefinitions ?? Array.Empty<UserRangeDefinition>();
     }
@@ -450,28 +449,38 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     /// To be used in case user-defined mappings are added late, after this TypeMappingSource has already been initialized.
     /// This is basically only for test usage.
     /// </summary>
-    public virtual void LoadUserDefinedTypeMappings(ISqlGenerationHelper sqlGenerationHelper)
-        => SetupEnumMappings(sqlGenerationHelper);
+    public virtual void LoadUserDefinedTypeMappings(
+        ISqlGenerationHelper sqlGenerationHelper,
+        NpgsqlDataSource? dataSource)
+        => SetupEnumMappings(sqlGenerationHelper, dataSource);
 
     /// <summary>
     /// Gets all global enum mappings from the ADO.NET layer and creates mappings for them
     /// </summary>
-    protected virtual void SetupEnumMappings(ISqlGenerationHelper sqlGenerationHelper)
+    protected virtual void SetupEnumMappings(ISqlGenerationHelper sqlGenerationHelper, NpgsqlDataSource? dataSource)
     {
+        var adoEnumMappings = new List<IUserEnumTypeMapping>();
+
 #pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
-        _adoUserTypeMappingsGetMethodInfo ??= NpgsqlConnection.GlobalTypeMapper.GetType().GetProperty("UserTypeMappings")?.GetMethod;
+        if (NpgsqlConnection.GlobalTypeMapper.GetType().GetProperty("UserTypeMappings")?.GetMethod is { } globalTypeMappingsMethodInfo
+            && globalTypeMappingsMethodInfo.Invoke(NpgsqlConnection.GlobalTypeMapper, Array.Empty<object>()) is
+                IDictionary<string, IUserTypeMapping> globalUserMappings)
+        {
+            adoEnumMappings.AddRange(globalUserMappings.Values.OfType<IUserEnumTypeMapping>());
+        }
 #pragma warning restore CS0618
 
-        if (_adoUserTypeMappingsGetMethodInfo is null)
+        // TODO: Think about what to do here. We could just require users to do the mapping at the EF level, and then EF would take care
+        // of the ADO mapping.
+        if (dataSource is not null
+            && typeof(NpgsqlDataSource).GetField("_userTypeMappings", BindingFlags.NonPublic | BindingFlags.Instance) is
+                { } dataSourceTypeMappingsFieldInfo
+            && dataSourceTypeMappingsFieldInfo.GetValue(dataSource) is IDictionary<string, IUserTypeMapping> dataSourceUserMappings)
         {
-            return;
+            adoEnumMappings.AddRange(dataSourceUserMappings.Values.OfType<IUserEnumTypeMapping>());
         }
 
-#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
-        var adoUserTypeMappings = (IDictionary<string, IUserTypeMapping>)_adoUserTypeMappingsGetMethodInfo.Invoke(NpgsqlConnection.GlobalTypeMapper, Array.Empty<object>())!;
-#pragma warning restore CS0618
-
-        foreach (var adoUserTypeMapping in adoUserTypeMappings.Values.OfType<IUserEnumTypeMapping>())
+        foreach (var adoUserTypeMapping in adoEnumMappings)
         {
             // TODO: update with schema per https://github.com/npgsql/npgsql/issues/2121
             var components = adoUserTypeMapping.PgTypeName.Split('.');

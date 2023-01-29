@@ -20,6 +20,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             = new ResourceManager("Npgsql.EntityFrameworkCore.PostgreSQL.Properties.NpgsqlStrings", typeof(NpgsqlStrings).Assembly);
 
         /// <summary>
+        ///     Using two distinct data sources within a service provider is not supported, and Entity Framework is not building its own internal service provider. Either allow Entity Framework to build the service provider by removing the call to '{useInternalServiceProvider}', or ensure that the same data source is used for all uses of a given service provider passed to '{useInternalServiceProvider}'.
+        /// </summary>
+        public static string TwoDataSourcesInSameServiceProvider(object? useInternalServiceProvider)
+            => string.Format(
+                GetString("TwoDataSourcesInSameServiceProvider", nameof(useInternalServiceProvider)),
+                useInternalServiceProvider);
+
+        /// <summary>
         ///     '{entityType1}.{property1}' and '{entityType2}.{property2}' are both mapped to column '{columnName}' in '{table}', but are configured with different compression methods.
         /// </summary>
         public static string DuplicateColumnCompressionMethodMismatch(object? entityType1, object? property1, object? entityType2, object? property2, object? columnName, object? table)
