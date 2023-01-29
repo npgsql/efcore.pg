@@ -977,10 +977,12 @@ FROM "MappedDataTypes" AS m
         {
             base.OnModelCreating(modelBuilder, context);
 
+            // TODO: Switch to using data source
 #pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
             NpgsqlConnection.GlobalTypeMapper.MapEnum<Mood>();
 #pragma warning restore CS0618
-            ((NpgsqlTypeMappingSource)context.GetService<ITypeMappingSource>()).LoadUserDefinedTypeMappings(context.GetService<ISqlGenerationHelper>());
+            ((NpgsqlTypeMappingSource)context.GetService<ITypeMappingSource>()).LoadUserDefinedTypeMappings(
+                context.GetService<ISqlGenerationHelper>(), dataSource: null);
 
             modelBuilder.HasPostgresEnum("mood", new[] { "happy", "sad" });
 

@@ -1,4 +1,5 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+﻿using System.Data.Common;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
@@ -52,6 +53,14 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    public virtual DbDataSource? DataSource { get; private set; }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual IReadOnlyList<UserRangeDefinition> UserRangeDefinitions { get; private set; }
 
     /// <summary>
@@ -72,6 +81,7 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
         PostgresVersion = npgsqlOptions.PostgresVersion ?? DefaultPostgresVersion;
         UseRedshift = npgsqlOptions.UseRedshift;
         ReverseNullOrderingEnabled = npgsqlOptions.ReverseNullOrdering;
+        DataSource = npgsqlOptions.DataSource;
         UserRangeDefinitions = npgsqlOptions.UserRangeDefinitions;
     }
 
@@ -102,6 +112,12 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
                 CoreStrings.SingletonOptionChanged(
                     nameof(NpgsqlDbContextOptionsBuilder.ReverseNullOrdering),
                     nameof(DbContextOptionsBuilder.UseInternalServiceProvider)));
+        }
+
+        if (!ReferenceEquals(DataSource, npgsqlOptions.DataSource))
+        {
+            throw new InvalidOperationException(
+                NpgsqlStrings.TwoDataSourcesInSameServiceProvider(nameof(DbContextOptionsBuilder.UseInternalServiceProvider)));
         }
 
         if (UserRangeDefinitions.Count != npgsqlOptions.UserRangeDefinitions.Count

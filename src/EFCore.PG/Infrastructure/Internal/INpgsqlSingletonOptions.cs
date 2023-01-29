@@ -1,32 +1,39 @@
-﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+﻿using System.Data.Common;
+
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 /// <summary>
-/// Represents options for Npgsql that can only be set at the <see cref="IServiceProvider"/> singleton level.
+///     Represents options for Npgsql that can only be set at the <see cref="IServiceProvider"/> singleton level.
 /// </summary>
 public interface INpgsqlSingletonOptions : ISingletonOptions
 {
     /// <summary>
-    /// The backend version to target.
+    ///     The backend version to target.
     /// </summary>
     Version PostgresVersion { get; }
 
     /// <summary>
-    /// The backend version to target, but returns <see langword="null" /> unless the user explicitly specified a version.
+    ///     The backend version to target, but returns <see langword="null" /> unless the user explicitly specified a version.
     /// </summary>
     Version? PostgresVersionWithoutDefault { get; }
 
     /// <summary>
-    /// Whether to target Redshift.
+    ///     Whether to target Redshift.
     /// </summary>
     bool UseRedshift { get; }
 
     /// <summary>
-    /// True if reverse null ordering is enabled; otherwise, false.
+    ///     Whether reverse null ordering is enabled.
     /// </summary>
     bool ReverseNullOrderingEnabled { get; }
 
     /// <summary>
-    /// The collection of range mappings.
+    ///     The data source being used, or <see langword="null" /> if a connection string or connection was provided directly.
+    /// </summary>
+    DbDataSource? DataSource { get; }
+
+    /// <summary>
+    ///     The collection of range mappings.
     /// </summary>
     IReadOnlyList<UserRangeDefinition> UserRangeDefinitions { get; }
 }
