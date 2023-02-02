@@ -35,6 +35,32 @@ public static class NpgsqlDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ILike)));
 
     /// <summary>
+    /// Splits <paramref name="value" /> at occurrences of delimiter and forms the resulting fields into a text array.
+    /// </summary>
+    /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+    /// <param name="value">The string to be split.</param>
+    /// <param name="delimiter">
+    /// If <c>null</c>, each character in the string will become a separate element in the array.
+    /// If an empty string, the string is treated as a single field.
+    /// </param>
+    /// <exception cref="InvalidOperationException"></exception>
+    public static string[] StringToArray(this DbFunctions _, string value, string delimiter)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(StringToArray)));
+
+    /// <summary>
+    /// Splits <paramref name="value" /> at occurrences of delimiter and forms the resulting fields into a text array.
+    /// </summary>
+    /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+    /// <param name="value">The string to be split.</param>
+    /// <param name="delimiter">
+    /// If <c>null</c>, each character in the string will become a separate element in the array.
+    /// If an empty string, the string is treated as a single field.
+    /// </param>
+    /// <param name="nullString">Fields matching this value string are replaced by <c>null</c>.</param>
+    public static string[] StringToArray(this DbFunctions _, string value, string delimiter, string nullString)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(StringToArray)));
+
+    /// <summary>
     /// Reverses a string by calling PostgreSQL <c>reverse()</c>.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions"/> instance.</param>

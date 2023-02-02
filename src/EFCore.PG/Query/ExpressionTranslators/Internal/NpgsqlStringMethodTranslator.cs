@@ -18,13 +18,13 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
     private const char LikeEscapeChar = '\\';
 
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
+    private readonly IRelationalTypeMappingSource _typeMappingSource;
     private readonly SqlConstantExpression _whitespace;
     private readonly RelationalTypeMapping _textTypeMapping;
 
     #region MethodInfo
 
     private static readonly MethodInfo Contains                = typeof(string).GetRuntimeMethod(nameof(string.Contains), new[] { typeof(string) })!;
-    private static readonly MethodInfo DbFunctionsReverse      = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.Reverse), new[] { typeof(DbFunctions), typeof(string) })!;
     private static readonly MethodInfo EndsWith                = typeof(string).GetRuntimeMethod(nameof(string.EndsWith), new[] { typeof(string) })!;
     private static readonly MethodInfo IndexOfChar             = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(char) })!;
     private static readonly MethodInfo IndexOfString           = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(string) })!;
@@ -42,12 +42,16 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
     private static readonly MethodInfo TrimBothWithNoParam     = typeof(string).GetRuntimeMethod(nameof(string.Trim), Type.EmptyTypes)!;
     private static readonly MethodInfo TrimBothWithChars       = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char[]) })!;
     private static readonly MethodInfo TrimBothWithSingleChar  = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char) })!;
-    private static readonly MethodInfo TrimEndWithNoParam      = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), new Type[0])!;
+    private static readonly MethodInfo TrimEndWithNoParam      = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), Type.EmptyTypes)!;
     private static readonly MethodInfo TrimEndWithChars        = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), new[] { typeof(char[]) })!;
     private static readonly MethodInfo TrimEndWithSingleChar   = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), new[] { typeof(char) })!;
-    private static readonly MethodInfo TrimStartWithNoParam    = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new Type[0])!;
+    private static readonly MethodInfo TrimStartWithNoParam    = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), Type.EmptyTypes)!;
     private static readonly MethodInfo TrimStartWithChars      = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new[] { typeof(char[]) })!;
     private static readonly MethodInfo TrimStartWithSingleChar = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new[] { typeof(char) })!;
+
+    private static readonly MethodInfo Reverse                 = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.Reverse), new[] { typeof(DbFunctions), typeof(string) })!;
+    private static readonly MethodInfo StringToArray           = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.StringToArray), new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
+    private static readonly MethodInfo StringToArrayNullString = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.StringToArray), new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) })!;
 
     private static readonly MethodInfo FirstOrDefaultMethodInfoWithoutArgs
         = typeof(Enumerable).GetRuntimeMethods().Single(
@@ -59,6 +63,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
             m => m.Name == nameof(Enumerable.LastOrDefault)
                 && m.GetParameters().Length == 1).MakeGenericMethod(typeof(char));
 
+    // ReSharper disable InconsistentNaming
     private static readonly MethodInfo String_Join1 =
         typeof(string).GetMethod(nameof(string.Join), new[] { typeof(string), typeof(object[]) })!;
     private static readonly MethodInfo String_Join2 =
@@ -73,6 +78,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
     private static readonly MethodInfo String_Join_generic2 =
         typeof(string).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .Single(m => m.Name == nameof(string.Join) && m.IsGenericMethod && m.GetParameters().Length == 2 && m.GetParameters()[0].ParameterType == typeof(char));
+    // ReSharper restore InconsistentNaming
 
     #endregion
 
@@ -87,6 +93,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
         ISqlExpressionFactory sqlExpressionFactory,
         IModel model)
     {
+        _typeMappingSource = typeMappingSource;
         _sqlExpressionFactory = sqlExpressionFactory;
         _whitespace = _sqlExpressionFactory.Constant(
             @" \t\n\r",  // TODO: Complete this
@@ -105,6 +112,53 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+    {
+        if (method.DeclaringType == typeof(string))
+        {
+            return TranslateStringMethod(instance, method, arguments);
+        }
+
+        if (method.DeclaringType == typeof(NpgsqlDbFunctionsExtensions))
+        {
+            return TranslateDbFunctionsMethod(instance, method, arguments);
+        }
+
+        if (method == FirstOrDefaultMethodInfoWithoutArgs)
+        {
+            var argument = arguments[0];
+            return _sqlExpressionFactory.Function(
+                "substr",
+                new[] { argument, _sqlExpressionFactory.Constant(1), _sqlExpressionFactory.Constant(1) },
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[3],
+                method.ReturnType);
+        }
+
+        if (method == LastOrDefaultMethodInfoWithoutArgs)
+        {
+            var argument = arguments[0];
+            return _sqlExpressionFactory.Function(
+                "substr",
+                new[]
+                {
+                    argument,
+                    _sqlExpressionFactory.Function(
+                        "length",
+                        new[] { argument },
+                        nullable: true,
+                        argumentsPropagateNullability: new[] { true },
+                        typeof(int)),
+                    _sqlExpressionFactory.Constant(1)
+                },
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[3],
+                method.ReturnType);
+        }
+
+        return null;
+    }
+
+    private SqlExpression? TranslateStringMethod(SqlExpression? instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
     {
         if (method == IndexOfString || method == IndexOfChar)
         {
@@ -279,50 +333,6 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                 instance.TypeMapping);
         }
 
-        if (method == FirstOrDefaultMethodInfoWithoutArgs)
-        {
-            var argument = arguments[0];
-            return _sqlExpressionFactory.Function(
-                "substr",
-                new[] { argument, _sqlExpressionFactory.Constant(1), _sqlExpressionFactory.Constant(1) },
-                nullable: true,
-                argumentsPropagateNullability: TrueArrays[3],
-                method.ReturnType);
-        }
-
-
-        if (method == LastOrDefaultMethodInfoWithoutArgs)
-        {
-            var argument = arguments[0];
-            return _sqlExpressionFactory.Function(
-                "substr",
-                new[]
-                {
-                    argument,
-                    _sqlExpressionFactory.Function(
-                        "length",
-                        new[] { argument },
-                        nullable: true,
-                        argumentsPropagateNullability: new[] { true },
-                        typeof(int)),
-                    _sqlExpressionFactory.Constant(1)
-                },
-                nullable: true,
-                argumentsPropagateNullability: TrueArrays[3],
-                method.ReturnType);
-        }
-
-        if (method == DbFunctionsReverse)
-        {
-            return _sqlExpressionFactory.Function(
-                "reverse",
-                new[] { arguments[1] },
-                nullable: true,
-                argumentsPropagateNullability: TrueArrays[1],
-                typeof(string),
-                arguments[1].TypeMapping);
-        }
-
         if (method.DeclaringType == typeof(string)
             && (method == String_Join1
                 || method == String_Join2
@@ -381,6 +391,46 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
         if (method == EndsWith)
         {
             return TranslateStartsEndsWith(instance!, arguments[0], false);
+        }
+
+        return null;
+    }
+
+    private SqlExpression? TranslateDbFunctionsMethod(SqlExpression? instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+    {
+        if (method == Reverse)
+        {
+            return _sqlExpressionFactory.Function(
+                "reverse",
+                new[] { arguments[1] },
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[1],
+                typeof(string),
+                arguments[1].TypeMapping);
+        }
+
+        if (method == StringToArray)
+        {
+            // Note that string_to_array always returns text[], regardless of the input type
+            return _sqlExpressionFactory.Function(
+                "string_to_array",
+                new[] { arguments[1], arguments[2] },
+                nullable: true,
+                argumentsPropagateNullability: new[] { true, false },
+                typeof(string[]),
+                _typeMappingSource.FindMapping(typeof(string[])));
+        }
+
+        if (method == StringToArrayNullString)
+        {
+            // Note that string_to_array always returns text[], regardless of the input type
+            return _sqlExpressionFactory.Function(
+                "string_to_array",
+                new[] { arguments[1], arguments[2], arguments[3] },
+                nullable: true,
+                argumentsPropagateNullability: new[] { true, false, false },
+                typeof(string[]),
+                _typeMappingSource.FindMapping(typeof(string[])));
         }
 
         return null;
