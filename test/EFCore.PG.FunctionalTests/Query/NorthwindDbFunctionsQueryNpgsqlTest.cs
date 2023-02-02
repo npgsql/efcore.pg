@@ -165,11 +165,45 @@ LIMIT 1
         var count = context.Customers.Count(c => EF.Functions.Reverse(c.ContactName) == "srednA airaM");
 
         Assert.Equal(1, count);
+
         AssertSql(
 """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE reverse(c."ContactName") = 'srednA airaM'
+""");
+    }
+
+    // ReSharper disable once InconsistentNaming
+    [Fact]
+    public void StringToArray()
+    {
+        using var context = CreateContext();
+        var count = context.Customers.Count(c => EF.Functions.StringToArray(c.ContactName, " ") == new[] { "Maria", "Anders"});
+
+        Assert.Equal(1, count);
+
+        AssertSql(
+"""
+SELECT count(*)::int
+FROM "Customers" AS c
+WHERE string_to_array(c."ContactName", ' ') = ARRAY['Maria','Anders']::text[]
+""");
+    }
+
+    [Fact]
+    public void StringToArray_with_null_string()
+    {
+        using var context = CreateContext();
+        var count = context.Customers.Count(c => EF.Functions.StringToArray(c.ContactName, " ", "Maria") == new[] { null, "Anders"});
+
+        Assert.Equal(1, count);
+
+        AssertSql(
+"""
+SELECT count(*)::int
+FROM "Customers" AS c
+WHERE string_to_array(c."ContactName", ' ', 'Maria') = ARRAY[NULL,'Anders']::text[]
 """);
     }
 
