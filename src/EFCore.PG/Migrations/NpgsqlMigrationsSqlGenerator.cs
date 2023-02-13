@@ -1921,15 +1921,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     #region System column utilities
 
     private bool IsSystemColumn(string name)
-    {
-        if (name == "oid" && _postgresVersion.IsUnder(12))
-        {
-            return true;
-        }
-
-        return SystemColumnNames.Contains(name);
-    }
-
+        => name == "oid" && _postgresVersion.IsUnder(12) || SystemColumnNames.Contains(name);
+    
     /// <summary>
     /// Tables in PostgreSQL implicitly have a set of system columns, which are always there.
     /// We want to allow users to access these columns (i.e. xmin for optimistic concurrency) but
