@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
 
-public class NonSharedModelBulkUpdatesSqlServerTest : NonSharedModelBulkUpdatesTestBase
+public class NonSharedModelBulkUpdatesNpgsqlTest : NonSharedModelBulkUpdatesTestBase
 {
     protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
 
@@ -39,6 +39,17 @@ DELETE FROM "Owner" AS o
         await base.Delete_aggregate_root_when_table_sharing_with_non_owned_throws(async);
 
         AssertSql();
+    }
+
+    public override async Task Update_non_owned_property_on_entity_with_owned(bool async)
+    {
+        await base.Update_non_owned_property_on_entity_with_owned(async);
+
+        AssertSql(
+"""
+UPDATE "Owner" AS o
+SET "Title" = 'SomeValue'
+""");
     }
 
     public override async Task Delete_predicate_based_on_optional_navigation(bool async)

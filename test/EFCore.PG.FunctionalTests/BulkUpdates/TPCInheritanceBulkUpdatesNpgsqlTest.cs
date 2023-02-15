@@ -11,7 +11,7 @@ public class TPCInheritanceBulkUpdatesNpgsqlTest
         : base(fixture)
     {
         ClearLog();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     public override async Task Delete_where_hierarchy(bool async)
@@ -174,6 +174,28 @@ WHERE (
         await base.Update_where_keyless_entity_mapped_to_sql_query(async);
 
         AssertExecuteUpdateSql();
+    }
+
+    public override async Task Update_with_interface_in_property_expression(bool async)
+    {
+        await base.Update_with_interface_in_property_expression(async);
+
+        AssertExecuteUpdateSql(
+"""
+UPDATE "Coke" AS c
+SET "SugarGrams" = 0
+""");
+    }
+
+    public override async Task Update_with_interface_in_EF_Property_in_property_expression(bool async)
+    {
+        await base.Update_with_interface_in_EF_Property_in_property_expression(async);
+
+        AssertExecuteUpdateSql(
+"""
+UPDATE "Coke" AS c
+SET "SugarGrams" = 0
+""");
     }
 
     [ConditionalFact]

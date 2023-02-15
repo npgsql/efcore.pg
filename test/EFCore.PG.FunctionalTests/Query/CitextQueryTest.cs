@@ -49,7 +49,7 @@ LIMIT 2
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE @__param_0 = '' OR ((s."CaseInsensitiveText" IS NOT NULL) AND (s."CaseInsensitiveText" LIKE @__param_0_1 || '%' ESCAPE '') AND left(s."CaseInsensitiveText", length(@__param_0))::citext = @__param_0::citext)
+WHERE @__param_0 = '' OR ((s."CaseInsensitiveText" IS NOT NULL) AND (s."CaseInsensitiveText" LIKE @__param_0_1 || '%' ESCAPE '') AND left(s."CaseInsensitiveText", length(@__param_0_1))::citext = @__param_0_1::citext)
 LIMIT 2
 """);
     }
@@ -104,7 +104,7 @@ LIMIT 2
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE @__param_0 = '' OR ((s."CaseInsensitiveText" IS NOT NULL) AND right(s."CaseInsensitiveText", length(@__param_0_1))::citext = @__param_0::citext)
+WHERE @__param_0 = '' OR ((s."CaseInsensitiveText" IS NOT NULL) AND right(s."CaseInsensitiveText", length(@__param_0_1))::citext = @__param_0_1::citext)
 LIMIT 2
 """);
     }
