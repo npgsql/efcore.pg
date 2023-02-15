@@ -1920,8 +1920,9 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
     #region System column utilities
 
-    private bool IsSystemColumn(string name) => SystemColumnNames.Contains(name);
-
+    private bool IsSystemColumn(string name)
+        => name == "oid" && _postgresVersion.IsUnder(12) || SystemColumnNames.Contains(name);
+    
     /// <summary>
     /// Tables in PostgreSQL implicitly have a set of system columns, which are always there.
     /// We want to allow users to access these columns (i.e. xmin for optimistic concurrency) but
@@ -1930,7 +1931,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     /// <remarks>
     /// https://www.postgresql.org/docs/current/static/ddl-system-columns.html
     /// </remarks>
-    private static readonly string[] SystemColumnNames = { "oid", "tableoid", "xmin", "cmin", "xmax", "cmax", "ctid" };
+    private static readonly string[] SystemColumnNames = { "tableoid", "xmin", "cmin", "xmax", "cmax", "ctid" };
 
     #endregion System column utilities
 
