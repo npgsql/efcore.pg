@@ -1602,7 +1602,10 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
         else
         {
-            builder.Append(operation.IsNullable ? " NULL" : " NOT NULL");
+            if (!operation.IsNullable)
+            {
+                builder.Append(" NOT NULL");
+            }
 
             DefaultValue(operation.DefaultValue, operation.DefaultValueSql, columnType, builder);
         }
@@ -1802,6 +1805,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             .Append(" GENERATED ALWAYS AS (")
             .Append(operation.ComputedColumnSql!)
             .Append(") STORED");
+
+        if (!operation.IsNullable)
+        {
+            builder.Append(" NOT NULL");
+        }
     }
 
 #pragma warning disable 618

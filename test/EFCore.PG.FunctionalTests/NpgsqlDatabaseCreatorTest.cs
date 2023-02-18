@@ -457,7 +457,7 @@ public class NpgsqlDatabaseCreatorCreateTablesTest : NpgsqlDatabaseCreatorTest
             + _eol
             + @"    ""Key2"" bytea NOT NULL,"
             + _eol
-            + @"    ""Cheese"" text NULL,"
+            + @"    ""Cheese"" text,"
             + _eol
             + @"    ""ErMilan"" integer NOT NULL,"
             + _eol
@@ -477,9 +477,9 @@ public class NpgsqlDatabaseCreatorCreateTablesTest : NpgsqlDatabaseCreatorTest
             + _eol
             + @"    ""On"" real NOT NULL,"
             + _eol
-            + @"    ""AndChew"" bytea NULL,"
+            + @"    ""AndChew"" bytea,"
             + _eol
-            + @"    ""AndRow"" bytea NULL,"
+            + @"    ""AndRow"" bytea,"
             + _eol
             + @"    CONSTRAINT ""PK_Blogs"" PRIMARY KEY (""Key1"", ""Key2"")"
             + _eol
