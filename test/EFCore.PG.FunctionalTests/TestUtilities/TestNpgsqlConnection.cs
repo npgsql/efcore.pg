@@ -1,12 +1,13 @@
 ﻿using System.Data;
+using System.Data.Common;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 public class TestNpgsqlConnection : NpgsqlRelationalConnection
 {
-    public TestNpgsqlConnection(RelationalConnectionDependencies dependencies)
-        : base(dependencies)
+    public TestNpgsqlConnection(RelationalConnectionDependencies dependencies, DbDataSource dataSource = null)
+        : base(dependencies, new(dataSource))
     {
     }
 

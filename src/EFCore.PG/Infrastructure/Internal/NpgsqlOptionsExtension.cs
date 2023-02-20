@@ -10,7 +10,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 /// </summary>
 public class NpgsqlOptionsExtension : RelationalOptionsExtension
 {
-    private bool _isDataSourceExplicitlySet;
     private DbContextOptionsExtensionInfo? _info;
     private readonly List<UserRangeDefinition> _userRangeDefinitions;
 
@@ -76,7 +75,6 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     public NpgsqlOptionsExtension(NpgsqlOptionsExtension copyFrom) : base(copyFrom)
     {
         DataSource = copyFrom.DataSource;
-        _isDataSourceExplicitlySet = copyFrom._isDataSourceExplicitlySet;
         AdminDatabase = copyFrom.AdminDatabase;
         PostgresVersion = copyFrom.PostgresVersion;
         UseRedshift = copyFrom.UseRedshift;
@@ -108,7 +106,6 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         var clone = (NpgsqlOptionsExtension)Clone();
 
         clone.DataSource = dataSource;
-        clone._isDataSourceExplicitlySet = true;
 
         return clone;
     }
@@ -119,7 +116,6 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         var clone = (NpgsqlOptionsExtension)base.WithConnectionString(connectionString);
 
         clone.DataSource = null;
-        clone._isDataSourceExplicitlySet = false;
 
         return clone;
     }
@@ -130,7 +126,6 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         var clone = (NpgsqlOptionsExtension)base.WithConnection(connection);
 
         clone.DataSource = null;
-        clone._isDataSourceExplicitlySet = false;
 
         return clone;
     }
@@ -227,12 +222,10 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         base.Validate(options);
 
         // If we don't have an explicitly-configured data source, try to get one from the application service provider.
-        if (!_isDataSourceExplicitlySet)
-        {
-            DataSource ??= options.FindExtension<CoreOptionsExtension>()?.ApplicationServiceProvider?.GetService<NpgsqlDataSource>();
-        }
+        var dataSource = DataSource
+            ?? options.FindExtension<CoreOptionsExtension>()?.ApplicationServiceProvider?.GetService<NpgsqlDataSource>();
 
-        if (DataSource is not null
+        if (dataSource is not null
             && (ProvideClientCertificatesCallback is not null
                 || RemoteCertificateValidationCallback is not null
                 || ProvidePasswordCallback is not null))
