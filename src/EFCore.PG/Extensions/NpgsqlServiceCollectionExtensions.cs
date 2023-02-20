@@ -1,3 +1,4 @@
+using System.Data.Common;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
@@ -124,6 +125,7 @@ public static class NpgsqlServiceCollectionExtensions
                     .TryAddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()
                     .TryAddSingleton<INpgsqlSingletonOptions, NpgsqlSingletonOptions>()
                     .TryAddSingleton<INpgsqlSequenceValueGeneratorFactory, NpgsqlSequenceValueGeneratorFactory>()
+                    .TryAddScoped(DataSourceWrapper.Create)
                     .TryAddScoped<INpgsqlRelationalConnection, NpgsqlRelationalConnection>())
             .TryAddCoreServices();
 
