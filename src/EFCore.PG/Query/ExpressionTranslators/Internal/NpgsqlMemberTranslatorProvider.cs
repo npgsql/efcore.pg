@@ -25,21 +25,25 @@ public class NpgsqlMemberTranslatorProvider : RelationalMemberTranslatorProvider
         RelationalMemberTranslatorProviderDependencies dependencies,
         IModel model,
         IRelationalTypeMappingSource typeMappingSource,
-        INpgsqlSingletonOptions npgsqlSingletonOptions)
+        IDbContextOptions contextOptions)
         : base(dependencies)
     {
+        var npgsqlOptions = contextOptions.FindExtension<NpgsqlOptionsExtension>() ?? new();
+        var supportsMultiranges = npgsqlOptions.PostgresVersionWithoutDefault is null
+            || npgsqlOptions.PostgresVersionWithoutDefault.AtLeast(14);
+
         var sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
         JsonPocoTranslator = new NpgsqlJsonPocoTranslator(typeMappingSource, sqlExpressionFactory, model);
 
         AddTranslators(
             new IMemberTranslator[] {
-                new NpgsqlArrayTranslator(sqlExpressionFactory, JsonPocoTranslator, npgsqlSingletonOptions.UseRedshift),
+                new NpgsqlArrayTranslator(sqlExpressionFactory, JsonPocoTranslator, npgsqlOptions.UseRedshift),
                 new NpgsqlBigIntegerMemberTranslator(sqlExpressionFactory),
                 new NpgsqlDateTimeMemberTranslator(typeMappingSource, sqlExpressionFactory),
                 new NpgsqlJsonDomTranslator(typeMappingSource, sqlExpressionFactory, model),
                 new NpgsqlLTreeTranslator(typeMappingSource, sqlExpressionFactory, model),
                 JsonPocoTranslator,
-                new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory, model, npgsqlSingletonOptions),
+                new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory, model, supportsMultiranges),
                 new NpgsqlStringMemberTranslator(sqlExpressionFactory),
                 new NpgsqlTimeSpanMemberTranslator(sqlExpressionFactory),
             });

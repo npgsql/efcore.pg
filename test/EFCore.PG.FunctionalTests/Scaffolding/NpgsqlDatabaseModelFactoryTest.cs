@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
@@ -2040,9 +2041,6 @@ DROP TYPE mood;
     [Fact]
     public void Column_default_type_names_are_scaffolded()
     {
-        var options = new NpgsqlSingletonOptions();
-        options.Initialize(new DbContextOptionsBuilder().Options);
-
         Test(
 """
 CREATE TABLE column_types (
@@ -2079,6 +2077,9 @@ CREATE TABLE column_types (
             Enumerable.Empty<string>(),
             dbModel =>
             {
+                var options = new NpgsqlSingletonOptions();
+                options.Initialize(new DbContextOptionsBuilder().Options);
+
                 var typeMappingSource = new NpgsqlTypeMappingSource(
                     new TypeMappingSourceDependencies(
                         new ValueConverterSelector(new ValueConverterSelectorDependencies()),
@@ -2086,8 +2087,7 @@ CREATE TABLE column_types (
                     ),
                     new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
                     new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
-                    options
-                );
+                    options);
 
                 foreach (var column in dbModel.Tables.Single().Columns)
                 {

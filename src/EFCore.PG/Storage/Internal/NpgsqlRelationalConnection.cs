@@ -34,24 +34,38 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlRelationalConnection(RelationalConnectionDependencies dependencies, DataSourceWrapper dataSourceWrapper)
+    public NpgsqlRelationalConnection(RelationalConnectionDependencies dependencies, INpgsqlSingletonOptions options)
+        : this(dependencies, options.DataSource)
+    {
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected NpgsqlRelationalConnection(RelationalConnectionDependencies dependencies, DbDataSource? dataSource)
         : base(dependencies)
     {
-        var npgsqlOptions = dependencies.ContextOptions.Extensions.OfType<NpgsqlOptionsExtension>().FirstOrDefault();
-
-        if (dataSourceWrapper.DataSource is { } dataSource)
+        if (dataSource is not null)
         {
             _dataSource = dataSource;
 
-            // We validate in NpgsqlOptionsExtensions.Validate that Datasource and these callbacks aren't specified together
-            Check.DebugAssert(npgsqlOptions?.ProvideClientCertificatesCallback is null,
-                "Both DataSource and ProvideClientCertificatesCallback are non-null");
-            Check.DebugAssert(npgsqlOptions?.RemoteCertificateValidationCallback is null,
-                "Both DataSource and RemoteCertificateValidationCallback are non-null");
-            Check.DebugAssert(npgsqlOptions?.ProvidePasswordCallback is null,
-                "Both DataSource and ProvidePasswordCallback are non-null");
+#if DEBUG
+            // We validate in NpgsqlOptionsExtensions.Validate that DataSource and these callbacks aren't specified together
+            if (dependencies.ContextOptions.FindExtension<NpgsqlOptionsExtension>() is { } npgsqlOptions)
+            {
+                Check.DebugAssert(npgsqlOptions?.ProvideClientCertificatesCallback is null,
+                    "Both DataSource and ProvideClientCertificatesCallback are non-null");
+                Check.DebugAssert(npgsqlOptions?.RemoteCertificateValidationCallback is null,
+                    "Both DataSource and RemoteCertificateValidationCallback are non-null");
+                Check.DebugAssert(npgsqlOptions?.ProvidePasswordCallback is null,
+                    "Both DataSource and ProvidePasswordCallback are non-null");
+            }
+#endif
         }
-        else if (npgsqlOptions is not null)
+        else if (dependencies.ContextOptions.FindExtension<NpgsqlOptionsExtension>() is { } npgsqlOptions)
         {
             _provideClientCertificatesCallback = npgsqlOptions.ProvideClientCertificatesCallback;
             _remoteCertificateValidationCallback = npgsqlOptions.RemoteCertificateValidationCallback;
@@ -176,7 +190,7 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
         var optionsBuilder = new DbContextOptionsBuilder();
         ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(adminNpgsqlOptions);
 
-        return new NpgsqlRelationalConnection(Dependencies with { ContextOptions = optionsBuilder.Options }, new DataSourceWrapper(null));
+        return new NpgsqlRelationalConnection(Dependencies with { ContextOptions = optionsBuilder.Options }, dataSource: null);
     }
 
     /// <summary>
@@ -208,6 +222,6 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
         var optionsBuilder = new DbContextOptionsBuilder();
         ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(relationalOptions);
 
-        return new NpgsqlRelationalConnection(Dependencies with { ContextOptions = optionsBuilder.Options }, new DataSourceWrapper(null));
+        return new NpgsqlRelationalConnection(Dependencies with { ContextOptions = optionsBuilder.Options }, dataSource: null);
     }
 }

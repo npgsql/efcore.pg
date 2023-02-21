@@ -13,6 +13,28 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     private DbContextOptionsExtensionInfo? _info;
     private readonly List<UserRangeDefinition> _userRangeDefinitions;
 
+    private Version? _postgresVersion;
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public static readonly Version DefaultPostgresVersion = new(12, 0);
+
+    /// <summary>
+    /// The backend version to target.
+    /// </summary>
+    public virtual Version PostgresVersion
+        => _postgresVersion ?? DefaultPostgresVersion;
+
+    /// <summary>
+    /// The backend version to target, but returns <see langword="null" /> unless the user explicitly specified a version.
+    /// </summary>
+    public virtual Version? PostgresVersionWithoutDefault
+        => _postgresVersion;
+
     /// <summary>
     ///     The <see cref="DbDataSource" />, or <see langword="null" /> if a connection string or <see cref="DbConnection" /> was used
     ///     instead of a <see cref="DbDataSource" />.
@@ -23,11 +45,6 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     /// The name of the database for administrative operations.
     /// </summary>
     public virtual string? AdminDatabase { get; private set; }
-
-    /// <summary>
-    /// The backend version to target.
-    /// </summary>
-    public virtual Version? PostgresVersion { get; private set; }
 
     /// <summary>
     /// Whether to target Redshift.
@@ -76,7 +93,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
         DataSource = copyFrom.DataSource;
         AdminDatabase = copyFrom.AdminDatabase;
-        PostgresVersion = copyFrom.PostgresVersion;
+        _postgresVersion = copyFrom._postgresVersion;
         UseRedshift = copyFrom.UseRedshift;
         _userRangeDefinitions = new List<UserRangeDefinition>(copyFrom._userRangeDefinitions);
         ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
@@ -182,7 +199,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
         var clone = (NpgsqlOptionsExtension)Clone();
 
-        clone.PostgresVersion = postgresVersion;
+        clone._postgresVersion = postgresVersion;
 
         return clone;
     }
@@ -233,7 +250,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
             throw new InvalidOperationException();
         }
 
-        if (UseRedshift && PostgresVersion is not null)
+        if (UseRedshift && _postgresVersion is not null)
         {
             throw new InvalidOperationException($"{nameof(UseRedshift)} and {nameof(PostgresVersion)} cannot both be set");
         }
@@ -327,7 +344,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
                     builder.Append(nameof(Extension.AdminDatabase)).Append("=").Append(Extension.AdminDatabase).Append(' ');
                 }
 
-                if (Extension.PostgresVersion is not null)
+                if (Extension._postgresVersion is not null)
                 {
                     builder.Append(nameof(Extension.PostgresVersion)).Append("=").Append(Extension.PostgresVersion).Append(' ');
                 }
@@ -417,6 +434,14 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
             return _serviceProviderHash.Value;
         }
 
+        public override bool ShouldUseSameServiceProvider(DbContextOptionsExtensionInfo other)
+            => other is ExtensionInfo otherInfo
+                && Extension.PostgresVersion == otherInfo.Extension.PostgresVersion
+                && ReferenceEquals(Extension.DataSource, otherInfo.Extension.DataSource)
+                && Extension.ReverseNullOrdering == otherInfo.Extension.ReverseNullOrdering
+                && Extension.UserRangeDefinitions.SequenceEqual(otherInfo.Extension.UserRangeDefinitions)
+                && Extension.UseRedshift == otherInfo.Extension.UseRedshift;
+
         /// <inheritdoc />
         public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
         {
@@ -424,7 +449,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
                 = (Extension.AdminDatabase?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
 
             debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.SetPostgresVersion)]
-                = (Extension.PostgresVersion?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
+                = Extension.PostgresVersion.GetHashCode().ToString(CultureInfo.InvariantCulture);
 
             debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.UseRedshift)]
                 = Extension.UseRedshift.GetHashCode().ToString(CultureInfo.InvariantCulture);

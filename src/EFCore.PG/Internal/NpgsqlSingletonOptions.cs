@@ -12,14 +12,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 /// </summary>
 public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
 {
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public static readonly Version DefaultPostgresVersion = new(12, 0);
-
     /// <inheritdoc />
     public virtual Version PostgresVersion { get; private set; } = null!;
 
@@ -69,28 +61,42 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    public virtual IServiceProvider? ApplicationServiceProvider { get; private set; }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlSingletonOptions()
         => UserRangeDefinitions = Array.Empty<UserRangeDefinition>();
 
     /// <inheritdoc />
     public virtual void Initialize(IDbContextOptions options)
     {
-        var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
+        var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new();
+        var coreOptions = options.FindExtension<CoreOptionsExtension>() ?? new();
 
-        PostgresVersionWithoutDefault = npgsqlOptions.PostgresVersion;
-        PostgresVersion = npgsqlOptions.PostgresVersion ?? DefaultPostgresVersion;
+        PostgresVersion = npgsqlOptions.PostgresVersion;
+        PostgresVersionWithoutDefault = npgsqlOptions.PostgresVersionWithoutDefault;
         UseRedshift = npgsqlOptions.UseRedshift;
         ReverseNullOrderingEnabled = npgsqlOptions.ReverseNullOrdering;
-        DataSource = npgsqlOptions.DataSource;
         UserRangeDefinitions = npgsqlOptions.UserRangeDefinitions;
+
+        // TODO: Remove after https://github.com/dotnet/efcore/pull/29950
+        ApplicationServiceProvider = coreOptions.ApplicationServiceProvider;
+
+        DataSource = npgsqlOptions.DataSource ?? coreOptions.ApplicationServiceProvider?.GetService<NpgsqlDataSource>();
     }
 
     /// <inheritdoc />
     public virtual void Validate(IDbContextOptions options)
     {
-        var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
+        var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new();
+        var coreOptions = options.FindExtension<CoreOptionsExtension>() ?? new();
 
-        if (PostgresVersionWithoutDefault != npgsqlOptions.PostgresVersion)
+        if (PostgresVersion != npgsqlOptions.PostgresVersion)
         {
             throw new InvalidOperationException(
                 CoreStrings.SingletonOptionChanged(
@@ -114,14 +120,13 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
                     nameof(DbContextOptionsBuilder.UseInternalServiceProvider)));
         }
 
-        if (!ReferenceEquals(DataSource, npgsqlOptions.DataSource))
+        if (npgsqlOptions.DataSource is not null && !ReferenceEquals(DataSource, npgsqlOptions.DataSource))
         {
             throw new InvalidOperationException(
                 NpgsqlStrings.TwoDataSourcesInSameServiceProvider(nameof(DbContextOptionsBuilder.UseInternalServiceProvider)));
         }
 
-        if (UserRangeDefinitions.Count != npgsqlOptions.UserRangeDefinitions.Count
-            || UserRangeDefinitions.Zip(npgsqlOptions.UserRangeDefinitions).Any(t => t.First != t.Second))
+        if (!UserRangeDefinitions.SequenceEqual(npgsqlOptions.UserRangeDefinitions))
         {
             throw new InvalidOperationException(
                 CoreStrings.SingletonOptionChanged(

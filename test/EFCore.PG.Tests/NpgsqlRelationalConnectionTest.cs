@@ -169,6 +169,9 @@ public class NpgsqlRelationalConnectionTest
             extension.Validate(options);
         }
 
+        var singletonOptions = new NpgsqlSingletonOptions();
+        singletonOptions.Initialize(options);
+
         return new NpgsqlRelationalConnection(
             new RelationalConnectionDependencies(
                 options,
@@ -199,7 +202,7 @@ public class NpgsqlRelationalConnectionTest
                             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                             new NpgsqlSingletonOptions()),
                         new ExceptionDetector()))),
-            new(dataSource));
+            singletonOptions);
     }
 
     private const string ConnectionString = "Fake Connection String";
