@@ -7,7 +7,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 public class TestNpgsqlConnection : NpgsqlRelationalConnection
 {
     public TestNpgsqlConnection(RelationalConnectionDependencies dependencies, DbDataSource dataSource = null)
-        : base(dependencies, new(dataSource))
+        : base(dependencies, dataSource)
     {
     }
 

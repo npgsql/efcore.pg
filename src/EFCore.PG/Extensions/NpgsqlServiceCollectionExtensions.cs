@@ -125,7 +125,6 @@ public static class NpgsqlServiceCollectionExtensions
                     .TryAddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()
                     .TryAddSingleton<INpgsqlSingletonOptions, NpgsqlSingletonOptions>()
                     .TryAddSingleton<INpgsqlSequenceValueGeneratorFactory, NpgsqlSequenceValueGeneratorFactory>()
-                    .TryAddScoped(DataSourceWrapper.Create)
                     .TryAddScoped<INpgsqlRelationalConnection, NpgsqlRelationalConnection>())
             .TryAddCoreServices();
 
