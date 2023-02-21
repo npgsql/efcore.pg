@@ -28,7 +28,7 @@ public class NpgsqlModificationCommandBatchFactory : IModificationCommandBatchFa
 
         _dependencies = dependencies;
 
-        _maxBatchSize = options.Extensions.OfType<NpgsqlOptionsExtension>().FirstOrDefault()?.MaxBatchSize ?? DefaultMaxBatchSize;
+        _maxBatchSize = options.FindExtension<NpgsqlOptionsExtension>()?.MaxBatchSize ?? DefaultMaxBatchSize;
 
         if (_maxBatchSize <= 0)
         {

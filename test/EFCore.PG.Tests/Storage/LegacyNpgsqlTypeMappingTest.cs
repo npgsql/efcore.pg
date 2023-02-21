@@ -1,5 +1,6 @@
 #if DEBUG
 
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
@@ -47,8 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             ),
             new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
-            new NpgsqlSingletonOptions()
-        );
+            new NpgsqlSingletonOptions());
 
         private static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);
 

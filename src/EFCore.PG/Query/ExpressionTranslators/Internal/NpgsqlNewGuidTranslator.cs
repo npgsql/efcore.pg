@@ -22,12 +22,10 @@ public class NpgsqlNewGuidTranslator : IMethodCallTranslator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlNewGuidTranslator(
-        ISqlExpressionFactory sqlExpressionFactory,
-        INpgsqlSingletonOptions npgsqlSingletonOptions)
+    public NpgsqlNewGuidTranslator(ISqlExpressionFactory sqlExpressionFactory, Version? postgresVersion)
     {
         _sqlExpressionFactory = sqlExpressionFactory;
-        _uuidGenerationFunction = npgsqlSingletonOptions.PostgresVersion.AtLeast(13) ? "gen_random_uuid" : "uuid_generate_v4";
+        _uuidGenerationFunction = postgresVersion.AtLeast(13) ? "gen_random_uuid" : "uuid_generate_v4";
     }
 
     /// <summary>

@@ -208,12 +208,12 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         TypeMappingSourceDependencies dependencies,
         RelationalTypeMappingSourceDependencies relationalDependencies,
         ISqlGenerationHelper sqlGenerationHelper,
-        INpgsqlSingletonOptions npgsqlSingletonOptions)
+        INpgsqlSingletonOptions options)
         : base(dependencies, relationalDependencies)
     {
+        _supportsMultiranges = options.PostgresVersionWithoutDefault is null || options.PostgresVersionWithoutDefault.AtLeast(14);
+
         _sqlGenerationHelper = Check.NotNull(sqlGenerationHelper, nameof(sqlGenerationHelper));
-        _supportsMultiranges = npgsqlSingletonOptions.PostgresVersionWithoutDefault is null
-            || npgsqlSingletonOptions.PostgresVersionWithoutDefault.AtLeast(14);
 
         // Initialize some mappings which depend on other mappings
         _int4range         = new NpgsqlRangeTypeMapping("int4range", typeof(NpgsqlRange<int>),      _int4,         sqlGenerationHelper);
@@ -440,9 +440,9 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
         ClrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
 
-        LoadUserDefinedTypeMappings(sqlGenerationHelper, npgsqlSingletonOptions.DataSource as NpgsqlDataSource);
+        LoadUserDefinedTypeMappings(sqlGenerationHelper, options.DataSource as NpgsqlDataSource);
 
-        _userRangeDefinitions = npgsqlSingletonOptions?.UserRangeDefinitions ?? Array.Empty<UserRangeDefinition>();
+        _userRangeDefinitions = options.UserRangeDefinitions;
     }
 
     /// <summary>

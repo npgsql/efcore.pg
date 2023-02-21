@@ -36,4 +36,9 @@ public interface INpgsqlSingletonOptions : ISingletonOptions
     ///     The collection of range mappings.
     /// </summary>
     IReadOnlyList<UserRangeDefinition> UserRangeDefinitions { get; }
+
+    /// <summary>
+    ///     The root service provider for the application, if available. />.
+    /// </summary>
+    IServiceProvider? ApplicationServiceProvider { get; }
 }
