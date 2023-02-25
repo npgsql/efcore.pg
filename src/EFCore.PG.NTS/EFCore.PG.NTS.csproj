@@ -2,8 +2,8 @@
   <PropertyGroup>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite</RootNamespace>
-    <TargetFrameworks>net6.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(DeveloperBuild)' == 'True'">net8.0</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework Condition="'$(DeveloperBuild)' == 'True'">net8.0</TargetFramework>
 
     <Authors>Shay Rojansky</Authors>
     <Description>NetTopologySuite PostGIS spatial support plugin for PostgreSQL/Npgsql Entity Framework Core provider.</Description>
