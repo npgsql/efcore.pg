@@ -23,7 +23,14 @@ public class NorthwindQueryNpgsqlFixture<TModelCustomizer> : NorthwindQueryRelat
         base.OnModelCreating(modelBuilder, context);
 
         // Note that we map price properties to numeric(12,2) columns, not to money as in SqlServer, since in
-        // PG, money is discouraged/obsolete.
+        // PG, money is discouraged/obsolete and various tests fail with it.
+
+        modelBuilder.Entity<Order>(
+            b =>
+            {
+                b.Property(o => o.EmployeeID).HasColumnType("int");
+                b.Property(o => o.OrderDate).HasColumnType("timestamp without time zone");
+            });
 
         modelBuilder.Entity<Employee>(
             b =>

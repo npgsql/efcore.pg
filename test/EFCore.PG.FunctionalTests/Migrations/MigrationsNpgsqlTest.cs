@@ -651,6 +651,14 @@ CREATE TABLE public."People" (
             @"ALTER TABLE ""People"" ADD ""Name"" character varying(30);");
     }
 
+    public override async Task Add_column_with_unbounded_max_length()
+    {
+        await base.Add_column_with_unbounded_max_length();
+
+        AssertSql(
+            @"ALTER TABLE ""People"" ADD ""Name"" text;");
+    }
+
     public override async Task Add_column_with_max_length_on_derived()
     {
         await base.Add_column_with_max_length_on_derived();

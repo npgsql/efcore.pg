@@ -11,7 +11,7 @@
     <ImplicitUsings>true</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
-    <Copyright>Copyright 2022 © The Npgsql Development Team</Copyright>
+    <Copyright>Copyright 2023 © The Npgsql Development Team</Copyright>
     <Company>Npgsql</Company>
     <VersionPrefix>8.0.0-preview.1</VersionPrefix>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

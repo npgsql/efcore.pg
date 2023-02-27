@@ -1420,7 +1420,7 @@ WHERE c."CustomerID" LIKE 'F%'
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
-    public virtual async Task Update_with_two_inner_joins(bool async)
+    public override async Task Update_with_two_inner_joins(bool async)
     {
         await AssertUpdate(
             async,

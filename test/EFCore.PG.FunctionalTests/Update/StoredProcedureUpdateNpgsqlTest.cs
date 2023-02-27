@@ -528,6 +528,32 @@ CALL "Child1_Insert"(NULL, @p0, @p1);
 """);
     }
 
+    public override async Task Non_sproc_followed_by_sproc_commands_in_the_same_batch(bool async)
+    {
+        await base.Non_sproc_followed_by_sproc_commands_in_the_same_batch(
+            async,
+"""
+CREATE PROCEDURE "EntityWithAdditionalProperty_Insert"(name text, OUT id int, additional_property int) LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO "EntityWithAdditionalProperty" ("Name", "AdditionalProperty") VALUES (name, additional_property) RETURNING "Id" INTO id;
+END $$
+""");
+
+        AssertSql(
+"""
+@p2='1'
+@p0='2'
+@p3='1'
+@p1='Entity1_Modified'
+@p4='Entity2'
+@p5='0'
+
+UPDATE "EntityWithAdditionalProperty" SET "AdditionalProperty" = @p0, "Name" = @p1
+WHERE "Id" = @p2 AND "AdditionalProperty" = @p3;
+CALL "EntityWithAdditionalProperty_Insert"(@p4, NULL, @p5);
+""");
+    }
+
     protected override void ConfigureStoreGeneratedConcurrencyToken(EntityTypeBuilder entityTypeBuilder, string propertyName)
         => entityTypeBuilder.Property<uint?>(propertyName)
             .HasColumnName("xmin")
