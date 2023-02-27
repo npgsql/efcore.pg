@@ -7,6 +7,7 @@ public class ArrayListQueryTest : ArrayQueryTest<ArrayListQueryTest.ArrayListQue
     public ArrayListQueryTest(ArrayListQueryFixture fixture, ITestOutputHelper testOutputHelper)
         : base(fixture, testOutputHelper)
     {
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     #region Indexers
@@ -283,7 +284,6 @@ SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s
 FROM "SomeEntities" AS s
 WHERE s."NullableText" = ANY (@__array_0) OR ((s."NullableText" IS NULL) AND (array_position(@__array_0, NULL) IS NOT NULL))
 """);
-
     }
 
     public override async Task Array_param_Contains_non_nullable_column(bool async)

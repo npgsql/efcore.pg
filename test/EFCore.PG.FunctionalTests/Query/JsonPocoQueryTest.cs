@@ -290,7 +290,7 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/efcore/issues/30386")]
     public void Array_of_objects()
     {
         using var ctx = CreateContext();

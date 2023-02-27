@@ -71,8 +71,7 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual SqlExpression? TranslateMemberAccess(
-        SqlExpression instance, SqlExpression member, Type returnType)
+    public virtual SqlExpression? TranslateMemberAccess(SqlExpression instance, SqlExpression member, Type returnType)
     {
         // The first time we see a JSON traversal it's on a column - create a JsonTraversalExpression.
         // Traversals on top of that get appended into the same expression.

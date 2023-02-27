@@ -350,28 +350,10 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
 
         if (binaryExpression.NodeType == ExpressionType.ArrayIndex)
         {
-            if (TranslationFailed(binaryExpression.Left, Visit(TryRemoveImplicitConvert(binaryExpression.Left)), out var sqlLeft)
-                || TranslationFailed(binaryExpression.Right, Visit(TryRemoveImplicitConvert(binaryExpression.Right)), out var sqlRight))
-            {
-                return QueryCompilationContext.NotTranslatedExpression;
-            }
-
-            // ArrayIndex over bytea is special, we have to use function rather than subscript
-            if (binaryExpression.Left.Type == typeof(byte[]))
-            {
-                return _sqlExpressionFactory.Function(
-                    "get_byte",
-                    new[] { sqlLeft!, sqlRight! },
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[2],
-                    typeof(byte));
-            }
-
-            return
-                // Try translating ArrayIndex inside json column
-                _jsonPocoTranslator.TranslateMemberAccess(sqlLeft!, sqlRight!, binaryExpression.Type) ??
-                // Other types should be subscriptable - but PostgreSQL arrays are 1-based, so adjust the index.
-                _sqlExpressionFactory.ArrayIndex(sqlLeft!, _sqlExpressionFactory.GenerateOneBasedIndexExpression(sqlRight!));
+            // During preprocessing, ArrayIndex and List[] get normalized to ElementAt; see NpgsqlArrayTranslator
+            Check.DebugFail(
+                "During preprocessing, ArrayIndex and List[] get normalized to ElementAt; see NpgsqlArrayTranslator. " +
+                "Should never see ArrayIndex.");
         }
 
         return base.VisitBinary(binaryExpression);

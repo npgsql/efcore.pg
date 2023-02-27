@@ -58,7 +58,7 @@ LIMIT 1
         Assert.Equal(NpgsqlTsVector.Parse("'Alfreds Futterkiste' 'Obere Str. 57'").ToString(), tsvector.ToString());
         AssertSql(
 """
-SELECT array_to_tsvector(ARRAY[c."CompanyName",c."Address"]::text[])
+SELECT array_to_tsvector(ARRAY[c."CompanyName",c."Address"]::character varying(60)[])
 FROM "Customers" AS c
 ORDER BY c."CustomerID" NULLS FIRST
 LIMIT 1

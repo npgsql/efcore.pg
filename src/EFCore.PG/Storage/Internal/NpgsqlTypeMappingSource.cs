@@ -594,7 +594,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             if (ClrTypeMappings.TryGetValue(clrType, out var mapping))
             {
                 // Handle types with the size facet (string, bitarray)
-                if (mappingInfo.Size.HasValue)
+                if (mappingInfo.Size is > 0)
                 {
                     if (clrType == typeof(string))
                     {
@@ -866,13 +866,11 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     // We override to support parsing array store names (e.g. varchar(32)[]), timestamp(5) with time zone, etc.
     protected override string? ParseStoreTypeName(
         string? storeTypeName,
-        out bool? unicode,
-        out int? size,
-        out int? precision,
-        out int? scale)
+        ref bool? unicode,
+        ref int? size,
+        ref int? precision,
+        ref int? scale)
     {
-        (unicode, size, precision, scale) = (null, null, null, null);
-
         if (storeTypeName is null)
         {
             return null;
@@ -951,8 +949,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
 
         // For arrays over reference types, the CLR type doesn't convey nullability (unlike with arrays over value types).
         // We decode NRT annotations here to return the correct type mapping.
-        if (mapping is NpgsqlArrayTypeMapping arrayMapping
-            && !arrayMapping.ElementMapping.ClrType.IsValueType
+        if (mapping is NpgsqlArrayTypeMapping { ElementMapping.ClrType.IsValueType: false } arrayMapping
             && !property.IsShadowProperty())
         {
             var nullabilityInfo =
@@ -966,8 +963,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             var elementNullabilityInfo = nullabilityInfo?.ElementType
                 ?? (nullabilityInfo?.GenericTypeArguments.Length > 0 ? nullabilityInfo.GenericTypeArguments[0] : null);
 
-            if (elementNullabilityInfo?.ReadState == NullabilityState.NotNull
-                && elementNullabilityInfo.WriteState == NullabilityState.NotNull)
+            if (elementNullabilityInfo is { ReadState: NullabilityState.NotNull, WriteState: NullabilityState.NotNull })
             {
                 return arrayMapping.MakeNonNullable();
             }

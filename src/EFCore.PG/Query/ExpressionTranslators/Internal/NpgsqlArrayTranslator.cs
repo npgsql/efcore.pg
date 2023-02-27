@@ -16,13 +16,14 @@ public class NpgsqlArrayTranslator : IMethodCallTranslator, IMemberTranslator
 {
     #region Methods
 
+    // ReSharper disable InconsistentNaming
     private static readonly MethodInfo Array_IndexOf1 =
         typeof(Array).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .Single(m => m.Name == nameof(Array.IndexOf) && m.IsGenericMethod && m.GetParameters().Length == 2);
 
     private static readonly MethodInfo Array_IndexOf2 =
         typeof(Array).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(m => m.Name == nameof(Array.IndexOf) && m.IsGenericMethod && m.GetParameters().Length == 3);
+            .Single(m => m is { Name: nameof(Array.IndexOf), IsGenericMethod: true } && m.GetParameters().Length == 3);
 
     private static readonly MethodInfo Enumerable_Append =
         typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
@@ -40,9 +41,14 @@ public class NpgsqlArrayTranslator : IMethodCallTranslator, IMemberTranslator
         typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .Single(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
 
+    private static readonly MethodInfo Enumerable_ElementAt =
+        typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Single(m => m.Name == nameof(Enumerable.ElementAt) && m.GetParameters().Length == 2 && m.GetParameters()[1].ParameterType == typeof(int));
+
     private static readonly MethodInfo Enumerable_SequenceEqual =
         typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .Single(m => m.Name == nameof(Enumerable.SequenceEqual) && m.GetParameters().Length == 2);
+    // ReSharper restore InconsistentNaming
 
     #endregion Methods
 
@@ -78,33 +84,48 @@ public class NpgsqlArrayTranslator : IMethodCallTranslator, IMemberTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (instance?.Type.IsGenericList() == true && !IsMappedToNonArray(instance))
+        // During preprocessing, ArrayIndex and List[] get normalized to ElementAt; so we handle indexing into array/list here
+        if (method.IsClosedFormOf(Enumerable_ElementAt))
         {
-            // Translate list[i]. Note that array[i] is translated by NpgsqlSqlTranslatingExpressionVisitor.VisitBinary (ArrayIndex)
-            if (method.Name == "get_Item" && arguments.Count == 1)
+            // Indexing over bytea is special, we have to use function rather than subscript
+            if (arguments[0].TypeMapping is NpgsqlByteArrayTypeMapping)
             {
-                return
-                    // Try translating indexing inside json column
-                    _jsonPocoTranslator.TranslateMemberAccess(instance, arguments[0], method.ReturnType) ??
-                    // Other types should be subscriptable - but PostgreSQL arrays are 1-based, so adjust the index.
-                    _sqlExpressionFactory.ArrayIndex(instance, GenerateOneBasedIndexExpression(arguments[0]));
+                return _sqlExpressionFactory.Function(
+                    "get_byte",
+                    new[] { arguments[0], arguments[1] },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[2],
+                    typeof(byte));
             }
 
+            return
+                // Try translating indexing inside json column
+                _jsonPocoTranslator.TranslateMemberAccess(arguments[0], arguments[1], method.ReturnType)
+                ?? (arguments[0].Type.IsArrayOrGenericList() && !IsMappedToNonArray(arguments[0])
+                    // Index on array/list - but PostgreSQL arrays are 1-based, so adjust the index.
+                    ? _sqlExpressionFactory.ArrayIndex(arguments[0], GenerateOneBasedIndexExpression(arguments[1]))
+                    : null);
+        }
+
+        if (method.IsClosedFormOf(Enumerable_SequenceEqual)
+            && arguments[0].Type.IsArrayOrGenericList() && !IsMappedToNonArray(arguments[0])
+            && arguments[1].Type.IsArrayOrGenericList() && !IsMappedToNonArray(arguments[1]))
+        {
+            return _sqlExpressionFactory.Equal(arguments[0], arguments[1]);
+        }
+
+        // Translate instance methods on List
+        if (instance is not null && instance.Type.IsGenericList() && !IsMappedToNonArray(instance))
+        {
             return TranslateCommon(instance, arguments);
         }
 
+        // Translate extension methods over array or List
         if (instance is null && arguments.Count > 0 && arguments[0].Type.IsArrayOrGenericList() && !IsMappedToNonArray(arguments[0]))
         {
-            // Extension method over an array or list
-            if (method.IsClosedFormOf(Enumerable_SequenceEqual) && arguments[1].Type.IsArray)
-            {
-                return _sqlExpressionFactory.Equal(arguments[0], arguments[1]);
-            }
-
             return TranslateCommon(arguments[0], arguments.Slice(1));
         }
 
-        // Not an array/list
         return null;
 
         // The array/list CLR type may be mapped to a non-array database type (e.g. byte[] to bytea, or just

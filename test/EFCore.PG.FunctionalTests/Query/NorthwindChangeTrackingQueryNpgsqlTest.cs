@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Northwind;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
@@ -14,7 +15,7 @@ public class NorthwindChangeTrackingQueryNpgsqlTest : NorthwindChangeTrackingQue
     }
 
     protected override NorthwindContext CreateNoTrackingContext()
-        => new NorthwindRelationalContext(
+        => new NorthwindNpgsqlContext(
             new DbContextOptionsBuilder(Fixture.CreateOptions())
                 .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking).Options);
 }
