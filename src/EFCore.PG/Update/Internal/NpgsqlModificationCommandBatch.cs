@@ -85,8 +85,7 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
         try
         {
             bool? onResultSet = null;
-
-            for (; commandIndex < ModificationCommands.Count; commandIndex++)
+            while (commandIndex < ModificationCommands.Count)
             {
                 var command = ModificationCommands[commandIndex];
 
@@ -149,6 +148,8 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
 
                     command.PropagateResults(reader);
 
+                    commandIndex++;
+
                     onResultSet = async
                         ? await npgsqlReader.NextResultAsync(cancellationToken).ConfigureAwait(false)
                         : npgsqlReader.NextResult();
@@ -178,6 +179,7 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
                         }
                     }
 #pragma warning restore 618
+                    commandIndex++;
                 }
             }
 
