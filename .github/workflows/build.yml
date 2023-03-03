@@ -184,7 +184,7 @@ jobs:
         uses: actions/setup-dotnet@v3
 
       - name: Pack
-        run: dotnet pack --configuration Release --output nupkgs -p:ContinuousIntegrationBuild=true
+        run: dotnet pack --configuration Release --property:PackageOutputPath="$PWD/nupkgs" -p:ContinuousIntegrationBuild=true
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
