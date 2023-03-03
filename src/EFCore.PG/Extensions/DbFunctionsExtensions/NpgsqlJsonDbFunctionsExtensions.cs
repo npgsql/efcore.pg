@@ -108,4 +108,22 @@ public static class NpgsqlJsonDbFunctionsExtensions
     /// </remarks>
     public static string JsonTypeof(this DbFunctions _, object json)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonTypeof)));
+
+    /// <summary>
+    /// Returns true if the JSON value matches the JSON Path expression
+    /// </summary>
+    /// <param name="_">DbFunctions instance</param>
+    /// <param name="json">
+    /// A JSON column or value. Can be a <see cref="JsonDocument"/>, a string, or a user POCO mapped to JSON.
+    /// </param>
+    /// <param name="jsonPath">
+    /// JSON Path query, if the test is true then the function will return true for the given JSON value
+    /// </param>
+    /// <remarks>
+    /// This operation is only supported with PostgreSQL <c>jsonb</c>, not <c>json</c>.
+    /// 
+    /// See https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-SQLJSON-PATH
+    /// </remarks>
+    public static bool JsonPathExists(this DbFunctions _, object json, string jsonPath)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonPathExists)));
 }

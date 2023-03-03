@@ -235,6 +235,24 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
 """);
     }
 
+
+    [Fact]
+    public void JsonPathExists()
+    {
+        using var ctx = CreateContext();
+        var count = ctx.JsonEntities.Count(
+            e =>
+                EF.Functions.JsonPathExists(e.CustomerJsonb, """$.Orders[*] ? (@.Price == 5)"""));
+
+        Assert.Equal(1, count);
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "JsonEntities" AS j
+WHERE jsonb_path_exists(j."CustomerJsonb", '$.Orders[*] ? (@.Price == 5)')
+""");
+    }
+
     #endregion Functions
 
     #region Support

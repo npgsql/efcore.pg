@@ -96,7 +96,13 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
                 => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.JsonExistsAny, Jsonb(args[0]), args[1]),
             nameof(NpgsqlJsonDbFunctionsExtensions.JsonExistAll)
                 => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.JsonExistsAll, Jsonb(args[0]), args[1]),
-
+            nameof(NpgsqlJsonDbFunctionsExtensions.JsonPathExists)
+                => _sqlExpressionFactory.Function(
+                    "jsonb_path_exists",
+                    new[] { args[0], args[1] },
+                    nullable: false,
+                    argumentsPropagateNullability: FalseArrays[2],
+                    returnType: typeof(bool)),
             _ => null
         };
 

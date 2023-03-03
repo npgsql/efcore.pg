@@ -567,6 +567,23 @@ WHERE json_typeof(j."CustomerElement"#>'{Statistics,Visits}') = 'number'
 """);
     }
 
+    [Fact]
+    public void JsonPathExists()
+    {
+        using var ctx = CreateContext();
+        var count = ctx.JsonbEntities.Count(
+            e =>
+                EF.Functions.JsonPathExists(e.CustomerElement, """$.Orders[*] ? (@.Price == 5)"""));
+
+        Assert.Equal(1, count);
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "JsonbEntities" AS j
+WHERE jsonb_path_exists(j."CustomerElement", '$.Orders[*] ? (@.Price == 5)')
+""");
+    }
+
     #endregion Functions
 
     #region Support
