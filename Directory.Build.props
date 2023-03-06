@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
+    <VersionPrefix>8.0.0-preview.2</VersionPrefix>
     <LangVersion>preview</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest</AnalysisLevel>
@@ -13,7 +14,6 @@
 
     <Copyright>Copyright 2023 © The Npgsql Development Team</Copyright>
     <Company>Npgsql</Company>
-    <VersionPrefix>8.0.0-preview.1</VersionPrefix>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/npgsql/efcore.pg</PackageProjectUrl>
