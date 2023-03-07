@@ -146,7 +146,7 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
         if (method == IDateTimeZoneProvider_get_Item && instance is PendingDateTimeZoneProviderExpression)
         {
             // We're translating an expression such as 'DateTimeZoneProviders.Tzdb["Europe/Berlin"]'.
-            // Note that the .NET ype of that expression is DateTimeZone, but we just return the string ID for the time zone.
+            // Note that the .NET type of that expression is DateTimeZone, but we just return the string ID for the time zone.
             return arguments[0];
         }
 
@@ -187,6 +187,9 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
 
         if (method == Instant_InZone)
         {
+            // When InZone is called, we have a mismatch: on the .NET NodaTime side, we have a ZonedDateTime; but on the PostgreSQL side,
+            // the AT TIME ZONE expression returns a 'timestamp without time zone' (when applied to a 'timestamp with time zone', which is
+            // what ZonedDateTime is mapped to).
             return new PendingZonedDateTimeExpression(instance!, arguments[0]);
         }
 

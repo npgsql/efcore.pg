@@ -9,7 +9,7 @@ public class NodaTimeQueryNpgsqlTest : QueryTestBase<NodaTimeQueryNpgsqlTest.Nod
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     [ConditionalTheory]
@@ -1553,6 +1553,24 @@ WHERE n."Instant" = @__p_0
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE (n."Instant" AT TIME ZONE 'Europe/Berlin') = TIMESTAMP '2018-04-20T12:31:33.666'
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Instance_InZone_Date(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<NodaTimeTypes>().Where(t => t.Instant.InZone(DateTimeZoneProviders.Tzdb["Europe/Berlin"]).Date
+                == new LocalDate(2018, 4, 20)),
+            entryCount: 1);
+
+        AssertSql(
+"""
+SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
+FROM "NodaTimeTypes" AS n
+WHERE CAST((n."Instant" AT TIME ZONE 'Europe/Berlin') AS date) = DATE '2018-04-20'
 """);
     }
 
