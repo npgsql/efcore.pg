@@ -473,6 +473,21 @@ FROM ""SomeEntities"" AS s");
 FROM ""SomeEntities"" AS s");
         }
 
+        [Theory] // #2688
+        [MemberData(nameof(IsAsyncData))]
+        public async Task New_array_VisitChildren(bool async)
+        {
+            await AssertQuery(
+                async,
+                ss => ss.Set<ArrayEntity>().Select(e => new[] { e.NonNullableText, e.NullableText ?? "" }),
+                elementAsserter: Assert.Equal,
+                elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
+
+            AssertSql(
+                @"SELECT ARRAY[s.""NonNullableText"",COALESCE(s.""NullableText"", '')]::text[]
+FROM ""SomeEntities"" AS s");
+    }
+
         #endregion
 
         #region Other translations

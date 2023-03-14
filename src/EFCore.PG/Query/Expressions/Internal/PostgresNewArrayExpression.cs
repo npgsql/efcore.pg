@@ -57,7 +57,7 @@ public class PostgresNewArrayExpression : SqlExpression
                 newExpressions = new List<SqlExpression>();
                 for (var j = 0; j < i; j++)
                 {
-                    newExpressions.Add(visitedExpression);
+                    newExpressions.Add(Expressions[j]);
                 }
             }
 
