@@ -13,6 +13,7 @@ public class NpgsqlTypeMappingSourceTest
     [InlineData("integer[]", typeof(int[]), null, false)]
     [InlineData("int", typeof(int), null, false)]
     [InlineData("int[]", typeof(int[]), null, false)]
+    [InlineData("numeric", typeof(decimal), null, false)]
     [InlineData("text", typeof(string), null, false)]
     [InlineData("TEXT", typeof(string), null, false)]
     [InlineData("character(8)", typeof(string), 8, true)]
@@ -129,6 +130,8 @@ public class NpgsqlTypeMappingSourceTest
 
     [Theory]
     [InlineData("integer", typeof(int))]
+    [InlineData("numeric", typeof(float))]
+    [InlineData("numeric", typeof(double))]
     [InlineData("integer[]", typeof(int[]))]
     [InlineData("integer[]", typeof(List<int>))]
     [InlineData("smallint[]", typeof(byte[]))]

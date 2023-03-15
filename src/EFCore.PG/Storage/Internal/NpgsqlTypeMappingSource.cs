@@ -77,6 +77,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     private readonly NpgsqlDoubleTypeMapping       _float8             = new();
     private readonly NpgsqlDecimalTypeMapping      _numeric            = new();
     private readonly NpgsqlBigIntegerTypeMapping   _bigInteger         = new();
+    private readonly NpgsqlDecimalTypeMapping      _numericAsFloat     = new(typeof(float));
+    private readonly NpgsqlDecimalTypeMapping      _numericAsDouble    = new(typeof(double));
     private readonly NpgsqlMoneyTypeMapping        _money              = new();
     private readonly GuidTypeMapping               _uuid               = new("uuid", DbType.Guid);
     private readonly ShortTypeMapping              _int2               = new("smallint", DbType.Int16);
@@ -282,8 +284,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { "float4",                      new[] { _float4                       } },
             { "double precision",            new[] { _float8                       } },
             { "float8",                      new[] { _float8                       } },
-            { "numeric",                     new RelationalTypeMapping[] { _numeric, _bigInteger         } },
-            { "decimal",                     new RelationalTypeMapping[] { _numeric, _bigInteger         } },
+            { "numeric",                     new RelationalTypeMapping[] { _numeric, _bigInteger, _numericAsFloat, _numericAsDouble } },
+            { "decimal",                     new RelationalTypeMapping[] { _numeric, _bigInteger, _numericAsFloat, _numericAsDouble } },
             { "money",                       new[] { _money                        } },
 
             { "text",                        new[] { _text                         } },
