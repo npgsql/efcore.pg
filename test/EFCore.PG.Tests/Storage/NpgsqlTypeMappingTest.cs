@@ -14,6 +14,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage;
 
 public class NpgsqlTypeMappingTest
 {
+    #region Numeric
+
+    [Fact]
+    public void GenerateSqlLiteral_returns_decimal_literal()
+    {
+        Assert.Equal(
+            "1.878787",
+            GetMapping(typeof(decimal), "numeric").GenerateSqlLiteral(1.878787m));
+
+        Assert.Equal(
+            "1.878787",
+            GetMapping(typeof(float), "numeric").GenerateSqlLiteral(1.878787m));
+
+        Assert.Equal(
+            "1.878787",
+            GetMapping(typeof(double), "numeric").GenerateSqlLiteral(1.878787m));
+    }
+
+    #endregion Numeric
+
     #region Date/Time
 
     [Fact]
