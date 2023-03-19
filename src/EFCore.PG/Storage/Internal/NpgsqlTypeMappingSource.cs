@@ -117,8 +117,9 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     // Network address types
     private readonly NpgsqlMacaddrTypeMapping      _macaddr            = new();
     private readonly NpgsqlMacaddr8TypeMapping     _macaddr8           = new();
-    private readonly NpgsqlInetTypeMapping         _inet               = new();
-    private readonly NpgsqlCidrTypeMapping         _cidr               = new();
+    private readonly NpgsqlInetTypeMapping         _inet               = new("inet", typeof(IPAddress),        NpgsqlDbType.Inet);
+    private readonly NpgsqlInetTypeMapping         _inetMask           = new("inet", typeof((IPAddress, int)), NpgsqlDbType.Inet);
+    private readonly NpgsqlInetTypeMapping         _cidr               = new("cidr", typeof((IPAddress, int)), NpgsqlDbType.Cidr);
 
     // Built-in geometric types
     private readonly NpgsqlPointTypeMapping        _point              = new();
@@ -316,7 +317,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
 
             { "macaddr",                     new[] { _macaddr                      } },
             { "macaddr8",                    new[] { _macaddr8                     } },
-            { "inet",                        new[] { _inet                         } },
+            { "inet",                        new[] { _inet, _inetMask              } },
             { "cidr",                        new[] { _cidr                         } },
 
             { "point",                       new[] { _point                        } },
