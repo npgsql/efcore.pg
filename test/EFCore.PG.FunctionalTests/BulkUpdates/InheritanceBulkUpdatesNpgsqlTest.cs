@@ -31,7 +31,7 @@ WHERE a."Name" = 'Great spotted kiwi'
         AssertSql(
 """
 DELETE FROM "Animals" AS a
-WHERE a."Discriminator" = 'Kiwi' AND a."Name" = 'Great spotted kiwi'
+WHERE (a."Discriminator" = 'Kiwi') AND (a."Name" = 'Great spotted kiwi')
 """);
     }
 
@@ -45,7 +45,7 @@ DELETE FROM "Countries" AS c
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
-    WHERE c."Id" = a."CountryId" AND a."CountryId" > 0) > 0
+    WHERE (c."Id" = a."CountryId") AND (a."CountryId" > 0)) > 0
 """);
     }
 
@@ -59,7 +59,7 @@ DELETE FROM "Countries" AS c
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
-    WHERE c."Id" = a."CountryId" AND a."Discriminator" = 'Kiwi' AND a."CountryId" > 0) > 0
+    WHERE ((c."Id" = a."CountryId") AND (a."Discriminator" = 'Kiwi')) AND (a."CountryId" > 0)) > 0
 """);
     }
 
@@ -130,11 +130,11 @@ WHERE EXISTS (
     SELECT 1
     FROM "Animals" AS a0
     GROUP BY a0."CountryId"
-    HAVING count(*)::int < 3 AND (
+    HAVING (count(*)::int < 3) AND ((
         SELECT a1."Id"
         FROM "Animals" AS a1
         WHERE a0."CountryId" = a1."CountryId"
-        LIMIT 1) = a."Id")
+        LIMIT 1) = a."Id"))
 """);
     }
 
@@ -165,7 +165,7 @@ WHERE a."Name" = 'Great spotted kiwi'
 """
 UPDATE "Animals" AS a
 SET "Name" = 'Kiwi'
-WHERE a."Discriminator" = 'Kiwi' AND a."Name" = 'Great spotted kiwi'
+WHERE (a."Discriminator" = 'Kiwi') AND (a."Name" = 'Great spotted kiwi')
 """);
     }
 
@@ -180,7 +180,7 @@ SET "Name" = 'Monovia'
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
-    WHERE c."Id" = a."CountryId" AND a."CountryId" > 0) > 0
+    WHERE (c."Id" = a."CountryId") AND (a."CountryId" > 0)) > 0
 """);
     }
 
@@ -195,7 +195,7 @@ SET "Name" = 'Monovia'
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
-    WHERE c."Id" = a."CountryId" AND a."Discriminator" = 'Kiwi' AND a."CountryId" > 0) > 0
+    WHERE ((c."Id" = a."CountryId") AND (a."Discriminator" = 'Kiwi')) AND (a."CountryId" > 0)) > 0
 """);
     }
 

@@ -144,7 +144,7 @@ FROM (
     SELECT o1."OrderID", o1."CustomerID"
     FROM "Orders" AS o1
 ) AS t0
-WHERE t0."CustomerID" = (
+WHERE (t0."CustomerID" = (
     SELECT t1."CustomerID"
     FROM (
         SELECT NULL::int AS "OrderID", o2."CustomerID"
@@ -157,7 +157,7 @@ WHERE t0."CustomerID" = (
         FROM "Orders" AS o4
     ) AS t1
     ORDER BY t1."CustomerID" NULLS FIRST
-    LIMIT 1) OR ((t0."CustomerID" IS NULL) AND ((
+    LIMIT 1)) OR (t0."CustomerID" IS NULL AND (
     SELECT t1."CustomerID"
     FROM (
         SELECT NULL::int AS "OrderID", o2."CustomerID"
@@ -170,7 +170,7 @@ WHERE t0."CustomerID" = (
         FROM "Orders" AS o4
     ) AS t1
     ORDER BY t1."CustomerID" NULLS FIRST
-    LIMIT 1) IS NULL))
+    LIMIT 1) IS NULL)
 """);
     }
 

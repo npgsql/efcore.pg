@@ -20,7 +20,7 @@ public class FiltersInheritanceBulkUpdatesNpgsqlTest : FiltersInheritanceBulkUpd
         AssertSql(
 """
 DELETE FROM "Animals" AS a
-WHERE a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
+WHERE (a."CountryId" = 1) AND (a."Name" = 'Great spotted kiwi')
 """);
     }
 
@@ -31,7 +31,7 @@ WHERE a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
         AssertSql(
 """
 DELETE FROM "Animals" AS a
-WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
+WHERE ((a."Discriminator" = 'Kiwi') AND (a."CountryId" = 1)) AND (a."Name" = 'Great spotted kiwi')
 """);
     }
 
@@ -45,7 +45,7 @@ DELETE FROM "Countries" AS c
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
-    WHERE a."CountryId" = 1 AND c."Id" = a."CountryId" AND a."CountryId" > 0) > 0
+    WHERE ((a."CountryId" = 1) AND (c."Id" = a."CountryId")) AND (a."CountryId" > 0)) > 0
 """);
     }
 
@@ -59,7 +59,7 @@ DELETE FROM "Countries" AS c
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
-    WHERE a."CountryId" = 1 AND c."Id" = a."CountryId" AND a."Discriminator" = 'Kiwi' AND a."CountryId" > 0) > 0
+    WHERE (((a."CountryId" = 1) AND (c."Id" = a."CountryId")) AND (a."Discriminator" = 'Kiwi')) AND (a."CountryId" > 0)) > 0
 """);
     }
 
@@ -84,16 +84,16 @@ WHERE (
         AssertSql(
 """
 DELETE FROM "Animals" AS a
-WHERE a."CountryId" = 1 AND EXISTS (
+WHERE (a."CountryId" = 1) AND EXISTS (
     SELECT 1
     FROM "Animals" AS a0
     WHERE a0."CountryId" = 1
     GROUP BY a0."CountryId"
-    HAVING count(*)::int < 3 AND (
+    HAVING (count(*)::int < 3) AND ((
         SELECT a1."Id"
         FROM "Animals" AS a1
-        WHERE a1."CountryId" = 1 AND a0."CountryId" = a1."CountryId"
-        LIMIT 1) = a."Id")
+        WHERE (a1."CountryId" = 1) AND (a0."CountryId" = a1."CountryId")
+        LIMIT 1) = a."Id"))
 """);
     }
 
@@ -119,7 +119,7 @@ WHERE EXISTS (
     FROM (
         SELECT a0."Id", a0."CountryId", a0."Discriminator", a0."Name", a0."Species", a0."EagleId", a0."IsFlightless", a0."Group", a0."FoundOn"
         FROM "Animals" AS a0
-        WHERE a0."CountryId" = 1 AND a0."Name" = 'Great spotted kiwi'
+        WHERE (a0."CountryId" = 1) AND (a0."Name" = 'Great spotted kiwi')
         ORDER BY a0."Name" NULLS FIRST
         LIMIT @__p_1 OFFSET @__p_0
     ) AS t
@@ -135,7 +135,7 @@ WHERE EXISTS (
 """
 UPDATE "Animals" AS a
 SET "Name" = 'Animal'
-WHERE a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
+WHERE (a."CountryId" = 1) AND (a."Name" = 'Great spotted kiwi')
 """);
     }
 
@@ -154,7 +154,7 @@ WHERE a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
 """
 UPDATE "Animals" AS a
 SET "Name" = 'Kiwi'
-WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
+WHERE ((a."Discriminator" = 'Kiwi') AND (a."CountryId" = 1)) AND (a."Name" = 'Great spotted kiwi')
 """);
     }
 
@@ -169,7 +169,7 @@ SET "Name" = 'Monovia'
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
-    WHERE a."CountryId" = 1 AND c."Id" = a."CountryId" AND a."CountryId" > 0) > 0
+    WHERE ((a."CountryId" = 1) AND (c."Id" = a."CountryId")) AND (a."CountryId" > 0)) > 0
 """);
     }
 
@@ -184,7 +184,7 @@ SET "Name" = 'Monovia'
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
-    WHERE a."CountryId" = 1 AND c."Id" = a."CountryId" AND a."Discriminator" = 'Kiwi' AND a."CountryId" > 0) > 0
+    WHERE (((a."CountryId" = 1) AND (c."Id" = a."CountryId")) AND (a."Discriminator" = 'Kiwi')) AND (a."CountryId" > 0)) > 0
 """);
     }
 

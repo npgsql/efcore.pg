@@ -66,7 +66,7 @@ DELETE FROM "Order Details" AS o
 WHERE EXISTS (
     SELECT 1
     FROM "Order Details" AS o0
-    WHERE o0."OrderID" < 10300 AND o0."OrderID" = o."OrderID" AND o0."ProductID" = o."ProductID")
+    WHERE (o0."OrderID" < 10300) AND ((o0."OrderID" = o."OrderID") AND (o0."ProductID" = o."ProductID")))
 """);
     }
 
@@ -88,7 +88,7 @@ WHERE EXISTS (
         ORDER BY o0."OrderID" NULLS FIRST
         OFFSET @__p_0
     ) AS t
-    WHERE t."OrderID" = o."OrderID" AND t."ProductID" = o."ProductID")
+    WHERE (t."OrderID" = o."OrderID") AND (t."ProductID" = o."ProductID"))
 """);
     }
 
@@ -110,7 +110,7 @@ WHERE EXISTS (
         ORDER BY o0."OrderID" NULLS FIRST
         LIMIT @__p_0
     ) AS t
-    WHERE t."OrderID" = o."OrderID" AND t."ProductID" = o."ProductID")
+    WHERE (t."OrderID" = o."OrderID") AND (t."ProductID" = o."ProductID"))
 """);
     }
 
@@ -132,7 +132,7 @@ WHERE EXISTS (
         ORDER BY o0."OrderID" NULLS FIRST
         LIMIT @__p_0 OFFSET @__p_0
     ) AS t
-    WHERE t."OrderID" = o."OrderID" AND t."ProductID" = o."ProductID")
+    WHERE (t."OrderID" = o."OrderID") AND (t."ProductID" = o."ProductID"))
 """);
     }
 
@@ -153,7 +153,7 @@ WHERE EXISTS (
         WHERE o0."OrderID" < 10300
         OFFSET @__p_0
     ) AS t
-    WHERE t."OrderID" = o."OrderID" AND t."ProductID" = o."ProductID")
+    WHERE (t."OrderID" = o."OrderID") AND (t."ProductID" = o."ProductID"))
 """);
     }
 
@@ -174,7 +174,7 @@ WHERE EXISTS (
         WHERE o0."OrderID" < 10300
         LIMIT @__p_0
     ) AS t
-    WHERE t."OrderID" = o."OrderID" AND t."ProductID" = o."ProductID")
+    WHERE (t."OrderID" = o."OrderID") AND (t."ProductID" = o."ProductID"))
 """);
     }
 
@@ -195,7 +195,7 @@ WHERE EXISTS (
         WHERE o0."OrderID" < 10300
         LIMIT @__p_0 OFFSET @__p_0
     ) AS t
-    WHERE t."OrderID" = o."OrderID" AND t."ProductID" = o."ProductID")
+    WHERE (t."OrderID" = o."OrderID") AND (t."ProductID" = o."ProductID"))
 """);
     }
 
@@ -210,7 +210,7 @@ WHERE o."OrderID" < (
     SELECT (
         SELECT o1."OrderID"
         FROM "Orders" AS o1
-        WHERE o0."CustomerID" = o1."CustomerID" OR ((o0."CustomerID" IS NULL) AND (o1."CustomerID" IS NULL))
+        WHERE (o0."CustomerID" = o1."CustomerID") OR (o0."CustomerID" IS NULL AND o1."CustomerID" IS NULL)
         LIMIT 1)
     FROM "Orders" AS o0
     GROUP BY o0."CustomerID"
@@ -227,15 +227,15 @@ WHERE o."OrderID" < (
 """
 DELETE FROM "Order Details" AS o
 USING "Orders" AS o0
-WHERE o."OrderID" = o0."OrderID" AND EXISTS (
+WHERE (o."OrderID" = o0."OrderID") AND EXISTS (
     SELECT 1
     FROM "Orders" AS o1
     GROUP BY o1."CustomerID"
-    HAVING count(*)::int > 9 AND (
+    HAVING (count(*)::int > 9) AND ((
         SELECT o2."OrderID"
         FROM "Orders" AS o2
-        WHERE o1."CustomerID" = o2."CustomerID" OR ((o1."CustomerID" IS NULL) AND (o2."CustomerID" IS NULL))
-        LIMIT 1) = o0."OrderID")
+        WHERE (o1."CustomerID" = o2."CustomerID") OR (o1."CustomerID" IS NULL AND o2."CustomerID" IS NULL)
+        LIMIT 1) = o0."OrderID"))
 """);
     }
 
@@ -276,7 +276,7 @@ WHERE EXISTS (
         ) AS t
         LIMIT @__p_2 OFFSET @__p_1
     ) AS t0
-    WHERE t0."OrderID" = o."OrderID" AND t0."ProductID" = o."ProductID")
+    WHERE (t0."OrderID" = o."OrderID") AND (t0."ProductID" = o."ProductID"))
 """);
     }
 
@@ -299,7 +299,7 @@ WHERE o."OrderID" < 10300
 """
 DELETE FROM "Order Details" AS o0
 USING "Orders" AS o
-WHERE o."OrderID" = o0."OrderID" AND o."OrderID" < 10250
+WHERE (o."OrderID" = o0."OrderID") AND (o."OrderID" < 10250)
 """);
     }
 
@@ -318,7 +318,7 @@ WHERE EXISTS (
         FROM "Order Details" AS o1
         WHERE o1."ProductID" > 0
     ) AS t ON o0."OrderID" = t."OrderID"
-    WHERE o0."OrderID" < 10250 AND t."OrderID" = o."OrderID" AND t."ProductID" = o."ProductID")
+    WHERE (o0."OrderID" < 10250) AND ((t."OrderID" = o."OrderID") AND (t."ProductID" = o."ProductID")))
 """);
     }
 
@@ -330,7 +330,7 @@ WHERE EXISTS (
 """
 DELETE FROM "Order Details" AS o
 USING "Orders" AS o0
-WHERE o."OrderID" = o0."OrderID" AND date_part('year', o0."OrderDate")::int = 2000
+WHERE (o."OrderID" = o0."OrderID") AND (date_part('year', o0."OrderDate")::int = 2000)
 """);
     }
 
@@ -346,7 +346,7 @@ WHERE EXISTS (
     FROM "Order Details" AS o0
     INNER JOIN "Orders" AS o1 ON o0."OrderID" = o1."OrderID"
     LEFT JOIN "Customers" AS c ON o1."CustomerID" = c."CustomerID"
-    WHERE (c."CustomerID" IS NOT NULL) AND (c."CustomerID" LIKE 'F%') AND o0."OrderID" = o."OrderID" AND o0."ProductID" = o."ProductID")
+    WHERE (c."CustomerID" IS NOT NULL AND (c."CustomerID" LIKE 'F%')) AND ((o0."OrderID" = o."OrderID") AND (o0."ProductID" = o."ProductID")))
 """);
     }
 
@@ -368,7 +368,7 @@ WHERE EXISTS (
         FROM "Order Details" AS o1
         WHERE o1."OrderID" > 11250
     ) AS t
-    WHERE t."OrderID" = o."OrderID" AND t."ProductID" = o."ProductID")
+    WHERE (t."OrderID" = o."OrderID") AND (t."ProductID" = o."ProductID"))
 """);
     }
 
@@ -390,7 +390,7 @@ WHERE EXISTS (
         FROM "Order Details" AS o1
         WHERE o1."OrderID" > 11250
     ) AS t
-    WHERE t."OrderID" = o."OrderID" AND t."ProductID" = o."ProductID")
+    WHERE (t."OrderID" = o."OrderID") AND (t."ProductID" = o."ProductID"))
 """);
     }
 
@@ -412,7 +412,7 @@ WHERE EXISTS (
         FROM "Order Details" AS o1
         WHERE o1."OrderID" > 11250
     ) AS t
-    WHERE t."OrderID" = o."OrderID" AND t."ProductID" = o."ProductID")
+    WHERE (t."OrderID" = o."OrderID") AND (t."ProductID" = o."ProductID"))
 """);
     }
 
@@ -434,7 +434,7 @@ WHERE EXISTS (
         FROM "Order Details" AS o1
         WHERE o1."OrderID" > 11250
     ) AS t
-    WHERE t."OrderID" = o."OrderID" AND t."ProductID" = o."ProductID")
+    WHERE (t."OrderID" = o."OrderID") AND (t."ProductID" = o."ProductID"))
 """);
     }
 
@@ -473,7 +473,7 @@ WHERE EXISTS (
         FROM "Order Details"
         WHERE "OrderID" < 10300
     ) AS m
-    WHERE m."OrderID" = o."OrderID" AND m."ProductID" = o."ProductID")
+    WHERE (m."OrderID" = o."OrderID") AND (m."ProductID" = o."ProductID"))
 """);
     }
 
@@ -489,7 +489,7 @@ WHERE EXISTS (
     FROM "Order Details" AS o0
     INNER JOIN "Orders" AS o1 ON o0."OrderID" = o1."OrderID"
     LEFT JOIN "Customers" AS c ON o1."CustomerID" = c."CustomerID"
-    WHERE (c."City" IS NOT NULL) AND (c."City" LIKE 'Se%') AND o0."OrderID" = o."OrderID" AND o0."ProductID" = o."ProductID")
+    WHERE (c."City" IS NOT NULL AND (c."City" LIKE 'Se%')) AND ((o0."OrderID" = o."OrderID") AND (o0."ProductID" = o."ProductID")))
 """);
     }
 
@@ -534,7 +534,7 @@ WHERE EXISTS (
         ORDER BY o1."OrderID" NULLS FIRST
         LIMIT @__p_1 OFFSET @__p_0
     ) AS t ON o0."OrderID" = t."OrderID"
-    WHERE o0."OrderID" < 10276 AND o0."OrderID" = o."OrderID" AND o0."ProductID" = o."ProductID")
+    WHERE (o0."OrderID" < 10276) AND ((o0."OrderID" = o."OrderID") AND (o0."ProductID" = o."ProductID")))
 """);
     }
 
@@ -555,7 +555,7 @@ WHERE EXISTS (
         ORDER BY o1."OrderID" NULLS FIRST
         LIMIT 100 OFFSET 0
     ) AS t
-    WHERE o0."OrderID" < 10276 AND o0."OrderID" = o."OrderID" AND o0."ProductID" = o."ProductID")
+    WHERE (o0."OrderID" < 10276) AND ((o0."OrderID" = o."OrderID") AND (o0."ProductID" = o."ProductID")))
 """);
     }
 
@@ -576,7 +576,7 @@ WHERE EXISTS (
         ORDER BY o1."OrderID" NULLS FIRST
         LIMIT 100 OFFSET 0
     ) AS t ON TRUE
-    WHERE o0."OrderID" < 10276 AND o0."OrderID" = o."OrderID" AND o0."ProductID" = o."ProductID")
+    WHERE (o0."OrderID" < 10276) AND ((o0."OrderID" = o."OrderID") AND (o0."ProductID" = o."ProductID")))
 """);
     }
 
@@ -597,7 +597,7 @@ WHERE EXISTS (
         ORDER BY o1."OrderID" NULLS FIRST
         LIMIT 100 OFFSET 0
     ) AS t ON TRUE
-    WHERE o0."OrderID" < 10276 AND o0."OrderID" = o."OrderID" AND o0."ProductID" = o."ProductID")
+    WHERE (o0."OrderID" < 10276) AND ((o0."OrderID" = o."OrderID") AND (o0."ProductID" = o."ProductID")))
 """);
     }
 
@@ -864,7 +864,7 @@ WHERE c."CustomerID" = (
     SELECT (
         SELECT o0."CustomerID"
         FROM "Orders" AS o0
-        WHERE o."CustomerID" = o0."CustomerID" OR ((o."CustomerID" IS NULL) AND (o0."CustomerID" IS NULL))
+        WHERE (o."CustomerID" = o0."CustomerID") OR (o."CustomerID" IS NULL AND o0."CustomerID" IS NULL)
         LIMIT 1)
     FROM "Orders" AS o
     GROUP BY o."CustomerID"
@@ -892,12 +892,12 @@ WHERE EXISTS (
     SELECT 1
     FROM "Orders" AS o
     GROUP BY o."CustomerID"
-    HAVING count(*)::int > 11 AND (
+    HAVING (count(*)::int > 11) AND ((
         SELECT c0."CustomerID"
         FROM "Orders" AS o0
         LEFT JOIN "Customers" AS c0 ON o0."CustomerID" = c0."CustomerID"
-        WHERE o."CustomerID" = o0."CustomerID" OR ((o."CustomerID" IS NULL) AND (o0."CustomerID" IS NULL))
-        LIMIT 1) = c."CustomerID")
+        WHERE (o."CustomerID" = o0."CustomerID") OR (o."CustomerID" IS NULL AND o0."CustomerID" IS NULL)
+        LIMIT 1) = c."CustomerID"))
 """);
     }
 
@@ -941,7 +941,7 @@ UPDATE "Order Details" AS o
 SET "Quantity" = 1::smallint
 FROM "Orders" AS o0
 LEFT JOIN "Customers" AS c ON o0."CustomerID" = c."CustomerID"
-WHERE o."OrderID" = o0."OrderID" AND c."City" = 'Seattle'
+WHERE (o."OrderID" = o0."OrderID") AND (c."City" = 'Seattle')
 """);
     }
 
@@ -954,7 +954,7 @@ WHERE o."OrderID" = o0."OrderID" AND c."City" = 'Seattle'
 UPDATE "Orders" AS o
 SET "OrderDate" = NULL
 FROM "Customers" AS c
-WHERE c."CustomerID" = o."CustomerID" AND (c."CustomerID" LIKE 'F%')
+WHERE (c."CustomerID" = o."CustomerID") AND (c."CustomerID" LIKE 'F%')
 """);
     }
 
@@ -1167,7 +1167,7 @@ FROM (
     FROM "Orders" AS o
     WHERE o."OrderID" < 10300
 ) AS t
-WHERE c."CustomerID" = t."CustomerID" AND (c."CustomerID" LIKE 'F%')
+WHERE (c."CustomerID" = t."CustomerID") AND (c."CustomerID" LIKE 'F%')
 """);
     }
 
@@ -1224,7 +1224,7 @@ FROM (
     JOIN LATERAL (
         SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
         FROM "Orders" AS o
-        WHERE o."OrderID" < 10300 AND date_part('year', o."OrderDate")::int < length(c0."ContactName")::int
+        WHERE (o."OrderID" < 10300) AND (date_part('year', o."OrderDate")::int < length(c0."ContactName")::int)
     ) AS t ON TRUE
     WHERE c0."CustomerID" LIKE 'F%'
 ) AS t0
@@ -1246,7 +1246,7 @@ FROM (
     LEFT JOIN LATERAL (
         SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
         FROM "Orders" AS o
-        WHERE o."OrderID" < 10300 AND date_part('year', o."OrderDate")::int < length(c0."ContactName")::int
+        WHERE (o."OrderID" < 10300) AND (date_part('year', o."OrderDate")::int < length(c0."ContactName")::int)
     ) AS t ON TRUE
     WHERE c0."CustomerID" LIKE 'F%'
 ) AS t0
@@ -1269,7 +1269,7 @@ FROM (
     CROSS JOIN (
         SELECT c1."CustomerID", c1."Address", c1."City", c1."CompanyName", c1."ContactName", c1."ContactTitle", c1."Country", c1."Fax", c1."Phone", c1."PostalCode", c1."Region"
         FROM "Customers" AS c1
-        WHERE (c1."City" IS NOT NULL) AND (c1."City" LIKE 'S%')
+        WHERE c1."City" IS NOT NULL AND (c1."City" LIKE 'S%')
     ) AS t
     LEFT JOIN (
         SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
@@ -1297,12 +1297,12 @@ FROM (
     CROSS JOIN (
         SELECT c1."CustomerID"
         FROM "Customers" AS c1
-        WHERE (c1."City" IS NOT NULL) AND (c1."City" LIKE 'S%')
+        WHERE c1."City" IS NOT NULL AND (c1."City" LIKE 'S%')
     ) AS t
     JOIN LATERAL (
         SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
         FROM "Orders" AS o
-        WHERE o."OrderID" < 10300 AND date_part('year', o."OrderDate")::int < length(c0."ContactName")::int
+        WHERE (o."OrderID" < 10300) AND (date_part('year', o."OrderDate")::int < length(c0."ContactName")::int)
     ) AS t0 ON TRUE
     WHERE c0."CustomerID" LIKE 'F%'
 ) AS t1
@@ -1325,12 +1325,12 @@ FROM (
     CROSS JOIN (
         SELECT c1."CustomerID", c1."Address", c1."City", c1."CompanyName", c1."ContactName", c1."ContactTitle", c1."Country", c1."Fax", c1."Phone", c1."PostalCode", c1."Region"
         FROM "Customers" AS c1
-        WHERE (c1."City" IS NOT NULL) AND (c1."City" LIKE 'S%')
+        WHERE c1."City" IS NOT NULL AND (c1."City" LIKE 'S%')
     ) AS t
     LEFT JOIN LATERAL (
         SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
         FROM "Orders" AS o
-        WHERE o."OrderID" < 10300 AND date_part('year', o."OrderDate")::int < length(c0."ContactName")::int
+        WHERE (o."OrderID" < 10300) AND (date_part('year', o."OrderDate")::int < length(c0."ContactName")::int)
     ) AS t0 ON TRUE
     WHERE c0."CustomerID" LIKE 'F%'
 ) AS t1
@@ -1438,7 +1438,7 @@ UPDATE "Order Details" AS o
 SET "Quantity" = 1::smallint
 FROM "Products" AS p,
     "Orders" AS o0
-WHERE o."OrderID" = o0."OrderID" AND o."ProductID" = p."ProductID" AND p."Discontinued" AND o0."OrderDate" > TIMESTAMP '1990-01-01 00:00:00'
+WHERE (o."OrderID" = o0."OrderID") AND ((o."ProductID" = p."ProductID") AND (p."Discontinued" AND (o0."OrderDate" > TIMESTAMP '1990-01-01 00:00:00')))
 """);
     }
 

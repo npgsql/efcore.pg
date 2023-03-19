@@ -708,7 +708,7 @@ WHERE e."TimestampDateTime"::timestamptz = TIMESTAMPTZ '1998-04-12 13:26:38Z'
 """
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE CAST((e."TimestamptzDateTime" AT TIME ZONE 'UTC') AS date) = DATE '1998-04-12'
+WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS date) = DATE '1998-04-12'
 """);
     }
 
@@ -744,7 +744,7 @@ WHERE e."TimestampDateTime"::date = DATE '1998-04-12'
 """
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE (CAST((e."TimestamptzDateTime" AT TIME ZONE 'UTC') AS date) + TIME '15:26:38') = TIMESTAMP '1998-04-12 15:26:38'
+WHERE (CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS date) + TIME '15:26:38') = TIMESTAMP '1998-04-12 15:26:38'
 """);
     }
 
@@ -784,7 +784,7 @@ WHERE e."TimestampDateTime"::time without time zone = TIME '15:26:38'
 """
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE CAST((e."TimestamptzDateTime" AT TIME ZONE 'UTC') AS time without time zone) = TIME '13:26:38'
+WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone) = TIME '13:26:38'
 """);
     }
 
@@ -802,7 +802,7 @@ WHERE CAST((e."TimestamptzDateTime" AT TIME ZONE 'UTC') AS time without time zon
 """
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE CAST((e."TimestamptzDateTime" AT TIME ZONE 'UTC') AS time without time zone) = TIME '13:26:38'
+WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone) = TIME '13:26:38'
 """);
     }
 

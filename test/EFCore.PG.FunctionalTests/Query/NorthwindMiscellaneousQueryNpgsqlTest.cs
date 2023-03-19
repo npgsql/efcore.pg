@@ -53,7 +53,7 @@ WHERE o."OrderDate" IS NOT NULL
 """
 @__years_0='2'
 
-SELECT o."OrderDate" + CAST((@__years_0::text || ' years') AS interval) AS "OrderDate"
+SELECT o."OrderDate" + CAST(@__years_0::text || ' years' AS interval) AS "OrderDate"
 FROM "Orders" AS o
 WHERE o."OrderDate" IS NOT NULL
 """);
@@ -242,7 +242,7 @@ WHERE c."CustomerID" IN ('ALFKI', 'ANATR')
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Region" = ANY (@__regions_0) OR ((c."Region" IS NULL) AND (array_position(@__regions_0, NULL) IS NOT NULL))
+WHERE c."Region" = ANY (@__regions_0) OR (c."Region" IS NULL AND array_position(@__regions_0, NULL) IS NOT NULL)
 """);
     }
 
@@ -267,7 +267,7 @@ WHERE c."Region" = ANY (@__regions_0) OR ((c."Region" IS NULL) AND (array_positi
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Region" = ANY (@__regions_0) OR ((c."Region" IS NULL) AND (array_position(@__regions_0, NULL) IS NOT NULL))
+WHERE c."Region" = ANY (@__regions_0) OR (c."Region" IS NULL AND array_position(@__regions_0, NULL) IS NOT NULL)
 """);
     }
 
