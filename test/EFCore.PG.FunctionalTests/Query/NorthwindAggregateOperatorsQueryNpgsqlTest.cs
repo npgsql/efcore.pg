@@ -69,12 +69,20 @@ WHERE e."EmployeeID" = ANY (@__ids_0)
 """);
     }
 
-    public override async Task Contains_with_local_anonymous_type_array_closure(bool async)
+    public override Task Contains_with_local_anonymous_type_array_closure(bool async)
         // Aggregates. Issue #15937.
-        => await AssertTranslationFailed(() => base.Contains_with_local_anonymous_type_array_closure(async));
+        => AssertTranslationFailed(() => base.Contains_with_local_anonymous_type_array_closure(async));
 
-    public override async Task Contains_with_local_tuple_array_closure(bool async)
-        => await Assert.ThrowsAsync<NotSupportedException>(() => base.Contains_with_local_tuple_array_closure(async: true));
+    public override Task Contains_with_local_tuple_array_closure(bool async)
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Contains_with_local_tuple_array_closure(async: true));
+
+    // #2760
+    public override Task Contains_with_local_non_primitive_list_closure_mix(bool async)
+        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Contains_with_local_non_primitive_list_closure_mix(async));
+
+    // #2760
+    public override Task Contains_with_local_non_primitive_list_inline_closure_mix(bool async)
+        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Contains_with_local_non_primitive_list_inline_closure_mix(async));
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

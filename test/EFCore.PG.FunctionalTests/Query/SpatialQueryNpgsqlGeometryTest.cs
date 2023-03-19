@@ -735,6 +735,34 @@ FROM "PointEntity" AS p
 """);
     }
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task MultiString_Any(bool async)
+    {
+        var lineString = Fixture.GeometryFactory.CreateLineString(new[] { new Coordinate(1, 0), new Coordinate(1, 1) });
+
+        // Note the subtle difference between Contains any Any here: Contains resolves to Geometry.Contains, which checks whether a geometry
+        // is contained in another; this is different from .NET collection/enumerable Contains, which checks whether an item is in a
+        // collection.
+        await AssertQuery(
+            async,
+            ss => ss.Set<MultiLineStringEntity>().Where(e => e.MultiLineString.Any(ls => ls == lineString)),
+            ss => ss.Set<MultiLineStringEntity>().Where(e => e.MultiLineString != null && e.MultiLineString.Any(ls => GeometryComparer.Instance.Equals(ls, lineString))),
+            elementSorter: e => e.Id);
+
+        AssertSql(
+"""
+@__lineString_0='LINESTRING (1 0, 1 1)' (DbType = Object)
+
+SELECT m."Id", m."MultiLineString"
+FROM "MultiLineStringEntity" AS m
+WHERE EXISTS (
+    SELECT 1
+    FROM ST_Dump(m."MultiLineString") AS m0
+    WHERE m0.geom = @__lineString_0)
+""");
+    }
+
     private void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
     public class SpatialQueryNpgsqlGeometryFixture : SpatialQueryNpgsqlFixture

@@ -60,6 +60,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         PostgresAllOperatorType operatorType)
         => (PostgresAllExpression)ApplyDefaultTypeMapping(new PostgresAllExpression(item, array, operatorType, null));
 
+
     /// <summary>
     ///     Creates a new <see cref="PostgresArrayIndexExpression" />, corresponding to the PostgreSQL-specific array subscripting operator.
     /// </summary>
@@ -381,6 +382,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 PostgresAnyExpression e        => ApplyTypeMappingOnAny(e),
                 PostgresAllExpression e        => ApplyTypeMappingOnAll(e),
                 PostgresArrayIndexExpression e => ApplyTypeMappingOnArrayIndex(e, typeMapping),
+                PostgresArraySliceExpression e => ApplyTypeMappingOnArraySlice(e, typeMapping),
                 PostgresBinaryExpression e     => ApplyTypeMappingOnPostgresBinary(e, typeMapping),
                 PostgresFunctionExpression e   => e.ApplyTypeMapping(typeMapping),
                 PostgresILikeExpression e      => ApplyTypeMappingOnILike(e),
@@ -605,7 +607,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 ? unary.Operand.TypeMapping
                 : null)
             // If we couldn't find a type mapping on the item, try inferring it from the array
-            ?? arrayMapping?.ElementMapping
+            ?? arrayMapping?.ElementTypeMapping
             ?? _typeMappingSource.FindMapping(itemExpression.Type, Dependencies.Model);
 
         if (itemMapping is null)
@@ -620,9 +622,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             {
                 // If the item mapping has a value converter, construct an array mapping directly over it - this will build the
                 // corresponding array type converter.
-                arrayMapping = arrayExpression.Type.IsArray
-                    ? new NpgsqlArrayArrayTypeMapping(arrayExpression.Type, itemMapping)
-                    : new NpgsqlArrayListTypeMapping(arrayExpression.Type, itemMapping);
+                arrayMapping = new NpgsqlArrayTypeMapping(arrayExpression.Type, itemMapping);
             }
             else
             {
@@ -662,9 +662,30 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             postgresArrayIndexExpression.Type,
             // If the array has a type mapping (i.e. column), prefer that just like we prefer column mappings in general
             postgresArrayIndexExpression.Array.TypeMapping is NpgsqlArrayTypeMapping arrayMapping
-                ? arrayMapping.ElementMapping
+                ? arrayMapping.ElementTypeMapping
                 : typeMapping
                 ?? _typeMappingSource.FindMapping(postgresArrayIndexExpression.Type, Dependencies.Model));
+    }
+
+    private SqlExpression ApplyTypeMappingOnArraySlice(
+        PostgresArraySliceExpression postgresArraySliceExpression,
+        RelationalTypeMapping? typeMapping)
+    {
+        // If the slice operand has a type mapping, that bubbles up (slice is just a view over that). Otherwise apply the external type
+        // mapping down. The bounds are always ints and don't participate in any inference.
+        var lowerBound = postgresArraySliceExpression.LowerBound is null
+            ? null
+            : ApplyDefaultTypeMapping(postgresArraySliceExpression.LowerBound);
+        var upperBound = postgresArraySliceExpression.UpperBound is null
+            ? null
+            : ApplyDefaultTypeMapping(postgresArraySliceExpression.UpperBound);
+
+        var inferredTypeMapping = postgresArraySliceExpression.TypeMapping ?? typeMapping;
+
+        return new PostgresArraySliceExpression(
+            ApplyTypeMapping(postgresArraySliceExpression.Array, inferredTypeMapping),
+            lowerBound,
+            upperBound);
     }
 
     private SqlExpression ApplyTypeMappingOnILike(PostgresILikeExpression ilikeExpression)
@@ -687,8 +708,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     private SqlExpression ApplyTypeMappingOnPostgresBinary(
         PostgresBinaryExpression postgresBinaryExpression, RelationalTypeMapping? typeMapping)
     {
-        var left = postgresBinaryExpression.Left;
-        var right = postgresBinaryExpression.Right;
+        var (left, right) = (postgresBinaryExpression.Left, postgresBinaryExpression.Right);
 
         Type resultType;
         RelationalTypeMapping? resultTypeMapping = null;
@@ -708,24 +728,14 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 resultType = typeof(bool);
                 resultTypeMapping = _boolTypeMapping;
 
-                // Simple case: we have the same CLR type on both sides, infer as usual (e.g. overlap/intersect between two CLR arrays)
-                if (left.Type == right.Type)
+                // Simple case: we have the same CLR type on both sides, or we have an array on either side
+                // (e.g. overlap/intersect between two arrays); note that different CLR types may be mapped to arrays on the two sides
+                // (e.g. int[] and List<int>)
+                if (left.Type == right.Type
+                    || left.TypeMapping is NpgsqlArrayTypeMapping
+                    || right.TypeMapping is NpgsqlArrayTypeMapping)
                 {
                     inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
-                    break;
-                }
-
-                // Mixing array and list, so we can't simply infer.
-                if (left.Type.IsArrayOrGenericList() && right.Type.IsArrayOrGenericList())
-                {
-                    inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
-
-                    if (inferredTypeMapping is not NpgsqlArrayTypeMapping arrayTypeMapping)
-                    {
-                        throw new Exception("Trying to infer with non-array mapping across CLR array types, please file a bug.");
-                    }
-
-                    inferredTypeMapping = arrayTypeMapping.FlipArrayListClrType(left.TypeMapping is null ? left.Type : right.Type);
                     break;
                 }
 
@@ -803,7 +813,8 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             }
 
             default:
-                throw new InvalidOperationException($"Incorrect {nameof(operatorType)} for {nameof(postgresBinaryExpression)}");
+                throw new InvalidOperationException(
+                    $"Incorrect {nameof(operatorType)} for {nameof(postgresBinaryExpression)}: {operatorType}");
         }
 
         return new PostgresBinaryExpression(
@@ -970,7 +981,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 return postgresNewArrayExpression;
             }
 
-            elementTypeMapping = arrayTypeMapping.ElementMapping;
+            elementTypeMapping = arrayTypeMapping.ElementTypeMapping;
         }
         else
         {

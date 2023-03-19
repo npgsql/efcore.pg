@@ -1,4 +1,3 @@
-using System.Data.Common;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
@@ -114,6 +113,7 @@ public static class NpgsqlServiceCollectionExtensions
             .TryAdd<IEvaluatableExpressionFilter, NpgsqlEvaluatableExpressionFilter>()
             .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
             .TryAdd<IRelationalSqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
+            .TryAdd<IQueryTranslationPreprocessorFactory, NpgsqlQueryTranslationPreprocessorFactory>()
             .TryAdd<IQueryTranslationPostprocessorFactory, NpgsqlQueryTranslationPostprocessorFactory>()
             .TryAdd<IRelationalParameterBasedSqlProcessorFactory, NpgsqlParameterBasedSqlProcessorFactory>()
             .TryAdd<ISqlExpressionFactory, NpgsqlSqlExpressionFactory>()

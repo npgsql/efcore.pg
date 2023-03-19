@@ -11,7 +11,7 @@ public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgs
     {
         Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();
-        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     [ConditionalFact]

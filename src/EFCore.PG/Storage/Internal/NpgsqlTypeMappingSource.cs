@@ -47,7 +47,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected virtual ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -214,7 +214,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         INpgsqlSingletonOptions options)
         : base(dependencies, relationalDependencies)
     {
-        _supportsMultiranges = options.PostgresVersionWithoutDefault is null || options.PostgresVersionWithoutDefault.AtLeast(14);
+        _supportsMultiranges = !options.IsPostgresVersionSet
+            || options.IsPostgresVersionSet && options.PostgresVersion.AtLeast(14);
 
         _sqlGenerationHelper = Check.NotNull(sqlGenerationHelper, nameof(sqlGenerationHelper));
 
@@ -652,12 +653,20 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     /// </summary>
     protected virtual RelationalTypeMapping? FindArrayMapping(in RelationalTypeMappingInfo mappingInfo)
     {
-        var clrType = mappingInfo.ClrType;
+        var collectionClrType = mappingInfo.ClrType;
         Type? elementClrType = null;
 
-        if (clrType is not null && !clrType.TryGetElementType(out elementClrType))
+        // If there's a CLR type (i.e. not reverse-engineering), check that it's a compatible enumerable.
+        if (collectionClrType is not null)
         {
-            return null; // Not an array/list
+            // We do GetElementType for multidimensional arrays - these don't implement generic IEnumerable<>
+            elementClrType = collectionClrType.TryGetElementType(typeof(IList<>)) ?? collectionClrType.GetElementType();
+
+            // E.g. Newtonsoft.Json's JToken is enumerable over itself, exclude that scenario to avoid stack overflow.
+            if (elementClrType is null || elementClrType == collectionClrType)
+            {
+                return null;
+            }
         }
 
         var storeType = mappingInfo.StoreTypeName;
@@ -674,72 +683,37 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             var elementStoreTypeNameBase = storeTypeNameBase!.Substring(0, storeTypeNameBase.Length - 2);
 
             var elementMapping = elementClrType is null
-                ? FindMapping(new RelationalTypeMappingInfo(
-                    elementStoreType, elementStoreTypeNameBase,
-                    mappingInfo.IsUnicode, mappingInfo.Size, mappingInfo.Precision, mappingInfo.Scale))
-                : FindMapping(new RelationalTypeMappingInfo(
-                    elementClrType, elementStoreType, elementStoreTypeNameBase,
-                    mappingInfo.IsKeyOrIndex, mappingInfo.IsUnicode, mappingInfo.Size, mappingInfo.IsRowVersion,
-                    mappingInfo.IsFixedLength, mappingInfo.Precision, mappingInfo.Scale));
+                ? FindMapping(
+                    new RelationalTypeMappingInfo(
+                        elementStoreType, elementStoreTypeNameBase,
+                        mappingInfo.IsUnicode, mappingInfo.Size, mappingInfo.Precision, mappingInfo.Scale))
+                : FindMapping(
+                    new RelationalTypeMappingInfo(
+                        elementClrType, elementStoreType, elementStoreTypeNameBase,
+                        mappingInfo.IsKeyOrIndex, mappingInfo.IsUnicode, mappingInfo.Size, mappingInfo.IsRowVersion,
+                        mappingInfo.IsFixedLength, mappingInfo.Precision, mappingInfo.Scale));
 
             // If no mapping was found for the element, there's no mapping for the array.
             // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
-            if (elementMapping is null || elementMapping is NpgsqlArrayTypeMapping)
+            if (elementMapping is not null and not NpgsqlArrayTypeMapping
+                // TODO: NpgsqlArrayConverter currently only supports array and List, so exclude cases with an element converter and a
+                // non-array/list collection type. #2759.
+                && (elementMapping.Converter is null || collectionClrType is null || collectionClrType.IsArrayOrGenericList()))
             {
-                return null;
+                // TODO: Consider returning List<T> by default for scaffolding, more useful, #2758
+                return new NpgsqlArrayTypeMapping(storeType, collectionClrType ?? elementMapping.ClrType.MakeArrayType(), elementMapping);
             }
-
-            return clrType is null || clrType.IsArray
-                ? new NpgsqlArrayArrayTypeMapping(storeType, elementMapping)
-                : new NpgsqlArrayListTypeMapping(storeType, elementMapping);
         }
-
-        if (clrType is null)
+        // If no mapping was found for the element CLR type, there's no mapping for the array.
+        // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
+        else if (collectionClrType is not null
+                 && elementClrType is not null
+                 && FindMapping(elementClrType) is not null and not NpgsqlArrayTypeMapping and var elementMapping
+                 // TODO: NpgsqlArrayConverter currently only supports array and List, so exclude cases with an element converter and a
+                 // non-array/list collection type. #2759.
+                 && (elementMapping.Converter is null || collectionClrType.IsArrayOrGenericList()))
         {
-            return null;
-        }
-
-        if (clrType.IsArray)
-        {
-            var elementType = clrType.GetElementType();
-            Debug.Assert(elementType is not null, "Detected array type but element type is null");
-
-            var elementMapping = FindMapping(elementType);
-
-            // If no mapping was found for the element, there's no mapping for the array.
-            // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
-            if (elementMapping is null || elementMapping is NpgsqlArrayTypeMapping)
-            {
-                return null;
-            }
-
-            // Not that the element mapping found above was stripped of nullability
-            // (so we get a mapping for int, not int?).
-            Debug.Assert(
-                Nullable.GetUnderlyingType(elementType) is null ||
-                Nullable.GetUnderlyingType(elementType) == elementMapping.ClrType);
-
-            return new NpgsqlArrayArrayTypeMapping(clrType, elementMapping);
-        }
-
-        if (clrType.IsGenericList())
-        {
-            var elementType = clrType.GetGenericArguments()[0];
-
-            // If an element isn't supported, neither is its array
-            var elementMapping = FindMapping(elementType);
-            if (elementMapping is null)
-            {
-                return null;
-            }
-
-            // Arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
-            if (elementMapping is NpgsqlArrayTypeMapping)
-            {
-                return null;
-            }
-
-            return new NpgsqlArrayListTypeMapping(clrType, elementMapping);
+            return new NpgsqlArrayTypeMapping(collectionClrType, elementMapping);
         }
 
         return null;
@@ -824,11 +798,16 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     }
 
     /// <summary>
-    /// Finds the mapping for a container given its CLR type and its containee's type mapping; this is currently used to infer type
-    /// mappings for ranges and multiranges from their values.
+    /// Finds the mapping for a container given its CLR type and its containee's type mapping; this is used when inferring type mappings
+    /// for arrays and ranges/multiranges.
     /// </summary>
     public virtual RelationalTypeMapping? FindContainerMapping(Type containerClrType, RelationalTypeMapping containeeTypeMapping)
     {
+        if (containerClrType.TryGetElementType(out _))
+        {
+            return new NpgsqlArrayTypeMapping(containerClrType, containeeTypeMapping);
+        }
+
         if (containerClrType.TryGetRangeSubtype(out var subtypeType))
         {
             return _rangeTypeMappings.TryGetValue(subtypeType, out var candidateMappings)
@@ -951,7 +930,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
 
         // For arrays over reference types, the CLR type doesn't convey nullability (unlike with arrays over value types).
         // We decode NRT annotations here to return the correct type mapping.
-        if (mapping is NpgsqlArrayTypeMapping { ElementMapping.ClrType.IsValueType: false } arrayMapping
+        if (mapping is NpgsqlArrayTypeMapping { ElementTypeMapping.ClrType.IsValueType: false } arrayMapping
             && !property.IsShadowProperty())
         {
             var nullabilityInfo =

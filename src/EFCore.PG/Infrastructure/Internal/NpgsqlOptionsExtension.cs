@@ -32,8 +32,8 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     /// <summary>
     /// The backend version to target, but returns <see langword="null" /> unless the user explicitly specified a version.
     /// </summary>
-    public virtual Version? PostgresVersionWithoutDefault
-        => _postgresVersion;
+    public virtual bool IsPostgresVersionSet
+        => _postgresVersion is not null;
 
     /// <summary>
     ///     The <see cref="DbDataSource" />, or <see langword="null" /> if a connection string or <see cref="DbConnection" /> was used

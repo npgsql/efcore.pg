@@ -817,14 +817,17 @@ WHERE ARRAY[5,6]::integer[] <@ s."IntArray"
 
     public override async Task Append(bool async)
     {
-        await base.Append(async);
+        // TODO: https://github.com/dotnet/efcore/issues/30669
+        await AssertTranslationFailed(() => base.Append(async));
 
-        AssertSql(
-"""
-SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
-FROM "SomeEntities" AS s
-WHERE array_append(s."IntArray", 5) = ARRAY[3,4,5]::integer[]
-""");
+//         await base.Append(async);
+//
+//         AssertSql(
+// """
+// SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+// FROM "SomeEntities" AS s
+// WHERE array_append(s."IntArray", 5) = ARRAY[3,4,5]::integer[]
+// """);
     }
 
     public override async Task Concat(bool async)

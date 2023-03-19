@@ -55,7 +55,7 @@ public class NpgsqlArrayConverter<TModelArray, TProviderArray> : ValueConverter<
         if (!typeof(TInput).TryGetElementType(out var inputElementType) ||
             !typeof(TOutput).TryGetElementType(out var outputElementType))
         {
-            throw new ArgumentException("Both TInput and TOutput must be arrays or generic Lists");
+            throw new ArgumentException("Both TInput and TOutput must be IEnumerable");
         }
 
         // elementConversionExpression is always over non-nullable value types. If the array is over nullable types,
