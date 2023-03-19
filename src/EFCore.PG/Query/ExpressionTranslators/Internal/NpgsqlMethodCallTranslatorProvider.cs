@@ -32,8 +32,8 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
         : base(dependencies)
     {
         var npgsqlOptions = contextOptions.FindExtension<NpgsqlOptionsExtension>() ?? new();
-        var supportsMultiranges = npgsqlOptions.PostgresVersionWithoutDefault is null
-            || npgsqlOptions.PostgresVersionWithoutDefault.AtLeast(14);
+        var supportsMultiranges = !npgsqlOptions.IsPostgresVersionSet
+            || npgsqlOptions.IsPostgresVersionSet && npgsqlOptions.PostgresVersion.AtLeast(14);
 
         var sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
         var typeMappingSource = (NpgsqlTypeMappingSource)dependencies.RelationalTypeMappingSource;
@@ -42,7 +42,7 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
 
         AddTranslators(new IMethodCallTranslator[]
         {
-            new NpgsqlArrayTranslator(sqlExpressionFactory, jsonTranslator, npgsqlOptions.UseRedshift),
+            new NpgsqlArrayMethodTranslator(sqlExpressionFactory, jsonTranslator),
             new NpgsqlByteArrayMethodTranslator(sqlExpressionFactory),
             new NpgsqlConvertTranslator(sqlExpressionFactory),
             new NpgsqlDateTimeMethodTranslator(typeMappingSource, sqlExpressionFactory),
@@ -50,6 +50,7 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
             new NpgsqlFuzzyStringMatchMethodTranslator(sqlExpressionFactory),
             new NpgsqlJsonDomTranslator(typeMappingSource, sqlExpressionFactory, model),
             new NpgsqlJsonDbFunctionsTranslator(typeMappingSource, sqlExpressionFactory, model),
+            new NpgsqlJsonPocoTranslator(typeMappingSource, sqlExpressionFactory, model),
             new NpgsqlLikeTranslator(sqlExpressionFactory),
             LTreeTranslator,
             new NpgsqlMathTranslator(typeMappingSource, sqlExpressionFactory, model),

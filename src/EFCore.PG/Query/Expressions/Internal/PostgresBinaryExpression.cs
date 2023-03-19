@@ -123,7 +123,7 @@ public class PostgresBinaryExpression : SqlExpression
                 PostgresExpressionType.LTreeMatches
                     when Right.TypeMapping?.StoreType == "lquery" ||
                     Right.TypeMapping is NpgsqlArrayTypeMapping arrayMapping &&
-                    arrayMapping.ElementMapping.StoreType == "lquery"
+                    arrayMapping.ElementTypeMapping.StoreType == "lquery"
                     => "~",
                 PostgresExpressionType.LTreeMatches
                     when Right.TypeMapping?.StoreType == "ltxtquery"

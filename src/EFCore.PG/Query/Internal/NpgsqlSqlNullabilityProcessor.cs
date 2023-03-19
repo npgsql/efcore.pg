@@ -176,26 +176,17 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         out bool nullable)
         => sqlExpression switch
         {
-            PostgresAnyExpression postgresAnyExpression
-                => VisitAny(postgresAnyExpression, allowOptimizedExpansion, out nullable),
-            PostgresAllExpression postgresAllExpression
-                => VisitAll(postgresAllExpression, allowOptimizedExpansion, out nullable),
-            PostgresArrayIndexExpression arrayIndexExpression
-                => VisitArrayIndex(arrayIndexExpression, allowOptimizedExpansion, out nullable),
-            PostgresBinaryExpression binaryExpression
-                => VisitPostgresBinary(binaryExpression, allowOptimizedExpansion, out nullable),
-            PostgresILikeExpression ilikeExpression
-                => VisitILike(ilikeExpression, allowOptimizedExpansion, out nullable),
-            PostgresJsonTraversalExpression postgresJsonTraversalExpression
-                => VisitJsonTraversal(postgresJsonTraversalExpression, allowOptimizedExpansion, out nullable),
-            PostgresNewArrayExpression newArrayExpression
-                => VisitNewArray(newArrayExpression, allowOptimizedExpansion, out nullable),
-            PostgresRegexMatchExpression regexMatchExpression
-                => VisitRegexMatch(regexMatchExpression, allowOptimizedExpansion, out nullable),
-            PostgresRowValueExpression postgresRowValueExpression
-                => VisitRowValueExpression(postgresRowValueExpression, allowOptimizedExpansion, out nullable),
-            PostgresUnknownBinaryExpression postgresUnknownBinaryExpression
-                => VisitUnknownBinary(postgresUnknownBinaryExpression, allowOptimizedExpansion, out nullable),
+            PostgresAnyExpression e => VisitAny(e, allowOptimizedExpansion, out nullable),
+            PostgresAllExpression e => VisitAll(e, allowOptimizedExpansion, out nullable),
+            PostgresArrayIndexExpression e => VisitArrayIndex(e, allowOptimizedExpansion, out nullable),
+            PostgresArraySliceExpression e => VisitArraySlice(e, allowOptimizedExpansion, out nullable),
+            PostgresBinaryExpression e => VisitPostgresBinary(e, allowOptimizedExpansion, out nullable),
+            PostgresILikeExpression e => VisitILike(e, allowOptimizedExpansion, out nullable),
+            PostgresJsonTraversalExpression e => VisitJsonTraversal(e, allowOptimizedExpansion, out nullable),
+            PostgresNewArrayExpression e => VisitNewArray(e, allowOptimizedExpansion, out nullable),
+            PostgresRegexMatchExpression e => VisitRegexMatch(e, allowOptimizedExpansion, out nullable),
+            PostgresRowValueExpression e => VisitRowValueExpression(e, allowOptimizedExpansion, out nullable),
+            PostgresUnknownBinaryExpression e => VisitUnknownBinary(e, allowOptimizedExpansion, out nullable),
 
             // PostgresFunctionExpression is visited via the SqlFunctionExpression override below
 
@@ -319,6 +310,29 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         nullable = arrayNullable || indexNullable || ((NpgsqlArrayTypeMapping)arrayIndexExpression.Array.TypeMapping!).IsElementNullable;
 
         return arrayIndexExpression.Update(array, index);
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected virtual SqlExpression VisitArraySlice(
+        PostgresArraySliceExpression arraySliceExpression, bool allowOptimizedExpansion, out bool nullable)
+    {
+        Check.NotNull(arraySliceExpression, nameof(arraySliceExpression));
+
+        var array = Visit(arraySliceExpression.Array, allowOptimizedExpansion, out var arrayNullable);
+        var lowerBound = Visit(arraySliceExpression.LowerBound, allowOptimizedExpansion, out var lowerBoundNullable);
+        var upperBound = Visit(arraySliceExpression.UpperBound, allowOptimizedExpansion, out var upperBoundNullable);
+
+        nullable = arrayNullable
+            || lowerBoundNullable
+            || upperBoundNullable
+            || ((NpgsqlArrayTypeMapping)arraySliceExpression.Array.TypeMapping!).IsElementNullable;
+
+        return arraySliceExpression.Update(array, lowerBound, upperBound);
     }
 
     /// <summary>

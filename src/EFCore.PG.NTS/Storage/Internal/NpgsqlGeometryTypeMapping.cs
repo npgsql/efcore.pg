@@ -13,8 +13,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
+public interface INpgsqlGeometryTypeMapping
+{
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    RelationalTypeMapping CloneWithElementTypeMapping(RelationalTypeMapping elementTypeMapping);
+}
+
+/// <summary>
+///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+///     any release. You should only use it directly in your code with extreme caution and knowing that
+///     doing so can result in application failures when updating to a new Entity Framework Core release.
+/// </summary>
 [UsedImplicitly]
-public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMapping<TGeometry, TGeometry>, INpgsqlTypeMapping
+public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMapping<TGeometry, TGeometry>,
+    INpgsqlTypeMapping, INpgsqlGeometryTypeMapping
 {
     private readonly bool _isGeography;
 
@@ -48,6 +66,16 @@ public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMappin
     /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
         => new NpgsqlGeometryTypeMapping<TGeometry>(parameters);
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    RelationalTypeMapping INpgsqlGeometryTypeMapping.CloneWithElementTypeMapping(RelationalTypeMapping elementTypeMapping)
+        => new NpgsqlGeometryTypeMapping<TGeometry>(
+            Parameters.WithCoreParameters(Parameters.CoreParameters.WithElementTypeMapping(elementTypeMapping)));
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

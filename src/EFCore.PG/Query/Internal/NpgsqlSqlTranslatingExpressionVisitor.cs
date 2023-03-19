@@ -83,10 +83,10 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                     return QueryCompilationContext.NotTranslatedExpression;
                 }
 
-                // Translate Length on byte[], but only if the type mapping is for bytea. There's also array of bytes
-                // (mapped to smallint[]), which is handled below with CARDINALITY.
-                if (sqlOperand!.Type == typeof(byte[])
-                    && (sqlOperand.TypeMapping is null || sqlOperand.TypeMapping is NpgsqlByteArrayTypeMapping))
+                // Translate Length on byte[], but only if the type mapping is for bytea.
+                // For byte[] mapped to an actual PG array (smallint[]), that's a primitive collection, and ArrayLength gets transformed to
+                // Count() which gets translated to cardinality() as usual in NpgsqlQueryableMethodTranslatingExpressionVisitor.
+                if (sqlOperand!.Type == typeof(byte[]) && sqlOperand.TypeMapping is NpgsqlByteArrayTypeMapping or null)
                 {
                     return _sqlExpressionFactory.Function(
                         "length",
@@ -96,13 +96,15 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                         typeof(int));
                 }
 
-                return _jsonPocoTranslator.TranslateArrayLength(sqlOperand)
-                    ?? _sqlExpressionFactory.Function(
-                        "cardinality",
-                        new[] { sqlOperand },
-                        nullable: true,
-                        argumentsPropagateNullability: TrueArrays[1],
-                        typeof(int));
+                // Attempt to translate Length on a JSON POCO array
+                if (_jsonPocoTranslator.TranslateArrayLength(sqlOperand) is SqlExpression translation)
+                {
+                    return translation;
+                }
+
+                // Note that Length over PG arrays (not within JSON) gets translated by QueryableMethodTranslatingEV, since arrays are
+                // primitive collections
+                break;
 
             // We have row value comparison methods such as EF.Functions.GreaterThan, which accept two ValueTuples/Tuples.
             // Since they accept ITuple parameters, the arguments have a Convert node casting up from the concrete argument to ITuple;
@@ -113,179 +115,6 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         }
 
         return base.VisitUnary(unaryExpression);
-    }
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    protected override Expression VisitMethodCall(MethodCallExpression methodCall)
-    {
-        if (methodCall.Arguments.Count > 0 &&
-            methodCall.Arguments[0].Type.IsArrayOrGenericList() &&
-            VisitArrayMethodCall(methodCall.Method, methodCall.Arguments) is { } visited)
-        {
-            return visited;
-        }
-
-        return base.VisitMethodCall(methodCall);
-    }
-
-    /// <summary>
-    /// Identifies complex array-related constructs which cannot be translated in regular method translators, since
-    /// they require accessing lambdas.
-    /// </summary>
-    private Expression? VisitArrayMethodCall(MethodInfo method, ReadOnlyCollection<Expression> arguments)
-    {
-        var array = arguments[0];
-        {
-            if (method.IsClosedFormOf(EnumerableMethods.AnyWithPredicate) &&
-                arguments[1] is LambdaExpression wherePredicate)
-            {
-                if (wherePredicate.Body is MethodCallExpression wherePredicateMethodCall)
-                {
-                    var predicateMethod = wherePredicateMethodCall.Method;
-                    var predicateArguments = wherePredicateMethodCall.Arguments;
-
-                    // Pattern match: new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p))
-                    // Translation: s.SomeText LIKE ANY (ARRAY['a','b','c'])
-                    // Note: we also handle the this equality instead of Like, see NpgsqlArrayMethodTranslator
-                    if ((predicateMethod == Like2MethodInfo || predicateMethod == ILike2MethodInfo) &&
-                        predicateArguments[2] == wherePredicate.Parameters[0])
-                    {
-                        return _sqlExpressionFactory.Any(
-                            (SqlExpression)Visit(predicateArguments[1]),
-                            (SqlExpression)Visit(array),
-                            wherePredicateMethodCall.Method == Like2MethodInfo
-                                ? PostgresAnyOperatorType.Like
-                                : PostgresAnyOperatorType.ILike);
-                    }
-
-                    // Pattern match: new[] { 4, 5 }.Any(p => e.SomeArray.Contains(p))
-                    // Translation: s.SomeArray && ARRAY[4, 5] (array overlap).
-                    if (predicateMethod.IsClosedFormOf(EnumerableMethods.Contains) &&
-                        predicateArguments[0].Type.IsArrayOrGenericList() &&
-                        predicateArguments[1] is ParameterExpression parameterExpression1 &&
-                        parameterExpression1 == wherePredicate.Parameters[0])
-                    {
-                        return _sqlExpressionFactory.Overlaps(
-                            (SqlExpression)Visit(arguments[0]),
-                            (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]));
-                    }
-
-                    // As above, but for Contains on List<T>
-                    if (predicateMethod.DeclaringType?.IsGenericType == true &&
-                        predicateMethod.DeclaringType.GetGenericTypeDefinition() == typeof(List<>) &&
-                        predicateMethod.Name == nameof(List<int>.Contains) &&
-                        predicateMethod.GetParameters().Length == 1 &&
-                        predicateArguments[0] is ParameterExpression parameterExpression2 &&
-                        parameterExpression2 == wherePredicate.Parameters[0])
-                    {
-                        return _sqlExpressionFactory.Overlaps(
-                            (SqlExpression)Visit(arguments[0]),
-                            (SqlExpression)Visit(wherePredicateMethodCall.Object!));
-                    }
-                }
-
-                // Pattern match for: array.Any(e => e == x) (and other equality patterns)
-                // Transform this to Contains.
-                if (TryMatchEquality(wherePredicate.Body, out var left, out var right) &&
-                    (left == wherePredicate.Parameters[0] || right == wherePredicate.Parameters[0]))
-                {
-                    var item = left == wherePredicate.Parameters[0]
-                        ? right
-                        : right == wherePredicate.Parameters[0]
-                            ? left
-                            : null;
-
-                    return item is null
-                        ? null
-                        : Visit(Expression.Call(EnumerableMethods.Contains.MakeGenericMethod(method.GetGenericArguments()[0]), array,
-                            item));
-                }
-
-                static bool TryMatchEquality(
-                    Expression expression,
-                    [NotNullWhen(true)] out Expression? left,
-                    [NotNullWhen(true)] out Expression? right)
-                {
-                    if (expression is BinaryExpression binary)
-                    {
-                        (left, right) = (binary.Left, binary.Right);
-                        return true;
-                    }
-
-                    if (expression is MethodCallExpression methodCall)
-                    {
-                        if (methodCall.Method == ObjectEquals)
-                        {
-                            (left, right) = (methodCall.Arguments[0], methodCall.Arguments[1]);
-                            return true;
-                        }
-
-                        if (methodCall.Method.Name == nameof(object.Equals) && methodCall.Arguments.Count == 1)
-                        {
-                            (left, right) = (methodCall.Object!, methodCall.Arguments[0]);
-                            return true;
-                        }
-                    }
-
-                    (left, right) = (null, null);
-                    return false;
-                }
-            }
-        }
-
-        {
-            if (method.IsClosedFormOf(EnumerableMethods.All) &&
-                arguments[1] is LambdaExpression wherePredicate &&
-                wherePredicate.Body is MethodCallExpression wherePredicateMethodCall)
-            {
-                var predicateMethod = wherePredicateMethodCall.Method;
-                var predicateArguments = wherePredicateMethodCall.Arguments;
-
-                // Pattern match for: new[] { "a", "b", "c" }.All(p => EF.Functions.Like(e.SomeText, p)),
-                // which we translate to WHERE s.""SomeText"" LIKE ALL (ARRAY['a','b','c'])
-                if ((predicateMethod == Like2MethodInfo || predicateMethod == ILike2MethodInfo) &&
-                    predicateArguments[2] == wherePredicate.Parameters[0])
-                {
-                    return _sqlExpressionFactory.All(
-                        (SqlExpression)Visit(predicateArguments[1]),
-                        (SqlExpression)Visit(arguments[0]),
-                        wherePredicateMethodCall.Method == Like2MethodInfo
-                            ? PostgresAllOperatorType.Like : PostgresAllOperatorType.ILike);
-                }
-
-                // Pattern match for: new[] { 4, 5 }.All(p => e.SomeArray.Contains(p)),
-                // using array containment (<@)
-                if (predicateMethod.IsClosedFormOf(EnumerableMethods.Contains) &&
-                    predicateArguments[0].Type.IsArrayOrGenericList() &&
-                    predicateArguments[1] is ParameterExpression parameterExpression &&
-                    parameterExpression == wherePredicate.Parameters[0])
-                {
-                    return _sqlExpressionFactory.ContainedBy(
-                        (SqlExpression)Visit(arguments[0]),
-                        (SqlExpression)Visit(predicateArguments[0]));
-                }
-
-                // As above, but for Contains on List<T>
-                if (predicateMethod.DeclaringType?.IsGenericType == true &&
-                    predicateMethod.DeclaringType.GetGenericTypeDefinition() == typeof(List<>) &&
-                    predicateMethod.Name == nameof(List<int>.Contains) &&
-                    predicateMethod.GetParameters().Length == 1 &&
-                    predicateArguments[0] is ParameterExpression parameterExpression2 &&
-                    parameterExpression2 == wherePredicate.Parameters[0])
-                {
-                    return _sqlExpressionFactory.ContainedBy(
-                        (SqlExpression)Visit(arguments[0]),
-                        (SqlExpression)Visit(wherePredicateMethodCall.Object!));
-                }
-            }
-        }
-
-        return _ltreeTranslator.VisitArrayMethodCall(this, method, arguments);
     }
 
     /// <inheritdoc />

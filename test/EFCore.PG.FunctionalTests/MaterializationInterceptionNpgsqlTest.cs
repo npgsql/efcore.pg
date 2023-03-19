@@ -14,6 +14,14 @@ public class MaterializationInterceptionNpgsqlTest : MaterializationInterception
     {
     }
 
+    // #2760
+    public override void Intercept_query_materialization_for_empty_constructor(bool inject)
+        => Assert.Throws<InvalidOperationException>(() => base.Intercept_query_materialization_for_empty_constructor(inject));
+
+    // #2760
+    public override void Intercept_query_materialization_for_full_constructor(bool inject)
+        => Assert.Throws<InvalidOperationException>(() => base.Intercept_query_materialization_for_full_constructor(inject));
+
     public class SqlServerLibraryContext : LibraryContext
     {
         public SqlServerLibraryContext(DbContextOptions options)

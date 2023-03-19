@@ -96,7 +96,7 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
                         returnType: method.ReturnType,
                         typeMapping: sqlExpression.TypeMapping is null
                             ? null
-                            : new NpgsqlArrayArrayTypeMapping(method.ReturnType, sqlExpression.TypeMapping));
+                            : new NpgsqlArrayTypeMapping(method.ReturnType, sqlExpression.TypeMapping));
 
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.JsonAgg):
                     return _sqlExpressionFactory.AggregateFunction(

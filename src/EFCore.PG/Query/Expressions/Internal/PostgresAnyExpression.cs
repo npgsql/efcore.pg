@@ -43,11 +43,11 @@ public class PostgresAnyExpression : SqlExpression, IEquatable<PostgresAnyExpres
         RelationalTypeMapping? typeMapping)
         : base(typeof(bool), typeMapping)
     {
-        if (!(array is SqlConstantExpression { Value: null }))
+        if (array is not SqlConstantExpression { Value: null })
         {
-            if (!array.Type.IsArrayOrGenericList())
+            if (array.Type.TryGetElementType(typeof(IEnumerable<>)) is null)
             {
-                throw new ArgumentException("Array expression must be of type array or List<>", nameof(array));
+                throw new ArgumentException("Array expression must be an IEnumerable", nameof(array));
             }
 
             if (array is SqlConstantExpression && operatorType == PostgresAnyOperatorType.Equal)
@@ -125,12 +125,12 @@ public enum PostgresAnyOperatorType
     ///     Represents a PostgreSQL = ANY operator.
     /// </summary>
     Equal,
-    
+
     /// <summary>
     ///     Represents a PostgreSQL LIKE ANY operator.
     /// </summary>
     Like,
-    
+
     /// <summary>
     ///     Represents a PostgreSQL ILIKE ANY operator.
     /// </summary>

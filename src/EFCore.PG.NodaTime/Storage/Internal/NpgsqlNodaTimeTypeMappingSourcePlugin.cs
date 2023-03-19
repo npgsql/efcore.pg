@@ -350,14 +350,15 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
 
             // If no mapping was found for the element, there's no mapping for the array.
             // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
-            if (elementMapping is null || elementMapping is NpgsqlArrayTypeMapping)
+            if (elementMapping is null or NpgsqlArrayTypeMapping)
             {
                 return null;
             }
 
-            return new NpgsqlArrayArrayTypeMapping(storeType, elementMapping);
+            return new NpgsqlArrayTypeMapping(storeType, clrType ?? elementMapping.ClrType.MakeArrayType(), elementMapping);
         }
 
+        // TODO: Clean this up, should not be needed
         if (clrType is null)
         {
             return null;
@@ -382,7 +383,7 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
                 return null;
             }
 
-            return new NpgsqlArrayArrayTypeMapping(clrType, elementMapping);
+            return new NpgsqlArrayTypeMapping(clrType, elementMapping);
         }
 
         if (clrType.IsGenericList())
@@ -402,7 +403,7 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
                 return null;
             }
 
-            return new NpgsqlArrayListTypeMapping(clrType, elementMapping);
+            return new NpgsqlArrayTypeMapping(clrType, elementMapping);
         }
 
         return null;
