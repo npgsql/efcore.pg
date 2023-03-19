@@ -128,7 +128,7 @@ WHERE e."BigInteger" = 1
 """
 SELECT e."Id", e."BigInteger"
 FROM "Entities" AS e
-WHERE (e."BigInteger" % 2) = 0
+WHERE e."BigInteger" % 2 = 0
 """);
     }
 

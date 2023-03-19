@@ -48,7 +48,7 @@ WHERE (
         SELECT k."Id", k."CountryId", k."Name", k."Species", k."EagleId", k."IsFlightless", NULL AS "Group", k."FoundOn", 'Kiwi' AS "Discriminator"
         FROM "Kiwi" AS k
     ) AS t
-    WHERE (c."Id" = t."CountryId") AND (t."CountryId" > 0)) > 0
+    WHERE c."Id" = t."CountryId" AND t."CountryId" > 0) > 0
 """);
     }
 
@@ -65,7 +65,7 @@ WHERE (
         SELECT k."Id", k."CountryId", k."Name", k."Species", k."EagleId", k."IsFlightless", NULL AS "Group", k."FoundOn", 'Kiwi' AS "Discriminator"
         FROM "Kiwi" AS k
     ) AS t
-    WHERE (c."Id" = t."CountryId") AND (t."CountryId" > 0)) > 0
+    WHERE c."Id" = t."CountryId" AND t."CountryId" > 0) > 0
 """);
     }
 
@@ -147,7 +147,7 @@ WHERE (
         SELECT k."Id", k."CountryId", k."Name", k."Species", k."EagleId", k."IsFlightless", NULL AS "Group", k."FoundOn", 'Kiwi' AS "Discriminator"
         FROM "Kiwi" AS k
     ) AS t
-    WHERE (c."Id" = t."CountryId") AND (t."CountryId" > 0)) > 0
+    WHERE c."Id" = t."CountryId" AND t."CountryId" > 0) > 0
 """);
     }
 
@@ -165,7 +165,7 @@ WHERE (
         SELECT k."Id", k."CountryId", k."Name", k."Species", k."EagleId", k."IsFlightless", NULL AS "Group", k."FoundOn", 'Kiwi' AS "Discriminator"
         FROM "Kiwi" AS k
     ) AS t
-    WHERE (c."Id" = t."CountryId") AND (t."CountryId" > 0)) > 0
+    WHERE c."Id" = t."CountryId" AND t."CountryId" > 0) > 0
 """);
     }
 

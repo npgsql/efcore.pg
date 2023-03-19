@@ -72,7 +72,7 @@ WHERE o."OrderDate" IS NOT NULL
 """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
-WHERE (o."OrderDate" - INTERVAL '1 00:00:00') = TIMESTAMP '1997-10-08 00:00:00'
+WHERE o."OrderDate" - INTERVAL '1 00:00:00' = TIMESTAMP '1997-10-08 00:00:00'
 """);
     }
 

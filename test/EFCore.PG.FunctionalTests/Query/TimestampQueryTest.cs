@@ -409,7 +409,7 @@ WHERE date_trunc('day', e."TimestampDateTime") = TIMESTAMP '1998-04-12 00:00:00'
 """
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE (e."TimestampDateTimeOffset" AT TIME ZONE 'UTC') = TIMESTAMP '1998-04-12 13:26:38'
+WHERE e."TimestampDateTimeOffset" AT TIME ZONE 'UTC' = TIMESTAMP '1998-04-12 13:26:38'
 """);
     }
 
@@ -572,7 +572,7 @@ WHERE make_timestamptz(date_part('year', e."TimestamptzDateTime")::int, date_par
 """
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE (e."TimestampDateTime" AT TIME ZONE 'UTC') = TIMESTAMPTZ '1998-04-12 15:26:38Z'
+WHERE e."TimestampDateTime" AT TIME ZONE 'UTC' = TIMESTAMPTZ '1998-04-12 15:26:38Z'
 """);
     }
 
@@ -589,7 +589,7 @@ WHERE (e."TimestampDateTime" AT TIME ZONE 'UTC') = TIMESTAMPTZ '1998-04-12 15:26
 """
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE (e."TimestamptzDateTime" AT TIME ZONE 'UTC') = TIMESTAMP '1998-04-12 13:26:38'
+WHERE e."TimestamptzDateTime" AT TIME ZONE 'UTC' = TIMESTAMP '1998-04-12 13:26:38'
 """);
     }
 
@@ -606,7 +606,7 @@ WHERE (e."TimestamptzDateTime" AT TIME ZONE 'UTC') = TIMESTAMP '1998-04-12 13:26
 """
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE (e."TimestamptzDateTime" AT TIME ZONE 'UTC') = TIMESTAMP '1998-04-12 13:26:38'
+WHERE e."TimestamptzDateTime" AT TIME ZONE 'UTC' = TIMESTAMP '1998-04-12 13:26:38'
 """);
     }
 
@@ -642,7 +642,7 @@ WHERE (e."TimestamptzDateTime" AT TIME ZONE 'UTC') = TIMESTAMP '1998-04-12 13:26
 """
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE (e."TimestamptzDateTime" AT TIME ZONE 'Europe/Berlin') = TIMESTAMP '1998-04-12 15:26:38'
+WHERE e."TimestamptzDateTime" AT TIME ZONE 'Europe/Berlin' = TIMESTAMP '1998-04-12 15:26:38'
 """);
     }
 
@@ -744,7 +744,7 @@ WHERE e."TimestampDateTime"::date = DATE '1998-04-12'
 """
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE (CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS date) + TIME '15:26:38') = TIMESTAMP '1998-04-12 15:26:38'
+WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS date) + TIME '15:26:38' = TIMESTAMP '1998-04-12 15:26:38'
 """);
     }
 

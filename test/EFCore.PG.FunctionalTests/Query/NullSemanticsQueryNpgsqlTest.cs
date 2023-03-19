@@ -69,19 +69,19 @@ WHERE (e."IntA", e."NullableStringA") = (e."IntB", e."StringB")
 """
 SELECT e."Id"
 FROM "Entities1" AS e
-WHERE ((e."IntA", e."BoolA") = (e."IntB", e."BoolB")) AND ((e."NullableStringA" = e."NullableStringB") OR (e."NullableStringA" IS NULL AND e."NullableStringB" IS NULL))
+WHERE (e."IntA", e."BoolA") = (e."IntB", e."BoolB") AND (e."NullableStringA" = e."NullableStringB" OR (e."NullableStringA" IS NULL AND e."NullableStringB" IS NULL))
 """,
             //
 """
 SELECT e."Id"
 FROM "Entities1" AS e
-WHERE ((e."IntA", e."BoolA") = (e."IntB", e."BoolB")) AND ((e."NullableStringA" = e."NullableStringB") OR (e."NullableStringA" IS NULL AND e."NullableStringB" IS NULL))
+WHERE (e."IntA", e."BoolA") = (e."IntB", e."BoolB") AND (e."NullableStringA" = e."NullableStringB" OR (e."NullableStringA" IS NULL AND e."NullableStringB" IS NULL))
 """,
             //
 """
 SELECT e."Id"
 FROM "Entities1" AS e
-WHERE ((e."IntA", e."StringA") = (e."IntB", e."StringB")) AND ((e."NullableBoolA" = e."NullableBoolB") OR (e."NullableBoolA" IS NULL AND e."NullableBoolB" IS NULL))
+WHERE (e."IntA", e."StringA") = (e."IntB", e."StringB") AND (e."NullableBoolA" = e."NullableBoolB" OR (e."NullableBoolA" IS NULL AND e."NullableBoolB" IS NULL))
 """);
     }
 
@@ -119,25 +119,25 @@ WHERE (e."IntA", e."StringA") <> (e."IntB", e."StringB")
 """
 SELECT e."Id"
 FROM "Entities1" AS e
-WHERE (e."IntA" <> e."IntB") OR ((e."StringA" <> e."NullableStringB") OR e."NullableStringB" IS NULL)
+WHERE e."IntA" <> e."IntB" OR e."StringA" <> e."NullableStringB" OR e."NullableStringB" IS NULL
 """,
             //
 """
 SELECT e."Id"
 FROM "Entities1" AS e
-WHERE (e."IntA" <> e."IntB") OR ((e."NullableStringA" <> e."StringB") OR e."NullableStringA" IS NULL)
+WHERE e."IntA" <> e."IntB" OR e."NullableStringA" <> e."StringB" OR e."NullableStringA" IS NULL
 """,
             //
 """
 SELECT e."Id"
 FROM "Entities1" AS e
-WHERE (e."IntA" <> e."IntB") OR (((e."NullableStringA" <> e."NullableStringB") OR (e."NullableStringA" IS NULL OR e."NullableStringB" IS NULL)) AND (e."NullableStringA" IS NOT NULL OR e."NullableStringB" IS NOT NULL))
+WHERE e."IntA" <> e."IntB" OR ((e."NullableStringA" <> e."NullableStringB" OR e."NullableStringA" IS NULL OR e."NullableStringB" IS NULL) AND (e."NullableStringA" IS NOT NULL OR e."NullableStringB" IS NOT NULL))
 """,
             //
 """
 SELECT e."Id"
 FROM "Entities1" AS e
-WHERE ((e."IntA", e."StringA") <> (e."IntB", e."StringB")) OR (((e."NullableBoolA" <> e."NullableBoolB") OR (e."NullableBoolA" IS NULL OR e."NullableBoolB" IS NULL)) AND (e."NullableBoolA" IS NOT NULL OR e."NullableBoolB" IS NOT NULL))
+WHERE (e."IntA", e."StringA") <> (e."IntB", e."StringB") OR ((e."NullableBoolA" <> e."NullableBoolB" OR e."NullableBoolA" IS NULL OR e."NullableBoolB" IS NULL) AND (e."NullableBoolA" IS NOT NULL OR e."NullableBoolB" IS NOT NULL))
 """);
     }
 

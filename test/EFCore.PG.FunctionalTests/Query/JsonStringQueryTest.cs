@@ -143,7 +143,7 @@ WHERE j."CustomerJsonb" @> '{"Name": "Joe", "Age": 25}'
 """
 SELECT count(*)::int
 FROM "JsonEntities" AS j
-WHERE j."CustomerJsonb" @> CAST(('{"Name": "' || COALESCE(j."SomeString", '')) || '", "Age": 25}' AS jsonb)
+WHERE j."CustomerJsonb" @> CAST('{"Name": "' || COALESCE(j."SomeString", '') || '", "Age": 25}' AS jsonb)
 """);
     }
 
