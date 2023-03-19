@@ -210,9 +210,9 @@ LEFT JOIN "OwnedReferenceExtras1" AS o0 ON e."Id" = o0."EntityOneId"
         AssertSql(
 """
 SELECT e."Id", CASE
-    WHEN (((e."OwnedReference_Id" IS NOT NULL AND e."OwnedReference_OwnedIntValue1" IS NOT NULL) AND e."OwnedReference_OwnedIntValue2" IS NOT NULL) AND o0."OwnedIntValue3" IS NOT NULL) AND o."OwnedIntValue4" IS NOT NULL THEN o."OwnedIntValue4"
+    WHEN e."OwnedReference_Id" IS NOT NULL AND e."OwnedReference_OwnedIntValue1" IS NOT NULL AND e."OwnedReference_OwnedIntValue2" IS NOT NULL AND o0."OwnedIntValue3" IS NOT NULL AND o."OwnedIntValue4" IS NOT NULL THEN o."OwnedIntValue4"
 END AS "OwnedIntValue4", CASE
-    WHEN (((e."OwnedReference_Id" IS NOT NULL AND e."OwnedReference_OwnedIntValue1" IS NOT NULL) AND e."OwnedReference_OwnedIntValue2" IS NOT NULL) AND o0."OwnedIntValue3" IS NOT NULL) AND o."OwnedIntValue4" IS NOT NULL THEN o."OwnedStringValue4"
+    WHEN e."OwnedReference_Id" IS NOT NULL AND e."OwnedReference_OwnedIntValue1" IS NOT NULL AND e."OwnedReference_OwnedIntValue2" IS NOT NULL AND o0."OwnedIntValue3" IS NOT NULL AND o."OwnedIntValue4" IS NOT NULL THEN o."OwnedStringValue4"
 END AS "OwnedStringValue4"
 FROM "EntityOnes" AS e
 LEFT JOIN "OwnedReferenceExtras2" AS o ON e."Id" = o."EntityOneId"
@@ -705,8 +705,8 @@ FROM (
 LEFT JOIN (
     SELECT o."BaseEntityId", o."Id", o."OwnedIntValue1", o."OwnedIntValue2", o1."OwnedIntValue3", o0."OwnedIntValue4", o."OwnedStringValue1", o."OwnedStringValue2", o1."OwnedStringValue3", o0."OwnedStringValue4"
     FROM "OwnedReferencePart1" AS o
-    INNER JOIN "OwnedReferencePart4" AS o0 ON (o."BaseEntityId" = o0."BaseEntityId") AND (o."Id" = o0."Id")
-    INNER JOIN "OwnedReferencePart3" AS o1 ON (o."BaseEntityId" = o1."BaseEntityId") AND (o."Id" = o1."Id")
+    INNER JOIN "OwnedReferencePart4" AS o0 ON o."BaseEntityId" = o0."BaseEntityId" AND o."Id" = o0."Id"
+    INNER JOIN "OwnedReferencePart3" AS o1 ON o."BaseEntityId" = o1."BaseEntityId" AND o."Id" = o1."Id"
 ) AS t0 ON t."Id" = t0."BaseEntityId"
 ORDER BY t."Id" NULLS FIRST, t0."BaseEntityId" NULLS FIRST
 """);
@@ -751,8 +751,8 @@ FROM (
 LEFT JOIN (
     SELECT o."MiddleEntityId", o."Id", o."OwnedIntValue1", o."OwnedIntValue2", o1."OwnedIntValue3", o0."OwnedIntValue4", o."OwnedStringValue1", o."OwnedStringValue2", o1."OwnedStringValue3", o0."OwnedStringValue4"
     FROM "OwnedReferencePart1" AS o
-    INNER JOIN "OwnedReferencePart4" AS o0 ON (o."MiddleEntityId" = o0."MiddleEntityId") AND (o."Id" = o0."Id")
-    INNER JOIN "OwnedReferencePart3" AS o1 ON (o."MiddleEntityId" = o1."MiddleEntityId") AND (o."Id" = o1."Id")
+    INNER JOIN "OwnedReferencePart4" AS o0 ON o."MiddleEntityId" = o0."MiddleEntityId" AND o."Id" = o0."Id"
+    INNER JOIN "OwnedReferencePart3" AS o1 ON o."MiddleEntityId" = o1."MiddleEntityId" AND o."Id" = o1."Id"
 ) AS t0 ON t."Id" = t0."MiddleEntityId"
 ORDER BY t."Id" NULLS FIRST, t0."MiddleEntityId" NULLS FIRST
 """);

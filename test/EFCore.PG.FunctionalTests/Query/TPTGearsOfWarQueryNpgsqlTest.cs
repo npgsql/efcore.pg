@@ -53,7 +53,7 @@ FROM "Missions" AS m
 
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE ((@__start_0 <= date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamptz) AND (m."Timeline" < @__end_1)) AND m."Timeline" = ANY (@__dates_2)
+WHERE @__start_0 <= date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamptz AND m."Timeline" < @__end_1 AND m."Timeline" = ANY (@__dates_2)
 """);
     }
 

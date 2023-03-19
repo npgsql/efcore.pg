@@ -194,7 +194,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
 """
 SELECT t."Id", t."Text"
 FROM "TrigramsTestEntities" AS t
-WHERE ((COALESCE(t."Text", '') || ' ') || COALESCE(t."Text", '')) % 'query'
+WHERE (COALESCE(t."Text", '') || ' ' || COALESCE(t."Text", '')) % 'query'
 """);
     }
 

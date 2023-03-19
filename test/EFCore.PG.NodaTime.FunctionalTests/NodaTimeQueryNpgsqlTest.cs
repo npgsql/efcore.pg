@@ -45,7 +45,7 @@ WHERE n."LocalDate" < DATE '2018-04-21'
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE (n."LocalDate" + INTERVAL 'P1M') > n."LocalDate"
+WHERE n."LocalDate" + INTERVAL 'P1M' > n."LocalDate"
 """);
     }
 
@@ -62,7 +62,7 @@ WHERE (n."LocalDate" + INTERVAL 'P1M') > n."LocalDate"
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE ((n."Instant" + INTERVAL '1 00:00:00') - n."Instant") = INTERVAL '1 00:00:00'
+WHERE (n."Instant" + INTERVAL '1 00:00:00') - n."Instant" = INTERVAL '1 00:00:00'
 """);
     }
 
@@ -79,7 +79,7 @@ WHERE ((n."Instant" + INTERVAL '1 00:00:00') - n."Instant") = INTERVAL '1 00:00:
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE ((n."LocalDateTime" + INTERVAL 'P1D') - n."LocalDateTime") = INTERVAL 'P1D'
+WHERE (n."LocalDateTime" + INTERVAL 'P1D') - n."LocalDateTime" = INTERVAL 'P1D'
 """);
     }
 
@@ -96,7 +96,7 @@ WHERE ((n."LocalDateTime" + INTERVAL 'P1D') - n."LocalDateTime") = INTERVAL 'P1D
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE ((n."ZonedDateTime" + INTERVAL '1 00:00:00') - n."ZonedDateTime") = INTERVAL '1 00:00:00'
+WHERE (n."ZonedDateTime" + INTERVAL '1 00:00:00') - n."ZonedDateTime" = INTERVAL '1 00:00:00'
 """);
     }
 
@@ -167,7 +167,7 @@ WHERE make_interval(days => n."LocalDate2" - DATE '2018-04-20') = INTERVAL 'P1D'
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE ((n."LocalTime" + INTERVAL 'PT1H') - n."LocalTime") = INTERVAL 'PT1H'
+WHERE (n."LocalTime" + INTERVAL 'PT1H') - n."LocalTime" = INTERVAL 'PT1H'
 """);
     }
 
@@ -348,7 +348,7 @@ END = 5
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE (n."LocalDateTime" AT TIME ZONE 'Europe/Berlin') = @__ToInstant_0
+WHERE n."LocalDateTime" AT TIME ZONE 'Europe/Berlin' = @__ToInstant_0
 """);
     }
 
@@ -369,7 +369,7 @@ WHERE (n."LocalDateTime" AT TIME ZONE 'Europe/Berlin') = @__ToInstant_0
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE (n."LocalDateTime" AT TIME ZONE n."TimeZoneId") = @__ToInstant_0
+WHERE n."LocalDateTime" AT TIME ZONE n."TimeZoneId" = @__ToInstant_0
 """);
     }
 
@@ -939,7 +939,7 @@ GROUP BY n."Id"
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE (date_part('epoch', n."Duration") / 86400.0) > 27.0
+WHERE date_part('epoch', n."Duration") / 86400.0 > 27.0
 """);
     }
 
@@ -956,7 +956,7 @@ WHERE (date_part('epoch', n."Duration") / 86400.0) > 27.0
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE (date_part('epoch', n."Duration") / 3600.0) < 700.0
+WHERE date_part('epoch', n."Duration") / 3600.0 < 700.0
 """);
     }
 
@@ -973,7 +973,7 @@ WHERE (date_part('epoch', n."Duration") / 3600.0) < 700.0
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE (date_part('epoch', n."Duration") / 60.0) < 40000.0
+WHERE date_part('epoch', n."Duration") / 60.0 < 40000.0
 """);
     }
 
@@ -1007,7 +1007,7 @@ WHERE date_part('epoch', n."Duration") = 2365448.02
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE (date_part('epoch', n."Duration") / 0.001) = 2365448020.0
+WHERE date_part('epoch', n."Duration") / 0.001 = 2365448020.0
 """);
     }
 
@@ -1206,7 +1206,7 @@ WHERE NOT (upper_inf(n."Interval"))
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE (upper(n."Interval") - lower(n."Interval")) = INTERVAL '5 00:00:00'
+WHERE upper(n."Interval") - lower(n."Interval") = INTERVAL '5 00:00:00'
 """);
     }
 
@@ -1310,7 +1310,7 @@ LIMIT 2
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE (upper(n."DateInterval") - lower(n."DateInterval")) = 5
+WHERE upper(n."DateInterval") - lower(n."DateInterval") = 5
 """);
     }
 
@@ -1344,7 +1344,7 @@ WHERE lower(n."DateInterval") = DATE '2018-04-20'
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE (upper(n."DateInterval") - INTERVAL 'P1D') = DATE '2018-04-24'
+WHERE upper(n."DateInterval") - INTERVAL 'P1D' = DATE '2018-04-24'
 """);
     }
 
@@ -1552,7 +1552,7 @@ WHERE n."Instant" = @__p_0
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE (n."Instant" AT TIME ZONE 'Europe/Berlin') = TIMESTAMP '2018-04-20T12:31:33.666'
+WHERE n."Instant" AT TIME ZONE 'Europe/Berlin' = TIMESTAMP '2018-04-20T12:31:33.666'
 """);
     }
 
@@ -1810,7 +1810,7 @@ END = 5
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE (n."Instant" AT TIME ZONE 'UTC') = TIMESTAMP '2018-04-20T10:31:33.666'
+WHERE n."Instant" AT TIME ZONE 'UTC' = TIMESTAMP '2018-04-20T10:31:33.666'
 """);
     }
 

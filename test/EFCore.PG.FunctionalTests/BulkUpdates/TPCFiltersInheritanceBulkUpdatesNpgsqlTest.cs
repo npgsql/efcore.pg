@@ -28,7 +28,7 @@ public class TPCFiltersInheritanceBulkUpdatesNpgsqlTest
         AssertSql(
 """
 DELETE FROM "Kiwi" AS k
-WHERE (k."CountryId" = 1) AND (k."Name" = 'Great spotted kiwi')
+WHERE k."CountryId" = 1 AND k."Name" = 'Great spotted kiwi'
 """);
     }
 
@@ -48,7 +48,7 @@ WHERE (
         SELECT k."Id", k."CountryId", k."Name", k."Species", k."EagleId", k."IsFlightless", NULL AS "Group", k."FoundOn", 'Kiwi' AS "Discriminator"
         FROM "Kiwi" AS k
     ) AS t
-    WHERE ((t."CountryId" = 1) AND (c."Id" = t."CountryId")) AND (t."CountryId" > 0)) > 0
+    WHERE t."CountryId" = 1 AND c."Id" = t."CountryId" AND t."CountryId" > 0) > 0
 """);
     }
 
@@ -65,7 +65,7 @@ WHERE (
         SELECT k."Id", k."CountryId", k."Name", k."Species", k."EagleId", k."IsFlightless", NULL AS "Group", k."FoundOn", 'Kiwi' AS "Discriminator"
         FROM "Kiwi" AS k
     ) AS t
-    WHERE ((t."CountryId" = 1) AND (c."Id" = t."CountryId")) AND (t."CountryId" > 0)) > 0
+    WHERE t."CountryId" = 1 AND c."Id" = t."CountryId" AND t."CountryId" > 0) > 0
 """);
     }
 
@@ -126,7 +126,7 @@ WHERE (
 """
 UPDATE "Kiwi" AS k
 SET "Name" = 'Kiwi'
-WHERE (k."CountryId" = 1) AND (k."Name" = 'Great spotted kiwi')
+WHERE k."CountryId" = 1 AND k."Name" = 'Great spotted kiwi'
 """);
     }
 
@@ -147,7 +147,7 @@ WHERE (
         SELECT k."Id", k."CountryId", k."Name", k."Species", k."EagleId", k."IsFlightless", NULL AS "Group", k."FoundOn", 'Kiwi' AS "Discriminator"
         FROM "Kiwi" AS k
     ) AS t
-    WHERE ((t."CountryId" = 1) AND (c."Id" = t."CountryId")) AND (t."CountryId" > 0)) > 0
+    WHERE t."CountryId" = 1 AND c."Id" = t."CountryId" AND t."CountryId" > 0) > 0
 """);
     }
 
@@ -165,7 +165,7 @@ WHERE (
         SELECT k."Id", k."CountryId", k."Name", k."Species", k."EagleId", k."IsFlightless", NULL AS "Group", k."FoundOn", 'Kiwi' AS "Discriminator"
         FROM "Kiwi" AS k
     ) AS t
-    WHERE ((t."CountryId" = 1) AND (c."Id" = t."CountryId")) AND (t."CountryId" > 0)) > 0
+    WHERE t."CountryId" = 1 AND c."Id" = t."CountryId" AND t."CountryId" > 0) > 0
 """);
     }
 

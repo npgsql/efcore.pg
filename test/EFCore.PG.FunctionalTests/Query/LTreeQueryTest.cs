@@ -211,7 +211,7 @@ WHERE l."Path" @ 'Astro*'
 """
 SELECT l."Id", l."Path", l."PathAsString", l."SomeString"
 FROM "LTreeEntities" AS l
-WHERE (l."Path"::text || '.Astronomy') = 'Top.Science.Astronomy'
+WHERE l."Path"::text || '.Astronomy' = 'Top.Science.Astronomy'
 LIMIT 2
 """);
     }
@@ -428,7 +428,7 @@ WHERE subpath(l."Path", 0, 2) = 'Top.Science'
 """
 SELECT l."Id", l."Path", l."PathAsString", l."SomeString"
 FROM "LTreeEntities" AS l
-WHERE (nlevel(l."Path") > 2) AND (subpath(l."Path", 2) = 'Astronomy.Astrophysics')
+WHERE nlevel(l."Path") > 2 AND subpath(l."Path", 2) = 'Astronomy.Astrophysics'
 LIMIT 2
 """);
     }

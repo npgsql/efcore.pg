@@ -438,16 +438,16 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     {
         Check.NotNull(binaryExpression, nameof(binaryExpression));
 
-        var requiresBrackets = RequiresBrackets(binaryExpression.Left);
+        var requiresParentheses = RequiresParentheses(binaryExpression, binaryExpression.Left);
 
-        if (requiresBrackets)
+        if (requiresParentheses)
         {
             Sql.Append("(");
         }
 
         Visit(binaryExpression.Left);
 
-        if (requiresBrackets)
+        if (requiresParentheses)
         {
             Sql.Append(")");
         }
@@ -516,16 +516,16 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             })
             .Append(" ");
 
-        requiresBrackets = RequiresBrackets(binaryExpression.Right);
+        requiresParentheses = RequiresParentheses(binaryExpression, binaryExpression.Right);
 
-        if (requiresBrackets)
+        if (requiresParentheses)
         {
             Sql.Append("(");
         }
 
         Visit(binaryExpression.Right);
 
-        if (requiresBrackets)
+        if (requiresParentheses)
         {
             Sql.Append(")");
         }
@@ -902,16 +902,16 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     {
         Check.NotNull(unknownBinaryExpression, nameof(unknownBinaryExpression));
 
-        var requiresBrackets = RequiresBrackets(unknownBinaryExpression.Left);
+        var requiresParentheses = RequiresParentheses(unknownBinaryExpression, unknownBinaryExpression.Left);
 
-        if (requiresBrackets)
+        if (requiresParentheses)
         {
             Sql.Append("(");
         }
 
         Visit(unknownBinaryExpression.Left);
 
-        if (requiresBrackets)
+        if (requiresParentheses)
         {
             Sql.Append(")");
         }
@@ -921,16 +921,16 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             .Append(unknownBinaryExpression.Operator)
             .Append(" ");
 
-        requiresBrackets = RequiresBrackets(unknownBinaryExpression.Right);
+        requiresParentheses = RequiresParentheses(unknownBinaryExpression, unknownBinaryExpression.Right);
 
-        if (requiresBrackets)
+        if (requiresParentheses)
         {
             Sql.Append("(");
         }
 
         Visit(unknownBinaryExpression.Right);
 
-        if (requiresBrackets)
+        if (requiresParentheses)
         {
             Sql.Append(")");
         }
@@ -1023,8 +1023,132 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         return e;
     }
 
-    private static bool RequiresBrackets(SqlExpression expression)
-        => expression is SqlBinaryExpression || expression is LikeExpression || expression is PostgresBinaryExpression;
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected override bool RequiresParentheses(SqlExpression outerExpression, SqlExpression innerExpression)
+    {
+        switch (innerExpression)
+        {
+            // PG doesn't support ~-, -~, ~~, -- so we add parentheses
+            case SqlUnaryExpression innerUnary when outerExpression is SqlUnaryExpression outerUnary
+                && (innerUnary.OperatorType is ExpressionType.Negate || innerUnary.OperatorType is ExpressionType.Not && innerUnary.Type != typeof(bool))
+                && (outerUnary.OperatorType is ExpressionType.Negate || outerUnary.OperatorType is ExpressionType.Not && outerUnary.Type != typeof(bool)):
+                return true;
+
+            // Copy paste of QuerySqlGenerator.RequiresParentheses for SqlBinaryExpression
+            case PostgresBinaryExpression innerBinary:
+            {
+                // If the provider defined precedence for the two expression, use that
+                if (TryGetOperatorInfo(outerExpression, out var outerPrecedence, out var isOuterAssociative)
+                    && TryGetOperatorInfo(innerExpression, out var innerPrecedence, out _))
+                {
+                    return outerPrecedence.CompareTo(innerPrecedence) switch
+                    {
+                        > 0 => true,
+                        < 0 => false,
+
+                        // If both operators have the same precedence, add parentheses unless they're the same operator, and
+                        // that operator is associative (e.g. a + b + c)
+                        0 => outerExpression is not PostgresBinaryExpression outerBinary
+                            || outerBinary.OperatorType != innerBinary.OperatorType
+                            || !isOuterAssociative
+                            // Arithmetic operators on floating points aren't associative, because of rounding errors.
+                            || outerExpression.Type == typeof(float)
+                            || outerExpression.Type == typeof(double)
+                            || innerExpression.Type == typeof(float)
+                            || innerExpression.Type == typeof(double)
+                    };
+                }
+
+                // Otherwise always parenthesize for safety
+                return true;
+            }
+
+            default:
+                return base.RequiresParentheses(outerExpression, innerExpression);
+        }
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected override bool TryGetOperatorInfo(SqlExpression expression, out int precedence, out bool isAssociative)
+    {
+        // See https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-PRECEDENCE
+        (precedence, isAssociative) = expression switch
+        {
+            // TODO: Exponent => 1300
+
+            SqlBinaryExpression sqlBinaryExpression => sqlBinaryExpression.OperatorType switch
+            {
+                // Multiplication, division, modulo
+                ExpressionType.Multiply => (1200, true),
+                ExpressionType.Divide => (1200, false),
+                ExpressionType.Modulo => (1200, false),
+
+                // Addition, subtraction (binary)
+                ExpressionType.Add => (1100, true),
+                ExpressionType.Subtract => (1100, false),
+
+                // All other native and user-defined operators => 1000
+                ExpressionType.LeftShift => (1000, true),
+                ExpressionType.RightShift => (1000, true),
+                ExpressionType.And when sqlBinaryExpression.Type != typeof(bool) => (1000, true),
+                ExpressionType.Or when sqlBinaryExpression.Type != typeof(bool) => (1000, true),
+
+                // Comparison operators
+                ExpressionType.Equal => (800, false),
+                ExpressionType.NotEqual => (800, false),
+                ExpressionType.LessThan => (800, false),
+                ExpressionType.LessThanOrEqual => (800, false),
+                ExpressionType.GreaterThan => (800, false),
+                ExpressionType.GreaterThanOrEqual => (800, false),
+
+                // Logical operators
+                ExpressionType.AndAlso => (500, true),
+                ExpressionType.OrElse => (500, true),
+                ExpressionType.And when sqlBinaryExpression.Type == typeof(bool) => (500, true),
+                ExpressionType.Or when sqlBinaryExpression.Type == typeof(bool) => (500, true),
+
+                _ => default,
+            },
+
+            SqlUnaryExpression sqlUnaryExpression => sqlUnaryExpression.OperatorType switch
+            {
+                ExpressionType.Convert => (1600, false),
+                ExpressionType.Negate => (1400, false),
+                ExpressionType.Not when sqlUnaryExpression.Type != typeof(bool) => (1000, false),
+                ExpressionType.Equal => (700, false), // IS NULL
+                ExpressionType.NotEqual => (700, false), // IS NOT NULL
+                ExpressionType.Not when sqlUnaryExpression.Type == typeof(bool) => (600, false),
+
+                _ => default,
+            },
+
+            // There's an "any other operator" category in the PG operator precedence table, we assign that a numeric value of 1000.
+            // TODO: Some operators here may be associative
+            PostgresBinaryExpression => (1000, false),
+
+            CollateExpression => (1000, false),
+            AtTimeZoneExpression => (1000, false),
+            InExpression => (900, false),
+            PostgresJsonTraversalExpression => (1000, false),
+            PostgresArrayIndexExpression => (1500, false),
+            PostgresAllExpression or PostgresAnyExpression => (800, false),
+            LikeExpression or PostgresILikeExpression or PostgresRegexMatchExpression => (900, false),
+
+            _ => default,
+        };
+
+        return precedence != default;
+    }
 
     private void GenerateList<T>(
         IReadOnlyList<T> items,

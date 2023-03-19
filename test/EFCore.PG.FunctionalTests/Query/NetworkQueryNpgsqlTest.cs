@@ -64,7 +64,7 @@ WHERE n."Cidr" >>= @__cidr_1
 """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
-WHERE (n."Inet" = n."TextInet"::inet) OR (n."Inet" IS NULL AND n."TextInet" IS NULL)
+WHERE n."Inet" = n."TextInet"::inet OR (n."Inet" IS NULL AND n."TextInet" IS NULL)
 """);
     }
 
@@ -79,7 +79,7 @@ WHERE (n."Inet" = n."TextInet"::inet) OR (n."Inet" IS NULL AND n."TextInet" IS N
 """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
-WHERE (n."Macaddr" = n."TextMacaddr"::macaddr) OR (n."Macaddr" IS NULL AND n."TextMacaddr" IS NULL)
+WHERE n."Macaddr" = n."TextMacaddr"::macaddr OR (n."Macaddr" IS NULL AND n."TextMacaddr" IS NULL)
 """);
     }
 
@@ -784,7 +784,7 @@ FROM "NetTestEntities" AS n
 
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
-WHERE (n."Inet" = (n."Inet" & @__inet_1)) OR n."Inet" IS NULL
+WHERE n."Inet" = n."Inet" & @__inet_1 OR n."Inet" IS NULL
 """);
     }
 
@@ -925,7 +925,7 @@ FROM "NetTestEntities" AS n
 """
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE (n."Inet" + 1) = INET '192.168.1.2'
+WHERE n."Inet" + 1 = INET '192.168.1.2'
 LIMIT 2
 """);
     }
@@ -956,7 +956,7 @@ FROM "NetTestEntities" AS n
 """
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE (n."Inet" - 1) = INET '192.168.1.1'
+WHERE n."Inet" - 1 = INET '192.168.1.1'
 LIMIT 2
 """);
     }

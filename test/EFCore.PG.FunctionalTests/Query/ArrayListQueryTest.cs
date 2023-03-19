@@ -347,7 +347,7 @@ WHERE s."NonNullableText" = ANY (@__array_0)
 
 SELECT count(*)::int
 FROM "SomeEntities" AS s
-WHERE NOT (s."NonNullableText" = ANY (@__array_0) AND (s."NonNullableText" = ANY (@__array_0) IS NOT NULL))
+WHERE NOT (s."NonNullableText" = ANY (@__array_0) AND s."NonNullableText" = ANY (@__array_0) IS NOT NULL)
 """);
     }
 
@@ -393,7 +393,7 @@ WHERE s."NullableText" = ANY (@__array_0) OR (s."NullableText" IS NULL AND array
 
 SELECT count(*)::int
 FROM "SomeEntities" AS s
-WHERE NOT (s."NullableText" = ANY (@__array_0) AND (s."NullableText" = ANY (@__array_0) IS NOT NULL)) AND (s."NullableText" IS NOT NULL OR array_position(@__array_0, NULL) IS NULL)
+WHERE NOT (s."NullableText" = ANY (@__array_0) AND s."NullableText" = ANY (@__array_0) IS NOT NULL) AND (s."NullableText" IS NOT NULL OR array_position(@__array_0, NULL) IS NULL)
 """);
     }
 
