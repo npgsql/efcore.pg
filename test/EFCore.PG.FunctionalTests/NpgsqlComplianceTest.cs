@@ -16,7 +16,8 @@ public class NpgsqlComplianceTest : RelationalComplianceTestBase
 
         // Disabled
         typeof(GraphUpdatesTestBase<>),
-        typeof(ProxyGraphUpdatesTestBase<>)
+        typeof(ProxyGraphUpdatesTestBase<>),
+        typeof(OperatorsProceduralQueryTestBase),
     };
 
     protected override Assembly TargetAssembly { get; } = typeof(NpgsqlComplianceTest).Assembly;

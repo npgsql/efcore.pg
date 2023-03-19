@@ -1510,7 +1510,7 @@ GROUP BY t."Key"
 SELECT t."Key" AS "Month", COALESCE(sum(t."OrderID"), 0)::int AS "Total", (
     SELECT COALESCE(sum(o0."OrderID"), 0)::int
     FROM "Orders" AS o0
-    WHERE date_part('month', o0."OrderDate")::int = t."Key" OR ((o0."OrderDate" IS NULL) AND (t."Key" IS NULL))) AS "Payment"
+    WHERE (date_part('month', o0."OrderDate")::int = t."Key") OR (o0."OrderDate" IS NULL AND t."Key" IS NULL)) AS "Payment"
 FROM (
     SELECT o."OrderID", date_part('month', o."OrderDate")::int AS "Key"
     FROM "Orders" AS o
@@ -1582,7 +1582,7 @@ WHERE EXISTS (
     SELECT 1
     FROM "Orders" AS o0
     GROUP BY o0."CustomerID"
-    HAVING count(*)::int > 30 AND (o0."CustomerID" = o."CustomerID" OR ((o0."CustomerID" IS NULL) AND (o."CustomerID" IS NULL))))
+    HAVING (count(*)::int > 30) AND ((o0."CustomerID" = o."CustomerID") OR (o0."CustomerID" IS NULL AND o."CustomerID" IS NULL)))
 """);
     }
 
@@ -2027,7 +2027,7 @@ LEFT JOIN LATERAL (
     FROM "Products" AS p0
     GROUP BY p0."ProductID"
 ) AS t0 ON TRUE
-WHERE (o."CustomerID" IS NOT NULL) AND (o."CustomerID" LIKE 'A%')
+WHERE o."CustomerID" IS NOT NULL AND (o."CustomerID" LIKE 'A%')
 ORDER BY o."OrderID" NULLS FIRST, t."ProductID" NULLS FIRST
 """);
     }
@@ -2042,7 +2042,7 @@ SELECT NOT EXISTS (
     SELECT 1
     FROM "Orders" AS o
     GROUP BY o."CustomerID"
-    HAVING o."CustomerID" <> 'ALFKI' OR (o."CustomerID" IS NULL))
+    HAVING (o."CustomerID" <> 'ALFKI') OR o."CustomerID" IS NULL)
 """);
     }
 
@@ -2124,7 +2124,7 @@ GROUP BY o."CustomerID"
 
         AssertSql(
 """
-SELECT count(*) FILTER (WHERE o."OrderID" < 10300 AND (o."OrderDate" IS NOT NULL) AND date_part('year', o."OrderDate")::int = 1997)::int
+SELECT count(*) FILTER (WHERE (o."OrderID" < 10300) AND (o."OrderDate" IS NOT NULL AND (date_part('year', o."OrderDate")::int = 1997)))::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
 """);
@@ -2136,7 +2136,7 @@ GROUP BY o."CustomerID"
 
         AssertSql(
 """
-SELECT count(*) FILTER (WHERE o."OrderID" < 10300 AND (o."OrderDate" IS NOT NULL) AND date_part('year', o."OrderDate")::int = 1997)::int
+SELECT count(*) FILTER (WHERE (o."OrderID" < 10300) AND (o."OrderDate" IS NOT NULL AND (date_part('year', o."OrderDate")::int = 1997)))::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
 """);
@@ -2148,7 +2148,7 @@ GROUP BY o."CustomerID"
 
         AssertSql(
 """
-SELECT count(*) FILTER (WHERE o."OrderID" < 10300 AND (o."OrderDate" IS NOT NULL) AND date_part('year', o."OrderDate")::int = 1997)::int
+SELECT count(*) FILTER (WHERE (o."OrderID" < 10300) AND (o."OrderDate" IS NOT NULL AND (date_part('year', o."OrderDate")::int = 1997)))::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
 """);
@@ -2160,7 +2160,7 @@ GROUP BY o."CustomerID"
 
         AssertSql(
 """
-SELECT min(o."OrderID") FILTER (WHERE o."OrderID" < 10300 AND (o."OrderDate" IS NOT NULL) AND date_part('year', o."OrderDate")::int = 1997)
+SELECT min(o."OrderID") FILTER (WHERE (o."OrderID" < 10300) AND (o."OrderDate" IS NOT NULL AND (date_part('year', o."OrderDate")::int = 1997)))
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
 """);
@@ -2248,7 +2248,7 @@ SELECT (
     SELECT max(c."Region")
     FROM "Orders" AS o0
     LEFT JOIN "Customers" AS c ON o0."CustomerID" = c."CustomerID"
-    WHERE o."EmployeeID" = o0."EmployeeID" OR ((o."EmployeeID" IS NULL) AND (o0."EmployeeID" IS NULL))) AS max
+    WHERE (o."EmployeeID" = o0."EmployeeID") OR (o."EmployeeID" IS NULL AND o0."EmployeeID" IS NULL)) AS max
 FROM "Orders" AS o
 GROUP BY o."EmployeeID"
 """);
@@ -2263,7 +2263,7 @@ GROUP BY o."EmployeeID"
 SELECT o."EmployeeID" AS "Key", (
     SELECT max(o0."OrderID")
     FROM "Orders" AS o0
-    WHERE o0."EmployeeID"::bigint = CAST((max(o."OrderID") * 6) AS bigint) OR ((o0."EmployeeID" IS NULL) AND (max(o."OrderID") IS NULL))) AS "Max"
+    WHERE (o0."EmployeeID"::bigint = CAST(max(o."OrderID") * 6 AS bigint)) OR (o0."EmployeeID" IS NULL AND max(o."OrderID") IS NULL)) AS "Max"
 FROM "Orders" AS o
 GROUP BY o."EmployeeID"
 """);
@@ -2278,10 +2278,10 @@ GROUP BY o."EmployeeID"
 SELECT (
     SELECT e0."Title"
     FROM "Employees" AS e0
-    WHERE e0."Title" = 'Sales Representative' AND e0."EmployeeID" = 1 AND (e."Title" = e0."Title" OR ((e."Title" IS NULL) AND (e0."Title" IS NULL)))
+    WHERE ((e0."Title" = 'Sales Representative') AND (e0."EmployeeID" = 1)) AND ((e."Title" = e0."Title") OR (e."Title" IS NULL AND e0."Title" IS NULL))
     LIMIT 1)
 FROM "Employees" AS e
-WHERE e."Title" = 'Sales Representative' AND e."EmployeeID" = 1
+WHERE (e."Title" = 'Sales Representative') AND (e."EmployeeID" = 1)
 GROUP BY e."Title"
 """);
     }
@@ -2296,7 +2296,7 @@ SELECT t0."EmployeeID", t0."City", t0."Country", t0."FirstName", t0."ReportsTo",
 FROM (
     SELECT e."Title"
     FROM "Employees" AS e
-    WHERE e."Title" = 'Sales Representative' AND e."EmployeeID" = 1
+    WHERE (e."Title" = 'Sales Representative') AND (e."EmployeeID" = 1)
     GROUP BY e."Title"
 ) AS t
 LEFT JOIN (
@@ -2304,7 +2304,7 @@ LEFT JOIN (
     FROM (
         SELECT e0."EmployeeID", e0."City", e0."Country", e0."FirstName", e0."ReportsTo", e0."Title", ROW_NUMBER() OVER(PARTITION BY e0."Title" ORDER BY e0."EmployeeID" NULLS FIRST) AS row
         FROM "Employees" AS e0
-        WHERE e0."Title" = 'Sales Representative' AND e0."EmployeeID" = 1
+        WHERE (e0."Title" = 'Sales Representative') AND (e0."EmployeeID" = 1)
     ) AS t1
     WHERE t1.row <= 1
 ) AS t0 ON t."Title" = t0."Title"
@@ -2320,7 +2320,7 @@ LEFT JOIN (
 SELECT (
     SELECT e0."Title"
     FROM "Employees" AS e0
-    WHERE e0."EmployeeID" = 1 AND e."EmployeeID" = e0."EmployeeID"
+    WHERE (e0."EmployeeID" = 1) AND (e."EmployeeID" = e0."EmployeeID")
     LIMIT 1)
 FROM "Employees" AS e
 WHERE e."EmployeeID" = 1
@@ -2669,13 +2669,13 @@ GROUP BY t0."Key0"
 SELECT o."OrderID", o."OrderDate", EXISTS (
     SELECT 1
     FROM "Order Details" AS o0
-    WHERE o."OrderID" = o0."OrderID" AND o0."ProductID" < 25) AS "HasOrderDetails", (
+    WHERE (o."OrderID" = o0."OrderID") AND (o0."ProductID" < 25)) AS "HasOrderDetails", (
     SELECT count(*)::int
     FROM (
         SELECT p."ProductName"
         FROM "Order Details" AS o1
         INNER JOIN "Products" AS p ON o1."ProductID" = p."ProductID"
-        WHERE o."OrderID" = o1."OrderID" AND o1."ProductID" < 25
+        WHERE (o."OrderID" = o1."OrderID") AND (o1."ProductID" < 25)
         GROUP BY p."ProductName"
     ) AS t) > 1 AS "HasMultipleProducts"
 FROM "Orders" AS o
@@ -2915,7 +2915,7 @@ SELECT c."CustomerID" AS "Key", count(*)::int AS "Count"
 FROM "Orders" AS o
 LEFT JOIN "Customers" AS c ON o."CustomerID" = c."CustomerID"
 GROUP BY c."CustomerID"
-HAVING count(*)::int < 2 OR count(*)::int > 2
+HAVING (count(*)::int < 2) OR (count(*)::int > 2)
 """);
     }
 
@@ -2962,7 +2962,7 @@ FROM (
     FROM "Orders" AS o
     GROUP BY o."CustomerID"
 ) AS t
-INNER JOIN "Orders" AS o0 ON (t."Key" = o0."CustomerID" OR ((t."Key" IS NULL) AND (o0."CustomerID" IS NULL))) AND (t."LastOrderDate" = o0."OrderDate" OR ((t."LastOrderDate" IS NULL) AND (o0."OrderDate" IS NULL)))
+INNER JOIN "Orders" AS o0 ON ((t."Key" = o0."CustomerID") OR (t."Key" IS NULL AND o0."CustomerID" IS NULL)) AND ((t."LastOrderDate" = o0."OrderDate") OR (t."LastOrderDate" IS NULL AND o0."OrderDate" IS NULL))
 """);
     }
 
@@ -3228,11 +3228,11 @@ SELECT o."CustomerID" AS "Key", COALESCE(sum(CASE
     WHEN (2020 - date_part('year', o."OrderDate")::int) <= 30 THEN o."OrderID"
     ELSE 0
 END), 0)::int AS "Sum1", COALESCE(sum(CASE
-    WHEN (2020 - date_part('year', o."OrderDate")::int) > 30 AND (2020 - date_part('year', o."OrderDate")::int) <= 60 THEN o."OrderID"
+    WHEN ((2020 - date_part('year', o."OrderDate")::int) > 30) AND ((2020 - date_part('year', o."OrderDate")::int) <= 60) THEN o."OrderID"
     ELSE 0
 END), 0)::int AS "Sum2"
 FROM "Orders" AS o
-WHERE (o."CustomerID" IS NOT NULL) AND (o."CustomerID" LIKE 'A%')
+WHERE o."CustomerID" IS NOT NULL AND (o."CustomerID" LIKE 'A%')
 GROUP BY o."CustomerID"
 """);
     }
@@ -3418,7 +3418,7 @@ FROM (
     SELECT DISTINCT c."City"
     FROM "Orders" AS o
     LEFT JOIN "Customers" AS c ON o."CustomerID" = c."CustomerID"
-    WHERE (o."CustomerID" IS NOT NULL) AND (o."CustomerID" LIKE 'A%')
+    WHERE o."CustomerID" IS NOT NULL AND (o."CustomerID" LIKE 'A%')
 ) AS t
 LEFT JOIN LATERAL (
     SELECT p."ProductID"
@@ -3463,7 +3463,7 @@ FROM (
     SELECT o."CustomerID"
     FROM "Orders" AS o
     GROUP BY o."CustomerID"
-    HAVING (o."CustomerID" IS NOT NULL) AND (o."CustomerID" LIKE 'F%')
+    HAVING o."CustomerID" IS NOT NULL AND (o."CustomerID" LIKE 'F%')
 ) AS t
 LEFT JOIN "Orders" AS o0 ON t."CustomerID" = o0."CustomerID"
 ORDER BY t."CustomerID" NULLS FIRST
@@ -3516,7 +3516,7 @@ LEFT JOIN LATERAL (
             WHERE c."CustomerID" = o0."CustomerID"
         ) AS t0
         LEFT JOIN "Customers" AS c0 ON t0."CustomerID" = c0."CustomerID"
-        WHERE (t."Key" = t0."Key" OR ((t."Key" IS NULL) AND (t0."Key" IS NULL))) AND (COALESCE(c0."City", '') || COALESCE(t0."CustomerID", '') LIKE 'Lon%')) AS "Count", t."Key"
+        WHERE ((t."Key" = t0."Key") OR (t."Key" IS NULL AND t0."Key" IS NULL)) AND (COALESCE(c0."City", '') || COALESCE(t0."CustomerID", '') LIKE 'Lon%')) AS "Count", t."Key"
     FROM (
         SELECT o."OrderID", COALESCE(c2."City", '') || COALESCE(o."CustomerID", '') AS "Key"
         FROM "Orders" AS o
@@ -3788,7 +3788,7 @@ LEFT JOIN (
             LEFT JOIN "Customers" AS c0 ON o0."CustomerID" = c0."CustomerID"
         ) AS t3
     ) AS t2
-    WHERE 1 < t2.row AND t2.row <= 3
+    WHERE (1 < t2.row) AND (t2.row <= 3)
 ) AS t1 ON t0."Key" = t1."Key"
 ORDER BY t0."Key" NULLS FIRST, t1."OrderID" NULLS FIRST
 """);

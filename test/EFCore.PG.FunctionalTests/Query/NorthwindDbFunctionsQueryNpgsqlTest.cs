@@ -118,7 +118,7 @@ WHERE c."ContactName" ILIKE '!%' ESCAPE '!'
 """
 SELECT count(*)::int
 FROM "Customers" AS c
-WHERE c."ContactName" COLLATE "some-case-insensitive-collation" = 'maria anders'
+WHERE (c."ContactName" COLLATE "some-case-insensitive-collation") = 'maria anders'
 """);
     }
 
@@ -130,7 +130,7 @@ WHERE c."ContactName" COLLATE "some-case-insensitive-collation" = 'maria anders'
 """
 SELECT count(*)::int
 FROM "Customers" AS c
-WHERE c."ContactName" COLLATE "POSIX" = 'maria anders'
+WHERE (c."ContactName" COLLATE "POSIX") = 'maria anders'
 """);
     }
 

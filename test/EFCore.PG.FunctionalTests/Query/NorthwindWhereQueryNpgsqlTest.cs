@@ -234,7 +234,7 @@ WHERE (c."City", c."Country") = ('Sao Paulo', 'Brazil')
 """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."City" <> 'Sao Paulo' OR (c."City" IS NULL) OR c."Country" <> 'Brazil' OR (c."Country" IS NULL)
+WHERE ((c."City" <> 'Sao Paulo') OR c."City" IS NULL) OR ((c."Country" <> 'Brazil') OR c."Country" IS NULL)
 """);
     }
 
@@ -471,7 +471,7 @@ WHERE (c."City", c."CustomerID") = ('Buenos Aires', 'OCEAN')
 """
 SELECT count(*)::int
 FROM "Customers" AS c
-WHERE c."CustomerID" <> 'OCEAN' OR c."City" <> 'Buenos Aires' OR (c."City" IS NULL)
+WHERE (c."CustomerID" <> 'OCEAN') OR ((c."City" <> 'Buenos Aires') OR c."City" IS NULL)
 """);
     }
 
