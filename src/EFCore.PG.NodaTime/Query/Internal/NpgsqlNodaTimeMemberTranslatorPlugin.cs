@@ -339,7 +339,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
             // PG allows converting a timestamp directly to date, truncating the time; but given a timestamptz, it performs a time zone
             // conversion (based on TimeZone), which we don't want (so avoid translating except on timestamp).
             // The translation for ZonedDateTime.Date converts to timestamp before ending up here.
-            case "Date" when instance.TypeMapping is TimestampLocalDateTimeMapping:
+            case "Date" when instance.TypeMapping is TimestampLocalDateTimeMapping or LegacyTimestampInstantMapping:
                 return _sqlExpressionFactory.Convert(instance, typeof(LocalDate), _typeMappingSource.FindMapping(typeof(LocalDate))!);
 
             case "TimeOfDay":
