@@ -117,7 +117,7 @@ public static class NpgsqlJsonDbFunctionsExtensions
     /// A JSON column or value. Can be a <see cref="JsonDocument"/>, a string, or a user POCO mapped to JSON.
     /// </param>
     /// <param name="jsonPath">
-    /// A JSON path to search within <paramref="json" />..
+    /// A JSON path to search within <paramref name="json" />
     /// </param>
     /// <remarks>
     /// This operation is only supported with PostgreSQL <c>jsonb</c>, not <c>json</c>.
