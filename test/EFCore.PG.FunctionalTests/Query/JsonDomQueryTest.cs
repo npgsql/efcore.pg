@@ -584,6 +584,46 @@ WHERE jsonb_path_exists(j."CustomerElement", '$.Orders[*] ? (@.Price == 5)')
 """);
     }
 
+    [Fact]
+    public void JsonPathExists_with_vars()
+    {
+        using var ctx = CreateContext();
+        var price = 5;
+        var count = ctx.JsonbEntities.Count(
+            e =>
+                EF.Functions.JsonPathExists(e.CustomerElement, """$.Orders[*] ? (@.Price == $price)""", new {price}));
+
+        Assert.Equal(1, count);
+        AssertSql(
+"""
+@__p_1='{ price = 5 }' (DbType = Object)
+
+SELECT count(*)::int
+FROM "JsonbEntities" AS j
+WHERE jsonb_path_exists(j."CustomerElement", '$.Orders[*] ? (@.Price == $price)', @__p_1)
+""");
+    }
+
+    [Fact]
+    public void JsonPathExists_with_silent()
+    {
+        using var ctx = CreateContext();
+        var price = 5;
+        var count = ctx.JsonbEntities.Count(
+            e =>
+                EF.Functions.JsonPathExists(e.CustomerElement, """$.Orders[*] ? (@.Price == $price)""", new {price}, true));
+
+        Assert.Equal(1, count);
+        AssertSql(
+"""
+@__p_1='{ price = 5 }' (DbType = Object)
+
+SELECT count(*)::int
+FROM "JsonbEntities" AS j
+WHERE jsonb_path_exists(j."CustomerElement", '$.Orders[*] ? (@.Price == $price)', @__p_1, TRUE)
+""");
+    }
+
     #endregion Functions
 
     #region Support

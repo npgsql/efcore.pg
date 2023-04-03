@@ -126,4 +126,21 @@ public static class NpgsqlJsonDbFunctionsExtensions
     /// </remarks>
     public static bool JsonPathExists(this DbFunctions _, object json, string jsonPath)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonPathExists)));
+
+    /// <inheritdoc cref="JsonPathExists(Microsoft.EntityFrameworkCore.DbFunctions,object,string)"/>
+    /// <param name="vars">
+    /// must be a JSON object. Can be a <see cref="JsonDocument"/>, a string, or a user POCO mapped to JSON.
+    /// Its fields provide named values to be substituted into the jsonpath expression, field names are referenced with a `$`.
+    /// </param>
+#pragma warning disable CS1573
+    public static bool JsonPathExists(this DbFunctions _, object json, string jsonPath, object vars)
+#pragma warning restore CS1573
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonPathExists)));
+
+    /// <inheritdoc cref="JsonPathExists(Microsoft.EntityFrameworkCore.DbFunctions,object,string,object)"/>
+    /// <param name="silent">suppress the following errors: missing object field or array element, unexpected JSON item type, datetime and numeric errors.</param>
+#pragma warning disable CS1573
+    public static bool JsonPathExists(this DbFunctions _, object json, string jsonPath, object vars, bool silent)
+#pragma warning restore CS1573
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonPathExists)));
 }

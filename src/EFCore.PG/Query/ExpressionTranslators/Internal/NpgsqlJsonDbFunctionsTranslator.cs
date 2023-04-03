@@ -99,9 +99,10 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
             nameof(NpgsqlJsonDbFunctionsExtensions.JsonPathExists)
                 => _sqlExpressionFactory.Function(
                     "jsonb_path_exists",
-                    new[] { args[0], args[1] },
+                    //args could be anywhere between 2 and 4, arg 2 is user variables and needs to be converted to jsonb if it's passed in.
+                    args.Select((arg, i) => i == 2 ? Jsonb(arg) : arg),
                     nullable: false,
-                    argumentsPropagateNullability: FalseArrays[2],
+                    argumentsPropagateNullability: TrueArrays[4],
                     returnType: typeof(bool)),
             _ => null
         };

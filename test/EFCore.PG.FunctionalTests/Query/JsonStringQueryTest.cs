@@ -235,7 +235,6 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
 """);
     }
 
-
     [Fact]
     public void JsonPathExists()
     {
@@ -250,6 +249,46 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
 SELECT count(*)::int
 FROM "JsonEntities" AS j
 WHERE jsonb_path_exists(j."CustomerJsonb", '$.Orders[*] ? (@.Price == 5)')
+""");
+    }
+
+    [Fact]
+    public void JsonPathExists_with_vars()
+    {
+        using var ctx = CreateContext();
+        var price = 5;
+        var count = ctx.JsonEntities.Count(
+            e =>
+                EF.Functions.JsonPathExists(e.CustomerJsonb, """$.Orders[*] ? (@.Price == $price)""", new {price}));
+
+        Assert.Equal(1, count);
+        AssertSql(
+"""
+@__p_1='{ price = 5 }' (DbType = Object)
+
+SELECT count(*)::int
+FROM "JsonEntities" AS j
+WHERE jsonb_path_exists(j."CustomerJsonb", '$.Orders[*] ? (@.Price == $price)', @__p_1)
+""");
+    }
+
+    [Fact]
+    public void JsonPathExists_with_silent()
+    {
+        using var ctx = CreateContext();
+        var price = 5;
+        var count = ctx.JsonEntities.Count(
+            e =>
+                EF.Functions.JsonPathExists(e.CustomerJsonb, """$.Orders[*] ? (@.Price == $price)""", new {price}, true));
+
+        Assert.Equal(1, count);
+        AssertSql(
+"""
+@__p_1='{ price = 5 }' (DbType = Object)
+
+SELECT count(*)::int
+FROM "JsonEntities" AS j
+WHERE jsonb_path_exists(j."CustomerJsonb", '$.Orders[*] ? (@.Price == $price)', @__p_1, TRUE)
 """);
     }
 
