@@ -692,7 +692,7 @@ WHERE json_typeof(j."Customer"#>'{Statistics,Visits}') = 'number'
 
         Assert.Equal(1, count);
         AssertSql(
-            """
+"""
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
 WHERE jsonb_path_exists(j."Customer", '$.Orders[*] ? (@.Price == 5)')

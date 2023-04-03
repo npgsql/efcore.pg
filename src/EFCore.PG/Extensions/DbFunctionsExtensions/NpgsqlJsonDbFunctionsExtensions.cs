@@ -110,14 +110,14 @@ public static class NpgsqlJsonDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonTypeof)));
 
     /// <summary>
-    /// Returns true if the JSON value matches the JSON Path expression
+    /// Checks whether the JSON path returns any item for the specified JSON value.
     /// </summary>
     /// <param name="_">DbFunctions instance</param>
     /// <param name="json">
     /// A JSON column or value. Can be a <see cref="JsonDocument"/>, a string, or a user POCO mapped to JSON.
     /// </param>
     /// <param name="jsonPath">
-    /// JSON Path query, if the test is true then the function will return true for the given JSON value
+    /// A JSON path to search within <paramref="json" />..
     /// </param>
     /// <remarks>
     /// This operation is only supported with PostgreSQL <c>jsonb</c>, not <c>json</c>.
