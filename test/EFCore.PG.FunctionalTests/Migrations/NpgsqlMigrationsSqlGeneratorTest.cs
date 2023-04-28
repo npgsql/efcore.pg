@@ -468,6 +468,19 @@ WHERE "First Name" = 'Daenerys';
         // https://github.com/npgsql/efcore.pg/issues/1478
     }
 
+    public override void Sequence_restart_operation(long? startsAt)
+    {
+        base.Sequence_restart_operation(startsAt);
+
+        AssertSql(
+            startsAt.HasValue
+                ? $"""
+ALTER SEQUENCE dbo."TestRestartSequenceOperation" START WITH {startsAt};
+ALTER SEQUENCE dbo."TestRestartSequenceOperation" RESTART;
+"""
+                : """ALTER SEQUENCE dbo."TestRestartSequenceOperation" RESTART;""");
+    }
+
     // Which index collations are available on a given PostgreSQL varies (e.g. Linux vs. Windows)
     // so we test support for this on the generated SQL only, and not against the database in MigrationsNpgsqlTest.
     [Fact]

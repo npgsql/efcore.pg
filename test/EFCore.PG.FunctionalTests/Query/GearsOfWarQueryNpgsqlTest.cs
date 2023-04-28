@@ -207,6 +207,12 @@ FROM "Missions" AS m
 """);
     }
 
+    public override Task DateTimeOffset_to_unix_time_milliseconds(bool async)
+        => AssertTranslationFailed(() => base.DateTimeOffset_to_unix_time_milliseconds(async));
+
+    public override Task DateTimeOffset_to_unix_time_seconds(bool async)
+        => AssertTranslationFailed(() => base.DateTimeOffset_to_unix_time_seconds(async));
+
     #endregion DateTimeOffset
 
     #region DateTime
