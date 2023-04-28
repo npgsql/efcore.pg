@@ -101,6 +101,12 @@ WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC') > TIMESTAMPTZ '0001-01-
     public override Task Where_datetimeoffset_millisecond_component(bool async)
         => Assert.ThrowsAsync<InvalidOperationException>(() => base.Where_datetimeoffset_millisecond_component(async));
 
+    public override Task DateTimeOffset_to_unix_time_milliseconds(bool async)
+        => AssertTranslationFailed(() => base.DateTimeOffset_to_unix_time_milliseconds(async));
+
+    public override Task DateTimeOffset_to_unix_time_seconds(bool async)
+        => AssertTranslationFailed(() => base.DateTimeOffset_to_unix_time_seconds(async));
+
     // Test runs successfully, but some time difference and precision issues and fail the assertion
     public override Task Where_TimeSpan_Hours(bool async)
         => Task.CompletedTask;

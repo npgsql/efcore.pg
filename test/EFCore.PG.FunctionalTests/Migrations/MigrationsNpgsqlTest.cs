@@ -2548,7 +2548,7 @@ END $EF$;
             model =>
             {
                 var sequence = Assert.Single(model.Sequences);
-                Assert.Equal(1, sequence.StartValue); // Restarting doesn't change the scaffolded start value
+                Assert.Equal(-3, sequence.StartValue);
                 Assert.Equal(2, sequence.IncrementBy);
                 Assert.Equal(-5, sequence.MinValue);
                 Assert.Equal(10, sequence.MaxValue);
@@ -2556,9 +2556,14 @@ END $EF$;
             });
 
         AssertSql(
-            @"ALTER SEQUENCE foo INCREMENT BY 2 MINVALUE -5 MAXVALUE 10 CYCLE;",
+"""
+ALTER SEQUENCE foo INCREMENT BY 2 MINVALUE -5 MAXVALUE 10 CYCLE;
+""",
             //
-            @"ALTER SEQUENCE foo RESTART WITH -3;");
+"""
+ALTER SEQUENCE foo START WITH -3;
+ALTER SEQUENCE foo RESTART;
+""");
     }
 
     public override async Task Alter_sequence_increment_by()
@@ -2567,6 +2572,17 @@ END $EF$;
 
         AssertSql(
             @"ALTER SEQUENCE foo INCREMENT BY 2 NO MINVALUE NO MAXVALUE NO CYCLE;");
+    }
+
+    public override async Task Alter_sequence_restart_with()
+    {
+        await base.Alter_sequence_restart_with();
+
+        AssertSql(
+"""
+ALTER SEQUENCE foo START WITH 3;
+ALTER SEQUENCE foo RESTART;
+""");
     }
 
     public override async Task Drop_sequence()
