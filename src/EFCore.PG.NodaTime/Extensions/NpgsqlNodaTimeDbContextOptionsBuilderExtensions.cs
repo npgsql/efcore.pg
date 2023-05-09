@@ -10,7 +10,7 @@ namespace Microsoft.EntityFrameworkCore;
 public static class NpgsqlNodaTimeDbContextOptionsBuilderExtensions
 {
     /// <summary>
-    /// Use NetTopologySuite to access SQL Server spatial data.
+    /// Configure NodaTime type mappings for Entity Framework.
     /// </summary>
     /// <returns> The options builder so that further configuration can be chained. </returns>
     public static NpgsqlDbContextOptionsBuilder UseNodaTime(
