@@ -10,8 +10,4 @@ public class NorthwindCompiledQueryNpgsqlTest : NorthwindCompiledQueryTestBase<N
         Fixture.TestSqlLoggerFactory.Clear();
         //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
-
-    // This one fails in a different way than what EF expects, since we do support array indexing,
-    // but not over object arrays.
-    public override void MakeBinary_does_not_throw_for_unsupported_operator() {}
 }
