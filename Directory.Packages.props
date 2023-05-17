@@ -22,7 +22,7 @@
     <PackageVersion Include="Npgsql.DependencyInjection" Version="$(NpgsqlVersion)" />
 
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
     <PackageVersion Include="xunit" Version="2.4.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.1.0" />
