@@ -474,10 +474,7 @@ WHERE cardinality(p."Ints"[2:]) = 2
 """
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
 FROM "PrimitiveCollectionsEntity" AS p
-WHERE EXISTS (
-    SELECT 1
-    FROM unnest(p."Ints"[:2]) AS i(value)
-    WHERE i.value = 11)
+WHERE 11 = ANY (p."Ints"[:2])
 """);
     }
 
@@ -489,10 +486,7 @@ WHERE EXISTS (
 """
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
 FROM "PrimitiveCollectionsEntity" AS p
-WHERE EXISTS (
-    SELECT 1
-    FROM unnest(p."Ints"[2:3]) AS i(value)
-    WHERE i.value = 11)
+WHERE 11 = ANY (p."Ints"[2:3])
 """);
     }
 

@@ -202,7 +202,6 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                     }
                     when sourceColumn.Table == sourceTable:
                 {
-                    //s.IntArray @> ARRAY[v.Value]
                     return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.ContainedBy(GetArray(sourceTable), otherArray));
                 }
 
@@ -541,7 +540,6 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     /// </summary>
     protected override ShapedQueryExpression? TranslateCount(ShapedQueryExpression source, LambdaExpression? predicate)
     {
-        // TODO: Does json_array_length pass through here? Most probably not, since it's not mapped with ElementTypeMapping...
         // Simplify x.Array.Count() => cardinality(x.Array) instead of SELECT COUNT(*) FROM unnest(x.Array)
         if (predicate is null && source.QueryExpression is SelectExpression
             {
@@ -630,7 +628,6 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         Expression index,
         bool returnDefault)
     {
-        // TODO: Does json_array_length pass through here? Most probably not, since it's not mapped with ElementTypeMapping...
         // Simplify x.Array[1] => x.Array[1] (using the PG array subscript operator) instead of a subquery with LIMIT/OFFSET
         if (!returnDefault && source.QueryExpression is SelectExpression
             {
@@ -766,37 +763,25 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 Orderings: [],
                 Limit: null,
                 Offset: null
-            } selectExpression
+            }
+            && TryGetProjectedColumn(source, out var projectedColumn)
             && TranslateExpression(count) is { } translatedCount)
         {
-            // Extract the column projected out of the source, and simplify the subquery to a simple JsonScalarExpression
-            var shaperExpression = source.ShaperExpression;
-            if (shaperExpression is UnaryExpression { NodeType: ExpressionType.Convert } unaryExpression
-                && unaryExpression.Operand.Type.IsNullableType()
-                && unaryExpression.Operand.Type.UnwrapNullableType() == unaryExpression.Type)
-            {
-                shaperExpression = unaryExpression.Operand;
-            }
+            var selectExpression = new SelectExpression(
+                new PostgresUnnestExpression(
+                    unnestExpression.Alias,
+                    new PostgresArraySliceExpression(
+                        array,
+                        lowerBound: GenerateOneBasedIndexExpression(translatedCount),
+                        upperBound: null),
+                    "value"),
+                "value",
+                projectedColumn.Type,
+                projectedColumn.TypeMapping);
 
-            if (shaperExpression is ProjectionBindingExpression projectionBindingExpression
-                && selectExpression.GetProjection(projectionBindingExpression) is SqlExpression projection)
-            {
-                selectExpression = new SelectExpression(
-                    new PostgresUnnestExpression(
-                        unnestExpression.Alias,
-                        new PostgresArraySliceExpression(
-                            array,
-                            lowerBound: GenerateOneBasedIndexExpression(translatedCount),
-                            upperBound: null),
-                        "value"),
-                    "value",
-                    projection.Type,
-                    projection.TypeMapping);
-
-                return source.Update(
-                    selectExpression,
-                    new ProjectionBindingExpression(selectExpression, new ProjectionMember(), projection.Type));
-            }
+            return source.Update(
+                selectExpression,
+                new ProjectionBindingExpression(selectExpression, new ProjectionMember(), projectedColumn.Type));
         }
 
         return base.TranslateSkip(source, count);
@@ -863,12 +848,15 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 sliceExpression = new PostgresArraySliceExpression(array, lowerBound: null, upperBound: translatedCount);
             }
 
-            return source.UpdateQueryExpression(
-                new SelectExpression(
-                    new PostgresUnnestExpression(unnestExpression.Alias, sliceExpression, "value"),
-                    "value",
-                    projectedColumn.Type,
-                    projectedColumn.TypeMapping));
+            var selectExpression = new SelectExpression(
+                new PostgresUnnestExpression(unnestExpression.Alias, sliceExpression, "value"),
+                "value",
+                projectedColumn.Type,
+                projectedColumn.TypeMapping);
+
+            return source.Update(
+                selectExpression,
+                new ProjectionBindingExpression(selectExpression, new ProjectionMember(), projectedColumn.Type));
         }
 
         return base.TranslateTake(source, count);
