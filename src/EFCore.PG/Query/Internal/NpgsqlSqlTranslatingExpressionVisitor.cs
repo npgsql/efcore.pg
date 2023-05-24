@@ -30,22 +30,9 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     private static readonly ConstructorInfo DateOnlyCtor =
         typeof(DateOnly).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
 
-    private static readonly MethodInfo Like2MethodInfo =
-        typeof(DbFunctionsExtensions).GetRuntimeMethod(
-            nameof(DbFunctionsExtensions.Like), new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
-
-    // ReSharper disable once InconsistentNaming
-    private static readonly MethodInfo ILike2MethodInfo
-        = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
-            nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
-
-    private static readonly MethodInfo ObjectEquals
-        = typeof(object).GetRuntimeMethod(nameof(object.Equals), new[] { typeof(object), typeof(object) })!;
-
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
     private readonly IRelationalTypeMappingSource _typeMappingSource;
     private readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
-    private readonly NpgsqlLTreeTranslator _ltreeTranslator;
 
     private readonly RelationalTypeMapping _timestampMapping;
     private readonly RelationalTypeMapping _timestampTzMapping;
@@ -66,7 +53,6 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     {
         _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
         _jsonPocoTranslator = ((NpgsqlMemberTranslatorProvider)Dependencies.MemberTranslatorProvider).JsonPocoTranslator;
-        _ltreeTranslator = ((NpgsqlMethodCallTranslatorProvider)Dependencies.MethodCallTranslatorProvider).LTreeTranslator;
         _typeMappingSource = dependencies.TypeMappingSource;
         _timestampMapping = _typeMappingSource.FindMapping("timestamp without time zone")!;
         _timestampTzMapping = _typeMappingSource.FindMapping("timestamp with time zone")!;
