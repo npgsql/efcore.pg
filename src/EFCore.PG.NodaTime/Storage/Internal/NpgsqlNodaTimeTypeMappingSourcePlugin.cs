@@ -57,6 +57,9 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
     private readonly PeriodIntervalMapping _periodInterval = new();
     private readonly DurationIntervalMapping _durationInterval = new();
 
+    // PostgreSQL has no native type for representing time zones - it just uses the IANA ID as text.
+    private readonly DateTimeZoneMapping _timeZone = new("text");
+
     // Built-in ranges
     private readonly NpgsqlRangeTypeMapping _timestampLocalDateTimeRange;
     private readonly NpgsqlRangeTypeMapping _legacyTimestampInstantRange;
@@ -199,6 +202,7 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
             { typeof(OffsetTime), _timetz },
             { typeof(Period), _periodInterval },
             { typeof(Duration), _durationInterval },
+            // See DateTimeZone below
 
             { typeof(NpgsqlRange<Instant>), LegacyTimestampBehavior ? _legacyTimestampInstantRange : _timestamptzInstantRange },
             { typeof(NpgsqlRange<LocalDateTime>), _timestampLocalDateTimeRange },
@@ -290,9 +294,20 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
             }
         }
 
-        return clrType is not null && ClrTypeMappings.TryGetValue(clrType, out var mapping)
-            ? mapping
-            : null;
+        if (clrType is not null)
+        {
+            if (ClrTypeMappings.TryGetValue(clrType, out var mapping))
+            {
+                return mapping;
+            }
+
+            if (clrType.IsAssignableTo(typeof(DateTimeZone)))
+            {
+                return _timeZone;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

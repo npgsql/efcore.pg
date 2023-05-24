@@ -589,6 +589,33 @@ public class NpgsqlNodaTimeTypeMappingTest
 
     #endregion interval
 
+    #region DateTimeZone
+
+    [Fact]
+    public void DateTimeZone_is_properly_mapped()
+    {
+        var mapping = GetMapping(typeof(DateTimeZone));
+
+        Assert.Same(typeof(DateTimeZone), mapping.ClrType);
+        Assert.Equal("text", mapping.StoreType);
+    }
+
+    [Fact]
+    public void GenerateSqlLiteral_returns_DateTimeZone_literal()
+    {
+        var mapping = GetMapping(typeof(DateTimeZone));
+
+        Assert.Equal("Europe/Berlin", mapping.GenerateSqlLiteral(DateTimeZoneProviders.Tzdb["Europe/Berlin"]));
+    }
+
+    [Fact]
+    public void GenerateCodeLiteral_returns_DateTimezone_literal()
+        => Assert.Equal(
+            """NodaTime.DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Berlin")""",
+            CodeLiteral(DateTimeZoneProviders.Tzdb["Europe/Berlin"]));
+
+    #endregion
+
     #region Support
 
     private static readonly NpgsqlTypeMappingSource Mapper = new(
