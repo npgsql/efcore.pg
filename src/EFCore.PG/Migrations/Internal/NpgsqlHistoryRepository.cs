@@ -31,26 +31,17 @@ public class NpgsqlHistoryRepository : HistoryRepository
     {
         get
         {
-            var builder = new StringBuilder();
-
-            builder.Append("SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE ");
-
             var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
-            if (TableSchema is not null)
-            {
-                builder
-                    .Append("n.nspname=")
-                    .Append(stringTypeMapping.GenerateSqlLiteral(TableSchema))
-                    .Append(" AND ");
-            }
-
-            builder
-                .Append("c.relname=")
-                .Append(stringTypeMapping.GenerateSqlLiteral(TableName))
-                .Append(");");
-
-            return builder.ToString();
+            return
+$"""
+SELECT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname={stringTypeMapping.GenerateSqlLiteral(TableSchema ?? "public")} AND
+          c.relname={stringTypeMapping.GenerateSqlLiteral(TableName)}
+)
+""";
         }
     }
 
