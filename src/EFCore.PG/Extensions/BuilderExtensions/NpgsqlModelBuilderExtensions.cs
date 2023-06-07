@@ -295,23 +295,18 @@ public static class NpgsqlModelBuilderExtensions
     /// <param name="modelBuilder">The model builder in which to define the extension.</param>
     /// <param name="schema">The schema in which to create the extension.</param>
     /// <param name="name">The name of the extension to create.</param>
-    /// <param name="version">The version of the extension.</param>
+    /// <param name="version">The extension version. Defaults to the latest installed, and is very rarely needed.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
     /// <remarks>
     /// See: https://www.postgresql.org/docs/current/external-extensions.html
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="modelBuilder"/></exception>
     public static ModelBuilder HasPostgresExtension(
         this ModelBuilder modelBuilder,
         string? schema,
         string name,
         string? version = null)
     {
-        Check.NotNull(modelBuilder, nameof(modelBuilder));
-        Check.NullButNotEmpty(schema, nameof(schema));
-        Check.NotEmpty(name, nameof(name));
-
-        modelBuilder.Model.GetOrAddPostgresExtension(schema, name, version);
+        HasPostgresExtension(modelBuilder.Model, name, schema, version, ConfigurationSource.Explicit);
 
         return modelBuilder;
     }
@@ -325,82 +320,61 @@ public static class NpgsqlModelBuilderExtensions
     /// <remarks>
     /// See: https://www.postgresql.org/docs/current/external-extensions.html
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="modelBuilder"/></exception>
-    public static ModelBuilder HasPostgresExtension(
-        this ModelBuilder modelBuilder,
-        string name)
-        => modelBuilder.HasPostgresExtension(null, name);
-
-    /// <summary>
-    /// Registers a PostgreSQL extension in the model.
-    /// </summary>
-    /// <param name="modelBuilder">The model builder in which to define the extension.</param>
-    /// <param name="schema">The schema in which to create the extension.</param>
-    /// <param name="name">The name of the extension to create.</param>
-    /// <param name="version">The version of the extension.</param>
-    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
-    /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-    /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/external-extensions.html
-    /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="modelBuilder"/></exception>
-    public static IConventionModelBuilder? HasPostgresExtension(
-        this IConventionModelBuilder modelBuilder,
-        string? schema,
-        string name,
-        string? version = null,
-        bool fromDataAnnotation = false)
+    public static ModelBuilder HasPostgresExtension(this ModelBuilder modelBuilder, string name)
     {
-        if (modelBuilder.CanSetPostgresExtension(schema, name, version, fromDataAnnotation))
-        {
-            modelBuilder.Metadata.GetOrAddPostgresExtension(schema, name, version);
-            return modelBuilder;
-        }
+        HasPostgresExtension(modelBuilder.Model, name, schema: null, version: null, ConfigurationSource.Explicit);
 
-        return null;
+        return modelBuilder;
     }
 
     /// <summary>
     /// Registers a PostgreSQL extension in the model.
     /// </summary>
     /// <param name="modelBuilder">The model builder in which to define the extension.</param>
+    /// <param name="schema">The schema in which to create the extension.</param>
     /// <param name="name">The name of the extension to create.</param>
+    /// <param name="version">The version of the extension.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
     /// <remarks>
     /// See: https://www.postgresql.org/docs/current/external-extensions.html
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="modelBuilder"/></exception>
-    public static IConventionModelBuilder? HasPostgresExtension(
+    public static IConventionModelBuilder HasPostgresExtension(
         this IConventionModelBuilder modelBuilder,
         string name,
-        bool fromDataAnnotation = false)
-        => modelBuilder.HasPostgresExtension(schema: null, name, version: null, fromDataAnnotation);
-
-    /// <summary>
-    ///     Returns a value indicating whether the given PostgreSQL extension can be registered in the model.
-    /// </summary>
-    /// <remarks>
-    ///     See <see href="https://aka.ms/efcore-docs-modeling">Modeling entity types and relationships</see>, and
-    ///     <see href="https://aka.ms/efcore-docs-sqlserver">Accessing SQL Server and SQL Azure databases with EF Core</see>
-    ///     for more information and examples.
-    /// </remarks>
-    /// <param name="modelBuilder">The model builder.</param>
-    /// <param name="schema">The schema in which to create the extension.</param>
-    /// <param name="name">The name of the extension to create.</param>
-    /// <param name="version">The version of the extension.</param>
-    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
-    /// <returns><see langword="true" /> if the given value can be set as the default increment for SQL Server IDENTITY.</returns>
-    public static bool CanSetPostgresExtension(
-        this IConventionModelBuilder modelBuilder,
-        string? schema,
-        string name,
+        string? schema = null,
         string? version = null,
         bool fromDataAnnotation = false)
     {
-        var annotationName = PostgresExtension.BuildAnnotationName(schema, name);
+        HasPostgresExtension(
+            (IMutableModel)modelBuilder.Metadata,
+            name,
+            schema,
+            version,
+            fromDataAnnotation ? ConfigurationSource.DataAnnotation : ConfigurationSource.Convention);
 
-        return modelBuilder.CanSetAnnotation(annotationName, $"{schema},{name},{version}", fromDataAnnotation);
+        return modelBuilder;
+    }
+
+    private static void HasPostgresExtension(
+        IMutableModel model,
+        string name,
+        string? schema,
+        string? version,
+        ConfigurationSource configurationSource)
+    {
+        Check.NullButNotEmpty(schema, nameof(schema));
+        Check.NotEmpty(name, nameof(name));
+
+        var postgresExtension = (PostgresExtension?)PostgresExtension.FindPostgresExtension(model, name, schema);
+        if (postgresExtension is not null)
+        {
+            postgresExtension.UpdateConfigurationSource(configurationSource);
+            return;
+        }
+
+        PostgresExtension.AddPostgresExtension(model, name, schema, version, configurationSource);
     }
 
     #endregion

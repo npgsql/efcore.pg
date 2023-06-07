@@ -271,34 +271,8 @@ public static class NpgsqlModelExtensions
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public static PostgresExtension GetOrAddPostgresExtension(
-        this IMutableModel model,
-        string? schema,
-        string name,
-        string? version)
-        => PostgresExtension.GetOrAddPostgresExtension(model, schema, name, version);
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public static IReadOnlyList<PostgresExtension> GetPostgresExtensions(this IReadOnlyModel model)
+    public static IReadOnlyList<IPostgresExtension> GetPostgresExtensions(this IReadOnlyModel model)
         => PostgresExtension.GetPostgresExtensions(model).ToArray();
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public static PostgresExtension GetOrAddPostgresExtension(
-        this IConventionModel model,
-        string? schema,
-        string name,
-        string? version)
-        => PostgresExtension.GetOrAddPostgresExtension(model, schema, name, version);
 
     #endregion
 

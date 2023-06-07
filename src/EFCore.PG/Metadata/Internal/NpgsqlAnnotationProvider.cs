@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
@@ -217,14 +218,30 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
     {
         if (!designTime)
         {
-            return Array.Empty<IAnnotation>();
+            yield break;
         }
 
-        return model.Model.GetAnnotations().Where(
-            a =>
-                a.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal)
-                || a.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal)
-                || a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal)
-                || a.Name.StartsWith(NpgsqlAnnotationNames.CollationDefinitionPrefix, StringComparison.Ordinal));
+        // If only the extension name is given (the 99% case), just integrate the name directly. Otherwise integrate an array with
+        // the name, schema and version.
+        var postgresExtensions = PostgresExtension.GetPostgresExtensions(model.Model).ToArray();
+        if (postgresExtensions.Length > 0)
+        {
+            yield return new Annotation(
+                NpgsqlAnnotationNames.PostgresExtensions,
+                postgresExtensions.All(e => e.Schema is null && e.Version is null)
+                    ? postgresExtensions.Select(e => e.Name).ToArray()
+                    : postgresExtensions.Select(
+                        e => e.Schema is null && e.Version is null ? (object)e.Name : new[] { e.Name, e.Schema, e.Version }).ToArray());
+        }
+
+        foreach (var annotation in model.Model.GetAnnotations())
+        {
+            if (annotation.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal)
+                || annotation.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal)
+                || annotation.Name.StartsWith(NpgsqlAnnotationNames.CollationDefinitionPrefix, StringComparison.Ordinal))
+            {
+                yield return annotation;
+            }
+        }
     }
 }

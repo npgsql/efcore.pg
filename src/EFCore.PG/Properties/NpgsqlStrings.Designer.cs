@@ -164,7 +164,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
                 entityType, sproc);
 
         /// <summary>
-        ///     The entity type '{entityType}' is mapped to the stored procedure '{sproc}', which is configured with result columns. PostgreSQL stored procedures do not support return values; use output parameters instead.
+        ///     The entity type '{entityType}' is mapped to the stored procedure '{sproc}', which is configured with a return value. PostgreSQL stored procedures do not support return values; use an output parameter instead.
         /// </summary>
         public static string StoredProcedureReturnValueNotSupported(object? entityType, object? sproc)
             => string.Format(

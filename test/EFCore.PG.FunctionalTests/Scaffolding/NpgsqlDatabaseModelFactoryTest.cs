@@ -1964,7 +1964,7 @@ CREATE EXTENSION pgcrypto SCHEMA db2;
             Enumerable.Empty<string>(),
             dbModel =>
             {
-                var extensions = dbModel.GetPostgresExtensions();
+                var extensions = PostgresExtension.GetPostgresExtensions(dbModel);
                 Assert.Collection(extensions.OrderBy(e => e.Name),
                     e =>
                     {

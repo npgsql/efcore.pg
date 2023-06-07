@@ -2,6 +2,7 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
@@ -160,7 +161,7 @@ FROM pg_collation coll
 
     protected override string BuildCustomSql(DatabaseModel databaseModel)
         // Some extensions create tables (e.g. PostGIS), so we must drop them first.
-        => databaseModel.GetPostgresExtensions()
+        => PostgresExtension.GetPostgresExtensions(databaseModel)
             .Select(e => _sqlGenerationHelper.DelimitIdentifier(e.Name, e.Schema))
             .Aggregate(new StringBuilder(),
                 (builder, s) => builder.Append("DROP EXTENSION ").Append(s).Append(";"),
