@@ -12,8 +12,6 @@ public class EnumQueryTest : QueryTestBase<EnumQueryTest.EnumFixture>
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    #region Roundtrip
-
     [Fact]
     public void Roundtrip()
     {
@@ -21,10 +19,6 @@ public class EnumQueryTest : QueryTestBase<EnumQueryTest.EnumFixture>
         var x = ctx.SomeEntities.Single(e => e.Id == 1);
         Assert.Equal(MappedEnum.Happy, x.MappedEnum);
     }
-
-    #endregion
-
-    #region Where
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
@@ -39,7 +33,7 @@ public class EnumQueryTest : QueryTestBase<EnumQueryTest.EnumFixture>
 
         AssertSql(
 """
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."GloballyMappedEnum", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."MappedEnum" = 'sad'::test.mapped_enum
 """);
@@ -58,7 +52,7 @@ WHERE s."MappedEnum" = 'sad'::test.mapped_enum
 
         AssertSql(
 """
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."GloballyMappedEnum", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."SchemaQualifiedEnum" = 'Happy (PgName)'::test.schema_qualified_enum
 """);
@@ -80,7 +74,7 @@ WHERE s."SchemaQualifiedEnum" = 'Happy (PgName)'::test.schema_qualified_enum
 """
 @__sad_0='Sad' (DbType = Object)
 
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."GloballyMappedEnum", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."MappedEnum" = @__sad_0
 """);
@@ -102,7 +96,7 @@ WHERE s."MappedEnum" = @__sad_0
 """
 @__sad_0='1'
 
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."GloballyMappedEnum", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."UnmappedEnum" = @__sad_0
 """);
@@ -124,7 +118,7 @@ WHERE s."UnmappedEnum" = @__sad_0
 """
 @__sad_0='1'
 
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."GloballyMappedEnum", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."UnmappedEnum" = @__sad_0
 """);
@@ -146,7 +140,7 @@ WHERE s."UnmappedEnum" = @__sad_0
 """
 @__sad_0='Sad' (DbType = Object)
 
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."GloballyMappedEnum", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."MappedEnum" = @__sad_0
 """);
@@ -166,7 +160,7 @@ WHERE s."MappedEnum" = @__sad_0
 
         AssertSql(
 """
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."GloballyMappedEnum", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
 WHERE strpos(s."MappedEnum"::text, 'sa') > 0
 """);
@@ -189,7 +183,7 @@ WHERE strpos(s."MappedEnum"::text, 'sa') > 0
 """
 @__values_0='0x01' (DbType = Object)
 
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."GloballyMappedEnum", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."ByteEnum" = ANY (@__values_0)
 """);
@@ -211,13 +205,30 @@ WHERE s."ByteEnum" = ANY (@__values_0)
 """
 @__values_0='0x01' (DbType = Object)
 
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."GloballyMappedEnum", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."UnmappedByteEnum" = ANY (@__values_0)
 """);
     }
 
-    #endregion
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Global_enum_mapping(bool async)
+    {
+        using var ctx = CreateContext();
+
+        await AssertQuery(
+            async,
+            ss => ss.Set<SomeEnumEntity>().Where(e => e.GloballyMappedEnum == GloballyMappedEnum.Sad),
+            entryCount: 1);
+
+        AssertSql(
+            """
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."GloballyMappedEnum", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+FROM test."SomeEntities" AS s
+WHERE s."GloballyMappedEnum" = 'sad'::test.globally_mapped_enum
+""");
+    }
 
     #region Support
 
@@ -234,21 +245,20 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
         static EnumContext()
         {
 #pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<MappedEnum>("test.mapped_enum");
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<InferredEnum>("test.inferred_enum");
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<ByteEnum>("test.byte_enum");
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<SchemaQualifiedEnum>("test.schema_qualified_enum");
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<GloballyMappedEnum>("test.globally_mapped_enum");
 #pragma warning restore CS0618
         }
 
         public EnumContext(DbContextOptions options) : base(options) {}
 
         protected override void OnModelCreating(ModelBuilder builder)
-            => builder.HasPostgresEnum("mapped_enum", new[] { "happy", "sad" })
+            => builder
+                .HasPostgresEnum("mapped_enum", new[] { "happy", "sad" })
                 .HasPostgresEnum<InferredEnum>()
                 .HasPostgresEnum<ByteEnum>()
                 .HasDefaultSchema("test")
-                .HasPostgresEnum<SchemaQualifiedEnum>();
+                .HasPostgresEnum<SchemaQualifiedEnum>()
+                .HasPostgresEnum<GloballyMappedEnum>();
 
         public static void Seed(EnumContext context)
         {
@@ -270,6 +280,7 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
         public ByteEnum ByteEnum { get; set; }
         public UnmappedByteEnum UnmappedByteEnum { get; set; }
         public int EnumValue { get; set; }
+        public GloballyMappedEnum GloballyMappedEnum { get; set; }
     }
 
     public enum MappedEnum
@@ -285,6 +296,12 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
     }
 
     public enum InferredEnum
+    {
+        Happy,
+        Sad
+    }
+
+    public enum GloballyMappedEnum
     {
         Happy,
         Sad
@@ -313,7 +330,16 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
     public class EnumFixture : SharedStoreFixtureBase<EnumContext>, IQueryFixtureBase
     {
         protected override string StoreName => "EnumQueryTest";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.WithDataSourceConfiguration(
+                b =>
+                    b
+                        .MapEnum<MappedEnum>("test.mapped_enum")
+                        .MapEnum<InferredEnum>("test.inferred_enum")
+                        .MapEnum<ByteEnum>("test.byte_enum")
+                        .MapEnum<SchemaQualifiedEnum>("test.schema_qualified_enum"));
+
         public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
 
         private EnumData _expectedData;
@@ -350,6 +376,7 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
                             Assert.Equal(ee.ByteEnum, aa.ByteEnum);
                             Assert.Equal(ee.UnmappedByteEnum, aa.UnmappedByteEnum);
                             Assert.Equal(ee.EnumValue, aa.EnumValue);
+                            Assert.Equal(ee.GloballyMappedEnum, aa.GloballyMappedEnum);
                         }
                     }
                 }
@@ -386,7 +413,8 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
                     SchemaQualifiedEnum = SchemaQualifiedEnum.Happy,
                     ByteEnum = ByteEnum.Happy,
                     UnmappedByteEnum = UnmappedByteEnum.Happy,
-                    EnumValue = (int)MappedEnum.Happy
+                    EnumValue = (int)MappedEnum.Happy,
+                    GloballyMappedEnum = GloballyMappedEnum.Happy
                 },
                 new()
                 {
@@ -397,7 +425,8 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
                     SchemaQualifiedEnum = SchemaQualifiedEnum.Sad,
                     ByteEnum = ByteEnum.Sad,
                     UnmappedByteEnum = UnmappedByteEnum.Sad,
-                    EnumValue = (int)MappedEnum.Sad
+                    EnumValue = (int)MappedEnum.Sad,
+                    GloballyMappedEnum = GloballyMappedEnum.Sad
                 }
             };
     }
