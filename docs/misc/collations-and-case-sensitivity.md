@@ -51,7 +51,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 }
 ```
 
-Unfortunately, the database collation is quote limited in PostgreSQL; it notably does not support non-deterministic collations (e.g. case-insensitive ones). To work around this limitation, you can use EF Core's [pre-convention model configuration](https://docs.microsoft.com/ef/core/modeling/bulk-configuration#pre-convention-configuration) feature:
+Unfortunately, the database collation is quite limited in PostgreSQL; it notably does not support non-deterministic collations (e.g. case-insensitive ones). To work around this limitation, you can use EF Core's [pre-convention model configuration](https://docs.microsoft.com/ef/core/modeling/bulk-configuration#pre-convention-configuration) feature:
 
 ```c#
 protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
