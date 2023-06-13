@@ -114,7 +114,7 @@ public class NpgsqlMacaddr8TypeMapping : NpgsqlTypeMapping
 }
 
 /// <summary>
-/// The type mapping for the PostgreSQL inet type.
+/// The type mapping for the PostgreSQL inet and cidr types.
 /// </summary>
 /// <remarks>
 /// See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-INET
@@ -127,7 +127,7 @@ public class NpgsqlInetTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlInetTypeMapping() : base("inet", typeof(IPAddress), NpgsqlDbType.Inet) {}
+    public NpgsqlInetTypeMapping(string storeType, Type clrType, NpgsqlDbType npgsqlDbType) : base(storeType, clrType, npgsqlDbType) {}
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -135,63 +135,8 @@ public class NpgsqlInetTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected NpgsqlInetTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Inet) {}
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-        => new NpgsqlInetTypeMapping(parameters);
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    protected override string GenerateNonNullSqlLiteral(object value)
-        => $"INET '{(IPAddress)value}'";
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public override Expression GenerateCodeLiteral(object value)
-        => Expression.Call(ParseMethod, Expression.Constant(((IPAddress)value).ToString()));
-
-    private static readonly MethodInfo ParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) })!;
-}
-
-/// <summary>
-/// The type mapping for the PostgreSQL cidr type.
-/// </summary>
-/// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-CIDR
-/// </remarks>
-public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
-{
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public NpgsqlCidrTypeMapping() : base("cidr", typeof((IPAddress, int)), NpgsqlDbType.Cidr) {}
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    protected NpgsqlCidrTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Cidr) {}
+    protected NpgsqlInetTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
+        : base(parameters, npgsqlDbType) {}
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -200,7 +145,7 @@ public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-        => new NpgsqlCidrTypeMapping(parameters);
+        => new NpgsqlInetTypeMapping(parameters, NpgsqlDbType);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -210,8 +155,18 @@ public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
     {
-        var cidr = ((IPAddress Address, int Subnet))value;
-        return $"CIDR '{cidr.Address}/{cidr.Subnet}'";
+        switch (value)
+        {
+            case (IPAddress address, int subnet):
+                return $"{StoreType.ToUpperInvariant()} '{address}/{subnet}'";
+            
+            case IPAddress address:
+                return $"INET '{address}'";
+            
+            default:
+                throw new InvalidCastException(
+                    $"Attempted to generate {StoreType} literal for type {value.GetType()}");
+        }
     }
 
     /// <summary>
@@ -222,15 +177,18 @@ public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
     /// </summary>
     public override Expression GenerateCodeLiteral(object value)
     {
-        var cidr = ((IPAddress Address, int Subnet))value;
-        return Expression.New(
-            Constructor,
-            Expression.Call(ParseMethod, Expression.Constant(cidr.Address.ToString())),
-            Expression.Constant(cidr.Subnet));
+        if (value is (IPAddress address, int subnet))
+        {
+            return Expression.New(
+                MaskConstructor,
+                Expression.Call(ParseMethod, Expression.Constant(address.ToString())),
+                Expression.Constant(subnet));
+        }
+        
+        return Expression.Call(ParseMethod, Expression.Constant(((IPAddress)value).ToString()));
     }
 
     private static readonly MethodInfo ParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) })!;
-
-    private static readonly ConstructorInfo Constructor =
+    private static readonly ConstructorInfo MaskConstructor =
         typeof((IPAddress, int)).GetConstructor(new[] { typeof(IPAddress), typeof(int) })!;
 }

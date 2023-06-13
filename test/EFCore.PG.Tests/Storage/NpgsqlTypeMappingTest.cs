@@ -254,6 +254,14 @@ public class NpgsqlTypeMappingTest
         => Assert.Equal(@"System.Net.IPAddress.Parse(""192.168.1.1"")", CodeLiteral(IPAddress.Parse("192.168.1.1")));
 
     [Fact]
+    public void GenerateSqlLiteral_returns_inet_masked_literal()
+        => Assert.Equal("INET '192.168.1.1/24'", GetMapping(typeof((IPAddress, int)), "inet").GenerateSqlLiteral((IPAddress.Parse("192.168.1.1"), 24)));
+
+    [Fact]
+    public void GenerateCodeLiteral_returns_inet_masked_literal()
+        => Assert.Equal(@"(System.Net.IPAddress.Parse(""192.168.1.1""), 24)", CodeLiteral((IPAddress.Parse("192.168.1.1"), 24)));
+
+    [Fact]
     public void GenerateSqlLiteral_returns_cidr_literal()
         => Assert.Equal("CIDR '192.168.1.0/24'", GetMapping("cidr").GenerateSqlLiteral((IPAddress.Parse("192.168.1.0"), 24)));
 
