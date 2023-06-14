@@ -12,17 +12,41 @@ Beyond NodaTime's general advantages, some specific advantages NodaTime for Post
 
 ## Setup
 
-To set up the NodaTime plugin, add the [Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime nuget](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime) to your project. Then, make the following modification to your `UseNpgsql()` line:
+To set up the NodaTime plugin, add the [Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime nuget](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime) to your project. Then, configure NodaTime as follows:
+
+### [NpgsqlDataSource](#tab/with-datasource)
+
+Since version 7.0, NpgsqlDataSource is the recommended way to use Npgsql. When using NpsgqlDataSource, NodaTime currently has to be configured twice - once at the EF level, and once at the underlying ADO.NET level (there are plans to improve this):
 
 ```c#
-protected override void OnConfiguring(DbContextOptionsBuilder builder)
-{
-    builder.UseNpgsql("Host=localhost;Database=test;Username=npgsql_tests;Password=npgsql_tests",
-        o => o.UseNodaTime());
-}
+// Call UseNodaTime() when building your data source:
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(/* connection string */);
+dataSourceBuilder.UseNodaTime();
+var dataSource = dataSourceBuilder.Build();
+
+// Then, when configuring EF Core with UseNpgsql(), call UseNodaTime() there as well:
+builder.Services.AddDbContext<MyContext>(options =>
+    options.UseNpgsql(dataSource, o => o.UseNodaTime()));
 ```
 
-This will set up all the necessary mappings and operation translators. You can now use NodaTime types as regular properties in your entities, and even perform some operations:
+### [Without NpgsqlDatasource](#tab/without-datasource)
+
+Since version 7.0, NpgsqlDataSource is the recommended way to use Npgsql. However, if you're not yet using NpgsqlDataSource, configure NodaTime as follows:
+
+```c#
+// Configure NodaTime at the ADO.NET level.
+// This code must be placed at the beginning of your application, before any other Npgsql API is called; an appropriate place for this is in the static constructor on your DbContext class:
+static MyDbContext()
+    => NpgsqlConnection.GlobalTypeMapper.UseNodaTime();
+
+// Then, when configuring EF Core with UseNpgsql(), call UseNodaTime():
+builder.Services.AddDbContext<MyContext>(options =>
+    options.UseNpgsql(/* connection string */, o => o.UseNodaTime()));
+```
+
+***
+
+The above sets up all the necessary mappings and operation translators. You can now use NodaTime types as regular properties in your entities, and even perform some operations:
 
 ```c#
 public class Post

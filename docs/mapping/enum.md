@@ -8,21 +8,10 @@ However, the Npgsql provider also allows you to map your CLR enums to [database 
 
 First, you must specify the PostgreSQL enum type on your model, just like you would with tables, sequences or other databases objects:
 
-### [Version 2.2+](#tab/tabid-1)
-
 ```c#
 protected override void OnModelCreating(ModelBuilder builder)
     => builder.HasPostgresEnum<Mood>();
 ```
-
-### [Version 2.1](#tab/tabid-2)
-
-```c#
-protected override void OnModelCreating(ModelBuilder builder)
-    => builder.HasPostgresEnum("mood", new[] { "happy", "sad" });
-```
-
----
 
 This causes the EF Core provider to create your enum type, `mood`, with two labels: `happy` and `sad`. This will cause the appropriate migration to be created.
 
@@ -40,12 +29,31 @@ using (var conn = (NpgsqlConnection)context.Database.GetDbConnection())
 
 ## Mapping your enum
 
-Even if your database enum is created, Npgsql has to know about it, and especially about your CLR enum type that should be mapped to it. This is done by adding the following code, *before* any EF Core operations take place. An appropriate place for this is in the static constructor on your DbContext class:
+Even if your database enum is created, Npgsql has to know about it, and especially about your CLR enum type that should be mapped to it:
+
+### [NpgsqlDataSource](#tab/with-datasource)
+
+Since version 7.0, NpgsqlDataSource is the recommended way to use Npgsql. When using NpgsqlDataSource, map your enum when building your data source:
+
+```c#
+// Call UseNodaTime() when building your data source:
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(/* connection string */);
+dataSourceBuilder.MapEnum<Mood>();
+var dataSource = dataSourceBuilder.Build();
+
+builder.Services.AddDbContext<MyContext>(options => options.UseNpgsql(dataSource));
+```
+
+### [Without NpgsqlDatasource](#tab/without-datasource)
+
+Since version 7.0, NpgsqlDataSource is the recommended way to use Npgsql. However, if you're not yet using NpgsqlDataSource, map enums by adding the following code, *before* any EF Core operations take place. An appropriate place for this is in the static constructor on your DbContext class:
 
 ```c#
 static MyDbContext()
     => NpgsqlConnection.GlobalTypeMapper.MapEnum<Mood>();
 ```
+
+***
 
 This code lets Npgsql know that your CLR enum type, `Mood`, should be mapped to a database enum called `mood`. Note that if your enum is in a custom schema (not `public`), you must specify that schema in the call to `MapEnum`.
 
