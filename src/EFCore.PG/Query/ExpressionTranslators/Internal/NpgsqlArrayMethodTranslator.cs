@@ -17,7 +17,7 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
     // ReSharper disable InconsistentNaming
     private static readonly MethodInfo Array_IndexOf1 =
         typeof(Array).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(m => m.Name == nameof(Array.IndexOf) && m.IsGenericMethod && m.GetParameters().Length == 2);
+            .Single(m => m is { Name: nameof(Array.IndexOf), IsGenericMethod: true } && m.GetParameters().Length == 2);
 
     private static readonly MethodInfo Array_IndexOf2 =
         typeof(Array).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)

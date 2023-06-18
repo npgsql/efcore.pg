@@ -30,7 +30,7 @@ public class EnumQueryTest : QueryTestBase<EnumQueryTest.EnumFixture>
     [MemberData(nameof(IsAsyncData))]
     public async Task Where_with_constant(bool async)
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         await AssertQuery(
             async,
@@ -49,7 +49,7 @@ WHERE s."MappedEnum" = 'sad'::test.mapped_enum
     [MemberData(nameof(IsAsyncData))]
     public async Task Where_with_constant_schema_qualified(bool async)
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         await AssertQuery(
             async,
@@ -68,7 +68,7 @@ WHERE s."SchemaQualifiedEnum" = 'Happy (PgName)'::test.schema_qualified_enum
     [MemberData(nameof(IsAsyncData))]
     public async Task Where_with_parameter(bool async)
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         var sad = MappedEnum.Sad;
         await AssertQuery(
@@ -90,7 +90,7 @@ WHERE s."MappedEnum" = @__sad_0
     [MemberData(nameof(IsAsyncData))]
     public async Task Where_with_unmapped_enum_parameter_downcasts_are_implicit(bool async)
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         var sad = UnmappedEnum.Sad;
         await AssertQuery(
@@ -112,7 +112,7 @@ WHERE s."UnmappedEnum" = @__sad_0
     [MemberData(nameof(IsAsyncData))]
     public async Task Where_with_unmapped_enum_parameter_downcasts_do_not_matter(bool async)
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         var sad = UnmappedEnum.Sad;
         await AssertQuery(
@@ -134,7 +134,7 @@ WHERE s."UnmappedEnum" = @__sad_0
     [MemberData(nameof(IsAsyncData))]
     public async Task Where_with_mapped_enum_parameter_downcasts_do_not_matter(bool async)
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         var sad = MappedEnum.Sad;
         await AssertQuery(
@@ -156,7 +156,7 @@ WHERE s."MappedEnum" = @__sad_0
     [MemberData(nameof(IsAsyncData))]
     public async Task Enum_ToString(bool async)
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         await AssertQuery(
             async,
@@ -177,7 +177,7 @@ WHERE strpos(s."MappedEnum"::text, 'sa') > 0
     [MemberData(nameof(IsAsyncData))]
     public async Task Where_byte_enum_array_contains_enum(bool async)
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         var values = new[] { ByteEnum.Sad };
         await AssertQuery(
@@ -199,7 +199,7 @@ WHERE s."ByteEnum" = ANY (@__values_0)
     [MemberData(nameof(IsAsyncData))]
     public async Task Where_unmapped_byte_enum_array_contains_enum(bool async)
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         var values = new[] { UnmappedByteEnum.Sad };
         await AssertQuery(

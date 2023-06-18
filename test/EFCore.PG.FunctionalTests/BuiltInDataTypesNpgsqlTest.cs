@@ -13,7 +13,7 @@ public class BuiltInDataTypesNpgsqlTest : BuiltInDataTypesTestBase<BuiltInDataTy
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     [Fact]

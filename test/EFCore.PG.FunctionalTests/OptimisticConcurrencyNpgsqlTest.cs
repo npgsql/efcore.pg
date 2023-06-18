@@ -31,17 +31,17 @@ public abstract class OptimisticConcurrencyNpgsqlTestBase<TFixture, TRowVersion>
     [ConditionalFact]
     public async Task Modifying_concurrency_token_only_is_noop()
     {
-        using var c = CreateF1Context();
+        await using var c = CreateF1Context();
         await c.Database.CreateExecutionStrategy().ExecuteAsync(
             c, async context =>
             {
-                using var transaction = context.Database.BeginTransaction();
+                await using var transaction = context.Database.BeginTransaction();
                 var driver = context.Drivers.Single(d => d.CarNumber == 1);
                 driver.Podiums = StorePodiums;
                 var firstVersion = context.Entry(driver).Property<TRowVersion>("Version").CurrentValue;
                 await context.SaveChangesAsync();
 
-                using var innerContext = CreateF1Context();
+                await using var innerContext = CreateF1Context();
                 innerContext.Database.UseTransaction(transaction.GetDbTransaction());
                 driver = innerContext.Drivers.Single(d => d.CarNumber == 1);
                 Assert.NotEqual(firstVersion, innerContext.Entry(driver).Property<TRowVersion>("Version").CurrentValue);
@@ -50,7 +50,7 @@ public abstract class OptimisticConcurrencyNpgsqlTestBase<TFixture, TRowVersion>
                 var secondVersion = innerContext.Entry(driver).Property<TRowVersion>("Version").CurrentValue;
                 innerContext.Entry(driver).Property<TRowVersion>("Version").CurrentValue = firstVersion;
                 await innerContext.SaveChangesAsync();
-                using var validationContext = CreateF1Context();
+                await using var validationContext = CreateF1Context();
                 validationContext.Database.UseTransaction(transaction.GetDbTransaction());
                 driver = validationContext.Drivers.Single(d => d.CarNumber == 1);
                 Assert.Equal(secondVersion, validationContext.Entry(driver).Property<TRowVersion>("Version").CurrentValue);
@@ -61,11 +61,11 @@ public abstract class OptimisticConcurrencyNpgsqlTestBase<TFixture, TRowVersion>
     [ConditionalFact]
     public async Task Database_concurrency_token_value_is_updated_for_all_sharing_entities()
     {
-        using var c = CreateF1Context();
+        await using var c = CreateF1Context();
         await c.Database.CreateExecutionStrategy().ExecuteAsync(
             c, async context =>
             {
-                using var transaction = context.Database.BeginTransaction();
+                await using var transaction = context.Database.BeginTransaction();
                 var sponsor = context.Set<TitleSponsor>().Single();
                 var sponsorEntry = c.Entry(sponsor);
                 var detailsEntry = sponsorEntry.Reference(s => s.Details).TargetEntry;
@@ -95,11 +95,11 @@ public abstract class OptimisticConcurrencyNpgsqlTestBase<TFixture, TRowVersion>
     [ConditionalFact]
     public async Task Original_concurrency_token_value_is_used_when_replacing_owned_instance()
     {
-        using var c = CreateF1Context();
+        await using var c = CreateF1Context();
         await c.Database.CreateExecutionStrategy().ExecuteAsync(
             c, async context =>
             {
-                using var transaction = context.Database.BeginTransaction();
+                await using var transaction = context.Database.BeginTransaction();
                 var sponsor = context.Set<TitleSponsor>().Single();
                 var sponsorEntry = c.Entry(sponsor);
                 var sponsorVersion = sponsorEntry.Property<TRowVersion>("Version").CurrentValue;

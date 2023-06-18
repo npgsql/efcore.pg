@@ -708,7 +708,7 @@ WHERE m."Time" - TIME '10:00:00' = INTERVAL '00:15:50.5'
     public virtual async Task TimeOnly_FromTimeSpan()
     {
         // We cannot evaluate TimeOnly.FromTimeSpan in .NET since there are some rows were the result is a day or more.
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         var id = (await ctx.Set<Mission>().Where(m => TimeOnly.FromTimeSpan(m.Duration) == new TimeOnly(1, 2, 3)).SingleAsync()).Id;
         Assert.Equal(1, id);

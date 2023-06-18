@@ -464,13 +464,11 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             .Append(binaryExpression.OperatorType switch
             {
                 PostgresExpressionType.Contains
-                    when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping ||
-                    binaryExpression.Left.TypeMapping is NpgsqlCidrTypeMapping
+                    when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping or NpgsqlCidrTypeMapping
                     => ">>",
 
                 PostgresExpressionType.ContainedBy
-                    when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping ||
-                    binaryExpression.Left.TypeMapping is NpgsqlCidrTypeMapping
+                    when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping or NpgsqlCidrTypeMapping
                     => "<<",
 
                 PostgresExpressionType.Contains    => "@>",
@@ -500,9 +498,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
                 PostgresExpressionType.LTreeMatches
                     when binaryExpression.Right.TypeMapping.StoreType == "lquery" ||
-                    binaryExpression.Right.TypeMapping is NpgsqlArrayTypeMapping arrayMapping &&
-                    arrayMapping.ElementTypeMapping.StoreType == "lquery"
-                    => "~",
+                    binaryExpression.Right.TypeMapping is NpgsqlArrayTypeMapping { ElementTypeMapping.StoreType: "lquery" } => "~",
                 PostgresExpressionType.LTreeMatches
                     when binaryExpression.Right.TypeMapping.StoreType == "ltxtquery"
                     => "@",

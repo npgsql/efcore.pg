@@ -2,7 +2,7 @@
 
 public class NpgsqlTestStoreFactory : RelationalTestStoreFactory
 {
-    private string _connectionStringOptions;
+    private readonly string _connectionStringOptions;
 
     public static NpgsqlTestStoreFactory Instance { get; } = new();
 

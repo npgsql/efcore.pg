@@ -13,7 +13,7 @@ public class StoreValueGenerationNpgsqlTest : StoreValueGenerationTestBase<
         : base(fixture)
     {
         fixture.TestSqlLoggerFactory.Clear();
-        // fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     protected override bool ShouldCreateImplicitTransaction(

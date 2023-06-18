@@ -72,8 +72,7 @@ internal static class Check
         IReadOnlyCollection<T>? value,
         [InvokerParameterName] string parameterName)
     {
-        if (!ReferenceEquals(value, null)
-            && (value.Count == 0))
+        if (value is { Count: 0 })
         {
             NotEmpty(parameterName, nameof(parameterName));
 

@@ -14,7 +14,7 @@ public class MigrationsNpgsqlTest : MigrationsTestBase<MigrationsNpgsqlTest.Migr
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     #region Table

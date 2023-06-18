@@ -310,7 +310,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
     private static Task<IEnumerable<T>> QueryAsync<T>(DbConnection connection, string sql, object[] parameters = null)
         => ExecuteAsync(connection, async command =>
         {
-            using (var dataReader = await command.ExecuteReaderAsync())
+            await using (var dataReader = await command.ExecuteReaderAsync())
             {
                 var results = Enumerable.Empty<T>();
                 while (await dataReader.ReadAsync())
@@ -374,10 +374,10 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
         await connection.OpenAsync();
         try
         {
-            using (var transaction = useTransaction ? connection.BeginTransaction() : null)
+            await using (var transaction = useTransaction ? connection.BeginTransaction() : null)
             {
                 T result;
-                using (var command = CreateCommand(connection, sql, parameters))
+                await using (var command = CreateCommand(connection, sql, parameters))
                 {
                     result = await executeAsync(command);
                 }

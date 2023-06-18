@@ -28,7 +28,7 @@ public class FromSqlQueryNpgsqlTest : FromSqlQueryTestBase<NorthwindQueryNpgsqlF
         var startDate = new NpgsqlParameter { Value = new DateTime(1997, 1, 1), NpgsqlDbType = NpgsqlDbType.Timestamp };
         var endDate = new NpgsqlParameter { Value = new DateTime(1998, 1, 1), NpgsqlDbType = NpgsqlDbType.Timestamp };
 
-        using var context = CreateContext();
+        await using var context = CreateContext();
         var query
             = from c in context.Set<Customer>().FromSqlRaw(
                   NormalizeDelimitersInRawString("SELECT * FROM [Customers] WHERE [City] = {0}"), city)
@@ -74,7 +74,7 @@ public class FromSqlQueryNpgsqlTest : FromSqlQueryTestBase<NorthwindQueryNpgsqlF
         var startDate = new NpgsqlParameter { Value = new DateTime(1997, 1, 1), NpgsqlDbType = NpgsqlDbType.Timestamp };
         var endDate = new NpgsqlParameter { Value = new DateTime(1998, 1, 1), NpgsqlDbType = NpgsqlDbType.Timestamp };
 
-        using var context = CreateContext();
+        await using var context = CreateContext();
         var query
             = from c in context.Set<Customer>().FromSqlRaw(
                   NormalizeDelimitersInRawString("SELECT * FROM [Customers] WHERE [City] = {0}"), city)
@@ -118,7 +118,7 @@ public class FromSqlQueryNpgsqlTest : FromSqlQueryTestBase<NorthwindQueryNpgsqlF
         var startDate = new NpgsqlParameter { Value = new DateTime(1997, 1, 1), NpgsqlDbType = NpgsqlDbType.Timestamp };
         var endDate = new NpgsqlParameter { Value = new DateTime(1998, 1, 1), NpgsqlDbType = NpgsqlDbType.Timestamp };
 
-        using var context = CreateContext();
+        await using var context = CreateContext();
         var query = from c in context.Set<Customer>().FromSqlRaw(
                         NormalizeDelimitersInRawString("SELECT * FROM [Customers] WHERE [City] = {0}"), city)
                     from o in context.Set<Order>().FromSqlRaw(
@@ -161,7 +161,7 @@ public class FromSqlQueryNpgsqlTest : FromSqlQueryTestBase<NorthwindQueryNpgsqlF
         var startDate = new NpgsqlParameter { Value = new DateTime(1997, 1, 1), NpgsqlDbType = NpgsqlDbType.Timestamp };
         var endDate = new NpgsqlParameter { Value = new DateTime(1998, 1, 1), NpgsqlDbType = NpgsqlDbType.Timestamp };
 
-        using var context = CreateContext();
+        await using var context = CreateContext();
         var query = from c in context.Set<Customer>().FromSqlRaw(NormalizeDelimitersInRawString("SELECT * FROM [Customers]"))
                     from o in context.Set<Order>().FromSqlRaw(
                         NormalizeDelimitersInRawString("SELECT * FROM [Orders] WHERE [OrderDate] BETWEEN {0} AND {1}"),

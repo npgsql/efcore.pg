@@ -94,7 +94,6 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
     public virtual void Validate(IDbContextOptions options)
     {
         var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new();
-        var coreOptions = options.FindExtension<CoreOptionsExtension>() ?? new();
 
         if (PostgresVersion != npgsqlOptions.PostgresVersion)
         {

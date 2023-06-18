@@ -56,7 +56,7 @@ public class TimestampQueryTest : QueryTestBase<TimestampQueryTest.TimestampQuer
     [ConditionalFact]
     public async Task Cannot_insert_utc_datetime_into_timestamp()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         ctx.Entities.Add(new() { TimestampDateTime = DateTime.UtcNow });
         var exception = await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
@@ -66,7 +66,7 @@ public class TimestampQueryTest : QueryTestBase<TimestampQueryTest.TimestampQuer
     [ConditionalFact]
     public async Task Cannot_insert_unspecified_datetime_into_timestamptz()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         ctx.Entities.Add(new() { TimestamptzDateTime = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified) });
         var exception = await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
@@ -76,7 +76,7 @@ public class TimestampQueryTest : QueryTestBase<TimestampQueryTest.TimestampQuer
     [ConditionalFact]
     public async Task Cannot_insert_local_datetime_into_timestamptz()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         ctx.Entities.Add(new() { TimestamptzDateTime = DateTime.Now });
         var exception = await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
@@ -152,7 +152,7 @@ WHERE e."TimestampDateTime" = @__dateTime_0
     [ConditionalFact]
     public async Task Cannot_compare_timestamp_column_to_utc_DateTime_literal()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         await Assert.ThrowsAsync<InvalidCastException>(
             () => ctx.Entities.Where(e => e.TimestampDateTime == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc))
@@ -162,7 +162,7 @@ WHERE e."TimestampDateTime" = @__dateTime_0
     [ConditionalFact]
     public async Task Cannot_compare_timestamp_column_to_utc_DateTime_parameter()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         var dateTime = new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc);
 
@@ -212,7 +212,7 @@ WHERE e."TimestamptzDateTime" = @__dateTime_0
     [ConditionalFact]
     public async Task Cannot_compare_timestamptz_column_to_local_DateTime_literal()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         await Assert.ThrowsAsync<InvalidCastException>(
             () => ctx.Entities.Where(e => e.TimestamptzDateTime == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Local))
@@ -222,7 +222,7 @@ WHERE e."TimestamptzDateTime" = @__dateTime_0
     [ConditionalFact]
     public async Task Cannot_compare_timestamptz_column_to_local_DateTime_parameter()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         var dateTime = new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Local);
 
@@ -234,7 +234,7 @@ WHERE e."TimestamptzDateTime" = @__dateTime_0
     [ConditionalFact]
     public async Task Cannot_compare_timestamptz_column_to_unspecified_DateTime_literal()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         await Assert.ThrowsAsync<InvalidCastException>(
             () => ctx.Entities.Where(e => e.TimestamptzDateTime == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Unspecified))
@@ -244,7 +244,7 @@ WHERE e."TimestamptzDateTime" = @__dateTime_0
     [ConditionalFact]
     public async Task Cannot_compare_timestamptz_column_to_unspecified_DateTime_parameter()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         var dateTime = new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Unspecified);
 
@@ -256,7 +256,7 @@ WHERE e."TimestamptzDateTime" = @__dateTime_0
     [ConditionalFact]
     public async Task Cannot_compare_timestamptz_column_to_timestamp_column()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         await Assert.ThrowsAsync<NotSupportedException>(
             () => ctx.Entities.Where(e => e.TimestamptzDateTime == e.TimestampDateTime)
@@ -266,7 +266,7 @@ WHERE e."TimestamptzDateTime" = @__dateTime_0
     [ConditionalFact]
     public async Task Compare_timestamptz_column_to_timestamp_column_with_ToUniversalTime()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         // We can't use AssertQuery since the local (expected) evaluation is dependent on the machine's timezone, which is out of
         // our control.
@@ -287,7 +287,7 @@ WHERE e."TimestamptzDateTime" = e."TimestampDateTime"::timestamptz
     [ConditionalFact]
     public async Task Compare_timestamptz_column_to_timestamp_column_with_ToLocalTime()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         // We can't use AssertQuery since the local (expected) evaluation is dependent on the machine's timezone, which is out of
         // our control.
@@ -613,7 +613,7 @@ WHERE e."TimestamptzDateTime" AT TIME ZONE 'UTC' = TIMESTAMP '1998-04-12 13:26:3
     [ConditionalFact]
     public async Task DateTime_SpecifyKind_with_parameter_kind_throws()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         var kind = DateTimeKind.Local;
 
@@ -649,7 +649,7 @@ WHERE e."TimestamptzDateTime" AT TIME ZONE 'Europe/Berlin' = TIMESTAMP '1998-04-
     [ConditionalFact]
     public virtual async Task Where_ConvertTimeBySystemTimeZoneId_fails_on_DateTime_timestamp_column()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => ctx.Set<Entity>().Where(
@@ -662,7 +662,7 @@ WHERE e."TimestamptzDateTime" AT TIME ZONE 'Europe/Berlin' = TIMESTAMP '1998-04-
     {
         // We can't use AssertQuery since the local (expected) evaluation is dependent on the machine's timezone, which is out of
         // our control.
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         var count = await ctx.Set<Entity>()
             .Where(e => TimeZoneInfo.ConvertTimeToUtc(e.TimestampDateTime) == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc))
@@ -681,7 +681,7 @@ WHERE e."TimestampDateTime"::timestamptz = TIMESTAMPTZ '1998-04-12 13:26:38Z'
     [ConditionalFact]
     public virtual async Task Where_ConvertTimeToUtc_fails_on_DateTime_timestamptz_column()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => ctx.Set<Entity>().Where(

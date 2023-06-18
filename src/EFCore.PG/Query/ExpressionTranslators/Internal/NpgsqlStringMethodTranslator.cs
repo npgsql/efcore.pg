@@ -74,10 +74,10 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
         typeof(string).GetMethod(nameof(string.Join), new[] { typeof(char), typeof(string[]) })!;
     private static readonly MethodInfo String_Join_generic1 =
         typeof(string).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(m => m.Name == nameof(string.Join) && m.IsGenericMethod && m.GetParameters().Length == 2 && m.GetParameters()[0].ParameterType == typeof(string));
+            .Single(m => m is { Name: nameof(string.Join), IsGenericMethod: true } && m.GetParameters().Length == 2 && m.GetParameters()[0].ParameterType == typeof(string));
     private static readonly MethodInfo String_Join_generic2 =
         typeof(string).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(m => m.Name == nameof(string.Join) && m.IsGenericMethod && m.GetParameters().Length == 2 && m.GetParameters()[0].ParameterType == typeof(char));
+            .Single(m => m is { Name: nameof(string.Join), IsGenericMethod: true } && m.GetParameters().Length == 2 && m.GetParameters()[0].ParameterType == typeof(char));
     // ReSharper restore InconsistentNaming
 
     #endregion
@@ -501,7 +501,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
             : _sqlExpressionFactory.Equal(leftRight, castPattern);
     }
 
-    private bool IsLikeWildChar(char c) => c == '%' || c == '_';
+    private bool IsLikeWildChar(char c) => c is '%' or '_';
 
     private string EscapeLikePattern(string pattern)
     {

@@ -169,7 +169,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
         builder.Append("CREATE ");
 
-        if (operation[NpgsqlAnnotationNames.UnloggedTable] is bool unlogged && unlogged)
+        if (operation[NpgsqlAnnotationNames.UnloggedTable] is true)
         {
             builder.Append("UNLOGGED ");
         }
@@ -312,8 +312,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
 
         // Unlogged table (null is equivalent to false)
-        var oldUnlogged = operation.OldTable[NpgsqlAnnotationNames.UnloggedTable] is bool ou && ou;
-        var newUnlogged = operation[NpgsqlAnnotationNames.UnloggedTable] is bool nu && nu;
+        var oldUnlogged = operation.OldTable[NpgsqlAnnotationNames.UnloggedTable] is true;
+        var newUnlogged = operation[NpgsqlAnnotationNames.UnloggedTable] is true;
 
         if (oldUnlogged != newUnlogged)
         {
@@ -511,14 +511,14 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             builder.AppendLine(";");
         }
 
-        if (operation.IsNullable && !operation.OldColumn.IsNullable)
+        if (operation is { IsNullable: true, OldColumn.IsNullable: false })
         {
             builder
                 .Append(alterBase)
                 .Append("DROP NOT NULL")
                 .AppendLine(";");
         }
-        else if (!operation.IsNullable && operation.OldColumn.IsNullable)
+        else if (operation is { IsNullable: false, OldColumn.IsNullable: true })
         {
             // The column is being made non-nullable. Generate an update statement before doing that, to convert any existing null values to
             // the default value (otherwise PostgreSQL fails).
@@ -2046,7 +2046,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
             // Of the built-in access methods, only btree (the default) supports
             // sorting, thus we only want to emit sort options for btree indexes.
-            if (method is null || method == "btree")
+            if (method is null or "btree")
             {
                 if (column.IsDescending)
                 {

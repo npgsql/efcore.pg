@@ -34,7 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [ConditionalFact]
         public virtual async Task Where_datetime_now()
         {
-            using var ctx = CreateContext();
+            await using var ctx = CreateContext();
 
             // Because we can't play around with the LegacyTimestampBehavior flag at the ADO level (different assembly already compile in
             // RELEASE), we need to make the ADO layer happy by sending a UTC DateTime - but it should be the same with non-UTC in legacy.
@@ -55,7 +55,7 @@ WHERE now() <> @__myDatetime_0
         [ConditionalFact]
         public virtual async Task Where_datetime_utcnow()
         {
-            using var ctx = CreateContext();
+            await using var ctx = CreateContext();
 
             var myDatetime = new DateTime(2015, 4, 10);
 

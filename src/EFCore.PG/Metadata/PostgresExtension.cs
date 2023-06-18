@@ -192,7 +192,7 @@ public class PostgresExtension
         }
 
         // TODO: Can't actually use schema and name...they might not be set when this is first called.
-        var schemaNameValue = value.Split(',').Select(x => x.Trim()).Select(x => x == "" || x == "''" ? null : x).ToArray();
+        var schemaNameValue = value.Split(',').Select(x => x.Trim()).Select(x => x is "" or "''" ? null : x).ToArray();
         var schemaAndName = annotation.Name.Substring(NpgsqlAnnotationNames.PostgresExtensionPrefix.Length).Split('.');
         switch (schemaAndName.Length)
         {
