@@ -11,7 +11,7 @@ public class NorthwindBulkUpdatesNpgsqlTest : NorthwindBulkUpdatesTestBase<North
         : base(fixture)
     {
         ClearLog();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     public override async Task Delete_Where_TagWith(bool async)

@@ -681,7 +681,7 @@ WHERE s."NullableText" ILIKE ANY (ARRAY['a%','b%','c%']::text[])
 
     public override async Task Any_like_anonymous(bool async)
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         var patternsActual = new[] { "a%", "b%", "c%" };
         var patternsExpected = new[] { "a", "b", "c" };

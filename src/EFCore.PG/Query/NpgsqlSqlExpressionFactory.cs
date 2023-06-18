@@ -431,14 +431,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                     || leftType == typeof(TimeOnly)
                 )
                 || rightType.FullName == "NodaTime.Period"
-                && (
-                    leftType.FullName == "NodaTime.LocalDateTime"
-                    || leftType.FullName == "NodaTime.LocalDate"
-                    || leftType.FullName == "NodaTime.LocalTime")
+                && leftType.FullName is "NodaTime.LocalDateTime" or "NodaTime.LocalDate" or "NodaTime.LocalTime"
                 || rightType.FullName == "NodaTime.Duration"
-                && (
-                    leftType.FullName == "NodaTime.Instant"
-                    || leftType.FullName == "NodaTime.ZonedDateTime"))
+                && leftType.FullName is "NodaTime.Instant" or "NodaTime.ZonedDateTime")
             {
                 var newLeft = ApplyTypeMapping(left, typeMapping);
                 var newRight = ApplyDefaultTypeMapping(right);

@@ -122,9 +122,7 @@ public class PostgresBinaryExpression : SqlExpression
 
                 PostgresExpressionType.LTreeMatches
                     when Right.TypeMapping?.StoreType == "lquery" ||
-                    Right.TypeMapping is NpgsqlArrayTypeMapping arrayMapping &&
-                    arrayMapping.ElementTypeMapping.StoreType == "lquery"
-                    => "~",
+                    Right.TypeMapping is NpgsqlArrayTypeMapping { ElementTypeMapping.StoreType: "lquery" } => "~",
                 PostgresExpressionType.LTreeMatches
                     when Right.TypeMapping?.StoreType == "ltxtquery"
                     => "@",
@@ -156,7 +154,7 @@ public class PostgresBinaryExpression : SqlExpression
             expressionPrinter.Append(")");
         }
 
-        static bool RequiresBrackets(SqlExpression expression) => expression is PostgresBinaryExpression || expression is LikeExpression;
+        static bool RequiresBrackets(SqlExpression expression) => expression is PostgresBinaryExpression or LikeExpression;
     }
 
     /// <inheritdoc />

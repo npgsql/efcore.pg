@@ -67,7 +67,7 @@ public class NpgsqlObjectToStringTranslator : IMethodCallTranslator
 
         if (instance.Type == typeof(bool))
         {
-            return instance is ColumnExpression columnExpression && columnExpression.IsNullable
+            return instance is ColumnExpression { IsNullable: true }
                 ? _sqlExpressionFactory.Case(
                     new[]
                     {

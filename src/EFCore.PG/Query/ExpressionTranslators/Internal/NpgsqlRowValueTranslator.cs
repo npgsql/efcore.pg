@@ -58,7 +58,7 @@ public class NpgsqlRowValueTranslator : IMethodCallTranslator
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
         // Translate ValueTuple.Create
-        if (method.DeclaringType == typeof(ValueTuple) && method.IsStatic && method.Name == nameof(ValueTuple.Create))
+        if (method.DeclaringType == typeof(ValueTuple) && method is { IsStatic: true, Name: nameof(ValueTuple.Create) })
         {
             return new PostgresRowValueExpression(arguments, method.ReturnType);
         }

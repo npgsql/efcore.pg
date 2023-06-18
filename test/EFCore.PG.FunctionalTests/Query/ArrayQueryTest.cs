@@ -411,7 +411,7 @@ FROM "SomeEntities" AS s
         // Note that arrays of objects are treated specially by EF Core, so they're fine.
         // The below checks Bytea and ByteArray, which are the same CLR type (byte[]) but mapped to different PG types
         // (bytea and smallint[])
-        using var context = CreateContext();
+        await using var context = CreateContext();
 
         var exception = async
             ? await Assert.ThrowsAsync<InvalidOperationException>(

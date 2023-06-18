@@ -16,8 +16,8 @@ public class NpgsqlDatabaseCreatorExistsTest : NpgsqlDatabaseCreatorTest
     [InlineData(false, false, true)]
     public async Task Returns_false_when_database_does_not_exist(bool async, bool ambientTransaction, bool useCanConnect)
     {
-        using var testDatabase = NpgsqlTestStore.Create("NonExisting");
-        using var context = new BloggingContext(testDatabase);
+        await using var testDatabase = NpgsqlTestStore.Create("NonExisting");
+        await using var context = new BloggingContext(testDatabase);
         var creator = GetDatabaseCreator(context);
 
         await context.Database.CreateExecutionStrategy().ExecuteAsync(
@@ -46,8 +46,8 @@ public class NpgsqlDatabaseCreatorExistsTest : NpgsqlDatabaseCreatorTest
     [InlineData(false, true, true)]
     public async Task Returns_true_when_database_exists(bool async, bool ambientTransaction, bool useCanConnect)
     {
-        using var testDatabase = NpgsqlTestStore.GetOrCreateInitialized("ExistingBlogging");
-        using var context = new BloggingContext(testDatabase);
+        await using var testDatabase = NpgsqlTestStore.GetOrCreateInitialized("ExistingBlogging");
+        await using var context = new BloggingContext(testDatabase);
         var creator = GetDatabaseCreator(context);
 
         await context.Database.CreateExecutionStrategy().ExecuteAsync(
@@ -79,13 +79,13 @@ public class NpgsqlDatabaseCreatorEnsureDeletedTest : NpgsqlDatabaseCreatorTest
     [InlineData(false, true, false)]
     public async Task Deletes_database(bool async, bool open, bool ambientTransaction)
     {
-        using var testDatabase = NpgsqlTestStore.CreateInitialized("EnsureDeleteBlogging");
+        await using var testDatabase = NpgsqlTestStore.CreateInitialized("EnsureDeleteBlogging");
         if (!open)
         {
             testDatabase.CloseConnection();
         }
 
-        using var context = new BloggingContext(testDatabase);
+        await using var context = new BloggingContext(testDatabase);
         var creator = GetDatabaseCreator(context);
 
         Assert.True(async ? await creator.ExistsAsync() : creator.Exists());
@@ -118,8 +118,8 @@ public class NpgsqlDatabaseCreatorEnsureDeletedTest : NpgsqlDatabaseCreatorTest
     [InlineData(false)]
     private static async Task Noop_when_database_does_not_exist_test(bool async)
     {
-        using var testDatabase = NpgsqlTestStore.Create("NonExisting");
-        using var context = new BloggingContext(testDatabase);
+        await using var testDatabase = NpgsqlTestStore.Create("NonExisting");
+        await using var context = new BloggingContext(testDatabase);
         var creator = GetDatabaseCreator(context);
 
         Assert.False(async ? await creator.ExistsAsync() : creator.Exists());
@@ -162,8 +162,8 @@ public class NpgsqlDatabaseCreatorEnsureCreatedTest : NpgsqlDatabaseCreatorTest
         (bool CreateDatabase, bool Async, bool ambientTransaction) options)
     {
         var (createDatabase, async, ambientTransaction) = options;
-        using var testDatabase = NpgsqlTestStore.Create("EnsureCreatedTest");
-        using var context = new BloggingContext(testDatabase);
+        await using var testDatabase = NpgsqlTestStore.Create("EnsureCreatedTest");
+        await using var context = new BloggingContext(testDatabase);
         if (createDatabase)
         {
             testDatabase.Initialize(null, (Func<DbContext>)null);
@@ -232,8 +232,8 @@ public class NpgsqlDatabaseCreatorEnsureCreatedTest : NpgsqlDatabaseCreatorTest
     [InlineData(false)]
     public async Task Noop_when_database_exists_and_has_schema(bool async)
     {
-        using var testDatabase = NpgsqlTestStore.CreateInitialized("InitializedBlogging");
-        using var context = new BloggingContext(testDatabase);
+        await using var testDatabase = NpgsqlTestStore.CreateInitialized("InitializedBlogging");
+        await using var context = new BloggingContext(testDatabase);
         context.Database.EnsureCreatedResiliently();
 
         if (async)
@@ -256,7 +256,7 @@ public class NpgsqlDatabaseCreatorHasTablesTest : NpgsqlDatabaseCreatorTest
     [InlineData(false)]
     public async Task Throws_when_database_does_not_exist(bool async)
     {
-        using var testDatabase = NpgsqlTestStore.GetOrCreate("NonExisting");
+        await using var testDatabase = NpgsqlTestStore.GetOrCreate("NonExisting");
         var databaseCreator = GetDatabaseCreator(testDatabase);
         await databaseCreator.ExecutionStrategy.ExecuteAsync(
             databaseCreator,
@@ -275,7 +275,7 @@ public class NpgsqlDatabaseCreatorHasTablesTest : NpgsqlDatabaseCreatorTest
     [InlineData(false, true)]
     public async Task Returns_false_when_database_exists_but_has_no_tables(bool async, bool ambientTransaction)
     {
-        using var testDatabase = NpgsqlTestStore.GetOrCreateInitialized("Empty");
+        await using var testDatabase = NpgsqlTestStore.GetOrCreateInitialized("Empty");
         var creator = GetDatabaseCreator(testDatabase);
 
         await GetExecutionStrategy(testDatabase).ExecuteAsync(
@@ -293,7 +293,7 @@ public class NpgsqlDatabaseCreatorHasTablesTest : NpgsqlDatabaseCreatorTest
     [InlineData(false, false)]
     public async Task Returns_true_when_database_exists_and_has_any_tables(bool async, bool ambientTransaction)
     {
-        using var testDatabase = NpgsqlTestStore.GetOrCreate("ExistingTables")
+        await using var testDatabase = NpgsqlTestStore.GetOrCreate("ExistingTables")
             .InitializeNpgsql(null, t => new BloggingContext(t), null);
         var creator = GetDatabaseCreator(testDatabase);
 
@@ -313,7 +313,7 @@ public class NpgsqlDatabaseCreatorHasTablesTest : NpgsqlDatabaseCreatorTest
     [RequiresPostgis]
     public async Task Returns_false_when_database_exists_and_has_only_postgis_tables(bool async, bool ambientTransaction)
     {
-        using var testDatabase = NpgsqlTestStore.GetOrCreateInitialized("Empty");
+        await using var testDatabase = NpgsqlTestStore.GetOrCreateInitialized("Empty");
         testDatabase.ExecuteNonQuery("CREATE EXTENSION IF NOT EXISTS postgis");
 
         var creator = GetDatabaseCreator(testDatabase);
@@ -336,7 +336,7 @@ public class NpgsqlDatabaseCreatorDeleteTest : NpgsqlDatabaseCreatorTest
     [InlineData(false, false)]
     public static async Task Deletes_database(bool async, bool ambientTransaction)
     {
-        using var testDatabase = NpgsqlTestStore.CreateInitialized("DeleteBlogging");
+        await using var testDatabase = NpgsqlTestStore.CreateInitialized("DeleteBlogging");
         testDatabase.CloseConnection();
 
         var creator = GetDatabaseCreator(testDatabase);
@@ -363,7 +363,7 @@ public class NpgsqlDatabaseCreatorDeleteTest : NpgsqlDatabaseCreatorTest
     [InlineData(false)]
     public async Task Throws_when_database_does_not_exist(bool async)
     {
-        using var testDatabase = NpgsqlTestStore.GetOrCreate("NonExistingBlogging");
+        await using var testDatabase = NpgsqlTestStore.GetOrCreate("NonExistingBlogging");
         var creator = GetDatabaseCreator(testDatabase);
 
         if (async)
@@ -384,8 +384,8 @@ public class NpgsqlDatabaseCreatorCreateTablesTest : NpgsqlDatabaseCreatorTest
     [InlineData(false, false)]
     public async Task Creates_schema_in_existing_database_test(bool async, bool ambientTransaction)
     {
-        using var testDatabase = NpgsqlTestStore.GetOrCreateInitialized("ExistingBlogging" + (async ? "Async" : ""));
-        using var context = new BloggingContext(testDatabase);
+        await using var testDatabase = NpgsqlTestStore.GetOrCreateInitialized("ExistingBlogging" + (async ? "Async" : ""));
+        await using var context = new BloggingContext(testDatabase);
         var creator = GetDatabaseCreator(context);
 
         using (CreateTransactionScope(ambientTransaction))
@@ -434,7 +434,7 @@ public class NpgsqlDatabaseCreatorCreateTablesTest : NpgsqlDatabaseCreatorTest
     [InlineData(false)]
     public async Task Throws_if_database_does_not_exist(bool async)
     {
-        using var testDatabase = NpgsqlTestStore.GetOrCreate("NonExisting");
+        await using var testDatabase = NpgsqlTestStore.GetOrCreate("NonExisting");
         var creator = GetDatabaseCreator(testDatabase);
 
         var errorNumber
@@ -500,7 +500,7 @@ public class NpgsqlDatabaseCreatorCreateTest : NpgsqlDatabaseCreatorTest
     [InlineData(false, true)]
     public async Task Creates_physical_database_but_not_tables(bool async, bool ambientTransaction)
     {
-        using var testDatabase = NpgsqlTestStore.GetOrCreate("CreateTest");
+        await using var testDatabase = NpgsqlTestStore.GetOrCreate("CreateTest");
         var creator = GetDatabaseCreator(testDatabase);
 
         creator.EnsureDeleted();
@@ -538,7 +538,7 @@ public class NpgsqlDatabaseCreatorCreateTest : NpgsqlDatabaseCreatorTest
     [InlineData(false)]
     public async Task Throws_if_database_already_exists(bool async)
     {
-        using var testDatabase = NpgsqlTestStore.GetOrCreateInitialized("ExistingBlogging");
+        await using var testDatabase = NpgsqlTestStore.GetOrCreateInitialized("ExistingBlogging");
         var creator = GetDatabaseCreator(testDatabase);
 
         var ex = async

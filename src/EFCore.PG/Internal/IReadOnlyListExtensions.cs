@@ -9,8 +9,8 @@ internal static class IReadOnlyListExtensions
 
     private sealed class IReadOnlyListSlice<T> : IReadOnlyList<T>
     {
-        private IReadOnlyList<T> _underlying;
-        private int _start;
+        private readonly IReadOnlyList<T> _underlying;
+        private readonly int _start;
 
         internal IReadOnlyListSlice(IReadOnlyList<T> underlying, int start)
         {

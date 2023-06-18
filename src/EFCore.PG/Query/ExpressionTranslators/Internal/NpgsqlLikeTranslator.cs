@@ -76,9 +76,8 @@ public class NpgsqlLikeTranslator : IMethodCallTranslator
 
         var (match, pattern) = (arguments[1], arguments[2]);
 
-        if (pattern is SqlConstantExpression constantPattern &&
-            constantPattern.Value is string patternValue &&
-            !patternValue.Contains("\\"))
+        if (pattern is SqlConstantExpression { Value: string patternValue }
+            && !patternValue.Contains('\\'))
         {
             return sensitive
                 ? _sqlExpressionFactory.Like(match, pattern)

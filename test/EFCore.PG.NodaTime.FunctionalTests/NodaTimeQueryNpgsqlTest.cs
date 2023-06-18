@@ -880,7 +880,7 @@ WHERE floor(date_part('second', make_interval(secs => n."Long"::double precision
     [MemberData(nameof(IsAsyncData))]
     public async Task GroupBy_Property_Select_Sum_over_Period(bool async)
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         // Note: Unlike Duration, Period can't be converted to total ticks (because its absolute time varies).
         var query = ctx.Set<NodaTimeTypes>()
@@ -903,7 +903,7 @@ GROUP BY n."Id"
     [MemberData(nameof(IsAsyncData))]
     public async Task GroupBy_Property_Select_Average_over_Period(bool async)
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         // Note: Unlike Duration, Period can't be converted to total ticks (because its absolute time varies).
         var query = ctx.Set<NodaTimeTypes>()
@@ -1238,7 +1238,7 @@ WHERE @__interval_0 @> n."Instant"
     [MemberData(nameof(IsAsyncData))]
     public async Task Interval_RangeAgg(bool async)
     {
-        using var context = CreateContext();
+        await using var context = CreateContext();
 
         var query = context.NodaTimeTypes
             .GroupBy(x => true)
@@ -1268,7 +1268,7 @@ LIMIT 2
     [MemberData(nameof(IsAsyncData))]
     public async Task Interval_Intersect_aggregate(bool async)
     {
-        using var context = CreateContext();
+        await using var context = CreateContext();
 
         var query = context.NodaTimeTypes
             .GroupBy(x => true)
@@ -1437,7 +1437,7 @@ WHERE n."DateInterval" + @__dateInterval_0 = '[2018-04-20,2018-04-26]'::daterang
     [MemberData(nameof(IsAsyncData))]
     public async Task DateInterval_RangeAgg(bool async)
     {
-        using var context = CreateContext();
+        await using var context = CreateContext();
 
         var query = context.NodaTimeTypes
             .GroupBy(x => true)
@@ -1466,7 +1466,7 @@ LIMIT 2
     [MemberData(nameof(IsAsyncData))]
     public async Task DateInterval_Intersect_aggregate(bool async)
     {
-        using var context = CreateContext();
+        await using var context = CreateContext();
 
         var query = context.NodaTimeTypes
             .GroupBy(x => true)
@@ -1599,7 +1599,7 @@ WHERE n."Instant" AT TIME ZONE @__timeZone_0 = TIMESTAMP '2018-04-20T12:31:33.66
     [ConditionalFact]
     public async Task Instance_InZone_without_LocalDateTime_fails()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => ctx.Set<NodaTimeTypes>().Where(t => t.Instant.InZone(DateTimeZoneProviders.Tzdb["Europe/Berlin"]) == default)
@@ -1884,7 +1884,7 @@ LIMIT 1
     private NodaTimeContext CreateContext()
         => Fixture.CreateContext();
 
-    private static Period _defaultPeriod = Period.FromYears(2018) + Period.FromMonths(4) + Period.FromDays(20) +
+    private static readonly Period _defaultPeriod = Period.FromYears(2018) + Period.FromMonths(4) + Period.FromDays(20) +
         Period.FromHours(10) + Period.FromMinutes(31) + Period.FromSeconds(23) +
         Period.FromMilliseconds(666);
 
@@ -2012,9 +2012,9 @@ LIMIT 1
             }.ToDictionary(e => e.Key, e => (object)e.Value);
     }
 
-    protected class NodaTimeData : ISetSource
+    private class NodaTimeData : ISetSource
     {
-        public IReadOnlyList<NodaTimeTypes> NodaTimeTypes { get; }
+        private IReadOnlyList<NodaTimeTypes> NodaTimeTypes { get; }
 
         public NodaTimeData()
             => NodaTimeTypes = CreateNodaTimeTypes();

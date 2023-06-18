@@ -1133,7 +1133,7 @@ WHERE
     private static void AdjustDefaults(DatabaseColumn column, string systemTypeName)
     {
         var defaultValue = column.DefaultValueSql;
-        if (defaultValue is null || defaultValue == "(NULL)")
+        if (defaultValue is null or "(NULL)")
         {
             column.DefaultValueSql = null;
             return;
@@ -1146,25 +1146,16 @@ WHERE
 
         if (defaultValue == "0")
         {
-            if (systemTypeName == "float4" ||
-                systemTypeName == "float8" ||
-                systemTypeName == "int2" ||
-                systemTypeName == "int4" ||
-                systemTypeName == "int8" ||
-                systemTypeName == "money" ||
-                systemTypeName == "numeric")
+            if (systemTypeName is "float4" or "float8" or "int2" or "int4" or "int8" or "money" or "numeric")
             {
                 column.DefaultValueSql = null;
                 return;
             }
         }
 
-        if (defaultValue == "0.0" || defaultValue == "'0'::numeric")
+        if (defaultValue is "0.0" or "'0'::numeric")
         {
-            if (systemTypeName == "numeric" ||
-                systemTypeName == "float4" ||
-                systemTypeName == "float8" ||
-                systemTypeName == "money")
+            if (systemTypeName is "numeric" or "float4" or "float8" or "money")
             {
                 column.DefaultValueSql = null;
                 return;

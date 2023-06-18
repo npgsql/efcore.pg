@@ -118,7 +118,7 @@ public class IntervalRangeMapping : NpgsqlTypeMapping
     {
         var interval = (Interval)value;
 
-        return interval.HasStart && interval.HasEnd
+        return interval is { HasStart: true, HasEnd: true }
             ? Expression.New(
                 _constructor,
                 TimestampTzInstantMapping.GenerateCodeLiteral(interval.Start),

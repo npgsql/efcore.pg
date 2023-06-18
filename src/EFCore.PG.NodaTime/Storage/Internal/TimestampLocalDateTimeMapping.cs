@@ -124,7 +124,7 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
 
     internal static Expression GenerateCodeLiteral(LocalDateTime dateTime)
     {
-        if (dateTime.Second == 0 && dateTime.NanosecondOfSecond == 0)
+        if (dateTime is { Second: 0, NanosecondOfSecond: 0 })
         {
             return ConstantNew(ConstructorWithMinutes, dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute);
         }

@@ -178,8 +178,7 @@ internal static class SharedTypeExtensions
             ?? throw new InvalidOperationException($"Could not find property '{name}' on type '{type}'");
 
     public static bool IsInstantiable(this Type type)
-        => !type.IsAbstract
-            && !type.IsInterface
+        => type is { IsAbstract: false, IsInterface: false }
             && (!type.IsGenericType || !type.IsGenericTypeDefinition);
 
     public static Type UnwrapEnumType(this Type type)

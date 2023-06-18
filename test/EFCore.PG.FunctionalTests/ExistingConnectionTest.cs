@@ -20,14 +20,14 @@ public class ExistingConnectionTest
             .AddEntityFrameworkNpgsql()
             .BuildServiceProvider();
 
-        using (var store = NpgsqlTestStore.GetNorthwindStore())
+        await using (var store = NpgsqlTestStore.GetNorthwindStore())
         {
             store.CloseConnection();
 
             var openCount = 0;
             var closeCount = 0;
 
-            using (var connection = new NpgsqlConnection(store.ConnectionString))
+            await using (var connection = new NpgsqlConnection(store.ConnectionString))
             {
                 if (openConnection)
                 {
@@ -46,7 +46,7 @@ public class ExistingConnectionTest
                     }
                 };
 
-                using (var context = new NorthwindContext(serviceProvider, connection))
+                await using (var context = new NorthwindContext(serviceProvider, connection))
                 {
                     Assert.Equal(91, await context.Customers.CountAsync());
                 }

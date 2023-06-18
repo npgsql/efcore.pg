@@ -71,8 +71,7 @@ public class NpgsqlPostgresModelFinalizingConvention : IModelFinalizingConventio
     /// </summary>
     protected virtual void ProcessRowVersionProperty(IConventionProperty property, RelationalTypeMapping typeMapping)
     {
-        if (property.ValueGenerated == ValueGenerated.OnAddOrUpdate
-            && property.IsConcurrencyToken
+        if (property is { ValueGenerated: ValueGenerated.OnAddOrUpdate, IsConcurrencyToken: true }
             && typeMapping.StoreType == "xid")
         {
             property.Builder.HasColumnName("xmin");

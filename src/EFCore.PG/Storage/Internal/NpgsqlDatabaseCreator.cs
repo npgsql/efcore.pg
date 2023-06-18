@@ -62,7 +62,7 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
                 Dependencies.MigrationCommandExecutor
                     .ExecuteNonQuery(CreateCreateOperations(), masterConnection);
             }
-            catch (PostgresException e) when (e.SqlState == "23505" && e.ConstraintName == "pg_database_datname_index")
+            catch (PostgresException e) when (e is { SqlState: "23505", ConstraintName: "pg_database_datname_index" })
             {
                 // This occurs when two connections are trying to create the same database concurrently
                 // (happens in the tests). Simply ignore the error.
@@ -82,7 +82,8 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
     /// </summary>
     public override async Task CreateAsync(CancellationToken cancellationToken = default)
     {
-        using (var masterConnection = _connection.CreateAdminConnection())
+        var masterConnection = _connection.CreateAdminConnection();
+        await using (masterConnection.ConfigureAwait(false))
         {
             try
             {
@@ -90,7 +91,7 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
                     .ExecuteNonQueryAsync(CreateCreateOperations(), masterConnection, cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch (PostgresException e) when (e.SqlState == "23505" && e.ConstraintName == "pg_database_datname_index")
+            catch (PostgresException e) when (e is { SqlState: "23505", ConstraintName: "pg_database_datname_index" })
             {
                 // This occurs when two connections are trying to create the same database concurrently
                 // (happens in the tests). Simply ignore the error.
@@ -242,10 +243,7 @@ WHERE
             return false;
         }
         catch (NpgsqlException e) when (
-            e.InnerException is IOException &&
-            e.InnerException.InnerException is SocketException socketException &&
-            socketException.SocketErrorCode == SocketError.ConnectionReset
-        )
+            e.InnerException is IOException { InnerException: SocketException { SocketErrorCode: SocketError.ConnectionReset } })
         {
             // Pretty awful hack around #104
             return false;
@@ -295,7 +293,8 @@ WHERE
     {
         ClearAllPools();
 
-        using (var masterConnection = _connection.CreateAdminConnection())
+        var masterConnection = _connection.CreateAdminConnection();
+        await using (masterConnection)
         {
             await Dependencies.MigrationCommandExecutor
                 .ExecuteNonQueryAsync(CreateDropCommands(), masterConnection, cancellationToken)
@@ -327,9 +326,7 @@ WHERE
         {
             Dependencies.MigrationCommandExecutor.ExecuteNonQuery(commands, _connection);
         }
-        catch (PostgresException e) when (
-            e.SqlState == "23505" && e.ConstraintName == "pg_type_typname_nsp_index"
-        )
+        catch (PostgresException e) when (e is { SqlState: "23505", ConstraintName: "pg_type_typname_nsp_index" })
         {
             // This occurs when two connections are trying to create the same database concurrently
             // (happens in the tests). Simply ignore the error.
@@ -374,9 +371,7 @@ WHERE
             await Dependencies.MigrationCommandExecutor.ExecuteNonQueryAsync(commands, _connection, cancellationToken)
                 .ConfigureAwait(false);
         }
-        catch (PostgresException e) when (
-            e.SqlState == "23505" && e.ConstraintName == "pg_type_typname_nsp_index"
-        )
+        catch (PostgresException e) when (e is { SqlState: "23505", ConstraintName: "pg_type_typname_nsp_index" })
         {
             // This occurs when two connections are trying to create the same database concurrently
             // (happens in the tests). Simply ignore the error.

@@ -86,8 +86,7 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
             var valueGenerationStrategy = valueGeneratedProperty.GetValueGenerationStrategy();
             yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy);
 
-            if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn ||
-                valueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn)
+            if (valueGenerationStrategy is NpgsqlValueGenerationStrategy.IdentityByDefaultColumn or NpgsqlValueGenerationStrategy.IdentityAlwaysColumn)
             {
                 if (valueGeneratedProperty[NpgsqlAnnotationNames.IdentityOptions] is string identityOptions)
                 {

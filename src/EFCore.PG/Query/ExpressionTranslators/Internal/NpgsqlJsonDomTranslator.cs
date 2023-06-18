@@ -75,8 +75,7 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
         }
 
         if (member == RootElement &&
-            instance is ColumnExpression column &&
-            column.TypeMapping is NpgsqlJsonTypeMapping)
+            instance is ColumnExpression { TypeMapping: NpgsqlJsonTypeMapping } column)
         {
             // Simply get rid of the RootElement member access
             return column;

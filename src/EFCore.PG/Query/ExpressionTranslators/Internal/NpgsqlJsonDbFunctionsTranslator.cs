@@ -79,7 +79,7 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
         }
 
         // The following are jsonb-only, not support on json
-        if (args.Any(a => a.TypeMapping is NpgsqlJsonTypeMapping jsonMapping && !jsonMapping.IsJsonb))
+        if (args.Any(a => a.TypeMapping is NpgsqlJsonTypeMapping { IsJsonb: false }))
         {
             throw new InvalidOperationException("JSON methods on EF.Functions only support the jsonb type, not json.");
         }
@@ -109,8 +109,7 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
 
         static SqlExpression RemoveConvert(SqlExpression e)
         {
-            while (e is SqlUnaryExpression unary &&
-                   (unary.OperatorType == ExpressionType.Convert || unary.OperatorType == ExpressionType.ConvertChecked))
+            while (e is SqlUnaryExpression { OperatorType: ExpressionType.Convert or ExpressionType.ConvertChecked } unary)
             {
                 e = unary.Operand;
             }

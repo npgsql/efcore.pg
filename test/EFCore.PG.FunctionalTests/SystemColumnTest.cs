@@ -10,7 +10,7 @@ public class SystemColumnTest : IClassFixture<SystemColumnTest.SystemColumnFixtu
     {
         Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();
-        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     [Fact]

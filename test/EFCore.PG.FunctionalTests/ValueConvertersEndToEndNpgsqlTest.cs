@@ -161,7 +161,7 @@ public class ValueConvertersEndToEndNpgsqlTest
     [ConditionalFact]
     public async Task Can_insert_and_read_back_with_value_converted_array()
     {
-        using var ctx = CreateContext();
+        await using var ctx = CreateContext();
 
         var entity = new ValueConvertedArrayEntity { Values = new IntWrapper[] { new(8), new(9) } };
         ctx.Add(entity);

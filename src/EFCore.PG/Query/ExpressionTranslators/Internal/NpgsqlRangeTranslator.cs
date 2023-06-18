@@ -144,7 +144,7 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
             return null;
         }
 
-        if (member.Name == nameof(NpgsqlRange<int>.LowerBound) || member.Name == nameof(NpgsqlRange<int>.UpperBound))
+        if (member.Name is nameof(NpgsqlRange<int>.LowerBound) or nameof(NpgsqlRange<int>.UpperBound))
         {
             var typeMapping = instance!.TypeMapping is NpgsqlRangeTypeMapping rangeMapping
                 ? rangeMapping.SubtypeMapping

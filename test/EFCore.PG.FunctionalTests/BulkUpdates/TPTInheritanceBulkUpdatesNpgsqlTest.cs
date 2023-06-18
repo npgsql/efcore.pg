@@ -10,7 +10,7 @@ public class TPTInheritanceBulkUpdatesNpgsqlTest : TPTInheritanceBulkUpdatesTest
         : base(fixture)
     {
         ClearLog();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     public override async Task Delete_where_hierarchy(bool async)

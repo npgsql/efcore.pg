@@ -629,8 +629,7 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
 
     private static bool MayContainNulls(SqlExpression arrayExpression)
     {
-        if (arrayExpression is SqlConstantExpression constantArrayExpression &&
-            constantArrayExpression.Value is Array constantArray)
+        if (arrayExpression is SqlConstantExpression { Value: Array constantArray })
         {
             for (var i = 0; i < constantArray.Length; i++)
             {

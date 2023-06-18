@@ -20,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         [ConditionalFact]
         public async Task Empty_Migration_Creates_Database()
         {
-            using var context = new BloggingContext(
+            await using var context = new BloggingContext(
                 Fixture.TestStore.AddProviderOptions(
                     new DbContextOptionsBuilder().EnableServiceProviderCaching(false)).Options);
 

@@ -127,7 +127,7 @@ public class SequenceEndToEndTest : IDisposable
             .AddEntityFrameworkNpgsql()
             .BuildServiceProvider();
 
-        using (var context = new BronieContext(serviceProvider, TestStore.Name))
+        await using (var context = new BronieContext(serviceProvider, TestStore.Name))
         {
             context.Database.EnsureCreatedResiliently();
         }
@@ -143,7 +143,7 @@ public class SequenceEndToEndTest : IDisposable
 
         await AddEntitiesAsync(serviceProvider, TestStore.Name);
 
-        using (var context = new BronieContext(serviceProvider, TestStore.Name))
+        await using (var context = new BronieContext(serviceProvider, TestStore.Name))
         {
             var pegasuses = await context.Pegasuses.ToListAsync();
 
@@ -157,7 +157,7 @@ public class SequenceEndToEndTest : IDisposable
 
     private static async Task AddEntitiesAsync(IServiceProvider serviceProvider, string databaseName)
     {
-        using var context = new BronieContext(serviceProvider, databaseName);
+        await using var context = new BronieContext(serviceProvider, databaseName);
         for (var i = 0; i < 10; i++)
         {
             await context.AddAsync(
@@ -176,7 +176,7 @@ public class SequenceEndToEndTest : IDisposable
             .AddEntityFrameworkNpgsql()
             .BuildServiceProvider();
 
-        using (var context = new BronieContext(serviceProvider, TestStore.Name))
+        await using (var context = new BronieContext(serviceProvider, TestStore.Name))
         {
             context.Database.EnsureCreatedResiliently();
         }
@@ -197,7 +197,7 @@ public class SequenceEndToEndTest : IDisposable
             await t;
         }
 
-        using (var context = new BronieContext(serviceProvider, TestStore.Name))
+        await using (var context = new BronieContext(serviceProvider, TestStore.Name))
         {
             var pegasuses = await context.Pegasuses.ToListAsync();
 

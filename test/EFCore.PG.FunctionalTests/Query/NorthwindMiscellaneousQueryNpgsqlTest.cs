@@ -279,7 +279,7 @@ WHERE c."Region" = ANY (@__regions_0) OR (c."Region" IS NULL AND array_position(
     [MemberData(nameof(IsAsyncData))]
     public async Task Array_Any_Like(bool async)
     {
-        using var context = CreateContext();
+        await using var context = CreateContext();
 
         var collection = new[] { "A%", "B%", "C%" };
         var query = context.Set<Customer>().Where(c => collection.Any(y => EF.Functions.Like(c.Address, y)));
@@ -305,7 +305,7 @@ WHERE c."Address" LIKE ANY (@__collection_0)
     [MemberData(nameof(IsAsyncData))]
     public async Task Array_All_Like(bool async)
     {
-        using var context = CreateContext();
+        await using var context = CreateContext();
 
         var collection = new[] { "A%", "B%", "C%" };
         var query = context.Set<Customer>().Where(c => collection.All(y => EF.Functions.Like(c.Address, y)));
@@ -327,7 +327,7 @@ WHERE c."Address" LIKE ALL (@__collection_0)
     [MemberData(nameof(IsAsyncData))]
     public async Task Array_Any_ILike(bool async)
     {
-        using var context = CreateContext();
+        await using var context = CreateContext();
 
         var collection = new[] { "a%", "b%", "c%" };
         var query = context.Set<Customer>().Where(c => collection.Any(y => EF.Functions.ILike(c.Address, y)));
@@ -353,7 +353,7 @@ WHERE c."Address" ILIKE ANY (@__collection_0)
     [MemberData(nameof(IsAsyncData))]
     public async Task Array_All_ILike(bool async)
     {
-        using var context = CreateContext();
+        await using var context = CreateContext();
 
         var collection = new[] { "a%", "b%", "c%" };
         var query = context.Set<Customer>().Where(c => collection.All(y => EF.Functions.ILike(c.Address, y)));
