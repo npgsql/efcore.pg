@@ -2,6 +2,9 @@
     "Test": {
       "Npgsql": {
         "DefaultConnection": "Server=localhost;Username=npgsql_tests;Password=npgsql_tests"
+      },
+      "CockroachDB": {
+        "DefaultConnection": "Server=localhost;Username=crdb_tests;Password=crdb_tests;Port=26257"
       }
     }
 }

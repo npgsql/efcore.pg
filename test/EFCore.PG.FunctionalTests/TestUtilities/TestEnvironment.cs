@@ -15,8 +15,14 @@ public static class TestEnvironment
             .AddJsonFile("config.test.json", optional: true)
             .AddEnvironmentVariables();
 
+        var sectionName = "Test:Npgsql";
+        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TEST_COCKROACH_DB")))
+        {
+            sectionName = "Test:CockroachDB";
+        }
+
         Config = configBuilder.Build()
-            .GetSection("Test:Npgsql");
+            .GetSection(sectionName);
 
         Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
     }
