@@ -247,7 +247,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
                 || RemoteCertificateValidationCallback is not null
                 || ProvidePasswordCallback is not null))
         {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException($"Use {nameof(dataSource)} to configure certificate callbacks.");
         }
 
         if (UseRedshift && _postgresVersion is not null)
