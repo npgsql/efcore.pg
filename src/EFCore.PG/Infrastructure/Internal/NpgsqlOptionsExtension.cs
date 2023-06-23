@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Net.Security;
 using System.Text;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
@@ -242,12 +243,28 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         var dataSource = DataSource
             ?? options.FindExtension<CoreOptionsExtension>()?.ApplicationServiceProvider?.GetService<NpgsqlDataSource>();
 
-        if (dataSource is not null
-            && (ProvideClientCertificatesCallback is not null
-                || RemoteCertificateValidationCallback is not null
-                || ProvidePasswordCallback is not null))
+        if (dataSource is not null)
         {
-            throw new InvalidOperationException($"Use {nameof(dataSource)} to configure certificate callbacks.");
+            if (ProvideClientCertificatesCallback is not null)
+            {
+                throw new InvalidOperationException(
+                    NpgsqlStrings.CannotConfigureWhenDataSourceIsInUse(
+                        "When passing an NpgsqlDataSource to UseNpgsql(), call 'ProvideClientCertificatesCallback' on NpgsqlDataSourceBuilder rather than in UseNpgsql()."));
+            }
+
+            if (RemoteCertificateValidationCallback is not null)
+            {
+                throw new InvalidOperationException(
+                    NpgsqlStrings.CannotConfigureWhenDataSourceIsInUse(
+                        "When passing an NpgsqlDataSource to UseNpgsql(), call 'RemoteCertificateValidationCallback' on NpgsqlDataSourceBuilder rather than in UseNpgsql()."));
+            }
+
+            if (ProvidePasswordCallback is not null)
+            {
+                throw new InvalidOperationException(
+                    NpgsqlStrings.CannotConfigureWhenDataSourceIsInUse(
+                        "When passing an NpgsqlDataSource to UseNpgsql(), 'ProviderPasswordCallback' cannot be used in UseNpgsql(). See https://www.npgsql.org/doc/security.html for configuring passwords and token rotation on NpgsqlDataSourceBuilder."));
+            }
         }
 
         if (UseRedshift && _postgresVersion is not null)
