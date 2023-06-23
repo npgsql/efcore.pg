@@ -248,22 +248,19 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
             if (ProvideClientCertificatesCallback is not null)
             {
                 throw new InvalidOperationException(
-                    NpgsqlStrings.CannotConfigureWhenDataSourceIsInUse(
-                        "When passing an NpgsqlDataSource to UseNpgsql(), call 'ProvideClientCertificatesCallback' on NpgsqlDataSourceBuilder rather than in UseNpgsql()."));
+                    "When passing an NpgsqlDataSource to UseNpgsql(), call 'ProvideClientCertificatesCallback' on NpgsqlDataSourceBuilder rather than in UseNpgsql().");
             }
 
             if (RemoteCertificateValidationCallback is not null)
             {
                 throw new InvalidOperationException(
-                    NpgsqlStrings.CannotConfigureWhenDataSourceIsInUse(
-                        "When passing an NpgsqlDataSource to UseNpgsql(), call 'RemoteCertificateValidationCallback' on NpgsqlDataSourceBuilder rather than in UseNpgsql()."));
+                    "When passing an NpgsqlDataSource to UseNpgsql(), call 'RemoteCertificateValidationCallback' on NpgsqlDataSourceBuilder rather than in UseNpgsql().");
             }
 
             if (ProvidePasswordCallback is not null)
             {
                 throw new InvalidOperationException(
-                    NpgsqlStrings.CannotConfigureWhenDataSourceIsInUse(
-                        "When passing an NpgsqlDataSource to UseNpgsql(), 'ProviderPasswordCallback' cannot be used in UseNpgsql(). See https://www.npgsql.org/doc/security.html for configuring passwords and token rotation on NpgsqlDataSourceBuilder."));
+                    "When passing an NpgsqlDataSource to UseNpgsql(), 'ProviderPasswordCallback' cannot be used in UseNpgsql(). See https://www.npgsql.org/doc/security.html for configuring passwords and token rotation on NpgsqlDataSourceBuilder.");
             }
         }
 
