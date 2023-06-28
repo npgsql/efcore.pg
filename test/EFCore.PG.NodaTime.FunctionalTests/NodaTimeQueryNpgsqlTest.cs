@@ -313,6 +313,23 @@ WHERE n."LocalDateTime"::date = DATE '2018-04-20'
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
+    public async Task LocalDateTime_Time(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDateTime.TimeOfDay == new LocalTime(10, 31, 33, 666)),
+            entryCount: 1);
+
+        AssertSql(
+"""
+SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
+FROM "NodaTimeTypes" AS n
+WHERE n."LocalDateTime"::time = TIME '10:31:33.666'
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
     public async Task LocalDateTime_DayOfWeek(bool async)
     {
         await AssertQuery(
@@ -324,8 +341,8 @@ WHERE n."LocalDateTime"::date = DATE '2018-04-20'
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE CASE
-    WHEN floor(date_part('dow', n."LocalDateTime"))::int = 0 THEN 7
+WHERE CASE floor(date_part('dow', n."LocalDateTime"))::int
+    WHEN 0 THEN 7
     ELSE floor(date_part('dow', n."LocalDateTime"))::int
 END = 5
 """);
@@ -1812,8 +1829,8 @@ WHERE CAST(n."ZonedDateTime" AT TIME ZONE 'UTC' AS date) = DATE '2018-04-20'
 """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE CASE
-    WHEN floor(date_part('dow', n."ZonedDateTime" AT TIME ZONE 'UTC'))::int = 0 THEN 7
+WHERE CASE floor(date_part('dow', n."ZonedDateTime" AT TIME ZONE 'UTC'))::int
+    WHEN 0 THEN 7
     ELSE floor(date_part('dow', n."ZonedDateTime" AT TIME ZONE 'UTC'))::int
 END = 5
 """);
