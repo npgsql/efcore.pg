@@ -33,6 +33,17 @@ WHERE date_trunc('day', now()::timestamp) = date_trunc('day', now()::timestamp)
 """);
     }
 
+    public override async Task Time_of_day_datetime(bool async)
+    {
+        await base.Time_of_day_datetime(async);
+
+        AssertSql(
+"""
+SELECT o."OrderDate"::time
+FROM "Orders" AS o
+""");
+    }
+
     public override async Task Where_datetime_date_component(bool async)
     {
         await base.Where_datetime_date_component(async);

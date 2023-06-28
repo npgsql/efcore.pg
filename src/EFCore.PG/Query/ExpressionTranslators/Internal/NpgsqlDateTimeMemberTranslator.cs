@@ -12,6 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 /// </remarks>
 public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
 {
+    private readonly IRelationalTypeMappingSource _typeMappingSource;
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
     private readonly RelationalTypeMapping _timestampMapping;
     private readonly RelationalTypeMapping _timestampTzMapping;
@@ -26,6 +27,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
         IRelationalTypeMappingSource typeMappingSource,
         NpgsqlSqlExpressionFactory sqlExpressionFactory)
     {
+        _typeMappingSource = typeMappingSource;
         _timestampMapping = typeMappingSource.FindMapping("timestamp without time zone")!;
         _timestampTzMapping = typeMappingSource.FindMapping("timestamp with time zone")!;
         _sqlExpressionFactory = sqlExpressionFactory;
@@ -128,11 +130,10 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
             // .NET's DayOfWeek is an enum, but its int values happen to correspond to PostgreSQL
             nameof(DateTime.DayOfWeek) => GetDatePartExpression(instance!, "dow", floor: true),
 
-            // TODO: Technically possible simply via casting to PG time, should be better in EF Core 3.0
-            // but ExplicitCastExpression only allows casting to PG types that
-            // are default-mapped from CLR types (timespan maps to interval,
-            // which timestamp cannot be cast into)
-            nameof(DateTime.TimeOfDay) => null,
+            nameof(DateTime.TimeOfDay) => _sqlExpressionFactory.Convert(
+                instance!,
+                typeof(TimeSpan),
+                _typeMappingSource.FindMapping(typeof(TimeSpan), storeTypeName: "time")),
 
             // TODO: Should be possible
             nameof(DateTime.Ticks) => null,

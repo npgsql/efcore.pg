@@ -282,74 +282,42 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
     }
 
     private SqlExpression? TranslateDateTime(SqlExpression instance, MemberInfo member, Type returnType)
-    {
-        switch (member.Name)
+        => member.Name switch
         {
-            case "Year":
-            case "Years":
-                return GetDatePartExpression(instance, "year");
+            "Year" or "Years" => GetDatePartExpression(instance, "year"),
+            "Month" or "Months" => GetDatePartExpression(instance, "month"),
+            "DayOfYear" => GetDatePartExpression(instance, "doy"),
+            "Day" or "Days" => GetDatePartExpression(instance, "day"),
+            "Hour" or "Hours" => GetDatePartExpression(instance, "hour"),
+            "Minute" or "Minutes" => GetDatePartExpression(instance, "minute"),
+            "Second" or "Seconds" => GetDatePartExpression(instance, "second", true),
+            "Millisecond" or "Milliseconds" => null, // Too annoying
 
-            case "Month":
-            case "Months":
-                return GetDatePartExpression(instance, "month");
-
-            case "DayOfYear":
-                return GetDatePartExpression(instance, "doy");
-
-            case "Day":
-            case "Days":
-                return GetDatePartExpression(instance, "day");
-
-            case "Hour":
-            case "Hours":
-                return GetDatePartExpression(instance, "hour");
-
-            case "Minute":
-            case "Minutes":
-                return GetDatePartExpression(instance, "minute");
-
-            case "Second":
-            case "Seconds":
-                return GetDatePartExpression(instance, "second", true);
-
-            case "Millisecond":
-            case "Milliseconds":
-                return null; // Too annoying
-
-            case "DayOfWeek":
-                // Unlike DateTime.DayOfWeek, NodaTime's IsoDayOfWeek enum doesn't exactly correspond to PostgreSQL's
-                // values returned by date_part('dow', ...): in NodaTime Sunday is 7 and not 0, which is None.
-                // So we generate a CASE WHEN expression to translate PostgreSQL's 0 to 7.
-                var getValueExpression = GetDatePartExpression(instance, "dow", true);
-                // TODO: Can be simplified once https://github.com/aspnet/EntityFrameworkCore/pull/16726 is in
-                return
-                    _sqlExpressionFactory.Case(
-                        new[]
-                        {
-                            new CaseWhenClause(
-                                _sqlExpressionFactory.Equal(getValueExpression, _sqlExpressionFactory.Constant(0)),
-                                _sqlExpressionFactory.Constant(7))
-                        },
-                        getValueExpression
-                    );
+            // Unlike DateTime.DayOfWeek, NodaTime's IsoDayOfWeek enum doesn't exactly correspond to PostgreSQL's
+            // values returned by date_part('dow', ...): in NodaTime Sunday is 7 and not 0, which is None.
+            // So we generate a CASE WHEN expression to translate PostgreSQL's 0 to 7.
+            "DayOfWeek" when GetDatePartExpression(instance, "dow", true) is var getValueExpression
+                => _sqlExpressionFactory.Case(
+                    getValueExpression,
+                    new[]
+                    {
+                        new CaseWhenClause(_sqlExpressionFactory.Constant(0), _sqlExpressionFactory.Constant(7))
+                    },
+                    getValueExpression),
 
             // PG allows converting a timestamp directly to date, truncating the time; but given a timestamptz, it performs a time zone
             // conversion (based on TimeZone), which we don't want (so avoid translating except on timestamp).
             // The translation for ZonedDateTime.Date converts to timestamp before ending up here.
-            case "Date" when instance.TypeMapping is TimestampLocalDateTimeMapping or LegacyTimestampInstantMapping:
-                return _sqlExpressionFactory.Convert(instance, typeof(LocalDate), _typeMappingSource.FindMapping(typeof(LocalDate))!);
+            "Date" when instance.TypeMapping is TimestampLocalDateTimeMapping or LegacyTimestampInstantMapping
+                => _sqlExpressionFactory.Convert(instance, typeof(LocalDate), _typeMappingSource.FindMapping(typeof(LocalDate))!),
 
-            case "TimeOfDay":
-                // TODO: Technically possible simply via casting to PG time,
-                // but ExplicitCastExpression only allows casting to PG types that
-                // are default-mapped from CLR types (timespan maps to interval,
-                // which timestamp cannot be cast into)
-                return null;
+            "TimeOfDay" => _sqlExpressionFactory.Convert(
+                instance,
+                typeof(LocalTime),
+                _typeMappingSource.FindMapping(typeof(LocalTime), storeTypeName: "time")),
 
-            default:
-                return null;
-        }
-    }
+            _ => null
+        };
 
     /// <summary>
     /// Constructs the date_part expression.
