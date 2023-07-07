@@ -1994,7 +1994,7 @@ DROP SEQUENCE "People_Id_old_seq";
             {
                 var table = Assert.Single(model.Tables);
                 var index = Assert.Single(table.Indexes);
-                Assert.Equal(1, index.Columns.Count);
+                Assert.Single(index.Columns);
                 Assert.Contains(table.Columns.Single(c => c.Name == "Name"), index.Columns);
 
                 // Scaffolding included/covered properties is currently blocked, see #2194
@@ -2038,7 +2038,7 @@ DROP SEQUENCE "People_Id_old_seq";
                 var table = Assert.Single(model.Tables);
                 var index = Assert.Single(table.Indexes);
                 Assert.Equal(@"(""Name"" IS NOT NULL)", index.Filter);
-                Assert.Equal(1, index.Columns.Count);
+                Assert.Single(index.Columns);
                 Assert.Contains(table.Columns.Single(c => c.Name == "Name"), index.Columns);
 
                 // Scaffolding included/covered properties is currently blocked, see #2194
@@ -2082,7 +2082,7 @@ DROP SEQUENCE "People_Id_old_seq";
                 var table = Assert.Single(model.Tables);
                 var index = Assert.Single(table.Indexes);
                 Assert.True(index.IsUnique);
-                Assert.Equal(1, index.Columns.Count);
+                Assert.Single(index.Columns);
                 Assert.Contains(table.Columns.Single(c => c.Name == "Name"), index.Columns);
 
                 // Scaffolding included/covered properties is currently blocked, see #2194
@@ -2128,7 +2128,7 @@ DROP SEQUENCE "People_Id_old_seq";
                 var index = Assert.Single(table.Indexes);
                 Assert.True(index.IsUnique);
                 Assert.Equal(@"(""Name"" IS NOT NULL)", index.Filter);
-                Assert.Equal(1, index.Columns.Count);
+                Assert.Single(index.Columns);
                 Assert.Contains(table.Columns.Single(c => c.Name == "Name"), index.Columns);
 
                 // Scaffolding included/covered properties is currently blocked, see #2194
