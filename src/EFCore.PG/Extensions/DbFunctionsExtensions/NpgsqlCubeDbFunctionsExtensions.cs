@@ -119,4 +119,53 @@ public static class NpgsqlCubeDbFunctionsExtensions
     /// </exception>
     public static double DistanceChebyshev(this NpgsqlCube a, NpgsqlCube b)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(DistanceChebyshev)));
+
+    /// <summary>
+    /// Produces the union of two cubes.
+    /// </summary>
+    /// <param name="a">The first cube.</param>
+    /// <param name="b">The second cube.</param>
+    /// <returns>
+    /// The union of the two cubes.
+    /// </returns>
+    /// <exception cref="NotSupportedException">
+    /// <see cref="Union" /> is only intended for use via SQL translation as part of an EF Core LINQ query.
+    /// </exception>
+    public static NpgsqlCube Union(this NpgsqlCube a, NpgsqlCube b)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Union)));
+
+    /// <summary>
+    /// Produces the intersection of two cubes.
+    /// </summary>
+    /// <param name="a">The first cube.</param>
+    /// <param name="b">The second cube.</param>
+    /// <returns>
+    /// The intersection of the two cubes.
+    /// </returns>
+    /// <exception cref="NotSupportedException">
+    /// <see cref="Intersect" /> is only intended for use via SQL translation as part of an EF Core LINQ query.
+    /// </exception>
+    public static NpgsqlCube Intersect(this NpgsqlCube a, NpgsqlCube b)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Intersect)));
+
+    /// <summary>
+    /// Produces a cube enlarged by the specified radius r in at least n dimensions. If the radius is negative
+    /// the cube is shrunk instead. All defined dimensions are changed by the radius r. Lower-left coordinates are
+    /// decreased by r and upper-right coordinates are increased by r. If a lower-left coordinate is increased to more
+    /// than the corresponding upper-right coordinate (this can only happen when r &lt; 0) than both coordinates are set
+    /// to their average. If n is greater than the number of defined dimensions and the cube is being enlarged (r &gt; 0),
+    /// then extra dimensions are added to make n altogether; 0 is used as the initial value for the extra coordinates.
+    /// This function is useful for creating bounding boxes around a point for searching for nearby points.
+    /// </summary>
+    /// <param name="cube">The cube to enlarge.</param>
+    /// <param name="r">The radius by which to increase the size of the cube.</param>
+    /// <param name="n">The number of dimensions in which to increase the size of the cube.</param>
+    /// <returns>
+    /// A cube enlarged by the specified radius in at least the specified number of dimensions.
+    /// </returns>
+    /// <exception cref="NotSupportedException">
+    /// <see cref="Enlarge" /> is only intended for use via SQL translation as part of an EF Core LINQ query.
+    /// </exception>
+    public static NpgsqlCube Enlarge(this NpgsqlCube cube, double r, int n)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Enlarge)));
 }

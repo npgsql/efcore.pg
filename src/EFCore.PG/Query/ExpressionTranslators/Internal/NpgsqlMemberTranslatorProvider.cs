@@ -45,6 +45,7 @@ public class NpgsqlMemberTranslatorProvider : RelationalMemberTranslatorProvider
                 new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory, model, supportsMultiranges),
                 new NpgsqlStringMemberTranslator(sqlExpressionFactory),
                 new NpgsqlTimeSpanMemberTranslator(sqlExpressionFactory),
+                new NpgsqlCubeTranslator(sqlExpressionFactory),
             });
     }
 }

@@ -18,12 +18,59 @@ public class CubeQueryNpgsqlTest : IClassFixture<CubeQueryNpgsqlTest.CubeQueryNp
     public void Contains_value()
     {
         using var context = CreateContext();
-        var result = context.CubeTestEntities.Where(x => x.Cube.Contains(new NpgsqlCube(new[] { 0.0, 0.0, 0.0 })));
-        var sql = result.ToQueryString();
-        Assert.Equal(1, result.Single().Id);
+        var result = context.CubeTestEntities.Single(x => x.Cube.Contains(new NpgsqlCube(new[] { 0.0, 0.0, 0.0 })));
+        Assert.Equal(1, result.Id);
+        AssertSql("""
+            SELECT c."Id", c."Cube"
+            FROM "CubeTestEntities" AS c
+            WHERE c."Cube" @> '(0,0,0)'::cube
+            LIMIT 2
+            """);
     }
 
-    #endregion
+    [ConditionalFact]
+    public void Subset()
+    {
+        using var context = CreateContext();
+        var result = context.CubeTestEntities.Where(x => x.Id == 1).Select(x => x.Cube.Subset(1)).Single();
+        Assert.Equal(new NpgsqlCube(-1, 1), result);
+        AssertSql("""
+            SELECT cube_subset(c."Cube", ARRAY[1]::integer[])
+            FROM "CubeTestEntities" AS c
+            WHERE c."Id" = 1
+            LIMIT 2
+            """);
+    }
+
+    [ConditionalFact]
+    public void Dimensions()
+    {
+        using var context = CreateContext();
+        var result = context.CubeTestEntities.Where(x => x.Id == 1).Select(x => x.Cube.Dimensions).Single();
+        Assert.Equal(3, result);
+        AssertSql("""
+            SELECT cube_dim(c."Cube")
+            FROM "CubeTestEntities" AS c
+            WHERE c."Id" = 1
+            LIMIT 2
+            """);
+    }
+
+    [ConditionalFact]
+    public void Is_point()
+    {
+        using var context = CreateContext();
+        var result = context.CubeTestEntities.Single(x => x.Cube.Point);
+        Assert.Equal(2, result.Id);
+        AssertSql("""
+            SELECT c."Id", c."Cube"
+            FROM "CubeTestEntities" AS c
+            WHERE cube_is_point(c."Cube")
+            LIMIT 2
+            """);
+    }
+
+#endregion
 
     public class CubeQueryNpgqlFixture : SharedStoreFixtureBase<CubeContext>
     {
