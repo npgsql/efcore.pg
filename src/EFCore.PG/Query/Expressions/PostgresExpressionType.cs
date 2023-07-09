@@ -159,4 +159,28 @@ public enum PostgresExpressionType
     LTreeFirstMatches,            // ?~ or ?@
 
     #endregion LTree
+
+    #region Cube
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for extracting the n-th coordinate of a cube (counting from 1).
+    /// </summary>
+    CubeNthCoordinate,            // ->
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for extracting the n-th coordinate of a cube (by n = 2 * k - 1).
+    /// </summary>
+    CubeNthCoordinate2,           // ~>
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for computing the taxicab (L-1 metric) distance between two cubes.
+    /// </summary>
+    CubeDistanceTaxicab,          // <#>
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for computing the Chebyshev (L-inf metric) distance between two cubes.
+    /// </summary>
+    CubeDistanceChebyshev,        // <=>
+
+    #endregion
 }

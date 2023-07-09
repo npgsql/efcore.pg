@@ -512,6 +512,11 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
                 PostgresExpressionType.Distance => "<->",
 
+                PostgresExpressionType.CubeNthCoordinate => "->",
+                PostgresExpressionType.CubeNthCoordinate2 => "~>",
+                PostgresExpressionType.CubeDistanceTaxicab => "<#>",
+                PostgresExpressionType.CubeDistanceChebyshev => "<=>",
+
                 _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {binaryExpression.OperatorType}")
             })
             .Append(" ");

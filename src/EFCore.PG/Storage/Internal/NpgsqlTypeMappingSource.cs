@@ -183,6 +183,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     private readonly NpgsqlHstoreTypeMapping          _immutableHstore = new(typeof(ImmutableDictionary<string, string>));
     private readonly NpgsqlTidTypeMapping             _tid             = new();
     private readonly NpgsqlPgLsnTypeMapping           _pgLsn           = new();
+    private readonly NpgsqlCubeTypeMapping            _cube            = new();
 
     private readonly NpgsqlLTreeTypeMapping           _ltree           = new();
     private readonly NpgsqlStringTypeMapping          _ltreeString     = new("ltree", NpgsqlDbType.LTree);
@@ -336,6 +337,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { "lo",                          new[] { _lo                           } },
             { "tid",                         new[] { _tid                          } },
             { "pg_lsn",                      new[] { _pgLsn                        } },
+            { "cube",                        new[] { _cube                         } },
 
             { "int4range",                   new[] { _int4range                    } },
             { "int8range",                   new[] { _int8range                    } },
@@ -397,6 +399,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { typeof(Dictionary<string, string>),          _hstore               },
             { typeof(NpgsqlTid),                           _tid                  },
             { typeof(NpgsqlLogSequenceNumber),             _pgLsn                },
+            { typeof(NpgsqlCube),                          _cube                 },
 
             { typeof(NpgsqlPoint),                         _point                },
             { typeof(NpgsqlBox),                           _box                  },
