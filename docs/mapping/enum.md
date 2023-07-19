@@ -18,12 +18,19 @@ This causes the EF Core provider to create your enum type, `mood`, with two labe
 If you are using `context.Database.Migrate()` to create your enums, you need to instruct Npgsql to reload all types after applying your migrations:
 
 ```c#
-context.Database.Migrate();
+await context.Database.MigrateAsync(token);
 
-using (var conn = (NpgsqlConnection)context.Database.GetDbConnection())
+if (context.Database.GetDbConnection() is NpgsqlConnection npgsqlConnection)
 {
-    conn.Open();
-    conn.ReloadTypes();
+    await npgsqlConnection.OpenAsync(token);
+    try
+    {
+        await npgsqlConnection.ReloadTypesAsync();
+    }
+    finally
+    {
+        await npgsqlConnection.CloseAsync();
+    }
 }
 ```
 
