@@ -130,8 +130,9 @@ public static class NpgsqlDbContextOptionsBuilderExtensions
     /// <see cref="DbConnection" />, <see cref="DbDataSource" /> or connection string.
     /// </para>
     /// <para>
-    /// The connection, data source or connection string must be set before the <see cref="DbContext" /> is used to connect
-    /// to a database. Set a connection using <see cref="RelationalDatabaseFacadeExtensions.SetDbConnection" />, a data source using
+    /// The connection, data source or connection string must be set explicitly or registered in the DI
+    /// before the <see cref="DbContext" /> is used to connect to a database.
+    /// Set a connection using <see cref="RelationalDatabaseFacadeExtensions.SetDbConnection" />, a data source using
     /// <see cref="NpgsqlDatabaseFacadeExtensions.SetDbDataSource" />, or a connection string using
     /// <see cref="RelationalDatabaseFacadeExtensions.SetConnectionString" />.
     /// </para>
