@@ -1,8 +1,8 @@
-  <Project>
+   <Project>
   <PropertyGroup>
-    <EFCoreVersion>8.0.0-rc.2.23465.12</EFCoreVersion>
-    <MicrosoftExtensionsVersion>8.0.0-rc.2.23465.13</MicrosoftExtensionsVersion>
-    <NpgsqlVersion>8.0.0-preview.4</NpgsqlVersion>
+    <EFCoreVersion>8.0.0-preview.4.23259.3</EFCoreVersion>
+    <MicrosoftExtensionsVersion>8.0.0-preview.4.23259.5</MicrosoftExtensionsVersion>
+    <NpgsqlVersion>8.0.0-preview.5-ci.20230725T094520</NpgsqlVersion>
   </PropertyGroup>
 
   <ItemGroup>
