@@ -207,6 +207,7 @@ LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid=0
 WHERE
   cls.relkind IN ('r', 'v', 'm', 'f') AND
   ns.nspname NOT IN ({internalSchemas}) AND
+  ns.nspname <> 'pg_extension' AND
   cls.relname <> '{HistoryRepository.DefaultTableName}' AND
   -- Exclude tables which are members of PG extensions
   NOT EXISTS (
@@ -317,6 +318,7 @@ WHERE
   attnum > 0 AND
   cls.relname <> '{HistoryRepository.DefaultTableName}' AND
   -- Exclude tables which are members of PG extensions
+  nspname <> 'pg_extension' AND
   NOT EXISTS (
     SELECT 1 FROM pg_depend WHERE
       classid=(
