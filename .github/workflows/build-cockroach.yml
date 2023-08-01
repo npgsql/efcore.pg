@@ -74,7 +74,7 @@ jobs:
           cockroach sql --certs-dir=certs -e "CREATE USER crdb_tests WITH PASSWORD 'crdb_tests'; GRANT admin TO crdb_tests" --url="postgresql://root@127.0.0.1:26257/defaultdb?sslcert=certs%2Fclient.root.crt&sslkey=certs%2Fclient.root.key&sslmode=verify-full&sslrootcert=certs%2Fca.crt"
 
       - name: Test
-        run: TEST_COCKROACH_DB=true dotnet test -c ${{ matrix.config }} --logger "GitHubActions;report-warnings=false"
+        run: TEST_COCKROACH_DB=true dotnet test -c ${{ matrix.config }} --blame-hang-timeout 180000 --logger "GitHubActions;report-warnings=false"
         shell: bash
 
       - id: analyze_tag
