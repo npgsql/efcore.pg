@@ -2,6 +2,7 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
@@ -105,11 +106,13 @@ WHERE typtype IN ('r', 'e') AND nspname <> 'pg_catalog'";
     /// </summary>
     private void DropFunctions(NpgsqlConnection conn)
     {
-        const string getUserDefinedFunctions = @"
-SELECT 'DROP ROUTINE ""' || nspname || '"".""' || proname || '""(' || oidvectortypes(proargtypes) || ');' FROM pg_proc
+        var dropRoutineSql = @"'DROP ROUTINE """"' || nspname || '"""".""""' || proname || " + (conn.IsCockroachDb() ? "';'" : @" '""""(' || oidvectortypes(proargtypes) || ');'");
+
+        var getUserDefinedFunctions = $@"
+SELECT {dropRoutineSql} FROM pg_proc
 JOIN pg_namespace AS ns ON ns.oid = pg_proc.pronamespace
 WHERE
-        nspname NOT IN ('pg_catalog', 'information_schema') AND
+        nspname NOT IN ('pg_catalog', 'information_schema', 'crdb_internal', 'pg_extension') AND
     NOT EXISTS (
             SELECT * FROM pg_depend AS dep
             WHERE dep.classid = (SELECT oid FROM pg_class WHERE relname = 'pg_proc') AND
