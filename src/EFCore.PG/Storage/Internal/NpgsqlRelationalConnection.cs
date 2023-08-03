@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Security;
 using System.Transactions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -223,5 +224,12 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
         ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(relationalOptions);
 
         return new NpgsqlRelationalConnection(Dependencies with { ContextOptions = optionsBuilder.Options }, dataSource: null);
+    }
+
+    /// <summary>Begins a new transaction.</summary>
+    /// <returns>The newly created transaction.</returns>
+    public override IDbContextTransaction BeginTransaction()
+    {
+        return this.DbConnection.IsCockroachDb() ? base.BeginTransaction(System.Data.IsolationLevel.Serializable) : base.BeginTransaction();
     }
 }
