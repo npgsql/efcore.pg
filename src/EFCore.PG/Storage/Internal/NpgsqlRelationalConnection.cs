@@ -230,6 +230,6 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     /// <returns>The newly created transaction.</returns>
     public override IDbContextTransaction BeginTransaction()
     {
-        return this.DbConnection.IsCockroachDb() ? base.BeginTransaction(System.Data.IsolationLevel.Serializable) : base.BeginTransaction();
+        return base.BeginTransaction();
     }
 }
