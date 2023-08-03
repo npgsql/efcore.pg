@@ -3,6 +3,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
@@ -551,7 +552,7 @@ SELECT
   indisunique,
   {(connection.PostgreSqlVersion >= new Version(15, 0) ? "indnullsnotdistinct" : "false AS indnullsnotdistinct")},
   {(connection.PostgreSqlVersion >= new Version(11, 0) ? "indnkeyatts" : "indnatts AS indnkeyatts")},
-  {(connection.PostgreSqlVersion >= new Version(9, 6) ? "pg_indexam_has_property(am.oid, 'can_order') as amcanorder" : "amcanorder")},
+  {(!connection.IsCockroachDb() && connection.PostgreSqlVersion >= new Version(9, 6) ? "pg_indexam_has_property(am.oid, 'can_order') as amcanorder" : "amcanorder")},
   indkey,
   amname,
   indclass,
