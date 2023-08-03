@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
@@ -127,6 +128,31 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             builder.EndCommand();
 
             results = results.Concat(builder.GetCommandList()).ToArray();
+        }
+    }
+
+    /// <summary>
+    ///     Builds commands for the given <see cref="T:Microsoft.EntityFrameworkCore.Migrations.Operations.DropForeignKeyOperation" /> by making calls on the given
+    ///     <see cref="T:Microsoft.EntityFrameworkCore.Migrations.MigrationCommandListBuilder" />.
+    /// </summary>
+    /// <param name="operation">The operation.</param>
+    /// <param name="model">The target model which may be <see langword="null" /> if the operations exist without a model.</param>
+    /// <param name="builder">The command builder to use to build the commands.</param>
+    /// <param name="terminate">Indicates whether or not to terminate the command after generating SQL for the operation.</param>
+    protected override void Generate(DropForeignKeyOperation operation, IModel? model, MigrationCommandListBuilder builder, bool terminate = true)
+    {
+        builder
+            .Append("ALTER TABLE ")
+            .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
+            .Append(" DROP CONSTRAINT ")
+            .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name));
+
+        if (terminate)
+        {
+            var isCockroachDb = Dependencies.CurrentContext.Context.Database.IsCockroachDb();
+
+            builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+            EndStatement(builder, isCockroachDb);
         }
     }
 
