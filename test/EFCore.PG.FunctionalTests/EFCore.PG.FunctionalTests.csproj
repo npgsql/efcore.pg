@@ -22,6 +22,12 @@
   <ItemGroup>
     <None Update="Northwind.sql" CopyToOutputDirectory="PreserveNewest" />
     <None Update="config.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="NorthwindCRDB.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="NorthwindCRDB.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

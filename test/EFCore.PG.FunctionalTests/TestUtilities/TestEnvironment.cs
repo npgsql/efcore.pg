@@ -19,6 +19,7 @@ public static class TestEnvironment
         if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TEST_COCKROACH_DB")))
         {
             sectionName = "Test:CockroachDB";
+            IsCockroachDB = true;
         }
 
         Config = configBuilder.Build()
@@ -67,5 +68,11 @@ public static class TestEnvironment
             _isPostgisAvailable = (bool)cmd.ExecuteScalar();
             return _isPostgisAvailable.Value;
         }
+    }
+
+    public static bool IsCockroachDB
+    {
+        get;
+        private set;
     }
 }
