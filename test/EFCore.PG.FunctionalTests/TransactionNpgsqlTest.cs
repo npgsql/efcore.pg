@@ -4,6 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
+[SkipForCockroachDb]
 public class TransactionNpgsqlTest : TransactionTestBase<TransactionNpgsqlTest.TransactionNpgsqlFixture>
 {
     public TransactionNpgsqlTest(TransactionNpgsqlFixture fixture)
