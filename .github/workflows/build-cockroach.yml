@@ -82,7 +82,7 @@ jobs:
         with:
           name: results
           retention-days: 1
-          path: TestResults/**/*
+          path: test/EFCore.PG.FunctionalTests/TestResults/**/*
 
       - id: analyze_tag
         name: Analyze tag
