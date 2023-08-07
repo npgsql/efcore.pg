@@ -1,6 +1,5 @@
 ﻿{
   "appDomain": "denied",
   "longRunningTestSeconds": 120,
-  "diagnosticMessages": true,
-  "maxParallelThreads": 1
+  "diagnosticMessages": true
 }
