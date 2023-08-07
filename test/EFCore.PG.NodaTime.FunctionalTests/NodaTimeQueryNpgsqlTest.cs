@@ -3,6 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
+[SkipForCockroachDb]
 public class NodaTimeQueryNpgsqlTest : QueryTestBase<NodaTimeQueryNpgsqlTest.NodaTimeQueryNpgsqlFixture>
 {
     public NodaTimeQueryNpgsqlTest(NodaTimeQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
