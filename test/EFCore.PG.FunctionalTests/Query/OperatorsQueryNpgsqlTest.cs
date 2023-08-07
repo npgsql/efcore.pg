@@ -6,15 +6,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 public class OperatorsQueryNpgsqlTest : OperatorsQueryTestBase
 {
     public OperatorsQueryNpgsqlTest(ITestOutputHelper testOutputHelper)
-        : base(testOutputHelper)
+        : base()
     {
     }
 
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
-    protected TestSqlLoggerFactory TestSqlLoggerFactory
-        => (TestSqlLoggerFactory)ListLoggerFactory;
+    //protected override TestSqlLoggerFactory TestSqlLoggerFactory
+    //    => (TestSqlLoggerFactory)ListLoggerFactory;
 
     protected void AssertSql(params string[] expected)
         => TestSqlLoggerFactory.AssertBaseline(expected);

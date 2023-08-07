@@ -281,6 +281,7 @@ public class NpgsqlTypeMappingSourceTest
         return new NpgsqlTypeMappingSource(
             new TypeMappingSourceDependencies(
                 new ValueConverterSelector(new ValueConverterSelectorDependencies()),
+                null,
                 Array.Empty<ITypeMappingSourcePlugin>()),
             new RelationalTypeMappingSourceDependencies(
                 new IRelationalTypeMappingSourcePlugin[] {

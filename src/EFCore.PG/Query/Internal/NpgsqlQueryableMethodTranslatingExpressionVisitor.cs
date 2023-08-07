@@ -138,7 +138,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     /// </summary>
     protected override Expression ApplyInferredTypeMappings(
         Expression expression,
-        IReadOnlyDictionary<(TableExpressionBase, string), RelationalTypeMapping> inferredTypeMappings)
+        IReadOnlyDictionary<(TableExpressionBase, string), RelationalTypeMapping?> inferredTypeMappings)
         => new NpgsqlInferredTypeMappingApplier(_typeMappingSource, _sqlExpressionFactory, inferredTypeMappings).Visit(expression);
 
     /// <summary>
@@ -1102,8 +1102,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         public NpgsqlInferredTypeMappingApplier(
             NpgsqlTypeMappingSource typeMappingSource,
             NpgsqlSqlExpressionFactory sqlExpressionFactory,
-            IReadOnlyDictionary<(TableExpressionBase, string), RelationalTypeMapping> inferredTypeMappings)
-            : base(inferredTypeMappings)
+            IReadOnlyDictionary<(TableExpressionBase, string), RelationalTypeMapping?> inferredTypeMappings)
+            : base(sqlExpressionFactory, inferredTypeMappings)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
@@ -1119,8 +1119,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         {
             switch (expression)
             {
-                case PostgresUnnestExpression unnestExpression when InferredTypeMappings.TryGetValue(
-                    (unnestExpression, unnestExpression.ColumnName), out var elementTypeMapping):
+                case PostgresUnnestExpression unnestExpression when TryGetInferredTypeMapping(unnestExpression, unnestExpression.ColumnName, out var elementTypeMapping):
                 {
                     var collectionTypeMapping = _typeMappingSource.FindContainerMapping(unnestExpression.Array.Type, elementTypeMapping);
 

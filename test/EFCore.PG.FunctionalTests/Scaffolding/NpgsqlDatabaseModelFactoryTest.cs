@@ -2075,6 +2075,7 @@ CREATE TABLE column_types (
                 var typeMappingSource = new NpgsqlTypeMappingSource(
                     new TypeMappingSourceDependencies(
                         new ValueConverterSelector(new ValueConverterSelectorDependencies()),
+                        null,
                         Array.Empty<ITypeMappingSourcePlugin>()
                     ),
                     new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),

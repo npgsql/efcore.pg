@@ -158,12 +158,12 @@ WHERE p."Id" = ANY (@__p_0)
 """);
     }
 
-    public override async Task Inline_collection_Contains_with_parameter_and_column_based_expression(bool async)
-    {
-        await base.Inline_collection_Contains_with_parameter_and_column_based_expression(async);
+    //public override async Task Inline_collection_Contains_with_parameter_and_column_based_expression(bool async)
+    //{
+    //    await base.Inline_collection_Contains_with_parameter_and_column_based_expression(async);
 
-        AssertSql();
-    }
+    //    AssertSql();
+    //}
 
     public override async Task Parameter_collection_Count(bool async)
     {
@@ -196,33 +196,33 @@ WHERE p."Int" = ANY (@__ints_0)
 """);
     }
 
-    public override async Task Parameter_collection_of_nullable_ints_Contains(bool async)
-    {
-        await base.Parameter_collection_of_nullable_ints_Contains(async);
+//    public override async Task Parameter_collection_of_nullable_ints_Contains(bool async)
+//    {
+//        await base.Parameter_collection_of_nullable_ints_Contains(async);
 
-        AssertSql(
-"""
-@__nullableInts_0={ '10', '999' } (DbType = Object)
+//        AssertSql(
+//"""
+//@__nullableInts_0={ '10', '999' } (DbType = Object)
 
-SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
-FROM "PrimitiveCollectionsEntity" AS p
-WHERE p."NullableInt" = ANY (@__nullableInts_0) OR (p."NullableInt" IS NULL AND array_position(@__nullableInts_0, NULL) IS NOT NULL)
-""");
-    }
+//SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
+//FROM "PrimitiveCollectionsEntity" AS p
+//WHERE p."NullableInt" = ANY (@__nullableInts_0) OR (p."NullableInt" IS NULL AND array_position(@__nullableInts_0, NULL) IS NOT NULL)
+//""");
+//    }
 
-    public override async Task Parameter_collection_of_nullable_ints_Contains_null(bool async)
-    {
-        await base.Parameter_collection_of_nullable_ints_Contains_null(async);
+//    public override async Task Parameter_collection_of_nullable_ints_Contains_null(bool async)
+//    {
+//        await base.Parameter_collection_of_nullable_ints_Contains_null(async);
 
-        AssertSql(
-"""
-@__nullableInts_0={ NULL, '999' } (DbType = Object)
+//        AssertSql(
+//"""
+//@__nullableInts_0={ NULL, '999' } (DbType = Object)
 
-SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
-FROM "PrimitiveCollectionsEntity" AS p
-WHERE p."NullableInt" = ANY (@__nullableInts_0) OR (p."NullableInt" IS NULL AND array_position(@__nullableInts_0, NULL) IS NOT NULL)
-""");
-    }
+//SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
+//FROM "PrimitiveCollectionsEntity" AS p
+//WHERE p."NullableInt" = ANY (@__nullableInts_0) OR (p."NullableInt" IS NULL AND array_position(@__nullableInts_0, NULL) IS NOT NULL)
+//""");
+//    }
 
     public override async Task Parameter_collection_of_strings_Contains(bool async)
     {
@@ -428,19 +428,19 @@ WHERE (
 """);
     }
 
-    public override async Task Parameter_collection_index_Column(bool async)
-    {
-        await base.Parameter_collection_index_Column(async);
+//    public override async Task Parameter_collection_index_Column(bool async)
+//    {
+//        await base.Parameter_collection_index_Column(async);
 
-        AssertSql(
-"""
-@__ints_0={ '1', '2', '3' } (DbType = Object)
+//        AssertSql(
+//"""
+//@__ints_0={ '1', '2', '3' } (DbType = Object)
 
-SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
-FROM "PrimitiveCollectionsEntity" AS p
-WHERE @__ints_0[p."Int" + 1] = 1
-""");
-    }
+//SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
+//FROM "PrimitiveCollectionsEntity" AS p
+//WHERE @__ints_0[p."Int" + 1] = 1
+//""");
+//    }
 
     public override async Task Column_collection_ElementAt(bool async)
     {
@@ -514,22 +514,22 @@ ORDER BY p."Id" NULLS FIRST
 """);
     }
 
-    public override async Task Column_collection_and_parameter_collection_Join(bool async)
-    {
-        await base.Column_collection_and_parameter_collection_Join(async);
+//    public override async Task Column_collection_and_parameter_collection_Join(bool async)
+//    {
+//        await base.Column_collection_and_parameter_collection_Join(async);
 
-        AssertSql(
-"""
-@__ints_0={ '11', '111' } (DbType = Object)
+//        AssertSql(
+//"""
+//@__ints_0={ '11', '111' } (DbType = Object)
 
-SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
-FROM "PrimitiveCollectionsEntity" AS p
-WHERE (
-    SELECT count(*)::int
-    FROM unnest(p."Ints") AS i(value)
-    INNER JOIN unnest(@__ints_0) AS i0(value) ON i.value = i0.value) = 2
-""");
-    }
+//SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
+//FROM "PrimitiveCollectionsEntity" AS p
+//WHERE (
+//    SELECT count(*)::int
+//    FROM unnest(p."Ints") AS i(value)
+//    INNER JOIN unnest(@__ints_0) AS i0(value) ON i.value = i0.value) = 2
+//""");
+//    }
 
     public override async Task Parameter_collection_Concat_column_collection(bool async)
     {

@@ -621,6 +621,7 @@ public class NpgsqlNodaTimeTypeMappingTest
     private static readonly NpgsqlTypeMappingSource Mapper = new(
         new TypeMappingSourceDependencies(
             new ValueConverterSelector(new ValueConverterSelectorDependencies()),
+            null,
             Array.Empty<ITypeMappingSourcePlugin>()),
         new RelationalTypeMappingSourceDependencies(
             new IRelationalTypeMappingSourcePlugin[] {

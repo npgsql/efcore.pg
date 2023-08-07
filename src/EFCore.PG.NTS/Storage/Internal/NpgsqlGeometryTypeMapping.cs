@@ -46,7 +46,7 @@ public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMappin
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlGeometryTypeMapping(string storeType, bool isGeography) : base(converter: null, storeType)
+    public NpgsqlGeometryTypeMapping(string storeType, bool isGeography) : base(converter: null, jsonValueReaderWriter: null, storeType: storeType)
         => _isGeography = isGeography;
 
     /// <summary>
