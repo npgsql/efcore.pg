@@ -56,7 +56,7 @@ jobs:
             chmod u+x cockroach
             sudo mv ./cockroach /usr/local/bin/cockroach
           elif [[ ${{ matrix.crdb_major }} == "v23.1.3" ]]; then
-            wget --no-verbose -O cockroach  https://edge-binaries.cockroachdb.com/cockroach/cockroach.linux-gnu-amd.release-23.1
+            wget --no-verbose -O cockroach  https://edge-binaries.cockroachdb.com/cockroach/cockroach.linux-gnu-amd64.release-23.1
             chmod u+x cockroach
             sudo mv ./cockroach /usr/local/bin/cockroach
           else
