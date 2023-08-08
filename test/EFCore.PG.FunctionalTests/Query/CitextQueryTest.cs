@@ -6,6 +6,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 /// <summary>
 /// Tests operations on the PostgreSQL citext type.
 /// </summary>
+[SkipForCockroachDb]
 public class CitextQueryTest : IClassFixture<CitextQueryTest.CitextQueryFixture>
 {
     private CitextQueryFixture Fixture { get; }
@@ -18,7 +19,7 @@ public class CitextQueryTest : IClassFixture<CitextQueryTest.CitextQueryFixture>
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void StartsWith_literal()
     {
         using var ctx = CreateContext();
@@ -34,7 +35,7 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void StartsWith_param_pattern()
     {
         using var ctx = CreateContext();
@@ -53,7 +54,7 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void StartsWith_param_instance()
     {
         using var ctx = CreateContext();
@@ -72,7 +73,7 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void EndsWith_literal()
     {
         using var ctx = CreateContext();
@@ -88,7 +89,7 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void EndsWith_param_pattern()
     {
         using var ctx = CreateContext();
@@ -107,7 +108,7 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void EndsWith_param_instance()
     {
         using var ctx = CreateContext();
@@ -126,7 +127,7 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Contains_literal()
     {
         using var ctx = CreateContext();
@@ -142,7 +143,7 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Contains_param_pattern()
     {
         using var ctx = CreateContext();
@@ -161,7 +162,7 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Contains_param_instance()
     {
         using var ctx = CreateContext();
@@ -180,7 +181,7 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void IndexOf_literal()
     {
         using var ctx = CreateContext();
@@ -196,7 +197,7 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void IndexOf_param_pattern()
     {
         using var ctx = CreateContext();
@@ -215,7 +216,7 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void IndexOf_param_instance()
     {
         using var ctx = CreateContext();
@@ -234,7 +235,7 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Replace_literal()
     {
         using var ctx = CreateContext();
@@ -250,7 +251,7 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Replace_param_pattern()
     {
         using var ctx = CreateContext();
@@ -269,7 +270,7 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Replace_param_instance()
     {
         using var ctx = CreateContext();

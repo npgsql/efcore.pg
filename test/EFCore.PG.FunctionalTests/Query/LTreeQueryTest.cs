@@ -5,6 +5,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 [MinimumPostgresVersion(13, 0)]
+[SkipForCockroachDb]
 public class LTreeQueryTest : IClassFixture<LTreeQueryTest.LTreeQueryFixture>
 {
     private LTreeQueryFixture Fixture { get; }
