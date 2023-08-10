@@ -67,9 +67,13 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
     private static readonly MethodInfo TimeOnly_Add_TimeSpan
         = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.Add), new[] { typeof(TimeSpan) })!;
 
-    private static readonly MethodInfo TimeZoneInfo_ConvertTimeBySystemTimeZoneId
+    private static readonly MethodInfo TimeZoneInfo_ConvertTimeBySystemTimeZoneId_DateTime
         = typeof(TimeZoneInfo).GetRuntimeMethod(
             nameof(TimeZoneInfo.ConvertTimeBySystemTimeZoneId), new[] { typeof(DateTime), typeof(string) })!;
+
+    private static readonly MethodInfo TimeZoneInfo_ConvertTimeBySystemTimeZoneId_DateTimeOffset
+        = typeof(TimeZoneInfo).GetRuntimeMethod(
+            nameof(TimeZoneInfo.ConvertTimeBySystemTimeZoneId), new[] { typeof(DateTimeOffset), typeof(string) })!;
 
     private static readonly MethodInfo TimeZoneInfo_ConvertTimeToUtc
         = typeof(TimeZoneInfo).GetRuntimeMethod(nameof(TimeZoneInfo.ConvertTimeToUtc), new[] { typeof(DateTime) })!;
@@ -322,7 +326,7 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments)
     {
-        if (method == TimeZoneInfo_ConvertTimeBySystemTimeZoneId)
+        if (method == TimeZoneInfo_ConvertTimeBySystemTimeZoneId_DateTime)
         {
             var typeMapping = arguments[0].TypeMapping;
             if (typeMapping is null
