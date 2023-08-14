@@ -47,6 +47,14 @@ public class NpgsqlDbContextOptionsBuilder
         => WithOption(e => e.WithRedshift(useRedshift));
 
     /// <summary>
+    /// Configures the provider to work in CockroachDB compatibility mode, which avoids certain unsupported features from modern
+    /// PostgreSQL versions.
+    /// </summary>
+    /// <param name="useCockroachDb">Whether to target CockroachDB.</param>
+    public virtual NpgsqlDbContextOptionsBuilder UseCockroachDb(bool useCockroachDb = true)
+        => WithOption(e => e.WithCockroachDb(useCockroachDb));
+
+    /// <summary>
     /// Maps a user-defined PostgreSQL range type for use.
     /// </summary>
     /// <typeparam name="TSubtype">

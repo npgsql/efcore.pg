@@ -37,6 +37,14 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    public virtual bool UseCockroachDb { get; private set; }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual bool ReverseNullOrderingEnabled { get; private set; }
 
     /// <summary>
@@ -81,6 +89,7 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
         PostgresVersion = npgsqlOptions.PostgresVersion;
         IsPostgresVersionSet = npgsqlOptions.IsPostgresVersionSet;
         UseRedshift = npgsqlOptions.UseRedshift;
+        UseCockroachDb = npgsqlOptions.UseCockroachDb;
         ReverseNullOrderingEnabled = npgsqlOptions.ReverseNullOrdering;
         UserRangeDefinitions = npgsqlOptions.UserRangeDefinitions;
 
@@ -108,6 +117,14 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
             throw new InvalidOperationException(
                 CoreStrings.SingletonOptionChanged(
                     nameof(NpgsqlDbContextOptionsBuilder.UseRedshift),
+                    nameof(DbContextOptionsBuilder.UseInternalServiceProvider)));
+        }
+
+        if (UseCockroachDb != npgsqlOptions.UseCockroachDb)
+        {
+            throw new InvalidOperationException(
+                CoreStrings.SingletonOptionChanged(
+                    nameof(NpgsqlDbContextOptionsBuilder.UseCockroachDb),
                     nameof(DbContextOptionsBuilder.UseInternalServiceProvider)));
         }
 

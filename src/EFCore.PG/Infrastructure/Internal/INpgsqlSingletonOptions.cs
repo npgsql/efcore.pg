@@ -23,6 +23,11 @@ public interface INpgsqlSingletonOptions : ISingletonOptions
     bool UseRedshift { get; }
 
     /// <summary>
+    ///     Whether to target CockroachDB.
+    /// </summary>
+    bool UseCockroachDb { get; }
+
+    /// <summary>
     ///     Whether reverse null ordering is enabled.
     /// </summary>
     bool ReverseNullOrderingEnabled { get; }
