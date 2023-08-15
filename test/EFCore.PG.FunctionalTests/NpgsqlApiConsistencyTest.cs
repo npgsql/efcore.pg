@@ -37,46 +37,54 @@ public class NpgsqlApiConsistencyTest : ApiConsistencyTestBase<NpgsqlApiConsiste
         };
 
         public override
-            List<(Type Type,
-                Type ReadonlyExtensions,
+            Dictionary<Type,
+                (Type ReadonlyExtensions,
                 Type MutableExtensions,
                 Type ConventionExtensions,
                 Type ConventionBuilderExtensions,
                 Type RuntimeExtensions)> MetadataExtensionTypes { get; }
             = new()
             {
-                (
+                {
                     typeof(IReadOnlyModel),
-                    typeof(NpgsqlModelExtensions),
-                    typeof(NpgsqlModelExtensions),
-                    typeof(NpgsqlModelExtensions),
-                    typeof(NpgsqlModelBuilderExtensions),
-                    null
-                ),
-                (
+                    (
+                        typeof(NpgsqlModelExtensions),
+                        typeof(NpgsqlModelExtensions),
+                        typeof(NpgsqlModelExtensions),
+                        typeof(NpgsqlModelBuilderExtensions),
+                        null
+                    )
+                },
+                {
                     typeof(IReadOnlyEntityType),
-                    typeof(NpgsqlEntityTypeExtensions),
-                    typeof(NpgsqlEntityTypeExtensions),
-                    typeof(NpgsqlEntityTypeExtensions),
-                    typeof(NpgsqlEntityTypeBuilderExtensions),
-                    null
-                ),
-                (
+                    (
+                        typeof(NpgsqlEntityTypeExtensions),
+                        typeof(NpgsqlEntityTypeExtensions),
+                        typeof(NpgsqlEntityTypeExtensions),
+                        typeof(NpgsqlEntityTypeBuilderExtensions),
+                        null
+                    )
+                },
+                {
                     typeof(IReadOnlyProperty),
-                    typeof(NpgsqlPropertyExtensions),
-                    typeof(NpgsqlPropertyExtensions),
-                    typeof(NpgsqlPropertyExtensions),
-                    typeof(NpgsqlPropertyBuilderExtensions),
-                    null
-                ),
-                (
+                    (
+                        typeof(NpgsqlPropertyExtensions),
+                        typeof(NpgsqlPropertyExtensions),
+                        typeof(NpgsqlPropertyExtensions),
+                        typeof(NpgsqlPropertyBuilderExtensions),
+                        null
+                    )
+                },
+                {
                     typeof(IReadOnlyIndex),
-                    typeof(NpgsqlIndexExtensions),
-                    typeof(NpgsqlIndexExtensions),
-                    typeof(NpgsqlIndexExtensions),
-                    typeof(NpgsqlIndexBuilderExtensions),
-                    null
-                )
+                    (
+                        typeof(NpgsqlIndexExtensions),
+                        typeof(NpgsqlIndexExtensions),
+                        typeof(NpgsqlIndexExtensions),
+                        typeof(NpgsqlIndexBuilderExtensions),
+                        null
+                    )
+                }
             };
 
         public override HashSet<MethodInfo> MetadataMethodExceptions { get; } = new()

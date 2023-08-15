@@ -3,8 +3,7 @@
   <PropertyGroup>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL</RootNamespace>
-    <TargetFrameworks Condition="'$(DeveloperBuild)' != 'True'">net6.0;net7.0;net8.0</TargetFrameworks>
-    <TargetFramework Condition="'$(DeveloperBuild)' == 'True'">net8.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
 
     <Authors>Shay Rojansky;Austin Drenski;Yoh Deadfall;</Authors>
     <Description>PostgreSQL/Npgsql provider for Entity Framework Core.</Description>
@@ -23,7 +22,7 @@
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <Compile Include="..\Shared\*.cs" />
 
@@ -50,5 +49,5 @@
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
-  
+
 </Project>

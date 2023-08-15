@@ -34,7 +34,7 @@ public static class NpgsqlPropertyBuilderExtensions
 
         name ??= NpgsqlModelExtensions.DefaultHiLoSequenceName;
 
-        var model = property.DeclaringEntityType.Model;
+        var model = property.DeclaringType.Model;
 
         if (model.FindSequence(name, schema) is null)
         {
@@ -90,7 +90,7 @@ public static class NpgsqlPropertyBuilderExtensions
 
         return name is null
             ? null
-            : propertyBuilder.Metadata.DeclaringEntityType.Model.Builder.HasSequence(name, schema, fromDataAnnotation);
+            : propertyBuilder.Metadata.DeclaringType.Model.Builder.HasSequence(name, schema, fromDataAnnotation);
     }
 
     /// <summary>
@@ -191,7 +191,7 @@ public static class NpgsqlPropertyBuilderExtensions
 
         return name == null
             ? null
-            : propertyBuilder.Metadata.DeclaringEntityType.Model.Builder.HasSequence(name, schema, fromDataAnnotation);
+            : propertyBuilder.Metadata.DeclaringType.Model.Builder.HasSequence(name, schema, fromDataAnnotation);
     }
 
     /// <summary>

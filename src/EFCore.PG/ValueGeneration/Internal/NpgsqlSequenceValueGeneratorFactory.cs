@@ -81,6 +81,6 @@ public class NpgsqlSequenceValueGeneratorFactory : INpgsqlSequenceValueGenerator
         }
 
         throw new ArgumentException(CoreStrings.InvalidValueGeneratorFactoryProperty(
-            nameof(NpgsqlSequenceValueGeneratorFactory), property.Name, property.DeclaringEntityType.DisplayName()));
+            nameof(NpgsqlSequenceValueGeneratorFactory), property.Name, property.DeclaringType.DisplayName()));
     }
 }

@@ -16,7 +16,6 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
 {
     private readonly NpgsqlTypeMappingSource _typeMappingSource;
     private readonly RelationalTypeMapping _boolTypeMapping;
-    private readonly RelationalTypeMapping _doubleTypeMapping;
 
     private static Type? _nodaTimeDurationType;
     private static Type? _nodaTimePeriodType;
@@ -30,7 +29,6 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     {
         _typeMappingSource = (NpgsqlTypeMappingSource)dependencies.TypeMappingSource;
         _boolTypeMapping = _typeMappingSource.FindMapping(typeof(bool), dependencies.Model)!;
-        _doubleTypeMapping = _typeMappingSource.FindMapping(typeof(double), dependencies.Model)!;
     }
 
     #region Expression factory methods

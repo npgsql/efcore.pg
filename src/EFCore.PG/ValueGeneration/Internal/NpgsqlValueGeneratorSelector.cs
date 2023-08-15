@@ -48,12 +48,8 @@ public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override ValueGenerator Select(IProperty property, IEntityType entityType)
-    {
-        Check.NotNull(property, nameof(property));
-        Check.NotNull(entityType, nameof(entityType));
-
-        return property.GetValueGeneratorFactory() is null
+    public override ValueGenerator Select(IProperty property, ITypeBase typeBase)
+        => property.GetValueGeneratorFactory() is null
             && property.GetValueGenerationStrategy() == NpgsqlValueGenerationStrategy.SequenceHiLo
                 ? _sequenceFactory.Create(
                     property,
@@ -61,8 +57,7 @@ public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
                     _connection,
                     _rawSqlCommandBuilder,
                     _commandLogger)
-                : base.Select(property, entityType);
-    }
+                : base.Select(property, typeBase);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -70,18 +65,10 @@ public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override ValueGenerator Create(IProperty property, IEntityType entityType)
-    {
-        Check.NotNull(property, nameof(property));
-        Check.NotNull(entityType, nameof(entityType));
-
-        // Generate temporary values if the user specified a default value (to allow
-        // generating server-side with uuid-ossp or whatever)
-        return property.ClrType.UnwrapNullableType() == typeof(Guid)
-            ? property.ValueGenerated == ValueGenerated.Never
-            || property.GetDefaultValueSql() is not null
+    protected override ValueGenerator? FindForType(IProperty property, ITypeBase typeBase, Type clrType)
+        => property.ClrType.UnwrapNullableType() == typeof(Guid)
+            ? property.ValueGenerated == ValueGenerated.Never || property.GetDefaultValueSql() is not null
                 ? new TemporaryGuidValueGenerator()
                 : new GuidValueGenerator()
-            : base.Create(property, entityType);
-    }
+            : base.FindForType(property, typeBase, clrType);
 }

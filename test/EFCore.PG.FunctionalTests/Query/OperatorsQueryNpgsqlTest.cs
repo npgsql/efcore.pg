@@ -5,16 +5,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class OperatorsQueryNpgsqlTest : OperatorsQueryTestBase
 {
-    public OperatorsQueryNpgsqlTest(ITestOutputHelper testOutputHelper)
-        : base(testOutputHelper)
-    {
-    }
-
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
-
-    protected TestSqlLoggerFactory TestSqlLoggerFactory
-        => (TestSqlLoggerFactory)ListLoggerFactory;
 
     protected void AssertSql(params string[] expected)
         => TestSqlLoggerFactory.AssertBaseline(expected);
@@ -116,9 +108,12 @@ WHERE -o."Value" = -(o."Id" + o0."Value")
 """
 SELECT o."Id"
 FROM "OperatorEntityString" AS o
-WHERE o."Value" IS NOT NULL AND NOT (o."Value" LIKE 'A%')
+WHERE o."Value" IS NOT NULL AND o."Value" NOT LIKE 'A%'
 """);
     }
+
+    public override Task Concat_and_json_scalar(bool async)
+        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Concat_and_json_scalar(async));
 
     protected override void Seed(OperatorsContext ctx)
     {
