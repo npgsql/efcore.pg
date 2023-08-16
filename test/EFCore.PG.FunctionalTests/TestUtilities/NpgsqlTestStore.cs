@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using System.Data.Common;
 using System.Text.RegularExpressions;
 
@@ -131,7 +131,14 @@ public class NpgsqlTestStore : RelationalTestStore
 
                 using (var context = new DbContext(
                            AddProviderOptions(
-                                   new DbContextOptionsBuilder()
+                                   new DbContextOptionsBuilder().UseNpgsql(
+                                           b =>
+                                           {
+                                               if (TestEnvironment.IsCockroachDB)
+                                               {
+                                                   b.UseCockroachDb();
+                                               }
+                                           })
                                        .EnableServiceProviderCaching(false))
                                .Options))
                 {
