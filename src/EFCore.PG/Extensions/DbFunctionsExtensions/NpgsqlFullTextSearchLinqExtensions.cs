@@ -91,6 +91,15 @@ public static class NpgsqlFullTextSearchLinqExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsQuery) + "." + nameof(Rewrite)));
 
     /// <summary>
+    /// For each row of the SQL <paramref name="select" /> result, occurrences of the first column value (the target)
+    /// are replaced by the second column value (the substitute) within the current <paramref name="query" /> value.
+    /// The <paramref name="select" /> must yield two columns of tsquery type.
+    /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSQUERY
+    /// </summary>
+    public static NpgsqlTsQuery Rewrite(this NpgsqlTsQuery query, string select)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsQuery) + "." + nameof(Rewrite)));
+
+    /// <summary>
     /// Returns a tsquery that searches for a match to <paramref name="query1" /> followed by a match
     /// to <paramref name="query2" />.
     /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSQUERY

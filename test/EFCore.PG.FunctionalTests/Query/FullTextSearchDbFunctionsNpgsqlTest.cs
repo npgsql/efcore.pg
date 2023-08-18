@@ -532,6 +532,25 @@ LIMIT 1
     }
 
     [Fact]
+    public void Rewrite_with_select()
+    {
+        using var context = CreateContext();
+        var rewritten = context.Customers
+            .Select(
+                c => EF.Functions.ToTsQuery("a & b").Rewrite(
+                    """SELECT 'a'::tsquery, 'c'::tsquery"""))
+            .First();
+
+        Assert.NotNull(rewritten);
+        AssertSql(
+"""
+SELECT ts_rewrite(to_tsquery('a & b'), 'SELECT ''a''::tsquery, ''c''::tsquery')
+FROM "Customers" AS c
+LIMIT 1
+""");
+    }
+
+    [Fact]
     public void ToPhrase()
     {
         using var context = CreateContext();

@@ -229,7 +229,16 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
                         argumentsPropagateNullability: TrueArrays[4],
                         method.ReturnType),
 
-                nameof(NpgsqlFullTextSearchLinqExtensions.Rewrite)
+                nameof(NpgsqlFullTextSearchLinqExtensions.Rewrite) when arguments.Count == 2
+                    => _sqlExpressionFactory.Function(
+                        "ts_rewrite",
+                        arguments,
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[2],
+                        typeof(NpgsqlTsQuery),
+                        _tsQueryMapping),
+
+                nameof(NpgsqlFullTextSearchLinqExtensions.Rewrite) when arguments.Count == 3
                     => _sqlExpressionFactory.Function(
                         "ts_rewrite",
                         arguments,
