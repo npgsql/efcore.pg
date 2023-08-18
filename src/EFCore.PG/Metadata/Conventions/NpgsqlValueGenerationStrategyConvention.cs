@@ -103,7 +103,7 @@ public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConventi
                 && !property.TryGetDefaultValue(storeObject, out _)
                 && property.GetDefaultValueSql(storeObject) is null
                 && property.GetComputedColumnSql(storeObject) is null
-                && property.DeclaringEntityType.Model.GetValueGenerationStrategy() != NpgsqlValueGenerationStrategy.None)
+                && property.DeclaringType.Model.GetValueGenerationStrategy() != NpgsqlValueGenerationStrategy.None)
             {
                 var providerClrType = (property.GetValueConverter()
                         ?? (property.FindRelationalTypeMapping(storeObject)

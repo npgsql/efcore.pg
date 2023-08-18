@@ -143,12 +143,12 @@ SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle"
 FROM (
     SELECT * FROM "Customers"
 ) AS m
-WHERE EXISTS (
-    SELECT 1
+WHERE m."CustomerID" IN (
+    SELECT m0."CustomerID"
     FROM (
         SELECT * FROM "Orders"
     ) AS m0
-    WHERE m0."CustomerID" = m."CustomerID")
+)
 """);
     }
 
@@ -576,12 +576,12 @@ SELECT m."CustomerID", m."EmployeeID", m."Freight", m."OrderDate", m."OrderID", 
 FROM (
     SELECT * FROM "Orders"
 ) AS m
-WHERE EXISTS (
-    SELECT 1
+WHERE m."CustomerID" IN (
+    SELECT m0."CustomerID"
     FROM (
         SELECT * FROM "Customers" WHERE "City" = @city
     ) AS m0
-    WHERE m0."CustomerID" = m."CustomerID")
+)
 """);
     }
 
@@ -597,12 +597,12 @@ SELECT m."CustomerID", m."EmployeeID", m."Freight", m."OrderDate", m."OrderID", 
 FROM (
     SELECT * FROM "Orders"
 ) AS m
-WHERE EXISTS (
-    SELECT 1
+WHERE m."CustomerID" IN (
+    SELECT m0."CustomerID"
     FROM (
         SELECT * FROM "Customers" WHERE "City" = @p0
     ) AS m0
-    WHERE m0."CustomerID" = m."CustomerID")
+)
 """);
     }
 
@@ -618,12 +618,12 @@ SELECT m."CustomerID", m."EmployeeID", m."Freight", m."OrderDate", m."OrderID", 
 FROM (
     SELECT * FROM "Orders"
 ) AS m
-WHERE EXISTS (
-    SELECT 1
+WHERE m."CustomerID" IN (
+    SELECT m0."CustomerID"
     FROM (
         SELECT * FROM "Customers" WHERE "City" = @city
     ) AS m0
-    WHERE m0."CustomerID" = m."CustomerID")
+)
 """);
     }
 
@@ -640,12 +640,12 @@ SELECT m."CustomerID", m."EmployeeID", m."Freight", m."OrderDate", m."OrderID", 
 FROM (
     SELECT * FROM "Orders"
 ) AS m
-WHERE EXISTS (
-    SELECT 1
+WHERE m."CustomerID" IN (
+    SELECT m0."CustomerID"
     FROM (
         SELECT * FROM "Customers" WHERE "City" = @p0 AND "ContactTitle" = @title
     ) AS m0
-    WHERE m0."CustomerID" = m."CustomerID")
+)
 """,
             //
 """
@@ -656,12 +656,12 @@ SELECT m."CustomerID", m."EmployeeID", m."Freight", m."OrderDate", m."OrderID", 
 FROM (
     SELECT * FROM "Orders"
 ) AS m
-WHERE EXISTS (
-    SELECT 1
+WHERE m."CustomerID" IN (
+    SELECT m0."CustomerID"
     FROM (
         SELECT * FROM "Customers" WHERE "City" = @city AND "ContactTitle" = @p1
     ) AS m0
-    WHERE m0."CustomerID" = m."CustomerID")
+)
 """);
     }
 

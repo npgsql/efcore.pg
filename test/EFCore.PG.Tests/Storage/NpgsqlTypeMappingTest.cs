@@ -5,6 +5,7 @@ using System.Net.NetworkInformation;
 using System.Numerics;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Design.Internal;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -926,6 +927,7 @@ public class NpgsqlTypeMappingTest
     private static readonly NpgsqlTypeMappingSource Mapper = new(
         new TypeMappingSourceDependencies(
             new ValueConverterSelector(new ValueConverterSelectorDependencies()),
+            new JsonValueReaderWriterSource(new JsonValueReaderWriterSourceDependencies()),
             Array.Empty<ITypeMappingSourcePlugin>()
         ),
         new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),

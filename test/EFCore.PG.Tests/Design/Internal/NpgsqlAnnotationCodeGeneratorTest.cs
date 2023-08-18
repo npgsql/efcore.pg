@@ -1,4 +1,5 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
+﻿using Microsoft.EntityFrameworkCore.Storage.Json;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
@@ -394,6 +395,7 @@ public class NpgsqlAnnotationCodeGeneratorTest
             new NpgsqlTypeMappingSource(
                 new TypeMappingSourceDependencies(
                     new ValueConverterSelector(new ValueConverterSelectorDependencies()),
+                    new JsonValueReaderWriterSource(new JsonValueReaderWriterSourceDependencies()),
                     Array.Empty<ITypeMappingSourcePlugin>()
                 ),
                 new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
@@ -2075,6 +2076,7 @@ CREATE TABLE column_types (
                 var typeMappingSource = new NpgsqlTypeMappingSource(
                     new TypeMappingSourceDependencies(
                         new ValueConverterSelector(new ValueConverterSelectorDependencies()),
+                        new JsonValueReaderWriterSource(new JsonValueReaderWriterSourceDependencies()),
                         Array.Empty<ITypeMappingSourcePlugin>()
                     ),
                     new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),

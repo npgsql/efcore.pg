@@ -150,7 +150,7 @@ public static class NpgsqlPropertyExtensions
     /// <returns> The sequence to use, or <see langword="null" /> if no sequence exists in the model. </returns>
     public static IReadOnlySequence? FindHiLoSequence(this IReadOnlyProperty property)
     {
-        var model = property.DeclaringEntityType.Model;
+        var model = property.DeclaringType.Model;
 
         var sequenceName = property.GetHiLoSequenceName()
             ?? model.GetHiLoSequenceName();
@@ -169,7 +169,7 @@ public static class NpgsqlPropertyExtensions
     /// <returns> The sequence to use, or <see langword="null" /> if no sequence exists in the model. </returns>
     public static IReadOnlySequence? FindHiLoSequence(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
     {
-        var model = property.DeclaringEntityType.Model;
+        var model = property.DeclaringType.Model;
 
         var sequenceName = property.GetHiLoSequenceName(storeObject)
             ?? model.GetHiLoSequenceName();
@@ -352,7 +352,7 @@ public static class NpgsqlPropertyExtensions
     /// <returns>The sequence to use, or <see langword="null" /> if no sequence exists in the model.</returns>
     public static IReadOnlySequence? FindSequence(this IReadOnlyProperty property)
     {
-        var model = property.DeclaringEntityType.Model;
+        var model = property.DeclaringType.Model;
 
         var sequenceName = property.GetSequenceName()
             ?? model.GetSequenceNameSuffix();
@@ -371,7 +371,7 @@ public static class NpgsqlPropertyExtensions
     /// <returns>The sequence to use, or <see langword="null" /> if no sequence exists in the model.</returns>
     public static IReadOnlySequence? FindSequence(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
     {
-        var model = property.DeclaringEntityType.Model;
+        var model = property.DeclaringType.Model;
 
         var sequenceName = property.GetSequenceName(storeObject)
             ?? model.GetSequenceNameSuffix();
@@ -458,7 +458,7 @@ public static class NpgsqlPropertyExtensions
 
         var annotation = property.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy);
         if (annotation?.Value != null
-            && StoreObjectIdentifier.Create(property.DeclaringEntityType, storeObject.StoreObjectType) == storeObject)
+            && StoreObjectIdentifier.Create(property.DeclaringType, storeObject.StoreObjectType) == storeObject)
         {
             return (NpgsqlValueGenerationStrategy)annotation.Value;
         }
@@ -525,7 +525,7 @@ public static class NpgsqlPropertyExtensions
 
     private static NpgsqlValueGenerationStrategy GetDefaultValueGenerationStrategy(IReadOnlyProperty property)
     {
-        var modelStrategy = property.DeclaringEntityType.Model.GetValueGenerationStrategy();
+        var modelStrategy = property.DeclaringType.Model.GetValueGenerationStrategy();
 
         switch (modelStrategy)
         {
@@ -550,7 +550,7 @@ public static class NpgsqlPropertyExtensions
         in StoreObjectIdentifier storeObject,
         ITypeMappingSource? typeMappingSource)
     {
-        var modelStrategy = property.DeclaringEntityType.Model.GetValueGenerationStrategy();
+        var modelStrategy = property.DeclaringType.Model.GetValueGenerationStrategy();
 
         switch (modelStrategy)
         {
@@ -565,7 +565,7 @@ public static class NpgsqlPropertyExtensions
             case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
                 return !IsCompatibleWithValueGeneration(property, storeObject, typeMappingSource)
                     ? NpgsqlValueGenerationStrategy.None
-                    : property.DeclaringEntityType.GetMappingStrategy() == RelationalAnnotationNames.TpcMappingStrategy
+                    : property.DeclaringType.GetMappingStrategy() == RelationalAnnotationNames.TpcMappingStrategy
                         ? NpgsqlValueGenerationStrategy.Sequence
                         : modelStrategy.Value;
 
@@ -682,15 +682,15 @@ public static class NpgsqlPropertyExtensions
             {
                 throw new ArgumentException(
                     NpgsqlStrings.IdentityBadType(
-                        property.Name, property.DeclaringEntityType.DisplayName(), propertyType.ShortDisplayName()));
+                        property.Name, property.DeclaringType.DisplayName(), propertyType.ShortDisplayName()));
             }
-            
+
             if (value is NpgsqlValueGenerationStrategy.SerialColumn or NpgsqlValueGenerationStrategy.SequenceHiLo
                 && !IsCompatibleWithValueGeneration(property))
             {
                 throw new ArgumentException(
                     NpgsqlStrings.SequenceBadType(
-                        property.Name, property.DeclaringEntityType.DisplayName(), propertyType.ShortDisplayName()));
+                        property.Name, property.DeclaringType.DisplayName(), propertyType.ShortDisplayName()));
             }
         }
     }

@@ -81,6 +81,21 @@ SET "Title" = COALESCE(o."Title", '') || '_Suffix'
     public override Task Delete_entity_with_auto_include(bool async)
         => Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => base.Delete_entity_with_auto_include(async)); // #30577
 
+    public override async Task Update_with_alias_uniquification_in_setter_subquery(bool async)
+    {
+        await base.Update_with_alias_uniquification_in_setter_subquery(async);
+
+        AssertSql(
+"""
+UPDATE "Orders" AS o
+SET "Total" = (
+    SELECT COALESCE(sum(o0."Amount"), 0)::int
+    FROM "OrderProduct" AS o0
+    WHERE o."Id" = o0."OrderId")
+WHERE o."Id" = 1
+""");
+    }
+
     private void AssertSql(params string[] expected)
         => TestSqlLoggerFactory.AssertBaseline(expected);
 

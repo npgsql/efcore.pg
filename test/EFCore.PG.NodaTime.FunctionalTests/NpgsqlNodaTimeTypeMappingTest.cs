@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Design.Internal;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Calendars;
 using NodaTime.TimeZones;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
@@ -621,6 +622,7 @@ public class NpgsqlNodaTimeTypeMappingTest
     private static readonly NpgsqlTypeMappingSource Mapper = new(
         new TypeMappingSourceDependencies(
             new ValueConverterSelector(new ValueConverterSelectorDependencies()),
+            new JsonValueReaderWriterSource(new JsonValueReaderWriterSourceDependencies()),
             Array.Empty<ITypeMappingSourcePlugin>()),
         new RelationalTypeMappingSourceDependencies(
             new IRelationalTypeMappingSourcePlugin[] {

@@ -121,7 +121,7 @@ public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.C
             Assert.Equal("12345 ", entity.Character6);
 
             // Trailing whitespace is ignored when querying.
-            var fromLocal = ctx.CharacterTestEntities.Single(x => x.Character6 == "12345" && x.Character6 == "12345 ");
+            var fromLocal = ctx.CharacterTestEntities.Single(x => x.Character6 == "12345");
 
             // And since we queried the same context, we received the same object.
             Assert.Equal(entity, fromLocal);

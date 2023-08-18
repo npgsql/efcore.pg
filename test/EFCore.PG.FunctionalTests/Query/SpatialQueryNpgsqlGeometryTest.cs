@@ -756,10 +756,10 @@ FROM "PointEntity" AS p
 
 SELECT m."Id", m."MultiLineString"
 FROM "MultiLineStringEntity" AS m
-WHERE EXISTS (
-    SELECT 1
+WHERE @__lineString_0 IN (
+    SELECT m0.geom
     FROM ST_Dump(m."MultiLineString") AS m0
-    WHERE m0.geom = @__lineString_0)
+)
 """);
     }
 

@@ -47,7 +47,7 @@ WHERE p."NullableInt" IN (10, 999)
 """
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
 FROM "PrimitiveCollectionsEntity" AS p
-WHERE p."NullableInt" = 999 OR p."NullableInt" IS NULL
+WHERE p."NullableInt" IS NULL OR p."NullableInt" = 999
 """);
     }
 
@@ -146,23 +146,66 @@ WHERE p."Id" IN (2, 999, 1000)
     {
         await base.Inline_collection_Contains_with_all_parameters(async);
 
-        // See #30732 for making this better
-
         AssertSql(
 """
-@__p_0={ '2', '999' } (DbType = Object)
+@__i_0='2'
+@__j_1='999'
 
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
 FROM "PrimitiveCollectionsEntity" AS p
-WHERE p."Id" = ANY (@__p_0)
+WHERE p."Id" IN (@__i_0, @__j_1)
 """);
     }
 
-    public override async Task Inline_collection_Contains_with_parameter_and_column_based_expression(bool async)
+    public override async Task Inline_collection_Contains_with_constant_and_parameter(bool async)
     {
-        await base.Inline_collection_Contains_with_parameter_and_column_based_expression(async);
+        await base.Inline_collection_Contains_with_constant_and_parameter(async);
 
-        AssertSql();
+        AssertSql(
+"""
+@__j_0='999'
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Id" IN (2, @__j_0)
+""");
+    }
+
+    public override async Task Inline_collection_Contains_with_mixed_value_types(bool async)
+    {
+        await base.Inline_collection_Contains_with_mixed_value_types(async);
+
+        AssertSql(
+"""
+@__i_0='11'
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Int" IN (999, @__i_0, p."Id", p."Id" + p."Int")
+""");    }
+
+    public override async Task Inline_collection_Contains_as_Any_with_predicate(bool async)
+    {
+        await base.Inline_collection_Contains_as_Any_with_predicate(async);
+
+        AssertSql(
+"""
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Id" IN (2, 999)
+""");
+    }
+
+    public override async Task Inline_collection_negated_Contains_as_All(bool async)
+    {
+        await base.Inline_collection_negated_Contains_as_All(async);
+
+        AssertSql(
+"""
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Id" NOT IN (2, 999)
+""");
     }
 
     public override async Task Parameter_collection_Count(bool async)
@@ -196,9 +239,9 @@ WHERE p."Int" = ANY (@__ints_0)
 """);
     }
 
-    public override async Task Parameter_collection_of_nullable_ints_Contains(bool async)
+    public override async Task Parameter_collection_of_nullable_ints_Contains_int(bool async)
     {
-        await base.Parameter_collection_of_nullable_ints_Contains(async);
+        await base.Parameter_collection_of_nullable_ints_Contains_int(async);
 
         AssertSql(
 """
@@ -206,13 +249,13 @@ WHERE p."Int" = ANY (@__ints_0)
 
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
 FROM "PrimitiveCollectionsEntity" AS p
-WHERE p."NullableInt" = ANY (@__nullableInts_0) OR (p."NullableInt" IS NULL AND array_position(@__nullableInts_0, NULL) IS NOT NULL)
+WHERE p."Int" = ANY (@__nullableInts_0)
 """);
     }
 
-    public override async Task Parameter_collection_of_nullable_ints_Contains_null(bool async)
+    public override async Task Parameter_collection_of_nullable_ints_Contains_nullable_int(bool async)
     {
-        await base.Parameter_collection_of_nullable_ints_Contains_null(async);
+        await base.Parameter_collection_of_nullable_ints_Contains_nullable_int(async);
 
         AssertSql(
 """
@@ -328,6 +371,18 @@ WHERE array_position(p."NullableInts", NULL) IS NOT NULL
 """);
     }
 
+    public override async Task Column_collection_of_strings_contains_null(bool async)
+    {
+        await base.Column_collection_of_strings_contains_null(async);
+
+        AssertSql(
+"""
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE array_position(p."Strings", NULL) IS NOT NULL
+""");
+    }
+
     public override async Task Column_collection_of_bools_Contains(bool async)
     {
         await base.Column_collection_of_bools_Contains(async);
@@ -428,9 +483,23 @@ WHERE (
 """);
     }
 
-    public override async Task Parameter_collection_index_Column(bool async)
+    public override async Task Parameter_collection_index_Column_equal_Column(bool async)
     {
-        await base.Parameter_collection_index_Column(async);
+        await base.Parameter_collection_index_Column_equal_Column(async);
+
+        AssertSql(
+"""
+@__ints_0={ '0', '2', '3' } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE @__ints_0[p."Int" + 1] = p."Int"
+""");
+    }
+
+    public override async Task Parameter_collection_index_Column_equal_constant(bool async)
+    {
+        await base.Parameter_collection_index_Column_equal_constant(async);
 
         AssertSql(
 """
@@ -490,6 +559,22 @@ WHERE 11 = ANY (p."Ints"[2:3])
 """);
     }
 
+    public override async Task Column_collection_OrderByDescending_ElementAt(bool async)
+    {
+        await base.Column_collection_OrderByDescending_ElementAt(async);
+
+        AssertSql(
+"""
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE (
+    SELECT i.value
+    FROM unnest(p."Ints") AS i(value)
+    ORDER BY i.value DESC NULLS LAST
+    LIMIT 1 OFFSET 0) = 111
+""");
+    }
+
     public override async Task Column_collection_Any(bool async)
     {
         await base.Column_collection_Any(async);
@@ -514,9 +599,9 @@ ORDER BY p."Id" NULLS FIRST
 """);
     }
 
-    public override async Task Column_collection_and_parameter_collection_Join(bool async)
+    public override async Task Column_collection_Join_parameter_collection(bool async)
     {
-        await base.Column_collection_and_parameter_collection_Join(async);
+        await base.Column_collection_Join_parameter_collection(async);
 
         AssertSql(
 """
@@ -528,6 +613,21 @@ WHERE (
     SELECT count(*)::int
     FROM unnest(p."Ints") AS i(value)
     INNER JOIN unnest(@__ints_0) AS i0(value) ON i.value = i0.value) = 2
+""");
+    }
+
+    public override async Task Inline_collection_Join_ordered_column_collection(bool async)
+    {
+        await base.Inline_collection_Join_ordered_column_collection(async);
+
+        AssertSql(
+"""
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE (
+    SELECT count(*)::int
+    FROM (VALUES (11::int), (111)) AS v("Value")
+    INNER JOIN unnest(p."Ints") AS i(value) ON v."Value" = i.value) = 2
 """);
     }
 
@@ -684,7 +784,28 @@ WHERE p."Ints" = ARRAY[1,10]::integer[]
 """);
     }
 
-        public override async Task Parameter_collection_in_subquery_Union_column_collection_as_compiled_query(bool async)
+    public override async Task Column_collection_equality_inline_collection_with_parameters(bool async)
+    {
+        var (i, j) = (1, 10);
+
+        await AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints == new[] { i, j }),
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.SequenceEqual(new[] { i, j })),
+            entryCount: 1);
+
+        AssertSql(
+"""
+@__i_0='1'
+@__j_1='10'
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Ints" = ARRAY[@__i_0,@__j_1]::integer[]
+""");
+    }
+
+    public override async Task Parameter_collection_in_subquery_Union_column_collection_as_compiled_query(bool async)
     {
         await base.Parameter_collection_in_subquery_Union_column_collection_as_compiled_query(async);
 

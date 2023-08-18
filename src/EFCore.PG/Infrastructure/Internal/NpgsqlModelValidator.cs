@@ -73,7 +73,7 @@ public class NpgsqlModelValidator : RelationalModelValidator
                 or NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
             {
                 throw new InvalidOperationException(
-                    $"{property.DeclaringEntityType}.{property.Name}: '{propertyStrategy}' requires PostgreSQL 10.0 or later.");
+                    $"{property.DeclaringType}.{property.Name}: '{propertyStrategy}' requires PostgreSQL 10.0 or later.");
             }
         }
     }
@@ -221,9 +221,9 @@ public class NpgsqlModelValidator : RelationalModelValidator
         {
             throw new InvalidOperationException(
                 NpgsqlStrings.DuplicateColumnCompressionMethodMismatch(
-                    duplicateProperty.DeclaringEntityType.DisplayName(),
+                    duplicateProperty.DeclaringType.DisplayName(),
                     duplicateProperty.Name,
-                    property.DeclaringEntityType.DisplayName(),
+                    property.DeclaringType.DisplayName(),
                     property.Name,
                     columnName,
                     storeObject.DisplayName()));

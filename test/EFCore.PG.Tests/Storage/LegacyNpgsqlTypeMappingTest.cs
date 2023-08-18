@@ -1,5 +1,6 @@
 #if DEBUG
 
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -44,6 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         private static readonly NpgsqlTypeMappingSource Mapper = new(
             new TypeMappingSourceDependencies(
                 new ValueConverterSelector(new ValueConverterSelectorDependencies()),
+                new JsonValueReaderWriterSource(new JsonValueReaderWriterSourceDependencies()),
                 Array.Empty<ITypeMappingSourcePlugin>()
             ),
             new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),

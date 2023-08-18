@@ -20,6 +20,24 @@ public class NonSharedPrimitiveCollectionsQueryNpgsqlTest : NonSharedPrimitiveCo
                 .Property(typeof(DateTime[]), "SomeArray")
                 .HasColumnType("timestamp without time zone[]"));
 
+    // Npgsql maps DateTime to timestamp with time zone by default, which requires UTC timestamps.
+    public override Task Array_of_DateTime_with_milliseconds()
+        => TestArray(
+            new DateTime(2023, 1, 1, 12, 30, 0, 123),
+            new DateTime(2023, 1, 1, 12, 30, 0, 124),
+            mb => mb.Entity<TestEntity>()
+                .Property(typeof(DateTime[]), "SomeArray")
+                .HasColumnType("timestamp without time zone[]"));
+
+    // Npgsql maps DateTime to timestamp with time zone by default, which requires UTC timestamps.
+    public override Task Array_of_DateTime_with_microseconds()
+        => TestArray(
+            new DateTime(2023, 1, 1, 12, 30, 0, 123, 456),
+            new DateTime(2023, 1, 1, 12, 30, 0, 123, 457),
+            mb => mb.Entity<TestEntity>()
+                .Property(typeof(DateTime[]), "SomeArray")
+                .HasColumnType("timestamp without time zone[]"));
+
     [ConditionalFact]
     public virtual Task Array_of_DateTime_utc()
         => TestArray(

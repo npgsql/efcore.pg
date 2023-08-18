@@ -35,7 +35,7 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
         }
 
         // Model validation ensures that these facets are the same on all mapped entity types
-        var entityType = table.EntityTypeMappings.First().EntityType;
+        var entityType = (IEntityType)table.EntityTypeMappings.First().TypeBase;
 
         if (entityType.GetIsUnlogged())
         {
@@ -70,7 +70,7 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
         var table = StoreObjectIdentifier.Table(column.Table.Name, column.Table.Schema);
         var valueGeneratedProperty = column.PropertyMappings.Where(
                 m => (m.TableMapping.IsSharedTablePrincipal ?? true)
-                    && m.TableMapping.EntityType == m.Property.DeclaringEntityType)
+                    && m.TableMapping.TypeBase == m.Property.DeclaringType)
             .Select(m => m.Property)
             .FirstOrDefault(
                 p => p.GetValueGenerationStrategy(table) switch
@@ -124,7 +124,7 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
             yield return new Annotation(
                 NpgsqlAnnotationNames.TsVectorProperties,
                 valueGeneratedProperty.GetTsVectorProperties()!
-                    .Select(p2 => valueGeneratedProperty.DeclaringEntityType.FindProperty(p2)!.GetColumnName(tableIdentifier))
+                    .Select(p2 => valueGeneratedProperty.DeclaringType.FindProperty(p2)!.GetColumnName(tableIdentifier))
                     .ToArray());
         }
 
