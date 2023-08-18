@@ -26,7 +26,7 @@ public sealed class NpgsqlJsonGeometryWktReaderWriter : JsonValueReaderWriter<Ge
     }
 
     /// <inheritdoc />
-    public override Geometry FromJsonTyped(ref Utf8JsonReaderManager manager)
+    public override Geometry FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
         => WktReader.Read(manager.CurrentReader.GetString());
 
     /// <inheritdoc />

@@ -4,6 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage;
 
@@ -64,7 +65,7 @@ public class NpgsqlTypeMappingSourceTest
     {
         var mapping = CreateTypeMappingSource().FindMapping("varchar(32)[]");
 
-        var arrayMapping = Assert.IsType<NpgsqlArrayTypeMapping>(mapping);
+        var arrayMapping = Assert.IsAssignableFrom<NpgsqlArrayTypeMapping>(mapping);
         Assert.Same(typeof(string[]), arrayMapping.ClrType);
         Assert.Equal("varchar(32)[]", arrayMapping.StoreType);
         Assert.Null(arrayMapping.Size);
@@ -87,7 +88,7 @@ public class NpgsqlTypeMappingSourceTest
     [Fact]
     public void Timestamp_without_time_zone_Array_5()
     {
-        var arrayMapping = Assert.IsType<NpgsqlArrayTypeMapping>(CreateTypeMappingSource().FindMapping("timestamp(5) without time zone[]"));
+        var arrayMapping = Assert.IsAssignableFrom<NpgsqlArrayTypeMapping>(CreateTypeMappingSource().FindMapping("timestamp(5) without time zone[]"));
         Assert.Same(typeof(DateTime[]), arrayMapping.ClrType);
         Assert.Equal("timestamp(5) without time zone[]", arrayMapping.StoreType);
 
@@ -117,18 +118,35 @@ public class NpgsqlTypeMappingSourceTest
 
     [Theory]
     [InlineData(typeof(decimal), "numeric(5)")]
-    [InlineData(typeof(decimal[]), "numeric(5)[]")]
     [InlineData(typeof(DateTime), "timestamp(5) with time zone")]
-    [InlineData(typeof(DateTime[]), "timestamp(5) with time zone[]")]
     [InlineData(typeof(TimeSpan), "interval(5)")]
-    [InlineData(typeof(TimeSpan[]), "interval(5)[]")]
     [InlineData(typeof(int), "integer")]
-    [InlineData(typeof(int[]), "integer[]")]
     public void By_ClrType_and_precision(Type clrType, string expectedStoreType)
     {
         var mapping = CreateTypeMappingSource().FindMapping(clrType, null, precision: 5);
         Assert.Equal(expectedStoreType, mapping.StoreType);
         Assert.Same(clrType, mapping.ClrType);
+    }
+
+    [Theory]
+    [InlineData(typeof(decimal[]), "numeric(5)[]")]
+    [InlineData(typeof(DateTime[]), "timestamp(5) with time zone[]")]
+    [InlineData(typeof(TimeSpan[]), "interval(5)[]")]
+    [InlineData(typeof(int[]), "integer[]")]
+    public void By_ClrType_and_element_precision(Type clrType, string expectedStoreType)
+    {
+        var model = CreateEmptyModel();
+        var arrayMapping = CreateTypeMappingSource().FindMapping(clrType, model,
+                CreateTypeMappingSource().FindMapping(clrType.GetElementType()!, null, precision: 5)!);
+
+        Assert.Equal(expectedStoreType, arrayMapping.StoreType);
+        Assert.Same(clrType, arrayMapping.ClrType);
+        Assert.Null(arrayMapping.Precision);
+
+        var elementMapping = Assert.IsAssignableFrom<RelationalTypeMapping>(arrayMapping.ElementTypeMapping);
+        Assert.Equal(5, elementMapping.Precision);
+        Assert.Equal(expectedStoreType[..^2], elementMapping.StoreType);
+        Assert.Same(clrType.GetElementType(), elementMapping.ClrType);
     }
 
     [Theory]
@@ -324,6 +342,12 @@ public class NpgsqlTypeMappingSourceTest
     private class DummyType {}
 
     private class UnknownType {}
+
+    protected IModel CreateEmptyModel()
+        => CreateModelBuilder().Model.FinalizeModel();
+
+    protected ModelBuilder CreateModelBuilder(Action<ModelConfigurationBuilder> configureConventions = null)
+        => NpgsqlTestHelpers.Instance.CreateConventionBuilder(configureConventions: configureConventions);
 
     #endregion Support
 }

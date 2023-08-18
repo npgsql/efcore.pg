@@ -2,10 +2,10 @@ using Microsoft.EntityFrameworkCore.BulkUpdates;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.BulkUpdates;
 
-public class FiltersInheritanceBulkUpdatesNpgsqlTest : FiltersInheritanceBulkUpdatesTestBase<FiltersInheritanceBulkUpdatesNpgsqlFixture>
+public class TPHFiltersInheritanceBulkUpdatesNpgsqlTest : FiltersInheritanceBulkUpdatesTestBase<TPHFiltersInheritanceBulkUpdatesNpgsqlFixture>
 {
-    public FiltersInheritanceBulkUpdatesNpgsqlTest(
-        FiltersInheritanceBulkUpdatesNpgsqlFixture fixture,
+    public TPHFiltersInheritanceBulkUpdatesNpgsqlTest(
+        TPHFiltersInheritanceBulkUpdatesNpgsqlFixture fixture,
         ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
@@ -84,16 +84,17 @@ WHERE (
         AssertSql(
 """
 DELETE FROM "Animals" AS a
-WHERE a."CountryId" = 1 AND EXISTS (
-    SELECT 1
-    FROM "Animals" AS a0
-    WHERE a0."CountryId" = 1
-    GROUP BY a0."CountryId"
-    HAVING count(*)::int < 3 AND (
+WHERE a."CountryId" = 1 AND a."Id" IN (
+    SELECT (
         SELECT a1."Id"
         FROM "Animals" AS a1
         WHERE a1."CountryId" = 1 AND a0."CountryId" = a1."CountryId"
-        LIMIT 1) = a."Id")
+        LIMIT 1)
+    FROM "Animals" AS a0
+    WHERE a0."CountryId" = 1
+    GROUP BY a0."CountryId"
+    HAVING count(*)::int < 3
+)
 """);
     }
 
@@ -102,6 +103,30 @@ WHERE a."CountryId" = 1 AND EXISTS (
         await base.Delete_where_keyless_entity_mapped_to_sql_query(async);
 
         AssertSql();
+    }
+
+    public override async Task Update_base_type(bool async)
+    {
+        await base.Update_base_type(async);
+
+        AssertExecuteUpdateSql(
+"""
+UPDATE "Animals" AS a
+SET "Name" = 'Animal'
+WHERE a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
+""");
+    }
+
+    public override async Task Update_base_type_with_OfType(bool async)
+    {
+        await base.Update_base_type_with_OfType(async);
+
+        AssertExecuteUpdateSql(
+"""
+UPDATE "Animals" AS a
+SET "Name" = 'NewBird'
+WHERE a."CountryId" = 1 AND a."Discriminator" = 'Kiwi'
+""");
     }
 
     public override async Task Delete_where_hierarchy_subquery(bool async)
@@ -114,28 +139,13 @@ WHERE a."CountryId" = 1 AND EXISTS (
 @__p_0='0'
 
 DELETE FROM "Animals" AS a
-WHERE EXISTS (
-    SELECT 1
-    FROM (
-        SELECT a0."Id", a0."CountryId", a0."Discriminator", a0."Name", a0."Species", a0."EagleId", a0."IsFlightless", a0."Group", a0."FoundOn"
-        FROM "Animals" AS a0
-        WHERE a0."CountryId" = 1 AND a0."Name" = 'Great spotted kiwi'
-        ORDER BY a0."Name" NULLS FIRST
-        LIMIT @__p_1 OFFSET @__p_0
-    ) AS t
-    WHERE t."Id" = a."Id")
-""");
-    }
-
-    public override async Task Update_where_hierarchy(bool async)
-    {
-        await base.Update_where_hierarchy(async);
-
-        AssertExecuteUpdateSql(
-"""
-UPDATE "Animals" AS a
-SET "Name" = 'Animal'
-WHERE a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
+WHERE a."Id" IN (
+    SELECT a0."Id"
+    FROM "Animals" AS a0
+    WHERE a0."CountryId" = 1 AND a0."Name" = 'Great spotted kiwi'
+    ORDER BY a0."Name" NULLS FIRST
+    LIMIT @__p_1 OFFSET @__p_0
+)
 """);
     }
 
@@ -146,15 +156,40 @@ WHERE a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
         AssertExecuteUpdateSql();
     }
 
-    public override async Task Update_where_hierarchy_derived(bool async)
+    public override async Task Update_base_property_on_derived_type(bool async)
     {
-        await base.Update_where_hierarchy_derived(async);
+        await base.Update_base_property_on_derived_type(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Animals" AS a
-SET "Name" = 'Kiwi'
-WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
+SET "Name" = 'SomeOtherKiwi'
+WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1
+""");
+    }
+
+    public override async Task Update_derived_property_on_derived_type(bool async)
+    {
+        await base.Update_derived_property_on_derived_type(async);
+
+        AssertExecuteUpdateSql(
+            """
+UPDATE "Animals" AS a
+SET "FoundOn" = 0
+WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1
+""");
+    }
+
+    public override async Task Update_base_and_derived_types(bool async)
+    {
+        await base.Update_base_and_derived_types(async);
+
+        AssertExecuteUpdateSql(
+            """
+UPDATE "Animals" AS a
+SET "FoundOn" = 0,
+    "Name" = 'Kiwi'
+WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1
 """);
     }
 

@@ -47,15 +47,27 @@ public class PostgresUnnestExpression : TableValuedFunctionExpression
     public virtual string ColumnName { get; }
 
     /// <summary>
+    ///     Whether to project an additional ordinality column containing the index of each element in the array.
+    /// </summary>
+    /// <remarks>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </remarks>
+    public virtual bool WithOrdinality { get; }
+
+    /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public PostgresUnnestExpression(string alias, SqlExpression array, string columnName)
+    public PostgresUnnestExpression(string alias, SqlExpression array, string columnName, bool withOrdinality = true)
         : base(alias, "unnest", schema: null, builtIn: true, new[] { array })
     {
         ColumnName = columnName;
+        WithOrdinality = withOrdinality;
     }
 
     /// <summary>
@@ -78,7 +90,7 @@ public class PostgresUnnestExpression : TableValuedFunctionExpression
     public virtual PostgresUnnestExpression Update(SqlExpression array)
         => array == Array
             ? this
-            : new PostgresUnnestExpression(Alias, array, ColumnName);
+            : new PostgresUnnestExpression(Alias, array, ColumnName, WithOrdinality);
 
     /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)
@@ -88,7 +100,13 @@ public class PostgresUnnestExpression : TableValuedFunctionExpression
         expressionPrinter.VisitCollection(Arguments);
         expressionPrinter.Append(")");
 
+        if (WithOrdinality)
+        {
+            expressionPrinter.Append(" WITH ORDINALITY");
+        }
+
         PrintAnnotations(expressionPrinter);
+
         expressionPrinter
             .Append(" AS ")
             .Append(Alias)
@@ -105,7 +123,9 @@ public class PostgresUnnestExpression : TableValuedFunctionExpression
                 && Equals(unnestExpression));
 
     private bool Equals(PostgresUnnestExpression unnestExpression)
-        => base.Equals(unnestExpression) && ColumnName == unnestExpression.ColumnName;
+        => base.Equals(unnestExpression)
+            && ColumnName == unnestExpression.ColumnName
+            && WithOrdinality == unnestExpression.WithOrdinality;
 
     /// <inheritdoc />
     public override int GetHashCode()

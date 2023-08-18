@@ -7,7 +7,7 @@ public class NorthwindSelectQueryNpgsqlTest : NorthwindSelectQueryRelationalTest
         : base(fixture)
     {
         ClearLog();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     public override async Task Select_datetime_DayOfWeek_component(bool async)

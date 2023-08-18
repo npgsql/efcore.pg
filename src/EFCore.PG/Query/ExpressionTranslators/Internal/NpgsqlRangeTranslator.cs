@@ -51,7 +51,7 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
         if (_supportsMultiranges
             && method.IsGenericMethod
             && method.GetGenericMethodDefinition() == EnumerableAnyWithoutPredicate
-            && arguments[0].Type.TryGetMultirangeSubtype(out _))
+            && arguments[0].IsMultirange())
         {
             return _sqlExpressionFactory.Not(
                 _sqlExpressionFactory.Function(

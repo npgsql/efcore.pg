@@ -7,6 +7,6 @@ internal class ManyToManyQueryNpgsqlTest : ManyToManyQueryRelationalTestBase<Man
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 }

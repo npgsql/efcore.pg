@@ -4,9 +4,7 @@ public class TPTInheritanceQueryNpgsqlTest : TPTInheritanceQueryTestBase<TPTInhe
 {
     // ReSharper disable once UnusedParameter.Local
     public TPTInheritanceQueryNpgsqlTest(TPTInheritanceQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
-        : base(fixture)
+        : base(fixture, testOutputHelper)
     {
-        Fixture.TestSqlLoggerFactory.Clear();
-        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 }

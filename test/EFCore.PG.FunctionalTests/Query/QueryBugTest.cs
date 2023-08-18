@@ -12,7 +12,7 @@ public class QueryBugsTest : IClassFixture<NpgsqlFixture>
     {
         Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();
-        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     protected NpgsqlFixture Fixture { get; }

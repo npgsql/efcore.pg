@@ -499,6 +499,17 @@ public class NpgsqlNodaTimeTypeMappingTest
         Assert.Equal("NodaTime.LocalTime.FromHourMinuteSecondNanosecond(9, 30, 15, 1L)", CodeLiteral(LocalTime.FromHourMinuteSecondNanosecond(9, 30, 15, 1)));
     }
 
+    [Fact]
+    public void LocalTime_array_is_properly_mapped()
+    {
+        Assert.Equal("time[]", GetMapping(typeof(LocalTime[])).StoreType);
+        Assert.Same(typeof(LocalTime[]), GetMapping("time[]").ClrType);
+    }
+
+    [Fact]
+    public void LocalTime_list_is_properly_mapped()
+        => Assert.Equal("time[]", GetMapping(typeof(List<LocalTime>)).StoreType);
+
     #endregion time
 
     #region timetz

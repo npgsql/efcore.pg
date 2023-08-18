@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 // ReSharper disable once CheckNamespace
 namespace System.Reflection;
@@ -21,28 +22,19 @@ internal static class TypeExtensions
         return elementType is not null;
     }
 
-    internal static bool TryGetRangeSubtype(this Type type, [NotNullWhen(true)] out Type? subtypeType)
-    {
-        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NpgsqlRange<>))
-        {
-            subtypeType = type.GetGenericArguments()[0];
-            return true;
-        }
+    internal static bool IsRange(this SqlExpression expression)
+        => expression.TypeMapping is NpgsqlRangeTypeMapping || expression.Type.IsRange();
 
-        subtypeType = null;
-        return false;
-    }
+    internal static bool IsRange(this Type type)
+        => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NpgsqlRange<>)
+            || type is { Name: "Interval" or "DateInterval", Namespace: "NodaTime" };
 
-    internal static bool TryGetMultirangeSubtype(this Type type, [NotNullWhen(true)] out Type? subtypeType)
-    {
-        if (type.TryGetElementType(out var elementType) && elementType.TryGetRangeSubtype(out subtypeType))
-        {
-            return true;
-        }
+    internal static bool IsMultirange(this SqlExpression expression)
+        => expression.TypeMapping is NpgsqlMultirangeTypeMapping
+            || expression.Type.IsMultirange();
 
-        subtypeType = null;
-        return false;
-    }
+    internal static bool IsMultirange(this Type type)
+        => type.TryGetElementType(out var elementType) && elementType.IsRange();
 
     public static PropertyInfo? FindIndexerProperty(this Type type)
     {

@@ -12,7 +12,7 @@ public class ComplexNavigationsSharedTypeQueryNpgsqlTest
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/26353")]

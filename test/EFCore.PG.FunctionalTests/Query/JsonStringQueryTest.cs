@@ -13,7 +13,7 @@ public class JsonStringQueryTest : IClassFixture<JsonStringQueryTest.JsonStringQ
     {
         Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     [Fact]

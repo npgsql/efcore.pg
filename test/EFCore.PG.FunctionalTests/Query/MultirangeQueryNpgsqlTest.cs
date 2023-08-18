@@ -13,7 +13,7 @@ public class MultirangeQueryNpgsqlTest : IClassFixture<MultirangeQueryNpgsqlTest
     {
         Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     #region Operators
@@ -675,6 +675,52 @@ LIMIT 2
     }
 
     #endregion Built-in multiranges
+
+    #region Query as primitive collection
+
+    [ConditionalFact]
+    public void Contains()
+    {
+        using var context = CreateContext();
+
+        var id = context.TestEntities
+            .Single(x => x.IntMultirange.Contains(new NpgsqlRange<int>(0, 5)))
+            .Id;
+        Assert.Equal(1, id);
+
+        AssertSql(
+"""
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE t."IntMultirange" @> '[0,5]'::int4range
+LIMIT 2
+""");
+    }
+
+    [ConditionalFact]
+    public void Skip_Contains()
+    {
+        using var context = CreateContext();
+
+        var id = context.TestEntities
+            .Single(x => x.IntMultirange.Skip(1).Contains(new NpgsqlRange<int>(7, 10)))
+            .Id;
+        Assert.Equal(1, id);
+
+        AssertSql(
+"""
+SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
+FROM "TestEntities" AS t
+WHERE '[7,10]'::int4range IN (
+    SELECT i.value
+    FROM unnest(t."IntMultirange") AS i(value)
+    OFFSET 1
+)
+LIMIT 2
+""");
+    }
+
+    #endregion
 
     #region Fixtures
 

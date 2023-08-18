@@ -10,7 +10,7 @@ public class GearsOfWarQueryNpgsqlTest : GearsOfWarQueryRelationalTestBase<Gears
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     #region Byte array

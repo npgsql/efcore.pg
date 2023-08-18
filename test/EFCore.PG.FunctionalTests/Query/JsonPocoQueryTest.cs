@@ -14,7 +14,7 @@ public class JsonPocoQueryTest : IClassFixture<JsonPocoQueryTest.JsonPocoQueryFi
     {
         Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     [Theory]
@@ -468,7 +468,7 @@ LIMIT 2
 """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE j."Customer"->>'Name' IS NOT NULL AND j."Customer"->>'Name' LIKE 'J%'
+WHERE j."Customer"->>'Name' LIKE 'J%'
 LIMIT 2
 """);
     }

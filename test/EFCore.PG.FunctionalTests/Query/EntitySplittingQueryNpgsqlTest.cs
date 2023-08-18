@@ -9,7 +9,6 @@ public class EntitySplittingQueryNpgsqlTest : EntitySplittingQueryTestBase
 {
     public EntitySplittingQueryNpgsqlTest(ITestOutputHelper testOutputHelper)
     {
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     [ConditionalFact]

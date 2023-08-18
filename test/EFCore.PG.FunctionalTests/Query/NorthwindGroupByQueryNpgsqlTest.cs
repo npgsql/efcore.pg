@@ -2027,7 +2027,7 @@ LEFT JOIN LATERAL (
     FROM "Products" AS p0
     GROUP BY p0."ProductID"
 ) AS t0 ON TRUE
-WHERE o."CustomerID" IS NOT NULL AND o."CustomerID" LIKE 'A%'
+WHERE o."CustomerID" LIKE 'A%'
 ORDER BY o."OrderID" NULLS FIRST, t."ProductID" NULLS FIRST
 """);
     }
@@ -3119,7 +3119,7 @@ ORDER BY t."CustomerID" NULLS FIRST
 """
 SELECT t."Key", count(*)::int AS "Count"
 FROM (
-    SELECT o."CustomerID" LIKE 'A%' AS "Key"
+    SELECT o."CustomerID" LIKE 'A%' AND o."CustomerID" IS NOT NULL AS "Key"
     FROM "Orders" AS o
 ) AS t
 GROUP BY t."Key"
@@ -3232,7 +3232,7 @@ END), 0)::int AS "Sum1", COALESCE(sum(CASE
     ELSE 0
 END), 0)::int AS "Sum2"
 FROM "Orders" AS o
-WHERE o."CustomerID" IS NOT NULL AND o."CustomerID" LIKE 'A%'
+WHERE o."CustomerID" LIKE 'A%'
 GROUP BY o."CustomerID"
 """);
     }
@@ -3418,7 +3418,7 @@ FROM (
     SELECT DISTINCT c."City"
     FROM "Orders" AS o
     LEFT JOIN "Customers" AS c ON o."CustomerID" = c."CustomerID"
-    WHERE o."CustomerID" IS NOT NULL AND o."CustomerID" LIKE 'A%'
+    WHERE o."CustomerID" LIKE 'A%'
 ) AS t
 LEFT JOIN LATERAL (
     SELECT p."ProductID"
@@ -3463,7 +3463,7 @@ FROM (
     SELECT o."CustomerID"
     FROM "Orders" AS o
     GROUP BY o."CustomerID"
-    HAVING o."CustomerID" IS NOT NULL AND o."CustomerID" LIKE 'F%'
+    HAVING o."CustomerID" LIKE 'F%'
 ) AS t
 LEFT JOIN "Orders" AS o0 ON t."CustomerID" = o0."CustomerID"
 ORDER BY t."CustomerID" NULLS FIRST

@@ -118,7 +118,6 @@ public static class NpgsqlServiceCollectionExtensions
             .TryAdd<IRelationalParameterBasedSqlProcessorFactory, NpgsqlParameterBasedSqlProcessorFactory>()
             .TryAdd<ISqlExpressionFactory, NpgsqlSqlExpressionFactory>()
             .TryAdd<ISingletonOptions, INpgsqlSingletonOptions>(p => p.GetRequiredService<INpgsqlSingletonOptions>())
-            .TryAdd<IValueConverterSelector, NpgsqlValueConverterSelector>()
             .TryAdd<IQueryCompilationContextFactory, NpgsqlQueryCompilationContextFactory>()
             .TryAddProviderSpecificServices(
                 b => b

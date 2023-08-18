@@ -8,6 +8,6 @@ public class TPCInheritanceBulkUpdatesNpgsqlFixture : TPCInheritanceBulkUpdatesF
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
-    protected override bool UseGeneratedKeys
+    public override bool UseGeneratedKeys
         => false;
 }

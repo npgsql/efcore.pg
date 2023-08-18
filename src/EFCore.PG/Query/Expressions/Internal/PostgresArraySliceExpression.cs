@@ -24,16 +24,27 @@ public class PostgresArraySliceExpression : SqlExpression, IEquatable<PostgresAr
     public virtual SqlExpression? UpperBound { get; }
 
     /// <summary>
+    /// Whether the expression is nullable.
+    /// </summary>
+    public virtual bool IsNullable { get; }
+
+    /// <summary>
     ///     Creates a new instance of the <see cref="PostgresArraySliceExpression" /> class.
     /// </summary>
     /// <param name="array">The array tp slice into.</param>
     /// <param name="lowerBound">The lower bound of the slice.</param>
     /// <param name="upperBound">The upper bound of the slice.</param>
+    /// <param name="nullable">Whether the expression is nullable.</param>
+    /// <param name="type">The <see cref="Type" /> of the expression.</param>
+    /// <param name="typeMapping">The <see cref="RelationalTypeMapping" /> associated with the expression.</param>
     public PostgresArraySliceExpression(
         SqlExpression array,
         SqlExpression? lowerBound,
-        SqlExpression? upperBound)
-        : base(array.Type, array.TypeMapping)
+        SqlExpression? upperBound,
+        bool nullable,
+        Type type,
+        RelationalTypeMapping? typeMapping)
+        : base(type.UnwrapNullableType(), typeMapping)
     {
         Check.NotNull(array, nameof(array));
 
@@ -45,6 +56,7 @@ public class PostgresArraySliceExpression : SqlExpression, IEquatable<PostgresAr
         Array = array;
         LowerBound = lowerBound;
         UpperBound = upperBound;
+        IsNullable = nullable;
     }
 
     /// <summary>
@@ -58,7 +70,7 @@ public class PostgresArraySliceExpression : SqlExpression, IEquatable<PostgresAr
     public virtual PostgresArraySliceExpression Update(SqlExpression array, SqlExpression? lowerBound, SqlExpression? upperBound)
         => array == Array && lowerBound == LowerBound && upperBound == UpperBound
             ? this
-            : new PostgresArraySliceExpression(array, lowerBound, upperBound);
+            : new PostgresArraySliceExpression(array, lowerBound, upperBound, IsNullable, Type, TypeMapping);
 
     /// <inheritdoc />
     protected override Expression VisitChildren(ExpressionVisitor visitor)
@@ -74,7 +86,8 @@ public class PostgresArraySliceExpression : SqlExpression, IEquatable<PostgresAr
             && base.Equals(other)
             && Array.Equals(other.Array)
             && (LowerBound is null ? other.LowerBound is null : LowerBound.Equals(other.LowerBound))
-            && (UpperBound is null ? other.UpperBound is null : UpperBound.Equals(other.UpperBound));
+            && (UpperBound is null ? other.UpperBound is null : UpperBound.Equals(other.UpperBound))
+            && IsNullable == other.IsNullable;
 
     /// <inheritdoc />
     public override bool Equals(object? obj) => obj is PostgresArraySliceExpression e && Equals(e);

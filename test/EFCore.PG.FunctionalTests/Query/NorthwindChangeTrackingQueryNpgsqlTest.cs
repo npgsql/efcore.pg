@@ -11,7 +11,7 @@ public class NorthwindChangeTrackingQueryNpgsqlTest : NorthwindChangeTrackingQue
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     protected override NorthwindContext CreateNoTrackingContext()
