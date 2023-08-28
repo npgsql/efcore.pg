@@ -252,9 +252,10 @@ public class NpgsqlTestStore : RelationalTestStore
 
     // Kill all connection to the database
     // TODO: Pre-9.2 PG has column name procid instead of pid
-    private static string GetDisconnectDatabaseSql(string name) => $@"
-REVOKE CONNECT ON DATABASE ""{name}"" FROM PUBLIC;
-SELECT pg_terminate_backend (pg_stat_activity.pid)
+    private static string GetDisconnectDatabaseSql(string name) => TestEnvironment.IsCockroachDB ?
+$@"REVOKE CONNECT ON DATABASE ""{name}"" FROM PUBLIC;" :
+$@"REVOKE CONNECT ON DATABASE ""{name}"" FROM PUBLIC;
+   SELECT pg_terminate_backend (pg_stat_activity.pid)
    FROM pg_stat_activity
    WHERE datname = '{name}'";
 
