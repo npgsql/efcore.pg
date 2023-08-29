@@ -100,11 +100,19 @@ public class NpgsqlTestStore : RelationalTestStore
     }
 
     public override DbContextOptionsBuilder AddProviderOptions(DbContextOptionsBuilder builder)
-        => builder.UseNpgsql(Connection, b => b.ApplyConfiguration()
-            .CommandTimeout(CommandTimeout)
-            // The tests are written with the assumption that NULLs are sorted first (SQL Server and .NET behavior), but PostgreSQL
-            // sorts NULLs last by default. This configures the provider to emit NULLS FIRST.
-            .ReverseNullOrdering());
+        => builder.UseNpgsql(Connection, b =>
+        {
+            if (TestEnvironment.IsCockroachDB)
+            {
+                b.UseCockroachDb();
+            }
+
+            b.ApplyConfiguration()
+                .CommandTimeout(CommandTimeout)
+                // The tests are written with the assumption that NULLs are sorted first (SQL Server and .NET behavior), but PostgreSQL
+                // sorts NULLs last by default. This configures the provider to emit NULLS FIRST.
+                .ReverseNullOrdering();
+        });
 
     private static string GetScratchDbName()
     {
