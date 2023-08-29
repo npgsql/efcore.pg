@@ -18,7 +18,7 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
     {
         Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     #region FunctionTests

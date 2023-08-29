@@ -8,6 +8,6 @@ public class TPTFiltersInheritanceQuerySqlServerTest : TPTFiltersInheritanceQuer
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 }

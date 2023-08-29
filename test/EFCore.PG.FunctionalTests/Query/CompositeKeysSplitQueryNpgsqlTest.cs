@@ -8,6 +8,6 @@ public class CompositeKeysSplitQueryNpgsqlTest : CompositeKeysSplitQueryRelation
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 }

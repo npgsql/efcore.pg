@@ -8,7 +8,7 @@ public class NorthwindKeylessEntitiesQueryNpgsqlTest : NorthwindKeylessEntitiesQ
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     public override async Task KeylessEntity_with_nav_defining_query(bool async)

@@ -1,4 +1,3 @@
-using System.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
@@ -14,18 +13,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 /// </remarks>
 public class NpgsqlStringMethodTranslator : IMethodCallTranslator
 {
-    // Note: This is the PostgreSQL default and does not need to be explicitly specified
-    private const char LikeEscapeChar = '\\';
-
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
     private readonly IRelationalTypeMappingSource _typeMappingSource;
     private readonly SqlConstantExpression _whitespace;
-    private readonly RelationalTypeMapping _textTypeMapping;
 
     #region MethodInfo
 
-    private static readonly MethodInfo Contains                = typeof(string).GetRuntimeMethod(nameof(string.Contains), new[] { typeof(string) })!;
-    private static readonly MethodInfo EndsWith                = typeof(string).GetRuntimeMethod(nameof(string.EndsWith), new[] { typeof(string) })!;
     private static readonly MethodInfo IndexOfChar             = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(char) })!;
     private static readonly MethodInfo IndexOfString           = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(string) })!;
     private static readonly MethodInfo IsNullOrWhiteSpace      = typeof(string).GetRuntimeMethod(nameof(string.IsNullOrWhiteSpace), new[] { typeof(string) })!;
@@ -34,7 +27,6 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
     private static readonly MethodInfo PadRight                = typeof(string).GetRuntimeMethod(nameof(string.PadRight), new[] { typeof(int) })!;
     private static readonly MethodInfo PadRightWithChar        = typeof(string).GetRuntimeMethod(nameof(string.PadRight), new[] { typeof(int), typeof(char) })!;
     private static readonly MethodInfo Replace                 = typeof(string).GetRuntimeMethod(nameof(string.Replace), new[] { typeof(string), typeof(string) })!;
-    private static readonly MethodInfo StartsWith              = typeof(string).GetRuntimeMethod(nameof(string.StartsWith), new[] { typeof(string) })!;
     private static readonly MethodInfo Substring               = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 1);
     private static readonly MethodInfo SubstringWithLength     = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 2);
     private static readonly MethodInfo ToLower                 = typeof(string).GetRuntimeMethod(nameof(string.ToLower), Array.Empty<Type>())!;
@@ -88,17 +80,13 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlStringMethodTranslator(
-        NpgsqlTypeMappingSource typeMappingSource,
-        ISqlExpressionFactory sqlExpressionFactory,
-        IModel model)
+    public NpgsqlStringMethodTranslator(NpgsqlTypeMappingSource typeMappingSource, ISqlExpressionFactory sqlExpressionFactory)
     {
         _typeMappingSource = typeMappingSource;
         _sqlExpressionFactory = sqlExpressionFactory;
         _whitespace = _sqlExpressionFactory.Constant(
             @" \t\n\r",  // TODO: Complete this
             typeMappingSource.EStringTypeMapping);
-        _textTypeMapping = typeMappingSource.FindMapping(typeof(string), model)!;
     }
 
     /// <summary>
@@ -283,40 +271,6 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                 instance.TypeMapping);
         }
 
-        if (method == Contains)
-        {
-            var pattern = arguments[0];
-            var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance!, pattern);
-            instance = _sqlExpressionFactory.ApplyTypeMapping(instance, stringTypeMapping);
-            pattern = _sqlExpressionFactory.ApplyTypeMapping(pattern, stringTypeMapping);
-
-            var strposCheck = _sqlExpressionFactory.GreaterThan(
-                _sqlExpressionFactory.Function(
-                    "strpos",
-                    new[]
-                    {
-                        _sqlExpressionFactory.ApplyTypeMapping(instance!, stringTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(pattern, stringTypeMapping)
-                    },
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[2],
-                    typeof(int)),
-                _sqlExpressionFactory.Constant(0));
-
-            if (pattern is SqlConstantExpression constantPattern)
-            {
-                return (string?)constantPattern.Value == string.Empty
-                    ? _sqlExpressionFactory.Constant(true)
-                    : strposCheck;
-            }
-
-            return _sqlExpressionFactory.OrElse(
-                _sqlExpressionFactory.Equal(
-                    pattern,
-                    _sqlExpressionFactory.Constant(string.Empty, stringTypeMapping)),
-                strposCheck);
-        }
-
         if (method == PadLeft || method == PadLeftWithChar || method == PadRight || method == PadRightWithChar)
         {
             var args =
@@ -383,16 +337,6 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                 typeof(string));
         }
 
-        if (method == StartsWith)
-        {
-            return TranslateStartsEndsWith(instance!, arguments[0], true);
-        }
-
-        if (method == EndsWith)
-        {
-            return TranslateStartsEndsWith(instance!, arguments[0], false);
-        }
-
         return null;
     }
 
@@ -434,90 +378,6 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
         }
 
         return null;
-    }
-
-    private SqlExpression TranslateStartsEndsWith(SqlExpression instance, SqlExpression pattern, bool startsWith)
-    {
-        var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance, pattern);
-
-        instance = _sqlExpressionFactory.ApplyTypeMapping(instance, stringTypeMapping);
-        pattern = _sqlExpressionFactory.ApplyTypeMapping(pattern, stringTypeMapping);
-
-        if (pattern is SqlConstantExpression constantExpression)
-        {
-            // The pattern is constant. Aside from null, we escape all special characters (%, _, \)
-            // in C# and send a simple LIKE
-            return constantExpression.Value is string constantPattern
-                ? _sqlExpressionFactory.Like(
-                    instance,
-                    _sqlExpressionFactory.Constant(
-                        startsWith
-                            ? EscapeLikePattern(constantPattern) + '%'
-                            : '%' + EscapeLikePattern(constantPattern)))
-                : _sqlExpressionFactory.Like(instance, _sqlExpressionFactory.Constant(null, stringTypeMapping));
-        }
-
-        // The pattern is non-constant, we use LEFT or RIGHT to extract substring and compare.
-        // For StartsWith we also first run a LIKE to quickly filter out most non-matching results (sargable, but imprecise
-        // because of wildchars).
-        SqlExpression leftRight = _sqlExpressionFactory.Function(
-            startsWith ? "left" : "right",
-            new[]
-            {
-                instance,
-                _sqlExpressionFactory.Function(
-                    "length",
-                    new[] { pattern },
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[1],
-                    typeof(int))
-            },
-            nullable: true,
-            argumentsPropagateNullability: TrueArrays[2],
-            typeof(string),
-            stringTypeMapping);
-
-        // LEFT/RIGHT of a citext return a text, so for non-default text mappings we apply an explicit cast.
-        if (instance.TypeMapping != _textTypeMapping)
-        {
-            leftRight = _sqlExpressionFactory.Convert(leftRight, typeof(string), instance.TypeMapping);
-        }
-
-        // Also add an explicit cast on the pattern; this is only required because of
-        // The following is only needed because of https://github.com/aspnet/EntityFrameworkCore/issues/19120
-        var castPattern = pattern.TypeMapping == _textTypeMapping
-            ? pattern
-            : _sqlExpressionFactory.Convert(pattern, typeof(string), pattern.TypeMapping);
-
-        return startsWith
-            ? _sqlExpressionFactory.AndAlso(
-                _sqlExpressionFactory.Like(
-                    instance,
-                    _sqlExpressionFactory.Add(
-                        pattern,
-                        _sqlExpressionFactory.Constant("%")),
-                    _sqlExpressionFactory.Constant(string.Empty)),
-                _sqlExpressionFactory.Equal(leftRight, castPattern))
-            : _sqlExpressionFactory.Equal(leftRight, castPattern);
-    }
-
-    private bool IsLikeWildChar(char c) => c is '%' or '_';
-
-    private string EscapeLikePattern(string pattern)
-    {
-        var builder = new StringBuilder();
-        for (var i = 0; i < pattern.Length; i++)
-        {
-            var c = pattern[i];
-            if (IsLikeWildChar(c) || c == LikeEscapeChar)
-            {
-                builder.Append(LikeEscapeChar);
-            }
-
-            builder.Append(c);
-        }
-
-        return builder.ToString();
     }
 
     private SqlExpression GenerateOneBasedIndexExpression(SqlExpression expression)

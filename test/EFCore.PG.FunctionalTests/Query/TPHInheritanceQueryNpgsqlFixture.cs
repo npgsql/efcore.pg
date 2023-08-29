@@ -3,7 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class InheritanceQueryNpgsqlFixture : InheritanceQueryRelationalFixture
+public class TPHInheritanceQueryNpgsqlFixture : TPHInheritanceQueryFixture
 {
     protected override ITestStoreFactory TestStoreFactory =>  NpgsqlTestStoreFactory.Instance;
 

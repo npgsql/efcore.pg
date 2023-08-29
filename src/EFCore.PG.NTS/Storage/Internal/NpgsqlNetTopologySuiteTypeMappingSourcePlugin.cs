@@ -85,22 +85,25 @@ public class NpgsqlNetTopologySuiteTypeMappingSourcePlugin : IRelationalTypeMapp
         var typeMapping = (RelationalTypeMapping)Activator.CreateInstance(
             typeof(NpgsqlGeometryTypeMapping<>).MakeGenericType(clrType), storeTypeName, isGeography)!;
 
-        // TODO: Also restrict the element type mapping based on the user-specified store type?
-        var elementType = clrType == typeof(MultiPoint)
-            ? typeof(Point)
-            : clrType == typeof(MultiLineString)
-                ? typeof(LineString)
-                : clrType == typeof(MultiPolygon)
-                    ? typeof(Polygon)
-                    : clrType == typeof(GeometryCollection)
-                        ? typeof(Geometry)
-                        : null;
+        // TODO: for geometry collection support (and why the following is commented out), see #2850.
 
-        if (elementType is not null)
-        {
-            var elementTypeMapping = FindMapping(new() { ClrType = elementType })!;
-            typeMapping = ((INpgsqlGeometryTypeMapping)typeMapping).CloneWithElementTypeMapping(elementTypeMapping);
-        }
+        // // TODO: Also restrict the element type mapping based on the user-specified store type?
+        // var elementType = clrType == typeof(MultiPoint)
+        //     ? typeof(Point)
+        //     : clrType == typeof(MultiLineString)
+        //         ? typeof(LineString)
+        //         : clrType == typeof(MultiPolygon)
+        //             ? typeof(Polygon)
+        //             : clrType == typeof(GeometryCollection)
+        //                 ? typeof(Geometry)
+        //                 : null;
+        //
+        // if (elementType is not null)
+        // {
+        //     var elementTypeMapping = FindMapping(new() { ClrType = elementType })!;
+        //
+        //     typeMapping = typeMapping.Clone(elementMapping: elementTypeMapping);
+        // }
 
         return typeMapping;
     }

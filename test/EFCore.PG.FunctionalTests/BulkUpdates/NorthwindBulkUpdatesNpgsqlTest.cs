@@ -8,10 +8,8 @@ public class NorthwindBulkUpdatesNpgsqlTest : NorthwindBulkUpdatesTestBase<North
     public NorthwindBulkUpdatesNpgsqlTest(
         NorthwindBulkUpdatesNpgsqlFixture<NoopModelCustomizer> fixture,
         ITestOutputHelper testOutputHelper)
-        : base(fixture)
+        : base(fixture, testOutputHelper)
     {
-        ClearLog();
-        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     public override async Task Delete_Where_TagWith(bool async)
@@ -227,15 +225,16 @@ WHERE o."OrderID" < (
 """
 DELETE FROM "Order Details" AS o
 USING "Orders" AS o0
-WHERE o."OrderID" = o0."OrderID" AND EXISTS (
-    SELECT 1
-    FROM "Orders" AS o1
-    GROUP BY o1."CustomerID"
-    HAVING count(*)::int > 9 AND (
+WHERE o."OrderID" = o0."OrderID" AND o0."OrderID" IN (
+    SELECT (
         SELECT o2."OrderID"
         FROM "Orders" AS o2
         WHERE o1."CustomerID" = o2."CustomerID" OR (o1."CustomerID" IS NULL AND o2."CustomerID" IS NULL)
-        LIMIT 1) = o0."OrderID")
+        LIMIT 1)
+    FROM "Orders" AS o1
+    GROUP BY o1."CustomerID"
+    HAVING count(*)::int > 9
+)
 """);
     }
 
@@ -346,7 +345,7 @@ WHERE EXISTS (
     FROM "Order Details" AS o0
     INNER JOIN "Orders" AS o1 ON o0."OrderID" = o1."OrderID"
     LEFT JOIN "Customers" AS c ON o1."CustomerID" = c."CustomerID"
-    WHERE c."CustomerID" IS NOT NULL AND c."CustomerID" LIKE 'F%' AND o0."OrderID" = o."OrderID" AND o0."ProductID" = o."ProductID")
+    WHERE c."CustomerID" LIKE 'F%' AND o0."OrderID" = o."OrderID" AND o0."ProductID" = o."ProductID")
 """);
     }
 
@@ -489,7 +488,7 @@ WHERE EXISTS (
     FROM "Order Details" AS o0
     INNER JOIN "Orders" AS o1 ON o0."OrderID" = o1."OrderID"
     LEFT JOIN "Customers" AS c ON o1."CustomerID" = c."CustomerID"
-    WHERE c."City" IS NOT NULL AND c."City" LIKE 'Se%' AND o0."OrderID" = o."OrderID" AND o0."ProductID" = o."ProductID")
+    WHERE c."City" LIKE 'Se%' AND o0."OrderID" = o."OrderID" AND o0."ProductID" = o."ProductID")
 """);
     }
 
@@ -888,16 +887,17 @@ WHERE c."CustomerID" = (
 """
 UPDATE "Customers" AS c
 SET "ContactName" = 'Updated'
-WHERE EXISTS (
-    SELECT 1
-    FROM "Orders" AS o
-    GROUP BY o."CustomerID"
-    HAVING count(*)::int > 11 AND (
+WHERE c."CustomerID" IN (
+    SELECT (
         SELECT c0."CustomerID"
         FROM "Orders" AS o0
         LEFT JOIN "Customers" AS c0 ON o0."CustomerID" = c0."CustomerID"
         WHERE o."CustomerID" = o0."CustomerID" OR (o."CustomerID" IS NULL AND o0."CustomerID" IS NULL)
-        LIMIT 1) = c."CustomerID")
+        LIMIT 1)
+    FROM "Orders" AS o
+    GROUP BY o."CustomerID"
+    HAVING count(*)::int > 11
+)
 """);
     }
 
@@ -909,7 +909,12 @@ WHERE EXISTS (
 """
 UPDATE "Customers" AS c
 SET "ContactName" = 'Updated'
-WHERE c."CustomerID" LIKE 'F%'
+FROM (
+    SELECT DISTINCT c0."CustomerID", c0."Address", c0."City", c0."CompanyName", c0."ContactName", c0."ContactTitle", c0."Country", c0."Fax", c0."Phone", c0."PostalCode", c0."Region"
+    FROM "Customers" AS c0
+    WHERE c0."CustomerID" LIKE 'F%'
+) AS t
+WHERE c."CustomerID" = t."CustomerID"
 """);
     }
 
@@ -1056,14 +1061,14 @@ WHERE c."CustomerID" LIKE 'F%'
         AssertExecuteUpdateSql();
     }
 
-    public override async Task Update_multiple_entity_throws(bool async)
+    public override async Task Update_multiple_tables_throws(bool async)
     {
-        await base.Update_multiple_entity_throws(async);
+        await base.Update_multiple_tables_throws(async);
 
         AssertExecuteUpdateSql();
     }
 
-    public override async Task Update_unmapped_property_throws(bool async)
+public override async Task Update_unmapped_property_throws(bool async)
     {
         await base.Update_unmapped_property_throws(async);
 
@@ -1269,7 +1274,7 @@ FROM (
     CROSS JOIN (
         SELECT c1."CustomerID", c1."Address", c1."City", c1."CompanyName", c1."ContactName", c1."ContactTitle", c1."Country", c1."Fax", c1."Phone", c1."PostalCode", c1."Region"
         FROM "Customers" AS c1
-        WHERE c1."City" IS NOT NULL AND c1."City" LIKE 'S%'
+        WHERE c1."City" LIKE 'S%'
     ) AS t
     LEFT JOIN (
         SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
@@ -1297,7 +1302,7 @@ FROM (
     CROSS JOIN (
         SELECT c1."CustomerID"
         FROM "Customers" AS c1
-        WHERE c1."City" IS NOT NULL AND c1."City" LIKE 'S%'
+        WHERE c1."City" LIKE 'S%'
     ) AS t
     JOIN LATERAL (
         SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
@@ -1325,7 +1330,7 @@ FROM (
     CROSS JOIN (
         SELECT c1."CustomerID", c1."Address", c1."City", c1."CompanyName", c1."ContactName", c1."ContactTitle", c1."Country", c1."Fax", c1."Phone", c1."PostalCode", c1."Region"
         FROM "Customers" AS c1
-        WHERE c1."City" IS NOT NULL AND c1."City" LIKE 'S%'
+        WHERE c1."City" LIKE 'S%'
     ) AS t
     LEFT JOIN LATERAL (
         SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"

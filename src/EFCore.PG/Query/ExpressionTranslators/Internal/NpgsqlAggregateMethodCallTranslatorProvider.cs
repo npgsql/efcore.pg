@@ -14,7 +14,9 @@ public class NpgsqlAggregateMethodCallTranslatorProvider : RelationalAggregateMe
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlAggregateMethodCallTranslatorProvider(RelationalAggregateMethodCallTranslatorProviderDependencies dependencies)
+    public NpgsqlAggregateMethodCallTranslatorProvider(
+        RelationalAggregateMethodCallTranslatorProviderDependencies dependencies,
+        IModel model)
         : base(dependencies)
     {
         var sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
@@ -25,7 +27,7 @@ public class NpgsqlAggregateMethodCallTranslatorProvider : RelationalAggregateMe
             {
                 new NpgsqlQueryableAggregateMethodTranslator(sqlExpressionFactory, typeMappingSource),
                 new NpgsqlStatisticsAggregateMethodTranslator(sqlExpressionFactory, typeMappingSource),
-                new NpgsqlMiscAggregateMethodTranslator(sqlExpressionFactory, typeMappingSource)
+                new NpgsqlMiscAggregateMethodTranslator(sqlExpressionFactory, typeMappingSource, model)
             });
     }
 }

@@ -18,7 +18,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
     {
         Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     #region FunctionTests

@@ -1179,7 +1179,7 @@ public static class NpgsqlPropertyExtensions
     [Obsolete("Use EF Core's standard model bulk configuration API")]
     public static string? GetDefaultCollation(this IReadOnlyProperty property)
         => property.FindTypeMapping() is StringTypeMapping
-            ? property.DeclaringEntityType.Model.GetDefaultColumnCollation()
+            ? property.DeclaringType.Model.GetDefaultColumnCollation()
             : null;
 
     #endregion Collation

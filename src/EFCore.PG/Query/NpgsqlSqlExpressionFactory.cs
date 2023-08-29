@@ -65,6 +65,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     public virtual PostgresArrayIndexExpression ArrayIndex(
         SqlExpression array,
         SqlExpression index,
+        bool nullable,
         RelationalTypeMapping? typeMapping = null)
     {
         if (!array.Type.TryGetElementType(out var elementType))
@@ -73,9 +74,22 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         }
 
         return (PostgresArrayIndexExpression)ApplyTypeMapping(
-            new PostgresArrayIndexExpression(array, index, elementType, typeMapping: null),
+            new PostgresArrayIndexExpression(array, index, nullable, elementType, typeMapping: null),
             typeMapping);
     }
+
+    /// <summary>
+    ///     Creates a new <see cref="PostgresArrayIndexExpression" />, corresponding to the PostgreSQL-specific array subscripting operator.
+    /// </summary>
+    public virtual PostgresArraySliceExpression ArraySlice(
+        SqlExpression array,
+        SqlExpression? lowerBound,
+        SqlExpression? upperBound,
+        bool nullable,
+        RelationalTypeMapping? typeMapping = null)
+        => (PostgresArraySliceExpression)ApplyTypeMapping(
+            new PostgresArraySliceExpression(array, lowerBound, upperBound, nullable, array.Type, typeMapping: null),
+            typeMapping);
 
     /// <summary>
     ///     Creates a new <see cref="AtTimeZoneExpression" />, for converting a timestamp to UTC.
@@ -158,7 +172,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     ///     <see cref="SqlConstantExpression"/> for the entire array.
     /// </summary>
     public virtual SqlExpression NewArrayOrConstant(
-        IReadOnlyList<SqlExpression> expressions,
+        IReadOnlyList<SqlExpression> elements,
         Type type,
         RelationalTypeMapping? typeMapping = null)
     {
@@ -167,32 +181,35 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             throw new ArgumentException($"{type.Name} isn't an array or generic List", nameof(type));
         }
 
-        if (expressions.Any(i => i is not SqlConstantExpression))
+        var newArrayExpression = NewArray(elements, type, typeMapping);
+
+        if (newArrayExpression.Expressions.Any(e => e is not SqlConstantExpression))
         {
-            return NewArray(expressions, type, typeMapping);
+            return newArrayExpression;
         }
 
+        // All elements are constants; extract their values and return an SqlConstantExpression over the array/list
         if (type.IsArray)
         {
-            var array = Array.CreateInstance(elementType, expressions.Count);
-            for (var i = 0; i < expressions.Count; i++)
+            var array = Array.CreateInstance(elementType, elements.Count);
+            for (var i = 0; i < elements.Count; i++)
             {
-                array.SetValue(((SqlConstantExpression)expressions[i]).Value, i);
+                array.SetValue(((SqlConstantExpression)newArrayExpression.Expressions[i]).Value, i);
             }
 
-            return Constant(array, typeMapping);
+            return Constant(array, newArrayExpression.TypeMapping);
         }
 
         if (type.IsGenericList())
         {
-            var list = (IList)Activator.CreateInstance(type, expressions.Count)!;
+            var list = (IList)Activator.CreateInstance(type, elements.Count)!;
             var addMethod = type.GetMethod("Add")!;
-            for (var i = 0; i < expressions.Count; i++)
+            for (var i = 0; i < elements.Count; i++)
             {
-                addMethod.Invoke(list, new[] { ((SqlConstantExpression)expressions[i]).Value });
+                addMethod.Invoke(list, new[] { ((SqlConstantExpression)newArrayExpression.Expressions[i]).Value });
             }
 
-            return Constant(list, typeMapping);
+            return Constant(list, newArrayExpression.TypeMapping);
         }
 
         throw new ArgumentException("Must be an array or generic list", nameof(type));
@@ -586,12 +603,10 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         return new PostgresAllExpression(item, array, postgresAllExpression.OperatorType, _boolTypeMapping);
     }
 
-    internal (SqlExpression, SqlExpression) ApplyTypeMappingsOnItemAndArray(
-        SqlExpression itemExpression,
-        SqlExpression arrayExpression)
+    internal (SqlExpression, SqlExpression) ApplyTypeMappingsOnItemAndArray(SqlExpression itemExpression, SqlExpression arrayExpression)
     {
         // Attempt type inference either from the operand to the array or the other way around
-        var arrayMapping = (NpgsqlArrayTypeMapping?)arrayExpression.TypeMapping;
+        var arrayMapping = arrayExpression.TypeMapping;
 
         var itemMapping =
             itemExpression.TypeMapping
@@ -600,7 +615,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 ? unary.Operand.TypeMapping
                 : null)
             // If we couldn't find a type mapping on the item, try inferring it from the array
-            ?? arrayMapping?.ElementTypeMapping
+            ?? (RelationalTypeMapping?)arrayMapping?.ElementTypeMapping
             ?? _typeMappingSource.FindMapping(itemExpression.Type, Dependencies.Model);
 
         if (itemMapping is null)
@@ -615,7 +630,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             {
                 // If the item mapping has a value converter, construct an array mapping directly over it - this will build the
                 // corresponding array type converter.
-                arrayMapping = new NpgsqlArrayTypeMapping(arrayExpression.Type, itemMapping);
+                arrayMapping = _typeMappingSource.FindMapping(arrayExpression.Type, Dependencies.Model, itemMapping);
             }
             else
             {
@@ -624,10 +639,8 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 // Note that we provide both the array CLR type *and* an array store type constructed from the element's store type.
                 // If we use only the array CLR type, byte[] will yield bytea which we don't want.
                 arrayMapping = arrayExpression.Type == typeof(object[]) || arrayExpression.Type == typeof(List<object>)
-                    ? (NpgsqlArrayTypeMapping?)_typeMappingSource.FindMapping(itemMapping.StoreType + "[]")
-                    : (NpgsqlArrayTypeMapping?)_typeMappingSource.FindMapping(
-                        arrayExpression.Type,
-                        itemMapping.StoreType + "[]");
+                    ? _typeMappingSource.FindMapping(itemMapping.StoreType + "[]")
+                    : _typeMappingSource.FindMapping(arrayExpression.Type, itemMapping.StoreType + "[]");
             }
 
             if (arrayMapping is null)
@@ -652,6 +665,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         return new PostgresArrayIndexExpression(
             array,
             ApplyDefaultTypeMapping(postgresArrayIndexExpression.Index),
+            postgresArrayIndexExpression.IsNullable,
             postgresArrayIndexExpression.Type,
             // If the array has a type mapping (i.e. column), prefer that just like we prefer column mappings in general
             postgresArrayIndexExpression.Array.TypeMapping is NpgsqlArrayTypeMapping arrayMapping
@@ -661,24 +675,23 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     }
 
     private SqlExpression ApplyTypeMappingOnArraySlice(
-        PostgresArraySliceExpression postgresArraySliceExpression,
+        PostgresArraySliceExpression slice,
         RelationalTypeMapping? typeMapping)
     {
         // If the slice operand has a type mapping, that bubbles up (slice is just a view over that). Otherwise apply the external type
         // mapping down. The bounds are always ints and don't participate in any inference.
-        var lowerBound = postgresArraySliceExpression.LowerBound is null
-            ? null
-            : ApplyDefaultTypeMapping(postgresArraySliceExpression.LowerBound);
-        var upperBound = postgresArraySliceExpression.UpperBound is null
-            ? null
-            : ApplyDefaultTypeMapping(postgresArraySliceExpression.UpperBound);
 
-        var inferredTypeMapping = postgresArraySliceExpression.TypeMapping ?? typeMapping;
+        // If a (non-null) type mapping is being applied, it's to the element being indexed.
+        // Infer the array's mapping from that.
+        var array = ApplyTypeMapping(slice.Array, typeMapping);
 
         return new PostgresArraySliceExpression(
-            ApplyTypeMapping(postgresArraySliceExpression.Array, inferredTypeMapping),
-            lowerBound,
-            upperBound);
+            array,
+            slice.LowerBound is null ? null : ApplyDefaultTypeMapping(slice.LowerBound),
+            slice.UpperBound is null ? null : ApplyDefaultTypeMapping(slice.UpperBound),
+            slice.IsNullable,
+            slice.Type,
+            array.TypeMapping);
     }
 
     private SqlExpression ApplyTypeMappingOnILike(PostgresILikeExpression ilikeExpression)
@@ -863,7 +876,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             {
                 // TODO: FindContainerMapping currently works for range/multirange only, may want to extend it to other types
                 // (e.g. IP address containment)
-                containerMapping = _typeMappingSource.FindContainerMapping(container.Type, containeeMapping);
+                containerMapping = _typeMappingSource.FindContainerMapping(container.Type, containeeMapping, Dependencies.Model);
+
+                // containerMapping = _typeMappingSource.FindContainerMapping(container.Type, containeeMapping);
 
                 // Apply the inferred mapping to the container, or fall back to the default type mapping
                 if (containerMapping is not null)

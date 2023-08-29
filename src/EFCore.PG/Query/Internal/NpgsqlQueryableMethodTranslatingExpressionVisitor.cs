@@ -78,26 +78,38 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected override ShapedQueryExpression TranslateCollection(
+    protected override ShapedQueryExpression TranslatePrimitiveCollection(
         SqlExpression sqlExpression,
-        RelationalTypeMapping? elementTypeMapping,
+        IProperty? property,
         string tableAlias)
     {
         var elementClrType = sqlExpression.Type.GetSequenceType();
+        var elementTypeMapping = (RelationalTypeMapping?)sqlExpression.TypeMapping?.ElementTypeMapping;
+
+        // If this is a collection property, get the element's nullability out of metadata. Otherwise, this is a parameter property, in
+        // which case we only have the CLR type (note that we cannot produce different SQLs based on the nullability of an *element* in
+        // a parameter collection - our caching mechanism only supports varying by the nullability of the parameter itself (i.e. the
+        // collection).
+        // TODO: if property is non-null, GetElementType() should never be null, but we have #31469 for shadow properties
+        var isElementNullable = property?.GetElementType() is null
+            ? elementClrType.IsNullableType()
+            : property.GetElementType()!.IsNullable;
 
         // We support two kinds of primitive collections: the standard one with PostgreSQL arrays (where we use the unnest function), and
         // a special case for geometry collections, where we use
         SelectExpression selectExpression;
 
+#pragma warning disable EF1001
         // TODO: Parameters have no type mapping. We can check whether the expression type is one of the NTS geometry collection types,
         // though in a perfect world we'd actually infer this. In other words, when the type mapping of the element is inferred further on,
         // we'd replace the unnest expression with ST_Dump. We could even have a special expression type which means "indeterminate, must be
         // inferred".
         if (sqlExpression.TypeMapping is { StoreTypeNameBase: "geometry" or "geography" })
         {
+            // TODO: For geometry collection support (not yet supported), see #2850.
             selectExpression = new SelectExpression(
                 new TableValuedFunctionExpression(tableAlias, "ST_Dump", new[] { sqlExpression }),
-                "geom", elementClrType, elementTypeMapping, isColumnNullable: false);
+                "geom", elementClrType, elementTypeMapping, isElementNullable);
         }
         else
         {
@@ -112,8 +124,15 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             // We also don't need to apply any casts or typing, since PG arrays are fully typed (unlike e.g. a JSON string).
             selectExpression = new SelectExpression(
                 new PostgresUnnestExpression(tableAlias, sqlExpression, "value"),
-                "value", elementClrType, elementTypeMapping, isColumnNullable: null);
+                columnName: "value",
+                columnType: elementClrType,
+                columnTypeMapping: elementTypeMapping,
+                isColumnNullable: isElementNullable,
+                identifierColumnName: "ordinality",
+                identifierColumnType: typeof(int),
+                identifierColumnTypeMapping: _typeMappingSource.FindMapping(typeof(int)));
         }
+#pragma warning restore EF1001
 
         Expression shaperExpression = new ProjectionBindingExpression(
             selectExpression, new ProjectionMember(), elementClrType.MakeNullable());
@@ -139,7 +158,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     protected override Expression ApplyInferredTypeMappings(
         Expression expression,
         IReadOnlyDictionary<(TableExpressionBase, string), RelationalTypeMapping?> inferredTypeMappings)
-        => new NpgsqlInferredTypeMappingApplier(_typeMappingSource, _sqlExpressionFactory, inferredTypeMappings).Visit(expression);
+        => new NpgsqlInferredTypeMappingApplier(
+            RelationalDependencies.Model, _typeMappingSource, _sqlExpressionFactory, inferredTypeMappings).Visit(expression);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -507,7 +527,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         source,
                         _sqlExpressionFactory.Contains(
                             array,
-                            _sqlExpressionFactory.NewArrayOrConstant(new[] { translatedItem }, array.Type)));
+                            _sqlExpressionFactory.NewArrayOrConstant(new[] { translatedItem }, array.Type, array.TypeMapping)));
 
                 // For constant arrays (new[] { 1, 2, 3 }) or inline arrays (new[] { 1, param, 3 }), don't do anything PG-specific for since
                 // the general EF Core mechanism is fine for that case: item IN (1, 2, 3).
@@ -614,11 +634,33 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
 
             // TODO: Conflicting type mappings from both sides?
             var inferredTypeMapping = projectedColumn1.TypeMapping ?? projectedColumn2.TypeMapping;
-            var unnestExpression = new PostgresUnnestExpression(
-                unnestExpression1.Alias, _sqlExpressionFactory.Add(array1, array2), "value");
-            var selectExpression = new SelectExpression(unnestExpression, "value", projectedColumn1.Type, inferredTypeMapping);
 
-            return source1.UpdateQueryExpression(selectExpression);
+#pragma warning disable EF1001 // Internal EF Core API usage.
+            var selectExpression = new SelectExpression(
+                new PostgresUnnestExpression(unnestExpression1.Alias, _sqlExpressionFactory.Add(array1, array2), "value"),
+                columnName: "value",
+                columnType: projectedColumn1.Type,
+                columnTypeMapping: inferredTypeMapping,
+                isColumnNullable: projectedColumn1.IsNullable || projectedColumn2.IsNullable,
+                identifierColumnName: "ordinality",
+                identifierColumnType: typeof(int),
+                identifierColumnTypeMapping: _typeMappingSource.FindMapping(typeof(int)));
+#pragma warning restore EF1001 // Internal EF Core API usage.
+
+            // TODO: Simplify by using UpdateQueryExpression after https://github.com/dotnet/efcore/issues/31511
+            Expression shaperExpression = new ProjectionBindingExpression(
+                selectExpression, new ProjectionMember(), source1.ShaperExpression.Type.MakeNullable());
+
+            if (source1.ShaperExpression.Type != shaperExpression.Type)
+            {
+                Check.DebugAssert(
+                    source1.ShaperExpression.Type.MakeNullable() == shaperExpression.Type,
+                    "expression.Type must be nullable of targetType");
+
+                shaperExpression = Expression.Convert(shaperExpression, source1.ShaperExpression.Type);
+            }
+
+            return new ShapedQueryExpression(selectExpression, shaperExpression);
         }
 
         return base.TranslateConcat(source1, source2);
@@ -636,6 +678,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         bool returnDefault)
     {
         // Simplify x.Array[1] => x.Array[1] (using the PG array subscript operator) instead of a subquery with LIMIT/OFFSET
+        // Note that we have unnest over multiranges, not just arrays - but multiranges don't support subscripting/slicing.
         if (!returnDefault && source.QueryExpression is SelectExpression
             {
                 Tables: [PostgresUnnestExpression { Array: var array }],
@@ -645,17 +688,17 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 Orderings: [],
                 Limit: null,
                 Offset: null
-            })
-        {
-            var translatedIndex = TranslateExpression(index);
-            if (translatedIndex == null)
-            {
-                return base.TranslateElementAtOrDefault(source, index, returnDefault);
             }
-
-            // Index on array - but PostgreSQL arrays are 1-based, so adjust the index.
-            var translation = _sqlExpressionFactory.ArrayIndex(array, GenerateOneBasedIndexExpression(translatedIndex));
-            return source.Update(_sqlExpressionFactory.Select(translation), source.ShaperExpression);
+            && IsPostgresArray(array)
+            && TryGetProjectedColumn(source, out var projectedColumn)
+            && TranslateExpression(index) is { } translatedIndex)
+        {
+            // Note that PostgreSQL arrays are 1-based, so adjust the index.
+            return source.UpdateQueryExpression(
+                _sqlExpressionFactory.Select(
+                    _sqlExpressionFactory.ArrayIndex(
+                        array,
+                        GenerateOneBasedIndexExpression(translatedIndex), projectedColumn.IsNullable)));
         }
 
         return base.TranslateElementAtOrDefault(source, index, returnDefault);
@@ -761,6 +804,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     protected override ShapedQueryExpression? TranslateSkip(ShapedQueryExpression source, Expression count)
     {
         // Translate Skip over array to the PostgreSQL slice operator (array.Skip(2) -> array[3,])
+        // Note that we have unnest over multiranges, not just arrays - but multiranges don't support subscripting/slicing.
         if (source.QueryExpression is SelectExpression
             {
                 Tables: [PostgresUnnestExpression { Array: var array } unnestExpression],
@@ -771,24 +815,44 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 Limit: null,
                 Offset: null
             }
+            && IsPostgresArray(array)
             && TryGetProjectedColumn(source, out var projectedColumn)
             && TranslateExpression(count) is { } translatedCount)
         {
+#pragma warning disable EF1001 // Internal EF Core API usage.
             var selectExpression = new SelectExpression(
                 new PostgresUnnestExpression(
                     unnestExpression.Alias,
-                    new PostgresArraySliceExpression(
+                    _sqlExpressionFactory.ArraySlice(
                         array,
                         lowerBound: GenerateOneBasedIndexExpression(translatedCount),
-                        upperBound: null),
+                        upperBound: null,
+                        projectedColumn.IsNullable),
                     "value"),
                 "value",
                 projectedColumn.Type,
-                projectedColumn.TypeMapping);
+                projectedColumn.TypeMapping,
+                isColumnNullable: projectedColumn.IsNullable,
+                // isColumnNullable: /*projectedColumn.IsNullable*/ true, // TODO: This fails because of a shaper check
+                identifierColumnName: "ordinality",
+                identifierColumnType: typeof(int),
+                identifierColumnTypeMapping: _typeMappingSource.FindMapping(typeof(int)));
+#pragma warning restore EF1001 // Internal EF Core API usage.
 
-            return source.Update(
-                selectExpression,
-                new ProjectionBindingExpression(selectExpression, new ProjectionMember(), projectedColumn.Type));
+            // TODO: Simplify by using UpdateQueryExpression after https://github.com/dotnet/efcore/issues/31511
+            Expression shaperExpression = new ProjectionBindingExpression(
+                selectExpression, new ProjectionMember(), source.ShaperExpression.Type.MakeNullable());
+
+            if (source.ShaperExpression.Type != shaperExpression.Type)
+            {
+                Check.DebugAssert(
+                    source.ShaperExpression.Type.MakeNullable() == shaperExpression.Type,
+                    "expression.Type must be nullable of targetType");
+
+                shaperExpression = Expression.Convert(shaperExpression, source.ShaperExpression.Type);
+            }
+
+            return new ShapedQueryExpression(selectExpression, shaperExpression);
         }
 
         return base.TranslateSkip(source, count);
@@ -803,6 +867,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     protected override ShapedQueryExpression? TranslateTake(ShapedQueryExpression source, Expression count)
     {
         // Translate Take over array to the PostgreSQL slice operator (array.Take(2) -> array[,2])
+        // Note that we have unnest over multiranges, not just arrays - but multiranges don't support subscripting/slicing.
         if (source.QueryExpression is SelectExpression
             {
                 Tables: [PostgresUnnestExpression { Array: var array } unnestExpression],
@@ -813,6 +878,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 Limit: null,
                 Offset: null
             }
+            && IsPostgresArray(array)
             && TryGetProjectedColumn(source, out var projectedColumn))
         {
             var translatedCount = TranslateExpression(count);
@@ -852,18 +918,39 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             }
             else
             {
-                sliceExpression = new PostgresArraySliceExpression(array, lowerBound: null, upperBound: translatedCount);
+                sliceExpression = _sqlExpressionFactory.ArraySlice(
+                    array,
+                    lowerBound: null,
+                    upperBound: translatedCount,
+                    projectedColumn.IsNullable);
             }
 
+#pragma warning disable EF1001 // Internal EF Core API usage.
             var selectExpression = new SelectExpression(
                 new PostgresUnnestExpression(unnestExpression.Alias, sliceExpression, "value"),
                 "value",
                 projectedColumn.Type,
-                projectedColumn.TypeMapping);
+                projectedColumn.TypeMapping,
+                isColumnNullable: projectedColumn.IsNullable,
+                identifierColumnName: "ordinality",
+                identifierColumnType: typeof(int),
+                identifierColumnTypeMapping: _typeMappingSource.FindMapping(typeof(int)));
+#pragma warning restore EF1001 // Internal EF Core API usage.
 
-            return source.Update(
-                selectExpression,
-                new ProjectionBindingExpression(selectExpression, new ProjectionMember(), projectedColumn.Type));
+            // TODO: Simplify by using UpdateQueryExpression after https://github.com/dotnet/efcore/issues/31511
+            Expression shaperExpression = new ProjectionBindingExpression(
+                selectExpression, new ProjectionMember(), source.ShaperExpression.Type.MakeNullable());
+
+            if (source.ShaperExpression.Type != shaperExpression.Type)
+            {
+                Check.DebugAssert(
+                    source.ShaperExpression.Type.MakeNullable() == shaperExpression.Type,
+                    "expression.Type must be nullable of targetType");
+
+                shaperExpression = Expression.Convert(shaperExpression, source.ShaperExpression.Type);
+            }
+
+            return new ShapedQueryExpression(selectExpression, shaperExpression);
         }
 
         return base.TranslateTake(source, count);
@@ -877,10 +964,10 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     /// </summary>
     protected override bool IsValidSelectExpressionForExecuteUpdate(
         SelectExpression selectExpression,
-        EntityShaperExpression entityShaperExpression,
+        TableExpressionBase targetTable,
         [NotNullWhen(true)] out TableExpression? tableExpression)
     {
-        if (!base.IsValidSelectExpressionForExecuteUpdate(selectExpression, entityShaperExpression, out tableExpression))
+        if (!base.IsValidSelectExpressionForExecuteUpdate(selectExpression, targetTable, out tableExpression))
         {
             return false;
         }
@@ -931,18 +1018,19 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     /// </summary>
     protected override bool IsValidSelectExpressionForExecuteDelete(
         SelectExpression selectExpression,
-        EntityShaperExpression entityShaperExpression,
+        StructuralTypeShaperExpression shaper,
         [NotNullWhen(true)] out TableExpression? tableExpression)
     {
         // The default relational behavior is to allow only single-table expressions, and the only permitted feature is a predicate.
         // Here we extend this to also inner joins to tables, which we generate via the PostgreSQL-specific USING construct.
-        if (selectExpression.Offset == null
-            && selectExpression.Limit == null
-            // If entity type has primary key then Distinct is no-op
-            && (!selectExpression.IsDistinct || entityShaperExpression.EntityType.FindPrimaryKey() != null)
-            && selectExpression.GroupBy.Count == 0
-            && selectExpression.Having == null
-            && selectExpression.Orderings.Count == 0)
+        if (selectExpression is
+            {
+                Orderings: [],
+                Offset: null,
+                Limit: null,
+                GroupBy: [],
+                Having: null
+            })
         {
             TableExpressionBase? table = null;
             if (selectExpression.Tables.Count == 1)
@@ -951,9 +1039,9 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             }
             else if (selectExpression.Tables.All(t => t is TableExpression or InnerJoinExpression))
             {
-                var projectionBindingExpression = (ProjectionBindingExpression)entityShaperExpression.ValueBufferExpression;
-                var entityProjectionExpression = (EntityProjectionExpression)selectExpression.GetProjection(projectionBindingExpression);
-                var column = entityProjectionExpression.BindProperty(entityShaperExpression.EntityType.GetProperties().First());
+                var projectionBindingExpression = (ProjectionBindingExpression)shaper.ValueBufferExpression;
+                var entityProjectionExpression = (StructuralTypeProjectionExpression)selectExpression.GetProjection(projectionBindingExpression);
+                var column = entityProjectionExpression.BindProperty(shaper.StructuralType.GetProperties().First());
                 table = column.Table;
                 if (table is JoinExpressionBase joinExpressionBase)
                 {
@@ -977,6 +1065,18 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     /// <inheritdoc />
     protected override bool IsOrdered(SelectExpression selectExpression)
         => base.IsOrdered(selectExpression) || selectExpression.Tables is [PostgresUnnestExpression];
+
+    /// <summary>
+    /// Checks whether the given expression maps to a PostgreSQL array, as opposed to a multirange type.
+    /// </summary>
+    private static bool IsPostgresArray(SqlExpression expression)
+        => expression switch
+        {
+            { TypeMapping: NpgsqlArrayTypeMapping } => true,
+            { TypeMapping: NpgsqlMultirangeTypeMapping } => false,
+            { Type: var type } when type.IsMultirange() => false,
+            _ => true
+        };
 
     private bool TryGetProjectedColumn(
         ShapedQueryExpression shapedQueryExpression, [NotNullWhen(true)] out ColumnExpression? projectedColumn)
@@ -1107,10 +1207,11 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         ///     doing so can result in application failures when updating to a new Entity Framework Core release.
         /// </summary>
         public NpgsqlInferredTypeMappingApplier(
+            IModel model,
             NpgsqlTypeMappingSource typeMappingSource,
             NpgsqlSqlExpressionFactory sqlExpressionFactory,
             IReadOnlyDictionary<(TableExpressionBase, string), RelationalTypeMapping?> inferredTypeMappings)
-            : base(sqlExpressionFactory, inferredTypeMappings)
+            : base(model, sqlExpressionFactory, inferredTypeMappings)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
@@ -1129,7 +1230,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 case PostgresUnnestExpression unnestExpression
                     when TryGetInferredTypeMapping(unnestExpression, unnestExpression.ColumnName, out var elementTypeMapping):
                 {
-                    var collectionTypeMapping = _typeMappingSource.FindContainerMapping(unnestExpression.Array.Type, elementTypeMapping);
+                    var collectionTypeMapping = _typeMappingSource.FindMapping(unnestExpression.Array.Type, Model, elementTypeMapping);
 
                     if (collectionTypeMapping is null)
                     {

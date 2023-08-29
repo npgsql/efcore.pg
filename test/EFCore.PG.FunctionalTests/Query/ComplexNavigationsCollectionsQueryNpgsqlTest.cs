@@ -8,6 +8,6 @@ public class ComplexNavigationsCollectionsQueryNpgsqlTest : ComplexNavigationsCo
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 }

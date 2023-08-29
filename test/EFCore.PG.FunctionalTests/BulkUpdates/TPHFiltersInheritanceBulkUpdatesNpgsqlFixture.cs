@@ -3,8 +3,8 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.BulkUpdates;
 
-public class FiltersInheritanceBulkUpdatesNpgsqlFixture : InheritanceBulkUpdatesNpgsqlFixture
+public class TPHFiltersInheritanceBulkUpdatesNpgsqlFixture : TPHInheritanceBulkUpdatesNpgsqlFixture
 {
-    protected override bool EnableFilters
+    public override bool EnableFilters
         => true;
 }

@@ -1035,10 +1035,23 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     {
         // unnest docs: https://www.postgresql.org/docs/current/functions-array.html#ARRAY-FUNCTIONS-TABLE
 
-        // unnest is a regular table-valued function with a special AS foo(bar) at the end
-        base.VisitTableValuedFunction(unnestExpression);
+        // unnest is a regular table-valued function with a special AS foo(bar) at the end, and optionally WITH ORDINALITY before that
+        // to project an index out. (in theory WITH ORDINALITY can be used on any TVF etc., but we implement it as a special feature of
+        // UnnestExpression for now).
+        Sql.Append("unnest(");
+
+        Visit(unnestExpression.Arguments[0]);
+
+        Sql.Append(")");
+
+        if (unnestExpression.WithOrdinality)
+        {
+            Sql.Append(" WITH ORDINALITY");
+        }
 
         Sql
+            .Append(AliasSeparator)
+            .Append(_sqlGenerationHelper.DelimitIdentifier(unnestExpression.Alias))
             .Append("(")
             .Append(unnestExpression.ColumnName)
             .Append(")");

@@ -9,6 +9,6 @@ public class ComplexNavigationsCollectionsSplitSharedTypeQueryNpgsqlTest : Compl
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 }

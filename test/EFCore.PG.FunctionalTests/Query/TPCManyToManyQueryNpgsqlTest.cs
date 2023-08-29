@@ -9,6 +9,6 @@ public class TPCManyToManyQueryNpgsqlTest : TPCManyToManyQueryRelationalTestBase
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 }

@@ -7,7 +7,7 @@ public class SqlQueryNpgsqlTest : SqlQueryTestBase<NorthwindQueryNpgsqlFixture<N
     public SqlQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     public override async Task SqlQueryRaw_queryable_simple(bool async)
@@ -50,7 +50,7 @@ SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle"
 FROM (
     SELECT * FROM "Customers"
 ) AS m
-WHERE strpos(m."ContactName", 'z') > 0
+WHERE m."ContactName" LIKE '%z%'
 """);
     }
 
@@ -69,7 +69,7 @@ FROM (
     SELECT
     * FROM "Customers"
 ) AS m
-WHERE strpos(m."ContactName", 'z') > 0
+WHERE m."ContactName" LIKE '%z%'
 """);
     }
 
@@ -83,7 +83,7 @@ SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle"
 FROM (
     SELECT * FROM "Customers"
 ) AS m
-WHERE strpos(m."ContactName", 'z') > 0
+WHERE m."ContactName" LIKE '%z%'
 """);
     }
 
@@ -99,7 +99,7 @@ SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle"
 FROM (
     SELECT * FROM "Customers" WHERE "CustomerID" = @customer
 ) AS m
-WHERE strpos(m."ContactName", 'z') > 0
+WHERE m."ContactName" LIKE '%z%'
 """);
     }
 
@@ -115,7 +115,7 @@ SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle"
 FROM (
     SELECT * FROM "Customers" WHERE "CustomerID" = @p0
 ) AS m
-WHERE strpos(m."ContactName", 'z') > 0
+WHERE m."ContactName" LIKE '%z%'
 """);
     }
 
@@ -129,7 +129,7 @@ SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle"
 FROM (
     SELECT * FROM "Customers" WHERE "CustomerID" = 'CONSH'
 ) AS m
-WHERE strpos(m."ContactName", 'z') > 0
+WHERE m."ContactName" LIKE '%z%'
 """);
     }
 
@@ -698,7 +698,7 @@ FROM (
     )
     SELECT * FROM "Customers2"
 ) AS m
-WHERE strpos(m."ContactName", 'z') > 0
+WHERE m."ContactName" LIKE '%z%'
 """);
     }
 

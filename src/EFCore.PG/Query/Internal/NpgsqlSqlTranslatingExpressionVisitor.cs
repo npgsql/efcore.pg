@@ -1,11 +1,11 @@
-﻿using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
+using System.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
+using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
@@ -17,19 +17,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 /// </summary>
 public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExpressionVisitor
 {
-    private static readonly ConstructorInfo DateTimeCtor1 =
-        typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
-
-    private static readonly ConstructorInfo DateTimeCtor2 =
-        typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) })!;
-
-    private static readonly ConstructorInfo DateTimeCtor3 =
-        typeof(DateTime).GetConstructor(
-            new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(DateTimeKind) })!;
-
-    private static readonly ConstructorInfo DateOnlyCtor =
-        typeof(DateOnly).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
-
+    private readonly QueryCompilationContext _queryCompilationContext;
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
     private readonly IRelationalTypeMappingSource _typeMappingSource;
     private readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
@@ -38,6 +26,29 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     private readonly RelationalTypeMapping _timestampTzMapping;
 
     private static Type? _nodaTimePeriodType;
+
+    private static readonly ConstructorInfo DateTimeCtor1 =
+        typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
+    private static readonly ConstructorInfo DateTimeCtor2 =
+        typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) })!;
+    private static readonly ConstructorInfo DateTimeCtor3 =
+        typeof(DateTime).GetConstructor(
+            new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(DateTimeKind) })!;
+    private static readonly ConstructorInfo DateOnlyCtor =
+        typeof(DateOnly).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
+
+    private static readonly MethodInfo StringStartsWithMethod
+        = typeof(string).GetRuntimeMethod(nameof(string.StartsWith), new[] { typeof(string) })!;
+    private static readonly MethodInfo StringEndsWithMethod
+        = typeof(string).GetRuntimeMethod(nameof(string.EndsWith), new[] { typeof(string) })!;
+    private static readonly MethodInfo StringContainsMethod
+        = typeof(string).GetRuntimeMethod(nameof(string.Contains), new[] { typeof(string) })!;
+
+    private static readonly MethodInfo EscapeLikePatternParameterMethod =
+        typeof(NpgsqlSqlTranslatingExpressionVisitor).GetTypeInfo().GetDeclaredMethod(nameof(ConstructLikePatternParameter))!;
+
+    // Note: This is the PostgreSQL default and does not need to be explicitly specified
+    private const char LikeEscapeChar = '\\';
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -51,6 +62,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
         : base(dependencies, queryCompilationContext, queryableMethodTranslatingExpressionVisitor)
     {
+        _queryCompilationContext = queryCompilationContext;
         _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
         _jsonPocoTranslator = ((NpgsqlMemberTranslatorProvider)Dependencies.MemberTranslatorProvider).JsonPocoTranslator;
         _typeMappingSource = dependencies.TypeMappingSource;
@@ -58,7 +70,12 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         _timestampTzMapping = _typeMappingSource.FindMapping("timestamp with time zone")!;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override Expression VisitUnary(UnaryExpression unaryExpression)
     {
         switch (unaryExpression.NodeType)
@@ -103,7 +120,12 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         return base.VisitUnary(unaryExpression);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override Expression VisitNewArray(NewArrayExpression newArrayExpression)
     {
         if (base.VisitNewArray(newArrayExpression) is SqlExpression visitedNewArrayExpression)
@@ -132,7 +154,12 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         return QueryCompilationContext.NotTranslatedExpression;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override Expression VisitBinary(BinaryExpression binaryExpression)
     {
         if (binaryExpression.NodeType == ExpressionType.Subtract)
@@ -172,6 +199,40 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         }
 
         return base.VisitBinary(binaryExpression);
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
+    {
+        var method = methodCallExpression.Method;
+
+        if (method == StringStartsWithMethod
+            && TryTranslateStartsEndsWithContains(
+                methodCallExpression.Object!, methodCallExpression.Arguments[0], StartsEndsWithContains.StartsWith, out var translation1))
+        {
+            return translation1;
+        }
+
+        if (method == StringEndsWithMethod
+            && TryTranslateStartsEndsWithContains(
+                methodCallExpression.Object!, methodCallExpression.Arguments[0], StartsEndsWithContains.EndsWith, out var translation2))
+        {
+            return translation2;
+        }
+
+        if (method == StringContainsMethod
+            && TryTranslateStartsEndsWithContains(
+                methodCallExpression.Object!, methodCallExpression.Arguments[0], StartsEndsWithContains.Contains, out var translation3))
+        {
+            return translation3;
+        }
+
+        return base.VisitMethodCall(methodCallExpression);
     }
 
     /// <summary>
@@ -279,6 +340,194 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
             return true;
         }
     }
+
+    #region StartsWith/EndsWith/Contains
+
+    bool TryTranslateStartsEndsWithContains(
+        Expression instance,
+        Expression pattern,
+        StartsEndsWithContains methodType,
+        [NotNullWhen(true)] out SqlExpression? translation)
+    {
+        if (Visit(instance) is not SqlExpression translatedInstance
+            || Visit(pattern) is not SqlExpression translatedPattern)
+        {
+            translation = null;
+            return false;
+        }
+
+        var stringTypeMapping = ExpressionExtensions.InferTypeMapping(translatedInstance, translatedPattern);
+
+        translatedInstance = _sqlExpressionFactory.ApplyTypeMapping(translatedInstance, stringTypeMapping);
+        translatedPattern = _sqlExpressionFactory.ApplyTypeMapping(translatedPattern, stringTypeMapping);
+
+        switch (translatedPattern)
+        {
+            case SqlConstantExpression patternConstant:
+            {
+                // The pattern is constant. Aside from null and empty string, we escape all special characters (%, _, \) and send a
+                // simple LIKE
+                translation = patternConstant.Value switch
+                {
+                    null => _sqlExpressionFactory.Like(translatedInstance, _sqlExpressionFactory.Constant(null, stringTypeMapping)),
+
+                    // In .NET, all strings start with/end with/contain the empty string, but SQL LIKE return false for empty patterns.
+                    // Return % which always matches instead.
+                    // Note that we don't just return a true constant, since null strings shouldn't match even an empty string
+                    // (but SqlNullabilityProcess will convert this to a true constant if the instance is non-nullable)
+                    "" => _sqlExpressionFactory.Like(translatedInstance, _sqlExpressionFactory.Constant("%")),
+
+                    string s => _sqlExpressionFactory.Like(
+                        translatedInstance,
+                        _sqlExpressionFactory.Constant(
+                            methodType switch
+                            {
+                                StartsEndsWithContains.StartsWith => EscapeLikePattern(s) + '%',
+                                StartsEndsWithContains.EndsWith => '%' + EscapeLikePattern(s),
+                                StartsEndsWithContains.Contains => $"%{EscapeLikePattern(s)}%",
+
+                                _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
+                            })),
+
+                    _ => throw new UnreachableException()
+                };
+
+                return true;
+            }
+
+            case SqlParameterExpression patternParameter
+                when patternParameter.Name.StartsWith(QueryCompilationContext.QueryParameterPrefix, StringComparison.Ordinal):
+            {
+                // The pattern is a parameter, register a runtime parameter that will contain the rewritten LIKE pattern, where
+                // all special characters have been escaped.
+                var lambda = Expression.Lambda(
+                    Expression.Call(
+                        EscapeLikePatternParameterMethod,
+                        QueryCompilationContext.QueryContextParameter,
+                        Expression.Constant(patternParameter.Name),
+                        Expression.Constant(methodType)),
+                    QueryCompilationContext.QueryContextParameter);
+
+                var escapedPatternParameter =
+                    _queryCompilationContext.RegisterRuntimeParameter(patternParameter.Name + "_rewritten", lambda);
+
+                translation = _sqlExpressionFactory.Like(
+                    translatedInstance,
+                    new SqlParameterExpression(escapedPatternParameter.Name!, escapedPatternParameter.Type, stringTypeMapping),
+                    _sqlExpressionFactory.Constant(LikeEscapeChar.ToString()));
+
+                return true;
+            }
+
+            default:
+                // The pattern is a column or a complex expression; the possible special characters in the pattern cannot be escaped,
+                // preventing us from translating to LIKE.
+                switch (methodType)
+                {
+                    // For StartsWith/EndsWith, use LEFT or RIGHT instead to extract substring and compare:
+                    // WHERE instance IS NOT NULL AND pattern IS NOT NULL AND LEFT(instance, LEN(pattern)) = pattern
+                    // This is less efficient than LIKE (i.e. StartsWith does an index scan instead of seek), but we have no choice.
+                    case StartsEndsWithContains.StartsWith or StartsEndsWithContains.EndsWith:
+                        translation =
+                            _sqlExpressionFactory.Function(
+                                methodType is StartsEndsWithContains.StartsWith ? "left" : "right",
+                                new[]
+                                {
+                                    translatedInstance,
+                                    _sqlExpressionFactory.Function(
+                                        "length", new[] { translatedPattern }, nullable: true,
+                                        argumentsPropagateNullability: new[] { true }, typeof(int))
+                                }, nullable: true, argumentsPropagateNullability: new[] { true, true }, typeof(string),
+                                stringTypeMapping);
+
+                        // LEFT/RIGHT of a citext return a text, so for non-default text mappings we apply an explicit cast.
+                        if (translatedInstance.TypeMapping is { StoreType: not "text" })
+                        {
+                            translation = _sqlExpressionFactory.Convert(translation, typeof(string), translatedInstance.TypeMapping);
+                        }
+
+                        // We compensate for the case where both the instance and the pattern are null (null.StartsWith(null)); a simple
+                        // equality would yield true in that case, but we want false.
+                        translation =
+                            _sqlExpressionFactory.AndAlso(
+                                _sqlExpressionFactory.IsNotNull(translatedInstance),
+                                _sqlExpressionFactory.AndAlso(
+                                    _sqlExpressionFactory.IsNotNull(translatedPattern),
+                                    _sqlExpressionFactory.Equal(translation, translatedPattern)));
+
+                        break;
+
+                    // For Contains, just use strpos and check if the result is greater than 0. Note that strpos returns 1 when the pattern
+                    // is an empty string, just like .NET Contains (so no need to compensate)
+                    case StartsEndsWithContains.Contains:
+                        translation =
+                            _sqlExpressionFactory.AndAlso(
+                                _sqlExpressionFactory.IsNotNull(translatedInstance),
+                                _sqlExpressionFactory.AndAlso(
+                                    _sqlExpressionFactory.IsNotNull(translatedPattern),
+                                    _sqlExpressionFactory.GreaterThan(
+                                        _sqlExpressionFactory.Function(
+                                            "strpos", new[] { translatedInstance, translatedPattern }, nullable: true,
+                                            argumentsPropagateNullability: new[] { true, true }, typeof(int)),
+                                        _sqlExpressionFactory.Constant(0))));
+                        break;
+
+                    default:
+                        throw new UnreachableException();
+                }
+
+                return true;
+        }
+    }
+
+    private static string? ConstructLikePatternParameter(
+        QueryContext queryContext, string baseParameterName, StartsEndsWithContains methodType)
+        => queryContext.ParameterValues[baseParameterName] switch
+        {
+            null => null,
+
+            // In .NET, all strings start/end with the empty string, but SQL LIKE return false for empty patterns.
+            // Return % which always matches instead.
+            "" => "%",
+
+            string s => methodType switch
+            {
+                StartsEndsWithContains.StartsWith => EscapeLikePattern(s) + '%',
+                StartsEndsWithContains.EndsWith => '%' + EscapeLikePattern(s),
+                StartsEndsWithContains.Contains => $"%{EscapeLikePattern(s)}%",
+                _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
+            },
+
+            _ => throw new UnreachableException()
+        };
+
+    private enum StartsEndsWithContains
+    {
+        StartsWith,
+        EndsWith,
+        Contains
+    }
+
+    private static bool IsLikeWildChar(char c) => c is '%' or '_';
+
+    private static string EscapeLikePattern(string pattern)
+    {
+        var builder = new StringBuilder();
+        for (var i = 0; i < pattern.Length; i++)
+        {
+            var c = pattern[i];
+            if (IsLikeWildChar(c) || c == LikeEscapeChar)
+            {
+                builder.Append(LikeEscapeChar);
+            }
+
+            builder.Append(c);
+        }
+
+        return builder.ToString();
+    }
+
+    #endregion StartsWith/EndsWith/Contains
 
     #region Copied from RelationalSqlTranslatingExpressionVisitor
 

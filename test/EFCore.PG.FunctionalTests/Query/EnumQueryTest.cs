@@ -168,7 +168,7 @@ WHERE s."MappedEnum" = @__sad_0
 """
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
-WHERE strpos(s."MappedEnum"::text, 'sa') > 0
+WHERE s."MappedEnum"::text LIKE '%sa%'
 """);
 
     }

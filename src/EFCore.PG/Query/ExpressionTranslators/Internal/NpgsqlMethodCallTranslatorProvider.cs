@@ -61,7 +61,7 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
             new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory, model, supportsMultiranges),
             new NpgsqlRegexIsMatchTranslator(sqlExpressionFactory),
             new NpgsqlRowValueTranslator(sqlExpressionFactory),
-            new NpgsqlStringMethodTranslator(typeMappingSource, sqlExpressionFactory, model),
+            new NpgsqlStringMethodTranslator(typeMappingSource, sqlExpressionFactory),
             new NpgsqlTrigramsMethodTranslator(typeMappingSource, sqlExpressionFactory, model),
         });
     }

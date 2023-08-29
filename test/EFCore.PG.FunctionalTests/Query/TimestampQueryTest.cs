@@ -18,7 +18,7 @@ public class TimestampQueryTest : QueryTestBase<TimestampQueryTest.TimestampQuer
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     #region Basic mapping

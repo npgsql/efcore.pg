@@ -20,6 +20,7 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
 
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
     private readonly IRelationalTypeMappingSource _typeMappingSource;
+    private readonly IModel _model;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -29,10 +30,12 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
     /// </summary>
     public NpgsqlMiscAggregateMethodTranslator(
         NpgsqlSqlExpressionFactory sqlExpressionFactory,
-        IRelationalTypeMappingSource typeMappingSource)
+        IRelationalTypeMappingSource typeMappingSource,
+        IModel model)
     {
         _sqlExpressionFactory = sqlExpressionFactory;
         _typeMappingSource = typeMappingSource;
+        _model = model;
     }
 
     /// <summary>
@@ -96,7 +99,7 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
                         returnType: method.ReturnType,
                         typeMapping: sqlExpression.TypeMapping is null
                             ? null
-                            : new NpgsqlArrayTypeMapping(method.ReturnType, sqlExpression.TypeMapping));
+                            : _typeMappingSource.FindMapping(method.ReturnType, _model, sqlExpression.TypeMapping));
 
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.JsonAgg):
                     return _sqlExpressionFactory.AggregateFunction(

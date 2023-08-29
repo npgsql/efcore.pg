@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
 
-public class NonSharedModelBulkUpdatesSqlServerTest : NonSharedModelBulkUpdatesTestBase
+public class NonSharedModelBulkUpdatesNpgsqlTest : NonSharedModelBulkUpdatesTestBase
 {
     protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
 
@@ -59,11 +59,12 @@ SET "Title" = 'SomeValue'
         AssertSql(
 """
 DELETE FROM "Posts" AS p
-WHERE EXISTS (
-    SELECT 1
+WHERE p."Id" IN (
+    SELECT p0."Id"
     FROM "Posts" AS p0
     LEFT JOIN "Blogs" AS b ON p0."BlogId" = b."Id"
-    WHERE b."Title" IS NOT NULL AND b."Title" LIKE 'Arthur%' AND p0."Id" = p."Id")
+    WHERE b."Title" LIKE 'Arthur%'
+)
 """);
     }
 
@@ -75,6 +76,62 @@ WHERE EXISTS (
 """
 UPDATE "Owner" AS o
 SET "Title" = COALESCE(o."Title", '') || '_Suffix'
+""");
+    }
+
+    public override async Task Update_owned_and_non_owned_properties_with_table_sharing(bool async)
+    {
+        await base.Update_owned_and_non_owned_properties_with_table_sharing(async);
+
+        AssertSql(
+"""
+UPDATE "Owner" AS o
+SET "OwnedReference_Number" = length(o."Title")::int,
+    "Title" = o."OwnedReference_Number"::text
+""");
+    }
+
+    public override async Task Update_main_table_in_entity_with_entity_splitting(bool async)
+    {
+        // Overridden/duplicated because we update DateTime, which Npgsql requires to be a UTC timestamp
+        var contextFactory = await InitializeAsync<DbContext>(
+            onModelCreating: mb => mb.Entity<Blog>()
+                .ToTable("Blogs")
+                .SplitToTable(
+                    "BlogsPart1", tb =>
+                    {
+                        tb.Property(b => b.Title);
+                        tb.Property(b => b.Rating);
+                    }),
+            seed: context =>
+            {
+                context.Set<Blog>().Add(new() { Title = "SomeBlog" });
+                context.SaveChanges();
+            });
+
+        await AssertUpdate(
+            async,
+            contextFactory.CreateContext,
+            ss => ss.Set<Blog>(),
+            s => s.SetProperty(b => b.CreationTimestamp, b => new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc)),
+            rowsAffectedCount: 1);
+
+        AssertSql(
+"""
+UPDATE "Blogs" AS b
+SET "CreationTimestamp" = TIMESTAMPTZ '2020-01-01 00:00:00Z'
+""");
+    }
+
+    public override async Task Update_non_main_table_in_entity_with_entity_splitting(bool async)
+    {
+        await base.Update_non_main_table_in_entity_with_entity_splitting(async);
+
+        AssertSql(
+"""
+UPDATE "BlogsPart1" AS b0
+SET "Rating" = length(b0."Title")::int,
+    "Title" = b0."Rating"::text
 """);
     }
 

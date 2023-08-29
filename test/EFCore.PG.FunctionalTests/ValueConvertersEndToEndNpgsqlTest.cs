@@ -197,16 +197,11 @@ public class ValueConvertersEndToEndNpgsqlTest
 
             // Add some Npgsql-specific value conversion scenarios
             modelBuilder.Entity<ValueConvertedArrayEntity>()
-                .Property(x => x.Values)
-                .HasPostgresArrayConversion(
-                    f => f.Value,
-                    w => new IntWrapper(w))
-                .Metadata
-                .SetValueComparer(new ValueComparer<IntWrapper[]>(
-                    (arr1, arr2) => arr1.SequenceEqual(arr2),
-                    arr => arr.Aggregate(0, (arr, v) => HashCode.Combine(arr, v.GetHashCode())),
-                    arr => arr.ToArray()));
+                .PrimitiveCollection(x => x.Values)
+                .ElementType(e => e.HasConversion(typeof(IntWrapperConverter)));
         }
+
+        private class IntWrapperConverter() : ValueConverter<IntWrapper, int>(iw => iw.Value, i => new IntWrapper(i));
     }
 
 #nullable enable

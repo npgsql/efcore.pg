@@ -273,7 +273,7 @@ WHERE c."City" <> 'Sao Paulo' OR c."City" IS NULL OR c."Country" <> 'Brazil' OR 
         AssertSql();
     }
 
-    #region Row values
+   #region Row values
 
     [ConditionalFact]
     public async Task Row_value_GreaterThan()

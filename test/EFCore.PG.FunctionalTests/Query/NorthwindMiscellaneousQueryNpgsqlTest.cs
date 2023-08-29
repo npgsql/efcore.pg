@@ -11,14 +11,19 @@ public class NorthwindMiscellaneousQueryNpgsqlTest : NorthwindMiscellaneousQuery
         : base(fixture)
     {
         ClearLog();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     public override async Task Query_expression_with_to_string_and_contains(bool async)
     {
         await base.Query_expression_with_to_string_and_contains(async);
 
-        AssertContainsSqlFragment(@"strpos(o.""EmployeeID""::text, '10') > 0");
+        AssertSql(
+            """
+SELECT o."CustomerID"
+FROM "Orders" AS o
+WHERE o."OrderDate" IS NOT NULL AND o."EmployeeID"::text LIKE '%10%'
+""");
     }
 
     public override async Task Select_expression_date_add_year(bool async)
@@ -394,7 +399,4 @@ ORDER BY c."CustomerID" NULLS FIRST
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
-
-    private void AssertContainsSqlFragment(string expectedFragment)
-        => Assert.Contains(Fixture.TestSqlLoggerFactory.SqlStatements, s => s.Contains(expectedFragment));
 }

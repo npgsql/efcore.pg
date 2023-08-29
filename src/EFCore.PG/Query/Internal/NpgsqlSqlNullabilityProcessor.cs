@@ -307,7 +307,7 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         var array = Visit(arrayIndexExpression.Array, allowOptimizedExpansion, out var arrayNullable);
         var index = Visit(arrayIndexExpression.Index, allowOptimizedExpansion, out var indexNullable);
 
-        nullable = arrayNullable || indexNullable || ((NpgsqlArrayTypeMapping)arrayIndexExpression.Array.TypeMapping!).IsElementNullable;
+        nullable = arrayNullable || indexNullable || arrayIndexExpression.IsNullable;
 
         return arrayIndexExpression.Update(array, index);
     }
@@ -327,10 +327,7 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         var lowerBound = Visit(arraySliceExpression.LowerBound, allowOptimizedExpansion, out var lowerBoundNullable);
         var upperBound = Visit(arraySliceExpression.UpperBound, allowOptimizedExpansion, out var upperBoundNullable);
 
-        nullable = arrayNullable
-            || lowerBoundNullable
-            || upperBoundNullable
-            || ((NpgsqlArrayTypeMapping)arraySliceExpression.Array.TypeMapping!).IsElementNullable;
+        nullable = arrayNullable || lowerBoundNullable || upperBoundNullable || arraySliceExpression.IsNullable;
 
         return arraySliceExpression.Update(array, lowerBound, upperBound);
     }

@@ -9,7 +9,7 @@ public class NorthwindAggregateOperatorsQueryNpgsqlTest : NorthwindAggregateOper
         : base(fixture)
     {
         ClearLog();
-        // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
     // Overriding to add equality tolerance because of floating point precision
@@ -76,13 +76,41 @@ WHERE e."EmployeeID" = ANY (@__ids_0)
     public override Task Contains_with_local_tuple_array_closure(bool async)
         => Assert.ThrowsAsync<NotSupportedException>(() => base.Contains_with_local_tuple_array_closure(async: true));
 
-    // #2760
-    public override Task Contains_with_local_non_primitive_list_closure_mix(bool async)
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Contains_with_local_non_primitive_list_closure_mix(async));
+    public override async Task Contains_with_local_non_primitive_list_closure_mix(bool async)
+    {
+        await base.Contains_with_local_non_primitive_list_closure_mix(async);
 
-    // #2760
-    public override Task Contains_with_local_non_primitive_list_inline_closure_mix(bool async)
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Contains_with_local_non_primitive_list_inline_closure_mix(async));
+        AssertSql(
+"""
+@__Select_0={ 'ABCDE', 'ALFKI' } (DbType = Object)
+
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CustomerID" = ANY (@__Select_0)
+""");
+    }
+
+    public override async Task Contains_with_local_non_primitive_list_inline_closure_mix(bool async)
+    {
+        await base.Contains_with_local_non_primitive_list_inline_closure_mix(async);
+
+        AssertSql(
+"""
+@__Select_0={ 'ABCDE', 'ALFKI' } (DbType = Object)
+
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CustomerID" = ANY (@__Select_0)
+""",
+            //
+"""
+@__Select_0={ 'ABCDE', 'ANATR' } (DbType = Object)
+
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CustomerID" = ANY (@__Select_0)
+""");
+    }
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
