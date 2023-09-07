@@ -279,7 +279,15 @@ public class SequenceEndToEndTest : IDisposable
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder
                 .UseInternalServiceProvider(_serviceProvider)
-                .UseNpgsql(NpgsqlTestStore.CreateConnectionString(_databaseName), b => b.ApplyConfiguration());
+                .UseNpgsql(NpgsqlTestStore.CreateConnectionString(_databaseName), b =>
+                {
+                    if (TestEnvironment.IsCockroachDB)
+                    {
+                        b.UseCockroachDb();
+                    }
+
+                    b.ApplyConfiguration();
+                });
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
