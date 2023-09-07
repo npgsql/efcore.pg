@@ -67,7 +67,8 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
         AssertContainsSql(@"levenshtein(f.""Text"", 'target', 1, 2, 3)");
     }
 
-    [Fact]
+    [ConditionalFact]
+    [SkipForCockroachDb("CockroachDB doesn't support all fuzzystrmatch functions, https://github.com/cockroachdb/cockroach/issues/56820")]
     public void FuzzyStringMatchLevenshteinLessEqual()
     {
         using var context = CreateContext();
@@ -78,7 +79,8 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
         AssertContainsSql(@"levenshtein_less_equal(f.""Text"", 'target', 5)");
     }
 
-    [Fact]
+    [ConditionalFact]
+    [SkipForCockroachDb("CockroachDB doesn't support all fuzzystrmatch functions, https://github.com/cockroachdb/cockroach/issues/56820")]
     public void FuzzyStringMatchLevenshteinLessEqual_With_Costs()
     {
         using var context = CreateContext();
@@ -89,7 +91,8 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
         AssertContainsSql(@"levenshtein_less_equal(f.""Text"", 'target', 1, 2, 3, 5)");
     }
 
-    [Fact]
+    [ConditionalFact]
+    [SkipForCockroachDb("CockroachDB doesn't support all fuzzystrmatch functions, https://github.com/cockroachdb/cockroach/issues/56820")]
     public void FuzzyStringMatchMetaphone()
     {
         using var context = CreateContext();
@@ -100,7 +103,8 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
         AssertContainsSql(@"metaphone(f.""Text"", 6)");
     }
 
-    [Fact]
+    [ConditionalFact]
+    [SkipForCockroachDb("CockroachDB doesn't support all fuzzystrmatch functions, https://github.com/cockroachdb/cockroach/issues/56820")]
     public void FuzzyStringMatchDoubleMetaphone()
     {
         using var context = CreateContext();
@@ -111,7 +115,8 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
         AssertContainsSql(@"dmetaphone(f.""Text"")");
     }
 
-    [Fact]
+    [ConditionalFact]
+    [SkipForCockroachDb("CockroachDB doesn't support all fuzzystrmatch functions, https://github.com/cockroachdb/cockroach/issues/56820")]
     public void FuzzyStringMatchDoubleMetaphoneAlt()
     {
         using var context = CreateContext();
