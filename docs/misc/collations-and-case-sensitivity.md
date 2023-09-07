@@ -47,7 +47,7 @@ PostgreSQL also allows you to specify collations at the database level, when it 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
-    modelBuilder.HasCollation("<collation_name>");
+    modelBuilder.UseCollation("<collation_name>");
 }
 ```
 
