@@ -137,4 +137,342 @@ public static class NpgsqlDbFunctionsExtensions
     /// </remarks>
     public static TimeSpan Distance(this DbFunctions _, DateTime a, DateTime b)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Distance)));
+
+    /// <summary>
+    /// Returns a <see langword="null"/> value if <paramref name="value1"/> equals <paramref name="value2"/>; otherwise it returns <paramref name="value1"/>.
+    /// </summary>
+    /// <remarks>
+    /// For more information on NullIf, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-NULLIF"/>.
+    /// </remarks>
+    public static T? NullIf<T>(this DbFunctions _, T value1, T value2)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NullIf)));
+
+    #region Greatest
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value1, T value2)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value1, T value2, T value3)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value1, T value2, T value3, T value4)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9, T value10)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9, T value10, T value11)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9, T value10, T value11, T value12)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9, T value10, T value11, T value12, T value13)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9, T value10, T value11, T value12, T value13, T value14)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9, T value10, T value11, T value12, T value13, T value14, T value15)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    /// <summary>
+    /// Returns the greatest value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Greatest, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Greatest<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9, T value10, T value11, T value12, T value13, T value14, T value15, T value16)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Greatest)));
+
+    #endregion
+
+    #region Least
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value1, T value2)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value1, T value2, T value3)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value1, T value2, T value3, T value4)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9, T value10)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9, T value10, T value11)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9, T value10, T value11, T value12)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9, T value10, T value11, T value12, T value13)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9, T value10, T value11, T value12, T value13, T value14)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9, T value10, T value11, T value12, T value13, T value14, T value15)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    /// <summary>
+    /// Returns the least value from a list of any number of expressions.
+    /// </summary>
+    /// <remarks>
+    /// For more information on Least, see
+    /// <see href="https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST"/>.
+    /// </remarks>
+    public static T Least<T>(this DbFunctions _, T value1, T value2, T value3, T value4, T value5, T value6, T value7, T value8, T value9, T value10, T value11, T value12, T value13, T value14, T value15, T value16)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Least)));
+
+    #endregion
 }

@@ -207,6 +207,618 @@ WHERE string_to_array(c."ContactName", ' ', 'Maria') = ARRAY[NULL,'Anders']::tex
 """);
     }
 
+    [Fact]
+    public void NullIf_returns_not_null()
+    {
+        using var context = CreateContext();
+        var nameNotNull = context.Customers
+            .Where(c => c.CustomerID == "ALFKI")
+            .Select(c => EF.Functions.NullIf(c.ContactName, "Something"))
+            .First();
+
+        Assert.NotNull(nameNotNull);
+
+        AssertSql("""
+SELECT nullif(c."ContactName", 'Something')
+FROM "Customers" AS c
+WHERE c."CustomerID" = 'ALFKI'
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void NullIf_returns_null()
+    {
+        using var context = CreateContext();
+        var nameNull = context.Customers
+            .Where(c => c.CustomerID == "ALFKI")
+            .Select(c => EF.Functions.NullIf(c.ContactName, "Maria Anders"))
+            .First();
+
+        Assert.Null(nameNull);
+
+        AssertSql("""
+SELECT nullif(c."ContactName", 'Maria Anders')
+FROM "Customers" AS c
+WHERE c."CustomerID" = 'ALFKI'
+LIMIT 1
+""");
+    }
+
+    #endregion
+
+    #region Greatest
+
+    [Fact]
+    public void Greatest_with_1_property()
+    {
+        using var context = CreateContext();
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID)).First();
+
+        //Assert.Equal(10582, closestOrder.OrderID);
+
+        AssertSql(
+"""
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID") NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Greatest_with_2_properties()
+    {
+        using var context = CreateContext();
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID, o.OrderID)).First();
+
+        AssertSql(
+"""
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID", o."OrderID") NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Greatest_with_3_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID, value, 2)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID", @__value_1, 2) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Greatest_with_4_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID, value, 2, 3)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID", @__value_1, 2, 3) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Greatest_with_5_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID, value, 2, 3, 4)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID", @__value_1, 2, 3, 4) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Greatest_with_6_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID, value, 2, 3, 4, 5)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID", @__value_1, 2, 3, 4, 5) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Greatest_with_7_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID, value, 2, 3, 4, 5, 6)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID", @__value_1, 2, 3, 4, 5, 6) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Greatest_with_8_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID, value, 2, 3, 4, 5, 6, 7)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Greatest_with_9_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Greatest_with_10_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8, 9)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8, 9) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Greatest_with_11_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8, 9, 10)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8, 9, 10) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Greatest_with_12_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Greatest_with_13_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Greatest_with_14_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Greatest_with_15_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Greatest_with_16_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Greatest(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY greatest(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15) NULLS FIRST
+LIMIT 1
+""");
+    }
+    #endregion
+
+    #region Least
+
+    [Fact]
+    public void Least_with_1_property()
+    {
+        using var context = CreateContext();
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID)).First();
+
+        //Assert.Equal(10582, closestOrder.OrderID);
+
+        AssertSql(
+"""
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID") NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Least_with_2_properties()
+    {
+        using var context = CreateContext();
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID, o.OrderID)).First();
+
+        AssertSql(
+"""
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID", o."OrderID") NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Least_with_3_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID, value, 2)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID", @__value_1, 2) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Least_with_4_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID, value, 2, 3)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID", @__value_1, 2, 3) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Least_with_5_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID, value, 2, 3, 4)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID", @__value_1, 2, 3, 4) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Least_with_6_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID, value, 2, 3, 4, 5)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID", @__value_1, 2, 3, 4, 5) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Least_with_7_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID, value, 2, 3, 4, 5, 6)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID", @__value_1, 2, 3, 4, 5, 6) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Least_with_8_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID, value, 2, 3, 4, 5, 6, 7)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Least_with_9_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Least_with_10_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8, 9)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8, 9) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Least_with_11_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8, 9, 10)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8, 9, 10) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Least_with_12_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Least_with_13_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Least_with_14_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Least_with_15_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14) NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [Fact]
+    public void Least_with_16_mix()
+    {
+        using var context = CreateContext();
+        var value = 1;
+        var orderDetail = context.OrderDetails.OrderBy(o => EF.Functions.Least(o.ProductID, value, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)).First();
+
+        AssertSql(
+"""
+@__value_1='1'
+
+SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
+FROM "Order Details" AS o
+ORDER BY least(o."ProductID", @__value_1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15) NULLS FIRST
+LIMIT 1
+""");
+    }
     #endregion
 
     private void AssertSql(params string[] expected)
