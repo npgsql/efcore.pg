@@ -414,7 +414,7 @@ WHERE "Id" = @p1;
                 if (TestEnvironment.IsCockroachDB)
                 {
                     builder.AppendLine($"TRUNCATE TABLE {table};");
-                    builder.AppendLine($"SELECT setval(pg_get_serial_sequence('{table}', 'Id'), 1);");
+                    builder.AppendLine($"SELECT setval(pg_get_serial_sequence('{table}', 'Id'), 1, false);");
                 }
                 else
                 {
