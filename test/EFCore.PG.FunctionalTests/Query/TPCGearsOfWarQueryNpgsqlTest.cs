@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.TestModels.GearsOfWarModel;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
@@ -113,6 +114,54 @@ WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC') > TIMESTAMP '0001-01-01
 
     public override Task Where_TimeOnly_Millisecond(bool async)
         => Task.CompletedTask; // Translation not implemented
+
+    [SkipForCockroachDb("CockroachDB doesn't truly support infinity, https://github.com/cockroachdb/cockroach/issues/41564")]
+    public override Task FirstOrDefault_on_empty_collection_of_DateTime_in_subquery(bool async)
+    {
+        return base.FirstOrDefault_on_empty_collection_of_DateTime_in_subquery(async);
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't truly support infinity, https://github.com/cockroachdb/cockroach/issues/41564")]
+    public override Task Where_DateOnly_AddDays(bool async)
+    {
+        return base.Where_DateOnly_AddDays(async);
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't truly support infinity, https://github.com/cockroachdb/cockroach/issues/41564")]
+    public override Task Where_DateOnly_AddMonths(bool async)
+    {
+        return base.Where_DateOnly_AddMonths(async);
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't truly support infinity, https://github.com/cockroachdb/cockroach/issues/41564")]
+    public override Task Where_DateOnly_AddYears(bool async)
+    {
+        return base.Where_DateOnly_AddYears(async);
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't truly support infinity, https://github.com/cockroachdb/cockroach/issues/41564")]
+    public override Task Where_DateOnly_Day(bool async)
+    {
+        return base.Where_DateOnly_Day(async);
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't truly support infinity, https://github.com/cockroachdb/cockroach/issues/41564")]
+    public override Task Where_DateOnly_DayOfWeek(bool async)
+    {
+        return base.Where_DateOnly_DayOfWeek(async);
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't truly support infinity, https://github.com/cockroachdb/cockroach/issues/41564")]
+    public override Task Where_DateOnly_DayOfYear(bool async)
+    {
+        return base.Where_DateOnly_DayOfYear(async);
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't truly support infinity, https://github.com/cockroachdb/cockroach/issues/41564")]
+    public override Task Where_DateOnly_Month(bool async)
+    {
+        return base.Where_DateOnly_Month(async);
+    }
 
     private void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 }
