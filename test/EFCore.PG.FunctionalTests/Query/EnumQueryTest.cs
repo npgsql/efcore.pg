@@ -231,16 +231,6 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<SomeEnumEntity> SomeEntities { get; set; }
 
-        static EnumContext()
-        {
-#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<MappedEnum>("test.mapped_enum");
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<InferredEnum>("test.inferred_enum");
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<ByteEnum>("test.byte_enum");
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<SchemaQualifiedEnum>("test.schema_qualified_enum");
-#pragma warning restore CS0618
-        }
-
         public EnumContext(DbContextOptions options) : base(options) {}
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -253,9 +243,6 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
         public static void Seed(EnumContext context)
         {
             context.AddRange(EnumData.CreateSomeEnumEntities());
-
-            context.SomeEntities.AddRange(
-            );
             context.SaveChanges();
         }
     }
@@ -316,6 +303,16 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
         protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
         public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
 
+        static EnumFixture()
+        {
+#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<MappedEnum>("test.mapped_enum");
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<InferredEnum>("test.inferred_enum");
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<ByteEnum>("test.byte_enum");
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<SchemaQualifiedEnum>("test.schema_qualified_enum");
+#pragma warning restore CS0618
+        }
+
         private EnumData _expectedData;
 
         protected override void Seed(EnumContext context) => EnumContext.Seed(context);
@@ -358,21 +355,13 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
 
     protected class EnumData : ISetSource
     {
-        public IReadOnlyList<SomeEnumEntity> SomeEnumEntities { get; }
-
-        public EnumData()
-            => SomeEnumEntities = CreateSomeEnumEntities();
+        public IReadOnlyList<SomeEnumEntity> SomeEnumEntities { get; } = CreateSomeEnumEntities();
 
         public IQueryable<TEntity> Set<TEntity>()
             where TEntity : class
-        {
-            if (typeof(TEntity) == typeof(SomeEnumEntity))
-            {
-                return (IQueryable<TEntity>)SomeEnumEntities.AsQueryable();
-            }
-
-            throw new InvalidOperationException("Invalid entity type: " + typeof(TEntity));
-        }
+            => typeof(TEntity) == typeof(SomeEnumEntity)
+                ? (IQueryable<TEntity>)SomeEnumEntities.AsQueryable()
+                : throw new InvalidOperationException("Invalid entity type: " + typeof(TEntity));
 
         public static IReadOnlyList<SomeEnumEntity> CreateSomeEnumEntities()
             => new List<SomeEnumEntity>

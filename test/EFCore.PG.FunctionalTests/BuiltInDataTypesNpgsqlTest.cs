@@ -973,14 +973,17 @@ FROM "MappedDataTypes" AS m
 
         public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
 
+        static BuiltInDataTypesNpgsqlFixture()
+        {
+#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<Mood>();
+#pragma warning restore CS0618
+        }
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {
             base.OnModelCreating(modelBuilder, context);
 
             // TODO: Switch to using data source
-#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<Mood>();
-#pragma warning restore CS0618
             ((NpgsqlTypeMappingSource)context.GetService<ITypeMappingSource>()).LoadUserDefinedTypeMappings(
                 context.GetService<ISqlGenerationHelper>(), dataSource: null);
 
