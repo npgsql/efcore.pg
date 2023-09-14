@@ -52,6 +52,21 @@ SET "Title" = 'SomeValue'
 """);
     }
 
+    public override async Task Update_non_owned_property_on_entity_with_owned2(bool async)
+    {
+        await base.Update_non_owned_property_on_entity_with_owned2(async);
+
+        AssertSql(
+"""
+UPDATE "Owner" AS o
+SET "Title" = COALESCE(o."Title", '') || '_Suffix'
+""");
+    }
+
+    // As with SQLite
+    public override Task Delete_entity_with_auto_include(bool async)
+        => Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => base.Delete_entity_with_auto_include(async));
+
     public override async Task Delete_predicate_based_on_optional_navigation(bool async)
     {
         await base.Delete_predicate_based_on_optional_navigation(async);
@@ -64,6 +79,21 @@ WHERE EXISTS (
     FROM "Posts" AS p0
     LEFT JOIN "Blogs" AS b ON p0."BlogId" = b."Id"
     WHERE (b."Title" IS NOT NULL) AND (b."Title" LIKE 'Arthur%') AND p0."Id" = p."Id")
+""");
+    }
+
+    public override async Task Update_with_alias_uniquification_in_setter_subquery(bool async)
+    {
+        await base.Update_with_alias_uniquification_in_setter_subquery(async);
+
+        AssertSql(
+"""
+UPDATE "Orders" AS o
+SET "Total" = (
+    SELECT COALESCE(sum(o0."Amount"), 0)::int
+    FROM "OrderProduct" AS o0
+    WHERE o."Id" = o0."OrderId")
+WHERE o."Id" = 1
 """);
     }
 
