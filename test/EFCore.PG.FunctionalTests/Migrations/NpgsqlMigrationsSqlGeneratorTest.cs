@@ -552,6 +552,8 @@ DROP SEQUENCE "Person_Id_old_seq";
             MigrationsSqlGenerationOptions.Idempotent);
 
         AssertSql(
+            TestEnvironment.IsCockroachDB ?
+                "CREATE SCHEMA IF NOT EXISTS some_schema;" :
 """
     IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'some_schema') THEN
         CREATE SCHEMA some_schema;
