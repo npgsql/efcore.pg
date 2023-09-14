@@ -22,14 +22,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, windows-2022]
-        pg_major: [15, 14, 13, 12, 11, 10]
+        pg_major: [16, 15, 14, 13, 12, 11]
         config: [Release]
         include:
           - os: ubuntu-22.04
-            pg_major: 15
+            pg_major: 16
             config: Debug
 #          - os: ubuntu-22.04
-#            pg_major: 15
+#            pg_major: 17
 #            config: Release
 #            pg_prerelease: 'PG Prerelease'
 
