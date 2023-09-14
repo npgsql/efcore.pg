@@ -111,7 +111,16 @@ FROM "JsonbEntities" AS j
 WHERE j."Id" = @__p_0
 LIMIT 1
 """,
-            //
+    // CockroachDB arranges JSON fields alphabetically
+    TestEnvironment.IsCockroachDB ?
+"""
+@__expected_0='{"Age": 25, "ID": "00000000-0000-0000-0000-000000000000", "IsVip": false, "Name": "Joe", "Orders": [{"Price": 99.5, "ShippingAddress": "Some address 1"}, {"Price": 23, "ShippingAddress": "Some address 2"}], "Statistics": {"Nested": {"IntArray": [3, 4], "IntList": [3, 4], "SomeNullableGuid": "d5f2685d-e5c4-47e5-97aa-d0266154eb2d", "SomeNullableInt": 20, "SomeProperty": 10}, "Purchases": 3, "Visits": 4}, "VariousTypes": {"Bool": "false", "DateTime": "2020-01-01T10:30:45", "DateTimeOffset": "2020-01-01T10:30:45+02:00", "Decimal": 10, "Int16": 8, "Int32": 8, "Int64": 8, "String": "foo"}}' (DbType = Object)
+
+SELECT j."Id", j."CustomerDocument", j."CustomerElement"
+FROM "JsonbEntities" AS j
+WHERE j."CustomerElement" = @__expected_0
+LIMIT 2
+""" :
 """
 @__expected_0='{"ID": "00000000-0000-0000-0000-000000000000", "Age": 25, "Name": "Joe", "IsVip": false, "Orders": [{"Price": 99.5, "ShippingAddress": "Some address 1"}, {"Price": 23, "ShippingAddress": "Some address 2"}], "Statistics": {"Nested": {"IntList": [3, 4], "IntArray": [3, 4], "SomeProperty": 10, "SomeNullableInt": 20, "SomeNullableGuid": "d5f2685d-e5c4-47e5-97aa-d0266154eb2d"}, "Visits": 4, "Purchases": 3}, "VariousTypes": {"Bool": "false", "Int16": 8, "Int32": 8, "Int64": 8, "String": "foo", "Decimal": 10, "DateTime": "2020-01-01T10:30:45", "DateTimeOffset": "2020-01-01T10:30:45+02:00"}}' (DbType = Object)
 
