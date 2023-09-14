@@ -50,6 +50,19 @@ public class NonSharedPrimitiveCollectionsQueryNpgsqlTest : NonSharedPrimitiveCo
             new DateTimeOffset(2023, 1, 1, 12, 30, 0, TimeSpan.Zero),
             new DateTimeOffset(2023, 1, 2, 12, 30, 0, TimeSpan.Zero));
 
+    [ConditionalFact(Skip = "#30630")] // This test will go away
+    public override async Task Array_of_geometry_is_not_supported()
+    {
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => InitializeAsync<TestContext>(
+                onConfiguring: options => options.UseNpgsql(o => o.UseNetTopologySuite()),
+                addServices: s => s.AddEntityFrameworkNpgsqlNetTopologySuite(),
+                onModelCreating: mb => mb.Entity<TestEntity>().Property<Point[]>("Points")));
+
+        Assert.Equal(CoreStrings.PropertyNotMapped("Point[]", "MyEntity", "Points"), exception.Message);
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support inserting multidimensional array into an array column")]
     [ConditionalFact]
     public override async Task Multidimensional_array_is_not_supported()
     {
