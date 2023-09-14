@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore.TestModels.ConcurrencyModel;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
+[SkipForCockroachDb("CockroachDB doesn't support concurrency token column, https://github.com/cockroachdb/cockroach/issues/33296")]
 public class OptimisticConcurrencyBytesNpgsqlTest : OptimisticConcurrencyNpgsqlTestBase<F1BytesNpgsqlFixture, byte[]>
 {
     public OptimisticConcurrencyBytesNpgsqlTest(F1BytesNpgsqlFixture fixture)
@@ -11,6 +13,7 @@ public class OptimisticConcurrencyBytesNpgsqlTest : OptimisticConcurrencyNpgsqlT
 }
 
 // uint maps directly to xid, which is the PG type of the xmin column that we use as a row version.
+[SkipForCockroachDb("CockroachDB doesn't support concurrency token column, https://github.com/cockroachdb/cockroach/issues/33296")]
 public class OptimisticConcurrencyNpgsqlTest : OptimisticConcurrencyNpgsqlTestBase<F1NpgsqlFixture, uint>
 {
     public OptimisticConcurrencyNpgsqlTest(F1NpgsqlFixture fixture)
