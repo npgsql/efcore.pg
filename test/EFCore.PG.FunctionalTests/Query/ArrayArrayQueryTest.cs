@@ -859,7 +859,6 @@ WHERE COALESCE(array_position(s."IntArray", 6) - 1, -1) = 1
     }
 
     [SkipForCockroachDb("CockroachDB doesn't support third argument for function array_position, https://github.com/cockroachdb/cockroach/issues/109953")]
-    [ConditionalFact]
     public override async Task Array_IndexOf2(bool async)
     {
         await AssertQuery(
