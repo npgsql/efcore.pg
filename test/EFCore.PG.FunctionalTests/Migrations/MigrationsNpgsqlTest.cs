@@ -2777,20 +2777,20 @@ END $EF$;",
     {
         await Test(
             builder => { },
-            builder => builder.HasCollation("some_collation", locale: "en-u-ks-primary", provider: "icu", deterministic: false),
+            builder => builder.HasCollation("some_collation", locale: "en-u-ks-level1", provider: "icu", deterministic: false),
             model =>
             {
                 var collation = Assert.Single(PostgresCollation.GetCollations(model));
 
                 Assert.Equal("some_collation", collation.Name);
                 Assert.Equal("icu", collation.Provider);
-                Assert.Equal("en-u-ks-primary", collation.LcCollate);
-                Assert.Equal("en-u-ks-primary", collation.LcCtype);
+                Assert.Equal("en-u-ks-level1", collation.LcCollate);
+                Assert.Equal("en-u-ks-level1", collation.LcCtype);
                 Assert.False(collation.IsDeterministic);
             });
 
         AssertSql(
-            @"CREATE COLLATION some_collation (LOCALE = 'en-u-ks-primary',
+            @"CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
     PROVIDER = icu,
     DETERMINISTIC = False
 );");
