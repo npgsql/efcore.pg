@@ -192,14 +192,14 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
             {
                 if (clrType is null)
                 {
-                    return mappings[0].Clone(in mappingInfo);
+                    return mappings[0];
                 }
 
                 foreach (var m in mappings)
                 {
                     if (m.ClrType == clrType)
                     {
-                        return m.Clone(in mappingInfo);
+                        return m;
                     }
                 }
 

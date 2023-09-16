@@ -467,14 +467,14 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             {
                 if (clrType is null)
                 {
-                    return mappings[0].Clone(in mappingInfo);
+                    return mappings[0];
                 }
 
                 foreach (var m in mappings)
                 {
                     if (m.ClrType == clrType)
                     {
-                        return m.Clone(in mappingInfo);
+                        return m;
                     }
                 }
 
@@ -523,14 +523,14 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
 
                         // See #342 for when size > 10485760
                         return mappingInfo.Size <= 10485760
-                            ? mapping.Clone($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size)
+                            ? mapping.WithStoreTypeAndSize($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size)
                             : _text;
                     }
 
                     if (clrType == typeof(BitArray))
                     {
                         mapping = mappingInfo.IsFixedLength ?? false ? _bit : _varbit;
-                        return mapping.Clone($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size);
+                        return mapping.WithStoreTypeAndSize($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size);
                     }
                 }
 
