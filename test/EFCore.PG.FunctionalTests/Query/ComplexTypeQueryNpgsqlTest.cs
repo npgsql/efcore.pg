@@ -239,6 +239,13 @@ WHERE c."ShippingAddress_AddressLine1" = @__entity_equality_address_0_AddressLin
 """);
     }
 
+    public override async Task Complex_type_equals_null(bool async)
+    {
+        await base.Complex_type_equals_null(async);
+
+        AssertSql();
+    }
+
     public override async Task Subquery_over_complex_type(bool async)
     {
         await base.Subquery_over_complex_type(async);

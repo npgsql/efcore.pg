@@ -5,7 +5,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class PrimitiveCollectionsQueryNpgsqlTest : PrimitiveCollectionsQueryTestBase<
+public class PrimitiveCollectionsQueryNpgsqlTest : PrimitiveCollectionsQueryRelationalTestBase<
     PrimitiveCollectionsQueryNpgsqlTest.PrimitiveCollectionsQueryNpgsqlFixture>
 {
     public PrimitiveCollectionsQueryNpgsqlTest(PrimitiveCollectionsQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
@@ -818,9 +818,9 @@ WHERE cardinality(@__ints1_0 || p."Ints" || @__ints2_1) = 4
 """);
     }
 
-    public override async Task Column_collection_Concat_parameter_collection_equality_inline_collection_not_supported(bool async)
+    public override async Task Column_collection_Concat_parameter_collection_equality_inline_collection(bool async)
     {
-        await base.Column_collection_Concat_parameter_collection_equality_inline_collection_not_supported(async);
+        await base.Column_collection_Concat_parameter_collection_equality_inline_collection(async);
 
         AssertSql();
     }
@@ -960,10 +960,9 @@ WHERE (
 
     public override async Task Parameter_collection_in_subquery_Union_another_parameter_collection_as_compiled_query(bool async)
     {
-        var message = (await Assert.ThrowsAsync<InvalidOperationException>(
-            () => base.Parameter_collection_in_subquery_Union_another_parameter_collection_as_compiled_query(async))).Message;
+        await base.Parameter_collection_in_subquery_Union_another_parameter_collection_as_compiled_query(async);
 
-        Assert.Equal(RelationalStrings.SetOperationsRequireAtLeastOneSideWithValidTypeMapping("Union"), message);
+        AssertSql();
     }
 
     public override async Task Parameter_collection_in_subquery_Count_as_compiled_query(bool async)
@@ -1047,9 +1046,9 @@ ORDER BY p."Id" NULLS FIRST
 """);
     }
 
-    public override async Task Project_collection_of_ints_with_paging(bool async)
+    public override async Task Project_collection_of_nullable_ints_with_paging(bool async)
     {
-        await base.Project_collection_of_ints_with_paging(async);
+        await base.Project_collection_of_nullable_ints_with_paging(async);
 
         AssertSql(
 """
@@ -1060,9 +1059,9 @@ ORDER BY p."Id" NULLS FIRST
 """);
     }
 
-    public override async Task Project_collection_of_ints_with_paging2(bool async)
+    public override async Task Project_collection_of_nullable_ints_with_paging2(bool async)
     {
-        await base.Project_collection_of_ints_with_paging2(async);
+        await base.Project_collection_of_nullable_ints_with_paging2(async);
 
         AssertSql(
 """
@@ -1078,9 +1077,9 @@ ORDER BY p."Id" NULLS FIRST, t.value NULLS FIRST
 """);
     }
 
-    public override async Task Project_collection_of_ints_with_paging3(bool async)
+    public override async Task Project_collection_of_nullable_ints_with_paging3(bool async)
     {
-        await base.Project_collection_of_ints_with_paging3(async);
+        await base.Project_collection_of_nullable_ints_with_paging3(async);
 
         AssertSql(
 """

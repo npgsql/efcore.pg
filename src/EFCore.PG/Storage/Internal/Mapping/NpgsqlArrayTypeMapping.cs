@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.Common;
 using System.Text;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -84,12 +85,11 @@ public class NpgsqlArrayTypeMapping<TCollection, TElement> : NpgsqlArrayTypeMapp
 
     private static RelationalTypeMappingParameters CreateParameters(
         string storeType,
-        RelationalTypeMapping elementTypeMapping)
+        RelationalTypeMapping elementMapping)
     {
         ValueConverter? converter = null;
 
-        // TODO: Make sure this all still makes sense
-        if (elementTypeMapping.Converter is { } elementConverter)
+        if (elementMapping.Converter is { } elementConverter)
         {
             var collectionTypeDefinition = typeof(TCollection) switch
             {
@@ -133,22 +133,25 @@ public class NpgsqlArrayTypeMapping<TCollection, TElement> : NpgsqlArrayTypeMapp
             }
         }
 
-        // TODO: Confirm model vs. provider type here!
         // We do GetElementType for multidimensional arrays - these don't implement generic IEnumerable<>
-        var modelElementType = typeof(TCollection).TryGetElementType(typeof(IEnumerable<>)) ?? typeof(TCollection).GetElementType();
+        var elementType = typeof(TCollection).TryGetElementType(typeof(IEnumerable<>)) ?? typeof(TCollection).GetElementType();
 
-        Check.DebugAssert(modelElementType is not null, "modelElementType cannot be null");
+        Check.DebugAssert(elementType is not null, "modelElementType cannot be null");
 
+#pragma warning disable EF1001
         var comparer = typeof(TCollection).IsArray && typeof(TCollection).GetArrayRank() > 1
             ? null // TODO: Value comparer for multidimensional arrays
             : (ValueComparer?)Activator.CreateInstance(
-                modelElementType.IsNullableValueType()
-                    ? typeof(NullableValueTypeListComparer<>).MakeGenericType(modelElementType.UnwrapNullableType())
-                    : typeof(ListComparer<>).MakeGenericType(elementTypeMapping.Comparer.Type),
-                elementTypeMapping.Comparer);
+            elementType.IsNullableValueType()
+                ? typeof(NullableValueTypeListComparer<>).MakeGenericType(elementType.UnwrapNullableType())
+                : elementMapping.Comparer.Type.IsAssignableFrom(elementType)
+                    ? typeof(ListComparer<>).MakeGenericType(elementType)
+                    : typeof(ObjectListComparer<>).MakeGenericType(elementType),
+            elementMapping.Comparer.ToNullableComparer(elementType)!);
+#pragma warning restore EF1001
 
         return new RelationalTypeMappingParameters(
-            new CoreTypeMappingParameters(typeof(TCollection), converter, comparer, elementMapping: elementTypeMapping),
+            new CoreTypeMappingParameters(typeof(TCollection), converter, comparer, elementMapping: elementMapping),
             storeType);
     }
 
