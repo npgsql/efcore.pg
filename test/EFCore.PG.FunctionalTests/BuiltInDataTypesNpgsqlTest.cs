@@ -503,8 +503,52 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
         Assert.Equal(1, context.SaveChanges());
 
         var parameters = DumpParameters();
-        Assert.Equal(
-            @"@p0='77'
+
+        if (TestEnvironment.IsCockroachDB)
+        {
+            Assert.Equal(
+                @"@p0='77'
+@p1='True'
+@p2='80' (DbType = Int16)
+@p3='0x56' (Nullable = false)
+@p4='g' (Nullable = false)
+@p5='h' (Nullable = false)
+@p6='2015-01-02T00:00:00.0000000' (DbType = Date)
+@p7='2015-01-02T10:11:12.0000000'
+@p8='2016-01-02T11:11:12.0000000Z' (DbType = DateTime)
+@p9='0001-01-01T12:00:00.0000000+02:00' (DbType = Object)
+@p10='101.7'
+@p11='103.9'
+@p12='85.5'
+@p13='Value4' (Nullable = false)
+@p14='Value4' (Nullable = false)
+@p15='84.4'
+@p16='a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+@p17={ '2'
+'3' } (Nullable = false) (DbType = Object)
+@p18='78'
+@p19='Sad' (DbType = Object)
+@p20='2'
+@p21=''a' & 'b'' (Nullable = false) (DbType = Object)
+@p22=''a' 'b'' (Nullable = false) (DbType = Object)
+@p23='79'
+@p24='{""a"": ""b""}' (Nullable = false) (DbType = Object)
+@p25='Gumball Rules!' (Nullable = false)
+@p26='Gumball Rules OK' (Nullable = false)
+@p27='11:15:12' (DbType = Object)
+@p28='11:15:12'
+@p29='65535'
+@p30='-1'
+@p31='4294967295'
+@p32='-1'
+@p33='-1'",
+                parameters,
+                ignoreLineEndingDifferences: true);
+        }
+        else
+        {
+            Assert.Equal(
+                @"@p0='77'
 @p1='True'
 @p2='80' (DbType = Int16)
 @p3='0x56' (Nullable = false)
@@ -549,8 +593,9 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
 @p40='-1'
 @p41='2147483648' (DbType = Object)
 @p42='-1'",
-            parameters,
-            ignoreLineEndingDifferences: true);
+                parameters,
+                ignoreLineEndingDifferences: true);
+        }
     }
 
     private string DumpParameters()
@@ -1008,6 +1053,14 @@ FROM "MappedDataTypes" AS m
             => logCategory == DbLoggerCategory.Query.Name;
 
         public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
+
+        public BuiltInDataTypesNpgsqlFixture()
+        {
+            if (TestEnvironment.IsCockroachDB)
+            {
+                AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
+            }
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {
