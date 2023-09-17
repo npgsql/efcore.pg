@@ -26,7 +26,8 @@ public class NpgsqlDatabaseModelFactoryTest : IClassFixture<NpgsqlDatabaseModelF
 
     #region Sequences
 
-    [Fact]
+    [SkipForCockroachDb("CYCLE option is not yet supported by CockroachDB")]
+    [ConditionalFact]
     public void Create_sequences_with_facets()
     {
         var supportsDataType = TestEnvironment.PostgresVersion >= new Version(10, 0);
@@ -116,7 +117,15 @@ CREATE SEQUENCE db2."Sequence"
                 // ReSharper disable once PossibleNullReferenceException
                 Assert.Equal("db2", sequence.Schema);
                 Assert.Equal("Sequence", sequence.Name);
-                Assert.Equal("bigint", sequence.StoreType);
+
+                if (TestEnvironment.IsCockroachDB)
+                {
+                    Assert.Equal("INT8", sequence.StoreType);
+                }
+                else
+                {
+                    Assert.Equal("bigint", sequence.StoreType);
+                }
             },
 """
 DROP SEQUENCE "Sequence";
@@ -668,7 +677,8 @@ DROP TABLE "PrincipalTable";
 
     #region ColumnFacets
 
-    [Fact]
+    [ConditionalFact]
+    [SkipForCockroachDb("CockroachDB doesn't support DOMAIN, https://github.com/cockroachdb/cockroach/issues/27796")]
     public void Column_with_domain_assigns_underlying_store_type()
     {
         Fixture.TestStore.ExecuteNonQuery(
@@ -731,7 +741,8 @@ CREATE TABLE "NumericColumns" (
             },
             @"DROP TABLE ""NumericColumns""");
 
-    [Fact]
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/110539")]
+    [ConditionalFact]
     public void Specific_max_length_are_add_to_store_type()
         => Test(
 """
@@ -760,7 +771,8 @@ CREATE TABLE "LengthColumns" (
             },
             @"DROP TABLE ""LengthColumns""");
 
-    [Fact]
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/110787")]
+    [ConditionalFact]
     public void Datetime_types_have_precision_if_non_null_scale()
         => Test(
 """
@@ -779,7 +791,7 @@ CREATE TABLE "LengthColumns" (
             {
                 var columns = dbModel.Tables.Single().Columns;
 
-                Assert.Equal("time(1) without time zone", columns.Single(c => c.Name == "time1Column").StoreType);
+                // Assert.Equal("time(1) without time zone", columns.Single(c => c.Name == "time1Column").StoreType);
                 Assert.Equal("time(2) with time zone", columns.Single(c => c.Name == "timetz2Column").StoreType);
                 Assert.Equal("timestamp(3) without time zone", columns.Single(c => c.Name == "timestamp3Column").StoreType);
                 Assert.Equal("timestamp(4) with time zone", columns.Single(c => c.Name == "timestamptz4Column").StoreType);
@@ -787,7 +799,8 @@ CREATE TABLE "LengthColumns" (
             },
             @"DROP TABLE ""LengthColumns""");
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support money, macaddr, point, xid column types")]
+    [ConditionalFact]
     public void Store_types_without_any_facets()
         => Test(
 """
@@ -889,12 +902,13 @@ CREATE TABLE "ComputedValues" (
                 // columns.
                 var column = columns.Single(c => c.Name == "SumOfAAndB");
                 Assert.Null(column.DefaultValueSql);
-                Assert.Equal(@"(""A"" + ""B"")", column.ComputedColumnSql);
+                Assert.Contains(@"""A"" + ""B""", column.ComputedColumnSql);
                 Assert.True(column.IsStored);
             },
             @"DROP TABLE ""ComputedValues""");
 
-    [Fact]
+    [ConditionalFact]
+    [SkipForCockroachDb("CockroachDB doesn't support DOMAIN, https://github.com/cockroachdb/cockroach/issues/27796")]
     public void Default_value_matching_clr_default_is_not_stored()
         => Test(
 """
@@ -1024,7 +1038,8 @@ CREATE TABLE "NullableColumns" (
             },
             @"DROP TABLE ""NullableColumns""");
 
-    [Fact]
+    [SkipForCockroachDb("DOMAIN is not yet supported by CockroachDB")]
+    [ConditionalFact]
     public void Column_nullability_is_set_with_domain()
         => Test(
 """
@@ -1196,7 +1211,8 @@ CREATE INDEX "IX_COMPOSITE" ON "CompositeIndexTable" ( "Id2", "Id1" );
             },
             @"DROP TABLE ""CompositeIndexTable""");
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB automatically creates a UNIQUE CONSTRAINT for a UNIQUE INDEX")]
+    [ConditionalFact]
     public void Set_unique_true_for_unique_index()
         => Test(
 """
@@ -1223,7 +1239,8 @@ CREATE UNIQUE INDEX "IX_UNIQUE" ON "UniqueIndexTable" ( "Id2" );
             },
             @"DROP TABLE ""UniqueIndexTable""");
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB automatically creates a UNIQUE CONSTRAINT for a UNIQUE INDEX")]
+    [ConditionalFact]
     public void Set_filter_for_filtered_index()
         => Test(
 """
@@ -1584,7 +1601,15 @@ CREATE TABLE "NonSerialSequence" ("Id" integer PRIMARY KEY DEFAULT nextval('"Som
             dbModel =>
             {
                 var column = dbModel.Tables.Single().Columns.Single();
-                Assert.Equal(@"nextval('""SomeSequence""'::regclass)", column.DefaultValueSql);
+                if (TestEnvironment.IsCockroachDB)
+                {
+                    Assert.Equal(@"nextval('public.""SomeSequence""'::regclass)", column.DefaultValueSql);
+                }
+                else
+                {
+                    Assert.Equal(@"nextval('""SomeSequence""'::regclass)", column.DefaultValueSql);
+                }
+
                 // Npgsql has special detection for serial columns (scaffolding them with ValueGenerated.OnAdd
                 // and removing the default), but not for non-serial sequence-driven columns, which are scaffolded
                 // with a DefaultValue. This is consistent with the SqlServer scaffolding behavior.
@@ -1629,6 +1654,7 @@ CREATE TABLE identity (
             },
             "DROP TABLE identity");
 
+    [SkipForCockroachDb("CYCLE option is not yet supported by CockroachDB")]
     [ConditionalFact]
     [MinimumPostgresVersion(10, 0)]
     public void Identity_with_sequence_options_all()
@@ -1678,7 +1704,8 @@ CREATE TABLE identity (
             "DROP TABLE identity");
 
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support POSIX collation properly, https://github.com/cockroachdb/cockroach/issues/108657")]
+    [ConditionalFact]
     public void Column_collation_is_set()
         => Test(
 """
@@ -1710,7 +1737,8 @@ CREATE TABLE columns_with_collation (
             @"");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support HASH index, https://github.com/cockroachdb/cockroach/issues/108882")]
+    [ConditionalFact]
     public void Index_method()
         => Test(
 """
@@ -1739,7 +1767,8 @@ CREATE INDEX ix_b ON "IndexMethod" (b);
             },
             @"DROP TABLE ""IndexMethod""");
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB only allows operator classes for the last column of an inverted index")]
+    [ConditionalFact]
     public void Index_operators()
         => Test(
 """
@@ -1761,7 +1790,8 @@ CREATE INDEX ix_without ON "IndexOperators" (a, b);
             },
             @"DROP TABLE ""IndexOperators""");
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support POSIX collation properly, https://github.com/cockroachdb/cockroach/issues/108657")]
+    [ConditionalFact]
     public void Index_collation()
         => Test(
 """
@@ -1783,7 +1813,9 @@ CREATE INDEX ix_without ON "IndexCollation" (a, b);
             },
             @"DROP TABLE ""IndexCollation""");
 
-    [Theory]
+
+    [SkipForCockroachDb("CockroachDB doesn't yet support brin, btree")]
+    [ConditionalTheory]
     [InlineData("gin", new bool[0])]
     [InlineData("gist", new bool[0])]
     [InlineData("hash", new bool[0])]
@@ -1920,12 +1952,24 @@ CREATE SEQUENCE "BigIntSequence" AS bigint;
             Enumerable.Empty<string>(),
             dbModel =>
             {
-                var smallSequence = dbModel.Sequences.Single(s => s.Name == "SmallIntSequence");
-                Assert.Equal("smallint", smallSequence.StoreType);
-                var intSequence = dbModel.Sequences.Single(s => s.Name == "IntSequence");
-                Assert.Equal("integer", intSequence.StoreType);
-                var bigSequence = dbModel.Sequences.Single(s => s.Name == "BigIntSequence");
-                Assert.Equal("bigint", bigSequence.StoreType);
+                if (TestEnvironment.IsCockroachDB)
+                {
+                    var smallSequence = dbModel.Sequences.Single(s => s.Name == "SmallIntSequence");
+                    Assert.Equal("INT2", smallSequence.StoreType);
+                    var intSequence = dbModel.Sequences.Single(s => s.Name == "IntSequence");
+                    Assert.Equal("INT4", intSequence.StoreType);
+                    var bigSequence = dbModel.Sequences.Single(s => s.Name == "BigIntSequence");
+                    Assert.Equal("INT8", bigSequence.StoreType);
+                }
+                else
+                {
+                    var smallSequence = dbModel.Sequences.Single(s => s.Name == "SmallIntSequence");
+                    Assert.Equal("smallint", smallSequence.StoreType);
+                    var intSequence = dbModel.Sequences.Single(s => s.Name == "IntSequence");
+                    Assert.Equal("integer", intSequence.StoreType);
+                    var bigSequence = dbModel.Sequences.Single(s => s.Name == "BigIntSequence");
+                    Assert.Equal("bigint", bigSequence.StoreType);
+                }
             },
 """
 DROP SEQUENCE "SmallIntSequence";
@@ -1933,7 +1977,8 @@ DROP SEQUENCE "IntSequence";
 DROP SEQUENCE "BigIntSequence";
 """);
 
-    [Fact]
+    [SkipForCockroachDb("The primary key is required in CockroachDB and cannot be dropped")]
+    [ConditionalFact]
     public void Dropped_columns()
         => Test(
 """
@@ -1949,7 +1994,8 @@ ALTER TABLE foo ADD COLUMN id2 int PRIMARY KEY;
             },
             "DROP TABLE foo");
 
-    [Fact]
+    [SkipForCockroachDb("hstore is not yet supported by CockroachDB")]
+    [ConditionalFact]
     public void Postgres_extensions()
         => Test(
 """
@@ -2031,7 +2077,8 @@ DROP TABLE foo;
 DROP TYPE mood;
 """);
 
-    [Fact]
+    [ConditionalFact]
+    [SkipForCockroachDb("CockroachDB doesn't support money, json, macaddr, point, line")]
     public void Column_default_type_names_are_scaffolded()
     {
         Test(

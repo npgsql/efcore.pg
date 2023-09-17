@@ -204,7 +204,9 @@ SELECT datcollate FROM pg_database WHERE datname=current_database() AND
 SELECT nspname, relname, relkind, description
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
-LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid=0
+LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid=0 AND des.classoid = (
+    SELECT oid FROM pg_class WHERE relname = 'pg_class'
+)
 WHERE
   cls.relkind IN ('r', 'v', 'm', 'f') AND
   ns.nspname NOT IN ({internalSchemas}) AND
@@ -299,7 +301,19 @@ SELECT
   -- Sequence options for identity columns
   {(connection.PostgreSqlVersion >= new Version(10, 0) ?
       "format_type(seqtypid, 0) AS seqtype, seqstart, seqmin, seqmax, seqincrement, seqcycle, seqcache" :
-      "NULL AS seqtype, NULL AS seqstart, NULL AS seqmin, NULL AS seqmax, NULL AS seqincrement, NULL AS seqcycle, NULL AS seqcache")}
+      "NULL AS seqtype, NULL AS seqstart, NULL AS seqmin, NULL AS seqmax, NULL AS seqincrement, NULL AS seqcycle, NULL AS seqcache")},
+
+  -- CockroachDB automatically adds primary key column if not specified. This column is hidden
+  {(connection.IsCockroachDb() ?
+      """
+      EXISTS (
+        SELECT 1 FROM information_schema.columns WHERE
+        table_name = cls.relname AND
+        column_name = attname AND
+        is_hidden = 'YES'
+      ) AS attishidden
+      """ :
+      "'f' AS attishidden")}
 
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
@@ -311,7 +325,7 @@ LEFT JOIN pg_type AS basetyp ON (basetyp.oid = typ.typbasetype)
 LEFT JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid = attnum
 {(connection.PostgreSqlVersion >= new Version(9, 1) ? "LEFT JOIN pg_collation as coll ON coll.oid = attr.attcollation" : "")}
 -- Bring in identity sequences the depend on this column
-LEFT JOIN pg_depend AS dep ON dep.refobjid = cls.oid AND dep.refobjsubid = attr.attnum AND dep.deptype = 'i'
+LEFT JOIN pg_depend AS dep ON dep.refobjid = cls.oid AND dep.refobjsubid = attr.attnum AND {(connection.IsCockroachDb() ? "dep.deptype IN ('a', 'i')" : "dep.deptype = 'i'")}
 {(connection.PostgreSqlVersion >= new Version(10, 0) ? "LEFT JOIN pg_sequence AS seq ON seq.seqrelid = dep.objid" : "")}
 WHERE
   cls.relkind IN ('r', 'v', 'm', 'f') AND
@@ -360,6 +374,13 @@ ORDER BY attnum";
                     continue;
                 }
 
+                //
+                if (connection.IsCockroachDb() && record.GetValueOrDefault<bool>("attishidden"))
+                {
+                    table.Columns.Add(null!);
+                    continue;
+                }
+
                 var formattedTypeName = AdjustFormattedTypeName(record.GetFieldValue<string>("formatted_typname"));
                 var formattedBaseTypeName = record.GetValueOrDefault<string>("formatted_basetypname");
                 var (storeType, systemTypeName) = formattedBaseTypeName is null
@@ -389,12 +410,12 @@ ORDER BY attnum";
                 // Default values and PostgreSQL 12 generated columns
                 if (record.GetFieldValue<string>("attgenerated") == "s")
                 {
-                    column.ComputedColumnSql = record.GetValueOrDefault<string>("default");
+                    column.ComputedColumnSql = record.GetValueOrDefault<string>("default")?.Replace("REGCLASS", "regclass");
                     column.IsStored = true;
                 }
                 else
                 {
-                    column.DefaultValueSql = record.GetValueOrDefault<string>("default");
+                    column.DefaultValueSql = record.GetValueOrDefault<string>("default")?.Replace("REGCLASS", "regclass");
                     AdjustDefaults(column, systemTypeName);
                 }
 
@@ -421,12 +442,14 @@ ORDER BY attnum";
                             var seqName = $"{column.Table.Name}_{column.Name}_seq";
                             if (column.Table.Schema == "public" &&
                                 (column.DefaultValueSql == $"nextval('{seqName}'::regclass)" ||
-                                    column.DefaultValueSql == $"nextval('\"{seqName}\"'::regclass)")
+                                    column.DefaultValueSql == $"nextval('\"{seqName}\"'::regclass)" ||
+                                    column.DefaultValueSql == $"unique_rowid()")
                                 ||  // non-public schema
                                 column.DefaultValueSql == $"nextval('{column.Table.Schema}.{seqName}'::regclass)" ||
                                 column.DefaultValueSql == $"nextval('{column.Table.Schema}.\"{seqName}\"'::regclass)" ||
                                 column.DefaultValueSql == $"nextval('\"{column.Table.Schema}\".{seqName}'::regclass)" ||
-                                column.DefaultValueSql == $"nextval('\"{column.Table.Schema}\".\"{seqName}\"'::regclass)")
+                                column.DefaultValueSql == $"nextval('\"{column.Table.Schema}\".\"{seqName}\"'::regclass)" ||
+                                column.DefaultValueSql == $"unique_rowid()")
                             {
                                 column.DefaultValueSql = null;
                                 // Serial is the default value generation strategy, so NpgsqlAnnotationCodeGenerator
@@ -1190,12 +1213,14 @@ WHERE
 
         switch (storeType)
         {
+            case "INT2" when incrementBy > 0:
             case "smallint" when incrementBy > 0:
                 defaultMin = 1;
                 defaultMax = short.MaxValue;
                 defaultStart = minValue;
                 break;
 
+            case "INT2":
             case "smallint":
                 // PostgreSQL 10 changed the default minvalue for a descending sequence, see #264
                 defaultMin = postgresVersion >= new Version(10, 0)
@@ -1205,12 +1230,14 @@ WHERE
                 defaultStart = maxValue;
                 break;
 
+            case "INT4" when incrementBy > 0:
             case "integer" when incrementBy > 0:
                 defaultMin = 1;
                 defaultMax = int.MaxValue;
                 defaultStart = minValue;
                 break;
 
+            case "INT4":
             case "integer":
                 // PostgreSQL 10 changed the default minvalue for a descending sequence, see #264
                 defaultMin = postgresVersion >= new Version(10, 0)
@@ -1220,12 +1247,14 @@ WHERE
                 defaultStart = maxValue;
                 break;
 
+            case "INT8" when incrementBy > 0:
             case "bigint" when incrementBy > 0:
                 defaultMin = 1;
                 defaultMax = long.MaxValue;
                 defaultStart = minValue;
                 break;
 
+            case "INT8":
             case "bigint":
                 // PostgreSQL 10 changed the default minvalue for a descending sequence, see #264
                 defaultMin = postgresVersion >= new Version(10, 0)
