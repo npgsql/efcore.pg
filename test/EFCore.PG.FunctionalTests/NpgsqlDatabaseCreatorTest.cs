@@ -601,9 +601,17 @@ public class NpgsqlDatabaseCreatorTest
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder
-                .UseNpgsql(_connectionString, b => b
-                    .ApplyConfiguration()
-                    .SetPostgresVersion(TestEnvironment.PostgresVersion))
+                .UseNpgsql(_connectionString, b =>
+                {
+                    if (TestEnvironment.IsCockroachDB)
+                    {
+                        b.UseCockroachDb();
+                    }
+
+                    b
+                        .ApplyConfiguration()
+                        .SetPostgresVersion(TestEnvironment.PostgresVersion);
+                })
                 .UseInternalServiceProvider(CreateServiceProvider());
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
