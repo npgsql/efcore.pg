@@ -1,3 +1,5 @@
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class NorthwindSelectQueryNpgsqlTest : NorthwindSelectQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
@@ -47,6 +49,18 @@ FROM "Orders" AS o
 
     public override Task Member_binding_after_ctor_arguments_fails_with_client_eval(bool async)
         => AssertTranslationFailed(() => base.Member_binding_after_ctor_arguments_fails_with_client_eval(async));
+
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/110707")]
+    public override Task Take_on_top_level_and_on_collection_projection_with_outer_apply(bool async)
+    {
+        return base.Take_on_top_level_and_on_collection_projection_with_outer_apply(async);
+    }
+
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/108448")]
+    public override Task Ternary_in_client_eval_assigns_correct_types(bool async)
+    {
+        return base.Ternary_in_client_eval_assigns_correct_types(async);
+    }
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
