@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
@@ -13,6 +14,7 @@ public class NorthwindAggregateOperatorsQueryNpgsqlTest : NorthwindAggregateOper
     }
 
     // Overriding to add equality tolerance because of floating point precision
+    [SkipForCockroachDb("CockroachDB")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public override Task Average_over_max_subquery_is_client_eval(bool async)
@@ -110,6 +112,24 @@ SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", 
 FROM "Customers" AS c
 WHERE c."CustomerID" = ANY (@__Select_0)
 """);
+    }
+
+    [SkipForCockroachDb("CockroachDB supports up to 17 digits of decimal precision for FLOAT")]
+    public override Task Average_over_nested_subquery_is_client_eval(bool async)
+    {
+        return base.Average_over_nested_subquery_is_client_eval(async);
+    }
+
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/110618")]
+    public override Task Sum_on_float_column(bool async)
+    {
+        return base.Sum_on_float_column(async);
+    }
+
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/110618")]
+    public override Task Sum_on_float_column_in_subquery(bool async)
+    {
+        return base.Sum_on_float_column_in_subquery(async);
     }
 
     private void AssertSql(params string[] expected)
