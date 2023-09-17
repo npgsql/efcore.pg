@@ -14,6 +14,7 @@ public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgs
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
+    [SkipForCockroachDb]
     [ConditionalFact]
     public async Task Array_contains_is_not_parameterized_with_array_on_redshift()
     {
