@@ -163,5 +163,11 @@ WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC') > TIMESTAMP '0001-01-01
         return base.Where_DateOnly_Month(async);
     }
 
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/110785")]
+    public override Task Select_null_propagation_negative4(bool async)
+    {
+        return base.Select_null_propagation_negative4(async);
+    }
+
     private void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 }

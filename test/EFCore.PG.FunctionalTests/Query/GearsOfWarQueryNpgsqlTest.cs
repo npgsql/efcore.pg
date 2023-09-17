@@ -767,7 +767,13 @@ WHERE m."Time"::interval = INTERVAL '15:30:10'
     {
         return base.FirstOrDefault_on_empty_collection_of_DateTime_in_subquery(async);
     }
-    
+
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/110785")]
+    public override Task Select_null_propagation_negative4(bool async)
+    {
+        return base.Select_null_propagation_negative4(async);
+    }
+
     #endregion
 
     private void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
