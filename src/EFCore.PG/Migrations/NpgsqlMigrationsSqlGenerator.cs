@@ -33,6 +33,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     private readonly Version _postgresVersion;
 
     /// <summary>
+    /// Whether to target CockroachDB.
+    /// </summary>
+    private readonly bool _useCockroachDb;
+
+    /// <summary>
     ///     Creates a new <see cref="NpgsqlMigrationsSqlGenerator" /> instance.
     /// </summary>
     /// <param name="dependencies">Parameter object containing dependencies for this service.</param>
@@ -43,6 +48,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         : base(dependencies)
     {
         _postgresVersion = npgsqlSingletonOptions.PostgresVersion;
+        _useCockroachDb = npgsqlSingletonOptions.UseCockroachDb;
         _stringTypeMapping = dependencies.TypeMappingSource.GetMapping(typeof(string))
             ?? throw new InvalidOperationException("No string type mapping found");
     }
@@ -177,6 +183,26 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         base.Generate(operation, model, builder);
     }
 
+    /// <inheritdoc />
+    protected override void Generate(DropCheckConstraintOperation operation, IModel? model, MigrationCommandListBuilder builder)
+    {
+        if (_useCockroachDb)
+        {
+            builder
+                .Append("ALTER TABLE ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(" DROP CONSTRAINT ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+
+            EndStatement(builder, suppressTransaction: true);
+        }
+        else
+        {
+            base.Generate(operation, model, builder);
+        }
+    }
+
     #region Standard migrations
 
     /// <inheritdoc />
@@ -271,7 +297,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         if (terminate)
         {
             builder.AppendLine(";");
-            EndStatement(builder);
+            EndStatement(builder, suppressTransaction: _useCockroachDb);
         }
     }
 
@@ -355,7 +381,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
         if (madeChanges)
         {
-            EndStatement(builder);
+            EndStatement(builder, suppressTransaction: _useCockroachDb);
         }
     }
 
@@ -372,7 +398,24 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             return;
         }
 
-        base.Generate(operation, model, builder, terminate);
+        if (!_useCockroachDb)
+        {
+            base.Generate(operation, model, builder, terminate);
+        }
+        else
+        {
+            builder
+                .Append("ALTER TABLE ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(" DROP COLUMN ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name));
+
+            if (terminate)
+            {
+                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                EndStatement(builder, suppressTransaction: true);
+            }
+        }
     }
 
     /// <inheritdoc />
@@ -1012,22 +1055,30 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         // So we procedurally check if the schema exists instead, and create it if not.
         var schemaName = operation.Name.Replace("'", "''");
 
-        // If we're generating an idempotent migration, we're already in a PL/PGSQL DO block; otherwise we need to start one.
-        if (!Options.HasFlag(MigrationsSqlGenerationOptions.Idempotent))
+        // CockroachDB doesn't yet support IF statement, https://github.com/cockroachdb/cockroach/issues/110080
+        if (_useCockroachDb)
         {
-            builder
-                .AppendLine(@"DO $EF$")
-                .AppendLine("BEGIN");
+            builder.AppendLine($"CREATE SCHEMA IF NOT EXISTS {DelimitIdentifier(operation.Name)};");
         }
-
-        builder
-            .AppendLine($"    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = '{schemaName}') THEN")
-            .AppendLine($"        CREATE SCHEMA {DelimitIdentifier(operation.Name)};")
-            .AppendLine("    END IF;");
-
-        if (!Options.HasFlag(MigrationsSqlGenerationOptions.Idempotent))
+        else
         {
-            builder.AppendLine("END $EF$;");
+            // If we're generating an idempotent migration, we're already in a PL/PGSQL DO block; otherwise we need to start one.
+            if (!Options.HasFlag(MigrationsSqlGenerationOptions.Idempotent))
+            {
+                builder
+                    .AppendLine(@"DO $EF$")
+                    .AppendLine("BEGIN");
+            }
+
+            builder
+                .AppendLine($"    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = '{schemaName}') THEN")
+                .AppendLine($"        CREATE SCHEMA {DelimitIdentifier(operation.Name)};")
+                .AppendLine("    END IF;");
+
+            if (!Options.HasFlag(MigrationsSqlGenerationOptions.Idempotent))
+            {
+                builder.AppendLine("END $EF$;");
+            }
         }
 
         EndStatement(builder);
@@ -1080,7 +1131,14 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
         var dbName = DelimitIdentifier(operation.Name);
 
-        if (_postgresVersion.AtLeast(13))
+        if (_useCockroachDb)
+        {
+            builder
+                .AppendLine($"REVOKE CONNECT ON DATABASE {dbName} FROM PUBLIC;")
+                .EndCommand(suppressTransaction: true)
+                .AppendLine($"DROP DATABASE {dbName};");
+        }
+        else if (_postgresVersion.AtLeast(13))
         {
             builder.AppendLine($"DROP DATABASE {dbName} WITH (FORCE);");
         }
@@ -1492,7 +1550,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         if (terminate)
         {
             builder.AppendLine(";");
-            EndStatement(builder);
+            EndStatement(builder, suppressTransaction: _useCockroachDb);
         }
     }
 
@@ -1569,6 +1627,50 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             operation.ClrType = typeof(long);
             base.Generate(operation, model, builder);
             operation.ClrType = oldValue;
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void Generate(AddPrimaryKeyOperation operation, IModel? model, MigrationCommandListBuilder builder, bool terminate = true)
+    {
+        if (_useCockroachDb)
+        {
+            builder
+                .Append("ALTER TABLE ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(" ADD ");
+            PrimaryKeyConstraint(operation, model, builder);
+
+            if (terminate)
+            {
+                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                EndStatement(builder, suppressTransaction: true);
+            }
+        }
+        else
+        {
+            base.Generate(operation, model, builder, terminate);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void Generate(DropUniqueConstraintOperation operation, IModel? model, MigrationCommandListBuilder builder)
+    {
+        if (_useCockroachDb)
+        {
+            builder
+                // .Append("ALTER TABLE ")
+                // .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
+                .Append("DROP INDEX ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .Append(" CASCADE")
+                .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+
+            EndStatement(builder, suppressTransaction: true);
+        }
+        else
+        {
+            base.Generate(operation, model, builder);
         }
     }
 
@@ -1851,10 +1953,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 $"'{nameof(RelationalPropertyBuilderExtensions.HasComputedColumnSql)}' in your context's OnModelCreating.");
         }
 
+        var columnType = operation.ColumnType ?? GetColumnType(schema, table, name, operation, model)!;
         builder
             .Append(DelimitIdentifier(name))
             .Append(" ")
-            .Append(operation.ColumnType ?? GetColumnType(schema, table, name, operation, model)!);
+            .Append(columnType);
 
         if (operation.Collation is not null)
         {
@@ -1863,9 +1966,13 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 .Append(DelimitIdentifier(operation.Collation));
         }
 
+        var computedColumnSql = _useCockroachDb ?
+            $"({operation.ComputedColumnSql})::{columnType}" :
+            operation.ComputedColumnSql;
+
         builder
             .Append(" GENERATED ALWAYS AS (")
-            .Append(operation.ComputedColumnSql!)
+            .Append(computedColumnSql!)
             .Append(") STORED");
 
         if (!operation.IsNullable)
