@@ -82,6 +82,6 @@ public class NpgsqlTimestampTypeMapping : NpgsqlTypeMapping
 
         return NpgsqlTypeMappingSource.LegacyTimestampBehavior || dateTime.Kind != DateTimeKind.Utc
             ? dateTime.ToString("yyyy-MM-dd HH:mm:ss.FFFFFF", CultureInfo.InvariantCulture)
-            : throw new InvalidCastException("'timestamp without time zone' literal cannot be generated for a UTC DateTime");
+            : throw new ArgumentException("'timestamp without time zone' literal cannot be generated for a UTC DateTime");
     }
 }

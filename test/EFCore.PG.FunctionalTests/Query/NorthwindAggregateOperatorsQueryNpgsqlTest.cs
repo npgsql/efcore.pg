@@ -74,7 +74,7 @@ WHERE e."EmployeeID" = ANY (@__ids_0)
         => AssertTranslationFailed(() => base.Contains_with_local_anonymous_type_array_closure(async));
 
     public override Task Contains_with_local_tuple_array_closure(bool async)
-        => Assert.ThrowsAsync<NotSupportedException>(() => base.Contains_with_local_tuple_array_closure(async: true));
+        => Assert.ThrowsAsync<InvalidCastException>(() => base.Contains_with_local_tuple_array_closure(async: true));
 
     public override async Task Contains_with_local_enumerable_inline(bool async)
     {
