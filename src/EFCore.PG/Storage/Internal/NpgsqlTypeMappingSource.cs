@@ -107,7 +107,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     // Network address types
     private readonly NpgsqlMacaddrTypeMapping      _macaddr            = new();
     private readonly NpgsqlMacaddr8TypeMapping     _macaddr8           = new();
-    private readonly NpgsqlInetTypeMapping         _inet               = new();
+    private readonly NpgsqlInetTypeMapping         _inetAsIPAddress    = new(typeof(IPAddress));
+    private readonly NpgsqlInetTypeMapping         _inetAsNpgsqlInet   = new(typeof(NpgsqlInet));
     private readonly NpgsqlCidrTypeMapping         _cidr               = new();
 
     // Built-in geometric types
@@ -255,7 +256,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
 
             { "macaddr",                     new[] { _macaddr                      } },
             { "macaddr8",                    new[] { _macaddr8                     } },
-            { "inet",                        new[] { _inet                         } },
+            { "inet",                        new RelationalTypeMapping[] { _inetAsIPAddress, _inetAsNpgsqlInet } },
             { "cidr",                        new[] { _cidr                         } },
 
             { "point",                       new[] { _point                        } },
@@ -327,8 +328,9 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { typeof(DateTimeOffset),                      _timestamptzDto       },
 
             { typeof(PhysicalAddress),                     _macaddr              },
-            { typeof(IPAddress),                           _inet                 },
-            { typeof((IPAddress, int)),                    _cidr                 },
+            { typeof(IPAddress),                           _inetAsIPAddress      },
+            { typeof(NpgsqlInet),                          _inetAsNpgsqlInet     },
+            { typeof(NpgsqlCidr),                          _cidr                 },
 
             { typeof(BitArray),                            _varbit               },
             { typeof(ImmutableDictionary<string, string>), _immutableHstore      },

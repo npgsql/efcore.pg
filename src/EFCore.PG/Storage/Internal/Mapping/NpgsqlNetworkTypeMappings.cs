@@ -127,7 +127,14 @@ public class NpgsqlInetTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlInetTypeMapping() : base("inet", typeof(IPAddress), NpgsqlDbType.Inet) {}
+    public NpgsqlInetTypeMapping(Type clrType)
+        : base("inet", clrType, NpgsqlDbType.Inet)
+    {
+        if (clrType != typeof(IPAddress) && clrType != typeof(NpgsqlInet))
+        {
+            throw new ArgumentException($"Only {nameof(IPAddress)} and {nameof(NpgsqlInet)} are supported", nameof(clrType));
+        }
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -154,7 +161,7 @@ public class NpgsqlInetTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
-        => $"INET '{(IPAddress)value}'";
+        => $"INET '{value}'";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -163,9 +170,15 @@ public class NpgsqlInetTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public override Expression GenerateCodeLiteral(object value)
-        => Expression.Call(ParseMethod, Expression.Constant(((IPAddress)value).ToString()));
+        => value switch
+        {
+            IPAddress ip => Expression.Call(IPAddressParseMethod, Expression.Constant(ip.ToString())),
+            NpgsqlInet ip => Expression.New(NpgsqlInetConstructor, Expression.Constant(ip.ToString())),
+            _ => throw new UnreachableException()
+        };
 
-    private static readonly MethodInfo ParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) })!;
+    private static readonly MethodInfo IPAddressParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) })!;
+    private static readonly ConstructorInfo NpgsqlInetConstructor = typeof(NpgsqlInet).GetConstructor(new[] { typeof(string) })!;
 }
 
 /// <summary>
@@ -182,7 +195,7 @@ public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlCidrTypeMapping() : base("cidr", typeof((IPAddress, int)), NpgsqlDbType.Cidr) {}
+    public NpgsqlCidrTypeMapping() : base("cidr", typeof(NpgsqlCidr), NpgsqlDbType.Cidr) {}
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -210,8 +223,8 @@ public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
     {
-        var cidr = ((IPAddress Address, int Subnet))value;
-        return $"CIDR '{cidr.Address}/{cidr.Subnet}'";
+        var cidr = (NpgsqlCidr)value;
+        return $"CIDR '{cidr.Address}/{cidr.Netmask}'";
     }
 
     /// <summary>
@@ -222,15 +235,15 @@ public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
     /// </summary>
     public override Expression GenerateCodeLiteral(object value)
     {
-        var cidr = ((IPAddress Address, int Subnet))value;
+        var cidr = (NpgsqlCidr)value;
         return Expression.New(
-            Constructor,
+            NpgsqlCidrConstructor,
             Expression.Call(ParseMethod, Expression.Constant(cidr.Address.ToString())),
-            Expression.Constant(cidr.Subnet));
+            Expression.Constant(cidr.Netmask));
     }
 
     private static readonly MethodInfo ParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) })!;
 
-    private static readonly ConstructorInfo Constructor =
-        typeof((IPAddress, int)).GetConstructor(new[] { typeof(IPAddress), typeof(int) })!;
+    private static readonly ConstructorInfo NpgsqlCidrConstructor =
+        typeof(NpgsqlCidr).GetConstructor(new[] { typeof(IPAddress), typeof(byte) })!;
 }

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
@@ -114,6 +115,15 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
             // this node causes translation failure in RelationalSqlTranslatingExpressionVisitor, so unwrap here.
             case ExpressionType.Convert
                 when unaryExpression.Type == typeof(ITuple) && unaryExpression.Operand.Type.IsAssignableTo(typeof(ITuple)):
+                return Visit(unaryExpression.Operand);
+
+            // We map both IPAddress and NpgsqlInet to PG inet, and translate many methods accepting NpgsqlInet, so ignore casts from
+            // IPAddress to NpgsqlInet.
+            // On the PostgreSQL side, cidr is also implicitly convertible to inet, and at the ADO.NET level NpgsqlCidr has a similar
+            // implicit conversion operator to NpgsqlInet. So remove that cast as well.
+            case ExpressionType.Convert
+                when unaryExpression.Type == typeof(NpgsqlInet)
+                && (unaryExpression.Operand.Type == typeof(IPAddress) || unaryExpression.Operand.Type == typeof(NpgsqlCidr)):
                 return Visit(unaryExpression.Operand);
         }
 
