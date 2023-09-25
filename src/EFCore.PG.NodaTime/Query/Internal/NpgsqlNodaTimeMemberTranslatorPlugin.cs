@@ -130,7 +130,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
             || declaringType == typeof(LocalTime)
             || declaringType == typeof(Period))
         {
-            return TranslateDateTime(instance, member, returnType);
+            return TranslateDateTime(instance, member);
         }
 
         if (declaringType == typeof(ZonedDateTime))
@@ -281,7 +281,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
                 _dateTypeMapping);
     }
 
-    private SqlExpression? TranslateDateTime(SqlExpression instance, MemberInfo member, Type returnType)
+    private SqlExpression? TranslateDateTime(SqlExpression instance, MemberInfo member)
         => member.Name switch
         {
             "Year" or "Years" => GetDatePartExpression(instance, "year"),
@@ -378,7 +378,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
 
             return member == ZonedDateTime_LocalDateTime
                 ? instance
-                : TranslateDateTime(instance, member, returnType);
+                : TranslateDateTime(instance, member);
         }
 
         // date_part, which is used to extract most components, doesn't have an overload for timestamptz, so passing one directly
@@ -388,6 +388,6 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
 
         return member == ZonedDateTime_LocalDateTime
             ? instance
-            : TranslateDateTime(instance, member, returnType);
+            : TranslateDateTime(instance, member);
     }
 }

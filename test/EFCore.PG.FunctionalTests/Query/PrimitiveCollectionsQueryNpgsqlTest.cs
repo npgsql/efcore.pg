@@ -1040,7 +1040,7 @@ FROM "PrimitiveCollectionsEntity" AS p
 LEFT JOIN LATERAL (
     SELECT d.value, d.ordinality
     FROM unnest(p."DateTimes") WITH ORDINALITY AS d(value)
-    WHERE date_part('day', d.value)::int <> 1
+    WHERE date_part('day', d.value AT TIME ZONE 'UTC')::int <> 1 OR d.value AT TIME ZONE 'UTC' IS NULL
 ) AS t ON TRUE
 ORDER BY p."Id" NULLS FIRST
 """);
@@ -1165,7 +1165,7 @@ LEFT JOIN LATERAL unnest(p."Ints") WITH ORDINALITY AS i0(value) ON TRUE
 LEFT JOIN LATERAL (
     SELECT d.value, d.ordinality
     FROM unnest(p."DateTimes") WITH ORDINALITY AS d(value)
-    WHERE date_part('day', d.value)::int <> 1
+    WHERE date_part('day', d.value AT TIME ZONE 'UTC')::int <> 1 OR d.value AT TIME ZONE 'UTC' IS NULL
 ) AS t ON TRUE
 LEFT JOIN LATERAL (
     SELECT d0.value, d0.ordinality
