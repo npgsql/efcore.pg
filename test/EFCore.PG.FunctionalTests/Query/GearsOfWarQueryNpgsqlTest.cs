@@ -128,14 +128,14 @@ WHERE m."Timeline" <> now()
         await AssertQuery(
             async,
             ss => from m in ss.Set<Mission>()
-                  where m.Timeline.Date > new DateTime(1, DateTimeKind.Utc)
+                  where m.Timeline.Date > new DateTime(1)
                   select m);
 
         AssertSql(
 """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC') > TIMESTAMPTZ '0001-01-01 00:00:00Z'
+WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC') > TIMESTAMP '0001-01-01 00:00:00'
 """);
     }
 
@@ -212,6 +212,17 @@ FROM "Missions" AS m
 
     public override Task DateTimeOffset_to_unix_time_seconds(bool async)
         => AssertTranslationFailed(() => base.DateTimeOffset_to_unix_time_seconds(async));
+
+    public override async Task Time_of_day_datetimeoffset(bool async)
+    {
+        await base.Time_of_day_datetimeoffset(async);
+
+        AssertSql(
+"""
+SELECT CAST(m."Timeline" AT TIME ZONE 'UTC' AS time)
+FROM "Missions" AS m
+""");
+    }
 
     #endregion DateTimeOffset
 

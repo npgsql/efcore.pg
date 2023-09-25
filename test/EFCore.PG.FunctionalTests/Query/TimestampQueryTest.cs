@@ -551,7 +551,7 @@ WHERE make_timestamp(date_part('year', e."TimestampDateTime")::int, date_part('m
 """
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE make_timestamptz(date_part('year', e."TimestamptzDateTime")::int, date_part('month', e."TimestamptzDateTime")::int, 1, 0, 0, 0::double precision, 'UTC') = TIMESTAMPTZ '1998-04-01 00:00:00Z'
+WHERE make_timestamptz(date_part('year', e."TimestamptzDateTime" AT TIME ZONE 'UTC')::int, date_part('month', e."TimestamptzDateTime" AT TIME ZONE 'UTC')::int, 1, 0, 0, 0::double precision, 'UTC') = TIMESTAMPTZ '1998-04-01 00:00:00Z'
 """);
     }
 
