@@ -191,14 +191,21 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
 
         _sqlGenerationHelper = Check.NotNull(sqlGenerationHelper, nameof(sqlGenerationHelper));
 
-        // Initialize some mappings which depend on other mappings
-        _int4range         = new NpgsqlRangeTypeMapping("int4range", typeof(NpgsqlRange<int>),      _int4,         sqlGenerationHelper);
-        _int8range         = new NpgsqlRangeTypeMapping("int8range", typeof(NpgsqlRange<long>),     _int8,         sqlGenerationHelper);
-        _numrange          = new NpgsqlRangeTypeMapping("numrange",  typeof(NpgsqlRange<decimal>),  _numeric,      sqlGenerationHelper);
-        _tsrange           = new NpgsqlRangeTypeMapping("tsrange",   typeof(NpgsqlRange<DateTime>), _timestamp,    sqlGenerationHelper);
-        _tstzrange         = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<DateTime>), _timestamptz,  sqlGenerationHelper);
-        _dateOnlyDaterange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<DateOnly>), _dateDateOnly, sqlGenerationHelper);
-        _dateTimeDaterange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<DateTime>), _dateDateTime, sqlGenerationHelper);
+        // Initialize range mappings, which reference on other mappings
+        _int4range = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "int4range", typeof(NpgsqlRange<int>), NpgsqlDbType.IntegerRange, _int4);
+        _int8range = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "int8range", typeof(NpgsqlRange<long>), NpgsqlDbType.BigIntRange, _int8);
+        _numrange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "numrange", typeof(NpgsqlRange<decimal>), NpgsqlDbType.NumericRange, _numeric);
+        _tsrange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "tsrange", typeof(NpgsqlRange<DateTime>), NpgsqlDbType.TimestampRange, _timestamp);
+        _tstzrange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "tstzrange", typeof(NpgsqlRange<DateTime>), NpgsqlDbType.TimestampTzRange, _timestamptz);
+        _dateOnlyDaterange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "daterange", typeof(NpgsqlRange<DateOnly>), NpgsqlDbType.DateRange, _dateDateOnly);
+        _dateTimeDaterange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "daterange", typeof(NpgsqlRange<DateTime>), NpgsqlDbType.DateRange, _dateDateTime);
 
 // ReSharper disable CoVariantArrayConversion
         // Note that PostgreSQL has aliases to some built-in type name aliases (e.g. int4 for integer),
@@ -837,7 +844,16 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             throw new Exception($"Could not map range {rangeDefinition.RangeName}, no mapping was found its subtype");
         }
 
-        return new NpgsqlRangeTypeMapping(rangeDefinition.RangeName, rangeDefinition.SchemaName, rangeClrType, subtypeMapping, _sqlGenerationHelper);
+        // We need to store types for the user-defined range:
+        // 1. The quoted type name is used in migrations, where quoting is needed
+        // 2. The unquoted type name is set on NpgsqlParameter.DataTypeName
+        var quotedRangeStoreType = _sqlGenerationHelper.DelimitIdentifier(rangeDefinition.RangeName, rangeDefinition.SchemaName);
+        var unquotedRangeStoreType = rangeDefinition.SchemaName is null
+            ? rangeDefinition.RangeName
+            : rangeDefinition.SchemaName + '.' + rangeDefinition.RangeName;
+
+        return NpgsqlRangeTypeMapping.CreatUserDefinedRangeMapping(
+            quotedRangeStoreType, unquotedRangeStoreType, rangeClrType, subtypeMapping);
     }
 
     /// <summary>

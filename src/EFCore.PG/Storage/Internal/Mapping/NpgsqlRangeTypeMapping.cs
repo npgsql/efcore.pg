@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -11,8 +12,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 /// </remarks>
 public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
 {
-    private readonly ISqlGenerationHelper _sqlGenerationHelper;
-
     private PropertyInfo? _isEmptyProperty;
     private PropertyInfo? _lowerProperty;
     private PropertyInfo? _upperProperty;
@@ -32,40 +31,51 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     public virtual RelationalTypeMapping SubtypeMapping { get; }
 
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping"/> class.
+    /// For user-defined ranges, we have no <see cref="NpgsqlDbType" /> and so the PG type name is set on
+    /// <see cref="NpgsqlParameter.DataTypeName" /> instead.
     /// </summary>
-    /// <param name="storeType">The database type to map</param>
-    /// <param name="clrType">The CLR type to map.</param>
-    /// <param name="subtypeMapping">The type mapping for the range subtype.</param>
-    /// <param name="sqlGenerationHelper">The SQL generation helper to delimit the store name.</param>
-    public NpgsqlRangeTypeMapping(
-        string storeType,
-        Type clrType,
-        RelationalTypeMapping subtypeMapping,
-        ISqlGenerationHelper sqlGenerationHelper)
-        : this(storeType, storeTypeSchema: null, clrType, subtypeMapping, sqlGenerationHelper) {}
+    private string? PgDataTypeName { get; init; }
 
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping"/> class.
+    /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping" /> class for a built-in range type which has a
+    /// <see cref="NpgsqlDbType" /> defined.
     /// </summary>
-    /// <param name="storeType">The database type to map</param>
-    /// <param name="storeTypeSchema">The schema of the type.</param>
-    /// <param name="clrType">The CLR type to map.</param>
+    /// <param name="rangeStoreType">The database type to map</param>
+    /// <param name="rangeClrType">The CLR type to map.</param>
+    /// <param name="rangeNpgsqlDbType">The <see cref="NpgsqlDbType" /> of the built-in range.</param>
     /// <param name="subtypeMapping">The type mapping for the range subtype.</param>
-    /// <param name="sqlGenerationHelper">The SQL generation helper to delimit the store name.</param>
-    public NpgsqlRangeTypeMapping(
-        string storeType,
-        string? storeTypeSchema,
-        Type clrType,
-        RelationalTypeMapping subtypeMapping,
-        ISqlGenerationHelper sqlGenerationHelper)
-        : base(sqlGenerationHelper.DelimitIdentifier(storeType, storeTypeSchema), clrType, GenerateNpgsqlDbType(subtypeMapping))
-    {
-        Debug.Assert(clrType == typeof(NpgsqlRange<>).MakeGenericType(subtypeMapping.ClrType));
+    public static NpgsqlRangeTypeMapping CreatBuiltInRangeMapping(
+        string rangeStoreType,
+        Type rangeClrType,
+        NpgsqlDbType rangeNpgsqlDbType,
+        RelationalTypeMapping subtypeMapping)
+        => new(rangeStoreType, rangeClrType, rangeNpgsqlDbType, subtypeMapping);
 
-        SubtypeMapping = subtypeMapping;
-        _sqlGenerationHelper = sqlGenerationHelper;
-    }
+    /// <summary>
+    /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping" /> class for a user-defined range type which doesn't have a
+    /// <see cref="NpgsqlDbType" /> defined.
+    /// </summary>
+    /// <param name="quotedRangeStoreType">The database type to map, quoted.</param>
+    /// <param name="unquotedRangeStoreType">The database type to map, unquoted.</param>
+    /// <param name="rangeClrType">The CLR type to map.</param>
+    /// <param name="subtypeMapping">The type mapping for the range subtype.</param>
+    public static NpgsqlRangeTypeMapping CreatUserDefinedRangeMapping(
+        string quotedRangeStoreType,
+        string unquotedRangeStoreType,
+        Type rangeClrType,
+        RelationalTypeMapping subtypeMapping)
+        => new(quotedRangeStoreType, rangeClrType, rangeNpgsqlDbType: NpgsqlDbType.Unknown, subtypeMapping)
+        {
+            PgDataTypeName = unquotedRangeStoreType
+        };
+
+    private NpgsqlRangeTypeMapping(
+        string rangeStoreType,
+        Type rangeClrType,
+        NpgsqlDbType rangeNpgsqlDbType,
+        RelationalTypeMapping subtypeMapping)
+        : base(rangeStoreType, rangeClrType, rangeNpgsqlDbType)
+        => SubtypeMapping = subtypeMapping;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -76,13 +86,9 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     protected NpgsqlRangeTypeMapping(
         RelationalTypeMappingParameters parameters,
         NpgsqlDbType npgsqlDbType,
-        RelationalTypeMapping subtypeMapping,
-        ISqlGenerationHelper sqlGenerationHelper)
+        RelationalTypeMapping subtypeMapping)
         : base(parameters, npgsqlDbType)
-    {
-        SubtypeMapping = subtypeMapping;
-        _sqlGenerationHelper = sqlGenerationHelper;
-    }
+        => SubtypeMapping = subtypeMapping;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -91,7 +97,33 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-        => new NpgsqlRangeTypeMapping(parameters, NpgsqlDbType, SubtypeMapping, _sqlGenerationHelper);
+        => new NpgsqlRangeTypeMapping(parameters, NpgsqlDbType, SubtypeMapping);
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected override void ConfigureParameter(DbParameter parameter)
+    {
+        // Built-in range types have an NpgsqlDbType, so we just do the normal thing.
+        if (PgDataTypeName is null)
+        {
+            Check.DebugAssert(NpgsqlDbType is not NpgsqlDbType.Unknown, "NpgsqlDbType is Unknown but no PgDataTypeName is configured");
+            base.ConfigureParameter(parameter);
+            return;
+        }
+
+        Check.DebugAssert(NpgsqlDbType is NpgsqlDbType.Unknown, "PgDataTypeName is non-null, but NpgsqlDbType is " + NpgsqlDbType);
+
+        if (parameter is not NpgsqlParameter npgsqlParameter)
+        {
+            throw new InvalidOperationException($"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+        }
+
+        npgsqlParameter.DataTypeName = PgDataTypeName;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -138,25 +170,6 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
         }
 
         return builder.ToString();
-    }
-
-    private static NpgsqlDbType GenerateNpgsqlDbType(RelationalTypeMapping subtypeMapping)
-    {
-        NpgsqlDbType subtypeNpgsqlDbType;
-        if (subtypeMapping is INpgsqlTypeMapping npgsqlTypeMapping)
-        {
-            subtypeNpgsqlDbType = npgsqlTypeMapping.NpgsqlDbType;
-        }
-        else
-        {
-            // We're using a built-in, non-Npgsql mapping such as IntTypeMapping.
-            // Infer the NpgsqlDbType from the DbType (somewhat hacky but why not).
-            Debug.Assert(subtypeMapping.DbType.HasValue);
-            var p = new NpgsqlParameter { DbType = subtypeMapping.DbType.Value };
-            subtypeNpgsqlDbType = p.NpgsqlDbType;
-        }
-
-        return NpgsqlDbType.Range | subtypeNpgsqlDbType;
     }
 
     /// <summary>

@@ -77,18 +77,18 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
     /// </summary>
     public NpgsqlNodaTimeTypeMappingSourcePlugin(ISqlGenerationHelper sqlGenerationHelper)
     {
-        _timestampLocalDateTimeRange
-            = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<LocalDateTime>), _timestampLocalDateTime, sqlGenerationHelper);
-        _legacyTimestampInstantRange
-            = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<Instant>), _legacyTimestampInstant, sqlGenerationHelper);
-        _timestamptzInstantRange
-            = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<Instant>), _timestamptzInstant, sqlGenerationHelper);
-        _timestamptzZonedDateTimeRange
-            = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<ZonedDateTime>), _timestamptzZonedDateTime, sqlGenerationHelper);
-        _timestamptzOffsetDateTimeRange
-            = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<OffsetDateTime>), _timestamptzOffsetDateTime, sqlGenerationHelper);
-        _dateRange
-            = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<LocalDate>), _date, sqlGenerationHelper);
+        _timestampLocalDateTimeRange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "tsrange", typeof(NpgsqlRange<LocalDateTime>), NpgsqlDbType.TimestampRange, _timestampLocalDateTime);
+        _legacyTimestampInstantRange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "tsrange", typeof(NpgsqlRange<Instant>), NpgsqlDbType.TimestampRange, _legacyTimestampInstant);
+        _timestamptzInstantRange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "tstzrange", typeof(NpgsqlRange<Instant>), NpgsqlDbType.TimestampTzRange, _timestamptzInstant);
+        _timestamptzZonedDateTimeRange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "tstzrange", typeof(NpgsqlRange<ZonedDateTime>), NpgsqlDbType.TimestampTzRange, _timestamptzZonedDateTime);
+        _timestamptzOffsetDateTimeRange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "tstzrange", typeof(NpgsqlRange<OffsetDateTime>), NpgsqlDbType.TimestampTzRange, _timestamptzOffsetDateTime);
+        _dateRange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "daterange", typeof(NpgsqlRange<LocalDate>), NpgsqlDbType.DateRange, _date);
 
         var storeTypeMappings = new Dictionary<string, RelationalTypeMapping[]>(StringComparer.OrdinalIgnoreCase)
         {
