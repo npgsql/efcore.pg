@@ -876,7 +876,14 @@ CREATE TABLE "DefaultValues" (
             dbModel =>
             {
                 var columns = dbModel.Tables.Single().Columns;
-                Assert.Equal("'1999-01-08 00:00:00'::timestamp without time zone", columns.Single(c => c.Name == "FixedDefaultValue").DefaultValueSql);
+                if (TestEnvironment.IsCockroachDB)
+                {
+                    Assert.Equal("'1999-01-08 00:00:00'::TIMESTAMP", columns.Single(c => c.Name == "FixedDefaultValue").DefaultValueSql);
+                }
+                else
+                {
+                    Assert.Equal("'1999-01-08 00:00:00'::timestamp without time zone", columns.Single(c => c.Name == "FixedDefaultValue").DefaultValueSql);
+                }
             },
             @"DROP TABLE ""DefaultValues""");
 
@@ -1639,17 +1646,26 @@ CREATE TABLE identity (
             {
                 var idIdentityAlways = dbModel.Tables.Single().Columns.Single(c => c.Name == "id");
                 Assert.Equal(ValueGenerated.OnAdd, idIdentityAlways.ValueGenerated);
-                Assert.Null(idIdentityAlways.DefaultValueSql);
+                if (!TestEnvironment.IsCockroachDB) // CockroachDB returns default expression for IDENTITY column
+                {
+                    Assert.Null(idIdentityAlways.DefaultValueSql);
+                }
                 Assert.Equal(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn, (NpgsqlValueGenerationStrategy)idIdentityAlways[NpgsqlAnnotationNames.ValueGenerationStrategy]);
 
                 var identityAlways = dbModel.Tables.Single().Columns.Single(c => c.Name == "a");
                 Assert.Equal(ValueGenerated.OnAdd, identityAlways.ValueGenerated);
-                Assert.Null(identityAlways.DefaultValueSql);
+                if (!TestEnvironment.IsCockroachDB) // CockroachDB returns default expression for IDENTITY column
+                {
+                    Assert.Null(identityAlways.DefaultValueSql);
+                }
                 Assert.Equal(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn, (NpgsqlValueGenerationStrategy)identityAlways[NpgsqlAnnotationNames.ValueGenerationStrategy]);
 
                 var identityByDefault = dbModel.Tables.Single().Columns.Single(c => c.Name == "b");
                 Assert.Equal(ValueGenerated.OnAdd, identityByDefault.ValueGenerated);
-                Assert.Null(identityByDefault.DefaultValueSql);
+                if (!TestEnvironment.IsCockroachDB) // CockroachDB returns default expression for IDENTITY column
+                {
+                    Assert.Null(identityByDefault.DefaultValueSql);
+                }
                 Assert.Equal(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, (NpgsqlValueGenerationStrategy)identityByDefault[NpgsqlAnnotationNames.ValueGenerationStrategy]);
             },
             "DROP TABLE identity");
@@ -1847,7 +1863,8 @@ CREATE INDEX ix_without ON "IndexSortOrder" (a, b);
             },
             @"DROP TABLE ""IndexSortOrder""");
 
-    [Fact]
+    [SkipForCockroachDb("The default CockroachDB ordering is NULLs first for ascending order and NULLs last for descending order")]
+    [ConditionalFact]
     public void Index_null_sort_order()
         => Test(
 """
