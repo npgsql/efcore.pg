@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using System.Transactions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -222,6 +223,21 @@ WHERE
             else
             {
                 unpooledRelationalConnection.Open(errorsExpected: true);
+            }
+
+            // Workaround for CockroachDB issue that doesn't return error when database name is invalid
+            // https://github.com/cockroachdb/cockroach/issues/109992
+            if (unpooledRelationalConnection.DbConnection.IsCockroachDb())
+            {
+                if (async)
+                {
+                    await unpooledRelationalConnection.DbConnection.ReloadTypesAsync()
+                        .ConfigureAwait(false);;
+                }
+                else
+                {
+                    unpooledRelationalConnection.DbConnection.ReloadTypes();
+                }
             }
 
             return true;
