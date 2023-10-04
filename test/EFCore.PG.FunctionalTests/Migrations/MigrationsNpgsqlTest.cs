@@ -1,4 +1,4 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
@@ -33,7 +33,8 @@ CREATE TABLE "People" (
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support POSIX collation properly, https://github.com/cockroachdb/cockroach/issues/108657")]
+    [ConditionalFact]
     public override async Task Create_table_all_settings()
     {
         await base.Create_table_all_settings();
@@ -65,6 +66,8 @@ COMMENT ON COLUMN dbo2."People"."EmployerId" IS 'Employer ID comment';
             @"CREATE INDEX ""IX_People_EmployerId"" ON dbo2.""People"" (""EmployerId"");");
     }
 
+    [SkipForCockroachDb("CockroachDB automatically creates a primary key column if not specified")]
+    [ConditionalFact]
     public override async Task Create_table_no_key()
     {
         await base.Create_table_no_key();
@@ -144,7 +147,8 @@ CREATE TABLE "People" (
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/110352")]
+    [ConditionalFact]
     public virtual async Task Create_table_with_identity_by_default()
     {
         await Test(
@@ -168,7 +172,8 @@ CREATE TABLE "People" (
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/110352")]
+    [ConditionalFact]
     public virtual async Task Create_table_with_identity_always()
     {
         await Test(
@@ -318,7 +323,8 @@ CREATE TABLE "People" (
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support storage parameter user_catalog_table, https://github.com/cockroachdb/cockroach/issues/109952")]
+    [ConditionalFact]
     public virtual async Task Create_table_with_storage_parameter()
     {
         await Test(
@@ -406,7 +412,8 @@ CREATE UNLOGGED TABLE "People" (
             @"COMMENT ON TABLE ""People"" IS NULL;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support storage parameter parallel_workers, https://github.com/cockroachdb/cockroach/issues/109950")]
+    [ConditionalFact]
     public virtual async Task Alter_table_change_storage_parameters()
     {
         await Test(
@@ -443,7 +450,8 @@ ALTER TABLE "People" RESET (user_catalog_table);
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support SET UNLOGGED, https://github.com/cockroachdb/cockroach/issues/109951")]
+    [ConditionalFact]
     public virtual async Task Alter_table_make_unlogged()
     {
         await Test(
@@ -461,7 +469,8 @@ ALTER TABLE "People" RESET (user_catalog_table);
             @"ALTER TABLE ""People"" SET UNLOGGED;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support SET LOGGED, https://github.com/cockroachdb/cockroach/issues/109951")]
+    [ConditionalFact]
     public virtual async Task Alter_table_make_logged()
     {
         await Test(
@@ -597,7 +606,8 @@ CREATE TABLE public."People" (
             @"ALTER TABLE ""People"" ADD ""Birthday"" timestamp with time zone NOT NULL DEFAULT TIMESTAMPTZ '2015-04-12 17:05:00Z';");
     }
 
-    [Fact]
+    [SkipForCockroachDb()]
+    [ConditionalFact]
     public override async Task Add_column_with_defaultValueSql()
     {
         await base.Add_column_with_defaultValueSql();
@@ -684,6 +694,8 @@ COMMENT ON COLUMN "People"."FullName" IS 'My comment';
 """);
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support POSIX collation properly, https://github.com/cockroachdb/cockroach/issues/108657")]
+    [ConditionalFact]
     public override async Task Add_column_with_collation()
     {
         await base.Add_column_with_collation();
@@ -692,6 +704,8 @@ COMMENT ON COLUMN "People"."FullName" IS 'My comment';
             @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""POSIX"";");
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support POSIX collation properly, https://github.com/cockroachdb/cockroach/issues/108657")]
+    [ConditionalFact]
     public override async Task Add_column_computed_with_collation(bool stored)
     {
         if (TestEnvironment.PostgresVersion.IsUnder(12))
@@ -714,6 +728,7 @@ COMMENT ON COLUMN "People"."FullName" IS 'My comment';
     }
 
 #pragma warning disable CS0618
+    [SkipForCockroachDb("CockroachDB doesn't support POSIX collation properly, https://github.com/cockroachdb/cockroach/issues/108657")]
     [ConditionalFact]
     public async Task Add_column_with_default_column_collation()
     {
@@ -737,6 +752,7 @@ COMMENT ON COLUMN "People"."FullName" IS 'My comment';
             @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""POSIX"";");
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support POSIX collation properly, https://github.com/cockroachdb/cockroach/issues/108657")]
     [ConditionalFact]
     public async Task Add_column_with_collation_overriding_default()
     {
@@ -792,7 +808,8 @@ CREATE TABLE "People" (
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/110352")]
+    [ConditionalFact]
     public virtual async Task Add_column_with_identity_by_default()
     {
         await Test(
@@ -817,7 +834,8 @@ CREATE TABLE "People" (
             @"ALTER TABLE ""People"" ADD ""SomeColumn"" integer GENERATED BY DEFAULT AS IDENTITY;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/110352")]
+    [ConditionalFact]
     public virtual async Task Add_column_with_identity_always()
     {
         await Test(
@@ -842,7 +860,8 @@ CREATE TABLE "People" (
             @"ALTER TABLE ""People"" ADD ""SomeColumn"" integer GENERATED ALWAYS AS IDENTITY;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support CYCLE option, https://github.com/cockroachdb/cockroach/issues/20961")]
+    [ConditionalFact]
     public virtual async Task Add_column_with_identity_by_default_with_all_options()
     {
         await Test(
@@ -918,7 +937,8 @@ CREATE TABLE "People" (
             @"ALTER TABLE ""People"" ADD ""SomeColumn"" serial NOT NULL;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/110352")]
+    [ConditionalFact]
     public virtual async Task Add_column_required_with_identity_by_default()
     {
         await Test(
@@ -1272,7 +1292,8 @@ ALTER TABLE "People" ALTER COLUMN "FirstName" SET DEFAULT '';
             @"COMMENT ON COLUMN ""People"".""Id"" IS NULL;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support ALTER COLUMN column_name ADD GENERATED, https://github.com/cockroachdb/cockroach/issues/110010")]
+    [ConditionalFact]
     public virtual async Task Alter_column_make_identity_by_default()
     {
         await Test(
@@ -1295,7 +1316,8 @@ ALTER TABLE "People" ALTER COLUMN "Id" ADD GENERATED BY DEFAULT AS IDENTITY;
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support ALTER COLUMN column_name SET GENERATED, https://github.com/cockroachdb/cockroach/issues/110010")]
+    [ConditionalFact]
     public virtual async Task Alter_column_make_identity_always()
     {
         await Test(
@@ -1320,7 +1342,8 @@ ALTER TABLE "People" ALTER COLUMN "Id" ADD GENERATED BY DEFAULT AS IDENTITY;
             @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET GENERATED ALWAYS;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support ALTER COLUMN column_name ADD GENERATED, https://github.com/cockroachdb/cockroach/issues/110010")]
+    [ConditionalFact]
     public virtual async Task Alter_column_make_default_into_identity()
     {
         await Test(
@@ -1348,7 +1371,8 @@ ALTER TABLE "People" ALTER COLUMN "Id" ADD GENERATED ALWAYS AS IDENTITY;
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support ALTER COLUMN column_name ADD GENERATED, https://github.com/cockroachdb/cockroach/issues/110010")]
+    [ConditionalFact]
     public virtual async Task Alter_column_make_identity_by_default_with_options()
     {
         await Test(
@@ -1378,7 +1402,8 @@ ALTER TABLE "People" ALTER COLUMN "Id" ADD GENERATED BY DEFAULT AS IDENTITY (STA
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support ALTER COLUMN column_name RESTART WITH, https://github.com/cockroachdb/cockroach/issues/110015")]
+    [ConditionalFact]
     public virtual async Task Alter_column_make_identity_with_default_options()
     {
         await Test(
@@ -1413,7 +1438,8 @@ ALTER TABLE "People" ALTER COLUMN "Id" SET MINVALUE 1;
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support ALTER COLUMN column_name SET INCREMENT BY, https://github.com/cockroachdb/cockroach/issues/110011")]
+    [ConditionalFact]
     public virtual async Task Alter_column_change_identity_options()
     {
         await Test(
@@ -1445,7 +1471,8 @@ ALTER TABLE "People" ALTER COLUMN "Id" SET CYCLE;
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support CYCLE option, https://github.com/cockroachdb/cockroach/issues/20961")]
+    [ConditionalFact]
     public virtual async Task Alter_column_remove_identity_options()
     {
         await Test(
@@ -1556,7 +1583,8 @@ ALTER SEQUENCE some_schema.""People_Id_seq"" OWNED BY some_schema.""People"".""I
 ALTER SEQUENCE ""People_Id_seq"" OWNED BY ""People"".""Id"";");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support ALTER COLUMN column_name SET GENERATED, https://github.com/cockroachdb/cockroach/issues/110010")]
+    [ConditionalFact]
     public virtual async Task Alter_column_change_identity_type()
     {
         await Test(
@@ -1580,7 +1608,9 @@ ALTER SEQUENCE ""People_Id_seq"" OWNED BY ""People"".""Id"";");
             @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET GENERATED ALWAYS;");
     }
 
-    [Fact]
+
+    [SkipForCockroachDb("CockroachDB doesn't support ALTER COLUMN column_name ADD GENERATED, https://github.com/cockroachdb/cockroach/issues/110010")]
+    [ConditionalFact]
     public virtual async Task Alter_column_change_serial_to_identity()
     {
         await Test(
@@ -1639,7 +1669,8 @@ DROP SEQUENCE "People_Id_old_seq";
             @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE bigint;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support RESTART for ALTER COLUMN, https://github.com/cockroachdb/cockroach/issues/109956")]
+    [ConditionalFact]
     public virtual async Task Alter_column_restart_identity()
     {
         await Test(
@@ -1664,7 +1695,8 @@ DROP SEQUENCE "People_Id_old_seq";
             @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" RESTART WITH 20;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support POSIX collation properly, https://github.com/cockroachdb/cockroach/issues/108657")]
+    [ConditionalFact]
     public override async Task Alter_column_set_collation()
     {
         await base.Alter_column_set_collation();
@@ -1673,7 +1705,8 @@ DROP SEQUENCE "People_Id_old_seq";
             @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""POSIX"";");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support POSIX collation properly, https://github.com/cockroachdb/cockroach/issues/108657")]
+    [ConditionalFact]
     public override async Task Alter_column_reset_collation()
     {
         await base.Alter_column_reset_collation();
@@ -1683,7 +1716,9 @@ DROP SEQUENCE "People_Id_old_seq";
     }
 
 #pragma warning disable CS0618
-    [Fact]
+
+    [SkipForCockroachDb("CockroachDB doesn't support POSIX collation properly, https://github.com/cockroachdb/cockroach/issues/108657")]
+    [ConditionalFact]
     public async Task Alter_column_change_default_column_collation()
     {
         await Test(
@@ -1707,7 +1742,8 @@ DROP SEQUENCE "People_Id_old_seq";
     }
 #pragma warning restore CS0618
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support POSIX collation properly, https://github.com/cockroachdb/cockroach/issues/108657")]
+    [ConditionalFact]
     public virtual async Task Alter_column_computed_set_collation()
     {
         if (TestEnvironment.PostgresVersion.IsUnder(12))
@@ -1789,6 +1825,8 @@ DROP SEQUENCE "People_Id_old_seq";
             @"ALTER TABLE ""People"" DROP COLUMN ""SomeColumn"";");
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't allow dropping primary key column without replacing with new one")]
+    [ConditionalFact]
     public override async Task Drop_column_primary_key()
     {
         await base.Drop_column_primary_key();
@@ -1868,6 +1906,7 @@ DROP SEQUENCE "People_Id_old_seq";
 
     #region Index
 
+    [SkipForCockroachDb("CockroachDB automatically creates a UNIQUE CONSTRAINT for a UNIQUE INDEX")]
     public override async Task Create_index_unique()
     {
         await base.Create_index_unique();
@@ -1956,6 +1995,7 @@ DROP SEQUENCE "People_Id_old_seq";
             @"CREATE INDEX ""IX_People_Name"" ON ""People"" (""Name"") WHERE ""Name"" IS NOT NULL;");
     }
 
+    [SkipForCockroachDb("CockroachDB automatically creates a UNIQUE CONSTRAINT for a UNIQUE INDEX")]
     public override async Task Create_unique_index_with_filter()
     {
         await base.Create_unique_index_with_filter();
@@ -2050,7 +2090,8 @@ DROP SEQUENCE "People_Id_old_seq";
             : @"CREATE INDEX ""IX_People_Name"" ON ""People"" (""Name"") WHERE ""Name"" IS NOT NULL;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB automatically creates a UNIQUE CONSTRAINT for a UNIQUE INDEX")]
+    [ConditionalFact]
     public virtual async Task Create_index_unique_with_include()
     {
         await Test(
@@ -2094,7 +2135,8 @@ DROP SEQUENCE "People_Id_old_seq";
             : @"CREATE UNIQUE INDEX ""IX_People_Name"" ON ""People"" (""Name"");");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB automatically creates a UNIQUE CONSTRAINT for a UNIQUE INDEX")]
+    [ConditionalFact]
     public virtual async Task Create_index_unique_with_include_and_filter()
     {
         await Test(
@@ -2159,7 +2201,8 @@ DROP SEQUENCE "People_Id_old_seq";
             @"CREATE INDEX CONCURRENTLY ""IX_People_Age"" ON ""People"" (""Age"");");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support HASH index, https://github.com/cockroachdb/cockroach/issues/108882")]
+    [ConditionalFact]
     public virtual async Task Create_index_with_method()
     {
         await Test(
@@ -2183,7 +2226,8 @@ DROP SEQUENCE "People_Id_old_seq";
             @"CREATE INDEX ""IX_People_Age"" ON ""People"" USING hash (""Age"");");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support creating indexes with operators, https://github.com/cockroachdb/cockroach/issues/110247")]
+    [ConditionalFact]
     public virtual async Task Create_index_with_operators()
     {
         await Test(
@@ -2212,7 +2256,8 @@ DROP SEQUENCE "People_Id_old_seq";
     // so we test support for this on the generated SQL only, in NpgsqlMigrationSqlGeneratorTest, and not against
     // the database here.
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support NULLS LAST modifier, https://github.com/cockroachdb/cockroach/issues/6224")]
+    [ConditionalFact]
     public virtual async Task Create_index_with_null_sort_order()
     {
         await Test(
@@ -2239,7 +2284,8 @@ DROP SEQUENCE "People_Id_old_seq";
             @"CREATE INDEX ""IX_People_FirstName_MiddleName_LastName"" ON ""People"" (""FirstName"" NULLS FIRST, ""MiddleName"", ""LastName"" NULLS LAST);");
     }
 
-    [Fact]
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/110821")]
+    [ConditionalFact]
     public virtual async Task Create_index_tsvector()
     {
         await Test(
@@ -2353,6 +2399,8 @@ CREATE UNIQUE INDEX "IX_NullsNotDistinct" ON "People" ("Age") NULLS NOT DISTINCT
 
     #region Key and constraint
 
+    [SkipForCockroachDb("CockroachDB doesn't support ALTER COLUMN column_name ADD GENERATED, https://github.com/cockroachdb/cockroach/issues/110010")]
+    [ConditionalFact]
     public override async Task Add_primary_key_int()
     {
         await base.Add_primary_key_int();
@@ -2395,6 +2443,8 @@ ALTER TABLE "People" ALTER COLUMN "SomeField" SET DEFAULT '';
             @"ALTER TABLE ""People"" ADD CONSTRAINT ""PK_Foo"" PRIMARY KEY (""SomeField1"", ""SomeField2"");");
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support DROP IDENTITY")]
+    [ConditionalFact]
     public override async Task Drop_primary_key_int()
     {
         await base.Drop_primary_key_int();
@@ -2405,6 +2455,7 @@ ALTER TABLE "People" ALTER COLUMN "SomeField" SET DEFAULT '';
             @"ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" DROP IDENTITY;");
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support table without primary key")]
     public override async Task Drop_primary_key_string()
     {
         await base.Drop_primary_key_string();
@@ -2480,6 +2531,8 @@ ALTER TABLE "People" ALTER COLUMN "SomeField" SET DEFAULT '';
 
     #region Sequence
 
+    [SkipForCockroachDb("CockroachDB doesn't support CYCLE option, https://github.com/cockroachdb/cockroach/issues/20961")]
+    [ConditionalFact]
     public override async Task Create_sequence()
     {
         await base.Create_sequence();
@@ -2488,6 +2541,8 @@ ALTER TABLE "People" ALTER COLUMN "SomeField" SET DEFAULT '';
             @"CREATE SEQUENCE ""TestSequence"" AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;");
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support CYCLE option, https://github.com/cockroachdb/cockroach/issues/20961")]
+    [ConditionalFact]
     public override async Task Create_sequence_all_settings()
     {
         await base.Create_sequence_all_settings();
@@ -2505,7 +2560,8 @@ END $EF$;
             @"CREATE SEQUENCE dbo2.""TestSequence"" START WITH 3 INCREMENT BY 2 MINVALUE 2 MAXVALUE 916 CYCLE;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support CYCLE option, https://github.com/cockroachdb/cockroach/issues/20961")]
+    [ConditionalFact]
     public virtual async Task Create_sequence_smallint()
     {
         await Test(
@@ -2522,7 +2578,8 @@ END $EF$;
             @"CREATE SEQUENCE ""TestSequence"" AS smallint START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support CYCLE option, https://github.com/cockroachdb/cockroach/issues/20961")]
+    [ConditionalFact]
     public override async Task Alter_sequence_all_settings()
     {
         await Test(
@@ -2762,7 +2819,8 @@ SELECT setval(
 
     #region PostgreSQL extensions
 
-    [Fact]
+    [SkipForCockroachDb("Cockroach doesn't support extension citext")]
+    [ConditionalFact]
     public virtual async Task Ensure_postgres_extension()
     {
         await Test(
@@ -2779,7 +2837,8 @@ SELECT setval(
             @"CREATE EXTENSION IF NOT EXISTS citext;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("Cockroach doesn't support extension citext")]
+    [ConditionalFact]
     public virtual async Task Ensure_postgres_extension_with_schema()
     {
         await Test(
@@ -2935,7 +2994,8 @@ END $EF$;
 
     #region PostgreSQL collation management
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support POSIX collation properly, https://github.com/cockroachdb/cockroach/issues/108657")]
+    [ConditionalFact]
     public virtual async Task Create_collation()
     {
         await Test(
@@ -2960,6 +3020,7 @@ CREATE COLLATION dummy (LOCALE = 'POSIX',
 """);
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support CREATE COLLATION, https://github.com/cockroachdb/cockroach/issues/59567")]
     [ConditionalFact]
     [MinimumPostgresVersion(12, 0)]
     public virtual async Task Create_collation_non_deterministic()
@@ -2987,7 +3048,8 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support DROP COLLATION, https://github.com/cockroachdb/cockroach/issues/59567")]
+    [ConditionalFact]
     public virtual async Task Drop_collation()
     {
         await Test(
@@ -2999,7 +3061,8 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
             @"DROP COLLATION dummy;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support CREATE COLLATION, https://github.com/cockroachdb/cockroach/issues/59567")]
+    [ConditionalFact]
     public virtual Task Alter_collation_throws()
         => TestThrows<NotSupportedException>(
             builder => builder.HasCollation("dummy", locale: "POSIX", provider: "libc"),
@@ -3055,7 +3118,8 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
             @"ALTER TABLE ""People"" ADD ""SearchColumn"" tsvector GENERATED ALWAYS AS (jsonb_to_tsvector('english', ""JsonbColumn"", '""all""')) STORED;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support jsonb_to_tsvector, https://github.com/cockroachdb/cockroach/issues/109955")]
+    [ConditionalFact]
     public virtual async Task Add_column_generated_tsvector_over_mixed()
     {
         if (TestEnvironment.PostgresVersion.IsUnder(12))
@@ -3116,6 +3180,12 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
             @"ALTER TABLE ""Blogs"" DROP COLUMN ""TsVector"";",
             //
             @"ALTER TABLE ""Blogs"" ADD ""TsVector"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""Title"" || ' ' || coalesce(""Description"", ''))) STORED;");
+    }
+
+    [SkipForCockroachDb("CockroachDB automatically creates a UNIQUE CONSTRAINT for a UNIQUE INDEX")]
+    public override Task Alter_index_make_unique()
+    {
+        return base.Alter_index_make_unique();
     }
 
     #endregion PostgreSQL full-text search
