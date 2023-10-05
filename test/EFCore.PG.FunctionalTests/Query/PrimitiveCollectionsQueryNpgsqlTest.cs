@@ -904,11 +904,75 @@ WHERE (
 """);
     }
 
+    public override async Task Parameter_collection_in_subquery_Union_column_collection(bool async)
+    {
+        await base.Parameter_collection_in_subquery_Union_column_collection(async);
+
+        AssertSql(
+            """
+@__Skip_0={ '111' } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE (
+    SELECT count(*)::int
+    FROM (
+        SELECT s.value
+        FROM unnest(@__Skip_0) AS s(value)
+        UNION
+        SELECT i.value
+        FROM unnest(p."Ints") AS i(value)
+    ) AS t) = 3
+""");
+    }
+
+    public override async Task Parameter_collection_in_subquery_Union_column_collection_nested(bool async)
+    {
+        await base.Parameter_collection_in_subquery_Union_column_collection_nested(async);
+
+        AssertSql(
+            """
+@__Skip_0={ '111' } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE (
+    SELECT count(*)::int
+    FROM (
+        SELECT s.value
+        FROM unnest(@__Skip_0) AS s(value)
+        UNION
+        SELECT t1.value
+        FROM (
+            SELECT t0.value
+            FROM (
+                SELECT DISTINCT t2.value
+                FROM (
+                    SELECT i.value, i.ordinality
+                    FROM unnest(p."Ints") WITH ORDINALITY AS i(value)
+                    ORDER BY i.value NULLS FIRST
+                    OFFSET 1
+                ) AS t2
+            ) AS t0
+            ORDER BY t0.value DESC NULLS LAST
+            LIMIT 20
+        ) AS t1
+    ) AS t) = 3
+""");
+    }
+
     [SkipForCockroachDb("CockroachDB doesn't support array slicing, https://github.com/cockroachdb/cockroach/issues/32551")]
     [ConditionalFact]
     public override void Parameter_collection_in_subquery_and_Convert_as_compiled_query()
     {
         base.Parameter_collection_in_subquery_and_Convert_as_compiled_query();
+
+        AssertSql();
+    }
+
+    public override async Task Parameter_collection_in_subquery_Union_another_parameter_collection_as_compiled_query(bool async)
+    {
+        await base.Parameter_collection_in_subquery_Union_another_parameter_collection_as_compiled_query(async);
 
         AssertSql();
     }
@@ -998,6 +1062,7 @@ ORDER BY p."Id" NULLS FIRST
 """);
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support array slicing, https://github.com/cockroachdb/cockroach/issues/32551")]
     public override async Task Project_collection_of_nullable_ints_with_paging(bool async)
     {
         await base.Project_collection_of_nullable_ints_with_paging(async);
@@ -1029,6 +1094,7 @@ ORDER BY p."Id" NULLS FIRST, t.value NULLS FIRST
 """);
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support array slicing, https://github.com/cockroachdb/cockroach/issues/32551")]
     public override async Task Project_collection_of_nullable_ints_with_paging3(bool async)
     {
         await base.Project_collection_of_nullable_ints_with_paging3(async);
