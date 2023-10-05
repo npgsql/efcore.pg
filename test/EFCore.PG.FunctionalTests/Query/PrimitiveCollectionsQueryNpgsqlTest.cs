@@ -860,7 +860,7 @@ WHERE p."Ints" = ARRAY[1,10]::integer[]
     }
 
     public override async Task Column_collection_equality_inline_collection_with_parameters(bool async)
-    
+    {
         var (i, j) = (1, 10);
 
         await AssertQuery(
