@@ -533,7 +533,8 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support function ts_rewrite, https://github.com/cockroachdb/cockroach/issues/41288")]
+    [ConditionalFact]
     public void Rewrite_with_select()
     {
         using var context = CreateContext();
