@@ -609,6 +609,14 @@ LIMIT 2
 
     public class RangeQueryNpgsqlFixture : SharedStoreFixtureBase<RangeContext>
     {
+        static RangeQueryNpgsqlFixture()
+        {
+            // TODO: Switch to using NpgsqlDataSource
+#pragma warning disable CS0618 // Type or member is obsolete
+            NpgsqlConnection.GlobalTypeMapper.EnableUnmappedTypes();
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         protected override string StoreName => "RangeQueryTest";
         protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
         public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;

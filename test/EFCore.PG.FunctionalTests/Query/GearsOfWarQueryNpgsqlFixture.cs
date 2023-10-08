@@ -10,6 +10,14 @@ public class GearsOfWarQueryNpgsqlFixture : GearsOfWarQueryRelationalFixture
 
     private GearsOfWarData _expectedData;
 
+    static GearsOfWarQueryNpgsqlFixture()
+    {
+        // TODO: Switch to using NpgsqlDataSource
+#pragma warning disable CS0618 // Type or member is obsolete
+        NpgsqlConnection.GlobalTypeMapper.EnableRecordsAsTuples();
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
     {
         base.OnModelCreating(modelBuilder, context);
