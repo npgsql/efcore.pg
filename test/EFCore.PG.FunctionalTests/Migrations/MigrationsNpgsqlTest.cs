@@ -498,6 +498,7 @@ ALTER TABLE "People" RESET (user_catalog_table);
             @"ALTER TABLE ""People"" SET LOGGED;");
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support renaming a table that doesn't have primary key, https://github.com/cockroachdb/cockroach/issues/112090")]
     public override async Task Rename_table()
     {
         await base.Rename_table();
@@ -510,6 +511,7 @@ ALTER TABLE "People" RESET (user_catalog_table);
             @"ALTER TABLE ""Persons"" ADD CONSTRAINT ""PK_Persons"" PRIMARY KEY (""Id"");");
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support renaming a table that doesn't have primary key, https://github.com/cockroachdb/cockroach/issues/112090")]
     public override async Task Rename_table_with_primary_key()
     {
         await base.Rename_table_with_primary_key();
@@ -723,7 +725,7 @@ COMMENT ON COLUMN "People"."FullName" IS 'My comment';
     }
 
     [SkipForCockroachDb("CockroachDB doesn't support POSIX collation properly, https://github.com/cockroachdb/cockroach/issues/108657")]
-    [ConditionalFact]
+    [ConditionalTheory]
     public override async Task Add_column_computed_with_collation(bool stored)
     {
         if (TestEnvironment.PostgresVersion.IsUnder(12))
@@ -3187,7 +3189,8 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
             @"ALTER TABLE ""People"" ADD ""SearchColumn"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""RequiredTextColumn"" || ' ' || coalesce(""OptionalTextColumn"", '')) || jsonb_to_tsvector('english', ""RequiredJsonbColumn"", '""all""') || json_to_tsvector('english', coalesce(""OptionalJsonColumn"", '{}'), '""all""')) STORED;");
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support regconfig, https://github.com/cockroachdb/cockroach/issues/41288")]
+    [ConditionalFact]
     public virtual async Task Alter_column_generated_tsvector_change_config()
     {
         if (TestEnvironment.PostgresVersion.IsUnder(12))
