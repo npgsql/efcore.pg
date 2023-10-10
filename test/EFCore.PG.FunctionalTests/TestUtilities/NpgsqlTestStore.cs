@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using System.Data.Common;
 using System.Text.RegularExpressions;
 
@@ -100,11 +100,19 @@ public class NpgsqlTestStore : RelationalTestStore
     }
 
     public override DbContextOptionsBuilder AddProviderOptions(DbContextOptionsBuilder builder)
-        => builder.UseNpgsql(Connection, b => b.ApplyConfiguration()
-            .CommandTimeout(CommandTimeout)
-            // The tests are written with the assumption that NULLs are sorted first (SQL Server and .NET behavior), but PostgreSQL
-            // sorts NULLs last by default. This configures the provider to emit NULLS FIRST.
-            .ReverseNullOrdering());
+        => builder.UseNpgsql(Connection, b =>
+        {
+            if (TestEnvironment.IsCockroachDB)
+            {
+                b.UseCockroachDb();
+            }
+
+            b.ApplyConfiguration()
+                .CommandTimeout(CommandTimeout)
+                // The tests are written with the assumption that NULLs are sorted first (SQL Server and .NET behavior), but PostgreSQL
+                // sorts NULLs last by default. This configures the provider to emit NULLS FIRST.
+                .ReverseNullOrdering();
+        });
 
     private static string GetScratchDbName()
     {
@@ -131,7 +139,14 @@ public class NpgsqlTestStore : RelationalTestStore
 
                 using (var context = new DbContext(
                            AddProviderOptions(
-                                   new DbContextOptionsBuilder()
+                                   new DbContextOptionsBuilder().UseNpgsql(
+                                           b =>
+                                           {
+                                               if (TestEnvironment.IsCockroachDB)
+                                               {
+                                                   b.UseCockroachDb();
+                                               }
+                                           })
                                        .EnableServiceProviderCaching(false))
                                .Options))
                 {
@@ -245,9 +260,10 @@ public class NpgsqlTestStore : RelationalTestStore
 
     // Kill all connection to the database
     // TODO: Pre-9.2 PG has column name procid instead of pid
-    private static string GetDisconnectDatabaseSql(string name) => $@"
-REVOKE CONNECT ON DATABASE ""{name}"" FROM PUBLIC;
-SELECT pg_terminate_backend (pg_stat_activity.pid)
+    private static string GetDisconnectDatabaseSql(string name) => TestEnvironment.IsCockroachDB ?
+$@"REVOKE CONNECT ON DATABASE ""{name}"" FROM PUBLIC;" :
+$@"REVOKE CONNECT ON DATABASE ""{name}"" FROM PUBLIC;
+   SELECT pg_terminate_backend (pg_stat_activity.pid)
    FROM pg_stat_activity
    WHERE datname = '{name}'";
 

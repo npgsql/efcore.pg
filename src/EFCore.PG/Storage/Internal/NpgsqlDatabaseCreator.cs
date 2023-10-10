@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using System.Transactions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -149,7 +150,7 @@ FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 WHERE
         cls.relkind IN ('r', 'v', 'm', 'f', 'p') AND
-        ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
+        ns.nspname NOT IN ('pg_catalog', 'information_schema', 'crdb_internal', 'pg_extension') AND
         -- Exclude tables which are members of PG extensions
         NOT EXISTS (
             SELECT 1 FROM pg_depend WHERE
@@ -222,6 +223,21 @@ WHERE
             else
             {
                 unpooledRelationalConnection.Open(errorsExpected: true);
+            }
+
+            // Workaround for CockroachDB issue that doesn't return error when database name is invalid
+            // https://github.com/cockroachdb/cockroach/issues/109992
+            if (unpooledRelationalConnection.DbConnection.IsCockroachDb())
+            {
+                if (async)
+                {
+                    await unpooledRelationalConnection.DbConnection.ReloadTypesAsync()
+                        .ConfigureAwait(false);;
+                }
+                else
+                {
+                    unpooledRelationalConnection.DbConnection.ReloadTypes();
+                }
             }
 
             return true;

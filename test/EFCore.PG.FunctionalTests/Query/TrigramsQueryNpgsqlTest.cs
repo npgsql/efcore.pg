@@ -45,7 +45,8 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
         AssertContainsSql(@"similarity(t.""Text"", 'target')");
     }
 
-    [Fact]
+    [ConditionalFact]
+    [SkipForCockroachDb("CockroachDB doesn't support word_similarity function, https://github.com/cockroachdb/cockroach/issues/41285")]
     public void TrigramsWordSimilarity()
     {
         using var context = CreateContext();
@@ -58,6 +59,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
 
     [ConditionalFact]
     [MinimumPostgresVersion(11, 0)]
+    [SkipForCockroachDb("CockroachDB doesn't support strict_word_similarity function, https://github.com/cockroachdb/cockroach/issues/41285")]
     public void TrigramsStrictWordSimilarity()
     {
         using var context = CreateContext();
@@ -79,7 +81,8 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
         AssertContainsSql(@"t.""Text"" % 'target'");
     }
 
-    [Fact]
+    [ConditionalFact]
+    [SkipForCockroachDb("CockroachDB doesn't support trigram operators, https://github.com/cockroachdb/cockroach/issues/41285")]
     public void TrigramsAreWordSimilar()
     {
         using var context = CreateContext();
@@ -90,7 +93,8 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
         AssertContainsSql(@"t.""Text"" <% 'target'");
     }
 
-    [Fact]
+    [ConditionalFact]
+    [SkipForCockroachDb("CockroachDB doesn't support trigram operators, https://github.com/cockroachdb/cockroach/issues/41285")]
     public void TrigramsAreNotWordSimilar()
     {
         using var context = CreateContext();
@@ -103,6 +107,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
 
     [ConditionalFact]
     [MinimumPostgresVersion(11, 0)]
+    [SkipForCockroachDb("CockroachDB doesn't support trigram operators, https://github.com/cockroachdb/cockroach/issues/41285")]
     public void TrigramsAreStrictWordSimilar()
     {
         using var context = CreateContext();
@@ -115,6 +120,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
 
     [ConditionalFact]
     [MinimumPostgresVersion(11, 0)]
+    [SkipForCockroachDb("CockroachDB doesn't support trigram operators, https://github.com/cockroachdb/cockroach/issues/41285")]
     public void TrigramsAreNotStrictWordSimilar()
     {
         using var context = CreateContext();
@@ -125,7 +131,8 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
         AssertContainsSql(@"t.""Text"" %>> 'target'");
     }
 
-    [Fact]
+    [ConditionalFact]
+    [SkipForCockroachDb("CockroachDB doesn't support trigram operators, https://github.com/cockroachdb/cockroach/issues/41285")]
     public void TrigramsSimilarityDistance()
     {
         using var context = CreateContext();
@@ -136,7 +143,8 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
         AssertContainsSql(@"t.""Text"" <-> 'target'");
     }
 
-    [Fact]
+    [ConditionalFact]
+    [SkipForCockroachDb("CockroachDB doesn't support trigram operators, https://github.com/cockroachdb/cockroach/issues/41285")]
     public void TrigramsWordSimilarityDistance()
     {
         using var context = CreateContext();
@@ -147,7 +155,8 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
         AssertContainsSql(@"t.""Text"" <<-> 'target'");
     }
 
-    [Fact]
+    [ConditionalFact]
+    [SkipForCockroachDb("CockroachDB doesn't support trigram operators, https://github.com/cockroachdb/cockroach/issues/41285")]
     public void TrigramsWordSimilarityDistanceInverted()
     {
         using var context = CreateContext();
@@ -160,6 +169,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
 
     [ConditionalFact]
     [MinimumPostgresVersion(11, 0)]
+    [SkipForCockroachDb("CockroachDB doesn't support trigram operators, https://github.com/cockroachdb/cockroach/issues/41285")]
     public void TrigramsStrictWordSimilarityDistance()
     {
         using var context = CreateContext();
@@ -172,6 +182,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
 
     [ConditionalFact]
     [MinimumPostgresVersion(11, 0)]
+    [SkipForCockroachDb("CockroachDB doesn't support trigram operators, https://github.com/cockroachdb/cockroach/issues/41285")]
     public void TrigramsStrictWordSimilarityDistanceInverted()
     {
         using var context = CreateContext();

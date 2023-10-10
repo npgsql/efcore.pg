@@ -15,8 +15,15 @@ public static class TestEnvironment
             .AddJsonFile("config.test.json", optional: true)
             .AddEnvironmentVariables();
 
+        var sectionName = "Test:Npgsql";
+        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TEST_COCKROACH_DB")))
+        {
+            sectionName = "Test:CockroachDB";
+            IsCockroachDB = true;
+        }
+
         Config = configBuilder.Build()
-            .GetSection("Test:Npgsql");
+            .GetSection(sectionName);
 
         Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
     }
@@ -61,5 +68,11 @@ public static class TestEnvironment
             _isPostgisAvailable = (bool)cmd.ExecuteScalar();
             return _isPostgisAvailable.Value;
         }
+    }
+
+    public static bool IsCockroachDB
+    {
+        get;
+        private set;
     }
 }

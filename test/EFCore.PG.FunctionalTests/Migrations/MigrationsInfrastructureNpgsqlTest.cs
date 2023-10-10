@@ -155,6 +155,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Options;
                 return new MigrationsContext(options);
             }
+
+            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+            {
+                return base.AddOptions(builder.UseNpgsql(
+                    b =>
+                    {
+                        if (TestEnvironment.IsCockroachDB)
+                        {
+                            b.UseCockroachDb();
+                        }
+                    }));
+            }
         }
     }
 }

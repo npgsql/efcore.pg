@@ -81,9 +81,20 @@ WHERE j."Id" = @__p_0
 LIMIT 1
 """,
             //
-"""
-@__expected_0='{"Age": 25, "Name": "Joe", "IsVip": false, "Orders": [{"Price": 99.5, "ShippingDate": "2019-10-01", "ShippingAddress": "Some address 1"}, {"Price": 23, "ShippingDate": "2019-10-10", "ShippingAddress": "Some address 2"}], "Statistics": {"Nested": {"IntArray": [3, 4], "SomeProperty": 10}, "Visits": 4, "Purchases": 3}}' (DbType = Object)
+(TestEnvironment.IsCockroachDB ?
+    """
+    @__expected_0='{"Age": 25, "IsVip": false, "Name": "Joe", "Orders": [{"Price": 99.5, "ShippingAddress": "Some address 1", "ShippingDate": "2019-10-01"}, {"Price": 23, "ShippingAddress": "Some address 2", "ShippingDate": "2019-10-10"}], "Statistics": {"Nested": {"IntArray": [3, 4], "SomeProperty": 10}, "Purchases": 3, "Visits": 4}}' (DbType = Object)
 
+
+    """ :
+    """
+    @__expected_0='{"Age": 25, "Name": "Joe", "IsVip": false, "Orders": [{"Price": 99.5, "ShippingDate": "2019-10-01", "ShippingAddress": "Some address 1"}, {"Price": 23, "ShippingDate": "2019-10-10", "ShippingAddress": "Some address 2"}], "Statistics": {"Nested": {"IntArray": [3, 4], "SomeProperty": 10}, "Visits": 4, "Purchases": 3}}' (DbType = Object)
+    """
+)
+
++
+
+"""
 SELECT j."Id", j."CustomerJson", j."CustomerJsonb", j."SomeString"
 FROM "JsonEntities" AS j
 WHERE j."CustomerJsonb" = @__expected_0

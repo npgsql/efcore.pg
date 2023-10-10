@@ -57,4 +57,16 @@ public abstract class F1NpgsqlFixtureBase<TRowVersion> : F1RelationalFixture<TRo
 {
     protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
     public override TestHelpers TestHelpers => NpgsqlTestHelpers.Instance;
+
+    public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+    {
+        return base.AddOptions(builder.UseNpgsql(
+            b =>
+            {
+                if (TestEnvironment.IsCockroachDB)
+                {
+                    b.UseCockroachDb();
+                }
+            }));
+    }
 }

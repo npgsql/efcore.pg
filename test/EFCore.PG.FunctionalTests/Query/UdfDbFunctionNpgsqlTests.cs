@@ -2,6 +2,7 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
+
 public class UdfDbFunctionNpgsqlTests : UdfDbFunctionTestBase<UdfDbFunctionNpgsqlTests.UdfNpgsqlFixture>
 {
     // ReSharper disable once UnusedParameter.Local
@@ -14,7 +15,8 @@ public class UdfDbFunctionNpgsqlTests : UdfDbFunctionTestBase<UdfDbFunctionNpgsq
 
     #region Static
 
-    [Fact]
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/108416")]
+    [ConditionalFact]
     public override void Scalar_Function_Extension_Method_Static()
     {
         base.Scalar_Function_Extension_Method_Static();
@@ -151,7 +153,8 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/108416")]
+    [ConditionalFact]
     public override void Scalar_Function_Where_Parameter_Static()
     {
         base.Scalar_Function_Where_Parameter_Static();
@@ -167,7 +170,8 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/108416")]
+    [ConditionalFact]
     public override void Scalar_Function_Where_Nested_Static()
     {
         base.Scalar_Function_Where_Nested_Static();
@@ -316,7 +320,8 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/108416")]
+    [ConditionalFact]
     public override void Scalar_Function_Extension_Method_Instance()
     {
         base.Scalar_Function_Extension_Method_Instance();
@@ -449,7 +454,8 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/108416")]
+    [ConditionalFact]
     public override void Scalar_Function_Where_Parameter_Instance()
     {
         base.Scalar_Function_Where_Parameter_Instance();
@@ -465,7 +471,8 @@ LIMIT 2
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("https://github.com/cockroachdb/cockroach/issues/108416")]
+    [ConditionalFact]
     public override void Scalar_Function_Where_Nested_Instance()
     {
         base.Scalar_Function_Where_Nested_Instance();
@@ -646,6 +653,160 @@ LIMIT 2
         }
     }
 
+    #region Skip for CockroachDB
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void DbSet_mapped_to_function()
+    {
+        base.DbSet_mapped_to_function();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_Correlated_Func_Call_With_Navigation()
+    {
+        base.QF_Correlated_Func_Call_With_Navigation();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_Correlated_Nested_Func_Call()
+    {
+        base.QF_Correlated_Nested_Func_Call();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_Correlated_Select_In_Anonymous()
+    {
+        base.QF_Correlated_Select_In_Anonymous();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_CrossApply_Correlated_Select_Anonymous()
+    {
+        base.QF_CrossApply_Correlated_Select_Anonymous();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_CrossApply_Correlated_Select_QF_Type()
+    {
+        base.QF_CrossApply_Correlated_Select_QF_Type();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_CrossApply_Correlated_Select_Result()
+    {
+        base.QF_CrossApply_Correlated_Select_Result();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_CrossJoin_Not_Correlated()
+    {
+        base.QF_CrossJoin_Not_Correlated();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_CrossJoin_Parameter()
+    {
+        base.QF_CrossJoin_Parameter();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_Join()
+    {
+        base.QF_Join();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_LeftJoin_Select_Anonymous()
+    {
+        base.QF_LeftJoin_Select_Anonymous();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_LeftJoin_Select_Result()
+    {
+        base.QF_LeftJoin_Select_Result();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_Nested()
+    {
+        base.QF_Nested();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_OuterApply_Correlated_Select_Anonymous()
+    {
+        base.QF_OuterApply_Correlated_Select_Anonymous();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_OuterApply_Correlated_Select_Entity()
+    {
+        base.QF_OuterApply_Correlated_Select_Entity();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_OuterApply_Correlated_Select_QF()
+    {
+        base.QF_OuterApply_Correlated_Select_QF();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_Select_Correlated_Direct_With_Function_Query_Parameter_Correlated_In_Anonymous()
+    {
+        base.QF_Select_Correlated_Direct_With_Function_Query_Parameter_Correlated_In_Anonymous();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_Select_Correlated_Subquery_In_Anonymous()
+    {
+        base.QF_Select_Correlated_Subquery_In_Anonymous();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_Select_Correlated_Subquery_In_Anonymous_Nested_With_QF()
+    {
+        base.QF_Select_Correlated_Subquery_In_Anonymous_Nested_With_QF();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_Stand_Alone()
+    {
+        base.QF_Stand_Alone();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void QF_Stand_Alone_Parameter()
+    {
+        base.QF_Stand_Alone_Parameter();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void TVF_with_argument_being_a_subquery_with_navigation_in_projection_groupby_aggregate()
+    {
+        base.TVF_with_argument_being_a_subquery_with_navigation_in_projection_groupby_aggregate();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void TVF_with_navigation_in_projection_groupby_aggregate()
+    {
+        base.TVF_with_navigation_in_projection_groupby_aggregate();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void Udf_with_argument_being_comparison_of_nullable_columns()
+    {
+        base.Udf_with_argument_being_comparison_of_nullable_columns();
+    }
+
+    [SkipForCockroachDb("CockroachDB doesn't support function that returns TABLE, https://github.com/cockroachdb/cockroach/issues/100226")]
+    public override void Udf_with_argument_being_comparison_to_null_parameter()
+    {
+        base.Udf_with_argument_being_comparison_to_null_parameter();
+    }
+
+    #endregion
+
     public class UdfNpgsqlFixture : UdfFixtureBase
     {
         protected override string StoreName { get; } = "UDFDbFunctionNpgsqlTests";
@@ -715,6 +876,17 @@ CREATE FUNCTION dbo."IdentityString" ("customerName" TEXT) RETURNS TEXT
 AS $$ SELECT $1 $$
 LANGUAGE SQL;
 
+CREATE FUNCTION "StringLength"("s" TEXT) RETURNS INT
+AS $$ SELECT LENGTH($1) $$
+LANGUAGE SQL;
+
+CREATE FUNCTION "AddValues" (a INT, b INT) RETURNS INT
+AS $$ SELECT $1 + $2 $$ LANGUAGE SQL;
+
+"""
+// CockroachDB doesn't support function that returns TABLE
++ (TestEnvironment.IsCockroachDB ? "" :
+"""
 CREATE FUNCTION "GetCustomerOrderCountByYear"("customerId" INT)
 RETURNS TABLE ("CustomerId" INT, "Count" INT, "Year" INT)
 AS $$
@@ -724,10 +896,6 @@ AS $$
     GROUP BY "CustomerId", EXTRACT(year FROM "OrderDate")
     ORDER BY EXTRACT(year FROM "OrderDate")
 $$ LANGUAGE SQL;
-
-CREATE FUNCTION "StringLength"("s" TEXT) RETURNS INT
-AS $$ SELECT LENGTH($1) $$
-LANGUAGE SQL;
 
 CREATE FUNCTION "GetCustomerOrderCountByYearOnlyFrom2000"("customerId" INT, "onlyFrom2000" BOOL)
 RETURNS TABLE ("CustomerId" INT, "Count" INT, "Year" INT)
@@ -760,9 +928,6 @@ AS $$
     HAVING COUNT("ProductId") > 1
 $$ LANGUAGE SQL;
 
-CREATE FUNCTION "AddValues" (a INT, b INT) RETURNS INT
-AS $$ SELECT $1 + $2 $$ LANGUAGE SQL;
-
 CREATE FUNCTION "IsDate"(s TEXT) RETURNS BOOLEAN
 AS $$
 BEGIN
@@ -772,7 +937,8 @@ EXCEPTION WHEN OTHERS THEN
     RETURN FALSE;
 END;
 $$ LANGUAGE PLPGSQL;
-""");
+""")
+);
 
             context.SaveChanges();
         }

@@ -13,7 +13,8 @@ public class SystemColumnTest : IClassFixture<SystemColumnTest.SystemColumnFixtu
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support xmin column")]
+    [ConditionalFact]
     public void Xmin()
     {
         using var context = CreateContext();

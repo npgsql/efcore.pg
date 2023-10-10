@@ -50,6 +50,7 @@ public class NonSharedPrimitiveCollectionsQueryNpgsqlTest : NonSharedPrimitiveCo
             new DateTimeOffset(2023, 1, 1, 12, 30, 0, TimeSpan.Zero),
             new DateTimeOffset(2023, 1, 2, 12, 30, 0, TimeSpan.Zero));
 
+    [SkipForCockroachDb("CockroachDB doesn't support inserting multidimensional array into an array column")]
     [ConditionalFact]
     public override async Task Multidimensional_array_is_not_supported()
     {

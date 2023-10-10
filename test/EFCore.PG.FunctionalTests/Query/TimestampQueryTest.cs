@@ -44,6 +44,7 @@ public class TimestampQueryTest : QueryTestBase<TimestampQueryTest.TimestampQuer
     }
 
     [ConditionalFact]
+    [SkipForCockroachDb]
     public void DateTime_range_maps_to_timestamptz_by_default()
     {
         using var ctx = CreateContext();
@@ -87,6 +88,7 @@ public class TimestampQueryTest : QueryTestBase<TimestampQueryTest.TimestampQuer
 
     #region Comparisons
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public async Task Compare_timestamp_column_to_local_DateTime_literal(bool async)
@@ -105,6 +107,7 @@ WHERE e."TimestampDateTime" = TIMESTAMP '1998-04-12 15:26:38'
 """);
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public async Task Compare_timestamp_column_to_local_DateTime_parameter(bool async)
@@ -128,6 +131,7 @@ WHERE e."TimestampDateTime" = @__dateTime_0
 
     // Compare_timestamp_column_to_unspecified_DateTime_literal: requires translating DateTime.SpecifyKind
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public async Task Compare_timestamp_column_to_unspecified_DateTime_parameter(bool async)
@@ -182,12 +186,13 @@ WHERE e."TimestampDateTime" = @__dateTime_0
 
         AssertSql(
 """
-SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestamptzDateTime", e."TimestamptzDateTimeArray"
 FROM "Entities" AS e
 WHERE e."TimestamptzDateTime" = TIMESTAMPTZ '1998-04-12 13:26:38Z'
 """);
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public async Task Compare_timestamptz_column_to_utc_DateTime_parameter(bool async)
@@ -309,6 +314,7 @@ WHERE e."TimestamptzDateTime"::timestamp = e."TimestampDateTime"
 
     #region Now
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task Where_datetime_now(bool async)
@@ -330,6 +336,7 @@ WHERE now()::timestamp <> @__myDatetime_0
 """);
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task Where_datetime_utcnow(bool async)
@@ -356,6 +363,7 @@ WHERE now() <> @__myDatetime_0
     #region Date member
 
     [ConditionalTheory]
+    [SkipForCockroachDb]
     [MemberData(nameof(IsAsyncData))]
     [MinimumPostgresVersion(12, 0)]
     public virtual async Task Where_datetime_date_on_timestamptz(bool async)
@@ -374,6 +382,7 @@ WHERE date_trunc('day', e."TimestamptzDateTime", 'UTC') = TIMESTAMPTZ '1998-04-1
     }
 
     [ConditionalTheory]
+    [SkipForCockroachDb]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task Where_datetime_date_on_timestamp(bool async)
     {
@@ -394,6 +403,7 @@ WHERE date_trunc('day', e."TimestampDateTime") = TIMESTAMP '1998-04-12 00:00:00'
 
     #region DateTimeOffset
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public async Task DateTimeOffset_DateTime(bool async)
@@ -413,6 +423,7 @@ WHERE e."TimestampDateTimeOffset" AT TIME ZONE 'UTC' = TIMESTAMP '1998-04-12 13:
 """);
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public async Task DateTimeOffset_UtcDateTime(bool async)
@@ -485,6 +496,7 @@ FROM "Entities" AS e
     #region DateTime constructors
 
     [ConditionalTheory]
+    [SkipForCockroachDb("CockroachDB doesn't support make_date, https://github.com/cockroachdb/cockroach/issues/108448")]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task Where_datetime_ctor1(bool async)
     {
@@ -502,6 +514,7 @@ WHERE make_date(date_part('year', e."TimestampDateTime")::int, date_part('month'
     }
 
     [ConditionalTheory]
+    [SkipForCockroachDb("CockroachDB doesn't support make_timestamp, https://github.com/cockroachdb/cockroach/issues/108448")]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task Where_datetime_ctor2(bool async)
     {
@@ -519,6 +532,7 @@ WHERE make_timestamp(date_part('year', e."TimestampDateTime")::int, date_part('m
     }
 
     [ConditionalTheory]
+    [SkipForCockroachDb("CockroachDB doesn't support make_timestamp, https://github.com/cockroachdb/cockroach/issues/108448")]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task Where_datetime_ctor3_local(bool async)
     {
@@ -536,6 +550,7 @@ WHERE make_timestamp(date_part('year', e."TimestampDateTime")::int, date_part('m
     }
 
     [ConditionalTheory]
+    [SkipForCockroachDb("CockroachDB doesn't support make_timestamptz, https://github.com/cockroachdb/cockroach/issues/108448")]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task Where_datetime_ctor3_utc(bool async)
     {
@@ -559,6 +574,7 @@ WHERE make_timestamptz(date_part('year', e."TimestamptzDateTime" AT TIME ZONE 'U
 
     #region SpecifyKind
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public async Task DateTime_SpecifyKind_on_timestamp_to_utc(bool async)
@@ -576,6 +592,7 @@ WHERE e."TimestampDateTime" AT TIME ZONE 'UTC' = TIMESTAMPTZ '1998-04-12 15:26:3
 """);
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public async Task DateTime_SpecifyKind_on_timestamptz_to_unspecified(bool async)
@@ -593,6 +610,7 @@ WHERE e."TimestamptzDateTime" AT TIME ZONE 'UTC' = TIMESTAMP '1998-04-12 13:26:3
 """);
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public async Task DateTime_SpecifyKind_on_timestamptz_to_local(bool async)
@@ -627,6 +645,7 @@ WHERE e."TimestamptzDateTime" AT TIME ZONE 'UTC' = TIMESTAMP '1998-04-12 13:26:3
 
     #region Time zone conversions
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task Where_ConvertTimeBySystemTimeZoneId_on_DateTime_timestamptz_column(bool async)
@@ -694,6 +713,7 @@ WHERE e."TimestampDateTime"::timestamptz = TIMESTAMPTZ '1998-04-12 13:26:38Z'
 
     #region DateOnly
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task DateOnly_FromDateTime_with_timestamptz(bool async)
@@ -712,6 +732,7 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS date) = DATE '1998-04-1
 """);
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task DateOnly_FromDateTime_with_timestamp(bool async)
@@ -730,6 +751,7 @@ WHERE e."TimestampDateTime"::date = DATE '1998-04-12'
 """);
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task DateOnly_ToDateTime_with_timestamptz(bool async)
@@ -752,6 +774,7 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS date) + TIME '15:26:38'
 
     #region TimeOnly
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task TimeOnly_FromDateTime_with_timestamp(bool async)
@@ -770,6 +793,7 @@ WHERE e."TimestampDateTime"::time without time zone = TIME '15:26:38'
 """);
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task TimeOnly_FromDateTime_with_timestamptz(bool async)
@@ -788,6 +812,7 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
 """);
     }
 
+    [SkipForCockroachDb("CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791")]
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task TimeOnly_ToTimeSpan(bool async)
@@ -811,6 +836,7 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
     #region Misc
 
     [ConditionalFact]
+    [SkipForCockroachDb]
     public void Range_parameter_contains_timestamp_with_no_time_zone_column()
     {
         // This scenario requires that the provider correctly infer the range's type mapping from the subtype's
@@ -837,6 +863,36 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
         public DbSet<Entity> Entities { get; set; }
 
         public TimestampQueryContext(DbContextOptions options) : base(options) {}
+
+        /// <summary>
+        ///     Override this method to further configure the model that was discovered by convention from the entity types
+        ///     exposed in <see cref="T:Microsoft.EntityFrameworkCore.DbSet`1" /> properties on your derived context. The resulting model may be cached
+        ///     and re-used for subsequent instances of your derived context.
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///         If a model is explicitly set on the options for this context (via <see cref="M:Microsoft.EntityFrameworkCore.DbContextOptionsBuilder.UseModel(Microsoft.EntityFrameworkCore.Metadata.IModel)" />)
+        ///         then this method will not be run. However, it will still run when creating a compiled model.
+        ///     </para>
+        ///     <para>
+        ///         See <see href="https://aka.ms/efcore-docs-modeling">Modeling entity types and relationships</see> for more information and
+        ///         examples.
+        ///     </para>
+        /// </remarks>
+        /// <param name="modelBuilder">
+        ///     The builder being used to construct the model for this context. Databases (and other extensions) typically
+        ///     define extension methods on this object that allow you to configure aspects of the model that are specific
+        ///     to a given database.
+        /// </param>
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            if (TestEnvironment.IsCockroachDB)
+            {
+                modelBuilder.Entity<Entity>()
+                    .Ignore(e => e.TimestampDateTimeRange)
+                    .Ignore(e => e.TimestamptzDateTimeRange);
+            }
+        }
 
         public static void Seed(TimestampQueryContext context)
         {
@@ -914,8 +970,12 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
                             Assert.Equal(ee.TimestampDateTimeArray, aa.TimestampDateTimeArray);
                             Assert.Equal(ee.TimestampDateTimeOffsetArray, aa.TimestampDateTimeOffsetArray);
 
-                            Assert.Equal(ee.TimestamptzDateTimeRange, aa.TimestamptzDateTimeRange);
-                            Assert.Equal(ee.TimestampDateTimeRange, aa.TimestampDateTimeRange);
+                            // CockroachDB doesn't support date range types, https://github.com/cockroachdb/cockroach/issues/27791
+                            if (!TestEnvironment.IsCockroachDB)
+                            {
+                                Assert.Equal(ee.TimestamptzDateTimeRange, aa.TimestamptzDateTimeRange);
+                                Assert.Equal(ee.TimestampDateTimeRange, aa.TimestampDateTimeRange);
+                            }
                         }
                     }
                 }

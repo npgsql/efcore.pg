@@ -3,6 +3,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
+
+[SkipForCockroachDb]
 public class FullTextSearchDbFunctionsNpgsqlTest : IClassFixture<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
 {
     protected NorthwindQueryNpgsqlFixture<NoopModelCustomizer> Fixture { get; }
@@ -15,7 +17,7 @@ public class FullTextSearchDbFunctionsNpgsqlTest : IClassFixture<NorthwindQueryN
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void TsVectorParse_converted_to_cast()
     {
         using var context = CreateContext();
@@ -30,7 +32,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void ArrayToTsVector_constants()
     {
         using var context = CreateContext();
@@ -46,7 +48,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void ArrayToTsVector_columns()
     {
         using var context = CreateContext();
@@ -65,7 +67,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void ToTsVector()
     {
         using var context = CreateContext();
@@ -80,7 +82,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void ToTsVector_with_constant_config()
     {
         using var context = CreateContext();
@@ -95,7 +97,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void ToTsVector_with_parameter_config()
     {
         using var context = CreateContext();
@@ -111,7 +113,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void TsQueryParse_converted_to_cast()
     {
         using var context = CreateContext();
@@ -126,7 +128,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void PlainToTsQuery()
     {
         using var context = CreateContext();
@@ -141,7 +143,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void PlainToTsQuery_with_constant_config()
     {
         using var context = CreateContext();
@@ -156,7 +158,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void PlainToTsQuery_with_parameter_config()
     {
         using var context = CreateContext();
@@ -172,7 +174,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void PhraseToTsQuery()
     {
         using var context = CreateContext();
@@ -187,7 +189,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void PhraseToTsQuery_with_constant_config()
     {
         using var context = CreateContext();
@@ -202,7 +204,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void PhraseToTsQuery_with_parameter_config()
     {
         using var context = CreateContext();
@@ -218,7 +220,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void ToTsQuery()
     {
         using var context = CreateContext();
@@ -233,7 +235,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void ToTsQuery_with_constant_config()
     {
         using var context = CreateContext();
@@ -248,7 +250,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void ToTsQuery_with_parameter_config()
     {
         using var context = CreateContext();
@@ -313,7 +315,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void TsQuery_and()
     {
         using var context = CreateContext();
@@ -330,7 +332,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void TsQuery_or()
     {
         using var context = CreateContext();
@@ -347,7 +349,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void TsQuery_ToNegative()
     {
         using var context = CreateContext();
@@ -364,7 +366,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void TsQuery_Contains()
     {
         using var context = CreateContext();
@@ -381,7 +383,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void TsQuery_IsContainedIn()
     {
         using var context = CreateContext();
@@ -398,7 +400,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void GetNodeCount()
     {
         using var context = CreateContext();
@@ -415,7 +417,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void GetQueryTree()
     {
         using var context = CreateContext();
@@ -432,7 +434,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void GetResultHeadline()
     {
         using var context = CreateContext();
@@ -449,7 +451,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void GetResultHeadline_with_options()
     {
         using var context = CreateContext();
@@ -466,7 +468,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void GetResultHeadline_with_constant_config_and_options()
     {
         using var context = CreateContext();
@@ -487,7 +489,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void GetResultHeadline_with_parameter_config_and_options()
     {
         using var context = CreateContext();
@@ -511,7 +513,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Rewrite()
     {
         using var context = CreateContext();
@@ -531,7 +533,8 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [SkipForCockroachDb("CockroachDB doesn't support function ts_rewrite, https://github.com/cockroachdb/cockroach/issues/41288")]
+    [ConditionalFact]
     public void Rewrite_with_select()
     {
         using var context = CreateContext();
@@ -550,7 +553,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void ToPhrase()
     {
         using var context = CreateContext();
@@ -567,7 +570,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void ToPhrase_with_distance()
     {
         using var context = CreateContext();
@@ -584,7 +587,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Matches_with_string()
     {
         using var context = CreateContext();
@@ -604,7 +607,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Matches_with_TsQuery()
     {
         using var context = CreateContext();
@@ -621,7 +624,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void TsVector_Concat()
     {
         using var context = CreateContext();
@@ -638,7 +641,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void SetWeight_with_enum()
     {
         using var context = CreateContext();
@@ -655,7 +658,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void SetWeight_with_enum_and_lexemes()
     {
         using var context = CreateContext();
@@ -672,7 +675,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void SetWeight_with_char()
     {
         using var context = CreateContext();
@@ -689,7 +692,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void SetWeight_with_char_and_lexemes()
     {
         using var context = CreateContext();
@@ -706,7 +709,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Delete_with_single_lexeme()
     {
         using var context = CreateContext();
@@ -723,7 +726,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Delete_with_multiple_lexemes()
     {
         using var context = CreateContext();
@@ -757,7 +760,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void GetLength()
     {
         using var context = CreateContext();
@@ -774,7 +777,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void ToStripped()
     {
         using var context = CreateContext();
@@ -791,7 +794,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Rank()
     {
         using var context = CreateContext();
@@ -808,7 +811,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Rank_with_normalization()
     {
         using var context = CreateContext();
@@ -828,7 +831,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Rank_with_weights()
     {
         using var context = CreateContext();
@@ -848,7 +851,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Rank_with_weights_and_normalization()
     {
         using var context = CreateContext();
@@ -869,7 +872,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void RankCoverDensity()
     {
         using var context = CreateContext();
@@ -886,7 +889,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void RankCoverDensity_with_normalization()
     {
         using var context = CreateContext();
@@ -906,7 +909,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void RankCoverDensity_with_weights()
     {
         using var context = CreateContext();
@@ -926,7 +929,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void RankCoverDensity_with_weights_and_normalization()
     {
         using var context = CreateContext();
@@ -947,7 +950,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Basic_where()
     {
         using var context = CreateContext();
@@ -957,7 +960,7 @@ LIMIT 1
         Assert.True(count > 0);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Complex_query()
     {
         using var context = CreateContext();
@@ -974,7 +977,7 @@ LIMIT 1
         Assert.Equal("<b>Accounting</b> <b>Manager</b>", headline);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Unaccent()
     {
         using var context = CreateContext();
@@ -990,7 +993,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Unaccent_with_constant_regdictionary()
     {
         using var context = CreateContext();
@@ -1006,7 +1009,7 @@ LIMIT 1
 """);
     }
 
-    [Fact]
+    [ConditionalFact]
     public void Unaccent_with_parameter_regdictionary()
     {
         using var context = CreateContext();
@@ -1025,7 +1028,7 @@ LIMIT 1
 """);
     }
 
-    [Fact] // #1652
+    [ConditionalFact] // #1652
     public void Match_and_boolean_operator_precedence()
     {
         using var context = CreateContext();

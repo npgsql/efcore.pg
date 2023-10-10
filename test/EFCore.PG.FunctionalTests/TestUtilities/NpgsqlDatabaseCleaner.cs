@@ -2,6 +2,7 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
@@ -34,24 +35,64 @@ public class NpgsqlDatabaseCleaner : RelationalDatabaseCleaner
         // and all tables that depend on it (CASCADE) before the database model is built.
         var creator = facade.GetService<IRelationalDatabaseCreator>();
         var connection = facade.GetService<IRelationalConnection>();
-        if (creator.Exists())
+
+        // CockroachDB doesn't support DROP TYPE CASCADE
+        if (TestEnvironment.IsCockroachDB)
         {
-            connection.Open();
-            try
+            if (creator.Exists())
             {
-                var conn = (NpgsqlConnection)connection.DbConnection;
-                DropExtensions(conn);
-                DropTypes(conn);
-                DropFunctions(conn);
-                DropCollations(conn);
+                connection.Open();
+                try
+                {
+                    var conn = (NpgsqlConnection)connection.DbConnection;
+                    DropExtensions(conn);
+                    DropFunctions(conn);
+                    DropCollations(conn);
+                }
+                finally
+                {
+                    connection.Close();
+                }
             }
-            finally
+
+            base.Clean(facade);
+
+            if (creator.Exists())
             {
-                connection.Close();
+                connection.Open();
+                try
+                {
+                    var conn = (NpgsqlConnection)connection.DbConnection;
+                    DropTypes(conn);
+                }
+                finally
+                {
+                    connection.Close();
+                }
             }
         }
+        else
+        {
+            if (creator.Exists())
+            {
+                connection.Open();
+                try
+                {
+                    var conn = (NpgsqlConnection)connection.DbConnection;
+                    DropExtensions(conn);
+                    DropTypes(conn);
+                    DropFunctions(conn);
+                    DropCollations(conn);
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
 
-        base.Clean(facade);
+            base.Clean(facade);
+        }
+
     }
 
     private void DropExtensions(NpgsqlConnection conn)
@@ -94,9 +135,19 @@ WHERE typtype IN ('r', 'e') AND nspname <> 'pg_catalog'";
 
         if (userDefinedTypes.Any())
         {
-            var dropTypes = string.Concat(userDefinedTypes.Select(t => $@"DROP TYPE ""{t.Schema}"".""{t.Name}"" CASCADE;"));
-            using var cmd = new NpgsqlCommand(dropTypes, conn);
-            cmd.ExecuteNonQuery();
+            if (TestEnvironment.IsCockroachDB)
+            {
+                var dropTypes = string.Concat(userDefinedTypes.Select(t => $@"DROP TYPE ""{t.Schema}"".""{t.Name}"";"));
+                using var cmd = new NpgsqlCommand(dropTypes, conn);
+                cmd.ExecuteNonQuery();
+            }
+            else
+            {
+                var dropTypes = string.Concat(userDefinedTypes.Select(t => $@"DROP TYPE ""{t.Schema}"".""{t.Name}"" CASCADE;"));
+                using var cmd = new NpgsqlCommand(dropTypes, conn);
+                cmd.ExecuteNonQuery();
+            }
+
         }
     }
 
@@ -105,11 +156,15 @@ WHERE typtype IN ('r', 'e') AND nspname <> 'pg_catalog'";
     /// </summary>
     private void DropFunctions(NpgsqlConnection conn)
     {
-        const string getUserDefinedFunctions = @"
-SELECT 'DROP ROUTINE ""' || nspname || '"".""' || proname || '""(' || oidvectortypes(proargtypes) || ');' FROM pg_proc
+        var dropRoutineSql = TestEnvironment.IsCockroachDB ?
+            @"'DROP FUNCTION ""' || nspname || '"".""' || proname || '""(' || oidvectortypes(proargtypes) || ');'" :
+            @"'DROP ROUTINE ""' || nspname || '"".""' || proname || '""(' || oidvectortypes(proargtypes) || ');'";
+
+        var getUserDefinedFunctions = $@"
+SELECT {dropRoutineSql} FROM pg_proc
 JOIN pg_namespace AS ns ON ns.oid = pg_proc.pronamespace
 WHERE
-        nspname NOT IN ('pg_catalog', 'information_schema') AND
+        nspname NOT IN ('pg_catalog', 'information_schema', 'crdb_internal', 'pg_extension') AND
     NOT EXISTS (
             SELECT * FROM pg_depend AS dep
             WHERE dep.classid = (SELECT oid FROM pg_class WHERE relname = 'pg_proc') AND
@@ -170,6 +225,8 @@ FROM pg_collation coll
         => databaseModel.GetPostgresEnums()
             .Select(e => _sqlGenerationHelper.DelimitIdentifier(e.Name, e.Schema))
             .Aggregate(new StringBuilder(),
-                (builder, s) => builder.Append("DROP TYPE ").Append(s).Append(" CASCADE;"),
+                (builder, s) => TestEnvironment.IsCockroachDB ?
+                    builder.Append("DROP TYPE ").Append(s).Append(";") :
+                    builder.Append("DROP TYPE ").Append(s).Append(" CASCADE;"),
                 builder => builder.ToString());
 }

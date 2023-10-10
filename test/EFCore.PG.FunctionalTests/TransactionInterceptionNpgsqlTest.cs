@@ -20,6 +20,7 @@ public abstract class TransactionInterceptionNpgsqlTestBase : TransactionInterce
             => base.InjectInterceptors(serviceCollection.AddEntityFrameworkNpgsql(), injectedInterceptors);
     }
 
+    [SkipForCockroachDb]
     public class TransactionInterceptionNpgsqlTest
         : TransactionInterceptionNpgsqlTestBase, IClassFixture<TransactionInterceptionNpgsqlTest.InterceptionNpgsqlFixture>
     {

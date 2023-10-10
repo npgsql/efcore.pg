@@ -53,6 +53,11 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     public virtual bool UseRedshift { get; private set; }
 
     /// <summary>
+    /// Whether to target CockroachDB.
+    /// </summary>
+    public virtual bool UseCockroachDb { get; private set; }
+
+    /// <summary>
     /// The list of range mappings specified by the user.
     /// </summary>
     public virtual IReadOnlyList<UserRangeDefinition> UserRangeDefinitions => _userRangeDefinitions;
@@ -96,6 +101,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         AdminDatabase = copyFrom.AdminDatabase;
         _postgresVersion = copyFrom._postgresVersion;
         UseRedshift = copyFrom.UseRedshift;
+        UseCockroachDb = copyFrom.UseCockroachDb;
         _userRangeDefinitions = new List<UserRangeDefinition>(copyFrom._userRangeDefinitions);
         ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
         RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
@@ -222,6 +228,22 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     }
 
     /// <summary>
+    /// Returns a copy of the current instance with the specified CockroachDB settings.
+    /// </summary>
+    /// <param name="useCockroachDb">Whether to target CockroachDB.</param>
+    /// <returns>
+    /// A copy of the current instance with the specified CockroachDB setting.
+    /// </returns>
+    public virtual NpgsqlOptionsExtension WithCockroachDb(bool useCockroachDb)
+    {
+        var clone = (NpgsqlOptionsExtension)Clone();
+
+        clone.UseCockroachDb = useCockroachDb;
+
+        return clone;
+    }
+
+    /// <summary>
     /// Returns a copy of the current instance configured with the specified value..
     /// </summary>
     /// <param name="reverseNullOrdering">True to enable reverse null ordering; otherwise, false.</param>
@@ -267,6 +289,11 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         if (UseRedshift && _postgresVersion is not null)
         {
             throw new InvalidOperationException($"{nameof(UseRedshift)} and {nameof(PostgresVersion)} cannot both be set");
+        }
+
+        if (UseCockroachDb && UseRedshift)
+        {
+            throw new InvalidOperationException($"{nameof(UseCockroachDb)} and {nameof(UseRedshift)} cannot both be set");
         }
     }
 
@@ -368,6 +395,11 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
                     builder.Append(nameof(Extension.UseRedshift)).Append(' ');
                 }
 
+                if (Extension.UseCockroachDb)
+                {
+                    builder.Append(nameof(Extension.UseCockroachDb)).Append(' ');
+                }
+
                 if (Extension.ProvideClientCertificatesCallback is not null)
                 {
                     builder.Append(nameof(Extension.ProvideClientCertificatesCallback)).Append(" ");
@@ -437,6 +469,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
                 hashCode.Add(Extension.AdminDatabase);
                 hashCode.Add(Extension.PostgresVersion);
                 hashCode.Add(Extension.UseRedshift);
+                hashCode.Add(Extension.UseCockroachDb);
                 hashCode.Add(Extension.ProvideClientCertificatesCallback);
                 hashCode.Add(Extension.RemoteCertificateValidationCallback);
                 hashCode.Add(Extension.ProvidePasswordCallback);
@@ -454,7 +487,8 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
                 && ReferenceEquals(Extension.DataSource, otherInfo.Extension.DataSource)
                 && Extension.ReverseNullOrdering == otherInfo.Extension.ReverseNullOrdering
                 && Extension.UserRangeDefinitions.SequenceEqual(otherInfo.Extension.UserRangeDefinitions)
-                && Extension.UseRedshift == otherInfo.Extension.UseRedshift;
+                && Extension.UseRedshift == otherInfo.Extension.UseRedshift
+                && Extension.UseCockroachDb == otherInfo.Extension.UseCockroachDb;
 
         /// <inheritdoc />
         public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
@@ -467,6 +501,9 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
 
             debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.UseRedshift)]
                 = Extension.UseRedshift.GetHashCode().ToString(CultureInfo.InvariantCulture);
+
+            debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.UseCockroachDb)]
+                = Extension.UseCockroachDb.GetHashCode().ToString(CultureInfo.InvariantCulture);
 
             debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.ReverseNullOrdering)]
                 = Extension.ReverseNullOrdering.GetHashCode().ToString(CultureInfo.InvariantCulture);

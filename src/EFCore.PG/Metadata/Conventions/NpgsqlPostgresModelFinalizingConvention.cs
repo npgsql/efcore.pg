@@ -1,6 +1,8 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 
 /// <summary>
@@ -71,6 +73,11 @@ public class NpgsqlPostgresModelFinalizingConvention : IModelFinalizingConventio
     /// </summary>
     protected virtual void ProcessRowVersionProperty(IConventionProperty property, RelationalTypeMapping typeMapping)
     {
+        if (_typeMappingSource is NpgsqlTypeMappingSource { IsCockroachDb: true })
+        {
+            return;
+        }
+
         if (property is { ValueGenerated: ValueGenerated.OnAddOrUpdate, IsConcurrencyToken: true }
             && typeMapping.StoreType == "xid")
         {

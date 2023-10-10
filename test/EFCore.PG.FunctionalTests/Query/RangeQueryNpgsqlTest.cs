@@ -7,6 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 // Note: timestamp range tests are in TimestampQueryTest
+[SkipForCockroachDb]
 public class RangeQueryNpgsqlTest : IClassFixture<RangeQueryNpgsqlTest.RangeQueryNpgsqlFixture>
 {
     private RangeQueryNpgsqlFixture Fixture { get; }

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit.Sdk;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
@@ -392,6 +393,22 @@ FROM "Customers" AS c
 LEFT JOIN LATERAL (SELECT * FROM "Customers") AS c0 ON TRUE
 ORDER BY c."CustomerID" NULLS FIRST
 """);
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    [SkipForCockroachDb]
+    public override Task All_top_level_subquery(bool async)
+    {
+        return base.All_top_level_subquery(async);
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    [SkipForCockroachDb]
+    public override Task All_top_level_subquery_ef_property(bool async)
+    {
+        return base.All_top_level_subquery_ef_property(async);
     }
 
     protected override void ClearLog()

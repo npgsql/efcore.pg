@@ -56,7 +56,13 @@ public class DefaultValuesTest : IDisposable
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder
-                .UseNpgsql(NpgsqlTestStore.CreateConnectionString(_databaseName))
+                .UseNpgsql(NpgsqlTestStore.CreateConnectionString(_databaseName), b =>
+                {
+                    if (TestEnvironment.IsCockroachDB)
+                    {
+                        b.UseCockroachDb();
+                    }
+                })
                 .UseInternalServiceProvider(_serviceProvider);
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
