@@ -173,6 +173,9 @@ ValueTuple.Create(a, b).Equals(ValueTuple.Create(c, d))                         
 
 ## Network functions
 
+> [!NOTE]
+> As of Npgsql 8.0, `IPAddress` and `NpgsqlCidr` are implicitly convertible to `NpgsqlInet`, and so can be used with the functions below which accept `inet`.
+
 .NET                                             | SQL
 ------------------------------------------------ | ---
 IPAddress.Parse(string)                          | [CAST(string AS inet)](https://www.postgresql.org/docs/current/datatype-net-types.html#DATATYPE-INET)
@@ -193,6 +196,7 @@ EF.Functions.Add(inet, int)                      | [inet + int](https://www.post
 EF.Functions.Subtract(inet, int)                 | [inet - int](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-OPERATORS-TABLE)
 EF.Functions.Subtract(inet1, inet2)              | [inet1 - inet2](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-OPERATORS-TABLE)
 EF.Functions.Abbreviate(inet)                    | [abbrev(inet)](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-FUNCTIONS-TABLE)
+EF.Functions.Abbreviate(cidr)                    | [abbrev(cidr)](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-FUNCTIONS-TABLE)
 EF.Functions.Broadcast(inet)                     | [broadcast(inet)](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-FUNCTIONS-TABLE)
 EF.Functions.Family(inet)                        | [family(inet)](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-FUNCTIONS-TABLE)
 EF.Functions.Host(inet)                          | [host(inet)](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-FUNCTIONS-TABLE)
@@ -201,6 +205,7 @@ EF.Functions.MaskLength(inet)                    | [masklen(inet)](https://www.p
 EF.Functions.Netmask(inet)                       | [netmask(inet)](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-FUNCTIONS-TABLE)
 EF.Functions.Network(inet)                       | [network(inet)](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-FUNCTIONS-TABLE)
 EF.Functions.SetMaskLength(inet)                 | [set_masklen(inet)](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-FUNCTIONS-TABLE)
+EF.Functions.SetMaskLength(cidr)                 | [set_masklen(cidr)](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-FUNCTIONS-TABLE)
 EF.Functions.Text(inet)                          | [text(inet)](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-FUNCTIONS-TABLE)
 EF.Functions.SameFamily(inet1, inet2)            | [inet_same_family(inet1, inet2)](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-FUNCTIONS-TABLE)
 EF.Functions.Merge(inet1, inet2)                 | [inet_merge(inet1, inet2)](https://www.postgresql.org/docs/current/functions-net.html#CIDR-INET-FUNCTIONS-TABLE)
