@@ -5,6 +5,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class TPTGearsOfWarQueryNpgsqlFixture : TPTGearsOfWarQueryRelationalFixture
 {
+    static TPTGearsOfWarQueryNpgsqlFixture()
+    {
+        // TODO: Switch to using NpgsqlDataSource
+#pragma warning disable CS0618 // Type or member is obsolete
+        NpgsqlConnection.GlobalTypeMapper.EnableRecordsAsTuples();
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
+
     protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)

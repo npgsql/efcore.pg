@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.Common;
 using System.Text;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -84,12 +85,11 @@ public class NpgsqlArrayTypeMapping<TCollection, TElement> : NpgsqlArrayTypeMapp
 
     private static RelationalTypeMappingParameters CreateParameters(
         string storeType,
-        RelationalTypeMapping elementTypeMapping)
+        RelationalTypeMapping elementMapping)
     {
         ValueConverter? converter = null;
 
-        // TODO: Make sure this all still makes sense
-        if (elementTypeMapping.Converter is { } elementConverter)
+        if (elementMapping.Converter is { } elementConverter)
         {
             var collectionTypeDefinition = typeof(TCollection) switch
             {
@@ -133,22 +133,25 @@ public class NpgsqlArrayTypeMapping<TCollection, TElement> : NpgsqlArrayTypeMapp
             }
         }
 
-        // TODO: Confirm model vs. provider type here!
         // We do GetElementType for multidimensional arrays - these don't implement generic IEnumerable<>
-        var modelElementType = typeof(TCollection).TryGetElementType(typeof(IEnumerable<>)) ?? typeof(TCollection).GetElementType();
+        var elementType = typeof(TCollection).TryGetElementType(typeof(IEnumerable<>)) ?? typeof(TCollection).GetElementType();
 
-        Check.DebugAssert(modelElementType is not null, "modelElementType cannot be null");
+        Check.DebugAssert(elementType is not null, "modelElementType cannot be null");
 
+#pragma warning disable EF1001
         var comparer = typeof(TCollection).IsArray && typeof(TCollection).GetArrayRank() > 1
             ? null // TODO: Value comparer for multidimensional arrays
             : (ValueComparer?)Activator.CreateInstance(
-                modelElementType.IsNullableValueType()
-                    ? typeof(NullableValueTypeListComparer<>).MakeGenericType(modelElementType.UnwrapNullableType())
-                    : typeof(ListComparer<>).MakeGenericType(elementTypeMapping.Comparer.Type),
-                elementTypeMapping.Comparer);
+            elementType.IsNullableValueType()
+                ? typeof(NullableValueTypeListComparer<>).MakeGenericType(elementType.UnwrapNullableType())
+                : elementMapping.Comparer.Type.IsAssignableFrom(elementType)
+                    ? typeof(ListComparer<>).MakeGenericType(elementType)
+                    : typeof(ObjectListComparer<>).MakeGenericType(elementType),
+            elementMapping.Comparer.ToNullableComparer(elementType)!);
+#pragma warning restore EF1001
 
         return new RelationalTypeMappingParameters(
-            new CoreTypeMappingParameters(typeof(TCollection), converter, comparer, elementMapping: elementTypeMapping),
+            new CoreTypeMappingParameters(typeof(TCollection), converter, comparer, elementMapping: elementMapping),
             storeType);
     }
 
@@ -162,10 +165,8 @@ public class NpgsqlArrayTypeMapping<TCollection, TElement> : NpgsqlArrayTypeMapp
         : base(parameters)
     {
         var clrType = parameters.CoreParameters.ClrType;
-        Type? arrayElementClrType;
 
-        if ((arrayElementClrType = clrType.TryGetElementType(typeof(IEnumerable<>))) == null
-            && (arrayElementClrType = clrType.GetElementType()) == null)
+        if (clrType.TryGetElementType(typeof(IEnumerable<>)) == null && clrType.GetElementType() == null)
         {
             throw new ArgumentException($"CLR type '{parameters.CoreParameters.ClrType}' isn't an IEnumerable");
         }
@@ -198,9 +199,18 @@ public class NpgsqlArrayTypeMapping<TCollection, TElement> : NpgsqlArrayTypeMapp
         // get an enumerable parameter value that isn't an array/list - but those aren't supported at the Npgsql ADO level.
         // Detect this here and evaluate the enumerable to get a fully materialized List.
         // TODO: Make Npgsql support IList<> instead of only arrays and List<>
-        if (value is IEnumerable<TElement> elements && !(elements.GetType().IsArray || elements is List<TElement>))
+        if (value is not null && !value.GetType().IsArrayOrGenericList())
         {
-            value = elements.ToList();
+            switch (value)
+            {
+                case IEnumerable<TElement> elements:
+                    value = elements.ToList();
+                    break;
+
+                case IEnumerable elements:
+                    value = elements.Cast<TElement>().ToList();
+                    break;
+            }
         }
 
         return base.CreateParameter(command, name, value, nullable, direction);

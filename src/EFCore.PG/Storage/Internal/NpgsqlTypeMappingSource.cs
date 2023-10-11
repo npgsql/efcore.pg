@@ -11,7 +11,7 @@ using System.Text;
 using System.Text.Json;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
-using Npgsql.Internal.TypeMapping;
+using Npgsql.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
@@ -107,7 +107,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     // Network address types
     private readonly NpgsqlMacaddrTypeMapping      _macaddr            = new();
     private readonly NpgsqlMacaddr8TypeMapping     _macaddr8           = new();
-    private readonly NpgsqlInetTypeMapping         _inet               = new();
+    private readonly NpgsqlInetTypeMapping         _inetAsIPAddress    = new(typeof(IPAddress));
+    private readonly NpgsqlInetTypeMapping         _inetAsNpgsqlInet   = new(typeof(NpgsqlInet));
     private readonly NpgsqlCidrTypeMapping         _cidr               = new();
 
     // Built-in geometric types
@@ -191,14 +192,21 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
 
         _sqlGenerationHelper = Check.NotNull(sqlGenerationHelper, nameof(sqlGenerationHelper));
 
-        // Initialize some mappings which depend on other mappings
-        _int4range         = new NpgsqlRangeTypeMapping("int4range", typeof(NpgsqlRange<int>),      _int4,         sqlGenerationHelper);
-        _int8range         = new NpgsqlRangeTypeMapping("int8range", typeof(NpgsqlRange<long>),     _int8,         sqlGenerationHelper);
-        _numrange          = new NpgsqlRangeTypeMapping("numrange",  typeof(NpgsqlRange<decimal>),  _numeric,      sqlGenerationHelper);
-        _tsrange           = new NpgsqlRangeTypeMapping("tsrange",   typeof(NpgsqlRange<DateTime>), _timestamp,    sqlGenerationHelper);
-        _tstzrange         = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<DateTime>), _timestamptz,  sqlGenerationHelper);
-        _dateOnlyDaterange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<DateOnly>), _dateDateOnly, sqlGenerationHelper);
-        _dateTimeDaterange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<DateTime>), _dateDateTime, sqlGenerationHelper);
+        // Initialize range mappings, which reference on other mappings
+        _int4range = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "int4range", typeof(NpgsqlRange<int>), NpgsqlDbType.IntegerRange, _int4);
+        _int8range = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "int8range", typeof(NpgsqlRange<long>), NpgsqlDbType.BigIntRange, _int8);
+        _numrange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "numrange", typeof(NpgsqlRange<decimal>), NpgsqlDbType.NumericRange, _numeric);
+        _tsrange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "tsrange", typeof(NpgsqlRange<DateTime>), NpgsqlDbType.TimestampRange, _timestamp);
+        _tstzrange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "tstzrange", typeof(NpgsqlRange<DateTime>), NpgsqlDbType.TimestampTzRange, _timestamptz);
+        _dateOnlyDaterange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "daterange", typeof(NpgsqlRange<DateOnly>), NpgsqlDbType.DateRange, _dateDateOnly);
+        _dateTimeDaterange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "daterange", typeof(NpgsqlRange<DateTime>), NpgsqlDbType.DateRange, _dateDateTime);
 
 // ReSharper disable CoVariantArrayConversion
         // Note that PostgreSQL has aliases to some built-in type name aliases (e.g. int4 for integer),
@@ -248,7 +256,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
 
             { "macaddr",                     new[] { _macaddr                      } },
             { "macaddr8",                    new[] { _macaddr8                     } },
-            { "inet",                        new[] { _inet                         } },
+            { "inet",                        new RelationalTypeMapping[] { _inetAsIPAddress, _inetAsNpgsqlInet } },
             { "cidr",                        new[] { _cidr                         } },
 
             { "point",                       new[] { _point                        } },
@@ -320,8 +328,9 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { typeof(DateTimeOffset),                      _timestamptzDto       },
 
             { typeof(PhysicalAddress),                     _macaddr              },
-            { typeof(IPAddress),                           _inet                 },
-            { typeof((IPAddress, int)),                    _cidr                 },
+            { typeof(IPAddress),                           _inetAsIPAddress      },
+            { typeof(NpgsqlInet),                          _inetAsNpgsqlInet     },
+            { typeof(NpgsqlCidr),                          _cidr                 },
 
             { typeof(BitArray),                            _varbit               },
             { typeof(ImmutableDictionary<string, string>), _immutableHstore      },
@@ -373,38 +382,40 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     /// </summary>
     protected virtual void SetupEnumMappings(ISqlGenerationHelper sqlGenerationHelper, NpgsqlDataSource? dataSource)
     {
-        var adoEnumMappings = new List<IUserEnumTypeMapping>();
+        List<HackyEnumTypeMapping>? adoEnumMappings = null;
 
-#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
-        if (NpgsqlConnection.GlobalTypeMapper.GetType().GetProperty("UserTypeMappings")?.GetMethod is { } globalTypeMappingsMethodInfo
-            && globalTypeMappingsMethodInfo.Invoke(NpgsqlConnection.GlobalTypeMapper, Array.Empty<object>()) is
-                IDictionary<string, IUserTypeMapping> globalUserMappings)
+        if (dataSource is not null
+            && typeof(NpgsqlDataSource).GetField("_hackyEnumTypeMappings", BindingFlags.NonPublic | BindingFlags.Instance) is
+                { } dataSourceTypeMappingsFieldInfo
+            && dataSourceTypeMappingsFieldInfo.GetValue(dataSource) is List<HackyEnumTypeMapping> dataSourceEnumMappings)
         {
-            adoEnumMappings.AddRange(globalUserMappings.Values.OfType<IUserEnumTypeMapping>());
+            // Note that the data source's enum mappings also include any global ones that were configured when the data source was created.
+            // So we don't need to also collect mappings from GlobalTypeMapper below.
+            adoEnumMappings = dataSourceEnumMappings;
+        }
+#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
+        else if (NpgsqlConnection.GlobalTypeMapper.GetType().GetProperty("HackyEnumTypeMappings", BindingFlags.NonPublic | BindingFlags.Instance)
+                is PropertyInfo globalEnumTypeMappingsProperty
+            && globalEnumTypeMappingsProperty.GetValue(NpgsqlConnection.GlobalTypeMapper) is List<HackyEnumTypeMapping> globalEnumMappings)
+        {
+            adoEnumMappings = globalEnumMappings;
         }
 #pragma warning restore CS0618
 
-        // TODO: Think about what to do here. We could just require users to do the mapping at the EF level, and then EF would take care
-        // of the ADO mapping.
-        if (dataSource is not null
-            && typeof(NpgsqlDataSource).GetField("_userTypeMappings", BindingFlags.NonPublic | BindingFlags.Instance) is
-                { } dataSourceTypeMappingsFieldInfo
-            && dataSourceTypeMappingsFieldInfo.GetValue(dataSource) is IDictionary<string, IUserTypeMapping> dataSourceUserMappings)
+        if (adoEnumMappings is not null)
         {
-            adoEnumMappings.AddRange(dataSourceUserMappings.Values.OfType<IUserEnumTypeMapping>());
-        }
+            foreach (var adoEnumMapping in adoEnumMappings)
+            {
+                // TODO: update with schema per https://github.com/npgsql/npgsql/issues/2121
+                var components = adoEnumMapping.PgTypeName.Split('.');
+                var schema = components.Length > 1 ? components.First() : null;
+                var name = components.Length > 1 ? string.Join(null, components.Skip(1)) : adoEnumMapping.PgTypeName;
 
-        foreach (var adoUserTypeMapping in adoEnumMappings)
-        {
-            // TODO: update with schema per https://github.com/npgsql/npgsql/issues/2121
-            var components = adoUserTypeMapping.PgTypeName.Split('.');
-            var schema = components.Length > 1 ? components.First() : null;
-            var name = components.Length > 1 ? string.Join(null, components.Skip(1)) : adoUserTypeMapping.PgTypeName;
-
-            var mapping = new NpgsqlEnumTypeMapping(
-                name, schema, adoUserTypeMapping.ClrType, sqlGenerationHelper, adoUserTypeMapping.NameTranslator);
-            ClrTypeMappings[adoUserTypeMapping.ClrType] = mapping;
-            StoreTypeMappings[mapping.StoreType] = new RelationalTypeMapping[] { mapping };
+                var mapping = new NpgsqlEnumTypeMapping(
+                    name, schema, adoEnumMapping.EnumClrType, sqlGenerationHelper, adoEnumMapping.NameTranslator);
+                ClrTypeMappings[adoEnumMapping.EnumClrType] = mapping;
+                StoreTypeMappings[mapping.StoreType] = new RelationalTypeMapping[] { mapping };
+            }
         }
     }
 
@@ -467,14 +478,14 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             {
                 if (clrType is null)
                 {
-                    return mappings[0].Clone(in mappingInfo);
+                    return mappings[0];
                 }
 
                 foreach (var m in mappings)
                 {
                     if (m.ClrType == clrType)
                     {
-                        return m.Clone(in mappingInfo);
+                        return m;
                     }
                 }
 
@@ -523,14 +534,14 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
 
                         // See #342 for when size > 10485760
                         return mappingInfo.Size <= 10485760
-                            ? mapping.Clone($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size)
+                            ? mapping.WithStoreTypeAndSize($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size)
                             : _text;
                     }
 
                     if (clrType == typeof(BitArray))
                     {
                         mapping = mappingInfo.IsFixedLength ?? false ? _bit : _varbit;
-                        return mapping.Clone($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size);
+                        return mapping.WithStoreTypeAndSize($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size);
                     }
                 }
 
@@ -835,7 +846,16 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             throw new Exception($"Could not map range {rangeDefinition.RangeName}, no mapping was found its subtype");
         }
 
-        return new NpgsqlRangeTypeMapping(rangeDefinition.RangeName, rangeDefinition.SchemaName, rangeClrType, subtypeMapping, _sqlGenerationHelper);
+        // We need to store types for the user-defined range:
+        // 1. The quoted type name is used in migrations, where quoting is needed
+        // 2. The unquoted type name is set on NpgsqlParameter.DataTypeName
+        var quotedRangeStoreType = _sqlGenerationHelper.DelimitIdentifier(rangeDefinition.RangeName, rangeDefinition.SchemaName);
+        var unquotedRangeStoreType = rangeDefinition.SchemaName is null
+            ? rangeDefinition.RangeName
+            : rangeDefinition.SchemaName + '.' + rangeDefinition.RangeName;
+
+        return NpgsqlRangeTypeMapping.CreatUserDefinedRangeMapping(
+            quotedRangeStoreType, unquotedRangeStoreType, rangeClrType, subtypeMapping);
     }
 
     /// <summary>

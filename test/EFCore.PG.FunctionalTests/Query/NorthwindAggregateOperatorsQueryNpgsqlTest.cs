@@ -74,7 +74,27 @@ WHERE e."EmployeeID" = ANY (@__ids_0)
         => AssertTranslationFailed(() => base.Contains_with_local_anonymous_type_array_closure(async));
 
     public override Task Contains_with_local_tuple_array_closure(bool async)
-        => Assert.ThrowsAsync<NotSupportedException>(() => base.Contains_with_local_tuple_array_closure(async: true));
+        => Assert.ThrowsAsync<InvalidCastException>(() => base.Contains_with_local_tuple_array_closure(async: true));
+
+    public override async Task Contains_with_local_enumerable_inline(bool async)
+    {
+        // Issue #31776
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () =>
+                await base.Contains_with_local_enumerable_inline(async));
+
+        AssertSql();
+    }
+
+    public override async Task Contains_with_local_enumerable_inline_closure_mix(bool async)
+    {
+        // Issue #31776
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () =>
+                await base.Contains_with_local_enumerable_inline_closure_mix(async));
+
+        AssertSql();
+    }
 
     public override async Task Contains_with_local_non_primitive_list_closure_mix(bool async)
     {

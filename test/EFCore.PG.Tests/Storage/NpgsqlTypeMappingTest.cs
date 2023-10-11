@@ -113,7 +113,7 @@ public class NpgsqlTypeMappingTest
 
     [Fact]
     public void GenerateSqlLiteral_timestamp_does_not_support_utc_datetime()
-        => Assert.Throws<InvalidCastException>(() => GetMapping("timestamp without time zone").GenerateSqlLiteral(DateTime.UtcNow));
+        => Assert.Throws<ArgumentException>(() => GetMapping("timestamp without time zone").GenerateSqlLiteral(DateTime.UtcNow));
 
     [Fact]
     public void GenerateSqlLiteral_timestamp_does_not_support_datetimeoffset()
@@ -164,11 +164,11 @@ public class NpgsqlTypeMappingTest
 
     [Fact]
     public void GenerateSqlLiteral_timestamptz_does_not_support_local_datetime()
-        => Assert.Throws<InvalidCastException>(() => GetMapping("timestamp with time zone").GenerateSqlLiteral(DateTime.Now));
+        => Assert.Throws<ArgumentException>(() => GetMapping("timestamp with time zone").GenerateSqlLiteral(DateTime.Now));
 
     [Fact]
     public void GenerateSqlLiteral_timestamptz_does_not_support_unspecified_datetime()
-        => Assert.Throws<InvalidCastException>(
+        => Assert.Throws<ArgumentException>(
             () => GetMapping("timestamp with time zone")
                 .GenerateSqlLiteral(DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified)));
 
@@ -256,11 +256,13 @@ public class NpgsqlTypeMappingTest
 
     [Fact]
     public void GenerateSqlLiteral_returns_cidr_literal()
-        => Assert.Equal("CIDR '192.168.1.0/24'", GetMapping("cidr").GenerateSqlLiteral((IPAddress.Parse("192.168.1.0"), 24)));
+        => Assert.Equal("CIDR '192.168.1.0/24'", GetMapping("cidr").GenerateSqlLiteral(new NpgsqlCidr(IPAddress.Parse("192.168.1.0"), 24)));
 
     [Fact]
     public void GenerateCodeLiteral_returns_cidr_literal()
-        => Assert.Equal(@"(System.Net.IPAddress.Parse(""192.168.1.0""), 24)", CodeLiteral((IPAddress.Parse("192.168.1.0"), 24)));
+        => Assert.Equal(
+            @"new NpgsqlTypes.NpgsqlCidr(System.Net.IPAddress.Parse(""192.168.1.0""), (byte)24)",
+            CodeLiteral(new NpgsqlCidr(IPAddress.Parse("192.168.1.0"), 24)));
 
     #endregion Networking
 

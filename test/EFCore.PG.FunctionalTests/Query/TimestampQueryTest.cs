@@ -60,7 +60,7 @@ public class TimestampQueryTest : QueryTestBase<TimestampQueryTest.TimestampQuer
 
         ctx.Entities.Add(new() { TimestampDateTime = DateTime.UtcNow });
         var exception = await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
-        Assert.IsType<InvalidCastException>(exception.InnerException);
+        Assert.IsType<ArgumentException>(exception.InnerException);
     }
 
     [ConditionalFact]
@@ -70,7 +70,7 @@ public class TimestampQueryTest : QueryTestBase<TimestampQueryTest.TimestampQuer
 
         ctx.Entities.Add(new() { TimestamptzDateTime = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified) });
         var exception = await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
-        Assert.IsType<InvalidCastException>(exception.InnerException);
+        Assert.IsType<ArgumentException>(exception.InnerException);
     }
 
     [ConditionalFact]
@@ -80,7 +80,7 @@ public class TimestampQueryTest : QueryTestBase<TimestampQueryTest.TimestampQuer
 
         ctx.Entities.Add(new() { TimestamptzDateTime = DateTime.Now });
         var exception = await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
-        Assert.IsType<InvalidCastException>(exception.InnerException);
+        Assert.IsType<ArgumentException>(exception.InnerException);
     }
 
     #endregion Basic mapping
@@ -154,7 +154,7 @@ WHERE e."TimestampDateTime" = @__dateTime_0
     {
         await using var ctx = CreateContext();
 
-        await Assert.ThrowsAsync<InvalidCastException>(
+        await Assert.ThrowsAsync<ArgumentException>(
             () => ctx.Entities.Where(e => e.TimestampDateTime == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc))
                 .ToListAsync());
     }
@@ -166,7 +166,7 @@ WHERE e."TimestampDateTime" = @__dateTime_0
 
         var dateTime = new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc);
 
-        await Assert.ThrowsAsync<InvalidCastException>(
+        await Assert.ThrowsAsync<ArgumentException>(
             () => ctx.Entities.Where(e => e.TimestampDateTime == dateTime)
                 .ToListAsync());
     }
@@ -214,7 +214,7 @@ WHERE e."TimestamptzDateTime" = @__dateTime_0
     {
         await using var ctx = CreateContext();
 
-        await Assert.ThrowsAsync<InvalidCastException>(
+        await Assert.ThrowsAsync<ArgumentException>(
             () => ctx.Entities.Where(e => e.TimestamptzDateTime == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Local))
                 .ToListAsync());
     }
@@ -226,7 +226,7 @@ WHERE e."TimestamptzDateTime" = @__dateTime_0
 
         var dateTime = new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Local);
 
-        await Assert.ThrowsAsync<InvalidCastException>(
+        await Assert.ThrowsAsync<ArgumentException>(
             () => ctx.Entities.Where(e => e.TimestamptzDateTime == dateTime)
                 .ToListAsync());
     }
@@ -236,7 +236,7 @@ WHERE e."TimestamptzDateTime" = @__dateTime_0
     {
         await using var ctx = CreateContext();
 
-        await Assert.ThrowsAsync<InvalidCastException>(
+        await Assert.ThrowsAsync<ArgumentException>(
             () => ctx.Entities.Where(e => e.TimestamptzDateTime == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Unspecified))
                 .ToListAsync());
     }
@@ -248,7 +248,7 @@ WHERE e."TimestamptzDateTime" = @__dateTime_0
 
         var dateTime = new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Unspecified);
 
-        await Assert.ThrowsAsync<InvalidCastException>(
+        await Assert.ThrowsAsync<ArgumentException>(
             () => ctx.Entities.Where(e => e.TimestamptzDateTime == dateTime)
                 .ToListAsync());
     }
@@ -551,7 +551,7 @@ WHERE make_timestamp(date_part('year', e."TimestampDateTime")::int, date_part('m
 """
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE make_timestamptz(date_part('year', e."TimestamptzDateTime")::int, date_part('month', e."TimestamptzDateTime")::int, 1, 0, 0, 0::double precision, 'UTC') = TIMESTAMPTZ '1998-04-01 00:00:00Z'
+WHERE make_timestamptz(date_part('year', e."TimestamptzDateTime" AT TIME ZONE 'UTC')::int, date_part('month', e."TimestamptzDateTime" AT TIME ZONE 'UTC')::int, 1, 0, 0, 0::double precision, 'UTC') = TIMESTAMPTZ '1998-04-01 00:00:00Z'
 """);
     }
 

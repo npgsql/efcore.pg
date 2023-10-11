@@ -88,15 +88,15 @@ public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
 
                     DateTimeKind.Unspecified => NpgsqlTypeMappingSource.LegacyTimestampBehavior || dateTime == default
                         ? dateTime.ToString("yyyy-MM-dd HH:mm:ss.FFFFFF", CultureInfo.InvariantCulture) + 'Z'
-                        : throw new InvalidCastException(
+                        : throw new ArgumentException(
                             $"'timestamp with time zone' literal cannot be generated for {dateTime.Kind} DateTime: a UTC DateTime is required"),
 
                     DateTimeKind.Local => NpgsqlTypeMappingSource.LegacyTimestampBehavior
                         ? dateTime.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFzzz", CultureInfo.InvariantCulture)
-                        : throw new InvalidCastException(
+                        : throw new ArgumentException(
                             $"'timestamp with time zone' literal cannot be generated for {dateTime.Kind} DateTime: a UTC DateTime is required"),
 
-                    _ => throw new ArgumentOutOfRangeException()
+                    _ => throw new UnreachableException()
                 };
 
             case DateTimeOffset dateTimeOffset:
