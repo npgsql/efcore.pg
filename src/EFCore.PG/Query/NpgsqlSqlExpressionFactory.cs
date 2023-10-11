@@ -630,7 +630,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 // Special-case arrays of objects, not taking the array CLR type into account in the lookup (it would never succeed).
                 // Note that we provide both the array CLR type *and* an array store type constructed from the element's store type.
                 // If we use only the array CLR type, byte[] will yield bytea which we don't want.
-                arrayMapping = arrayExpression.Type == typeof(object[]) || arrayExpression.Type == typeof(List<object>)
+                arrayMapping = arrayExpression.Type.TryGetSequenceType() == typeof(object)
                     ? _typeMappingSource.FindMapping(itemMapping.StoreType + "[]")
                     : _typeMappingSource.FindMapping(arrayExpression.Type, itemMapping.StoreType + "[]");
             }

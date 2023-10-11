@@ -165,10 +165,8 @@ public class NpgsqlArrayTypeMapping<TCollection, TElement> : NpgsqlArrayTypeMapp
         : base(parameters)
     {
         var clrType = parameters.CoreParameters.ClrType;
-        Type? arrayElementClrType;
 
-        if ((arrayElementClrType = clrType.TryGetElementType(typeof(IEnumerable<>))) == null
-            && (arrayElementClrType = clrType.GetElementType()) == null)
+        if (clrType.TryGetElementType(typeof(IEnumerable<>)) == null && clrType.GetElementType() == null)
         {
             throw new ArgumentException($"CLR type '{parameters.CoreParameters.ClrType}' isn't an IEnumerable");
         }
@@ -201,9 +199,18 @@ public class NpgsqlArrayTypeMapping<TCollection, TElement> : NpgsqlArrayTypeMapp
         // get an enumerable parameter value that isn't an array/list - but those aren't supported at the Npgsql ADO level.
         // Detect this here and evaluate the enumerable to get a fully materialized List.
         // TODO: Make Npgsql support IList<> instead of only arrays and List<>
-        if (value is IEnumerable<TElement> elements && !(elements.GetType().IsArray || elements is List<TElement>))
+        if (value is not null && !value.GetType().IsArrayOrGenericList())
         {
-            value = elements.ToList();
+            switch (value)
+            {
+                case IEnumerable<TElement> elements:
+                    value = elements.ToList();
+                    break;
+
+                case IEnumerable elements:
+                    value = elements.Cast<TElement>().ToList();
+                    break;
+            }
         }
 
         return base.CreateParameter(command, name, value, nullable, direction);
