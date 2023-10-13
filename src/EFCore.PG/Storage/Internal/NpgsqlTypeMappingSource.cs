@@ -986,7 +986,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
                     return storeTypeName;
                 }
 
-                if (int.TryParse(s[(comma + 1)..].Trim(), out var parsedScale))
+                if (int.TryParse(s[(comma + 1)..closeParen].Trim(), out var parsedScale))
                 {
                     scale = parsedScale;
                 }
