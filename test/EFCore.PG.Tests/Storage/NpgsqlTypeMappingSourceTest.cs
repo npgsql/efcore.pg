@@ -11,41 +11,45 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage;
 public class NpgsqlTypeMappingSourceTest
 {
     [Theory]
-    [InlineData("integer", typeof(int), null, false)]
-    [InlineData("integer[]", typeof(int[]), null, false)]
-    [InlineData("int", typeof(int), null, false)]
-    [InlineData("int[]", typeof(int[]), null, false)]
-    [InlineData("numeric", typeof(decimal), null, false)]
-    [InlineData("text", typeof(string), null, false)]
-    [InlineData("TEXT", typeof(string), null, false)]
-    [InlineData("character(8)", typeof(string), 8, true)]
-    [InlineData("char(8)", typeof(string), 8, true)]
-    [InlineData("character(1)", typeof(char), 1, true)]
-    [InlineData("char(1)", typeof(char), 1, true)]
-    [InlineData("character", typeof(char), null, true)]
-    [InlineData("character varying(8)", typeof(string), 8, false)]
-    [InlineData("varchar(8)", typeof(string), 8, false)]
-    [InlineData("varchar", typeof(string), null, false)]
-    [InlineData("timestamp with time zone", typeof(DateTime), null, false)]
-    [InlineData("dummy", typeof(DummyType), null, false)]
-    [InlineData("int4range", typeof(NpgsqlRange<int>), null, false)]
-    [InlineData("floatrange", typeof(NpgsqlRange<float>), null, false)]
-    [InlineData("dummyrange", typeof(NpgsqlRange<DummyType>), null, false)]
-    [InlineData("int4multirange", typeof(NpgsqlRange<int>[]), null, false)]
-    [InlineData("geometry", typeof(Geometry), null, false)]
-    [InlineData("geometry(Polygon)", typeof(Polygon), null, false)]
-    [InlineData("geography(Point, 4326)", typeof(Point), null, false)]
-    [InlineData("geometry(pointz, 4326)", typeof(Point), null, false)]
-    [InlineData("geography(LineStringZM)", typeof(LineString), null, false)]
-    [InlineData("geometry(POLYGONM)", typeof(Polygon), null, false)]
-    [InlineData("xid", typeof(uint), null, false)]
-    [InlineData("xid8", typeof(ulong), null, false)]
-    public void By_StoreType(string typeName, Type type, int? size, bool fixedLength)
+    [InlineData("integer", typeof(int), null, null, null, false)]
+    [InlineData("integer[]", typeof(int[]), null, null, null, false)]
+    [InlineData("int", typeof(int), null, null, null, false)]
+    [InlineData("int[]", typeof(int[]), null, null, null, false)]
+    [InlineData("numeric", typeof(decimal), null, null, null, false)]
+    [InlineData("numeric(10,2)", typeof(decimal), null, 10, 2, false)]
+    [InlineData("text", typeof(string), null, null, null, false)]
+    [InlineData("TEXT", typeof(string), null, null, null, false)]
+    [InlineData("character(8)", typeof(string), 8, null, null, true)]
+    [InlineData("char(8)", typeof(string), 8, null, null, true)]
+    [InlineData("character(1)", typeof(char), 1, null, null, true)]
+    [InlineData("char(1)", typeof(char), 1, null, null, true)]
+    [InlineData("character", typeof(char), null, null, null, true)]
+    [InlineData("character varying(8)", typeof(string), 8, null, null, false)]
+    [InlineData("varchar(8)", typeof(string), 8, null, null, false)]
+    [InlineData("varchar", typeof(string), null, null, null, false)]
+    [InlineData("timestamp with time zone", typeof(DateTime), null, null, null, false)]
+    [InlineData("dummy", typeof(DummyType), null, null, null, false)]
+    [InlineData("int4range", typeof(NpgsqlRange<int>), null, null, null, false)]
+    [InlineData("floatrange", typeof(NpgsqlRange<float>), null, null, null, false)]
+    [InlineData("dummyrange", typeof(NpgsqlRange<DummyType>), null, null, null, false)]
+    [InlineData("int4multirange", typeof(NpgsqlRange<int>[]), null, null, null, false)]
+    [InlineData("geometry", typeof(Geometry), null, null, null, false)]
+    [InlineData("geometry(Polygon)", typeof(Polygon), null, null, null, false)]
+    [InlineData("geography(Point, 4326)", typeof(Point), null, null, null, false)]
+    [InlineData("geometry(pointz, 4326)", typeof(Point), null, null, null, false)]
+    [InlineData("geography(LineStringZM)", typeof(LineString), null, null, null, false)]
+    [InlineData("geometry(POLYGONM)", typeof(Polygon), null, null, null, false)]
+    [InlineData("xid", typeof(uint), null, null, null, false)]
+    [InlineData("xid8", typeof(ulong), null, null, null, false)]
+    public void By_StoreType(string typeName, Type type, int? size, int? precision, int? scale, bool fixedLength)
     {
         var mapping = CreateTypeMappingSource().FindMapping(typeName);
 
+        Assert.NotNull(mapping);
         Assert.Same(type, mapping.ClrType);
         Assert.Equal(size, mapping.Size);
+        Assert.Equal(precision, mapping.Precision);
+        Assert.Equal(scale, mapping.Scale);
         Assert.False(mapping.IsUnicode);
         Assert.Equal(fixedLength, mapping.IsFixedLength);
         Assert.Equal(typeName, mapping.StoreType);
