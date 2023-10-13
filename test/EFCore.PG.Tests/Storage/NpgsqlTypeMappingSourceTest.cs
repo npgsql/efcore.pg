@@ -16,6 +16,7 @@ public class NpgsqlTypeMappingSourceTest
     [InlineData("int", typeof(int), null, null, null, false)]
     [InlineData("int[]", typeof(int[]), null, null, null, false)]
     [InlineData("numeric", typeof(decimal), null, null, null, false)]
+    [InlineData("numeric(10,2)", typeof(decimal), null, 10, 2, false)]
     [InlineData("text", typeof(string), null, null, null, false)]
     [InlineData("TEXT", typeof(string), null, null, null, false)]
     [InlineData("character(8)", typeof(string), 8, null, null, true)]
@@ -44,6 +45,7 @@ public class NpgsqlTypeMappingSourceTest
     {
         var mapping = CreateTypeMappingSource().FindMapping(typeName);
 
+        Assert.NotNull(mapping);
         Assert.Same(type, mapping.ClrType);
         Assert.Equal(size, mapping.Size);
         Assert.Equal(precision, mapping.Precision);
