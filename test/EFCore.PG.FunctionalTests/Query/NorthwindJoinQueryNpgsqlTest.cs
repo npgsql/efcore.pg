@@ -12,7 +12,10 @@ public class NorthwindJoinQueryNpgsqlTest : NorthwindJoinQueryRelationalTestBase
 
     // #2759
     public override Task Join_local_collection_int_closure_is_cached_correctly(bool async)
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Join_local_collection_int_closure_is_cached_correctly(async));
+    {
+        return base.Join_local_collection_int_closure_is_cached_correctly(async);
+    }
+        // => Assert.ThrowsAsync<InvalidOperationException>(() => base.Join_local_collection_int_closure_is_cached_correctly(async));
 
     protected override void ClearLog()
         => Fixture.TestSqlLoggerFactory.Clear();

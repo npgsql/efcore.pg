@@ -132,10 +132,10 @@ LIMIT 2
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE j."CustomerDocument"->>'Name' = 'Joe'
+WHERE j."CustomerDocument" ->> 'Name' = 'Joe'
 LIMIT 2
 """);
     }
@@ -150,10 +150,10 @@ LIMIT 2
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE j."CustomerElement"->>'Name' = 'Joe'
+WHERE j."CustomerElement" ->> 'Name' = 'Joe'
 LIMIT 2
 """);
     }
@@ -168,10 +168,10 @@ LIMIT 2
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonEntities" AS j
-WHERE j."CustomerElement"->>'Name' = 'Joe'
+WHERE j."CustomerElement" ->> 'Name' = 'Joe'
 LIMIT 2
 """);
     }
@@ -186,10 +186,10 @@ LIMIT 2
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."CustomerElement"->>'Age' AS integer) < 30
+WHERE CAST(j."CustomerElement" ->> 'Age' AS integer) < 30
 LIMIT 2
 """);
     }
@@ -204,10 +204,10 @@ LIMIT 2
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."CustomerElement"->>'ID' AS uuid) = '00000000-0000-0000-0000-000000000000'
+WHERE CAST(j."CustomerElement" ->> 'ID' AS uuid) = '00000000-0000-0000-0000-000000000000'
 LIMIT 2
 """);
     }
@@ -222,10 +222,10 @@ LIMIT 2
         Assert.Equal("Moe", x.CustomerElement.GetProperty("Name").GetString());
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."CustomerElement"->>'IsVip' AS boolean)
+WHERE CAST(j."CustomerElement" ->> 'IsVip' AS boolean)
 LIMIT 2
 """);
     }
@@ -240,10 +240,10 @@ LIMIT 2
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."CustomerElement"#>>'{Statistics,Visits}' AS bigint) = 4
+WHERE CAST(j."CustomerElement" #>> '{Statistics,Visits}' AS bigint) = 4
 LIMIT 2
 """);
     }
@@ -258,10 +258,10 @@ LIMIT 2
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
         AssertSql(
-"""
+            """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."CustomerElement"#>>'{Statistics,Nested,SomeProperty}' AS integer) = 10
+WHERE CAST(j."CustomerElement" #>> '{Statistics,Nested,SomeProperty}' AS integer) = 10
 LIMIT 2
 """);
     }
@@ -276,10 +276,10 @@ LIMIT 2
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."CustomerElement"#>>'{Orders,0,Price}' AS numeric) = 99.5
+WHERE CAST(j."CustomerElement" #>> '{Orders,0,Price}' AS numeric) = 99.5
 LIMIT 2
 """);
     }
@@ -295,10 +295,10 @@ LIMIT 2
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."CustomerElement"#>>'{Statistics,Nested,IntArray,1}' AS integer) = 4
+WHERE CAST(j."CustomerElement" #>> '{Statistics,Nested,IntArray,1}' AS integer) = 4
 LIMIT 2
 """);
     }
@@ -315,12 +315,12 @@ LIMIT 2
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
 
         AssertSql(
-"""
+            """
 @__i_0='1'
 
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."CustomerElement"#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::text[] AS integer) = 4
+WHERE CAST(j."CustomerElement" #>> ARRAY['Statistics','Nested','IntArray',@__i_0]::text[] AS integer) = 4
 LIMIT 2
 """);
     }
@@ -335,10 +335,10 @@ LIMIT 2
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE jsonb_array_length(j."CustomerElement"->'Orders') = 2
+WHERE jsonb_array_length(j."CustomerElement" -> 'Orders') = 2
 LIMIT 2
 """);
     }
@@ -353,10 +353,10 @@ LIMIT 2
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonEntities" AS j
-WHERE json_array_length(j."CustomerElement"->'Orders') = 2
+WHERE json_array_length(j."CustomerElement" -> 'Orders') = 2
 LIMIT 2
 """);
     }
@@ -371,10 +371,10 @@ LIMIT 2
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE j."CustomerElement"->>'Name' LIKE 'J%'
+WHERE j."CustomerElement" ->> 'Name' LIKE 'J%'
 LIMIT 2
 """);
     }
@@ -391,10 +391,10 @@ LIMIT 2
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."CustomerElement"#>>'{Statistics,Nested,SomeNullableGuid}' AS uuid) = 'd5f2685d-e5c4-47e5-97aa-d0266154eb2d'
+WHERE CAST(j."CustomerElement" #>> '{Statistics,Nested,SomeNullableGuid}' AS uuid) = 'd5f2685d-e5c4-47e5-97aa-d0266154eb2d'
 LIMIT 2
 """);
     }
@@ -410,7 +410,7 @@ LIMIT 2
 """
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE j."CustomerElement"#>>'{}' = 'foo'
+WHERE j."CustomerElement" #>> '{}' = 'foo'
 LIMIT 2
 """);
     }
@@ -499,7 +499,7 @@ WHERE '{"Name": "Joe", "Age": 25}' <@ j."CustomerElement"
 """
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."CustomerElement"->'Statistics' ? 'Visits'
+WHERE j."CustomerElement" -> 'Statistics' ? 'Visits'
 """);
     }
 
@@ -515,7 +515,7 @@ WHERE j."CustomerElement"->'Statistics' ? 'Visits'
 """
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."CustomerElement"->'Statistics' ?| ARRAY['foo','Visits']::text[]
+WHERE j."CustomerElement" -> 'Statistics' ?| ARRAY['foo','Visits']::text[]
 """);
     }
 
@@ -531,7 +531,7 @@ WHERE j."CustomerElement"->'Statistics' ?| ARRAY['foo','Visits']::text[]
 """
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."CustomerElement"->'Statistics' ?& ARRAY['foo','Visits']::text[]
+WHERE j."CustomerElement" -> 'Statistics' ?& ARRAY['foo','Visits']::text[]
 """);
     }
 
@@ -544,10 +544,10 @@ WHERE j."CustomerElement"->'Statistics' ?& ARRAY['foo','Visits']::text[]
 
         Assert.Equal(2, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE jsonb_typeof(j."CustomerElement"#>'{Statistics,Visits}') = 'number'
+WHERE jsonb_typeof(j."CustomerElement" #> '{Statistics,Visits}') = 'number'
 """);
     }
 
@@ -560,10 +560,10 @@ WHERE jsonb_typeof(j."CustomerElement"#>'{Statistics,Visits}') = 'number'
 
         Assert.Equal(2, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "JsonEntities" AS j
-WHERE json_typeof(j."CustomerElement"#>'{Statistics,Visits}') = 'number'
+WHERE json_typeof(j."CustomerElement" #> '{Statistics,Visits}') = 'number'
 """);
     }
 
@@ -597,87 +597,91 @@ WHERE json_typeof(j."CustomerElement"#>'{Statistics,Visits}') = 'number'
                 new JsonEntity { Id = 3, CustomerDocument = customer3, CustomerElement = customer3.RootElement });
             context.SaveChanges();
 
-            static JsonDocument CreateCustomer1() => JsonDocument.Parse(@"
-                {
-                    ""Name"": ""Joe"",
-                    ""Age"": 25,
-                    ""ID"": ""00000000-0000-0000-0000-000000000000"",
-                    ""IsVip"": false,
-                    ""Statistics"":
-                    {
-                        ""Visits"": 4,
-                        ""Purchases"": 3,
-                        ""Nested"":
-                        {
-                            ""SomeProperty"": 10,
-                            ""SomeNullableInt"": 20,
-                            ""SomeNullableGuid"": ""d5f2685d-e5c4-47e5-97aa-d0266154eb2d"",
-                            ""IntArray"": [3, 4],
-                            ""IntList"": [3, 4]
-                        }
-                    },
-                    ""Orders"":
-                    [
-                        {
-                            ""Price"": 99.5,
-                            ""ShippingAddress"": ""Some address 1""
-                        },
-                        {
-                            ""Price"": 23,
-                            ""ShippingAddress"": ""Some address 2""
-                        }
-                    ],
-                    ""VariousTypes"":
-                    {
-                        ""String"": ""foo"",
-                        ""Int16"": 8,
-                        ""Int32"": 8,
-                        ""Int64"": 8,
-                        ""Bool"": ""false"",
-                        ""Decimal"": 10,
-                        ""DateTime"": ""2020-01-01T10:30:45"",
-                        ""DateTimeOffset"": ""2020-01-01T10:30:45+02:00""
-                    }
-                }");
+            static JsonDocument CreateCustomer1() => JsonDocument.Parse(
+                """
+{
+    "Name": "Joe",
+    "Age": 25,
+    "ID": "00000000-0000-0000-0000-000000000000",
+    "IsVip": false,
+    "Statistics":
+    {
+        "Visits": 4,
+        "Purchases": 3,
+        "Nested":
+        {
+            "SomeProperty": 10,
+            "SomeNullableInt": 20,
+            "SomeNullableGuid": "d5f2685d-e5c4-47e5-97aa-d0266154eb2d",
+            "IntArray": [3, 4],
+            "IntList": [3, 4]
+        }
+    },
+    "Orders":
+    [
+        {
+            "Price": 99.5,
+            "ShippingAddress": "Some address 1"
+        },
+        {
+            "Price": 23,
+            "ShippingAddress": "Some address 2"
+        }
+    ],
+    "VariousTypes":
+    {
+        "String": "foo",
+        "Int16": 8,
+        "Int32": 8,
+        "Int64": 8,
+        "Bool": "false",
+        "Decimal": 10,
+        "DateTime": "2020-01-01T10:30:45",
+        "DateTimeOffset": "2020-01-01T10:30:45+02:00"
+    }
+}
+""");
 
-            static JsonDocument CreateCustomer2() => JsonDocument.Parse(@"
-                {
-                    ""Name"": ""Moe"",
-                    ""Age"": 35,
-                    ""ID"": ""3272b593-bfe2-4ecf-81ae-4242b0632465"",
-                    ""IsVip"": true,
-                    ""Statistics"":
-                    {
-                        ""Visits"": 20,
-                        ""Purchases"": 25,
-                        ""Nested"":
-                        {
-                            ""SomeProperty"": 20,
-                            ""SomeNullableInt"": null,
-                            ""SomeNullableGuid"": null,
-                            ""IntArray"": [5, 6, 7],
-                            ""IntArray"": [5, 6, 7]
-                        }
-                    },
-                    ""Orders"":
-                    [
-                        {
-                            ""Price"": 5,
-                            ""ShippingAddress"": ""Moe's address""
-                        }
-                    ],
-                    ""VariousTypes"":
-                    {
-                        ""String"": ""bar"",
-                        ""Int16"": 9,
-                        ""Int32"": 9,
-                        ""Int64"": 9,
-                        ""Bool"": ""true"",
-                        ""Decimal"": 20.3,
-                        ""DateTime"": ""1990-03-03T17:10:15"",
-                        ""DateTimeOffset"": ""1990-03-03 17:10:15+10:00""
-                    }
-                }");
+            static JsonDocument CreateCustomer2() => JsonDocument.Parse(
+                """
+{
+    "Name": "Moe",
+    "Age": 35,
+    "ID": "3272b593-bfe2-4ecf-81ae-4242b0632465",
+    "IsVip": true,
+    "Statistics":
+    {
+        "Visits": 20,
+        "Purchases": 25,
+        "Nested":
+        {
+            "SomeProperty": 20,
+            "SomeNullableInt": null,
+            "SomeNullableGuid": null,
+            "IntArray": [5, 6, 7],
+            "IntArray": [5, 6, 7]
+        }
+    },
+    "Orders":
+    [
+        {
+            "Price": 5,
+            "ShippingAddress": "Moe's address"
+        }
+    ],
+    "VariousTypes":
+    {
+        "String": "bar",
+        "Int16": 9,
+        "Int32": 9,
+        "Int64": 9,
+        "Bool": "true",
+        "Decimal": 20.3,
+        "DateTime": "1990-03-03T17:10:15",
+        "DateTimeOffset": "1990-03-03 17:10:15+10:00"
+    }
+}
+""");
 
             static JsonDocument CreateCustomer3() => JsonDocument.Parse(@"""foo""");
         }

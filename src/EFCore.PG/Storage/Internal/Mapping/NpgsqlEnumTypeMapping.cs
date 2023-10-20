@@ -1,4 +1,7 @@
-﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+﻿using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Storage.Json;
+
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
 ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -28,7 +31,11 @@ public class NpgsqlEnumTypeMapping : RelationalTypeMapping
         Type enumType,
         ISqlGenerationHelper sqlGenerationHelper,
         INpgsqlNameTranslator? nameTranslator = null)
-        : base(sqlGenerationHelper.DelimitIdentifier(storeType, storeTypeSchema), enumType)
+        : base(
+            sqlGenerationHelper.DelimitIdentifier(storeType, storeTypeSchema),
+            enumType,
+            jsonValueReaderWriter: (JsonValueReaderWriter?)Activator.CreateInstance(
+                typeof(JsonPgEnumReaderWriter<>).MakeGenericType(enumType)))
     {
         if (!enumType.IsEnum || !enumType.IsValueType)
         {
@@ -89,4 +96,14 @@ public class NpgsqlEnumTypeMapping : RelationalTypeMapping
             .ToDictionary(
                 x => x.GetValue(null)!,
                 x => x.GetCustomAttribute<PgNameAttribute>()?.PgName ?? nameTranslator.TranslateMemberName(x.Name));
+
+    private sealed class JsonPgEnumReaderWriter<T> : JsonValueReaderWriter<T>
+        where T : struct, Enum
+    {
+        public override T FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+            => Enum.Parse<T>(manager.CurrentReader.GetString()!);
+
+        public override void ToJsonTyped(Utf8JsonWriter writer, T value)
+            => writer.WriteStringValue(value.ToString());
+    }
 }

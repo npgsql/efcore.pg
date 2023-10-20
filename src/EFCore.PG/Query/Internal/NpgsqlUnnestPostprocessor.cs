@@ -61,14 +61,9 @@ public class NpgsqlUnnestPostprocessor : ExpressionVisitor
 
                         var newUnnest = new PgUnnestExpression(unnest.Alias, unnest.Array, unnest.ColumnName, withOrdinality: false);
 
-                        // TODO: Simplify this via the newly-introduced JoinExpressionBase.Update
                         newTables[i] = table switch
                         {
-                            InnerJoinExpression ij => ij.Update(newUnnest, ij.JoinPredicate),
-                            LeftJoinExpression lj => lj.Update(newUnnest, lj.JoinPredicate),
-                            CrossJoinExpression cj => cj.Update(newUnnest),
-                            CrossApplyExpression ca => ca.Update(newUnnest),
-                            OuterApplyExpression oa => oa.Update(newUnnest),
+                            JoinExpressionBase j => j.Update(newUnnest),
                             PgUnnestExpression => newUnnest,
                             _ => throw new UnreachableException()
                         };

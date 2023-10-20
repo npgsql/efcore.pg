@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
@@ -17,7 +18,17 @@ public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlTimestampTzTypeMapping(Type clrType)
-        : base("timestamp with time zone", clrType, NpgsqlDbType.TimestampTz) {}
+        : base(
+            "timestamp with time zone",
+            clrType,
+            NpgsqlDbType.TimestampTz,
+            clrType == typeof(DateTime)
+                ? JsonDateTimeReaderWriter.Instance
+                : clrType == typeof(DateTimeOffset)
+                    ? JsonDateTimeOffsetReaderWriter.Instance
+                    : throw new ArgumentException("clrType must be DateTime or DateTimeOffset", nameof(clrType)))
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

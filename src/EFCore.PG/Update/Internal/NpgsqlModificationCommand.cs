@@ -42,6 +42,27 @@ public class NpgsqlModificationCommand : ModificationCommand
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    protected override void ProcessSinglePropertyJsonUpdate(ref ColumnModificationParameters parameters)
+    {
+        // PG jsonb_set accepts a jsonb parameter for the value to be set - not an int, boolean or string like many other providers.
+        // So we always pass the value through the mapping's ToJsonString() (except for null).
+        var mapping = parameters.Property!.GetRelationalTypeMapping();
+        var value = parameters.Value;
+
+        value = value is null
+            ? "null"
+            : (mapping.JsonValueReaderWriter?.ToJsonString(value)
+                ?? (mapping.Converter == null ? value : mapping.Converter.ConvertToProvider(value)));
+
+        parameters = parameters with { Value = value };
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override void PropagateResults(RelationalDataReader relationalReader)
     {
         // The default implementation of PropagateResults skips (output) parameters, since for e.g. SQL Server these aren't yet populated

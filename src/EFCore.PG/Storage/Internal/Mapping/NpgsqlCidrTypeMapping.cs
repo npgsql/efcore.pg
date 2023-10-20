@@ -1,24 +1,25 @@
-﻿using System.Collections;
-using System.Text;
+using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// The type mapping for the PostgreSQL bit string type.
+/// The type mapping for the PostgreSQL cidr type.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/datatype-bit.html
+/// See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-CIDR
 /// </remarks>
-public class NpgsqlBitTypeMapping : NpgsqlTypeMapping
+public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
 {
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlBitTypeMapping"/> class.
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlBitTypeMapping()
-        : base("bit", typeof(BitArray), NpgsqlDbType.Bit, jsonValueReaderWriter: JsonBitArrayReaderWriter.Instance)
+    public NpgsqlCidrTypeMapping()
+        : base("cidr", typeof(NpgsqlCidr), NpgsqlDbType.Cidr, JsonCidrReaderWriter.Instance)
     {
     }
 
@@ -28,8 +29,8 @@ public class NpgsqlBitTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected NpgsqlBitTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Bit) {}
+    protected NpgsqlCidrTypeMapping(RelationalTypeMappingParameters parameters)
+        : base(parameters, NpgsqlDbType.Cidr) {}
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -38,7 +39,7 @@ public class NpgsqlBitTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-        => new NpgsqlBitTypeMapping(parameters);
+        => new NpgsqlCidrTypeMapping(parameters);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -48,16 +49,8 @@ public class NpgsqlBitTypeMapping : NpgsqlTypeMapping
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
     {
-        var bits = (BitArray)value;
-        var sb = new StringBuilder();
-        sb.Append("B'");
-        for (var i = 0; i < bits.Count; i++)
-        {
-            sb.Append(bits[i] ? '1' : '0');
-        }
-
-        sb.Append('\'');
-        return sb.ToString();
+        var cidr = (NpgsqlCidr)value;
+        return $"CIDR '{cidr.Address}/{cidr.Netmask}'";
     }
 
     /// <summary>
@@ -68,16 +61,26 @@ public class NpgsqlBitTypeMapping : NpgsqlTypeMapping
     /// </summary>
     public override Expression GenerateCodeLiteral(object value)
     {
-        var bits = (BitArray)value;
-        var exprs = new Expression[bits.Count];
-        for (var i = 0; i < bits.Count; i++)
-        {
-            exprs[i] = Expression.Constant(bits[i]);
-        }
-
-        return Expression.New(Constructor, Expression.NewArrayInit(typeof(bool), exprs));
+        var cidr = (NpgsqlCidr)value;
+        return Expression.New(
+            NpgsqlCidrConstructor,
+            Expression.Call(ParseMethod, Expression.Constant(cidr.Address.ToString())),
+            Expression.Constant(cidr.Netmask));
     }
 
-    private static readonly ConstructorInfo Constructor =
-        typeof(BitArray).GetConstructor(new[] { typeof(bool[]) })!;
+    private static readonly MethodInfo ParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) })!;
+
+    private static readonly ConstructorInfo NpgsqlCidrConstructor =
+        typeof(NpgsqlCidr).GetConstructor(new[] { typeof(IPAddress), typeof(byte) })!;
+
+    private sealed class JsonCidrReaderWriter : JsonValueReaderWriter<NpgsqlCidr>
+    {
+        public static JsonCidrReaderWriter Instance { get; } = new();
+
+        public override NpgsqlCidr FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+            => new(manager.CurrentReader.GetString()!);
+
+        public override void ToJsonTyped(Utf8JsonWriter writer, NpgsqlCidr value)
+            => writer.WriteStringValue(value.ToString());
+    }
 }

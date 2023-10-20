@@ -280,6 +280,14 @@ public abstract class ArrayQueryTest<TFixture> : QueryTestBase<TFixture>
             ss => ss.Set<ArrayContainerEntity>().Where(c => c.ArrayEntities.OrderBy(e => e.Id).First().NullableIntArray.Contains(3)),
             entryCount: 1);
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task IList_column_contains_constant(bool async)
+        => await AssertQuery(
+            async,
+            ss => ss.Set<ArrayEntity>().Where(a => a.IList.Contains(10)),
+            entryCount: 1);
+
     #endregion
 
     #region Length/Count

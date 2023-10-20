@@ -234,7 +234,8 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
         public EnumContext(DbContextOptions options) : base(options) {}
 
         protected override void OnModelCreating(ModelBuilder builder)
-            => builder.HasPostgresEnum("mapped_enum", new[] { "happy", "sad" })
+            => builder
+                .HasPostgresEnum("mapped_enum", new[] { "happy", "sad" })
                 .HasPostgresEnum<InferredEnum>()
                 .HasPostgresEnum<ByteEnum>()
                 .HasDefaultSchema("test")

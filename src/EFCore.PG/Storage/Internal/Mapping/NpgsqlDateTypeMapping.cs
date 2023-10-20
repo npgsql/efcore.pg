@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
@@ -16,7 +17,18 @@ public class NpgsqlDateTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlDateTypeMapping(Type clrType) : base("date", clrType, NpgsqlDbType.Date) {}
+    public NpgsqlDateTypeMapping(Type clrType)
+        : base(
+            "date",
+            clrType,
+            NpgsqlDbType.Date,
+            jsonValueReaderWriter: clrType == typeof(DateTime)
+                ? JsonDateTimeReaderWriter.Instance
+                : clrType == typeof(DateOnly)
+                    ? JsonDateOnlyReaderWriter.Instance
+                    : throw new ArgumentException("clrType must be DateTime or DateOnly", nameof(clrType)))
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

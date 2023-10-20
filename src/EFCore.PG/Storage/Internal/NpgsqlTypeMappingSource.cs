@@ -84,7 +84,11 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     private readonly NpgsqlStringTypeMapping          _xml                = new("xml", NpgsqlDbType.Xml);
     private readonly NpgsqlStringTypeMapping          _citext             = new("citext", NpgsqlDbType.Citext);
 
-    // JSON mappings
+    // JSON mappings - EF owned entity support
+    private readonly NpgsqlOwnedJsonTypeMapping _jsonbOwned = new("jsonb");
+    private readonly NpgsqlOwnedJsonTypeMapping _jsonOwned = new("json");
+
+    // JSON mappings - older string/weakly-typed support
     private readonly NpgsqlJsonTypeMapping         _jsonbString        = new("jsonb", typeof(string));
     private readonly NpgsqlJsonTypeMapping         _jsonString         = new("json", typeof(string));
     private readonly NpgsqlJsonTypeMapping         _jsonbDocument      = new("jsonb", typeof(JsonDocument));
@@ -304,7 +308,6 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         var clrTypeMappings = new Dictionary<Type, RelationalTypeMapping>
         {
             { typeof(bool),                                _bool                 },
-            { typeof(byte[]),                              _bytea                },
             { typeof(Guid),                                _uuid                 },
 
             { typeof(byte),                                _int2Byte             },
@@ -318,7 +321,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
 
             { typeof(string),                              _text                 },
             { typeof(JsonDocument),                        _jsonbDocument        },
-            { typeof(JsonElement),                         _jsonbElement         },
+            // { typeof(JsonElement),                         _jsonbElement         },
+            { typeof(JsonElement),                         _jsonbOwned           },
             { typeof(char),                                _singleChar           },
 
             { typeof(DateTime),                            LegacyTimestampBehavior ? _timestamp : _timestamptz },
@@ -545,7 +549,12 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
                     }
                 }
 
-                if (storeTypeName == "smallint[]" && clrType == typeof(byte[]))
+                return mapping;
+            }
+
+            if (clrType == typeof(byte[]) && mappingInfo.ElementTypeMapping is null)
+            {
+                if (storeTypeName == "smallint[]")
                 {
                     // PostgreSQL has no tinyint (single-byte) type, but we allow mapping CLR byte to PG smallint (2-bytes).
                     // The same applies to arrays - as always - so byte[] should be mappable to smallint[].
@@ -559,7 +568,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
                     // return null;
                 }
 
-                return mapping;
+                return _bytea;
             }
 
             if (mappingInfo.IsRowVersion == true)
@@ -596,9 +605,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             return null;
         }
 
-        var relationalElementMapping = elementMapping as RelationalTypeMapping;
-
-        Type? elementClrType = null;
+        Type concreteCollectionType;
+        Type? elementType = null;
 
         // TODO: modelType can be null (contrary to nullable annotations) only because of https://github.com/dotnet/efcore/issues/31505,
         // i.e. we call into here
@@ -606,10 +614,10 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         if (modelType is not null)
         {
             // We do GetElementType for multidimensional arrays - these don't implement generic IEnumerable<>
-            elementClrType = modelType.TryGetElementType(typeof(IEnumerable<>)) ?? modelType.GetElementType();
+            elementType = modelType.TryGetElementType(typeof(IEnumerable<>)) ?? modelType.GetElementType();
 
             // E.g. Newtonsoft.Json's JToken is enumerable over itself, exclude that scenario to avoid stack overflow.
-            if (elementClrType is null || elementClrType == modelType || modelType.GetGenericTypeImplementations(typeof(IDictionary<,>)).Any())
+            if (elementType is null || elementType == modelType || modelType.GetGenericTypeImplementations(typeof(IDictionary<,>)).Any())
             {
                 return null;
             }
@@ -618,72 +626,74 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         var storeType = info.StoreTypeName;
         if (storeType is null)
         {
+            if (modelType is null)
+            {
+                return null;
+            }
+
             // If no mapping was found for the element CLR type, there's no mapping for the array.
             // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
-            if (modelType is not null)
+            Check.DebugAssert(elementType is not null, "elementClrType is null");
+
+            var relationalElementMapping = elementMapping as RelationalTypeMapping ?? FindMapping(elementType);
+            if (relationalElementMapping is not { ElementTypeMapping: null })
             {
-                Check.DebugAssert(elementClrType is not null, "elementClrType is null");
+                return null;
+            }
 
-                relationalElementMapping ??= FindMapping(elementClrType);
-
-                if (relationalElementMapping is not null and not NpgsqlArrayTypeMapping
-                    // TODO: NpgsqlArrayConverter currently only supports array and List, so exclude cases with an element converter and a
-                    // non-array/list collection type. #2759.
-                    // TODO: Why exclude if there's an element converter??
-                    && (relationalElementMapping.Converter is null || modelType.IsArrayOrGenericList()))
+            // If the element type mapping is a range, default to return a multirange type mapping (if the PG version supports it).
+            // Otherwise an array over the range will be returned.
+            if (_supportsMultiranges)
+            {
+                if (relationalElementMapping is NpgsqlRangeTypeMapping rangeMapping)
                 {
-                    // If the element type mapping is a range, default to return a multirange type mapping (if the PG version supports it).
-                    // Otherwise an array over the range will be returned.
-                    if (_supportsMultiranges)
+                    var multirangeStoreType = rangeMapping.StoreType switch
                     {
-                        if (relationalElementMapping is NpgsqlRangeTypeMapping rangeMapping)
-                        {
-                            var multirangeStoreType = rangeMapping.StoreType switch
-                            {
-                                "int4range" => "int4multirange",
-                                "int8range" => "int8multirange",
-                                "numrange" => "nummultirange",
-                                "tsrange" => "tsmultirange",
-                                "tstzrange" => "tstzmultirange",
-                                "daterange" => "datemultirange",
+                        "int4range" => "int4multirange",
+                        "int8range" => "int8multirange",
+                        "numrange" => "nummultirange",
+                        "tsrange" => "tsmultirange",
+                        "tstzrange" => "tstzmultirange",
+                        "daterange" => "datemultirange",
 
-                                _ => throw new InvalidOperationException(
-                                    $"Cannot create multirange type mapping for range type '{rangeMapping.StoreType}'")
-                            };
+                        _ => throw new InvalidOperationException(
+                            $"Cannot create multirange type mapping for range type '{rangeMapping.StoreType}'")
+                    };
 
-                            return new NpgsqlMultirangeTypeMapping(multirangeStoreType, modelType, rangeMapping);
-                        }
+                    return new NpgsqlMultirangeTypeMapping(multirangeStoreType, modelType, rangeMapping);
+                }
 
-                        // TODO: This needs to move to the NodaTime plugin, but there's no FindCollectionMapping extension yet for plugins
-                        if (relationalElementMapping.GetType() is
-                            { Name: "IntervalRangeMapping", Namespace: "Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal" } type1)
-                        {
-                            return (RelationalTypeMapping)Activator.CreateInstance(
-                                type1.Assembly.GetType(
-                                    "Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.IntervalMultirangeMapping")!,
-                                modelType,
-                                relationalElementMapping)!;
-                        }
+                // TODO: This needs to move to the NodaTime plugin, but there's no FindCollectionMapping extension yet for plugins
+                if (relationalElementMapping.GetType() is
+                    { Name: "IntervalRangeMapping", Namespace: "Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal" } type1)
+                {
+                    return (RelationalTypeMapping)Activator.CreateInstance(
+                        type1.Assembly.GetType(
+                            "Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.IntervalMultirangeMapping")!,
+                        modelType,
+                        relationalElementMapping)!;
+                }
 
-                        if (relationalElementMapping.GetType() is
-                            { Name: "DateIntervalRangeMapping", Namespace: "Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal" } type2)
-                        {
-                            return (RelationalTypeMapping)Activator.CreateInstance(
-                                type2.Assembly.GetType(
-                                    "Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.DateIntervalMultirangeMapping")!,
-                                modelType,
-                                relationalElementMapping)!;
-                        }
-                    }
-
-                    // Not a multirange - map as a PG array type
-                    return (NpgsqlArrayTypeMapping)Activator.CreateInstance(
-                        typeof(NpgsqlArrayTypeMapping<,>).MakeGenericType(modelType, elementClrType),
+                if (relationalElementMapping.GetType() is
+                    { Name: "DateIntervalRangeMapping", Namespace: "Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal" } type2)
+                {
+                    return (RelationalTypeMapping)Activator.CreateInstance(
+                        type2.Assembly.GetType(
+                            "Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.DateIntervalMultirangeMapping")!,
+                        modelType,
                         relationalElementMapping)!;
                 }
             }
+
+            // Not a multirange - map as a PG array type
+            concreteCollectionType = FindTypeToInstantiate(modelType, elementType);
+
+            return (NpgsqlArrayTypeMapping)Activator.CreateInstance(
+                typeof(NpgsqlArrayTypeMapping<,,>).MakeGenericType(modelType, concreteCollectionType, elementType),
+                relationalElementMapping)!;
         }
-        else if (storeType.EndsWith("[]", StringComparison.Ordinal))
+
+        if (storeType.EndsWith("[]", StringComparison.Ordinal))
         {
             // We have an array store type (either because we're reverse engineering or the user explicitly specified it)
             var elementStoreType = storeType.Substring(0, storeType.Length - 2);
@@ -691,22 +701,34 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             // Note that we ignore the elementMapping argument here (but not in the CLR type-only path above).
             // This is because the user-provided storeType for the array should take precedence over the element type mapping that gets
             // calculated purely based on the element's CLR type in base.FindMappingWithConversion.
-            relationalElementMapping = elementClrType is null
-                ? FindMapping(elementStoreType)
-                : FindMapping(elementClrType, elementStoreType);
+            var relationalElementMapping = elementMapping as RelationalTypeMapping
+                ?? (elementType is null
+                    ? FindMapping(elementStoreType)
+                    : FindMapping(elementType, elementStoreType));
+            if (relationalElementMapping is not { ElementTypeMapping: null })
+            {
+                return null;
+            }
 
             // If no mapping was found for the element, there's no mapping for the array.
             // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
-            if (relationalElementMapping is not null and not NpgsqlArrayTypeMapping
-                // TODO: NpgsqlArrayConverter currently only supports array and List, so exclude cases with an element converter and a
-                // non-array/list collection type. #2759.
-                && (relationalElementMapping.Converter is null || modelType is null || modelType.IsArrayOrGenericList()))
+            if (relationalElementMapping is not null and not NpgsqlArrayTypeMapping)
             {
-                // TODO: Consider returning List<T> by default for scaffolding, more useful, #2758
+                if (modelType is null)
+                {
+                    // There's no model type - we're scaffolding purely from the store type.
+                    // TODO: Consider returning List<T> by default for scaffolding, more useful, #2758
+                    elementType = relationalElementMapping.ClrType;
+                    modelType = concreteCollectionType = elementType.MakeArrayType();
+                }
+                else
+                {
+                    concreteCollectionType = FindTypeToInstantiate(modelType, elementType!);
+                    Check.DebugAssert(elementType is not null, "elementType is null");
+                }
+
                 return (NpgsqlArrayTypeMapping)Activator.CreateInstance(
-                    typeof(NpgsqlArrayTypeMapping<,>).MakeGenericType(
-                        modelType ?? relationalElementMapping.ClrType.MakeArrayType(),
-                        relationalElementMapping.ClrType),
+                    typeof(NpgsqlArrayTypeMapping<,,>).MakeGenericType(modelType, concreteCollectionType, elementType),
                     storeType, relationalElementMapping)!;
             }
         }
@@ -715,9 +737,9 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             // Note that we ignore the elementMapping argument here (but not in the CLR type-only path above).
             // This is because the user-provided storeType for the array should take precedence over the element type mapping that gets
             // calculated purely based on the element's CLR type in base.FindMappingWithConversion.
-            relationalElementMapping = elementClrType is null
+            var relationalElementMapping = elementType is null
                 ? FindMapping(rangeStoreType)
-                : FindMapping(elementClrType, rangeStoreType);
+                : FindMapping(elementType, rangeStoreType);
 
             // If no mapping was found for the element, there's no mapping for the array.
             // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
@@ -768,6 +790,32 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             };
 
             return rangeStoreType is not null;
+        }
+
+        static Type FindTypeToInstantiate(Type collectionType, Type elementType)
+        {
+            if (collectionType.IsArray)
+            {
+                return collectionType;
+            }
+
+            var listOfT = typeof(List<>).MakeGenericType(elementType);
+
+            if (collectionType.IsAssignableFrom(listOfT))
+            {
+                if (!collectionType.IsAbstract)
+                {
+                    var constructor = collectionType.GetDeclaredConstructor(null);
+                    if (constructor?.IsPublic == true)
+                    {
+                        return collectionType;
+                    }
+                }
+
+                return listOfT;
+            }
+
+            return collectionType;
         }
     }
 

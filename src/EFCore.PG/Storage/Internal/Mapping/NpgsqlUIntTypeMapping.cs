@@ -1,4 +1,6 @@
-﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+﻿using Microsoft.EntityFrameworkCore.Storage.Json;
+
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
 ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -15,7 +17,9 @@ public class NpgsqlUintTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlUintTypeMapping(string storeType, NpgsqlDbType npgsqlDbType)
-        : base(storeType, typeof(uint), npgsqlDbType) {}
+        : base(storeType, typeof(uint), npgsqlDbType, JsonUInt32ReaderWriter.Instance)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

@@ -19,9 +19,9 @@ public class PgNewArrayExpression : SqlExpression
     {
         Check.NotNull(expressions, nameof(expressions));
 
-        if (!type.IsArrayOrGenericList())
+        if (type.TryGetElementType(typeof(IEnumerable<>)) is null)
         {
-            throw new ArgumentException($"{nameof(PgNewArrayExpression)} must have an array type");
+            throw new ArgumentException($"{nameof(PgNewArrayExpression)} must have an IEnumerable<T> type");
         }
 
         Expressions = expressions;

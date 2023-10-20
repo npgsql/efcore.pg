@@ -241,7 +241,7 @@ public class NpgsqlTypeMappingSourceTest
         var arrayConverter = arrayMapping.Converter;
         Assert.NotNull(arrayConverter);
         Assert.Same(expectedType, arrayConverter.ModelClrType);
-        Assert.Same(expectedType.IsArray ? typeof(string[]) : typeof(List<string>), arrayConverter.ProviderClrType);
+        Assert.Same(typeof(string[]), arrayConverter.ProviderClrType);
 
         Assert.Collection((ICollection<string>)arrayConverter.ConvertToProvider(
                 expectedType.IsArray

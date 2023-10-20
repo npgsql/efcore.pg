@@ -294,11 +294,11 @@ public class NpgsqlTypeMappingTest
 
     [Fact]
     public void GenerateSqlLiteral_returns_box_literal()
-        => Assert.Equal("BOX '((2,1),(4,3))'", GetMapping("box").GenerateSqlLiteral(new NpgsqlBox(1, 2, 3, 4)));
+        => Assert.Equal("BOX '((4,3),(2,1))'", GetMapping("box").GenerateSqlLiteral(new NpgsqlBox(1, 2, 3, 4)));
 
     [Fact]
     public void GenerateCodeLiteral_returns_box_literal()
-        => Assert.Equal("new NpgsqlTypes.NpgsqlBox(1.0, 2.0, 3.0, 4.0)", CodeLiteral(new NpgsqlBox(1, 2, 3, 4)));
+        => Assert.Equal("new NpgsqlTypes.NpgsqlBox(3.0, 4.0, 1.0, 2.0)", CodeLiteral(new NpgsqlBox(1, 2, 3, 4)));
 
     [Fact]
     public void GenerateSqlLiteral_returns_path_closed_literal()
@@ -790,37 +790,35 @@ public class NpgsqlTypeMappingTest
 
     [Fact]
     public void GenerateSqlLiteral_returns_jsonb_string_literal()
-        => Assert.Equal(@"'{""a"":1}'", GetMapping("jsonb").GenerateSqlLiteral(@"{""a"":1}"));
+        => Assert.Equal("""'{"a":1}'""", GetMapping("jsonb").GenerateSqlLiteral("""{"a":1}"""));
 
     [Fact]
     public void GenerateSqlLiteral_returns_json_string_literal()
-        => Assert.Equal(@"'{""a"":1}'", GetMapping("json").GenerateSqlLiteral(@"{""a"":1}"));
+        => Assert.Equal("""'{"a":1}'""", GetMapping("json").GenerateSqlLiteral("""{"a":1}"""));
 
 
     [Fact]
     public void GenerateSqlLiteral_returns_jsonb_object_literal()
     {
         var literal = Mapper.FindMapping(typeof(Customer), "jsonb").GenerateSqlLiteral(SampleCustomer);
-        Assert.Equal(@"'{""Name"":""Joe"",""Age"":25,""IsVip"":false,""Orders"":[" +
-            @"{""Price"":99.5,""ShippingAddress"":""Some address 1"",""ShippingDate"":""2019-10-01T00:00:00""}," +
-            @"{""Price"":23,""ShippingAddress"":""Some address 2"",""ShippingDate"":""2019-10-10T00:00:00""}" +
-            @"]}'", literal);
+        Assert.Equal(
+            """'{"Name":"Joe","Age":25,"IsVip":false,"Orders":[{"Price":99.5,"ShippingAddress":"Some address 1","ShippingDate":"2019-10-01T00:00:00"},{"Price":23,"ShippingAddress":"Some address 2","ShippingDate":"2019-10-10T00:00:00"}]}'""",
+            literal);
     }
 
     [Fact]
     public void GenerateSqlLiteral_returns_json_object_literal()
     {
         var literal = Mapper.FindMapping(typeof(Customer), "json").GenerateSqlLiteral(SampleCustomer);
-        Assert.Equal(@"'{""Name"":""Joe"",""Age"":25,""IsVip"":false,""Orders"":[" +
-            @"{""Price"":99.5,""ShippingAddress"":""Some address 1"",""ShippingDate"":""2019-10-01T00:00:00""}," +
-            @"{""Price"":23,""ShippingAddress"":""Some address 2"",""ShippingDate"":""2019-10-10T00:00:00""}" +
-            @"]}'", literal);
+        Assert.Equal(
+            """'{"Name":"Joe","Age":25,"IsVip":false,"Orders":[{"Price":99.5,"ShippingAddress":"Some address 1","ShippingDate":"2019-10-01T00:00:00"},{"Price":23,"ShippingAddress":"Some address 2","ShippingDate":"2019-10-10T00:00:00"}]}'""",
+            literal);
     }
 
     [Fact]
     public void GenerateSqlLiteral_returns_jsonb_document_literal()
     {
-        var json = @"{""Name"":""Joe"",""Age"":25}";
+        var json = """{"Name":"Joe","Age":25}""";
         var literal = Mapper.FindMapping(typeof(JsonDocument), "jsonb").GenerateSqlLiteral(JsonDocument.Parse(json));
         Assert.Equal($"'{json}'", literal);
     }
@@ -828,7 +826,7 @@ public class NpgsqlTypeMappingTest
     [Fact]
     public void GenerateSqlLiteral_returns_json_document_literal()
     {
-        var json = @"{""Name"":""Joe"",""Age"":25}";
+        var json = """{"Name":"Joe","Age":25}""";
         var literal = Mapper.FindMapping(typeof(JsonDocument), "json").GenerateSqlLiteral(JsonDocument.Parse(json));
         Assert.Equal($"'{json}'", literal);
     }
@@ -836,7 +834,7 @@ public class NpgsqlTypeMappingTest
     [Fact]
     public void GenerateSqlLiteral_returns_jsonb_element_literal()
     {
-        var json = @"{""Name"":""Joe"",""Age"":25}";
+        var json = """{"Name":"Joe","Age":25}""";
         var literal = Mapper.FindMapping(typeof(JsonElement), "jsonb").GenerateSqlLiteral(JsonDocument.Parse(json).RootElement);
         Assert.Equal($"'{json}'", literal);
     }
@@ -844,7 +842,7 @@ public class NpgsqlTypeMappingTest
     [Fact]
     public void GenerateSqlLiteral_returns_json_element_literal()
     {
-        var json = @"{""Name"":""Joe"",""Age"":25}";
+        var json = """{"Name":"Joe","Age":25}""";
         var literal = Mapper.FindMapping(typeof(JsonElement), "json").GenerateSqlLiteral(JsonDocument.Parse(json).RootElement);
         Assert.Equal($"'{json}'", literal);
     }
@@ -852,19 +850,24 @@ public class NpgsqlTypeMappingTest
     [Fact]
     public void GenerateCodeLiteral_returns_json_document_literal()
         => Assert.Equal(
-            @"System.Text.Json.JsonDocument.Parse(""{\""Name\"":\""Joe\"",\""Age\"":25}"", new System.Text.Json.JsonDocumentOptions())",
+            """System.Text.Json.JsonDocument.Parse("{\"Name\":\"Joe\",\"Age\":25}", new System.Text.Json.JsonDocumentOptions())""",
             CodeLiteral(JsonDocument.Parse(@"{""Name"":""Joe"",""Age"":25}")));
 
     [Fact]
     public void GenerateCodeLiteral_returns_json_element_literal()
-        => Assert.Equal(
-            @"System.Text.Json.JsonDocument.Parse(""{\""Name\"":\""Joe\"",\""Age\"":25}"", new System.Text.Json.JsonDocumentOptions()).RootElement",
-            CodeLiteral(JsonDocument.Parse(@"{""Name"":""Joe"",""Age"":25}").RootElement));
+    {
+        // TODO: https://github.com/dotnet/efcore/issues/32192
+        Assert.Throws<NotSupportedException>(() => CodeLiteral(JsonDocument.Parse(@"{""Name"":""Joe"",""Age"":25}").RootElement));
+
+        // Assert.Equal(
+        //     """System.Text.Json.JsonDocument.Parse("{\"Name\":\"Joe\",\"Age\":25}", new System.Text.Json.JsonDocumentOptions()).RootElement""",
+        //     CodeLiteral(JsonDocument.Parse(@"{""Name"":""Joe"",""Age"":25}").RootElement));
+    }
 
     [Fact]
     public void ValueComparer_JsonDocument()
     {
-        var json = @"{""Name"":""Joe"",""Age"":25}";
+        var json = """{"Name":"Joe","Age":25}""";
         var source = JsonDocument.Parse(json);
 
         var comparer = GetMapping(typeof(JsonDocument)).Comparer;
@@ -876,7 +879,7 @@ public class NpgsqlTypeMappingTest
     [Fact]
     public void ValueComparer_JsonElement()
     {
-        var json = @"{""Name"":""Joe"",""Age"":25}";
+        var json = """{"Name":"Joe","Age":25}""";
         var source = JsonDocument.Parse(json).RootElement;
 
         var comparer = GetMapping(typeof(JsonElement)).Comparer;

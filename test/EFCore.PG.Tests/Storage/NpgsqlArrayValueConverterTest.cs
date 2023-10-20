@@ -5,7 +5,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage;
 public class NpgsqlArrayValueConverterTest
 {
     private static readonly ValueConverter<Beatles[], int[]> EnumArrayToNumberArray
-        = new NpgsqlArrayConverter<Beatles[], int[]>(new EnumToNumberConverter<Beatles, int>());
+        = new NpgsqlArrayConverter<Beatles[], Beatles[], int[]>(new EnumToNumberConverter<Beatles, int>());
 
     [ConditionalFact]
     public void Can_convert_enum_arrays_to_number_arrays()

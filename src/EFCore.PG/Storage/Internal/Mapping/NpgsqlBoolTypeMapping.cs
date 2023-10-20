@@ -6,7 +6,7 @@
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlBoolTypeMapping : RelationalTypeMapping
+public class NpgsqlBoolTypeMapping : BoolTypeMapping
 {
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -14,7 +14,7 @@ public class NpgsqlBoolTypeMapping : RelationalTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlBoolTypeMapping() : base("boolean", typeof(bool), System.Data.DbType.Boolean) {}
+    public NpgsqlBoolTypeMapping() : base("boolean") {}
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

@@ -1,3 +1,6 @@
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Storage.Json;
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
@@ -21,7 +24,8 @@ public class NpgsqlLTreeTypeMapping : NpgsqlStringTypeMapping
             new RelationalTypeMappingParameters(
                 new CoreTypeMappingParameters(
                     typeof(LTree),
-                    new ValueConverter<LTree, string>(l => l, s => new(s))),
+                    new ValueConverter<LTree, string>(l => l, s => new(s)),
+                    jsonValueReaderWriter: JsonLTreeReaderWriter.Instance),
                 "ltree"),
             NpgsqlDbType.LTree)
     {
@@ -55,4 +59,15 @@ public class NpgsqlLTreeTypeMapping : NpgsqlStringTypeMapping
     /// </summary>
     public override Expression GenerateCodeLiteral(object value)
         => Expression.New(Constructor, Expression.Constant((string)(LTree)value, typeof(string)));
+
+    private sealed class JsonLTreeReaderWriter : JsonValueReaderWriter<LTree>
+    {
+        public static JsonLTreeReaderWriter Instance { get; } = new();
+
+        public override LTree FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+            => manager.CurrentReader.GetString()!;
+
+        public override void ToJsonTyped(Utf8JsonWriter writer, LTree value)
+            => writer.WriteStringValue(value.ToString());
+    }
 }

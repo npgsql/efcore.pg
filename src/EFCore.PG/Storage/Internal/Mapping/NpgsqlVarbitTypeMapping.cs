@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Text;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
@@ -17,7 +18,10 @@ public class NpgsqlVarbitTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlVarbitTypeMapping() : base("bit varying", typeof(BitArray), NpgsqlDbType.Varbit) {}
+    public NpgsqlVarbitTypeMapping()
+        : base("bit varying", typeof(BitArray), NpgsqlDbType.Varbit, jsonValueReaderWriter: JsonBitArrayReaderWriter.Instance)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
