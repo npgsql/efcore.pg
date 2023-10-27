@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 /// <summary>
-///     Locates instances of <see cref="PostgresUnnestExpression"/> in the tree and prunes the WITH ORDINALITY clause from them if the
+///     Locates instances of <see cref="PgUnnestExpression"/> in the tree and prunes the WITH ORDINALITY clause from them if the
 ///     ordinality column isn't referenced anywhere.
 /// </summary>
 /// <remarks>
@@ -42,7 +42,7 @@ public class NpgsqlUnnestPostprocessor : ExpressionVisitor
 
                     // Find any unnest table which does not have any references to its ordinality column in the projection or orderings
                     // (this is where they may appear when a column is an identifier).
-                    var unnest = table as PostgresUnnestExpression ?? (table as JoinExpressionBase)?.Table as PostgresUnnestExpression;
+                    var unnest = table as PgUnnestExpression ?? (table as JoinExpressionBase)?.Table as PgUnnestExpression;
                     if (unnest is not null
                         && !selectExpression.Orderings.Select(o => o.Expression)
                             .Concat(selectExpression.Projection.Select(p => p.Expression))
@@ -59,7 +59,7 @@ public class NpgsqlUnnestPostprocessor : ExpressionVisitor
                             }
                         }
 
-                        var newUnnest = new PostgresUnnestExpression(unnest.Alias, unnest.Array, unnest.ColumnName, withOrdinality: false);
+                        var newUnnest = new PgUnnestExpression(unnest.Alias, unnest.Array, unnest.ColumnName, withOrdinality: false);
 
                         // TODO: Simplify this via the newly-introduced JoinExpressionBase.Update
                         newTables[i] = table switch
@@ -69,7 +69,7 @@ public class NpgsqlUnnestPostprocessor : ExpressionVisitor
                             CrossJoinExpression cj => cj.Update(newUnnest),
                             CrossApplyExpression ca => ca.Update(newUnnest),
                             OuterApplyExpression oa => oa.Update(newUnnest),
-                            PostgresUnnestExpression => newUnnest,
+                            PgUnnestExpression => newUnnest,
                             _ => throw new UnreachableException()
                         };
                     }

@@ -67,32 +67,32 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
             return method.Name switch
             {
                 nameof(LTree.IsAncestorOf)
-                    => new PostgresBinaryExpression(
-                        PostgresExpressionType.Contains,
+                    => new PgBinaryExpression(
+                        PgExpressionType.Contains,
                         ApplyTypeMappingOrConvert(instance!, _ltreeTypeMapping),
                         ApplyTypeMappingOrConvert(arguments[0], _ltreeTypeMapping),
                         typeof(bool),
                         _boolTypeMapping),
 
                 nameof(LTree.IsDescendantOf)
-                    => new PostgresBinaryExpression(
-                        PostgresExpressionType.ContainedBy,
+                    => new PgBinaryExpression(
+                        PgExpressionType.ContainedBy,
                         ApplyTypeMappingOrConvert(instance!, _ltreeTypeMapping),
                         ApplyTypeMappingOrConvert(arguments[0], _ltreeTypeMapping),
                         typeof(bool),
                         _boolTypeMapping),
 
                 nameof(LTree.MatchesLQuery)
-                    => new PostgresBinaryExpression(
-                        PostgresExpressionType.LTreeMatches,
+                    => new PgBinaryExpression(
+                        PgExpressionType.LTreeMatches,
                         ApplyTypeMappingOrConvert(instance!, _ltreeTypeMapping),
                         ApplyTypeMappingOrConvert(arguments[0], _lqueryTypeMapping),
                         typeof(bool),
                         _boolTypeMapping),
 
                 nameof(LTree.MatchesLTxtQuery)
-                    => new PostgresBinaryExpression(
-                        PostgresExpressionType.LTreeMatches,
+                    => new PgBinaryExpression(
+                        PgExpressionType.LTreeMatches,
                         ApplyTypeMappingOrConvert(instance!, _ltreeTypeMapping),
                         ApplyTypeMappingOrConvert(arguments[0], _ltxtqueryTypeMapping),
                         typeof(bool),

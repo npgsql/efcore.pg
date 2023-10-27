@@ -125,14 +125,14 @@ public class NpgsqlNetworkTranslator : IMethodCallTranslator
                 => _sqlExpressionFactory.ContainedBy(arguments[1], arguments[2]),
             nameof(NpgsqlNetworkDbFunctionsExtensions.ContainedByOrEqual)
                 => _sqlExpressionFactory.MakePostgresBinary(
-                    PostgresExpressionType.NetworkContainedByOrEqual, arguments[1], arguments[2]),
+                    PgExpressionType.NetworkContainedByOrEqual, arguments[1], arguments[2]),
             nameof(NpgsqlNetworkDbFunctionsExtensions.Contains)
                 => _sqlExpressionFactory.Contains(arguments[1], arguments[2]),
             nameof(NpgsqlNetworkDbFunctionsExtensions.ContainsOrEqual)
-                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.NetworkContainsOrEqual, arguments[1], arguments[2]),
+                => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.NetworkContainsOrEqual, arguments[1], arguments[2]),
             nameof(NpgsqlNetworkDbFunctionsExtensions.ContainsOrContainedBy)
                 => _sqlExpressionFactory.MakePostgresBinary(
-                    PostgresExpressionType.NetworkContainsOrContainedBy, arguments[1], arguments[2]),
+                    PgExpressionType.NetworkContainsOrContainedBy, arguments[1], arguments[2]),
 
             nameof(NpgsqlNetworkDbFunctionsExtensions.BitwiseNot)
                 => new SqlUnaryExpression(

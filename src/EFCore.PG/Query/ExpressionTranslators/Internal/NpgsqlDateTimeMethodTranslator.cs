@@ -204,7 +204,7 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
 
             if (method == DateTime_Distance)
             {
-                return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.Distance, arguments[1], arguments[2]);
+                return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]);
             }
         }
         else
@@ -249,7 +249,7 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
 
             if (method == DateOnly_Distance)
             {
-                return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.Distance, arguments[1], arguments[2]);
+                return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]);
             }
         }
         else

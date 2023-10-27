@@ -73,7 +73,7 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator, IMethodCallTranslator
         Type returnType,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (instance?.TypeMapping is not NpgsqlJsonTypeMapping && instance is not PostgresJsonTraversalExpression)
+        if (instance?.TypeMapping is not NpgsqlJsonTypeMapping && instance is not PgJsonTraversalExpression)
         {
             return null;
         }
@@ -111,7 +111,7 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator, IMethodCallTranslator
                         _stringTypeMapping),
                     returnType),
 
-            PostgresJsonTraversalExpression prevPathTraversal
+            PgJsonTraversalExpression prevPathTraversal
                 => ConvertFromText(
                     prevPathTraversal.Append(_sqlExpressionFactory.ApplyDefaultTypeMapping(member)),
                     returnType),
@@ -137,11 +137,11 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator, IMethodCallTranslator
                     argumentsPropagateNullability: TrueArrays[2],
                     typeof(int));
 
-            case PostgresJsonTraversalExpression traversal:
+            case PgJsonTraversalExpression traversal:
                 // The traversal expression has ReturnsText=true (e.g. ->> not ->), so we recreate it to return
                 // the JSON object instead.
                 var lastPathComponent = traversal.Path.Last();
-                var newTraversal = new PostgresJsonTraversalExpression(
+                var newTraversal = new PgJsonTraversalExpression(
                     traversal.Expression, traversal.Path,
                     returnsText: false,
                     lastPathComponent.Type,

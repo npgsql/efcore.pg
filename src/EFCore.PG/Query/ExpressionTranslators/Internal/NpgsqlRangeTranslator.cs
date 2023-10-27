@@ -111,21 +111,21 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
             nameof(NpgsqlRangeDbFunctionsExtensions.Overlaps)
                 => _sqlExpressionFactory.Overlaps(arguments[0], arguments[1]),
             nameof(NpgsqlRangeDbFunctionsExtensions.IsStrictlyLeftOf)
-                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeIsStrictlyLeftOf, arguments[0], arguments[1]),
+                => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.RangeIsStrictlyLeftOf, arguments[0], arguments[1]),
             nameof(NpgsqlRangeDbFunctionsExtensions.IsStrictlyRightOf)
-                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeIsStrictlyRightOf, arguments[0], arguments[1]),
+                => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.RangeIsStrictlyRightOf, arguments[0], arguments[1]),
             nameof(NpgsqlRangeDbFunctionsExtensions.DoesNotExtendRightOf)
-                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeDoesNotExtendRightOf, arguments[0], arguments[1]),
+                => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.RangeDoesNotExtendRightOf, arguments[0], arguments[1]),
             nameof(NpgsqlRangeDbFunctionsExtensions.DoesNotExtendLeftOf)
-                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeDoesNotExtendLeftOf, arguments[0], arguments[1]),
+                => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.RangeDoesNotExtendLeftOf, arguments[0], arguments[1]),
             nameof(NpgsqlRangeDbFunctionsExtensions.IsAdjacentTo)
-                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeIsAdjacentTo, arguments[0], arguments[1]),
+                => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.RangeIsAdjacentTo, arguments[0], arguments[1]),
             nameof(NpgsqlRangeDbFunctionsExtensions.Union)
-                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeUnion, arguments[0], arguments[1]),
+                => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.RangeUnion, arguments[0], arguments[1]),
             nameof(NpgsqlRangeDbFunctionsExtensions.Intersect)
-                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeIntersect, arguments[0], arguments[1]),
+                => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.RangeIntersect, arguments[0], arguments[1]),
             nameof(NpgsqlRangeDbFunctionsExtensions.Except)
-                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeExcept, arguments[0], arguments[1]),
+                => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.RangeExcept, arguments[0], arguments[1]),
 
             _ => null
         };

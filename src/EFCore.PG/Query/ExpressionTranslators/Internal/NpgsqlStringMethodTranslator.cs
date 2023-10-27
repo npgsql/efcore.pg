@@ -297,7 +297,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
         {
             // If the array of strings to be joined is a constant (NewArrayExpression), we translate to concat_ws.
             // Otherwise we translate to array_to_string, which also supports array columns and parameters.
-            if (arguments[1] is PostgresNewArrayExpression newArrayExpression)
+            if (arguments[1] is PgNewArrayExpression newArrayExpression)
             {
                 var rewrittenArguments = new SqlExpression[newArrayExpression.Expressions.Count + 1];
                 rewrittenArguments[0] = arguments[0];

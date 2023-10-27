@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents a PostgreSQL JSON operator traversing a JSON document with a path (i.e. x#>y or x#>>y)
 /// </summary>
-public class PostgresJsonTraversalExpression : SqlExpression, IEquatable<PostgresJsonTraversalExpression>
+public class PgJsonTraversalExpression : SqlExpression, IEquatable<PgJsonTraversalExpression>
 {
     /// <summary>
     /// The match expression.
@@ -21,9 +21,9 @@ public class PostgresJsonTraversalExpression : SqlExpression, IEquatable<Postgre
     public virtual bool ReturnsText { get; }
 
     /// <summary>
-    /// Constructs a <see cref="PostgresJsonTraversalExpression"/>.
+    /// Constructs a <see cref="PgJsonTraversalExpression"/>.
     /// </summary>
-    public PostgresJsonTraversalExpression(
+    public PgJsonTraversalExpression(
         SqlExpression expression,
         IReadOnlyList<SqlExpression> path,
         bool returnsText,
@@ -51,17 +51,17 @@ public class PostgresJsonTraversalExpression : SqlExpression, IEquatable<Postgre
     ///     Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
     ///     return this expression.
     /// </summary>
-    public virtual PostgresJsonTraversalExpression Update(SqlExpression expression, IReadOnlyList<SqlExpression> path)
+    public virtual PgJsonTraversalExpression Update(SqlExpression expression, IReadOnlyList<SqlExpression> path)
         => expression == Expression &&
             path.Count == Path.Count &&
             path.Zip(Path, (x, y) => (x, y)).All(tup => tup.x == tup.y)
                 ? this
-                : new PostgresJsonTraversalExpression(expression, path, ReturnsText, Type, TypeMapping);
+                : new PgJsonTraversalExpression(expression, path, ReturnsText, Type, TypeMapping);
 
     /// <summary>
-    ///     Appends an additional path component to this <see cref="PostgresJsonTraversalExpression" /> and returns the result.
+    ///     Appends an additional path component to this <see cref="PgJsonTraversalExpression" /> and returns the result.
     /// </summary>
-    public virtual PostgresJsonTraversalExpression Append(SqlExpression pathComponent)
+    public virtual PgJsonTraversalExpression Append(SqlExpression pathComponent)
     {
         var newPath = new SqlExpression[Path.Count + 1];
         for (var i = 0; i < Path.Count(); i++)
@@ -70,14 +70,14 @@ public class PostgresJsonTraversalExpression : SqlExpression, IEquatable<Postgre
         }
 
         newPath[newPath.Length - 1] = pathComponent;
-        return new PostgresJsonTraversalExpression(Expression, newPath, ReturnsText, Type, TypeMapping);
+        return new PgJsonTraversalExpression(Expression, newPath, ReturnsText, Type, TypeMapping);
     }
 
     /// <inheritdoc />
-    public override bool Equals(object? obj) => Equals(obj as PostgresJsonTraversalExpression);
+    public override bool Equals(object? obj) => Equals(obj as PgJsonTraversalExpression);
 
     /// <inheritdoc />
-    public virtual bool Equals(PostgresJsonTraversalExpression? other)
+    public virtual bool Equals(PgJsonTraversalExpression? other)
         => ReferenceEquals(this, other) ||
             other is not null &&
             base.Equals(other) &&

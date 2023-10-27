@@ -7,7 +7,7 @@
 /// All type mappings must be applied to the operands before the expression is constructed, since there's
 /// no inference logic for it in <see cref="NpgsqlSqlExpressionFactory" />.
 /// </summary>
-public class PostgresUnknownBinaryExpression : SqlExpression, IEquatable<PostgresUnknownBinaryExpression>
+public class PgUnknownBinaryExpression : SqlExpression, IEquatable<PgUnknownBinaryExpression>
 {
     /// <summary>
     /// The left-hand expression.
@@ -25,7 +25,7 @@ public class PostgresUnknownBinaryExpression : SqlExpression, IEquatable<Postgre
     public virtual string Operator { get; }
 
     /// <summary>
-    /// Constructs a <see cref="PostgresUnknownBinaryExpression"/>.
+    /// Constructs a <see cref="PgUnknownBinaryExpression"/>.
     /// </summary>
     /// <param name="left">The left-hand expression.</param>
     /// <param name="right">The right-hand expression.</param>
@@ -33,7 +33,7 @@ public class PostgresUnknownBinaryExpression : SqlExpression, IEquatable<Postgre
     /// <param name="type">The result type.</param>
     /// <param name="typeMapping">The type mapping for the expression.</param>
     /// <exception cref="ArgumentNullException" />
-    public PostgresUnknownBinaryExpression(
+    public PgUnknownBinaryExpression(
         SqlExpression left,
         SqlExpression right,
         string binaryOperator,
@@ -54,13 +54,13 @@ public class PostgresUnknownBinaryExpression : SqlExpression, IEquatable<Postgre
     ///     Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
     ///     return this expression.
     /// </summary>
-    public virtual PostgresUnknownBinaryExpression Update(SqlExpression left, SqlExpression right)
+    public virtual PgUnknownBinaryExpression Update(SqlExpression left, SqlExpression right)
         => left == Left && right == Right
             ? this
-            : new PostgresUnknownBinaryExpression(left, right, Operator, Type, TypeMapping);
+            : new PgUnknownBinaryExpression(left, right, Operator, Type, TypeMapping);
 
     /// <inheritdoc />
-    public virtual bool Equals(PostgresUnknownBinaryExpression? other)
+    public virtual bool Equals(PgUnknownBinaryExpression? other)
         => ReferenceEquals(this, other) ||
             other is not null &&
             Left.Equals(other.Left) &&
@@ -68,7 +68,7 @@ public class PostgresUnknownBinaryExpression : SqlExpression, IEquatable<Postgre
             Operator == other.Operator;
 
     /// <inheritdoc />
-    public override bool Equals(object? obj) => obj is PostgresUnknownBinaryExpression e && Equals(e);
+    public override bool Equals(object? obj) => obj is PgUnknownBinaryExpression e && Equals(e);
 
     /// <inheritdoc />
     public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Left, Right, Operator);

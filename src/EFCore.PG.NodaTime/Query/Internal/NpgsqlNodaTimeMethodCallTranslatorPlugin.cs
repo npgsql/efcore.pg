@@ -203,7 +203,7 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
 
         if (method == Instant_Distance)
         {
-            return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.Distance, arguments[1], arguments[2]);
+            return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]);
         }
 
         return null;
@@ -232,7 +232,7 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
 
         if (method == ZonedDateTime_Distance)
         {
-            return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.Distance, arguments[1], arguments[2]);
+            return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]);
         }
 
         return null;
@@ -250,7 +250,7 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
 
         if (method == LocalDateTime_Distance)
         {
-            return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.Distance, arguments[1], arguments[2]);
+            return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]);
         }
 
         return null;
@@ -263,7 +263,7 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
     {
         if (method == LocalDate_Distance)
         {
-            return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.Distance, arguments[1], arguments[2]);
+            return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]);
         }
 
         return null;
@@ -318,8 +318,8 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
 
         return null;
 
-        static PostgresFunctionExpression IntervalPart(string datePart, SqlExpression parameter)
-            => PostgresFunctionExpression.CreateWithNamedArguments(
+        static PgFunctionExpression IntervalPart(string datePart, SqlExpression parameter)
+            => PgFunctionExpression.CreateWithNamedArguments(
                 "make_interval",
                 new[] { parameter },
                 new[] { datePart },
@@ -329,7 +329,7 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
                 typeof(Period),
                 typeMapping: null);
 
-        PostgresFunctionExpression IntervalPartOverBigInt(string datePart, SqlExpression parameter)
+        PgFunctionExpression IntervalPartOverBigInt(string datePart, SqlExpression parameter)
         {
             parameter = _sqlExpressionFactory.ApplyDefaultTypeMapping(parameter);
 
@@ -376,12 +376,12 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
 
         if (method == DateInterval_Intersection)
         {
-            return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeIntersect, instance!, arguments[0]);
+            return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.RangeIntersect, instance!, arguments[0]);
         }
 
         if (method == DateInterval_Union)
         {
-            return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeUnion, instance!, arguments[0]);
+            return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.RangeUnion, instance!, arguments[0]);
         }
 
         return null;

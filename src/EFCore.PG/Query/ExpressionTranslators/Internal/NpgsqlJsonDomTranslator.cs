@@ -113,16 +113,16 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
 
         if (method == GetProperty || method == ArrayIndexer)
         {
-            return instance is PostgresJsonTraversalExpression prevPathTraversal
+            return instance is PgJsonTraversalExpression prevPathTraversal
                 ? prevPathTraversal.Append(_sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]))
                 : null;
         }
 
         if (GetMethods.Contains(method.Name) &&
             arguments.Count == 0 &&
-            instance is PostgresJsonTraversalExpression traversal)
+            instance is PgJsonTraversalExpression traversal)
         {
-            var traversalToText = new PostgresJsonTraversalExpression(
+            var traversalToText = new PgJsonTraversalExpression(
                 traversal.Expression,
                 traversal.Path,
                 returnsText: true,
