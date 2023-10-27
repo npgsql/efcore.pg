@@ -12,18 +12,17 @@ public static class NpgsqlEntityTypeExtensions
     #region Storage parameters
 
     /// <summary>
-    ///     Gets all table storage parameters for the table mapped to the entity type.
+    ///     Gets all storage parameters for the table mapped to the entity type.
     /// </summary>
     public static Dictionary<string, object?> GetStorageParameters(this IReadOnlyEntityType entityType)
         => entityType.GetAnnotations()
             .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal))
             .ToDictionary(
                 a => a.Name.Substring(NpgsqlAnnotationNames.StorageParameterPrefix.Length),
-                a => a.Value
-            );
+                a => a.Value);
 
     /// <summary>
-    ///     Gets a table storage parameter for the table mapped to the entity type.
+    ///     Gets a storage parameter for the table mapped to the entity type.
     /// </summary>
     public static string? GetStorageParameter(this IEntityType entityType, string parameterName)
     {
@@ -33,12 +32,9 @@ public static class NpgsqlEntityTypeExtensions
     }
 
     /// <summary>
-    ///     Sets a table storage parameter for the table mapped to the entity type.
+    ///     Sets a storage parameter on the table mapped to the entity type.
     /// </summary>
-    public static void SetStorageParameter(
-        this IMutableEntityType entityType,
-        string parameterName,
-        object? parameterValue)
+    public static void SetStorageParameter(this IMutableEntityType entityType, string parameterName, object? parameterValue)
     {
         Check.NotEmpty(parameterName, nameof(parameterName));
 
@@ -46,7 +42,7 @@ public static class NpgsqlEntityTypeExtensions
     }
 
     /// <summary>
-    ///     Sets a table storage parameter for the table mapped to the entity type.
+    ///     Sets a storage parameter on the table mapped to the entity type.
     /// </summary>
     public static object SetStorageParameter(
         this IConventionEntityType entityType,
@@ -62,7 +58,7 @@ public static class NpgsqlEntityTypeExtensions
     }
 
     /// <summary>
-    ///     Gets the configuration source fo a table storage parameter for the table mapped to the entity type.
+    ///     Gets the configuration source for a storage parameter for the table mapped to the entity type.
     /// </summary>
     public static ConfigurationSource? GetStorageParameterConfigurationSource(
         this IConventionEntityType index,

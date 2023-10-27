@@ -199,6 +199,12 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
             yield return new Annotation(NpgsqlAnnotationNames.NullsDistinct, nullsDistinct);
         }
 
+        foreach (var storageParamAnnotation in modelIndex.GetAnnotations()
+                     .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal)))
+        {
+            yield return storageParamAnnotation;
+        }
+
         // Support legacy annotation for index ordering
         if (modelIndex[NpgsqlAnnotationNames.IndexSortOrder] is IReadOnlyList<SortOrder> legacySortOrder)
         {

@@ -205,15 +205,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 .Append(")");
         }
 
-        var storageParameters = GetStorageParameters(operation);
-        if (storageParameters.Count > 0)
-        {
-            builder
-                .AppendLine()
-                .Append("WITH (")
-                .Append(string.Join(", ", storageParameters.Select(p => $"{p.Key}={p.Value}")))
-                .Append(")");
-        }
+        AppendStoreParameters(operation, builder, withLeadingNewline: true);
 
         // Comment on the table
         if (operation.Comment is not null)
@@ -252,51 +244,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     /// <inheritdoc />
     protected override void Generate(AlterTableOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
+        var alterTableBaseSql = $"ALTER TABLE {DelimitIdentifier(operation.Name, operation.Schema)}";
         var madeChanges = false;
 
         // Storage parameters
-        var oldStorageParameters = GetStorageParameters(operation.OldTable);
-        var newStorageParameters = GetStorageParameters(operation);
-
-        var newOrChanged = newStorageParameters.Where(p =>
-            !oldStorageParameters.ContainsKey(p.Key) ||
-            oldStorageParameters[p.Key] != p.Value
-        ).ToList();
-
-        if (newOrChanged.Count > 0)
-        {
-            builder
-                .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Name, operation.Schema));
-
-            builder
-                .Append(" SET (")
-                .Append(string.Join(", ", newOrChanged.Select(p => $"{p.Key}={p.Value}")))
-                .Append(")");
-
-            builder.AppendLine(";");
-            madeChanges = true;
-        }
-
-        var removed = oldStorageParameters
-            .Select(p => p.Key)
-            .Where(pn => !newStorageParameters.ContainsKey(pn))
-            .ToList();
-
-        if (removed.Count > 0)
-        {
-            builder
-                .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Name, operation.Schema));
-
-            builder
-                .Append(" RESET (")
-                .Append(string.Join(", ", removed))
-                .Append(")");
-
-            builder.AppendLine(";");
-            madeChanges = true;
-        }
+        madeChanges |= AppendStorageParameterAlterations(operation.OldTable, operation, alterTableBaseSql, builder);
 
         // Comment
         if (operation.Comment != operation.OldTable.Comment)
@@ -318,8 +270,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         if (oldUnlogged != newUnlogged)
         {
             builder
-                .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Name, operation.Schema))
+                .Append(alterTableBaseSql)
                 .Append(" SET ")
                 .Append(newUnlogged ? "UNLOGGED" : "LOGGED")
                 .AppendLine(";");
@@ -966,6 +917,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         {
             builder.Append(" NULLS NOT DISTINCT");
         }
+
+        AppendStoreParameters(operation, builder, withLeadingNewline: false);
 
         base.IndexOptions(operation, model, builder);
     }
@@ -1981,27 +1934,86 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
     #region Storage parameter utilities
 
+    private void AppendStoreParameters(Annotatable annotatable, MigrationCommandListBuilder builder, bool withLeadingNewline)
+    {
+        var storageParameters = GetStorageParameters(annotatable);
+        if (storageParameters.Count > 0)
+        {
+            if (withLeadingNewline)
+            {
+                builder.AppendLine();
+            }
+            else
+            {
+                builder.Append(" ");
+            }
+
+            builder
+                .Append("WITH (")
+                .Append(string.Join(", ", storageParameters.Select(p => $"{p.Key}={p.Value}")))
+                .Append(")");
+        }
+    }
+
     private Dictionary<string, string> GetStorageParameters(Annotatable annotatable)
         => annotatable.GetAnnotations()
             .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal))
             .ToDictionary(
                 a => a.Name.Substring(NpgsqlAnnotationNames.StorageParameterPrefix.Length),
-                a => GenerateStorageParameterValue(a.Value!)
-            );
+                a => a.Value switch
+                {
+                    bool b => b ? "true" : "false",
+                    string s => $"'{s}'",
+                    _ => a.Value!.ToString()!
+                });
 
-    private static string GenerateStorageParameterValue(object value)
+    // TODO: Call this for AlterIndexOperation when that's added (https://github.com/dotnet/efcore/issues/20692)
+    private bool AppendStorageParameterAlterations(
+        Annotatable oldAnnotatable,
+        Annotatable newAnnotatable,
+        string alterBaseSql,
+        MigrationCommandListBuilder builder)
     {
-        if (value is bool)
+        var madeChanges = false;
+
+        var oldStorageParameters = GetStorageParameters(oldAnnotatable);
+        var newStorageParameters = GetStorageParameters(newAnnotatable);
+
+        var newOrChanged = newStorageParameters.Where(p =>
+                !oldStorageParameters.ContainsKey(p.Key) ||
+                oldStorageParameters[p.Key] != p.Value)
+            .ToList();
+
+        if (newOrChanged.Count > 0)
         {
-            return (bool)value ? "true" : "false";
+            builder
+                .Append(alterBaseSql)
+                .Append(" SET (")
+                .Append(string.Join(", ", newOrChanged.Select(p => $"{p.Key}={p.Value}")))
+                .Append(")");
+
+            builder.AppendLine(";");
+            madeChanges = true;
         }
 
-        if (value is string)
+        var removed = oldStorageParameters
+            .Select(p => p.Key)
+            .Where(pn => !newStorageParameters.ContainsKey(pn))
+            .ToList();
+
+        if (removed.Count > 0)
         {
-            return $"'{value}'";
+            builder
+                .Append(alterBaseSql)
+                .Append(" RESET (")
+                .Append(string.Join(", ", removed))
+                .Append(")");
+
+            builder.AppendLine(";");
+            madeChanges = true;
         }
 
-        return value.ToString()!;
+        return madeChanges;
     }
 
     #endregion Storage parameter utilities

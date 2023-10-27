@@ -753,6 +753,97 @@ public static class NpgsqlIndexBuilderExtensions
 
     #endregion NULLS distinct
 
+    #region Storage parameters
+
+    /// <summary>
+    /// Sets a PostgreSQL storage parameter on the index.
+    /// </summary>
+    /// <remarks>
+    /// See https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-STORAGE-PARAMETERS
+    /// </remarks>
+    /// <param name="indexBuilder">The builder for the index being configured.</param>
+    /// <param name="parameterName">The name of the storage parameter.</param>
+    /// <param name="parameterValue">The value of the storage parameter.</param>
+    /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+    public static IndexBuilder HasStorageParameter(
+        this IndexBuilder indexBuilder,
+        string parameterName,
+        object? parameterValue)
+    {
+        Check.NotNull(indexBuilder, nameof(indexBuilder));
+
+        indexBuilder.Metadata.SetStorageParameter(parameterName, parameterValue);
+
+        return indexBuilder;
+    }
+
+    /// <summary>
+    /// Sets a PostgreSQL storage parameter on the index.
+    /// </summary>
+    /// <remarks>
+    /// See https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-STORAGE-PARAMETERS
+    /// </remarks>
+    /// <param name="indexBuilder">The builder for the index being configured.</param>
+    /// <param name="parameterName">The name of the storage parameter.</param>
+    /// <param name="parameterValue">The value of the storage parameter.</param>
+    /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+    public static IndexBuilder<TEntity> HasStorageParameter<TEntity>(
+        this IndexBuilder<TEntity> indexBuilder,
+        string parameterName,
+        object? parameterValue)
+        where TEntity : class
+        => (IndexBuilder<TEntity>)HasStorageParameter((IndexBuilder)indexBuilder, parameterName, parameterValue);
+
+    /// <summary>
+    /// Sets a PostgreSQL storage parameter on the index.
+    /// </summary>
+    /// <remarks>
+    /// See https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-STORAGE-PARAMETERS
+    /// </remarks>
+    /// <param name="indexBuilder">The builder for the index being configured.</param>
+    /// <param name="parameterName">The name of the storage parameter.</param>
+    /// <param name="parameterValue">The value of the storage parameter.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <returns><c>true</c> if the index can be configured with the method</returns>
+    public static IConventionIndexBuilder? HasStorageParameter(
+        this IConventionIndexBuilder indexBuilder,
+        string parameterName,
+        object? parameterValue,
+        bool fromDataAnnotation = false)
+    {
+        if (indexBuilder.CanSetStorageParameter(parameterName, parameterValue, fromDataAnnotation))
+        {
+            indexBuilder.Metadata.SetStorageParameter(parameterName, parameterValue);
+
+            return indexBuilder;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Returns a value indicating whether the PostgreSQL storage parameter is set on the table created for this entity.
+    /// </summary>
+    /// <remarks>
+    /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+    /// </remarks>
+    /// <param name="indexBuilder">The builder for the index being configured.</param>
+    /// <param name="parameterName">The name of the storage parameter.</param>
+    /// <param name="parameterValue">The value of the storage parameter.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <returns><c>true</c> if the index can be configured as with the storage parameter.</returns>
+    public static bool CanSetStorageParameter(
+        this IConventionIndexBuilder indexBuilder,
+        string parameterName,
+        object? parameterValue, bool fromDataAnnotation = false)
+    {
+        Check.NotNull(indexBuilder, nameof(indexBuilder));
+
+        return indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.StorageParameterPrefix + parameterName, parameterValue, fromDataAnnotation);
+    }
+
+    #endregion Storage parameters
+
     #region Sort order (legacy)
 
     /// <summary>

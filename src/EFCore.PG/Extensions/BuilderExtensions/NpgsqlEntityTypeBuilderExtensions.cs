@@ -133,7 +133,7 @@ public static class NpgsqlEntityTypeBuilderExtensions
     }
 
     /// <summary>
-    /// Returns a value indicating whether the PostgreSQL storage parameter on the table created for this entity.
+    /// Returns a value indicating whether the PostgreSQL storage parameter is set on the table created for this entity.
     /// </summary>
     /// <remarks>
     /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS

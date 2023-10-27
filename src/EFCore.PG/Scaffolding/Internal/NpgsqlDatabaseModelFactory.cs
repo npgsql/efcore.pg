@@ -200,7 +200,9 @@ SELECT datcollate FROM pg_database WHERE datname=current_database() AND
     {
         var filter = tableFilter is not null ? $"AND {tableFilter("ns.nspname", "cls.relname")}" : null;
         var commandText = $@"
-SELECT nspname, relname, relkind, description
+SELECT
+    nspname, relname, relkind, description,
+    {(connection.PostgreSqlVersion >= new Version(8, 2) ? "reloptions" : "'{}'::text[] AS reloptions")}
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid=0
@@ -233,6 +235,7 @@ WHERE
                 var name = reader.GetString("relname");
                 var type = reader.GetChar("relkind");
                 var comment = reader.GetValueOrDefault<string>("description");
+                var storageParameters = reader.GetValueOrDefault<string[]>("reloptions") ?? Array.Empty<string>();
 
                 var table = type switch
                 {
@@ -247,6 +250,14 @@ WHERE
                 table.Name = name;
                 table.Schema = schema;
                 table.Comment = comment;
+
+                foreach (var storageParameter in storageParameters)
+                {
+                    if (storageParameter.Split("=") is [var paramName, var paramValue])
+                    {
+                        table[NpgsqlAnnotationNames.StorageParameterPrefix + paramName] = paramValue;
+                    }
+                }
 
                 tables.Add(table);
             }
@@ -555,6 +566,7 @@ SELECT
   indclass,
   indoption,
   {(connection.PostgreSqlVersion >= new Version(9, 1) ? "indcollation" : "''::oidvector AS indcollation")},
+  {(connection.PostgreSqlVersion >= new Version(8, 2) ? "idxcls.reloptions AS idx_reloptions" : "'{}'::text[] AS idx_reloptions")},
   CASE
     WHEN indexprs IS NULL THEN NULL
     ELSE pg_get_expr(indexprs, cls.oid)
@@ -729,6 +741,14 @@ WHERE
                     if (record.GetValueOrDefault<bool>("indnullsnotdistinct"))
                     {
                         index[NpgsqlAnnotationNames.NullsDistinct] = false;
+                    }
+
+                    foreach (var storageParameter in record.GetValueOrDefault<string[]>("idx_reloptions") ?? Array.Empty<string>())
+                    {
+                        if (storageParameter.Split("=") is [var paramName, var paramValue])
+                        {
+                            index[NpgsqlAnnotationNames.StorageParameterPrefix + paramName] = paramValue;
+                        }
                     }
 
                     table.Indexes.Add(index);

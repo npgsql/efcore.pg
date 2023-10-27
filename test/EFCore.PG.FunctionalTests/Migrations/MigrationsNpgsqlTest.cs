@@ -331,7 +331,27 @@ CREATE TABLE "People" (
                     e.HasStorageParameter("fillfactor", 70);
                     e.HasStorageParameter("user_catalog_table", true);
                 }),
-            asserter: null);  // We don't scaffold storage parameters
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+
+                Assert.Collection(
+                    table.GetAnnotations()
+                        .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal))
+                        .OrderBy(a => a.Name),
+                    annotation =>
+                    {
+                        Assert.Equal(NpgsqlAnnotationNames.StorageParameterPrefix + "fillfactor", annotation.Name);
+                        // Storage parameter values always get scaffolded as strings (PG storage is simply 'name=value')
+                        Assert.Equal("70", annotation.Value);
+                    },
+                    annotation =>
+                    {
+                        Assert.Equal(NpgsqlAnnotationNames.StorageParameterPrefix + "user_catalog_table", annotation.Name);
+                        // Storage parameter values always get scaffolded as strings (PG storage is simply 'name=value')
+                        Assert.Equal("true", annotation.Value);
+                    });
+            });
 
         AssertSql(
 """
@@ -2321,6 +2341,36 @@ CREATE UNIQUE INDEX "IX_NullsDistinct" ON "People" ("Age");
 """
 CREATE UNIQUE INDEX "IX_NullsNotDistinct" ON "People" ("Age") NULLS NOT DISTINCT;
 """);
+    }
+
+    [Fact]
+    public virtual async Task Create_index_with_storage_parameter()
+    {
+        await Test(
+            builder => builder.Entity(
+                "People", e =>
+                {
+                    e.Property<int>("Id");
+                    e.Property<int>("Age");
+                }),
+            _ => { },
+            builder => builder.Entity("People").HasIndex("Age")
+                .HasStorageParameter("fillfactor", 70),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var index = Assert.Single(table.Indexes);
+                var storageParameter = Assert.Single(
+                    index.GetAnnotations()
+                        .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal)));
+
+                Assert.Equal(NpgsqlAnnotationNames.StorageParameterPrefix + "fillfactor", storageParameter.Name);
+                // Storage parameter values always get scaffolded as strings (PG storage is simply 'name=value')
+                Assert.Equal("70", storageParameter.Value);
+            });
+
+        AssertSql(
+            @"CREATE INDEX ""IX_People_Age"" ON ""People"" (""Age"") WITH (fillfactor=70);");
     }
 
     public override async Task Alter_index_change_sort_order()
