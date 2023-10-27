@@ -107,6 +107,12 @@ public class NpgsqlRuntimeModelConvention : RelationalRuntimeModelConvention
             annotations.Remove(NpgsqlAnnotationNames.IndexInclude);
             annotations.Remove(NpgsqlAnnotationNames.CreatedConcurrently);
             annotations.Remove(NpgsqlAnnotationNames.NullsDistinct);
+
+            foreach (var annotationName in annotations.Keys.Where(
+                         k => k.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal)))
+            {
+                annotations.Remove(annotationName);
+            }
         }
     }
 }
