@@ -21,7 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 ///         doing so can result in application failures when updating to a new Entity Framework Core release.
 ///     </para>
 /// </remarks>
-public class PostgresUnnestExpression : TableValuedFunctionExpression
+public class PgUnnestExpression : TableValuedFunctionExpression
 {
     /// <summary>
     ///     The array to be un-nested into a table.
@@ -63,7 +63,7 @@ public class PostgresUnnestExpression : TableValuedFunctionExpression
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public PostgresUnnestExpression(string alias, SqlExpression array, string columnName, bool withOrdinality = true)
+    public PgUnnestExpression(string alias, SqlExpression array, string columnName, bool withOrdinality = true)
         : base(alias, "unnest", schema: null, builtIn: true, new[] { array })
     {
         ColumnName = columnName;
@@ -87,10 +87,10 @@ public class PostgresUnnestExpression : TableValuedFunctionExpression
     /// </summary>
     /// <param name="array">The <see cref="Array" /> property of the result.</param>
     /// <returns>This expression if no children changed, or an expression with the updated children.</returns>
-    public virtual PostgresUnnestExpression Update(SqlExpression array)
+    public virtual PgUnnestExpression Update(SqlExpression array)
         => array == Array
             ? this
-            : new PostgresUnnestExpression(Alias, array, ColumnName, WithOrdinality);
+            : new PgUnnestExpression(Alias, array, ColumnName, WithOrdinality);
 
     /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)
@@ -119,10 +119,10 @@ public class PostgresUnnestExpression : TableValuedFunctionExpression
     public override bool Equals(object? obj)
         => obj != null
             && (ReferenceEquals(this, obj)
-                || obj is PostgresUnnestExpression unnestExpression
+                || obj is PgUnnestExpression unnestExpression
                 && Equals(unnestExpression));
 
-    private bool Equals(PostgresUnnestExpression unnestExpression)
+    private bool Equals(PgUnnestExpression unnestExpression)
         => base.Equals(unnestExpression)
             && ColumnName == unnestExpression.ColumnName
             && WithOrdinality == unnestExpression.WithOrdinality;

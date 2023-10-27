@@ -3,15 +3,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 /// <summary>
 /// Represents creating a new PostgreSQL array.
 /// </summary>
-public class PostgresNewArrayExpression : SqlExpression
+public class PgNewArrayExpression : SqlExpression
 {
     /// <summary>
-    /// Creates a new instance of the <see cref="PostgresNewArrayExpression" /> class.
+    /// Creates a new instance of the <see cref="PgNewArrayExpression" /> class.
     /// </summary>
     /// <param name="expressions">The values to initialize the elements of the new array.</param>
     /// <param name="type">The <see cref="Type"/> of the expression.</param>
     /// <param name="typeMapping">The <see cref="RelationalTypeMapping"/> associated with the expression.</param>
-    public PostgresNewArrayExpression(
+    public PgNewArrayExpression(
         IReadOnlyList<SqlExpression> expressions,
         Type type,
         RelationalTypeMapping? typeMapping)
@@ -21,7 +21,7 @@ public class PostgresNewArrayExpression : SqlExpression
 
         if (!type.IsArrayOrGenericList())
         {
-            throw new ArgumentException($"{nameof(PostgresNewArrayExpression)} must have an array type");
+            throw new ArgumentException($"{nameof(PgNewArrayExpression)} must have an array type");
         }
 
         Expressions = expressions;
@@ -56,7 +56,7 @@ public class PostgresNewArrayExpression : SqlExpression
 
         return newExpressions is null
             ? this
-            : new PostgresNewArrayExpression(newExpressions, Type, TypeMapping);
+            : new PgNewArrayExpression(newExpressions, Type, TypeMapping);
     }
 
     /// <summary>
@@ -65,13 +65,13 @@ public class PostgresNewArrayExpression : SqlExpression
     /// </summary>
     /// <param name="expressions">The values to initialize the elements of the new array.</param>
     /// <returns>This expression if no children changed, or an expression with the updated children.</returns>
-    public virtual PostgresNewArrayExpression Update(IReadOnlyList<SqlExpression> expressions)
+    public virtual PgNewArrayExpression Update(IReadOnlyList<SqlExpression> expressions)
     {
         Check.NotNull(expressions, nameof(expressions));
 
         return expressions == Expressions
             ? this
-            : new PostgresNewArrayExpression(expressions, Type, TypeMapping);
+            : new PgNewArrayExpression(expressions, Type, TypeMapping);
     }
 
     /// <inheritdoc />
@@ -101,12 +101,12 @@ public class PostgresNewArrayExpression : SqlExpression
     public override bool Equals(object? obj)
         => obj is not null
             && (ReferenceEquals(this, obj)
-                || obj is PostgresNewArrayExpression sqlBinaryExpression
+                || obj is PgNewArrayExpression sqlBinaryExpression
                 && Equals(sqlBinaryExpression));
 
-    private bool Equals(PostgresNewArrayExpression postgresNewArrayExpression)
-        => base.Equals(postgresNewArrayExpression)
-            && Expressions.SequenceEqual(postgresNewArrayExpression.Expressions);
+    private bool Equals(PgNewArrayExpression pgNewArrayExpression)
+        => base.Equals(pgNewArrayExpression)
+            && Expressions.SequenceEqual(pgNewArrayExpression.Expressions);
 
     /// <inheritdoc />
     public override int GetHashCode()

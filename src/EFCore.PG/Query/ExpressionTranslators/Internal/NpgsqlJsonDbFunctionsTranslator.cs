@@ -60,10 +60,10 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
             // If a function is invoked over a JSON traversal expression, that expression may come with
             // returnText: true (i.e. operator ->> and not ->). Since the functions below require a json object and
             // not text, we transform it.
-            .Select(a => a is PostgresJsonTraversalExpression traversal ? WithReturnsText(traversal, false) : a)
+            .Select(a => a is PgJsonTraversalExpression traversal ? WithReturnsText(traversal, false) : a)
             .ToArray();
 
-        if (!args.Any(a => a.TypeMapping is NpgsqlJsonTypeMapping || a is PostgresJsonTraversalExpression))
+        if (!args.Any(a => a.TypeMapping is NpgsqlJsonTypeMapping || a is PgJsonTraversalExpression))
         {
             throw new InvalidOperationException("The EF JSON methods require a JSON parameter and none was found.");
         }
@@ -91,11 +91,11 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
             nameof(NpgsqlJsonDbFunctionsExtensions.JsonContained)
                 => _sqlExpressionFactory.ContainedBy(Jsonb(args[0]), Jsonb(args[1])),
             nameof(NpgsqlJsonDbFunctionsExtensions.JsonExists)
-                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.JsonExists, Jsonb(args[0]), args[1]),
+                => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.JsonExists, Jsonb(args[0]), args[1]),
             nameof(NpgsqlJsonDbFunctionsExtensions.JsonExistAny)
-                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.JsonExistsAny, Jsonb(args[0]), args[1]),
+                => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.JsonExistsAny, Jsonb(args[0]), args[1]),
             nameof(NpgsqlJsonDbFunctionsExtensions.JsonExistAll)
-                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.JsonExistsAll, Jsonb(args[0]), args[1]),
+                => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.JsonExistsAll, Jsonb(args[0]), args[1]),
 
             _ => null
         };
@@ -117,11 +117,11 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
             return e;
         }
 
-        PostgresJsonTraversalExpression WithReturnsText(PostgresJsonTraversalExpression traversal, bool returnsText)
+        PgJsonTraversalExpression WithReturnsText(PgJsonTraversalExpression traversal, bool returnsText)
             => traversal.ReturnsText == returnsText
                 ? traversal
                 : returnsText
-                    ? new PostgresJsonTraversalExpression(traversal.Expression, traversal.Path, true, typeof(string), _stringTypeMapping)
-                    : new PostgresJsonTraversalExpression(traversal.Expression, traversal.Path, false, traversal.Type, traversal.Expression.TypeMapping);
+                    ? new PgJsonTraversalExpression(traversal.Expression, traversal.Path, true, typeof(string), _stringTypeMapping)
+                    : new PgJsonTraversalExpression(traversal.Expression, traversal.Path, false, traversal.Type, traversal.Expression.TypeMapping);
     }
 }

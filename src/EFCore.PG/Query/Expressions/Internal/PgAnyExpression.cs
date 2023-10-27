@@ -1,12 +1,15 @@
 ﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 /// <summary>
-/// Represents a PostgreSQL array ALL expression.
+/// Represents a PostgreSQL array ANY expression.
 /// </summary>
+/// <example>
+/// 1 = ANY ('{0,1,2}'), 'cat' LIKE ANY ('{a%,b%,c%}')
+/// </example>
 /// <remarks>
 /// See https://www.postgresql.org/docs/current/static/functions-comparisons.html
 /// </remarks>
-public class PostgresAllExpression : SqlExpression, IEquatable<PostgresAllExpression>
+public class PgAnyExpression : SqlExpression, IEquatable<PgAnyExpression>
 {
     /// <inheritdoc />
     public override Type Type => typeof(bool);
@@ -24,25 +27,33 @@ public class PostgresAllExpression : SqlExpression, IEquatable<PostgresAllExpres
     /// <summary>
     /// The operator.
     /// </summary>
-    public virtual PostgresAllOperatorType OperatorType { get; }
+    public virtual PgAnyOperatorType OperatorType { get; }
 
     /// <summary>
-    /// Constructs a <see cref="PostgresAllExpression"/>.
+    /// Constructs a <see cref="PgAnyExpression"/>.
     /// </summary>
     /// <param name="operatorType">The operator symbol to the array expression.</param>
     /// <param name="item">The value to find.</param>
     /// <param name="array">The array to search.</param>
     /// <param name="typeMapping">The type mapping for the expression.</param>
-    public PostgresAllExpression(
+    public PgAnyExpression(
         SqlExpression item,
         SqlExpression array,
-        PostgresAllOperatorType operatorType,
+        PgAnyOperatorType operatorType,
         RelationalTypeMapping? typeMapping)
         : base(typeof(bool), typeMapping)
     {
-        if (array.Type.TryGetElementType(typeof(IEnumerable<>)) is null)
+        if (array is not SqlConstantExpression { Value: null })
         {
-            throw new ArgumentException("Array expression must be an IEnumerable", nameof(array));
+            if (array.Type.TryGetElementType(typeof(IEnumerable<>)) is null)
+            {
+                throw new ArgumentException("Array expression must be an IEnumerable", nameof(array));
+            }
+
+            if (array is SqlConstantExpression && operatorType == PgAnyOperatorType.Equal)
+            {
+                throw new ArgumentException($"Use {nameof(InExpression)} for equality against constant arrays", nameof(array));
+            }
         }
 
         Item = item;
@@ -57,9 +68,9 @@ public class PostgresAllExpression : SqlExpression, IEquatable<PostgresAllExpres
     /// <param name="item">The <see cref="Item" /> property of the result.</param>
     /// <param name="array">The <see cref="Array" /> property of the result.</param>
     /// <returns>This expression if no children changed, or an expression with the updated children.</returns>
-    public virtual PostgresAllExpression Update(SqlExpression item, SqlExpression array)
+    public virtual PgAnyExpression Update(SqlExpression item, SqlExpression array)
         => item != Item || array != Array
-            ? new PostgresAllExpression(item, array, OperatorType, TypeMapping)
+            ? new PgAnyExpression(item, array, OperatorType, TypeMapping)
             : this;
 
     /// <inheritdoc />
@@ -67,10 +78,10 @@ public class PostgresAllExpression : SqlExpression, IEquatable<PostgresAllExpres
         => Update((SqlExpression)visitor.Visit(Item), (SqlExpression)visitor.Visit(Array));
 
     /// <inheritdoc />
-    public override bool Equals(object? obj) => obj is PostgresAllExpression e && Equals(e);
+    public override bool Equals(object? obj) => obj is PgAnyExpression e && Equals(e);
 
     /// <inheritdoc />
-    public virtual bool Equals(PostgresAllExpression? other)
+    public virtual bool Equals(PgAnyExpression? other)
         => ReferenceEquals(this, other) ||
             other is not null &&
             base.Equals(other) &&
@@ -90,32 +101,38 @@ public class PostgresAllExpression : SqlExpression, IEquatable<PostgresAllExpres
             .Append(" ")
             .Append(OperatorType switch
             {
-                PostgresAllOperatorType.Like     => "LIKE",
-                PostgresAllOperatorType.ILike    => "ILIKE",
+                PgAnyOperatorType.Equal    => "=",
+                PgAnyOperatorType.Like     => "LIKE",
+                PgAnyOperatorType.ILike    => "ILIKE",
 
                 _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
             })
-            .Append(" ALL(");
+            .Append(" ANY(");
         expressionPrinter.Visit(Array);
         expressionPrinter.Append(")");
     }
 
     /// <inheritdoc />
-    public override string ToString() => $"{Item} {OperatorType} ALL({Array})";
+    public override string ToString() => $"{Item} {OperatorType} ANY({Array})";
 }
 
 /// <summary>
-/// Determines the operator type for a <see cref="PostgresAllExpression" />.
+/// Determines the operator type for a <see cref="PgAnyExpression" />.
 /// </summary>
-public enum PostgresAllOperatorType
+public enum PgAnyOperatorType
 {
     /// <summary>
-    ///     Represents a PostgreSQL LIKE ALL operator.
+    ///     Represents a PostgreSQL = ANY operator.
+    /// </summary>
+    Equal,
+
+    /// <summary>
+    ///     Represents a PostgreSQL LIKE ANY operator.
     /// </summary>
     Like,
 
     /// <summary>
-    ///     Represents a PostgreSQL ILIKE ALL operator.
+    ///     Represents a PostgreSQL ILIKE ANY operator.
     /// </summary>
     ILike,
 }

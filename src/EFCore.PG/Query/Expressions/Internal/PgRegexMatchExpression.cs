@@ -5,7 +5,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 /// <summary>
 ///     Represents a PostgreSQL regular expression match expression.
 /// </summary>
-public class PostgresRegexMatchExpression : SqlExpression, IEquatable<PostgresRegexMatchExpression>
+public class PgRegexMatchExpression : SqlExpression, IEquatable<PgRegexMatchExpression>
 {
     /// <inheritdoc />
     public override Type Type => typeof(bool);
@@ -26,13 +26,13 @@ public class PostgresRegexMatchExpression : SqlExpression, IEquatable<PostgresRe
     public virtual RegexOptions Options { get; }
 
     /// <summary>
-    /// Constructs a <see cref="PostgresRegexMatchExpression"/>.
+    /// Constructs a <see cref="PgRegexMatchExpression"/>.
     /// </summary>
     /// <param name="match">The expression to match.</param>
     /// <param name="pattern">The pattern to match.</param>
     /// <param name="options">The options for regular expression evaluation.</param>
     /// <param name="typeMapping">The type mapping for the expression.</param>
-    public PostgresRegexMatchExpression(
+    public PgRegexMatchExpression(
         SqlExpression match,
         SqlExpression pattern,
         RegexOptions options,
@@ -52,13 +52,13 @@ public class PostgresRegexMatchExpression : SqlExpression, IEquatable<PostgresRe
     ///     Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
     ///     return this expression.
     /// </summary>
-    public virtual PostgresRegexMatchExpression Update(SqlExpression match, SqlExpression pattern)
+    public virtual PgRegexMatchExpression Update(SqlExpression match, SqlExpression pattern)
         => match != Match || pattern != Pattern
-            ? new PostgresRegexMatchExpression(match, pattern, Options, TypeMapping)
+            ? new PgRegexMatchExpression(match, pattern, Options, TypeMapping)
             : this;
 
     /// <inheritdoc />
-    public virtual bool Equals(PostgresRegexMatchExpression? other)
+    public virtual bool Equals(PgRegexMatchExpression? other)
         => ReferenceEquals(this, other) ||
             other is not null &&
             base.Equals(other) &&
@@ -68,7 +68,7 @@ public class PostgresRegexMatchExpression : SqlExpression, IEquatable<PostgresRe
 
     /// <inheritdoc />
     public override bool Equals(object? other)
-        => other is PostgresRegexMatchExpression otherRegexMatch && Equals(otherRegexMatch);
+        => other is PgRegexMatchExpression otherRegexMatch && Equals(otherRegexMatch);
 
     /// <inheritdoc />
     public override int GetHashCode()

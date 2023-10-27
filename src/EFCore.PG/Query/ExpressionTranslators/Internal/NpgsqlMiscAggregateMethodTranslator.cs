@@ -148,7 +148,7 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
                     // These methods accept two enumerable (column) arguments; this is represented in LINQ as a projection from the grouping
                     // to a tuple of the two columns. Since we generally translate tuples to PostgresRowValueExpression, we take it apart
                     // here.
-                    if (source.Selector is not PostgresRowValueExpression rowValueExpression)
+                    if (source.Selector is not PgRowValueExpression rowValueExpression)
                     {
                         return null;
                     }

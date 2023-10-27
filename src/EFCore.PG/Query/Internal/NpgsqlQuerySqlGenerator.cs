@@ -47,20 +47,20 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     protected override Expression VisitExtension(Expression extensionExpression)
         => extensionExpression switch
         {
-            PostgresAllExpression e => VisitArrayAll(e),
-            PostgresAnyExpression e => VisitArrayAny(e),
-            PostgresArrayIndexExpression e => VisitArrayIndex(e),
-            PostgresArraySliceExpression e => VisitArraySlice(e),
-            PostgresBinaryExpression e => VisitPostgresBinary(e),
-            PostgresDeleteExpression e => VisitPostgresDelete(e),
-            PostgresFunctionExpression e => VisitPostgresFunction(e),
-            PostgresILikeExpression e => VisitILike(e),
-            PostgresJsonTraversalExpression e => VisitJsonPathTraversal(e),
-            PostgresNewArrayExpression e => VisitPostgresNewArray(e),
-            PostgresRegexMatchExpression e => VisitRegexMatch(e),
-            PostgresRowValueExpression e => VisitRowValue(e),
-            PostgresUnknownBinaryExpression e => VisitUnknownBinary(e),
-            PostgresUnnestExpression e => VisitUnnestExpression(e),
+            PgAllExpression e => VisitArrayAll(e),
+            PgAnyExpression e => VisitArrayAny(e),
+            PgArrayIndexExpression e => VisitArrayIndex(e),
+            PgArraySliceExpression e => VisitArraySlice(e),
+            PgBinaryExpression e => VisitPostgresBinary(e),
+            PgDeleteExpression e => VisitPostgresDelete(e),
+            PgFunctionExpression e => VisitPostgresFunction(e),
+            PgILikeExpression e => VisitILike(e),
+            PgJsonTraversalExpression e => VisitJsonPathTraversal(e),
+            PgNewArrayExpression e => VisitPostgresNewArray(e),
+            PgRegexMatchExpression e => VisitRegexMatch(e),
+            PgRowValueExpression e => VisitRowValue(e),
+            PgUnknownBinaryExpression e => VisitUnknownBinary(e),
+            PgUnnestExpression e => VisitUnnestExpression(e),
             _ => base.VisitExtension(extensionExpression)
         };
 
@@ -69,7 +69,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     {
         switch (queryExpression)
         {
-            case PostgresDeleteExpression postgresDeleteExpression:
+            case PgDeleteExpression postgresDeleteExpression:
                 GenerateTagsHeaderComment(postgresDeleteExpression.Tags);
                 VisitPostgresDelete(postgresDeleteExpression);
                 break;
@@ -256,7 +256,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected virtual Expression VisitPostgresDelete(PostgresDeleteExpression pgDeleteExpression)
+    protected virtual Expression VisitPostgresDelete(PgDeleteExpression pgDeleteExpression)
     {
         Sql.Append("DELETE FROM ");
         Visit(pgDeleteExpression.Table);
@@ -407,13 +407,13 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected virtual Expression VisitPostgresNewArray(PostgresNewArrayExpression postgresNewArrayExpression)
+    protected virtual Expression VisitPostgresNewArray(PgNewArrayExpression pgNewArrayExpression)
     {
-        Debug.Assert(postgresNewArrayExpression.TypeMapping is not null);
+        Debug.Assert(pgNewArrayExpression.TypeMapping is not null);
 
         Sql.Append("ARRAY[");
         var first = true;
-        foreach (var initializer in postgresNewArrayExpression.Expressions)
+        foreach (var initializer in pgNewArrayExpression.Expressions)
         {
             if (!first)
             {
@@ -427,9 +427,9 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         // Not sure if the explicit store type is necessary, but just to be sure.
         Sql
             .Append("]::")
-            .Append(postgresNewArrayExpression.TypeMapping.StoreType);
+            .Append(pgNewArrayExpression.TypeMapping.StoreType);
 
-        return postgresNewArrayExpression;
+        return pgNewArrayExpression;
     }
 
     /// <summary>
@@ -438,7 +438,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected virtual Expression VisitPostgresBinary(PostgresBinaryExpression binaryExpression)
+    protected virtual Expression VisitPostgresBinary(PgBinaryExpression binaryExpression)
     {
         Check.NotNull(binaryExpression, nameof(binaryExpression));
 
@@ -463,54 +463,54 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             .Append(" ")
             .Append(binaryExpression.OperatorType switch
             {
-                PostgresExpressionType.Contains
+                PgExpressionType.Contains
                     when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping or NpgsqlCidrTypeMapping
                     => ">>",
 
-                PostgresExpressionType.ContainedBy
+                PgExpressionType.ContainedBy
                     when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping or NpgsqlCidrTypeMapping
                     => "<<",
 
-                PostgresExpressionType.Contains    => "@>",
-                PostgresExpressionType.ContainedBy => "<@",
-                PostgresExpressionType.Overlaps    => "&&",
+                PgExpressionType.Contains    => "@>",
+                PgExpressionType.ContainedBy => "<@",
+                PgExpressionType.Overlaps    => "&&",
 
-                PostgresExpressionType.NetworkContainedByOrEqual    => "<<=",
-                PostgresExpressionType.NetworkContainsOrEqual       => ">>=",
-                PostgresExpressionType.NetworkContainsOrContainedBy => "&&",
+                PgExpressionType.NetworkContainedByOrEqual    => "<<=",
+                PgExpressionType.NetworkContainsOrEqual       => ">>=",
+                PgExpressionType.NetworkContainsOrContainedBy => "&&",
 
-                PostgresExpressionType.RangeIsStrictlyLeftOf     => "<<",
-                PostgresExpressionType.RangeIsStrictlyRightOf    => ">>",
-                PostgresExpressionType.RangeDoesNotExtendRightOf => "&<",
-                PostgresExpressionType.RangeDoesNotExtendLeftOf  => "&>",
-                PostgresExpressionType.RangeIsAdjacentTo         => "-|-",
-                PostgresExpressionType.RangeUnion                => "+",
-                PostgresExpressionType.RangeIntersect            => "*",
-                PostgresExpressionType.RangeExcept               => "-",
+                PgExpressionType.RangeIsStrictlyLeftOf     => "<<",
+                PgExpressionType.RangeIsStrictlyRightOf    => ">>",
+                PgExpressionType.RangeDoesNotExtendRightOf => "&<",
+                PgExpressionType.RangeDoesNotExtendLeftOf  => "&>",
+                PgExpressionType.RangeIsAdjacentTo         => "-|-",
+                PgExpressionType.RangeUnion                => "+",
+                PgExpressionType.RangeIntersect            => "*",
+                PgExpressionType.RangeExcept               => "-",
 
-                PostgresExpressionType.TextSearchMatch => "@@",
-                PostgresExpressionType.TextSearchAnd   => "&&",
-                PostgresExpressionType.TextSearchOr    => "||",
+                PgExpressionType.TextSearchMatch => "@@",
+                PgExpressionType.TextSearchAnd   => "&&",
+                PgExpressionType.TextSearchOr    => "||",
 
-                PostgresExpressionType.JsonExists    => "?",
-                PostgresExpressionType.JsonExistsAny => "?|",
-                PostgresExpressionType.JsonExistsAll => "?&",
+                PgExpressionType.JsonExists    => "?",
+                PgExpressionType.JsonExistsAny => "?|",
+                PgExpressionType.JsonExistsAll => "?&",
 
-                PostgresExpressionType.LTreeMatches
+                PgExpressionType.LTreeMatches
                     when binaryExpression.Right.TypeMapping.StoreType == "lquery" ||
                     binaryExpression.Right.TypeMapping is NpgsqlArrayTypeMapping { ElementTypeMapping.StoreType: "lquery" } => "~",
-                PostgresExpressionType.LTreeMatches
+                PgExpressionType.LTreeMatches
                     when binaryExpression.Right.TypeMapping.StoreType == "ltxtquery"
                     => "@",
-                PostgresExpressionType.LTreeMatchesAny      => "?",
-                PostgresExpressionType.LTreeFirstAncestor   => "?@>",
-                PostgresExpressionType.LTreeFirstDescendent => "?<@",
-                PostgresExpressionType.LTreeFirstMatches
+                PgExpressionType.LTreeMatchesAny      => "?",
+                PgExpressionType.LTreeFirstAncestor   => "?@>",
+                PgExpressionType.LTreeFirstDescendent => "?<@",
+                PgExpressionType.LTreeFirstMatches
                     when binaryExpression.Right.TypeMapping.StoreType == "lquery" => "?~",
-                PostgresExpressionType.LTreeFirstMatches
+                PgExpressionType.LTreeFirstMatches
                     when binaryExpression.Right.TypeMapping.StoreType == "ltxtquery" => "?@",
 
-                PostgresExpressionType.Distance => "<->",
+                PgExpressionType.Distance => "<->",
 
                 _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {binaryExpression.OperatorType}")
             })
@@ -777,7 +777,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual Expression VisitArrayAll(PostgresAllExpression expression)
+    public virtual Expression VisitArrayAll(PgAllExpression expression)
     {
         Visit(expression.Item);
 
@@ -785,8 +785,8 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             .Append(" ")
             .Append(expression.OperatorType switch
             {
-                PostgresAllOperatorType.Like => "LIKE",
-                PostgresAllOperatorType.ILike => "ILIKE",
+                PgAllOperatorType.Like => "LIKE",
+                PgAllOperatorType.ILike => "ILIKE",
                 _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {expression.OperatorType}")
             })
             .Append(" ALL (");
@@ -804,7 +804,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual Expression VisitArrayAny(PostgresAnyExpression expression)
+    public virtual Expression VisitArrayAny(PgAnyExpression expression)
     {
         Visit(expression.Item);
 
@@ -812,9 +812,9 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             .Append(" ")
             .Append(expression.OperatorType switch
             {
-                PostgresAnyOperatorType.Equal => "=",
-                PostgresAnyOperatorType.Like => "LIKE",
-                PostgresAnyOperatorType.ILike => "ILIKE",
+                PgAnyOperatorType.Equal => "=",
+                PgAnyOperatorType.Like => "LIKE",
+                PgAnyOperatorType.ILike => "ILIKE",
                 _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {expression.OperatorType}")
             })
             .Append(" ANY (");
@@ -829,7 +829,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// <summary>
     /// Produces SQL array index expression (e.g. arr[1]).
     /// </summary>
-    public virtual Expression VisitArrayIndex(PostgresArrayIndexExpression expression)
+    public virtual Expression VisitArrayIndex(PgArrayIndexExpression expression)
     {
         Visit(expression.Array);
         Sql.Append("[");
@@ -841,7 +841,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// <summary>
     /// Produces SQL array slice expression (e.g. arr[1:2]).
     /// </summary>
-    public virtual Expression VisitArraySlice(PostgresArraySliceExpression expression)
+    public virtual Expression VisitArraySlice(PgArraySliceExpression expression)
     {
         Visit(expression.Array);
         Sql.Append("[");
@@ -853,7 +853,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
     /// <summary>
-    /// Visits the children of a <see cref="PostgresRegexMatchExpression"/>.
+    /// Visits the children of a <see cref="PgRegexMatchExpression"/>.
     /// </summary>
     /// <param name="expression">The expression.</param>
     /// <returns>
@@ -862,7 +862,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// <remarks>
     /// See: http://www.postgresql.org/docs/current/static/functions-matching.html
     /// </remarks>
-    public virtual Expression VisitRegexMatch(PostgresRegexMatchExpression expression)
+    public virtual Expression VisitRegexMatch(PgRegexMatchExpression expression)
     {
         var options = expression.Options;
 
@@ -936,7 +936,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual Expression VisitRowValue(PostgresRowValueExpression rowValueExpression)
+    public virtual Expression VisitRowValue(PgRowValueExpression rowValueExpression)
     {
         Sql.Append("(");
 
@@ -958,13 +958,13 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
     /// <summary>
-    /// Visits the children of an <see cref="PostgresILikeExpression"/>.
+    /// Visits the children of an <see cref="PgILikeExpression"/>.
     /// </summary>
     /// <param name="likeExpression">The expression.</param>
     /// <returns>
     /// An <see cref="Expression"/>.
     /// </returns>
-    public virtual Expression VisitILike(PostgresILikeExpression likeExpression)
+    public virtual Expression VisitILike(PgILikeExpression likeExpression)
     {
         Visit(likeExpression.Match);
         Sql.Append(" ILIKE ");
@@ -980,13 +980,13 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
     /// <summary>
-    /// Visits the children of an <see cref="PostgresJsonTraversalExpression"/>.
+    /// Visits the children of an <see cref="PgJsonTraversalExpression"/>.
     /// </summary>
     /// <param name="expression">The expression.</param>
     /// <returns>
     /// An <see cref="Expression"/>.
     /// </returns>
-    public virtual Expression VisitJsonPathTraversal(PostgresJsonTraversalExpression expression)
+    public virtual Expression VisitJsonPathTraversal(PgJsonTraversalExpression expression)
     {
         Visit(expression.Expression);
 
@@ -1031,7 +1031,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected virtual Expression VisitUnnestExpression(PostgresUnnestExpression unnestExpression)
+    protected virtual Expression VisitUnnestExpression(PgUnnestExpression unnestExpression)
     {
         // unnest docs: https://www.postgresql.org/docs/current/functions-array.html#ARRAY-FUNCTIONS-TABLE
 
@@ -1060,13 +1060,13 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
     /// <summary>
-    /// Visits the children of a <see cref="PostgresUnknownBinaryExpression"/>.
+    /// Visits the children of a <see cref="PgUnknownBinaryExpression"/>.
     /// </summary>
     /// <param name="unknownBinaryExpression">The expression.</param>
     /// <returns>
     /// An <see cref="Expression"/>.
     /// </returns>
-    public virtual Expression VisitUnknownBinary(PostgresUnknownBinaryExpression unknownBinaryExpression)
+    public virtual Expression VisitUnknownBinary(PgUnknownBinaryExpression unknownBinaryExpression)
     {
         Check.NotNull(unknownBinaryExpression, nameof(unknownBinaryExpression));
 
@@ -1108,13 +1108,13 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
 
     /// <summary>
-    /// Visits the children of a <see cref="PostgresFunctionExpression"/>.
+    /// Visits the children of a <see cref="PgFunctionExpression"/>.
     /// </summary>
     /// <param name="e">The expression.</param>
     /// <returns>
     /// An <see cref="Expression"/>.
     /// </returns>
-    public virtual Expression VisitPostgresFunction(PostgresFunctionExpression e)
+    public virtual Expression VisitPostgresFunction(PgFunctionExpression e)
     {
         Check.NotNull(e, nameof(e));
 
@@ -1210,7 +1210,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 return true;
 
             // Copy paste of QuerySqlGenerator.RequiresParentheses for SqlBinaryExpression
-            case PostgresBinaryExpression innerBinary:
+            case PgBinaryExpression innerBinary:
             {
                 // If the provider defined precedence for the two expression, use that
                 if (TryGetOperatorInfo(outerExpression, out var outerPrecedence, out var isOuterAssociative)
@@ -1223,7 +1223,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
                         // If both operators have the same precedence, add parentheses unless they're the same operator, and
                         // that operator is associative (e.g. a + b + c)
-                        0 => outerExpression is not PostgresBinaryExpression outerBinary
+                        0 => outerExpression is not PgBinaryExpression outerBinary
                             || outerBinary.OperatorType != innerBinary.OperatorType
                             || !isOuterAssociative
                             // Arithmetic operators on floating points aren't associative, because of rounding errors.
@@ -1304,15 +1304,15 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
             // There's an "any other operator" category in the PG operator precedence table, we assign that a numeric value of 1000.
             // TODO: Some operators here may be associative
-            PostgresBinaryExpression => (1000, false),
+            PgBinaryExpression => (1000, false),
 
             CollateExpression => (1000, false),
             AtTimeZoneExpression => (1000, false),
             InExpression => (900, false),
-            PostgresJsonTraversalExpression => (1000, false),
-            PostgresArrayIndexExpression => (1500, false),
-            PostgresAllExpression or PostgresAnyExpression => (800, false),
-            LikeExpression or PostgresILikeExpression or PostgresRegexMatchExpression => (900, false),
+            PgJsonTraversalExpression => (1000, false),
+            PgArrayIndexExpression => (1500, false),
+            PgAllExpression or PgAnyExpression => (800, false),
+            LikeExpression or PgILikeExpression or PgRegexMatchExpression => (900, false),
 
             _ => default,
         };

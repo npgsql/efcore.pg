@@ -66,7 +66,7 @@ public class NpgsqlByteArrayMethodTranslator : IMethodCallTranslator
                         typeMapping);
 
                 return _sqlExpressionFactory.GreaterThan(
-                    PostgresFunctionExpression.CreateWithArgumentSeparators(
+                    PgFunctionExpression.CreateWithArgumentSeparators(
                         "position",
                         new[] { value, source },
                         new[] { "IN" },   // POSITION(x IN y)

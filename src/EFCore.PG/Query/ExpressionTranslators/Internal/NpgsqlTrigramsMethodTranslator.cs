@@ -86,7 +86,7 @@ public class NpgsqlTrigramsMethodTranslator : IMethodCallTranslator
 
         if (BoolReturningOperators.TryGetValue(method, out var boolOperator))
         {
-            return new PostgresUnknownBinaryExpression(
+            return new PgUnknownBinaryExpression(
                 _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
                 _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
                 boolOperator,
@@ -96,7 +96,7 @@ public class NpgsqlTrigramsMethodTranslator : IMethodCallTranslator
 
         if (FloatReturningOperators.TryGetValue(method, out var floatOperator))
         {
-            return new PostgresUnknownBinaryExpression(
+            return new PgUnknownBinaryExpression(
                 _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
                 _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
                 floatOperator,

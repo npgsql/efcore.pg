@@ -186,7 +186,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                 var subtraction = _sqlExpressionFactory.MakeBinary(
                     ExpressionType.Subtract, sqlLeft!, sqlRight!, _typeMappingSource.FindMapping(typeof(int)))!;
 
-                return PostgresFunctionExpression.CreateWithNamedArguments(
+                return PgFunctionExpression.CreateWithNamedArguments(
                     "make_interval",
                     new[] {  subtraction },
                     new[] { "days" },
@@ -265,7 +265,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         if (newExpression.Type.IsAssignableTo(typeof(ITuple)))
         {
             return TryTranslateArguments(out var sqlArguments)
-                ? new PostgresRowValueExpression(sqlArguments, newExpression.Type)
+                ? new PgRowValueExpression(sqlArguments, newExpression.Type)
                 : QueryCompilationContext.NotTranslatedExpression;
         }
 

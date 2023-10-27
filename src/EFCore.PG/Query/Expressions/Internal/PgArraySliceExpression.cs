@@ -6,7 +6,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 /// <remarks>
 ///     <see href="https://www.postgresql.org/docs/current/arrays.html#ARRAYS-ACCESSING" />.
 /// </remarks>
-public class PostgresArraySliceExpression : SqlExpression, IEquatable<PostgresArraySliceExpression>
+public class PgArraySliceExpression : SqlExpression, IEquatable<PgArraySliceExpression>
 {
     /// <summary>
     ///     The array being sliced.
@@ -29,7 +29,7 @@ public class PostgresArraySliceExpression : SqlExpression, IEquatable<PostgresAr
     public virtual bool IsNullable { get; }
 
     /// <summary>
-    ///     Creates a new instance of the <see cref="PostgresArraySliceExpression" /> class.
+    ///     Creates a new instance of the <see cref="PgArraySliceExpression" /> class.
     /// </summary>
     /// <param name="array">The array tp slice into.</param>
     /// <param name="lowerBound">The lower bound of the slice.</param>
@@ -37,7 +37,7 @@ public class PostgresArraySliceExpression : SqlExpression, IEquatable<PostgresAr
     /// <param name="nullable">Whether the expression is nullable.</param>
     /// <param name="type">The <see cref="Type" /> of the expression.</param>
     /// <param name="typeMapping">The <see cref="RelationalTypeMapping" /> associated with the expression.</param>
-    public PostgresArraySliceExpression(
+    public PgArraySliceExpression(
         SqlExpression array,
         SqlExpression? lowerBound,
         SqlExpression? upperBound,
@@ -67,10 +67,10 @@ public class PostgresArraySliceExpression : SqlExpression, IEquatable<PostgresAr
     /// <param name="lowerBound">The lower bound of the slice.</param>
     /// <param name="upperBound">The upper bound of the slice.</param>
     /// <returns>This expression if no children changed, or an expression with the updated children.</returns>
-    public virtual PostgresArraySliceExpression Update(SqlExpression array, SqlExpression? lowerBound, SqlExpression? upperBound)
+    public virtual PgArraySliceExpression Update(SqlExpression array, SqlExpression? lowerBound, SqlExpression? upperBound)
         => array == Array && lowerBound == LowerBound && upperBound == UpperBound
             ? this
-            : new PostgresArraySliceExpression(array, lowerBound, upperBound, IsNullable, Type, TypeMapping);
+            : new PgArraySliceExpression(array, lowerBound, upperBound, IsNullable, Type, TypeMapping);
 
     /// <inheritdoc />
     protected override Expression VisitChildren(ExpressionVisitor visitor)
@@ -80,7 +80,7 @@ public class PostgresArraySliceExpression : SqlExpression, IEquatable<PostgresAr
             (SqlExpression?)visitor.Visit(UpperBound));
 
     /// <inheritdoc />
-    public virtual bool Equals(PostgresArraySliceExpression? other)
+    public virtual bool Equals(PgArraySliceExpression? other)
         => ReferenceEquals(this, other)
             || other is not null
             && base.Equals(other)
@@ -90,7 +90,7 @@ public class PostgresArraySliceExpression : SqlExpression, IEquatable<PostgresAr
             && IsNullable == other.IsNullable;
 
     /// <inheritdoc />
-    public override bool Equals(object? obj) => obj is PostgresArraySliceExpression e && Equals(e);
+    public override bool Equals(object? obj) => obj is PgArraySliceExpression e && Equals(e);
 
     /// <inheritdoc />
     public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Array, LowerBound, UpperBound);

@@ -144,9 +144,9 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
                 // Operators
 
                 nameof(NpgsqlFullTextSearchLinqExtensions.And)
-                    => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.TextSearchAnd, arguments[0], arguments[1]),
+                    => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.TextSearchAnd, arguments[0], arguments[1]),
                 nameof(NpgsqlFullTextSearchLinqExtensions.Or)
-                    => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.TextSearchOr, arguments[0], arguments[1]),
+                    => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.TextSearchOr, arguments[0], arguments[1]),
 
                 nameof(NpgsqlFullTextSearchLinqExtensions.ToNegative)
                     => new SqlUnaryExpression(ExpressionType.Not, arguments[0], arguments[0].Type,
@@ -162,7 +162,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
 
                 nameof(NpgsqlFullTextSearchLinqExtensions.Matches)
                     => _sqlExpressionFactory.MakePostgresBinary(
-                        PostgresExpressionType.TextSearchMatch,
+                        PgExpressionType.TextSearchMatch,
                         arguments[0],
                         arguments[1].Type == typeof(string)
                             ? _sqlExpressionFactory.Function(
