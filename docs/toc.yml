@@ -24,14 +24,14 @@
       href: release-notes/1.1.md
 - name: Creating a model
   items:
-    - name: Table and column naming
-      href: modeling/table-column-naming.md
+    - name: Tables
+      href: modeling/tables.md
     - name: Generated properties
       href: modeling/generated-properties.md
-    - name: Concurrency tokens
-      href: modeling/concurrency.md
     - name: Indexes
       href: modeling/indexes.md
+    - name: Concurrency tokens
+      href: modeling/concurrency.md
 - name: Mapping and translation
   items:
     - name: General
