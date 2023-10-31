@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using Microsoft.Extensions.Configuration;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
@@ -15,8 +16,13 @@ public static class TestEnvironment
             .AddJsonFile("config.test.json", optional: true)
             .AddEnvironmentVariables();
 
+        var SectionName = "Test:Npgsql";
+        if (!String.IsNullOrEmpty(Environment.GetEnvironmentVariable("TEST_COCKROACH_DB")))
+            SectionName = "Test:CockroachDB";
+
+
         Config = configBuilder.Build()
-            .GetSection("Test:Npgsql");
+            .GetSection(SectionName);
 
         Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
     }
