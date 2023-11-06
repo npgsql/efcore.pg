@@ -57,6 +57,7 @@ public abstract class ArrayQueryFixture : SharedStoreFixtureBase<ArrayQueryConte
                         Assert.Equal(ee.EnumConvertedToInt, ee.EnumConvertedToInt);
                         Assert.Equal(ee.ValueConvertedArray, ee.ValueConvertedArray);
                         Assert.Equal(ee.ValueConvertedList, ee.ValueConvertedList);
+                        Assert.Equal(ee.IList, ee.IList);
                         Assert.Equal(ee.Byte, ee.Byte);
                     }
                 }

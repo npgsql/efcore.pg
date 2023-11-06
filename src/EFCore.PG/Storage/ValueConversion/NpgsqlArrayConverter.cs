@@ -1,153 +1,215 @@
+using System.Collections;
+using static System.Linq.Expressions.Expression;
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 
 /// <summary>
-/// A value converter that can convert between array types, given another <see cref="ValueConverter"/> for the
-/// elements.
+/// A value converter that can convert between array types; accepts an optional <see cref="ValueConverter"/> for the element, but can be
+/// used without one to convert e.g. from a list to an array.
 /// </summary>
-public class NpgsqlArrayConverter<TModelArray, TProviderArray> : ValueConverter<TModelArray, TProviderArray>, INpgsqlArrayConverter
+public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TProviderCollection>
+    : ValueConverter<TModelCollection, TProviderCollection>
+    where TModelCollection : IEnumerable
+    where TConcreteModelCollection : IEnumerable
+    where TProviderCollection : IEnumerable
 {
     /// <summary>
     ///     The value converter for the element type of the array.
     /// </summary>
-    public virtual ValueConverter ElementConverter { get; }
+    public virtual ValueConverter? ElementConverter { get; }
 
     /// <summary>
-    ///     Constructs a new instance of <see cref="NpgsqlArrayConverter{TModelArray, TProviderArray}" />.
+    ///     Constructs a new instance of <see cref="NpgsqlArrayConverter{TModel, TConcreteModel, TProvider}" />.
     /// </summary>
-    public NpgsqlArrayConverter(ValueConverter elementConverter)
-        : base(
-            ToArrayProviderExpression(elementConverter.ConvertToProviderExpression),
-            FromArrayProviderExpression(elementConverter.ConvertFromProviderExpression))
+    public NpgsqlArrayConverter()
+        : this(elementConverter: null)
     {
-        if (!typeof(TModelArray).TryGetElementType(out var modelElementType) ||
-            !typeof(TProviderArray).TryGetElementType(out var providerElementType))
+    }
+
+    /// <summary>
+    ///     Constructs a new instance of <see cref="NpgsqlArrayConverter{TModel, TConcreteModel, TProvider}" />.
+    /// </summary>
+    public NpgsqlArrayConverter(ValueConverter? elementConverter)
+        : base(
+            // We assume that TProviderCollection is always a concrete, instantiable type (in fact it's always an array over the element)
+            ArrayConversionExpression<TModelCollection, TProviderCollection, TProviderCollection>(elementConverter?.ConvertToProviderExpression),
+            ArrayConversionExpression<TProviderCollection, TModelCollection, TConcreteModelCollection>(elementConverter?.ConvertFromProviderExpression))
+    {
+        var modelElementType = typeof(TModelCollection).TryGetElementType(typeof(IEnumerable<>));
+        var providerElementType = typeof(TProviderCollection).TryGetElementType(typeof(IEnumerable<>));
+        if (modelElementType is null || providerElementType is null)
         {
             throw new ArgumentException("Can only convert between arrays");
         }
 
-        if (modelElementType.UnwrapNullableType() != elementConverter.ModelClrType.UnwrapNullableType())
+        if (elementConverter is not null)
         {
-            throw new ArgumentException($"The element's value converter model type ({elementConverter.ModelClrType}), doesn't match the array's ({modelElementType})");
-        }
+            if (modelElementType.UnwrapNullableType() != elementConverter.ModelClrType.UnwrapNullableType())
+            {
+                throw new ArgumentException($"The element's value converter model type ({elementConverter.ModelClrType}), doesn't match the array's ({modelElementType})");
+            }
 
-        if (providerElementType.UnwrapNullableType() != elementConverter.ProviderClrType.UnwrapNullableType())
-        {
-            throw new ArgumentException($"The element's value converter provider type ({elementConverter.ProviderClrType}), doesn't match the array's ({providerElementType})");
+            if (providerElementType.UnwrapNullableType() != elementConverter.ProviderClrType.UnwrapNullableType())
+            {
+                throw new ArgumentException($"The element's value converter provider type ({elementConverter.ProviderClrType}), doesn't match the array's ({providerElementType})");
+            }
         }
 
         ElementConverter = elementConverter;
     }
 
-    private static Expression<Func<TModelArray, TProviderArray>> ToArrayProviderExpression(
-        LambdaExpression elementToProviderExpression)
-        => ArrayConversionExpression<TModelArray, TProviderArray>(elementToProviderExpression);
-
-    private static Expression<Func<TProviderArray, TModelArray>> FromArrayProviderExpression(
-        LambdaExpression elementFromProviderExpression)
-        => ArrayConversionExpression<TProviderArray, TModelArray>(elementFromProviderExpression);
-
     /// <summary>
     /// Generates a lambda expression that accepts an array, and converts it to another array by looping and applying
     /// a conversion lambda to each of its elements.
     /// </summary>
-    private static Expression<Func<TInput, TOutput>> ArrayConversionExpression<TInput, TOutput>(LambdaExpression elementConversionExpression)
+    private static Expression<Func<TInput, TOutput>> ArrayConversionExpression<TInput, TOutput, TConcreteOutput>(LambdaExpression? elementConversionExpression)
     {
-        if (!typeof(TInput).TryGetElementType(out var inputElementType) ||
-            !typeof(TOutput).TryGetElementType(out var outputElementType))
+        var inputElementType = typeof(TInput).IsArray
+            ? typeof(TInput).GetElementType()
+            : typeof(TInput).TryGetElementType(typeof(IEnumerable<>));
+
+        var outputElementType = typeof(TOutput).IsArray
+            ? typeof(TOutput).GetElementType()
+            : typeof(TOutput).TryGetElementType(typeof(IEnumerable<>));
+
+        if (inputElementType is null || outputElementType is null)
         {
-            throw new ArgumentException("Both TInput and TOutput must be IEnumerable");
+            throw new ArgumentException("Both TInput and TOutput must be arrays or IList<T>");
         }
 
         // elementConversionExpression is always over non-nullable value types. If the array is over nullable types,
         // we need to sanitize via an external null check.
-        if (inputElementType.IsNullableType() && outputElementType.IsNullableType())
+        if (elementConversionExpression is not null && inputElementType.IsNullableType() && outputElementType.IsNullableType())
         {
             // p => p is null ? null : elementConversionExpression(p)
-            var p = Expression.Parameter(inputElementType, "foo");
-            elementConversionExpression = Expression.Lambda(
-                Expression.Condition(
-                    Expression.Equal(p, Expression.Constant(null, inputElementType)),
-                    Expression.Constant(null, outputElementType),
-                    Expression.Convert(
-                        Expression.Invoke(
+            var p = Parameter(inputElementType, "foo");
+            elementConversionExpression = Lambda(
+                Condition(
+                    Equal(p, Constant(null, inputElementType)),
+                    Constant(null, outputElementType),
+                    Convert(
+                        Invoke(
                             elementConversionExpression,
                             // The user-provided conversion lambda typically accepts non-nullable (value) types, with EF Core doing the
                             // null-sanitization and conversion to non-nullable; do this here unless the user-provided lambda happens to
                             // accept a nullable value type parameter.
                             elementConversionExpression.Parameters[0].Type.IsNullableType()
                                 ? p
-                                : Expression.Convert(p, inputElementType.UnwrapNullableType())),
+                                : Convert(p, inputElementType.UnwrapNullableType())),
                         outputElementType)),
                 p);
         }
 
-        var input = Expression.Parameter(typeof(TInput), "value");
-        var output = Expression.Parameter(typeof(TOutput), "result");
-        var loopVariable = Expression.Parameter(typeof(int), "i");
-        var lengthVariable = Expression.Variable(typeof(int), "length");
+        var input = Parameter(typeof(TInput), "value");
+        var output = Parameter(typeof(TConcreteOutput), "result");
+        var loopVariable = Parameter(typeof(int), "i");
+        var lengthVariable = Variable(typeof(int), "length");
 
-        return Expression.Lambda<Func<TInput, TOutput>>(
+        var expressions = new List<Expression>();
+        var variables = new List<ParameterExpression>(4)
+        {
+            output,
+            lengthVariable,
+            loopVariable
+        };
+
+        Expression getInputLength;
+        Func<Expression, Expression> indexer;
+
+        if (typeof(TInput).IsArray)
+        {
+            getInputLength = ArrayLength(input);
+            indexer = i => ArrayAccess(input, i);
+        }
+        else if (typeof(TInput).IsGenericType
+                 && typeof(TInput).GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IList<>)))
+        {
+            getInputLength = Property(input,
+                typeof(TInput).GetProperty("Count")
+                // If TInput is an interface (IList<T>), its Count property needs to be found on ICollection<T>
+                ?? typeof(ICollection<>).MakeGenericType(typeof(TInput).GetGenericArguments()[0]).GetProperty("Count")!);
+            indexer = i => Property(input, input.Type.FindIndexerProperty()!, i);
+        }
+        else
+        {
+            // Input collection isn't typed as an ICollection<T>; it can be *typed* as an IEnumerable<T>, but we only support concrete
+            // instances being ICollection<T>. Emit code that casts the type at runtime.
+            var iListType = typeof(IList<>).MakeGenericType(typeof(TInput).GetGenericArguments()[0]);
+
+            var convertedInput = Variable(iListType, "convertedInput");
+            variables.Add(convertedInput);
+
+            expressions.Add(Assign(convertedInput, Convert(input, convertedInput.Type)));
+
+            // TODO: Check and properly throw for non-IList<T>, e.g. set
+            getInputLength = Property(convertedInput, typeof(ICollection<>).MakeGenericType(typeof(TInput).GetGenericArguments()[0]).GetProperty("Count")!);
+            indexer = i => Property(convertedInput, iListType.FindIndexerProperty()!, i);
+        }
+
+        expressions.AddRange(new[]
+        {
+            // Get the length of the input array or list
+            // var length = input.Length;
+            Assign(lengthVariable, getInputLength),
+
+            // Allocate an output array or list
+            // var result = new int[length];
+            Assign(output, typeof(TConcreteOutput).IsArray
+                ? NewArrayBounds(outputElementType, lengthVariable)
+                : typeof(TConcreteOutput).GetConstructor(new[] { typeof(int) }) is ConstructorInfo ctorWithLength
+                    ? New(ctorWithLength, lengthVariable)
+                    : New(typeof(TConcreteOutput).GetConstructor(Array.Empty<Type>())!)),
+
+            // Loop over the elements, applying the element converter on them one by one
+            // for (var i = 0; i < length; i++)
+            // {
+            //     result[i] = input[i];
+            // }
+            ForLoop(
+                loopVar: loopVariable,
+                initValue: Constant(0),
+                condition: LessThan(loopVariable, lengthVariable),
+                increment: AddAssign(loopVariable, Constant(1)),
+                loopContent:
+                typeof(TConcreteOutput).IsArray
+                    ? Assign(
+                        ArrayAccess(output, loopVariable),
+                        elementConversionExpression is null
+                            ? indexer(loopVariable)
+                            : Invoke(elementConversionExpression, indexer(loopVariable)))
+                    : Call(
+                        output,
+                        typeof(TConcreteOutput).GetMethod("Add", new [] { outputElementType })!,
+                        elementConversionExpression is null
+                            ? indexer(loopVariable)
+                            : Invoke(elementConversionExpression, indexer(loopVariable)))),
+
+            output
+        });
+
+        return Lambda<Func<TInput, TOutput>>(
             // First, check if the given array value is null and return null immediately if so
-            Expression.Condition(
-                Expression.ReferenceEqual(input, Expression.Constant(null)),
-                Expression.Constant(null, typeof(TOutput)),
-                Expression.Block(
-                    typeof(TOutput),
-                    new[] { output, lengthVariable, loopVariable },
-
-                    // Get the length of the input array or list
-                    Expression.Assign(lengthVariable, typeof(TInput).IsArray
-                        ? Expression.ArrayLength(input)
-                        : Expression.Property(input, typeof(TInput).GetProperty(nameof(List<TModelArray>.Count))!)),
-
-                    // Allocate an output array or list
-                    Expression.Assign(output, typeof(TOutput).IsArray
-                        ? Expression.NewArrayBounds(outputElementType, lengthVariable)
-                        : Expression.New(typeof(TOutput).GetConstructor(new[] { typeof(int) })!, lengthVariable)),
-
-                    // Loop over the elements, applying the element converter on them one by one
-                    ForLoop(
-                        loopVar: loopVariable,
-                        initValue: Expression.Constant(0),
-                        condition: Expression.LessThan(loopVariable, lengthVariable),
-                        increment: Expression.AddAssign(loopVariable, Expression.Constant(1)),
-                        loopContent:
-                        typeof(TOutput).IsArray
-                            ? Expression.Assign(
-                                Expression.ArrayAccess(output, loopVariable),
-                                Expression.Invoke(
-                                    elementConversionExpression,
-                                    AccessArrayOrList(input, loopVariable)))
-                            : Expression.Call(
-                                output,
-                                typeof(TOutput).GetMethod(nameof(List<int>.Add), new [] { outputElementType })!,
-                                Expression.Invoke(
-                                    elementConversionExpression,
-                                    AccessArrayOrList(input, loopVariable)))),
-                    output
-                )),
+            Condition(
+                ReferenceEqual(input, Constant(null)),
+                Constant(null, typeof(TOutput)),
+                Block(typeof(TOutput), variables, expressions)),
             input);
-
-        static Expression AccessArrayOrList(Expression arrayOrList, Expression index)
-            => arrayOrList.Type.IsArray
-                ? Expression.ArrayAccess(arrayOrList, index)
-                : Expression.Property(arrayOrList, arrayOrList.Type.FindIndexerProperty()!, index);
     }
 
     private static Expression ForLoop(ParameterExpression loopVar, Expression initValue, Expression condition, Expression increment, Expression loopContent)
     {
-        var initAssign = Expression.Assign(loopVar, initValue);
-        var breakLabel = Expression.Label("LoopBreak");
-        var loop = Expression.Block(new[] { loopVar },
+        var initAssign = Assign(loopVar, initValue);
+        var breakLabel = Label("LoopBreak");
+        var loop = Block(new[] { loopVar },
             initAssign,
-            Expression.Loop(
-                Expression.IfThenElse(
+            Loop(
+                IfThenElse(
                     condition,
-                    Expression.Block(
+                    Block(
                         loopContent,
                         increment
                     ),
-                    Expression.Break(breakLabel)
+                    Break(breakLabel)
                 ),
                 breakLabel)
         );

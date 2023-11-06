@@ -1,16 +1,16 @@
-﻿using System.Text;
+using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// The type mapping for the PostgreSQL pg_lsn type.
+/// The type mapping for the PostgreSQL inet type.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/datatype-pg-lsn.html
+/// See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-INET
 /// </remarks>
-public class NpgsqlPgLsnTypeMapping : NpgsqlTypeMapping
+public class NpgsqlInetTypeMapping : NpgsqlTypeMapping
 {
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -18,10 +18,16 @@ public class NpgsqlPgLsnTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlPgLsnTypeMapping()
+    public NpgsqlInetTypeMapping(Type clrType)
         : base(
-            "pg_lsn", typeof(NpgsqlLogSequenceNumber), NpgsqlDbType.PgLsn,
-            jsonValueReaderWriter: JsonLogSequenceNumberReaderWriter.Instance)
+            "inet",
+            clrType,
+            NpgsqlDbType.Inet,
+            jsonValueReaderWriter: clrType == typeof(IPAddress)
+                ? JsonIPAddressReaderWriter.Instance
+                : clrType == typeof(NpgsqlInet)
+                    ? JsonNpgsqlInetReaderWriter.Instance
+                    : throw new ArgumentException($"Only {nameof(IPAddress)} and {nameof(NpgsqlInet)} are supported", nameof(clrType)))
     {
     }
 
@@ -31,8 +37,8 @@ public class NpgsqlPgLsnTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected NpgsqlPgLsnTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.PgLsn) {}
+    protected NpgsqlInetTypeMapping(RelationalTypeMappingParameters parameters)
+        : base(parameters, NpgsqlDbType.Inet) {}
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -41,7 +47,7 @@ public class NpgsqlPgLsnTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-        => new NpgsqlPgLsnTypeMapping(parameters);
+        => new NpgsqlInetTypeMapping(parameters);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -50,13 +56,7 @@ public class NpgsqlPgLsnTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
-    {
-        var lsn = (NpgsqlLogSequenceNumber)value;
-        var builder = new StringBuilder("PG_LSN '")
-                .Append(lsn.ToString())
-                .Append('\'');
-        return builder.ToString();
-    }
+        => $"INET '{value}'";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -65,26 +65,35 @@ public class NpgsqlPgLsnTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public override Expression GenerateCodeLiteral(object value)
+        => value switch
+        {
+            IPAddress ip => Expression.Call(IPAddressParseMethod, Expression.Constant(ip.ToString())),
+            NpgsqlInet ip => Expression.New(NpgsqlInetConstructor, Expression.Constant(ip.ToString())),
+            _ => throw new UnreachableException()
+        };
+
+    private static readonly MethodInfo IPAddressParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) })!;
+    private static readonly ConstructorInfo NpgsqlInetConstructor = typeof(NpgsqlInet).GetConstructor(new[] { typeof(string) })!;
+
+    private sealed class JsonIPAddressReaderWriter : JsonValueReaderWriter<IPAddress>
     {
-        var lsn = (NpgsqlLogSequenceNumber)value;
-        return Expression.New(Constructor, Expression.Constant((ulong)lsn));
+        public static JsonIPAddressReaderWriter Instance { get; } = new();
+
+        public override IPAddress FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+            => IPAddress.Parse(manager.CurrentReader.GetString()!);
+
+        public override void ToJsonTyped(Utf8JsonWriter writer, IPAddress value)
+            => writer.WriteStringValue(value.ToString());
     }
 
-    private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlLogSequenceNumber).GetConstructor(new[] { typeof(ulong) })!;
-
-    private sealed class JsonLogSequenceNumberReaderWriter : JsonValueReaderWriter<NpgsqlLogSequenceNumber>
+    private sealed class JsonNpgsqlInetReaderWriter : JsonValueReaderWriter<NpgsqlInet>
     {
-        public static JsonLogSequenceNumberReaderWriter Instance { get; } = new();
+        public static JsonNpgsqlInetReaderWriter Instance { get; } = new();
 
-        private JsonLogSequenceNumberReaderWriter()
-        {
-        }
+        public override NpgsqlInet FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+            => new(manager.CurrentReader.GetString()!);
 
-        public override NpgsqlLogSequenceNumber FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
-            => NpgsqlLogSequenceNumber.Parse(manager.CurrentReader.GetString()!);
-
-        public override void ToJsonTyped(Utf8JsonWriter writer, NpgsqlLogSequenceNumber value)
+        public override void ToJsonTyped(Utf8JsonWriter writer, NpgsqlInet value)
             => writer.WriteStringValue(value.ToString());
     }
 }

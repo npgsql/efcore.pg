@@ -94,10 +94,10 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE j."Customer"->>'Name' = 'Joe'
+WHERE j."Customer" ->> 'Name' = 'Joe'
 LIMIT 2
 """);
     }
@@ -112,10 +112,10 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonEntities" AS j
-WHERE j."Customer"->>'Name' = 'Joe'
+WHERE j."Customer" ->> 'Name' = 'Joe'
 LIMIT 2
 """);
     }
@@ -130,10 +130,10 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer"->>'Age' AS integer) < 30
+WHERE CAST(j."Customer" ->> 'Age' AS integer) < 30
 LIMIT 2
 """);
     }
@@ -148,10 +148,10 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer"->>'ID' AS uuid) = '00000000-0000-0000-0000-000000000000'
+WHERE CAST(j."Customer" ->> 'ID' AS uuid) = '00000000-0000-0000-0000-000000000000'
 LIMIT 2
 """);
     }
@@ -166,10 +166,10 @@ LIMIT 2
         Assert.Equal("Moe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer"#>>'{VariousTypes,Bool}' AS boolean)
+WHERE CAST(j."Customer" #>> '{VariousTypes,Bool}' AS boolean)
 LIMIT 2
 """);
     }
@@ -185,12 +185,12 @@ LIMIT 2
         Assert.Equal("Moe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 @__p_0='1990-03-03T17:10:15.0000000Z' (DbType = DateTime)
 
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer"#>>'{VariousTypes,DateTime}' AS timestamp with time zone) = @__p_0
+WHERE CAST(j."Customer" #>> '{VariousTypes,DateTime}' AS timestamp with time zone) = @__p_0
 LIMIT 2
 """);
     }
@@ -206,12 +206,12 @@ LIMIT 2
         Assert.Equal("Moe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 @__p_0='1990-03-03T17:10:15.0000000+00:00' (DbType = DateTime)
 
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer"#>>'{VariousTypes,DateTimeOffset}' AS timestamp with time zone) = @__p_0
+WHERE CAST(j."Customer" #>> '{VariousTypes,DateTimeOffset}' AS timestamp with time zone) = @__p_0
 LIMIT 2
 """);
     }
@@ -228,10 +228,10 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer"#>>'{Statistics,Nested,SomeNullableInt}' AS integer) = 20
+WHERE CAST(j."Customer" #>> '{Statistics,Nested,SomeNullableInt}' AS integer) = 20
 LIMIT 2
 """);
     }
@@ -246,10 +246,10 @@ LIMIT 2
         Assert.Equal("Moe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE j."Customer"#>>'{Statistics,Nested,SomeNullableInt}' IS NULL
+WHERE j."Customer" #>> '{Statistics,Nested,SomeNullableInt}' IS NULL
 LIMIT 2
 """);
     }
@@ -264,10 +264,10 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer"#>>'{Statistics,Visits}' AS bigint) = 4
+WHERE CAST(j."Customer" #>> '{Statistics,Visits}' AS bigint) = 4
 LIMIT 2
 """);
     }
@@ -282,10 +282,10 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer"#>>'{Statistics,Nested,SomeProperty}' AS integer) = 10
+WHERE CAST(j."Customer" #>> '{Statistics,Nested,SomeProperty}' AS integer) = 10
 LIMIT 2
 """);
     }
@@ -318,10 +318,10 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE j."ToplevelArray"->>1 = 'two'
+WHERE j."ToplevelArray" ->> 1 = 'two'
 LIMIT 2
 """);
     }
@@ -336,10 +336,10 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer"#>>'{Statistics,Nested,IntArray,1}' AS integer) = 4
+WHERE CAST(j."Customer" #>> '{Statistics,Nested,IntArray,1}' AS integer) = 4
 LIMIT 2
 """);
     }
@@ -355,12 +355,12 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 @__i_0='1'
 
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer"#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::text[] AS integer) = 4
+WHERE CAST(j."Customer" #>> ARRAY['Statistics','Nested','IntArray',@__i_0]::text[] AS integer) = 4
 LIMIT 2
 """);
     }
@@ -375,10 +375,10 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE jsonb_array_length(j."Customer"#>'{Statistics,Nested,IntArray}') = 2
+WHERE jsonb_array_length(j."Customer" #> '{Statistics,Nested,IntArray}') = 2
 LIMIT 2
 """);
     }
@@ -393,10 +393,10 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonEntities" AS j
-WHERE json_array_length(j."Customer"#>'{Statistics,Nested,IntArray}') = 2
+WHERE json_array_length(j."Customer" #> '{Statistics,Nested,IntArray}') = 2
 LIMIT 2
 """);
     }
@@ -411,10 +411,10 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE jsonb_array_length(j."Customer"#>'{Statistics,Nested,IntList}') = 2
+WHERE jsonb_array_length(j."Customer" #> '{Statistics,Nested,IntList}') = 2
 LIMIT 2
 """);
     }
@@ -429,10 +429,10 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonEntities" AS j
-WHERE json_array_length(j."Customer"#>'{Statistics,Nested,IntList}') = 2
+WHERE json_array_length(j."Customer" #> '{Statistics,Nested,IntList}') = 2
 LIMIT 2
 """);
     }
@@ -465,10 +465,10 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE j."Customer"->>'Name' LIKE 'J%'
+WHERE j."Customer" ->> 'Name' LIKE 'J%'
 LIMIT 2
 """);
     }
@@ -484,10 +484,10 @@ LIMIT 2
         Assert.Equal("Joe", x.Customer.Name);
 
         AssertSql(
-"""
+            """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer"#>>'{Statistics,Nested,SomeNullableGuid}' AS uuid) = 'd5f2685d-e5c4-47e5-97aa-d0266154eb2d'
+WHERE CAST(j."Customer" #>> '{Statistics,Nested,SomeNullableGuid}' AS uuid) = 'd5f2685d-e5c4-47e5-97aa-d0266154eb2d'
 LIMIT 2
 """);
     }
@@ -611,10 +611,10 @@ WHERE @__someJson_1 <@ j."Customer"
 
         Assert.Equal(2, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."Customer"->'Statistics' ? 'Visits'
+WHERE j."Customer" -> 'Statistics' ? 'Visits'
 """);
     }
 
@@ -627,10 +627,10 @@ WHERE j."Customer"->'Statistics' ? 'Visits'
 
         Assert.Equal(2, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."Customer"->'Statistics' ?| ARRAY['foo','Visits']::text[]
+WHERE j."Customer" -> 'Statistics' ?| ARRAY['foo','Visits']::text[]
 """);
     }
 
@@ -643,10 +643,10 @@ WHERE j."Customer"->'Statistics' ?| ARRAY['foo','Visits']::text[]
 
         Assert.Equal(0, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."Customer"->'Statistics' ?& ARRAY['foo','Visits']::text[]
+WHERE j."Customer" -> 'Statistics' ?& ARRAY['foo','Visits']::text[]
 """);
     }
 
@@ -659,10 +659,10 @@ WHERE j."Customer"->'Statistics' ?& ARRAY['foo','Visits']::text[]
 
         Assert.Equal(2, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE jsonb_typeof(j."Customer"#>'{Statistics,Visits}') = 'number'
+WHERE jsonb_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
 """);
     }
 
@@ -675,10 +675,10 @@ WHERE jsonb_typeof(j."Customer"#>'{Statistics,Visits}') = 'number'
 
         Assert.Equal(2, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "JsonEntities" AS j
-WHERE json_typeof(j."Customer"#>'{Statistics,Visits}') = 'number'
+WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
 """);
     }
 

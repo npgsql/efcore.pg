@@ -21,20 +21,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 ///         doing so can result in application failures when updating to a new Entity Framework Core release.
 ///     </para>
 /// </remarks>
-public class PgUnnestExpression : PgTableValuedFunctionExpression
+public class PgTableValuedFunctionExpression : TableValuedFunctionExpression, IEquatable<PgTableValuedFunctionExpression>
 {
-    /// <summary>
-    ///     The array to be un-nested into a table.
-    /// </summary>
-    /// <remarks>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </remarks>
-    public virtual SqlExpression Array
-        => Arguments[0];
-
     /// <summary>
     ///     The name of the column to be projected out from the <c>unnest</c> call.
     /// </summary>
@@ -44,8 +32,18 @@ public class PgUnnestExpression : PgTableValuedFunctionExpression
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </remarks>
-    public virtual string ColumnName
-        => ColumnInfos![0].Name;
+    public virtual IReadOnlyList<ColumnInfo>? ColumnInfos { get; }
+
+    /// <summary>
+    ///     Whether to project an additional ordinality column containing the index of each element in the array.
+    /// </summary>
+    /// <remarks>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </remarks>
+    public virtual bool WithOrdinality { get; }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -53,9 +51,16 @@ public class PgUnnestExpression : PgTableValuedFunctionExpression
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public PgUnnestExpression(string alias, SqlExpression array, string columnName, bool withOrdinality = true)
-        : base(alias, "unnest", new[] { array }, new[] { new ColumnInfo(columnName) }, withOrdinality)
+    public PgTableValuedFunctionExpression(
+        string alias,
+        string name,
+        IReadOnlyList<SqlExpression> arguments,
+        IReadOnlyList<ColumnInfo>? columnInfos,
+        bool withOrdinality = true)
+        : base(alias, name, schema: null, builtIn: true, arguments)
     {
+        ColumnInfos = columnInfos;
+        WithOrdinality = withOrdinality;
     }
 
     /// <summary>
@@ -64,19 +69,75 @@ public class PgUnnestExpression : PgTableValuedFunctionExpression
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override PgUnnestExpression Update(IReadOnlyList<SqlExpression> arguments)
-        => arguments is [var singleArgument]
-            ? Update(singleArgument)
-            : throw new ArgumentException();
+    public override PgTableValuedFunctionExpression Update(IReadOnlyList<SqlExpression> arguments)
+        => !arguments.SequenceEqual(Arguments)
+            ? new PgTableValuedFunctionExpression(Alias, Name, arguments, ColumnInfos, WithOrdinality)
+            : this;
+
+    /// <inheritdoc />
+    protected override void Print(ExpressionPrinter expressionPrinter)
+    {
+        expressionPrinter.Append(Name);
+        expressionPrinter.Append("(");
+        expressionPrinter.VisitCollection(Arguments);
+        expressionPrinter.Append(")");
+
+        if (WithOrdinality)
+        {
+            expressionPrinter.Append(" WITH ORDINALITY");
+        }
+
+        PrintAnnotations(expressionPrinter);
+
+        expressionPrinter.Append(" AS ").Append(Alias);
+
+        if (ColumnInfos is not null)
+        {
+            expressionPrinter.Append("(");
+
+            var isFirst = true;
+
+            foreach (var column in ColumnInfos)
+            {
+                if (isFirst)
+                {
+                    isFirst = false;
+                }
+                else
+                {
+                    expressionPrinter.Append(", ");
+                }
+
+                expressionPrinter.Append(column.Name);
+
+                if (column.TypeMapping is not null)
+                {
+                    expressionPrinter.Append(" ").Append(column.TypeMapping.StoreType);
+                }
+            }
+
+            expressionPrinter.Append(")");
+        }
+    }
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj)
+        => ReferenceEquals(obj, this) || obj is PgTableValuedFunctionExpression e && Equals(e);
+
+    /// <inheritdoc />
+    public bool Equals(PgTableValuedFunctionExpression? expression)
+        => base.Equals(expression)
+            && (
+                expression.ColumnInfos is null && ColumnInfos is null
+                || expression.ColumnInfos is not null && ColumnInfos is not null && expression.ColumnInfos.SequenceEqual(ColumnInfos))
+            && WithOrdinality == expression.WithOrdinality;
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+        => base.GetHashCode();
 
     /// <summary>
-    ///     Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
-    ///     return this expression.
+    /// Defines the name of a column coming out of a <see cref="PgTableValuedFunctionExpression" /> and optionally its type.
     /// </summary>
-    /// <param name="array">The <see cref="Array" /> property of the result.</param>
-    /// <returns>This expression if no children changed, or an expression with the updated children.</returns>
-    public virtual PgUnnestExpression Update(SqlExpression array)
-        => array == Array
-            ? this
-            : new PgUnnestExpression(Alias, array, ColumnName, WithOrdinality);
+    public readonly record struct ColumnInfo(string Name, RelationalTypeMapping? TypeMapping = null);
 }

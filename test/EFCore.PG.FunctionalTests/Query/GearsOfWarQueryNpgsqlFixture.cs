@@ -65,8 +65,6 @@ public class GearsOfWarQueryNpgsqlFixture : GearsOfWarQueryRelationalFixture
 
         foreach (var mission in missions)
         {
-            // var newThing = new DateTimeOffset(orig.Ticks - (orig.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
-
             mission.Timeline = new DateTimeOffset(
                 mission.Timeline.Ticks - (mission.Timeline.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
         }

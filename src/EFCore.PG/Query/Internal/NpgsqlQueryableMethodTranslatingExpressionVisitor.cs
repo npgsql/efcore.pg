@@ -155,6 +155,107 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    protected override ShapedQueryExpression TransformJsonQueryToTable(JsonQueryExpression jsonQueryExpression)
+    {
+        // Calculate the table alias for the jsonb_to_recordset function based on the last named path segment
+        // (or the JSON column name if there are none)
+        var lastNamedPathSegment = jsonQueryExpression.Path.LastOrDefault(ps => ps.PropertyName is not null);
+        var tableAlias = char.ToLowerInvariant((lastNamedPathSegment.PropertyName ?? jsonQueryExpression.JsonColumn.Name)[0]).ToString();
+
+        // TODO: This relies on nested JSON columns flowing across the type mapping of the top-most containing JSON column, check this.
+        var functionName = jsonQueryExpression.JsonColumn switch
+        {
+            { TypeMapping.StoreType: "jsonb" } => "jsonb_to_recordset",
+            { TypeMapping.StoreType: "json" } => "json_to_recordset",
+            { TypeMapping: null } => throw new UnreachableException("Missing type mapping on JSON column"),
+
+            _ => throw new UnreachableException()
+        };
+
+        var jsonTypeMapping = jsonQueryExpression.JsonColumn.TypeMapping!;
+        Check.DebugAssert(jsonTypeMapping is NpgsqlOwnedJsonTypeMapping, "JSON column has a non-JSON mapping");
+
+        // We now add all of projected entity's the properties and navigations into the jsonb_to_recordset's AS clause, which defines the
+        // names and types of columns to come out of the JSON fragments.
+        var columnInfos = new List<PgTableValuedFunctionExpression.ColumnInfo>();
+
+        // We're only interested in properties which actually exist in the JSON, filter out uninteresting shadow keys
+        foreach (var property in GetAllPropertiesInHierarchy(jsonQueryExpression.EntityType))
+        {
+            if (property.GetJsonPropertyName() is string jsonPropertyName)
+            {
+                columnInfos.Add(
+                    new PgTableValuedFunctionExpression.ColumnInfo
+                    {
+                        Name = jsonPropertyName,
+                        TypeMapping = property.GetRelationalTypeMapping()
+                    });
+            }
+        }
+
+        // Navigations represent nested JSON owned entities, which we also add to the AS clause, but with the JSON type.
+        foreach (var navigation in GetAllNavigationsInHierarchy(jsonQueryExpression.EntityType)
+                     .Where(
+                         n => n.ForeignKey.IsOwnership
+                             && n.TargetEntityType.IsMappedToJson()
+                             && n.ForeignKey.PrincipalToDependent == n))
+        {
+            var jsonNavigationName = navigation.TargetEntityType.GetJsonPropertyName();
+            Check.DebugAssert(jsonNavigationName is not null, $"No JSON property name for navigation {navigation.Name}");
+
+            columnInfos.Add(
+                new PgTableValuedFunctionExpression.ColumnInfo
+                {
+                    Name = jsonNavigationName,
+                    TypeMapping = jsonTypeMapping
+                });
+        }
+
+        // json_to_recordset requires the nested JSON document - it does not accept a path within a containing JSON document (like SQL
+        // Server OPENJSON or SQLite json_each). So we wrap json_to_recordset around a JsonScalarExpression which will extract the nested
+        // document.
+        var jsonScalarExpression = new JsonScalarExpression(
+            jsonQueryExpression.JsonColumn, jsonQueryExpression.Path, typeof(string), jsonTypeMapping, jsonQueryExpression.IsNullable);
+
+        // Construct the json_to_recordset around the JsonScalarExpression, and wrap it in a SelectExpression
+        var jsonToRecordSetExpression = new PgTableValuedFunctionExpression(
+            tableAlias, functionName, new[] { jsonScalarExpression }, columnInfos, withOrdinality: true);
+
+#pragma warning disable EF1001 // Internal EF Core API usage.
+        var selectExpression = new SelectExpression(
+            jsonQueryExpression,
+            jsonToRecordSetExpression,
+            identifierColumnName: "ordinality",
+            identifierColumnType: typeof(int),
+            identifierColumnTypeMapping: _typeMappingSource.FindMapping(typeof(int))!);
+#pragma warning restore EF1001 // Internal EF Core API usage.
+
+        return new ShapedQueryExpression(
+            selectExpression,
+            new RelationalStructuralTypeShaperExpression(
+                jsonQueryExpression.EntityType,
+                new ProjectionBindingExpression(
+                    selectExpression,
+                    new ProjectionMember(),
+                    typeof(ValueBuffer)),
+                false));
+
+        // TODO: Move these to IEntityType?
+        static IEnumerable<IProperty> GetAllPropertiesInHierarchy(IEntityType entityType)
+            => entityType.GetAllBaseTypes().Concat(entityType.GetDerivedTypesInclusive())
+                .SelectMany(t => t.GetDeclaredProperties());
+
+        static IEnumerable<INavigation> GetAllNavigationsInHierarchy(IEntityType entityType)
+            => entityType.GetAllBaseTypes().Concat(entityType.GetDerivedTypesInclusive())
+                .SelectMany(t => t.GetDeclaredNavigations());
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override Expression ApplyInferredTypeMappings(
         Expression expression,
         IReadOnlyDictionary<(TableExpressionBase, string), RelationalTypeMapping?> inferredTypeMappings)
@@ -1064,7 +1165,9 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     // https://www.postgresql.org/docs/current/functions-array.html.
     /// <inheritdoc />
     protected override bool IsOrdered(SelectExpression selectExpression)
-        => base.IsOrdered(selectExpression) || selectExpression.Tables is [PgUnnestExpression];
+        => base.IsOrdered(selectExpression)
+            || selectExpression.Tables is
+                [PgTableValuedFunctionExpression { Name: "unnest" or "jsonb_to_recordset" or "json_to_recordset" }];
 
     /// <summary>
     /// Checks whether the given expression maps to a PostgreSQL array, as opposed to a multirange type.

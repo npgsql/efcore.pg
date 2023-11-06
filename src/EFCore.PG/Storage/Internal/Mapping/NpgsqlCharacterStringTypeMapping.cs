@@ -1,4 +1,5 @@
 using System.Data.Common;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
@@ -53,14 +54,17 @@ public class NpgsqlCharacterStringTypeMapping : NpgsqlStringTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlCharacterStringTypeMapping(string storeType, int size = 1)
-        : this(new RelationalTypeMappingParameters(
-            new CoreTypeMappingParameters(typeof(string)),
-            storeType,
-            StoreTypePostfix.Size,
-            System.Data.DbType.StringFixedLength,
-            unicode: false,
-            size,
-            fixedLength: true)) {}
+        : this(
+            new RelationalTypeMappingParameters(
+                new CoreTypeMappingParameters(typeof(string), jsonValueReaderWriter: JsonStringReaderWriter.Instance),
+                storeType,
+                StoreTypePostfix.Size,
+                System.Data.DbType.StringFixedLength,
+                unicode: false,
+                size,
+                fixedLength: true))
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

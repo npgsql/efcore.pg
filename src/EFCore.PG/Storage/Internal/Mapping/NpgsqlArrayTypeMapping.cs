@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -53,7 +54,7 @@ public abstract class NpgsqlArrayTypeMapping : RelationalTypeMapping
 /// <remarks>
 ///     See: https://www.postgresql.org/docs/current/static/arrays.html
 /// </remarks>
-public class NpgsqlArrayTypeMapping<TCollection, TElement> : NpgsqlArrayTypeMapping
+public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> : NpgsqlArrayTypeMapping
 {
     /// <summary>
     /// The database type used by Npgsql.
@@ -83,75 +84,70 @@ public class NpgsqlArrayTypeMapping<TCollection, TElement> : NpgsqlArrayTypeMapp
         Check.DebugAssert(storeType.EndsWith("[]", StringComparison.Ordinal), "NpgsqlArrayTypeMapping created for a non-array store type");
     }
 
-    private static RelationalTypeMappingParameters CreateParameters(
-        string storeType,
-        RelationalTypeMapping elementMapping)
+    private static RelationalTypeMappingParameters CreateParameters(string storeType, RelationalTypeMapping elementMapping)
     {
         ValueConverter? converter = null;
-
-        if (elementMapping.Converter is { } elementConverter)
-        {
-            var collectionTypeDefinition = typeof(TCollection) switch
-            {
-                { IsArray: true } => typeof(TCollection),
-
-                { IsGenericType: true }
-                    when typeof(TCollection).GetGenericTypeDefinition() is Type genericTypeDefinition
-                    && genericTypeDefinition.GetGenericArguments().Length == 1
-                    => genericTypeDefinition,
-
-                _ => throw new ArgumentException(
-                    $"Collection CLR type '{typeof(TCollection)}' isn't an a generic type with a single type argument")
-            };
-
-            if (typeof(TCollection).TryGetElementType(typeof(IEnumerable<>)) is not Type arrayElementClrType)
-            {
-                throw new ArgumentException($"Collection CLR type '{typeof(TCollection)}' isn't an IEnumerable");
-            }
-
-            var isNullable = arrayElementClrType.IsNullableValueType();
-
-            // We construct the array's ProviderClrType and ModelClrType from the element's, but nullability has been unwrapped on the
-            // element mapping. So we look at the given arrayType for that.
-            var providerClrType = MakeCollectionType(collectionTypeDefinition, elementConverter.ProviderClrType, isNullable);
-            var modelClrType = MakeCollectionType(collectionTypeDefinition, elementConverter.ModelClrType, isNullable);
-
-            converter = (ValueConverter)Activator.CreateInstance(
-                typeof(NpgsqlArrayConverter<,>).MakeGenericType(modelClrType, providerClrType),
-                elementConverter)!;
-
-            static Type MakeCollectionType(Type collectionType, Type elementType, bool isElementNullable)
-            {
-                if (isElementNullable)
-                {
-                    elementType = elementType.MakeNullable();
-                }
-
-                return collectionType.IsArray
-                    ? elementType.MakeArrayType()
-                    : collectionType.MakeGenericType(elementType);
-            }
-        }
 
         // We do GetElementType for multidimensional arrays - these don't implement generic IEnumerable<>
         var elementType = typeof(TCollection).TryGetElementType(typeof(IEnumerable<>)) ?? typeof(TCollection).GetElementType();
 
         Check.DebugAssert(elementType is not null, "modelElementType cannot be null");
 
+        if (elementMapping.Converter is { } elementConverter)
+        {
+            var providerElementType = elementConverter.ProviderClrType;
+
+            // Nullability has been unwrapped on the element converter's provider CLR type, so add it back here if needed
+            if (elementType.IsNullableValueType())
+            {
+                providerElementType = providerElementType.MakeNullable();
+            }
+
+            converter = (ValueConverter)Activator.CreateInstance(
+                typeof(NpgsqlArrayConverter<,,>).MakeGenericType(typeof(TCollection), typeof(TConcreteCollection), providerElementType.MakeArrayType()),
+                elementConverter)!;
+        }
+        else if (typeof(TCollection) != typeof(TConcreteCollection))
+        {
+            converter = (ValueConverter)Activator.CreateInstance(
+                typeof(NpgsqlArrayConverter<,,>).MakeGenericType(typeof(TCollection), typeof(TConcreteCollection), elementType.MakeArrayType()))!;
+        }
+
 #pragma warning disable EF1001
         var comparer = typeof(TCollection).IsArray && typeof(TCollection).GetArrayRank() > 1
             ? null // TODO: Value comparer for multidimensional arrays
             : (ValueComparer?)Activator.CreateInstance(
-            elementType.IsNullableValueType()
-                ? typeof(NullableValueTypeListComparer<>).MakeGenericType(elementType.UnwrapNullableType())
-                : elementMapping.Comparer.Type.IsAssignableFrom(elementType)
-                    ? typeof(ListComparer<>).MakeGenericType(elementType)
-                    : typeof(ObjectListComparer<>).MakeGenericType(elementType),
-            elementMapping.Comparer.ToNullableComparer(elementType)!);
+                elementType.IsNullableValueType()
+                    ? typeof(NullableValueTypeListComparer<>).MakeGenericType(elementType.UnwrapNullableType())
+                    : elementMapping.Comparer.Type.IsAssignableFrom(elementType)
+                        ? typeof(ListComparer<>).MakeGenericType(elementType)
+                        : typeof(ObjectListComparer<>).MakeGenericType(elementType),
+                elementMapping.Comparer.ToNullableComparer(elementType)!);
 #pragma warning restore EF1001
 
+        var elementJsonReaderWriter = elementMapping.JsonValueReaderWriter;
+        if (elementJsonReaderWriter is not null && elementJsonReaderWriter.ValueType != typeof(TElement).UnwrapNullableType())
+        {
+            throw new InvalidOperationException(
+                $"When building an array mapping, the JsonValueReaderWriter for element mapping '{elementMapping.GetType().Name}' is incorrect ('{elementMapping.JsonValueReaderWriter?.GetType().Name ?? "<null>"}').");
+        }
+
+        // If there's no JsonValueReaderWriter on the element, we also don't set one on its array (this is for rare edge cases such as
+        // NpgsqlRowValueTypeMapping).
+        // TODO: Also, we don't (yet) support JSON serialization of multidimensional arrays.
+        var collectionJsonReaderWriter = elementJsonReaderWriter is null || typeof(TCollection).IsArray && typeof(TCollection).GetArrayRank() > 1
+            ? null
+            : (JsonValueReaderWriter?)Activator.CreateInstance(
+                (elementType.IsNullableValueType()
+                    ? typeof(JsonNullableStructCollectionReaderWriter<,,>)
+                    : typeof(JsonCollectionReaderWriter<,,>))
+                .MakeGenericType(typeof(TCollection), typeof(TConcreteCollection), elementType.UnwrapNullableType()),
+                elementJsonReaderWriter);
+
         return new RelationalTypeMappingParameters(
-            new CoreTypeMappingParameters(typeof(TCollection), converter, comparer, elementMapping: elementMapping),
+            new CoreTypeMappingParameters(
+                typeof(TCollection), converter, comparer, elementMapping: elementMapping,
+                jsonValueReaderWriter: collectionJsonReaderWriter),
             storeType);
     }
 
@@ -229,10 +225,10 @@ public class NpgsqlArrayTypeMapping<TCollection, TElement> : NpgsqlArrayTypeMapp
         Check.DebugAssert(
             parameters.CoreParameters.ElementTypeMapping is not null, "NpgsqlArrayTypeMapping.Clone without an element type mapping");
         Check.DebugAssert(
-            parameters.CoreParameters.ElementTypeMapping.ClrType == typeof(TElement),
+            parameters.CoreParameters.ElementTypeMapping.ClrType == typeof(TElement).UnwrapNullableType(),
             "NpgsqlArrayTypeMapping.Clone attempting to change element ClrType");
 
-        return new NpgsqlArrayTypeMapping<TCollection, TElement>(parameters);
+        return new NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement>(parameters);
     }
 
     /// <summary>

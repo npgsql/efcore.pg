@@ -14,6 +14,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 {
     private readonly ISqlGenerationHelper _sqlGenerationHelper;
+    private readonly IRelationalTypeMappingSource _typeMappingSource;
+    private RelationalTypeMapping? _textTypeMapping;
 
     /// <summary>
     /// True if null ordering is reversed; otherwise false.
@@ -29,11 +31,13 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// <inheritdoc />
     public NpgsqlQuerySqlGenerator(
         QuerySqlGeneratorDependencies dependencies,
+        IRelationalTypeMappingSource typeMappingSource,
         bool reverseNullOrderingEnabled,
         Version postgresVersion)
         : base(dependencies)
     {
         _sqlGenerationHelper = dependencies.SqlGenerationHelper;
+        _typeMappingSource = typeMappingSource;
         _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
         _postgresVersion = postgresVersion;
     }
@@ -51,16 +55,17 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             PgAnyExpression e => VisitArrayAny(e),
             PgArrayIndexExpression e => VisitArrayIndex(e),
             PgArraySliceExpression e => VisitArraySlice(e),
-            PgBinaryExpression e => VisitPostgresBinary(e),
-            PgDeleteExpression e => VisitPostgresDelete(e),
-            PgFunctionExpression e => VisitPostgresFunction(e),
+            PgBinaryExpression e => VisitPgBinary(e),
+            PgDeleteExpression e => VisitPgDelete(e),
+            PgFunctionExpression e => VisitPgFunction(e),
             PgILikeExpression e => VisitILike(e),
             PgJsonTraversalExpression e => VisitJsonPathTraversal(e),
-            PgNewArrayExpression e => VisitPostgresNewArray(e),
+            PgNewArrayExpression e => VisitNewArray(e),
             PgRegexMatchExpression e => VisitRegexMatch(e),
             PgRowValueExpression e => VisitRowValue(e),
             PgUnknownBinaryExpression e => VisitUnknownBinary(e),
-            PgUnnestExpression e => VisitUnnestExpression(e),
+            PgTableValuedFunctionExpression e => VisitPgTableValuedFunctionExpression(e),
+
             _ => base.VisitExtension(extensionExpression)
         };
 
@@ -71,7 +76,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         {
             case PgDeleteExpression postgresDeleteExpression:
                 GenerateTagsHeaderComment(postgresDeleteExpression.Tags);
-                VisitPostgresDelete(postgresDeleteExpression);
+                VisitPgDelete(postgresDeleteExpression);
                 break;
 
             default:
@@ -256,7 +261,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected virtual Expression VisitPostgresDelete(PgDeleteExpression pgDeleteExpression)
+    protected virtual Expression VisitPgDelete(PgDeleteExpression pgDeleteExpression)
     {
         Sql.Append("DELETE FROM ");
         Visit(pgDeleteExpression.Table);
@@ -407,7 +412,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected virtual Expression VisitPostgresNewArray(PgNewArrayExpression pgNewArrayExpression)
+    protected virtual Expression VisitNewArray(PgNewArrayExpression pgNewArrayExpression)
     {
         Debug.Assert(pgNewArrayExpression.TypeMapping is not null);
 
@@ -438,7 +443,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected virtual Expression VisitPostgresBinary(PgBinaryExpression binaryExpression)
+    protected virtual Expression VisitPgBinary(PgBinaryExpression binaryExpression)
     {
         Check.NotNull(binaryExpression, nameof(binaryExpression));
 
@@ -777,7 +782,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual Expression VisitArrayAll(PgAllExpression expression)
+    protected virtual Expression VisitArrayAll(PgAllExpression expression)
     {
         Visit(expression.Item);
 
@@ -804,7 +809,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual Expression VisitArrayAny(PgAnyExpression expression)
+    protected virtual Expression VisitArrayAny(PgAnyExpression expression)
     {
         Visit(expression.Item);
 
@@ -829,9 +834,22 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// <summary>
     /// Produces SQL array index expression (e.g. arr[1]).
     /// </summary>
-    public virtual Expression VisitArrayIndex(PgArrayIndexExpression expression)
+    protected virtual Expression VisitArrayIndex(PgArrayIndexExpression expression)
     {
+        var requiresParentheses = RequiresParentheses(expression, expression.Array);
+
+        if (requiresParentheses)
+        {
+            Sql.Append("(");
+        }
+
         Visit(expression.Array);
+
+        if (requiresParentheses)
+        {
+            Sql.Append(")");
+        }
+
         Sql.Append("[");
         Visit(expression.Index);
         Sql.Append("]");
@@ -841,9 +859,22 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// <summary>
     /// Produces SQL array slice expression (e.g. arr[1:2]).
     /// </summary>
-    public virtual Expression VisitArraySlice(PgArraySliceExpression expression)
+    protected virtual Expression VisitArraySlice(PgArraySliceExpression expression)
     {
+        var requiresParentheses = RequiresParentheses(expression, expression.Array);
+
+        if (requiresParentheses)
+        {
+            Sql.Append("(");
+        }
+
         Visit(expression.Array);
+
+        if (requiresParentheses)
+        {
+            Sql.Append(")");
+        }
+
         Sql.Append("[");
         Visit(expression.LowerBound);
         Sql.Append(":");
@@ -862,7 +893,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// <remarks>
     /// See: http://www.postgresql.org/docs/current/static/functions-matching.html
     /// </remarks>
-    public virtual Expression VisitRegexMatch(PgRegexMatchExpression expression)
+    protected virtual Expression VisitRegexMatch(PgRegexMatchExpression expression)
     {
         var options = expression.Options;
 
@@ -936,7 +967,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual Expression VisitRowValue(PgRowValueExpression rowValueExpression)
+    protected virtual Expression VisitRowValue(PgRowValueExpression rowValueExpression)
     {
         Sql.Append("(");
 
@@ -964,7 +995,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// <returns>
     /// An <see cref="Expression"/>.
     /// </returns>
-    public virtual Expression VisitILike(PgILikeExpression likeExpression)
+    protected virtual Expression VisitILike(PgILikeExpression likeExpression)
     {
         Visit(likeExpression.Match);
         Sql.Append(" ILIKE ");
@@ -980,49 +1011,125 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
     /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected override Expression VisitJsonScalar(JsonScalarExpression jsonScalarExpression)
+    {
+        // TODO: Stop producing empty JsonScalarExpressions, #30768
+        var path = jsonScalarExpression.Path;
+        if (path.Count == 0)
+        {
+            Visit(jsonScalarExpression.Json);
+            return jsonScalarExpression;
+        }
+
+        switch (jsonScalarExpression.TypeMapping)
+        {
+            // This case is for when a nested JSON entity is being accessed. We want the json/jsonb fragment in this case (not text),
+            // so we can perform further JSON operations on it.
+            case NpgsqlOwnedJsonTypeMapping:
+                GenerateJsonPath(returnsText: false);
+                break;
+
+            // No need to cast the output when we expect a string anyway
+            case StringTypeMapping:
+                GenerateJsonPath(returnsText: true);
+                break;
+
+            // bytea requires special handling, since we encode the binary data as base64 inside the JSON, but that requires a special
+            // conversion function to be extracted out to a PG bytea.
+            case NpgsqlByteArrayTypeMapping:
+                Sql.Append("decode(");
+                GenerateJsonPath(returnsText: true);
+                Sql.Append(", 'base64')");
+                break;
+
+            // Arrays require special handling; we cannot simply cast a JSON array (as text) to a PG array ([1,2,3] isn't a valid PG array
+            // representation). We use jsonb_array_elements_text to extract the array elements as a set, cast them to their PG element type
+            // and then build an array from that.
+            case NpgsqlArrayTypeMapping arrayMapping:
+                Sql.Append("(ARRAY(SELECT CAST(element AS ").Append(arrayMapping.ElementTypeMapping.StoreType).Append(") FROM jsonb_array_elements_text(");
+                GenerateJsonPath(returnsText: false);
+                Sql.Append(") WITH ORDINALITY AS t(element) ORDER BY ordinality))");
+                break;
+
+            default:
+                Sql.Append("CAST(");
+                GenerateJsonPath(returnsText: true);
+                Sql.Append(" AS ");
+                Sql.Append(jsonScalarExpression.TypeMapping!.StoreType);
+                Sql.Append(")");
+                break;
+        }
+
+        return jsonScalarExpression;
+
+        void GenerateJsonPath(bool returnsText)
+            => this.GenerateJsonPath(
+                jsonScalarExpression.Json,
+                returnsText: returnsText,
+                jsonScalarExpression.Path.Select(
+                    s => s switch
+                    {
+                        { PropertyName: string propertyName }
+                            => new SqlConstantExpression(
+                                Expression.Constant(propertyName), _textTypeMapping ??= _typeMappingSource.FindMapping(typeof(string))),
+                        { ArrayIndex: SqlExpression arrayIndex } => arrayIndex,
+                        _ => throw new UnreachableException()
+                    }).ToList());
+    }
+
+    /// <summary>
     /// Visits the children of an <see cref="PgJsonTraversalExpression"/>.
     /// </summary>
     /// <param name="expression">The expression.</param>
     /// <returns>
     /// An <see cref="Expression"/>.
     /// </returns>
-    public virtual Expression VisitJsonPathTraversal(PgJsonTraversalExpression expression)
+    protected virtual Expression VisitJsonPathTraversal(PgJsonTraversalExpression expression)
     {
-        Visit(expression.Expression);
+        GenerateJsonPath(expression.Expression, expression.ReturnsText, expression.Path);
+        return expression;
+    }
 
-        if (expression.Path.Count == 1)
+    private void GenerateJsonPath(SqlExpression expression, bool returnsText, IReadOnlyList<SqlExpression> path)
+    {
+        Visit(expression);
+
+        if (path.Count == 1)
         {
-            Sql.Append(expression.ReturnsText ? "->>" : "->");
-            Visit(expression.Path[0]);
-            return expression;
+            Sql.Append(returnsText ? " ->> " : " -> ");
+            Visit(path[0]);
+            return;
         }
 
         // Multiple path components
-        Sql.Append(expression.ReturnsText ? "#>>" : "#>");
+        Sql.Append(returnsText ? " #>> " : " #> ");
 
         // Use simplified array literal syntax if all path components are constants for cleaner SQL
-        if (expression.Path.All(p => p is SqlConstantExpression))
+        if (path.All(p => p is SqlConstantExpression))
         {
             Sql
                 .Append("'{")
-                .Append(string.Join(",", expression.Path.Select(p => ((SqlConstantExpression)p).Value)))
+                .Append(string.Join(",", path.Select(p => ((SqlConstantExpression)p).Value)))
                 .Append("}'");
         }
         else
         {
             Sql.Append("ARRAY[");
-            for (var i = 0; i < expression.Path.Count; i++)
+            for (var i = 0; i < path.Count; i++)
             {
-                Visit(expression.Path[i]);
-                if (i < expression.Path.Count - 1)
+                Visit(path[i]);
+                if (i < path.Count - 1)
                 {
                     Sql.Append(",");
                 }
             }
             Sql.Append("]::text[]");
         }
-
-        return expression;
     }
 
     /// <summary>
@@ -1031,32 +1138,92 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected virtual Expression VisitUnnestExpression(PgUnnestExpression unnestExpression)
+    protected virtual Expression VisitPgTableValuedFunctionExpression(PgTableValuedFunctionExpression tableValuedFunctionExpression)
     {
-        // unnest docs: https://www.postgresql.org/docs/current/functions-array.html#ARRAY-FUNCTIONS-TABLE
+        // PostgresTableValuedFunctionExpression extends the standard TableValuedFunctionExpression, adding the possibility to specify
+        // column names and types at the end, as well as an optional WITH ORDINALITY to project an index out.
 
-        // unnest is a regular table-valued function with a special AS foo(bar) at the end, and optionally WITH ORDINALITY before that
-        // to project an index out. (in theory WITH ORDINALITY can be used on any TVF etc., but we implement it as a special feature of
-        // UnnestExpression for now).
-        Sql.Append("unnest(");
-
-        Visit(unnestExpression.Arguments[0]);
-
-        Sql.Append(")");
-
-        if (unnestExpression.WithOrdinality)
+        // Note that PostgreSQL doesn't support specifying both a column definition (with type) *and* WITH ORDINALITY; but it does allow
+        // wrapping the function invocation and column definition inside ROWS FROM, and placing the table alias and WITH ORDINALITY outside.
+        // We take care of that here.
+        if (tableValuedFunctionExpression is
+            {
+                WithOrdinality: true,
+                ColumnInfos: { } columnInfos
+            }
+            && columnInfos.Any(ci => ci.TypeMapping is not null))
         {
-            Sql.Append(" WITH ORDINALITY");
+            Sql.Append("ROWS FROM (");
+
+            Sql.Append(tableValuedFunctionExpression.Name).Append("(");
+            GenerateList(tableValuedFunctionExpression.Arguments, e => Visit(e));
+            Sql.Append(") AS ");
+
+            GenerateColumnDefinition();
+
+            Sql.Append(") WITH ORDINALITY AS ").Append(_sqlGenerationHelper.DelimitIdentifier(tableValuedFunctionExpression.Alias));
+        }
+        else
+        {
+            Sql.Append(tableValuedFunctionExpression.Name).Append("(");
+            GenerateList(tableValuedFunctionExpression.Arguments, e => Visit(e));
+            Sql.Append(")");
+
+            if (tableValuedFunctionExpression.WithOrdinality)
+            {
+                Sql.Append(" WITH ORDINALITY");
+            }
+
+            Sql.Append(AliasSeparator).Append(_sqlGenerationHelper.DelimitIdentifier(tableValuedFunctionExpression.Alias));
+
+            if (tableValuedFunctionExpression.ColumnInfos is not null)
+            {
+                GenerateColumnDefinition();
+            }
         }
 
-        Sql
-            .Append(AliasSeparator)
-            .Append(_sqlGenerationHelper.DelimitIdentifier(unnestExpression.Alias))
-            .Append("(")
-            .Append(unnestExpression.ColumnName)
-            .Append(")");
+        return tableValuedFunctionExpression;
 
-        return unnestExpression;
+        void GenerateColumnDefinition()
+        {
+            Sql.Append("(");
+
+            if (tableValuedFunctionExpression.ColumnInfos is [var singleColumnInfo])
+            {
+                GenerateColumnInfo(singleColumnInfo);
+            }
+            else
+            {
+                Sql.AppendLine();
+                using var _ = Sql.Indent();
+
+                for (var i = 0; i < tableValuedFunctionExpression.ColumnInfos.Count; i++)
+                {
+                    var columnInfo = tableValuedFunctionExpression.ColumnInfos[i];
+
+                    if (i > 0)
+                    {
+                        Sql.AppendLine(",");
+                    }
+
+                    GenerateColumnInfo(columnInfo);
+                }
+
+                Sql.AppendLine();
+            }
+
+            Sql.Append(")");
+
+            void GenerateColumnInfo(PgTableValuedFunctionExpression.ColumnInfo columnInfo)
+            {
+                Sql.Append(_sqlGenerationHelper.DelimitIdentifier(columnInfo.Name));
+
+                if (columnInfo.TypeMapping is not null)
+                {
+                    Sql.Append(" ").Append(columnInfo.TypeMapping.StoreType);
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -1066,7 +1233,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// <returns>
     /// An <see cref="Expression"/>.
     /// </returns>
-    public virtual Expression VisitUnknownBinary(PgUnknownBinaryExpression unknownBinaryExpression)
+    protected virtual Expression VisitUnknownBinary(PgUnknownBinaryExpression unknownBinaryExpression)
     {
         Check.NotNull(unknownBinaryExpression, nameof(unknownBinaryExpression));
 
@@ -1114,7 +1281,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// <returns>
     /// An <see cref="Expression"/>.
     /// </returns>
-    public virtual Expression VisitPostgresFunction(PgFunctionExpression e)
+    protected virtual Expression VisitPgFunction(PgFunctionExpression e)
     {
         Check.NotNull(e, nameof(e));
 

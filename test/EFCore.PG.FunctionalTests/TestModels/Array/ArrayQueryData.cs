@@ -50,6 +50,7 @@ public class ArrayQueryData : ISetSource
                 NullableEnumConvertedToStringWithNonNullableLambda = SomeEnum.One,
                 ValueConvertedArray = new[] { SomeEnum.Eight, SomeEnum.Nine },
                 ValueConvertedList = new List<SomeEnum> { SomeEnum.Eight, SomeEnum.Nine },
+                IList = new[] { 8, 9 },
                 Byte = 10
             },
             new()
@@ -75,6 +76,7 @@ public class ArrayQueryData : ISetSource
                 NullableEnumConvertedToStringWithNonNullableLambda = SomeEnum.Two,
                 ValueConvertedArray = new[] { SomeEnum.Nine, SomeEnum.Ten },
                 ValueConvertedList = new List<SomeEnum> { SomeEnum.Nine, SomeEnum.Ten },
+                IList = new[] { 9, 10 },
                 Byte = 20
             }
         };

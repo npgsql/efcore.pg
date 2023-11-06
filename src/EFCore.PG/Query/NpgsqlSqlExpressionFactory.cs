@@ -177,9 +177,10 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         Type type,
         RelationalTypeMapping? typeMapping = null)
     {
-        if (!type.TryGetElementType(out var elementType))
+        var elementType = type.TryGetElementType(typeof(IEnumerable<>));
+        if (elementType is null)
         {
-            throw new ArgumentException($"{type.Name} isn't an array or generic List", nameof(type));
+            throw new ArgumentException($"{type.Name} isn't an IEnumerable<T>", nameof(type));
         }
 
         var newArrayExpression = NewArray(elements, type, typeMapping);
@@ -190,17 +191,6 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         }
 
         // All elements are constants; extract their values and return an SqlConstantExpression over the array/list
-        if (type.IsArray)
-        {
-            var array = Array.CreateInstance(elementType, elements.Count);
-            for (var i = 0; i < elements.Count; i++)
-            {
-                array.SetValue(((SqlConstantExpression)newArrayExpression.Expressions[i]).Value, i);
-            }
-
-            return Constant(array, newArrayExpression.TypeMapping);
-        }
-
         if (type.IsGenericList())
         {
             var list = (IList)Activator.CreateInstance(type, elements.Count)!;
@@ -213,7 +203,15 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             return Constant(list, newArrayExpression.TypeMapping);
         }
 
-        throw new ArgumentException("Must be an array or generic list", nameof(type));
+        // We support any arbitrary IEnumerable<T> as the expression type, but only support arrays and Lists as *concrete* types.
+        // So unless the type was a List<T> (handled above), we return an array constant here.
+        var array = Array.CreateInstance(elementType, elements.Count);
+        for (var i = 0; i < elements.Count; i++)
+        {
+            array.SetValue(((SqlConstantExpression)newArrayExpression.Expressions[i]).Value, i);
+        }
+
+        return Constant(array, newArrayExpression.TypeMapping);
     }
 
     /// <summary>

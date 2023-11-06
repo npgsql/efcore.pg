@@ -25,5 +25,6 @@ public class ArrayEntity
     public SomeEnum? NullableEnumConvertedToStringWithNonNullableLambda { get; set; }
     public SomeEnum[] ValueConvertedArray { get; set; } = null!;
     public List<SomeEnum> ValueConvertedList { get; set; } = null!;
+    public IList<int> IList { get; set; } = null!;
     public byte Byte { get; set; }
 }

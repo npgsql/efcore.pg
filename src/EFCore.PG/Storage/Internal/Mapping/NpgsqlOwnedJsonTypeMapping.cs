@@ -1,28 +1,51 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Data.Common;
 using System.Text;
 using System.Text.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// Supports the older Npgsql-specific JSON mapping, allowing mapping json/jsonb to text, to e.g.
+/// Supports the standard EF JSON support, which relies on owned entity modeling.
+/// See <see cref="NpgsqlJsonTypeMapping" /> for the older Npgsql-specific support, which allows mapping json/jsonb to text, to e.g.
 /// <see cref="JsonElement" /> (weakly-typed mapping) or to arbitrary POCOs (but without them being modeled).
-/// For the standard EF JSON support, which relies on owned entity modeling, see <see cref="NpgsqlOwnedJsonTypeMapping" />.
 /// </summary>
-public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
+public class NpgsqlOwnedJsonTypeMapping : JsonTypeMapping
 {
     /// <summary>
+    /// The database type used by Npgsql (<see cref="NpgsqlDbType.Json" /> or <see cref="NpgsqlDbType.Jsonb" />.
+    /// </summary>
+    public virtual NpgsqlDbType NpgsqlDbType { get; }
+
+    private static readonly MethodInfo GetStringMethod
+        = typeof(DbDataReader).GetRuntimeMethod(nameof(DbDataReader.GetString), new[] { typeof(int) })!;
+
+    private static readonly PropertyInfo UTF8Property
+        = typeof(Encoding).GetProperty(nameof(Encoding.UTF8))!;
+
+    private static readonly MethodInfo EncodingGetBytesMethod
+        = typeof(Encoding).GetMethod(nameof(Encoding.GetBytes), new[] { typeof(string) })!;
+
+    private static readonly ConstructorInfo MemoryStreamConstructor
+        = typeof(MemoryStream).GetConstructor(new[] { typeof(byte[]) })!;
+
+    /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlJsonTypeMapping(string storeType, Type clrType)
-        : base(storeType, clrType, storeType == "jsonb" ? NpgsqlDbType.Jsonb : NpgsqlDbType.Json)
+    public NpgsqlOwnedJsonTypeMapping(string storeType)
+        : base(storeType, typeof(JsonElement), dbType: null)
     {
-        if (storeType != "json" && storeType != "jsonb")
+        NpgsqlDbType = storeType switch
         {
-            throw new ArgumentException($"{nameof(storeType)} must be 'json' or 'jsonb'", nameof(storeType));
-        }
+            "json" => NpgsqlDbType.Json,
+            "jsonb" => NpgsqlDbType.Jsonb,
+            _ => throw new ArgumentException("Only the json and jsonb types are supported", nameof(storeType))
+        };
     }
 
     /// <summary>
@@ -31,9 +54,33 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected NpgsqlJsonTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-        : base(parameters, npgsqlDbType)
+    public override MethodInfo GetDataReaderMethod()
+        => GetStringMethod;
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public override Expression CustomizeDataReaderExpression(Expression expression)
+        => Expression.New(
+            MemoryStreamConstructor,
+            Expression.Call(
+                Expression.Property(null, UTF8Property),
+                EncodingGetBytesMethod,
+                expression));
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected NpgsqlOwnedJsonTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
+        : base(parameters)
     {
+        NpgsqlDbType = npgsqlDbType;
     }
 
     /// <summary>
@@ -42,16 +89,16 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual bool IsJsonb => StoreType == "jsonb";
+    protected override void ConfigureParameter(DbParameter parameter)
+    {
+        if (parameter is not NpgsqlParameter npgsqlParameter)
+        {
+            throw new InvalidOperationException($"Npgsql-specific type mapping {nameof(NpgsqlOwnedJsonTypeMapping)} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+        }
 
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-        => new NpgsqlJsonTypeMapping(parameters, NpgsqlDbType);
+        base.ConfigureParameter(parameter);
+        npgsqlParameter.NpgsqlDbType = NpgsqlDbType;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -60,7 +107,7 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected virtual string EscapeSqlLiteral(string literal)
-        => Check.NotNull(literal, nameof(literal)).Replace("'", "''");
+        => literal.Replace("'", "''");
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -69,32 +116,7 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
-    {
-        switch (value)
-        {
-            case JsonDocument _:
-            case JsonElement _:
-            {
-                using var stream = new MemoryStream();
-                using var writer = new Utf8JsonWriter(stream);
-                if (value is JsonDocument doc)
-                {
-                    doc.WriteTo(writer);
-                }
-                else
-                {
-                    ((JsonElement)value).WriteTo(writer);
-                }
-
-                writer.Flush();
-                return $"'{EscapeSqlLiteral(Encoding.UTF8.GetString(stream.ToArray()))}'";
-            }
-            case string s:
-                return $"'{EscapeSqlLiteral(s)}'";
-            default: // User POCO
-                return $"'{EscapeSqlLiteral(JsonSerializer.Serialize(value))}'";
-        }
-    }
+        => $"'{EscapeSqlLiteral(JsonSerializer.Serialize(value))}'";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -102,20 +124,6 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override Expression GenerateCodeLiteral(object value)
-        => value switch
-        {
-            JsonDocument document => Expression.Call(
-                ParseMethod, Expression.Constant(document.RootElement.ToString()), DefaultJsonDocumentOptions),
-            JsonElement element => Expression.Property(
-                Expression.Call(ParseMethod, Expression.Constant(element.ToString()), DefaultJsonDocumentOptions),
-                nameof(JsonDocument.RootElement)),
-            string s => Expression.Constant(s),
-            _ => throw new NotSupportedException("Cannot generate code literals for JSON POCOs")
-        };
-
-    private static readonly Expression DefaultJsonDocumentOptions = Expression.New(typeof(JsonDocumentOptions));
-
-    private static readonly MethodInfo ParseMethod =
-        typeof(JsonDocument).GetMethod(nameof(JsonDocument.Parse), new[] { typeof(string), typeof(JsonDocumentOptions) })!;
+    protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+        => new NpgsqlOwnedJsonTypeMapping(parameters, NpgsqlDbType);
 }

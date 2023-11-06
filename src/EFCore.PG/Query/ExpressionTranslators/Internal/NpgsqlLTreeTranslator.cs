@@ -18,22 +18,8 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
     private readonly RelationalTypeMapping _boolTypeMapping;
     private readonly RelationalTypeMapping _ltreeTypeMapping;
-    private readonly RelationalTypeMapping _ltreeArrayTypeMapping;
     private readonly RelationalTypeMapping _lqueryTypeMapping;
-    private readonly RelationalTypeMapping _lqueryArrayTypeMapping;
     private readonly RelationalTypeMapping _ltxtqueryTypeMapping;
-
-    private static readonly MethodInfo IsAncestorOf =
-        typeof(LTree).GetRuntimeMethod(nameof(LTree.IsAncestorOf), new[] { typeof(LTree) })!;
-
-    private static readonly MethodInfo IsDescendantOf =
-        typeof(LTree).GetRuntimeMethod(nameof(LTree.IsDescendantOf), new[] { typeof(LTree) })!;
-
-    private static readonly MethodInfo MatchesLQuery =
-        typeof(LTree).GetRuntimeMethod(nameof(LTree.MatchesLQuery), new[] { typeof(string) })!;
-
-    private static readonly MethodInfo MatchesLTxtQuery =
-        typeof(LTree).GetRuntimeMethod(nameof(LTree.MatchesLTxtQuery), new[] { typeof(string) })!;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -49,9 +35,7 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
         _sqlExpressionFactory = sqlExpressionFactory;
         _boolTypeMapping = typeMappingSource.FindMapping(typeof(bool), model)!;
         _ltreeTypeMapping = typeMappingSource.FindMapping(typeof(LTree), model)!;
-        _ltreeArrayTypeMapping = typeMappingSource.FindMapping(typeof(LTree[]), model)!;
         _lqueryTypeMapping = typeMappingSource.FindMapping("lquery")!;
-        _lqueryArrayTypeMapping = typeMappingSource.FindMapping("lquery[]")!;
         _ltxtqueryTypeMapping = typeMappingSource.FindMapping("ltxtquery")!;
     }
 

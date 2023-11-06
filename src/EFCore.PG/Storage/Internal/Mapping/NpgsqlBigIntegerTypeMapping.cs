@@ -1,4 +1,6 @@
 using System.Numerics;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
@@ -16,7 +18,10 @@ public class NpgsqlBigIntegerTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlBigIntegerTypeMapping() : base("numeric", typeof(BigInteger), NpgsqlDbType.Numeric) {}
+    public NpgsqlBigIntegerTypeMapping()
+        : base("numeric", typeof(BigInteger), NpgsqlDbType.Numeric, jsonValueReaderWriter: JsonBigIntegerReaderWriter.Instance)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -50,4 +55,16 @@ public class NpgsqlBigIntegerTypeMapping : NpgsqlTypeMapping
             : parameters.Scale is null
                 ? $"numeric({parameters.Precision})"
                 : $"numeric({parameters.Precision},{parameters.Scale})";
+
+    private sealed class JsonBigIntegerReaderWriter : JsonValueReaderWriter<BigInteger>
+    {
+        public static JsonBigIntegerReaderWriter Instance { get; } = new();
+
+        // Other systems handling the JSON very likely won't support arbitrary-length numbers here, we encode as a string
+        public override BigInteger FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+            => BigInteger.Parse(manager.CurrentReader.GetString()!);
+
+        public override void ToJsonTyped(Utf8JsonWriter writer, BigInteger value)
+            => writer.WriteStringValue(value.ToString());
+    }
 }

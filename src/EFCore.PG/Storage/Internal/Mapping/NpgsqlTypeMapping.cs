@@ -1,4 +1,5 @@
 using System.Data.Common;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
@@ -18,8 +19,9 @@ public abstract class NpgsqlTypeMapping : RelationalTypeMapping, INpgsqlTypeMapp
     /// <param name="storeType">The database type to map.</param>
     /// <param name="clrType">The CLR type to map.</param>
     /// <param name="npgsqlDbType">The database type used by Npgsql.</param>
-    public NpgsqlTypeMapping(string storeType, Type clrType, NpgsqlDbType npgsqlDbType)
-        : base(storeType, clrType)
+    /// <param name="jsonValueReaderWriter">Handles reading and writing JSON values for instances of the mapped type.</param>
+    public NpgsqlTypeMapping(string storeType, Type clrType, NpgsqlDbType npgsqlDbType, JsonValueReaderWriter? jsonValueReaderWriter = null)
+        : base(storeType, clrType, jsonValueReaderWriter: jsonValueReaderWriter)
         => NpgsqlDbType = npgsqlDbType;
 
     /// <summary>
