@@ -12,9 +12,9 @@ public class NpgsqlTypeMappingSourceTest
 {
     [Theory]
     [InlineData("integer", typeof(int), null, null, null, false)]
-    [InlineData("integer[]", typeof(int[]), null, null, null, false)]
+    [InlineData("integer[]", typeof(List<int>), null, null, null, false)]
     [InlineData("int", typeof(int), null, null, null, false)]
-    [InlineData("int[]", typeof(int[]), null, null, null, false)]
+    [InlineData("int[]", typeof(List<int>), null, null, null, false)]
     [InlineData("numeric", typeof(decimal), null, null, null, false)]
     [InlineData("numeric(10,2)", typeof(decimal), null, 10, 2, false)]
     [InlineData("text", typeof(string), null, null, null, false)]
@@ -32,7 +32,7 @@ public class NpgsqlTypeMappingSourceTest
     [InlineData("int4range", typeof(NpgsqlRange<int>), null, null, null, false)]
     [InlineData("floatrange", typeof(NpgsqlRange<float>), null, null, null, false)]
     [InlineData("dummyrange", typeof(NpgsqlRange<DummyType>), null, null, null, false)]
-    [InlineData("int4multirange", typeof(NpgsqlRange<int>[]), null, null, null, false)]
+    [InlineData("int4multirange", typeof(List<NpgsqlRange<int>>), null, null, null, false)]
     [InlineData("geometry", typeof(Geometry), null, null, null, false)]
     [InlineData("geometry(Polygon)", typeof(Polygon), null, null, null, false)]
     [InlineData("geography(Point, 4326)", typeof(Point), null, null, null, false)]
@@ -70,7 +70,7 @@ public class NpgsqlTypeMappingSourceTest
         var mapping = CreateTypeMappingSource().FindMapping("varchar(32)[]");
 
         var arrayMapping = Assert.IsAssignableFrom<NpgsqlArrayTypeMapping>(mapping);
-        Assert.Same(typeof(string[]), arrayMapping.ClrType);
+        Assert.Same(typeof(List<string>), arrayMapping.ClrType);
         Assert.Equal("varchar(32)[]", arrayMapping.StoreType);
         Assert.Null(arrayMapping.Size);
 
@@ -93,7 +93,7 @@ public class NpgsqlTypeMappingSourceTest
     public void Timestamp_without_time_zone_Array_5()
     {
         var arrayMapping = Assert.IsAssignableFrom<NpgsqlArrayTypeMapping>(CreateTypeMappingSource().FindMapping("timestamp(5) without time zone[]"));
-        Assert.Same(typeof(DateTime[]), arrayMapping.ClrType);
+        Assert.Same(typeof(List<DateTime>), arrayMapping.ClrType);
         Assert.Equal("timestamp(5) without time zone[]", arrayMapping.StoreType);
 
         var elementMapping = arrayMapping.ElementTypeMapping;
@@ -225,7 +225,7 @@ public class NpgsqlTypeMappingSourceTest
 
     [Fact]
     public void Array_over_type_mapping_with_value_converter_by_store_type()
-        => Array_over_type_mapping_with_value_converter(CreateTypeMappingSource().FindMapping("ltree[]"), typeof(LTree[]));
+        => Array_over_type_mapping_with_value_converter(CreateTypeMappingSource().FindMapping("ltree[]"), typeof(List<LTree>));
 
     private void Array_over_type_mapping_with_value_converter(CoreTypeMapping mapping, Type expectedType)
     {
@@ -276,7 +276,7 @@ public class NpgsqlTypeMappingSourceTest
         var mapping13 = CreateTypeMappingSource(postgresVersion: new(13, 0)).FindMapping("int4multirange");
         var mappingDefault = CreateTypeMappingSource().FindMapping("int4multirange")!;
 
-        Assert.Same(typeof(NpgsqlRange<int>[]), mapping14.ClrType);
+        Assert.Same(typeof(List<NpgsqlRange<int>>), mapping14.ClrType);
         Assert.Null(mapping13);
 
         // See #2351 - we didn't put multiranges behind a version opt-in in 6.0, although the default PG version is still 12; this causes
@@ -284,7 +284,7 @@ public class NpgsqlTypeMappingSourceTest
         // Changing this in a patch would break people already using 6.0 with PG14, so multiranges are on by default unless users explicitly
         // specify < 14.
         // Once 14 is made the default version, this stuff can be removed.
-        Assert.Same(typeof(NpgsqlRange<int>[]), mappingDefault.ClrType);
+        Assert.Same(typeof(List<NpgsqlRange<int>>), mappingDefault.ClrType);
     }
 
     #region Support

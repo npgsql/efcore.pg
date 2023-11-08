@@ -90,7 +90,7 @@ public class NpgsqlNodaTimeTypeMappingTest
     public void Array_of_NpgsqlRange_of_LocalDateTime_is_properly_mapped()
     {
         Assert.Equal("tsmultirange", GetMapping(typeof(NpgsqlRange<LocalDateTime>[])).StoreType);
-        Assert.Same(typeof(NpgsqlRange<LocalDateTime>[]), GetMapping("tsmultirange").ClrType);
+        Assert.Same(typeof(List<NpgsqlRange<LocalDateTime>>), GetMapping("tsmultirange").ClrType);
     }
 
     [Fact]
@@ -503,7 +503,7 @@ public class NpgsqlNodaTimeTypeMappingTest
     public void LocalTime_array_is_properly_mapped()
     {
         Assert.Equal("time[]", GetMapping(typeof(LocalTime[])).StoreType);
-        Assert.Same(typeof(LocalTime[]), GetMapping("time[]").ClrType);
+        Assert.Same(typeof(List<LocalTime>), GetMapping("time[]").ClrType);
     }
 
     [Fact]
