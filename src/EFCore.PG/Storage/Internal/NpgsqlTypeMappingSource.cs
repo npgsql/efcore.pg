@@ -717,9 +717,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
                 if (modelType is null)
                 {
                     // There's no model type - we're scaffolding purely from the store type.
-                    // TODO: Consider returning List<T> by default for scaffolding, more useful, #2758
                     elementType = relationalElementMapping.ClrType;
-                    modelType = concreteCollectionType = elementType.MakeArrayType();
+                    modelType = concreteCollectionType = typeof(List<>).MakeGenericType(elementType);
                 }
                 else
                 {
@@ -747,9 +746,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
                 // TODO: Why exclude if there's an element converter??
                 && (relationalElementMapping.Converter is null || modelType is null || modelType.IsArrayOrGenericList()))
             {
-                // TODO: Consider returning List<T> by default for scaffolding, more useful, #2758
                 return new NpgsqlMultirangeTypeMapping(
-                    storeType, modelType ?? relationalElementMapping.ClrType.MakeArrayType(), rangeMapping);
+                    storeType, modelType ?? typeof(List<>).MakeGenericType(relationalElementMapping.ClrType), rangeMapping);
             }
 
             // TODO: This needs to move to the NodaTime plugin, but there's no FindCollectionMapping extension yet for plugins
