@@ -11,15 +11,6 @@ public class NorthwindQueryNpgsqlFixture<TModelCustomizer> : NorthwindQueryRelat
     protected override ITestStoreFactory TestStoreFactory => NpgsqlNorthwindTestStoreFactory.Instance;
     protected override Type ContextType => typeof(NorthwindNpgsqlContext);
 
-    static NorthwindQueryNpgsqlFixture()
-    {
-        // TODO: Switch to using NpgsqlDataSource
-#pragma warning disable CS0618 // Type or member is obsolete
-        NpgsqlConnection.GlobalTypeMapper.EnableDynamicJsonMappings();
-        NpgsqlConnection.GlobalTypeMapper.EnableRecordsAsTuples();
-#pragma warning restore CS0618 // Type or member is obsolete
-    }
-
     public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
     {
         var optionsBuilder = base.AddOptions(builder);
