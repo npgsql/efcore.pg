@@ -72,6 +72,8 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
     private static readonly MethodInfo LocalDateTime_Distance =
         typeof(NpgsqlNodaTimeDbFunctionsExtensions).GetRuntimeMethod(
             nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance), new[] { typeof(DbFunctions), typeof(LocalDateTime), typeof(LocalDateTime) })!;
+    private static readonly MethodInfo LocalDateTime_ToDateTimeUnspecified =
+        typeof(LocalDateTime).GetRuntimeMethod(nameof(LocalDateTime.ToDateTimeUnspecified), Type.EmptyTypes)!;
 
     private static readonly MethodInfo LocalDate_Distance =
         typeof(NpgsqlNodaTimeDbFunctionsExtensions).GetRuntimeMethod(
@@ -251,6 +253,14 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
         if (method == LocalDateTime_Distance)
         {
             return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]);
+        }
+
+        if (method == LocalDateTime_ToDateTimeUnspecified)
+        {
+            return _sqlExpressionFactory.Convert(
+                instance!,
+                typeof(DateTime),
+                _typeMappingSource.FindMapping(typeof(DateTime), "timestamp without time zone"));
         }
 
         return null;
