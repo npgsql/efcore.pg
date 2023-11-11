@@ -45,7 +45,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
     private static readonly MethodInfo StringToArray           = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.StringToArray), new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
     private static readonly MethodInfo StringToArrayNullString = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.StringToArray), new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) })!;
 
-    private static readonly MethodInfo ToDate     = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ToDate), new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
+    private static readonly MethodInfo ToDate                  = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ToDate), new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
 
     private static readonly MethodInfo FirstOrDefaultMethodInfoWithoutArgs
         = typeof(Enumerable).GetRuntimeMethods().Single(
