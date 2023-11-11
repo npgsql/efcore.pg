@@ -207,6 +207,20 @@ WHERE string_to_array(c."ContactName", ' ', 'Maria') = ARRAY[NULL,'Anders']::tex
 """);
     }
 
+    [Fact]
+    public void ToDate_with_null_string()
+    {
+        using var context = CreateContext();
+        var count = context.Orders.Count(c => EF.Functions.ToDate(c.OrderDate.ToString(), "YYYY-MM-DD") < new DateOnly(2000, 01, 01));
+        Assert.Equal(830, count);
+        AssertSql(
+"""
+SELECT count(*)::int
+FROM "Orders" AS o
+WHERE to_date(o."OrderDate"::text, 'YYYY-MM-DD') < DATE '2000-01-01'
+""");
+    }
+
     #endregion
 
     private void AssertSql(params string[] expected)
