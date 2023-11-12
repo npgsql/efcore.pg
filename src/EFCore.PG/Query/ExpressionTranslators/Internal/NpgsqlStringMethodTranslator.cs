@@ -379,6 +379,18 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                 _typeMappingSource.FindMapping(typeof(string[])));
         }
 
+        if (method == ToDate)
+        {
+            return _sqlExpressionFactory.Function(
+                "to_date",
+                new[] { arguments[1], arguments[2] },
+                nullable: true,
+                argumentsPropagateNullability: new[] { true, false },
+                typeof(DateOnly?),
+                _typeMappingSource.FindMapping(typeof(DateOnly?))
+            );
+        }
+
         return null;
     }
 

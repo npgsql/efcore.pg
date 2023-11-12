@@ -145,6 +145,6 @@ public static class NpgsqlDbFunctionsExtensions
     /// <param name="value">The string to be converted</param>
     /// <param name="format">The format of the input date</param>
     /// <see href="https://www.postgresql.org/docs/current/functions-formatting.html"/>
-    public static DateOnly ToDate(this DbFunctions _, string value, string format)
+    public static DateOnly? ToDate(this DbFunctions _, string? value, string format)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ToDate)));
 }
