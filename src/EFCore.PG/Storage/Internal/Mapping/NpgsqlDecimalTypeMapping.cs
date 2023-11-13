@@ -1,4 +1,3 @@
-using System.Globalization;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -20,19 +19,19 @@ public class NpgsqlDecimalTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlDecimalTypeMapping(Type? clrType = null)
-        : this(new RelationalTypeMappingParameters(
-            new CoreTypeMappingParameters(
-                clrType ?? typeof(decimal),
-                jsonValueReaderWriter: clrType == typeof(decimal) || clrType is null
-                    ? JsonDecimalReaderWriter.Instance
-                    : clrType == typeof(double)
-                        ? JsonDoubleReaderWriter.Instance
-                        : clrType == typeof(float)
-                            ? JsonFloatReaderWriter.Instance
-                            : throw new ArgumentException("clrType must be decimal, double or float", nameof(clrType))
-
+        : this(
+            new RelationalTypeMappingParameters(
+                new CoreTypeMappingParameters(
+                    clrType ?? typeof(decimal),
+                    jsonValueReaderWriter: clrType == typeof(decimal) || clrType is null
+                        ? JsonDecimalReaderWriter.Instance
+                        : clrType == typeof(double)
+                            ? JsonDoubleReaderWriter.Instance
+                            : clrType == typeof(float)
+                                ? JsonFloatReaderWriter.Instance
+                                : throw new ArgumentException("clrType must be decimal, double or float", nameof(clrType))
                 ),
-            "numeric"))
+                "numeric"))
     {
     }
 

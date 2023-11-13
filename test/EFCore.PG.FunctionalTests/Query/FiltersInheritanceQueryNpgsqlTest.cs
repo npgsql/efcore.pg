@@ -5,5 +5,7 @@ public class FiltersInheritanceQueryNpgsqlTest : FiltersInheritanceQueryTestBase
     // ReSharper disable once UnusedParameter.Local
     public FiltersInheritanceQueryNpgsqlTest(TPHFiltersInheritanceQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         : base(fixture)
-        => Fixture.TestSqlLoggerFactory.Clear();
+    {
+        Fixture.TestSqlLoggerFactory.Clear();
+    }
 }

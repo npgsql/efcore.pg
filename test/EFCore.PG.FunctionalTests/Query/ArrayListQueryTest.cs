@@ -121,7 +121,7 @@ WHERE s."IntList" = @__arr_0
         await base.SequenceEqual_with_array_literal(async);
 
         AssertSql(
-"""
+            """
 SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
 WHERE s."IntList" = ARRAY[3,4]::integer[]
@@ -233,7 +233,7 @@ WHERE array_position(s."NullableStringList", NULL) IS NOT NULL
             ctx.SomeEntities.Count(e => e.StringList.Contains(p)));
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "SomeEntities" AS s
 WHERE s."StringList" @> ARRAY[NULL]::text[]
@@ -319,7 +319,7 @@ WHERE s."Id" = ANY (@__array_0)
         Assert.Equal(0, ctx.SomeEntities.Count(e => array.Contains(e.NonNullableText)));
 
         AssertSql(
-"""
+            """
 @__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT count(*)::int
@@ -342,7 +342,7 @@ WHERE s."NonNullableText" = ANY (@__array_0)
         Assert.Equal(2, ctx.SomeEntities.Count(e => !array.Contains(e.NonNullableText)));
 
         AssertSql(
-"""
+            """
 @__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT count(*)::int
@@ -365,7 +365,7 @@ WHERE NOT (s."NonNullableText" = ANY (@__array_0) AND s."NonNullableText" = ANY 
         Assert.Equal(0, ctx.SomeEntities.Count(e => array.Contains(e.NullableText)));
 
         AssertSql(
-"""
+            """
 @__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT count(*)::int
@@ -388,7 +388,7 @@ WHERE s."NullableText" = ANY (@__array_0) OR (s."NullableText" IS NULL AND array
         Assert.Equal(2, ctx.SomeEntities.Count(e => !array.Contains(e.NullableText)));
 
         AssertSql(
-"""
+            """
 @__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT count(*)::int
@@ -581,7 +581,7 @@ WHERE s."IList" @> ARRAY[10]::integer[]
         await base.Array_column_Contains_in_scalar_subquery(async);
 
         AssertSql(
-"""
+            """
 SELECT s."Id"
 FROM "SomeEntityContainers" AS s
 WHERE 3 = ANY ((
@@ -698,8 +698,18 @@ WHERE s."NullableText" ILIKE ANY (ARRAY['a%','b%','c%']::text[])
     {
         await using var ctx = CreateContext();
 
-        var patternsActual = new List<string> { "a%", "b%", "c%" };
-        var patternsExpected = new List<string> { "a", "b", "c" };
+        var patternsActual = new List<string>
+        {
+            "a%",
+            "b%",
+            "c%"
+        };
+        var patternsExpected = new List<string>
+        {
+            "a",
+            "b",
+            "c"
+        };
 
         await AssertQuery(
             async,
@@ -831,26 +841,23 @@ WHERE ARRAY[5,6]::integer[] <@ s."IntList"
     #region Other translations
 
     public override async Task Append(bool async)
-    {
         // TODO: https://github.com/dotnet/efcore/issues/30669
-        await AssertTranslationFailed(() => base.Append(async));
+        => await AssertTranslationFailed(() => base.Append(async));
 
-//         await base.Append(async);
-//
-//         AssertSql(
-// """
-// SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
-// FROM "SomeEntities" AS s
-// WHERE array_append(s."IntList", 5) = ARRAY[3,4,5]::integer[]
-// """);
-    }
-
+    //         await base.Append(async);
+    //
+    //         AssertSql(
+    // """
+    // SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+    // FROM "SomeEntities" AS s
+    // WHERE array_append(s."IntList", 5) = ARRAY[3,4,5]::integer[]
+    // """);
     public override async Task Concat(bool async)
     {
         await base.Concat(async);
 
         AssertSql(
-"""
+            """
 SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
 WHERE array_cat(s."IntList", ARRAY[5,6]::integer[]) = ARRAY[3,4,5,6]::integer[]

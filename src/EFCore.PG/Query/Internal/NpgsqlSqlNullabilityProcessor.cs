@@ -1,7 +1,6 @@
 using System.Runtime.CompilerServices;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
@@ -12,7 +11,7 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
     /// <summary>
-    /// Creates a new instance of the <see cref="NpgsqlSqlNullabilityProcessor" /> class.
+    ///     Creates a new instance of the <see cref="NpgsqlSqlNullabilityProcessor" /> class.
     /// </summary>
     /// <param name="dependencies">Parameter object containing dependencies for this class.</param>
     /// <param name="useRelationalNulls">A bool value indicating whether relational null semantics are in use.</param>
@@ -20,7 +19,9 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         RelationalParameterBasedSqlProcessorDependencies dependencies,
         bool useRelationalNulls)
         : base(dependencies, useRelationalNulls)
-        => _sqlExpressionFactory = dependencies.SqlExpressionFactory;
+    {
+        _sqlExpressionFactory = dependencies.SqlExpressionFactory;
+    }
 
     /// <inheritdoc />
     protected override SqlExpression VisitSqlBinary(
@@ -300,7 +301,9 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected virtual SqlExpression VisitArrayIndex(
-        PgArrayIndexExpression arrayIndexExpression, bool allowOptimizedExpansion, out bool nullable)
+        PgArrayIndexExpression arrayIndexExpression,
+        bool allowOptimizedExpansion,
+        out bool nullable)
     {
         Check.NotNull(arrayIndexExpression, nameof(arrayIndexExpression));
 
@@ -319,7 +322,9 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected virtual SqlExpression VisitArraySlice(
-        PgArraySliceExpression arraySliceExpression, bool allowOptimizedExpansion, out bool nullable)
+        PgArraySliceExpression arraySliceExpression,
+        bool allowOptimizedExpansion,
+        out bool nullable)
     {
         Check.NotNull(arraySliceExpression, nameof(arraySliceExpression));
 
@@ -338,7 +343,10 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected virtual SqlExpression VisitPostgresBinary(PgBinaryExpression binaryExpression, bool allowOptimizedExpansion, out bool nullable)
+    protected virtual SqlExpression VisitPostgresBinary(
+        PgBinaryExpression binaryExpression,
+        bool allowOptimizedExpansion,
+        out bool nullable)
     {
         Check.NotNull(binaryExpression, nameof(binaryExpression));
 
@@ -352,11 +360,11 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         nullable = binaryExpression.OperatorType switch
         {
             // The following LTree search methods return null for "not found"
-            PgExpressionType.LTreeFirstAncestor   => true,
+            PgExpressionType.LTreeFirstAncestor => true,
             PgExpressionType.LTreeFirstDescendent => true,
-            PgExpressionType.LTreeFirstMatches    => true,
+            PgExpressionType.LTreeFirstMatches => true,
 
-            _                                           => leftNullable || rightNullable
+            _ => leftNullable || rightNullable
         };
 
         return binaryExpression.Update(left, right);
@@ -473,7 +481,9 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected virtual SqlExpression VisitNewArray(
-        PgNewArrayExpression newArrayExpression, bool allowOptimizedExpansion, out bool nullable)
+        PgNewArrayExpression newArrayExpression,
+        bool allowOptimizedExpansion,
+        out bool nullable)
     {
         Check.NotNull(newArrayExpression, nameof(newArrayExpression));
 
@@ -510,7 +520,9 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected virtual SqlExpression VisitRegexMatch(
-        PgRegexMatchExpression regexMatchExpression, bool allowOptimizedExpansion, out bool nullable)
+        PgRegexMatchExpression regexMatchExpression,
+        bool allowOptimizedExpansion,
+        out bool nullable)
     {
         Check.NotNull(regexMatchExpression, nameof(regexMatchExpression));
 
@@ -529,7 +541,9 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected virtual SqlExpression VisitJsonTraversal(
-        PgJsonTraversalExpression jsonTraversalExpression, bool allowOptimizedExpansion, out bool nullable)
+        PgJsonTraversalExpression jsonTraversalExpression,
+        bool allowOptimizedExpansion,
+        out bool nullable)
     {
         Check.NotNull(jsonTraversalExpression, nameof(jsonTraversalExpression));
 
@@ -603,7 +617,7 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     }
 
     /// <summary>
-    /// Visits a <see cref="PgUnknownBinaryExpression" /> and computes its nullability.
+    ///     Visits a <see cref="PgUnknownBinaryExpression" /> and computes its nullability.
     /// </summary>
     /// <remarks>
     /// </remarks>
@@ -612,7 +626,9 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
     /// <returns>An optimized sql expression.</returns>
     protected virtual SqlExpression VisitUnknownBinary(
-        PgUnknownBinaryExpression unknownBinaryExpression, bool allowOptimizedExpansion, out bool nullable)
+        PgUnknownBinaryExpression unknownBinaryExpression,
+        bool allowOptimizedExpansion,
+        out bool nullable)
     {
         Check.NotNull(unknownBinaryExpression, nameof(unknownBinaryExpression));
 

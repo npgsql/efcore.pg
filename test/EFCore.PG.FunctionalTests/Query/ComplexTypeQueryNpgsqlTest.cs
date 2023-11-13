@@ -17,7 +17,7 @@ public class ComplexTypeQueryNpgsqlTest : ComplexTypeQueryRelationalTestBase<
         await base.Filter_on_property_inside_complex_type(async);
 
         AssertSql(
-"""
+            """
 SELECT c."Id", c."Name", c."BillingAddress_AddressLine1", c."BillingAddress_AddressLine2", c."BillingAddress_ZipCode", c."BillingAddress_Country_Code", c."BillingAddress_Country_FullName", c."ShippingAddress_AddressLine1", c."ShippingAddress_AddressLine2", c."ShippingAddress_ZipCode", c."ShippingAddress_Country_Code", c."ShippingAddress_Country_FullName"
 FROM "Customer" AS c
 WHERE c."ShippingAddress_ZipCode" = 7728
@@ -29,7 +29,7 @@ WHERE c."ShippingAddress_ZipCode" = 7728
         await base.Filter_on_property_inside_nested_complex_type(async);
 
         AssertSql(
-"""
+            """
 SELECT c."Id", c."Name", c."BillingAddress_AddressLine1", c."BillingAddress_AddressLine2", c."BillingAddress_ZipCode", c."BillingAddress_Country_Code", c."BillingAddress_Country_FullName", c."ShippingAddress_AddressLine1", c."ShippingAddress_AddressLine2", c."ShippingAddress_ZipCode", c."ShippingAddress_Country_Code", c."ShippingAddress_Country_FullName"
 FROM "Customer" AS c
 WHERE c."ShippingAddress_Country_Code" = 'DE'
@@ -41,7 +41,7 @@ WHERE c."ShippingAddress_Country_Code" = 'DE'
         await base.Filter_on_property_inside_complex_type_after_subquery(async);
 
         AssertSql(
-"""
+            """
 @__p_0='1'
 
 SELECT DISTINCT t."Id", t."Name", t."BillingAddress_AddressLine1", t."BillingAddress_AddressLine2", t."BillingAddress_ZipCode", t."BillingAddress_Country_Code", t."BillingAddress_Country_FullName", t."ShippingAddress_AddressLine1", t."ShippingAddress_AddressLine2", t."ShippingAddress_ZipCode", t."ShippingAddress_Country_Code", t."ShippingAddress_Country_FullName"
@@ -60,7 +60,7 @@ WHERE t."ShippingAddress_ZipCode" = 7728
         await base.Filter_on_property_inside_nested_complex_type_after_subquery(async);
 
         AssertSql(
-"""
+            """
 @__p_0='1'
 
 SELECT DISTINCT t."Id", t."Name", t."BillingAddress_AddressLine1", t."BillingAddress_AddressLine2", t."BillingAddress_ZipCode", t."BillingAddress_Country_Code", t."BillingAddress_Country_FullName", t."ShippingAddress_AddressLine1", t."ShippingAddress_AddressLine2", t."ShippingAddress_ZipCode", t."ShippingAddress_Country_Code", t."ShippingAddress_Country_FullName"
@@ -79,7 +79,7 @@ WHERE t."ShippingAddress_Country_Code" = 'DE'
         await base.Filter_on_required_property_inside_required_complex_type_on_optional_navigation(async);
 
         AssertSql(
-"""
+            """
 SELECT c."Id", c."OptionalCustomerId", c."RequiredCustomerId", c0."Id", c0."Name", c0."BillingAddress_AddressLine1", c0."BillingAddress_AddressLine2", c0."BillingAddress_ZipCode", c0."BillingAddress_Country_Code", c0."BillingAddress_Country_FullName", c0."ShippingAddress_AddressLine1", c0."ShippingAddress_AddressLine2", c0."ShippingAddress_ZipCode", c0."ShippingAddress_Country_Code", c0."ShippingAddress_Country_FullName", c1."Id", c1."Name", c1."BillingAddress_AddressLine1", c1."BillingAddress_AddressLine2", c1."BillingAddress_ZipCode", c1."BillingAddress_Country_Code", c1."BillingAddress_Country_FullName", c1."ShippingAddress_AddressLine1", c1."ShippingAddress_AddressLine2", c1."ShippingAddress_ZipCode", c1."ShippingAddress_Country_Code", c1."ShippingAddress_Country_FullName"
 FROM "CustomerGroup" AS c
 LEFT JOIN "Customer" AS c0 ON c."OptionalCustomerId" = c0."Id"
@@ -93,7 +93,7 @@ WHERE c0."ShippingAddress_ZipCode" <> 7728 OR c0."ShippingAddress_ZipCode" IS NU
         await base.Filter_on_required_property_inside_required_complex_type_on_required_navigation(async);
 
         AssertSql(
-"""
+            """
 SELECT c."Id", c."OptionalCustomerId", c."RequiredCustomerId", c1."Id", c1."Name", c1."BillingAddress_AddressLine1", c1."BillingAddress_AddressLine2", c1."BillingAddress_ZipCode", c1."BillingAddress_Country_Code", c1."BillingAddress_Country_FullName", c1."ShippingAddress_AddressLine1", c1."ShippingAddress_AddressLine2", c1."ShippingAddress_ZipCode", c1."ShippingAddress_Country_Code", c1."ShippingAddress_Country_FullName", c0."Id", c0."Name", c0."BillingAddress_AddressLine1", c0."BillingAddress_AddressLine2", c0."BillingAddress_ZipCode", c0."BillingAddress_Country_Code", c0."BillingAddress_Country_FullName", c0."ShippingAddress_AddressLine1", c0."ShippingAddress_AddressLine2", c0."ShippingAddress_ZipCode", c0."ShippingAddress_Country_Code", c0."ShippingAddress_Country_FullName"
 FROM "CustomerGroup" AS c
 INNER JOIN "Customer" AS c0 ON c."RequiredCustomerId" = c0."Id"
@@ -117,7 +117,7 @@ WHERE c0."ShippingAddress_ZipCode" <> 7728
         await base.Project_complex_type_via_required_navigation(async);
 
         AssertSql(
-"""
+            """
 SELECT c0."ShippingAddress_AddressLine1", c0."ShippingAddress_AddressLine2", c0."ShippingAddress_ZipCode", c0."ShippingAddress_Country_Code", c0."ShippingAddress_Country_FullName"
 FROM "CustomerGroup" AS c
 INNER JOIN "Customer" AS c0 ON c."RequiredCustomerId" = c0."Id"
@@ -129,7 +129,7 @@ INNER JOIN "Customer" AS c0 ON c."RequiredCustomerId" = c0."Id"
         await base.Load_complex_type_after_subquery_on_entity_type(async);
 
         AssertSql(
-"""
+            """
 @__p_0='1'
 
 SELECT DISTINCT t."Id", t."Name", t."BillingAddress_AddressLine1", t."BillingAddress_AddressLine2", t."BillingAddress_ZipCode", t."BillingAddress_Country_Code", t."BillingAddress_Country_FullName", t."ShippingAddress_AddressLine1", t."ShippingAddress_AddressLine2", t."ShippingAddress_ZipCode", t."ShippingAddress_Country_Code", t."ShippingAddress_Country_FullName"
@@ -147,7 +147,7 @@ FROM (
         await base.Select_complex_type(async);
 
         AssertSql(
-"""
+            """
 SELECT c."ShippingAddress_AddressLine1", c."ShippingAddress_AddressLine2", c."ShippingAddress_ZipCode", c."ShippingAddress_Country_Code", c."ShippingAddress_Country_FullName"
 FROM "Customer" AS c
 """);
@@ -158,7 +158,7 @@ FROM "Customer" AS c
         await base.Select_nested_complex_type(async);
 
         AssertSql(
-"""
+            """
 SELECT c."ShippingAddress_Country_Code", c."ShippingAddress_Country_FullName"
 FROM "Customer" AS c
 """);
@@ -169,7 +169,7 @@ FROM "Customer" AS c
         await base.Select_single_property_on_nested_complex_type(async);
 
         AssertSql(
-"""
+            """
 SELECT c."ShippingAddress_Country_FullName"
 FROM "Customer" AS c
 """);
@@ -180,7 +180,7 @@ FROM "Customer" AS c
         await base.Select_complex_type_Where(async);
 
         AssertSql(
-"""
+            """
 SELECT c."ShippingAddress_AddressLine1", c."ShippingAddress_AddressLine2", c."ShippingAddress_ZipCode", c."ShippingAddress_Country_Code", c."ShippingAddress_Country_FullName"
 FROM "Customer" AS c
 WHERE c."ShippingAddress_ZipCode" = 7728
@@ -192,7 +192,7 @@ WHERE c."ShippingAddress_ZipCode" = 7728
         await base.Select_complex_type_Distinct(async);
 
         AssertSql(
-"""
+            """
 SELECT DISTINCT c."ShippingAddress_AddressLine1", c."ShippingAddress_AddressLine2", c."ShippingAddress_ZipCode", c."ShippingAddress_Country_Code", c."ShippingAddress_Country_FullName"
 FROM "Customer" AS c
 """);
@@ -203,7 +203,7 @@ FROM "Customer" AS c
         await base.Complex_type_equals_complex_type(async);
 
         AssertSql(
-"""
+            """
 SELECT c."Id", c."Name", c."BillingAddress_AddressLine1", c."BillingAddress_AddressLine2", c."BillingAddress_ZipCode", c."BillingAddress_Country_Code", c."BillingAddress_Country_FullName", c."ShippingAddress_AddressLine1", c."ShippingAddress_AddressLine2", c."ShippingAddress_ZipCode", c."ShippingAddress_Country_Code", c."ShippingAddress_Country_FullName"
 FROM "Customer" AS c
 WHERE c."ShippingAddress_AddressLine1" = c."BillingAddress_AddressLine1" AND (c."ShippingAddress_AddressLine2" = c."BillingAddress_AddressLine2" OR (c."ShippingAddress_AddressLine2" IS NULL AND c."BillingAddress_AddressLine2" IS NULL)) AND c."ShippingAddress_ZipCode" = c."BillingAddress_ZipCode"
@@ -215,7 +215,7 @@ WHERE c."ShippingAddress_AddressLine1" = c."BillingAddress_AddressLine1" AND (c.
         await base.Complex_type_equals_constant(async);
 
         AssertSql(
-"""
+            """
 SELECT c."Id", c."Name", c."BillingAddress_AddressLine1", c."BillingAddress_AddressLine2", c."BillingAddress_ZipCode", c."BillingAddress_Country_Code", c."BillingAddress_Country_FullName", c."ShippingAddress_AddressLine1", c."ShippingAddress_AddressLine2", c."ShippingAddress_ZipCode", c."ShippingAddress_Country_Code", c."ShippingAddress_Country_FullName"
 FROM "Customer" AS c
 WHERE c."ShippingAddress_AddressLine1" = '804 S. Lakeshore Road' AND c."ShippingAddress_AddressLine2" IS NULL AND c."ShippingAddress_ZipCode" = 38654 AND c."ShippingAddress_Country_Code" = 'US' AND c."ShippingAddress_Country_FullName" = 'United States'
@@ -227,7 +227,7 @@ WHERE c."ShippingAddress_AddressLine1" = '804 S. Lakeshore Road' AND c."Shipping
         await base.Complex_type_equals_parameter(async);
 
         AssertSql(
-"""
+            """
 @__entity_equality_address_0_AddressLine1='804 S. Lakeshore Road'
 @__entity_equality_address_0_ZipCode='38654' (Nullable = true)
 @__entity_equality_address_0_Code='US'
@@ -258,7 +258,7 @@ WHERE c."ShippingAddress_AddressLine1" = @__entity_equality_address_0_AddressLin
         await base.Contains_over_complex_type(async);
 
         AssertSql(
-"""
+            """
 @__entity_equality_address_0_AddressLine1='804 S. Lakeshore Road'
 @__entity_equality_address_0_ZipCode='38654' (Nullable = true)
 @__entity_equality_address_0_Code='US'
@@ -278,7 +278,7 @@ WHERE EXISTS (
         await base.Concat_complex_type(async);
 
         AssertSql(
-"""
+            """
 SELECT c."ShippingAddress_AddressLine1", c."ShippingAddress_AddressLine2", c."ShippingAddress_ZipCode", c."ShippingAddress_Country_Code", c."ShippingAddress_Country_FullName"
 FROM "Customer" AS c
 WHERE c."Id" = 1
@@ -294,7 +294,7 @@ WHERE c0."Id" = 2
         await base.Concat_entity_type_containing_complex_property(async);
 
         AssertSql(
-"""
+            """
 SELECT c."Id", c."Name", c."BillingAddress_AddressLine1", c."BillingAddress_AddressLine2", c."BillingAddress_ZipCode", c."BillingAddress_Country_Code", c."BillingAddress_Country_FullName", c."ShippingAddress_AddressLine1", c."ShippingAddress_AddressLine2", c."ShippingAddress_ZipCode", c."ShippingAddress_Country_Code", c."ShippingAddress_Country_FullName"
 FROM "Customer" AS c
 WHERE c."Id" = 1
@@ -310,7 +310,7 @@ WHERE c0."Id" = 2
         await base.Union_entity_type_containing_complex_property(async);
 
         AssertSql(
-"""
+            """
 SELECT c."Id", c."Name", c."BillingAddress_AddressLine1", c."BillingAddress_AddressLine2", c."BillingAddress_ZipCode", c."BillingAddress_Country_Code", c."BillingAddress_Country_FullName", c."ShippingAddress_AddressLine1", c."ShippingAddress_AddressLine2", c."ShippingAddress_ZipCode", c."ShippingAddress_Country_Code", c."ShippingAddress_Country_FullName"
 FROM "Customer" AS c
 WHERE c."Id" = 1
@@ -326,7 +326,7 @@ WHERE c0."Id" = 2
         await base.Union_complex_type(async);
 
         AssertSql(
-"""
+            """
 SELECT c."ShippingAddress_AddressLine1", c."ShippingAddress_AddressLine2", c."ShippingAddress_ZipCode", c."ShippingAddress_Country_Code", c."ShippingAddress_Country_FullName"
 FROM "Customer" AS c
 WHERE c."Id" = 1
@@ -342,7 +342,7 @@ WHERE c0."Id" = 2
         await base.Concat_property_in_complex_type(async);
 
         AssertSql(
-"""
+            """
 SELECT c."ShippingAddress_AddressLine1"
 FROM "Customer" AS c
 UNION ALL
@@ -356,7 +356,7 @@ FROM "Customer" AS c0
         await base.Union_property_in_complex_type(async);
 
         AssertSql(
-"""
+            """
 SELECT c."ShippingAddress_AddressLine1"
 FROM "Customer" AS c
 UNION

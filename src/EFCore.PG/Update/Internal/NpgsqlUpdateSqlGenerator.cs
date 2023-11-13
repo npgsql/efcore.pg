@@ -135,7 +135,8 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
 
             if (columnModification.TypeMapping.StoreType is "json")
             {
-                throw new NotSupportedException("Cannot perform partial update because the PostgreSQL 'json' type has no json_set method. Use 'jsonb' instead.");
+                throw new NotSupportedException(
+                    "Cannot perform partial update because the PostgreSQL 'json' type has no json_set method. Use 'jsonb' instead.");
             }
 
             Check.DebugAssert(columnModification.TypeMapping.StoreType is "jsonb", "Non-jsonb type mapping in JSON partial update");
@@ -166,6 +167,7 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
                         stringBuilder.Append(component);
                         needsComma = true;
                     }
+
                     continue;
                 }
 
@@ -186,7 +188,8 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
             // TODO: Hack around
             if (columnModification.Value is null)
             {
-                _columnModificationValueField ??= typeof(ColumnModification).GetField("_value", BindingFlags.Instance | BindingFlags.NonPublic)!;
+                _columnModificationValueField ??= typeof(ColumnModification).GetField(
+                    "_value", BindingFlags.Instance | BindingFlags.NonPublic)!;
                 _columnModificationValueField.SetValue(columnModification, "null");
             }
 
@@ -243,7 +246,8 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
 
         var storedProcedure = command.StoreStoredProcedure;
 
-        Check.DebugAssert(storedProcedure.Parameters.Any() || storedProcedure.ResultColumns.Any(),
+        Check.DebugAssert(
+            storedProcedure.Parameters.Any() || storedProcedure.ResultColumns.Any(),
             "Stored procedure call with neither parameters nor result columns");
 
         var resultSetMapping = ResultSetMapping.NoResults;

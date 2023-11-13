@@ -28,7 +28,7 @@ public class NpgsqlNetTopologySuiteOptionsExtension : IDbContextOptionsExtension
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlNetTopologySuiteOptionsExtension() {}
+    public NpgsqlNetTopologySuiteOptionsExtension() { }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -37,7 +37,9 @@ public class NpgsqlNetTopologySuiteOptionsExtension : IDbContextOptionsExtension
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlNetTopologySuiteOptionsExtension(NpgsqlNetTopologySuiteOptionsExtension copyFrom)
-        => IsGeographyDefault = copyFrom.IsGeographyDefault;
+    {
+        IsGeographyDefault = copyFrom.IsGeographyDefault;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -45,7 +47,8 @@ public class NpgsqlNetTopologySuiteOptionsExtension : IDbContextOptionsExtension
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected virtual NpgsqlNetTopologySuiteOptionsExtension Clone() => new(this);
+    protected virtual NpgsqlNetTopologySuiteOptionsExtension Clone()
+        => new(this);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -96,9 +99,11 @@ public class NpgsqlNetTopologySuiteOptionsExtension : IDbContextOptionsExtension
             using (var scope = internalServiceProvider.CreateScope())
             {
                 if (scope.ServiceProvider.GetService<IEnumerable<IRelationalTypeMappingSourcePlugin>>()
-                        ?.Any(s => s is NpgsqlNetTopologySuiteTypeMappingSourcePlugin) != true)
+                        ?.Any(s => s is NpgsqlNetTopologySuiteTypeMappingSourcePlugin)
+                    != true)
                 {
-                    throw new InvalidOperationException($"{nameof(NpgsqlNetTopologySuiteDbContextOptionsBuilderExtensions.UseNetTopologySuite)} requires {nameof(NpgsqlNetTopologySuiteServiceCollectionExtensions.AddEntityFrameworkNpgsqlNetTopologySuite)} to be called on the internal service provider used.");
+                    throw new InvalidOperationException(
+                        $"{nameof(NpgsqlNetTopologySuiteDbContextOptionsBuilderExtensions.UseNetTopologySuite)} requires {nameof(NpgsqlNetTopologySuiteServiceCollectionExtensions.AddEntityFrameworkNpgsqlNetTopologySuite)} to be called on the internal service provider used.");
                 }
             }
         }
@@ -116,9 +121,11 @@ public class NpgsqlNetTopologySuiteOptionsExtension : IDbContextOptionsExtension
         private new NpgsqlNetTopologySuiteOptionsExtension Extension
             => (NpgsqlNetTopologySuiteOptionsExtension)base.Extension;
 
-        public override bool IsDatabaseProvider => false;
+        public override bool IsDatabaseProvider
+            => false;
 
-        public override int GetServiceProviderHashCode() => Extension.IsGeographyDefault.GetHashCode();
+        public override int GetServiceProviderHashCode()
+            => Extension.IsGeographyDefault.GetHashCode();
 
         public override bool ShouldUseSameServiceProvider(DbContextOptionsExtensionInfo other)
             => true;

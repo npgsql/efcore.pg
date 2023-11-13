@@ -3,18 +3,18 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 /// <summary>
-/// An expression that represents a PostgreSQL-specific binary operation in a SQL tree.
+///     An expression that represents a PostgreSQL-specific binary operation in a SQL tree.
 /// </summary>
 public class PgBinaryExpression : SqlExpression
 {
     /// <summary>
-    /// Creates a new instance of the <see cref="PgBinaryExpression" /> class.
+    ///     Creates a new instance of the <see cref="PgBinaryExpression" /> class.
     /// </summary>
     /// <param name="operatorType">The operator to apply.</param>
     /// <param name="left">An expression which is left operand.</param>
     /// <param name="right">An expression which is right operand.</param>
-    /// <param name="type">The <see cref="Type"/> of the expression.</param>
-    /// <param name="typeMapping">The <see cref="RelationalTypeMapping"/> associated with the expression.</param>
+    /// <param name="type">The <see cref="Type" /> of the expression.</param>
+    /// <param name="typeMapping">The <see cref="RelationalTypeMapping" /> associated with the expression.</param>
     public PgBinaryExpression(
         PgExpressionType operatorType,
         SqlExpression left,
@@ -32,15 +32,17 @@ public class PgBinaryExpression : SqlExpression
     }
 
     /// <summary>
-    /// The operator of this PostgreSQL binary operation.
+    ///     The operator of this PostgreSQL binary operation.
     /// </summary>
     public virtual PgExpressionType OperatorType { get; }
+
     /// <summary>
-    /// The left operand.
+    ///     The left operand.
     /// </summary>
     public virtual SqlExpression Left { get; }
+
     /// <summary>
-    /// The right operand.
+    ///     The right operand.
     /// </summary>
     public virtual SqlExpression Right { get; }
 
@@ -56,11 +58,11 @@ public class PgBinaryExpression : SqlExpression
     }
 
     /// <summary>
-    /// Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
-    /// return this expression.
+    ///     Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
+    ///     return this expression.
     /// </summary>
-    /// <param name="left">The <see cref="Left"/> property of the result.</param>
-    /// <param name="right">The <see cref="Right"/> property of the result.</param>
+    /// <param name="left">The <see cref="Left" /> property of the result.</param>
+    /// <param name="right">The <see cref="Right" /> property of the result.</param>
     /// <returns>This expression if no children changed, or an expression with the updated children.</returns>
     public virtual PgBinaryExpression Update(SqlExpression left, SqlExpression right)
     {
@@ -93,51 +95,51 @@ public class PgBinaryExpression : SqlExpression
 
         expressionPrinter
             .Append(" ")
-            .Append(OperatorType switch
-            {
-                PgExpressionType.Contains    => "@>",
-                PgExpressionType.ContainedBy => "<@",
-                PgExpressionType.Overlaps    => "&&",
+            .Append(
+                OperatorType switch
+                {
+                    PgExpressionType.Contains => "@>",
+                    PgExpressionType.ContainedBy => "<@",
+                    PgExpressionType.Overlaps => "&&",
 
-                PgExpressionType.NetworkContainedByOrEqual    => "<<=",
-                PgExpressionType.NetworkContainsOrEqual       => ">>=",
-                PgExpressionType.NetworkContainsOrContainedBy => "&&",
+                    PgExpressionType.NetworkContainedByOrEqual => "<<=",
+                    PgExpressionType.NetworkContainsOrEqual => ">>=",
+                    PgExpressionType.NetworkContainsOrContainedBy => "&&",
 
-                PgExpressionType.RangeIsStrictlyLeftOf     => "<<",
-                PgExpressionType.RangeIsStrictlyRightOf    => ">>",
-                PgExpressionType.RangeDoesNotExtendRightOf => "&<",
-                PgExpressionType.RangeDoesNotExtendLeftOf  => "&>",
-                PgExpressionType.RangeIsAdjacentTo         => "-|-",
-                PgExpressionType.RangeUnion                => "+",
-                PgExpressionType.RangeIntersect            => "*",
-                PgExpressionType.RangeExcept               => "-",
+                    PgExpressionType.RangeIsStrictlyLeftOf => "<<",
+                    PgExpressionType.RangeIsStrictlyRightOf => ">>",
+                    PgExpressionType.RangeDoesNotExtendRightOf => "&<",
+                    PgExpressionType.RangeDoesNotExtendLeftOf => "&>",
+                    PgExpressionType.RangeIsAdjacentTo => "-|-",
+                    PgExpressionType.RangeUnion => "+",
+                    PgExpressionType.RangeIntersect => "*",
+                    PgExpressionType.RangeExcept => "-",
 
-                PgExpressionType.TextSearchMatch => "@@",
-                PgExpressionType.TextSearchAnd   => "&&",
-                PgExpressionType.TextSearchOr    => "||",
+                    PgExpressionType.TextSearchMatch => "@@",
+                    PgExpressionType.TextSearchAnd => "&&",
+                    PgExpressionType.TextSearchOr => "||",
 
-                PgExpressionType.JsonExists    => "?",
-                PgExpressionType.JsonExistsAny => "?|",
-                PgExpressionType.JsonExistsAll => "?&",
+                    PgExpressionType.JsonExists => "?",
+                    PgExpressionType.JsonExistsAny => "?|",
+                    PgExpressionType.JsonExistsAll => "?&",
 
-                PgExpressionType.LTreeMatches
-                    when Right.TypeMapping?.StoreType == "lquery" ||
-                    Right.TypeMapping is NpgsqlArrayTypeMapping { ElementTypeMapping.StoreType: "lquery" } => "~",
-                PgExpressionType.LTreeMatches
-                    when Right.TypeMapping?.StoreType == "ltxtquery"
-                    => "@",
-                PgExpressionType.LTreeMatchesAny      => "?",
-                PgExpressionType.LTreeFirstAncestor   => "?@>",
-                PgExpressionType.LTreeFirstDescendent => "?<@",
-                PgExpressionType.LTreeFirstMatches
-                    when Right.TypeMapping?.StoreType == "lquery" => "?~",
-                PgExpressionType.LTreeFirstMatches
-                    when Right.TypeMapping?.StoreType == "ltxtquery" => "?@",
+                    PgExpressionType.LTreeMatches
+                        when Right.TypeMapping is { StoreType: "lquery" } or NpgsqlArrayTypeMapping
+                        {
+                            ElementTypeMapping.StoreType: "lquery"
+                        }
+                        => "~",
+                    PgExpressionType.LTreeMatches when Right.TypeMapping?.StoreType == "ltxtquery" => "@",
+                    PgExpressionType.LTreeMatchesAny => "?",
+                    PgExpressionType.LTreeFirstAncestor => "?@>",
+                    PgExpressionType.LTreeFirstDescendent => "?<@",
+                    PgExpressionType.LTreeFirstMatches when Right.TypeMapping?.StoreType == "lquery" => "?~",
+                    PgExpressionType.LTreeFirstMatches when Right.TypeMapping?.StoreType == "ltxtquery" => "?@",
 
-                PgExpressionType.Distance => "<->",
+                    PgExpressionType.Distance => "<->",
 
-                _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
-            })
+                    _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
+                })
             .Append(" ");
 
         requiresBrackets = RequiresBrackets(Right);
@@ -154,7 +156,8 @@ public class PgBinaryExpression : SqlExpression
             expressionPrinter.Append(")");
         }
 
-        static bool RequiresBrackets(SqlExpression expression) => expression is PgBinaryExpression or LikeExpression;
+        static bool RequiresBrackets(SqlExpression expression)
+            => expression is PgBinaryExpression or LikeExpression;
     }
 
     /// <inheritdoc />
@@ -171,5 +174,6 @@ public class PgBinaryExpression : SqlExpression
             && Right.Equals(sqlBinaryExpression.Right);
 
     /// <inheritdoc />
-    public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), OperatorType, Left, Right);
+    public override int GetHashCode()
+        => HashCode.Combine(base.GetHashCode(), OperatorType, Left, Right);
 }

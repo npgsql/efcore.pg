@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Storage.Json;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// The type mapping for the PostgreSQL pg_lsn type.
+///     The type mapping for the PostgreSQL pg_lsn type.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/datatype-pg-lsn.html
+///     See: https://www.postgresql.org/docs/current/datatype-pg-lsn.html
 /// </remarks>
 public class NpgsqlPgLsnTypeMapping : NpgsqlTypeMapping
 {
@@ -32,7 +32,9 @@ public class NpgsqlPgLsnTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlPgLsnTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.PgLsn) {}
+        : base(parameters, NpgsqlDbType.PgLsn)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -53,8 +55,8 @@ public class NpgsqlPgLsnTypeMapping : NpgsqlTypeMapping
     {
         var lsn = (NpgsqlLogSequenceNumber)value;
         var builder = new StringBuilder("PG_LSN '")
-                .Append(lsn.ToString())
-                .Append('\'');
+            .Append(lsn.ToString())
+            .Append('\'');
         return builder.ToString();
     }
 

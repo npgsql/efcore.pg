@@ -45,6 +45,7 @@ public class NpgsqlValueGeneratorCache : ValueGeneratorCache, INpgsqlValueGenera
             + "::"
             + dbConnection.DataSource.ToUpperInvariant()
             + "::"
-            + (sequence.Schema is null ? "" : sequence.Schema + ".") + sequence.Name;
+            + (sequence.Schema is null ? "" : sequence.Schema + ".")
+            + sequence.Name;
     }
 }

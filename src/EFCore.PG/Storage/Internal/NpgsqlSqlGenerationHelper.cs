@@ -18,7 +18,8 @@ public class NpgsqlSqlGenerationHelper : RelationalSqlGenerationHelper
         // https://www.postgresql.org/docs/current/static/sql-keywords-appendix.html
         using (var conn = new NpgsqlConnection())
         {
-            ReservedWords = new HashSet<string>(conn.GetSchema("ReservedWords").Rows.Cast<DataRow>().Select(r => (string)r["ReservedWord"]));
+            ReservedWords =
+                new HashSet<string>(conn.GetSchema("ReservedWords").Rows.Cast<DataRow>().Select(r => (string)r["ReservedWord"]));
         }
     }
 
@@ -29,7 +30,9 @@ public class NpgsqlSqlGenerationHelper : RelationalSqlGenerationHelper
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlSqlGenerationHelper(RelationalSqlGenerationHelperDependencies dependencies)
-        : base(dependencies) {}
+        : base(dependencies)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -59,7 +62,7 @@ public class NpgsqlSqlGenerationHelper : RelationalSqlGenerationHelper
     }
 
     /// <summary>
-    /// Returns whether the given string can be used as an unquoted identifier in PostgreSQL, without quotes.
+    ///     Returns whether the given string can be used as an unquoted identifier in PostgreSQL, without quotes.
     /// </summary>
     private static bool RequiresQuoting(string identifier)
     {
@@ -91,7 +94,7 @@ public class NpgsqlSqlGenerationHelper : RelationalSqlGenerationHelper
                 case '8':
                 case '9':
                 case '_':
-                case '$':  // yes it's true
+                case '$': // yes it's true
                     continue;
             }
 

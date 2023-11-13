@@ -5,10 +5,10 @@ using System.Text;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// The type mapping for PostgreSQL range types.
+///     The type mapping for PostgreSQL range types.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/rangetypes.html
+///     See: https://www.postgresql.org/docs/current/static/rangetypes.html
 /// </remarks>
 public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
 {
@@ -26,19 +26,19 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
 
     // ReSharper disable once MemberCanBePrivate.Global
     /// <summary>
-    /// The relational type mapping of the range's subtype.
+    ///     The relational type mapping of the range's subtype.
     /// </summary>
     public virtual RelationalTypeMapping SubtypeMapping { get; }
 
     /// <summary>
-    /// For user-defined ranges, we have no <see cref="NpgsqlDbType" /> and so the PG type name is set on
-    /// <see cref="NpgsqlParameter.DataTypeName" /> instead.
+    ///     For user-defined ranges, we have no <see cref="NpgsqlDbType" /> and so the PG type name is set on
+    ///     <see cref="NpgsqlParameter.DataTypeName" /> instead.
     /// </summary>
     private string? PgDataTypeName { get; init; }
 
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping" /> class for a built-in range type which has a
-    /// <see cref="NpgsqlDbType" /> defined.
+    ///     Constructs an instance of the <see cref="NpgsqlRangeTypeMapping" /> class for a built-in range type which has a
+    ///     <see cref="NpgsqlDbType" /> defined.
     /// </summary>
     /// <param name="rangeStoreType">The database type to map</param>
     /// <param name="rangeClrType">The CLR type to map.</param>
@@ -52,8 +52,8 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
         => new(rangeStoreType, rangeClrType, rangeNpgsqlDbType, subtypeMapping);
 
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping" /> class for a user-defined range type which doesn't have a
-    /// <see cref="NpgsqlDbType" /> defined.
+    ///     Constructs an instance of the <see cref="NpgsqlRangeTypeMapping" /> class for a user-defined range type which doesn't have a
+    ///     <see cref="NpgsqlDbType" /> defined.
     /// </summary>
     /// <param name="quotedRangeStoreType">The database type to map, quoted.</param>
     /// <param name="unquotedRangeStoreType">The database type to map, unquoted.</param>
@@ -75,7 +75,9 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
         NpgsqlDbType rangeNpgsqlDbType,
         RelationalTypeMapping subtypeMapping)
         : base(rangeStoreType, rangeClrType, rangeNpgsqlDbType)
-        => SubtypeMapping = subtypeMapping;
+    {
+        SubtypeMapping = subtypeMapping;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -88,7 +90,9 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
         NpgsqlDbType npgsqlDbType,
         RelationalTypeMapping subtypeMapping)
         : base(parameters, npgsqlDbType)
-        => SubtypeMapping = subtypeMapping;
+    {
+        SubtypeMapping = subtypeMapping;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -119,7 +123,8 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
 
         if (parameter is not NpgsqlParameter npgsqlParameter)
         {
-            throw new InvalidOperationException($"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+            throw new InvalidOperationException(
+                $"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
         }
 
         npgsqlParameter.DataTypeName = PgDataTypeName;

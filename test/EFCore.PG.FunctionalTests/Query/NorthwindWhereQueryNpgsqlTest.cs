@@ -26,7 +26,7 @@ public class NorthwindWhereQueryNpgsqlTest : NorthwindWhereQueryRelationalTestBa
         await base.Where_datetime_today(async);
 
         AssertSql(
-"""
+            """
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
 FROM "Employees" AS e
 WHERE date_trunc('day', now()::timestamp) = date_trunc('day', now()::timestamp)
@@ -38,7 +38,7 @@ WHERE date_trunc('day', now()::timestamp) = date_trunc('day', now()::timestamp)
         await base.Time_of_day_datetime(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderDate"::time
 FROM "Orders" AS o
 """);
@@ -49,7 +49,7 @@ FROM "Orders" AS o
         await base.Where_datetime_date_component(async);
 
         AssertSql(
-"""
+            """
 @__myDatetime_0='1998-05-04T00:00:00.0000000'
 
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
@@ -63,7 +63,7 @@ WHERE date_trunc('day', o."OrderDate") = @__myDatetime_0
         await base.Where_date_add_year_constant_component(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
 WHERE date_part('year', o."OrderDate" + INTERVAL '-1 years')::int = 1997
@@ -75,7 +75,7 @@ WHERE date_part('year', o."OrderDate" + INTERVAL '-1 years')::int = 1997
         await base.Where_datetime_year_component(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
 WHERE date_part('year', o."OrderDate")::int = 1998
@@ -87,7 +87,7 @@ WHERE date_part('year', o."OrderDate")::int = 1998
         await base.Where_datetime_month_component(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
 WHERE date_part('month', o."OrderDate")::int = 4
@@ -99,7 +99,7 @@ WHERE date_part('month', o."OrderDate")::int = 4
         await base.Where_datetime_dayOfYear_component(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
 WHERE date_part('doy', o."OrderDate")::int = 68
@@ -111,7 +111,7 @@ WHERE date_part('doy', o."OrderDate")::int = 68
         await base.Where_datetime_day_component(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
 WHERE date_part('day', o."OrderDate")::int = 4
@@ -123,7 +123,7 @@ WHERE date_part('day', o."OrderDate")::int = 4
         await base.Where_datetime_hour_component(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
 WHERE date_part('hour', o."OrderDate")::int = 14
@@ -135,7 +135,7 @@ WHERE date_part('hour', o."OrderDate")::int = 14
         await base.Where_datetime_minute_component(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
 WHERE date_part('minute', o."OrderDate")::int = 23
@@ -147,7 +147,7 @@ WHERE date_part('minute', o."OrderDate")::int = 23
         await base.Where_datetime_second_component(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
 WHERE date_part('second', o."OrderDate")::int = 44
@@ -178,7 +178,7 @@ WHERE date_part('second', o."OrderDate")::int = 44
         AssertSql();
     }
 
-        public override async Task Where_compare_constructed_equal(bool async)
+    public override async Task Where_compare_constructed_equal(bool async)
     {
         //  Anonymous type to constant comparison. Issue #14672.
         await AssertTranslationFailed(() => base.Where_compare_constructed_equal(async));
@@ -210,7 +210,7 @@ WHERE date_part('second', o."OrderDate")::int = 44
             entryCount: 6);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE (c."City") = ('London')
@@ -226,7 +226,7 @@ WHERE (c."City") = ('London')
             entryCount: 4);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE (c."City", c."Country") = ('Sao Paulo', 'Brazil')
@@ -242,7 +242,7 @@ WHERE (c."City", c."Country") = ('Sao Paulo', 'Brazil')
             entryCount: 87);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE c."City" <> 'Sao Paulo' OR c."City" IS NULL OR c."Country" <> 'Brazil' OR c."Country" IS NULL
@@ -273,7 +273,7 @@ WHERE c."City" <> 'Sao Paulo' OR c."City" IS NULL OR c."Country" <> 'Brazil' OR 
         AssertSql();
     }
 
-   #region Row values
+    #region Row values
 
     [ConditionalFact]
     public async Task Row_value_GreaterThan()
@@ -281,13 +281,14 @@ WHERE c."City" <> 'Sao Paulo' OR c."City" IS NULL OR c."Country" <> 'Brazil' OR 
         await using var ctx = CreateContext();
 
         _ = await ctx.Customers
-            .Where(c => EF.Functions.GreaterThan(
-                ValueTuple.Create(c.City, c.CustomerID),
-                ValueTuple.Create("Buenos Aires", "OCEAN")))
+            .Where(
+                c => EF.Functions.GreaterThan(
+                    ValueTuple.Create(c.City, c.CustomerID),
+                    ValueTuple.Create("Buenos Aires", "OCEAN")))
             .CountAsync();
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE (c."City", c."CustomerID") > ('Buenos Aires', 'OCEAN')
@@ -300,13 +301,14 @@ WHERE (c."City", c."CustomerID") > ('Buenos Aires', 'OCEAN')
         await using var ctx = CreateContext();
 
         _ = await ctx.Orders
-            .Where(o => EF.Functions.GreaterThan(
-                ValueTuple.Create(o.CustomerID, o.OrderID),
-                ValueTuple.Create("ALFKI", 10702)))
+            .Where(
+                o => EF.Functions.GreaterThan(
+                    ValueTuple.Create(o.CustomerID, o.OrderID),
+                    ValueTuple.Create("ALFKI", 10702)))
             .CountAsync();
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Orders" AS o
 WHERE (o."CustomerID", o."OrderID") > ('ALFKI', 10702)
@@ -321,13 +323,14 @@ WHERE (o."CustomerID", o."OrderID") > ('ALFKI', 10702)
         var city1 = "Buenos Aires";
 
         _ = await ctx.Customers
-            .Where(c => EF.Functions.GreaterThan(
-                ValueTuple.Create(c.City, c.CustomerID),
-                ValueTuple.Create(city1, "OCEAN")))
+            .Where(
+                c => EF.Functions.GreaterThan(
+                    ValueTuple.Create(c.City, c.CustomerID),
+                    ValueTuple.Create(city1, "OCEAN")))
             .CountAsync();
 
         AssertSql(
-"""
+            """
 @__city1_1='Buenos Aires'
 
 SELECT count(*)::int
@@ -344,13 +347,14 @@ WHERE (c."City", c."CustomerID") > (@__city1_1, 'OCEAN')
         var city1 = "Buenos Aires";
 
         _ = await ctx.Customers
-            .Where(c => EF.Functions.GreaterThan(
-                new ValueTuple<string, string>(c.City, c.CustomerID),
-                new ValueTuple<string, string>(city1, "OCEAN")))
+            .Where(
+                c => EF.Functions.GreaterThan(
+                    new ValueTuple<string, string>(c.City, c.CustomerID),
+                    new ValueTuple<string, string>(city1, "OCEAN")))
             .CountAsync();
 
         AssertSql(
-"""
+            """
 @__city1_1='Buenos Aires'
 
 SELECT count(*)::int
@@ -365,13 +369,14 @@ WHERE (c."City", c."CustomerID") > (@__city1_1, 'OCEAN')
         await using var ctx = CreateContext();
 
         _ = await ctx.Customers
-            .Where(c => EF.Functions.LessThan(
-                ValueTuple.Create(c.City, c.CustomerID),
-                ValueTuple.Create("Buenos Aires", "OCEAN")))
+            .Where(
+                c => EF.Functions.LessThan(
+                    ValueTuple.Create(c.City, c.CustomerID),
+                    ValueTuple.Create("Buenos Aires", "OCEAN")))
             .CountAsync();
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE (c."City", c."CustomerID") < ('Buenos Aires', 'OCEAN')
@@ -384,13 +389,14 @@ WHERE (c."City", c."CustomerID") < ('Buenos Aires', 'OCEAN')
         await using var ctx = CreateContext();
 
         _ = await ctx.Customers
-            .Where(c => EF.Functions.GreaterThanOrEqual(
-                ValueTuple.Create(c.City, c.CustomerID),
-                ValueTuple.Create("Buenos Aires", "OCEAN")))
+            .Where(
+                c => EF.Functions.GreaterThanOrEqual(
+                    ValueTuple.Create(c.City, c.CustomerID),
+                    ValueTuple.Create("Buenos Aires", "OCEAN")))
             .CountAsync();
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE (c."City", c."CustomerID") >= ('Buenos Aires', 'OCEAN')
@@ -403,13 +409,14 @@ WHERE (c."City", c."CustomerID") >= ('Buenos Aires', 'OCEAN')
         await using var ctx = CreateContext();
 
         _ = await ctx.Customers
-            .Where(c => EF.Functions.LessThanOrEqual(
-                ValueTuple.Create(c.City, c.CustomerID),
-                ValueTuple.Create("Buenos Aires", "OCEAN")))
+            .Where(
+                c => EF.Functions.LessThanOrEqual(
+                    ValueTuple.Create(c.City, c.CustomerID),
+                    ValueTuple.Create("Buenos Aires", "OCEAN")))
             .CountAsync();
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE (c."City", c."CustomerID") <= ('Buenos Aires', 'OCEAN')
@@ -422,13 +429,14 @@ WHERE (c."City", c."CustomerID") <= ('Buenos Aires', 'OCEAN')
         await using var ctx = CreateContext();
 
         _ = await ctx.Customers
-            .Where(c => EF.Functions.GreaterThan(
-                new ValueTuple<string, string>(c.City, c.CustomerID),
-                new ValueTuple<string, string>("Buenos Aires", "OCEAN")))
+            .Where(
+                c => EF.Functions.GreaterThan(
+                    new ValueTuple<string, string>(c.City, c.CustomerID),
+                    new ValueTuple<string, string>("Buenos Aires", "OCEAN")))
             .CountAsync();
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE (c."City", c."CustomerID") > ('Buenos Aires', 'OCEAN')
@@ -442,9 +450,10 @@ WHERE (c."City", c."CustomerID") > ('Buenos Aires', 'OCEAN')
 
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => ctx.Customers
-                .Where(c => EF.Functions.LessThanOrEqual(
-                    ValueTuple.Create(c.City, c.CustomerID),
-                    ValueTuple.Create("Buenos Aires", "OCEAN", "foo")))
+                .Where(
+                    c => EF.Functions.LessThanOrEqual(
+                        ValueTuple.Create(c.City, c.CustomerID),
+                        ValueTuple.Create("Buenos Aires", "OCEAN", "foo")))
                 .CountAsync());
 
         Assert.Equal(NpgsqlStrings.RowValueComparisonRequiresTuplesOfSameLength, exception.Message);
@@ -456,13 +465,14 @@ WHERE (c."City", c."CustomerID") > ('Buenos Aires', 'OCEAN')
         await using var ctx = CreateContext();
 
         _ = await ctx.Customers
-            .Where(c =>
-                ValueTuple.Create(c.City, c.CustomerID).Equals(
-                ValueTuple.Create("Buenos Aires", "OCEAN")))
+            .Where(
+                c =>
+                    ValueTuple.Create(c.City, c.CustomerID).Equals(
+                        ValueTuple.Create("Buenos Aires", "OCEAN")))
             .CountAsync();
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE (c."City", c."CustomerID") = ('Buenos Aires', 'OCEAN')
@@ -479,7 +489,7 @@ WHERE (c."City", c."CustomerID") = ('Buenos Aires', 'OCEAN')
             .CountAsync();
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE c."CustomerID" <> 'OCEAN' OR c."City" <> 'Buenos Aires' OR c."City" IS NULL
@@ -500,7 +510,7 @@ WHERE c."CustomerID" <> 'OCEAN' OR c."City" <> 'Buenos Aires' OR c."City" IS NUL
         Assert.Equal(new DateTime(1996, 7, 4), orderDate);
 
         AssertSql(
-"""
+            """
 SELECT (o."CustomerID", o."OrderDate")
 FROM "Orders" AS o
 WHERE o."OrderID" = 10248

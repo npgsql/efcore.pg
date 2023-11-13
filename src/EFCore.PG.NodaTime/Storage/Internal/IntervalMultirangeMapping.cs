@@ -21,7 +21,9 @@ public class IntervalMultirangeMapping : NpgsqlTypeMapping
     /// </summary>
     public IntervalMultirangeMapping(Type clrType, IntervalRangeMapping intervalRangeMapping)
         : base("tstzmultirange", clrType, NpgsqlDbType.TimestampTzMultirange)
-        => _intervalRangeMapping = intervalRangeMapping;
+    {
+        _intervalRangeMapping = intervalRangeMapping;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -31,7 +33,9 @@ public class IntervalMultirangeMapping : NpgsqlTypeMapping
     /// </summary>
     protected IntervalMultirangeMapping(RelationalTypeMappingParameters parameters, IntervalRangeMapping intervalRangeMapping)
         : base(parameters, NpgsqlDbType.DateMultirange)
-        => _intervalRangeMapping = intervalRangeMapping;
+    {
+        _intervalRangeMapping = intervalRangeMapping;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

@@ -29,8 +29,11 @@ public abstract class ConnectionInterceptionNpgsqlTestBase : ConnectionIntercept
 
     public abstract class InterceptionNpgsqlFixtureBase : InterceptionFixtureBase
     {
-        protected override string StoreName => "ConnectionInterception";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override string StoreName
+            => "ConnectionInterception";
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override IServiceCollection InjectInterceptors(
             IServiceCollection serviceCollection,
@@ -47,15 +50,33 @@ public abstract class ConnectionInterceptionNpgsqlTestBase : ConnectionIntercept
     public class FakeDbConnection : DbConnection
     {
         public override string ConnectionString { get; set; }
-        public override string Database => "Database";
-        public override string DataSource => "DataSource";
-        public override string ServerVersion => throw new NotImplementedException();
-        public override ConnectionState State => ConnectionState.Closed;
-        public override void ChangeDatabase(string databaseName) => throw new NotImplementedException();
-        public override void Close() => throw new NotImplementedException();
-        public override void Open() => throw new NotImplementedException();
-        protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => throw new NotImplementedException();
-        protected override DbCommand CreateDbCommand() => throw new NotImplementedException();
+
+        public override string Database
+            => "Database";
+
+        public override string DataSource
+            => "DataSource";
+
+        public override string ServerVersion
+            => throw new NotImplementedException();
+
+        public override ConnectionState State
+            => ConnectionState.Closed;
+
+        public override void ChangeDatabase(string databaseName)
+            => throw new NotImplementedException();
+
+        public override void Close()
+            => throw new NotImplementedException();
+
+        public override void Open()
+            => throw new NotImplementedException();
+
+        protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
+            => throw new NotImplementedException();
+
+        protected override DbCommand CreateDbCommand()
+            => throw new NotImplementedException();
     }
 
     public class ConnectionInterceptionNpgsqlTest
@@ -68,7 +89,8 @@ public abstract class ConnectionInterceptionNpgsqlTestBase : ConnectionIntercept
 
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
-            protected override bool ShouldSubscribeToDiagnosticListener => false;
+            protected override bool ShouldSubscribeToDiagnosticListener
+                => false;
         }
     }
 
@@ -82,7 +104,8 @@ public abstract class ConnectionInterceptionNpgsqlTestBase : ConnectionIntercept
 
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
-            protected override bool ShouldSubscribeToDiagnosticListener => true;
+            protected override bool ShouldSubscribeToDiagnosticListener
+                => true;
         }
     }
 }

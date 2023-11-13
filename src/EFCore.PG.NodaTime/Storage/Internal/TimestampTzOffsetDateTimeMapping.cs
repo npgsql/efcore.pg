@@ -28,7 +28,10 @@ public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public TimestampTzOffsetDateTimeMapping() : base("timestamp with time zone", typeof(OffsetDateTime), NpgsqlDbType.TimestampTz) {}
+    public TimestampTzOffsetDateTimeMapping()
+        : base("timestamp with time zone", typeof(OffsetDateTime), NpgsqlDbType.TimestampTz)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -37,7 +40,9 @@ public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected TimestampTzOffsetDateTimeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.TimestampTz) {}
+        : base(parameters, NpgsqlDbType.TimestampTz)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -98,7 +103,8 @@ public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
         var offsetDateTime = (OffsetDateTime)value;
         var offsetSeconds = offsetDateTime.Offset.Seconds;
 
-        return Expression.New(Constructor,
+        return Expression.New(
+            Constructor,
             TimestampLocalDateTimeMapping.GenerateCodeLiteral(offsetDateTime.LocalDateTime),
             offsetSeconds % 3600 == 0
                 ? ConstantCall(OffsetFromHoursMethod, offsetSeconds / 3600)

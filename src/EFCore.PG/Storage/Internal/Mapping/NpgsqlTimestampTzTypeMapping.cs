@@ -37,7 +37,9 @@ public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlTimestampTzTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.TimestampTz) {}
+        : base(parameters, NpgsqlDbType.TimestampTz)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

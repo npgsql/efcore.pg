@@ -3,36 +3,35 @@ using System.Data;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
 
 /// <summary>
-/// The Npgsql-specific implementation for <see cref="ModificationCommandBatch" />.
+///     The Npgsql-specific implementation for <see cref="ModificationCommandBatch" />.
 /// </summary>
 /// <remarks>
-/// The usual ModificationCommandBatch implementation is <see cref="AffectedCountModificationCommandBatch"/>,
-/// which selects the number of rows modified via a SQL query.
-///
-/// PostgreSQL actually has no way of selecting the modified row count.
-/// SQL defines GET DIAGNOSTICS which should provide this, but in PostgreSQL it's only available
-/// in PL/pgSQL. See http://www.postgresql.org/docs/9.4/static/unsupported-features-sql-standard.html,
-/// identifier F121-01.
-///
-/// Instead, the affected row count can be accessed in the PostgreSQL protocol itself, which seems
-/// cleaner and more efficient anyway (no additional query).
+///     The usual ModificationCommandBatch implementation is <see cref="AffectedCountModificationCommandBatch" />,
+///     which selects the number of rows modified via a SQL query.
+///     PostgreSQL actually has no way of selecting the modified row count.
+///     SQL defines GET DIAGNOSTICS which should provide this, but in PostgreSQL it's only available
+///     in PL/pgSQL. See http://www.postgresql.org/docs/9.4/static/unsupported-features-sql-standard.html,
+///     identifier F121-01.
+///     Instead, the affected row count can be accessed in the PostgreSQL protocol itself, which seems
+///     cleaner and more efficient anyway (no additional query).
 /// </remarks>
 public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
 {
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlModificationCommandBatch"/> class.
+    ///     Constructs an instance of the <see cref="NpgsqlModificationCommandBatch" /> class.
     /// </summary>
     public NpgsqlModificationCommandBatch(
         ModificationCommandBatchFactoryDependencies dependencies,
         int maxBatchSize)
         : base(dependencies)
-        => MaxBatchSize = maxBatchSize;
+    {
+        MaxBatchSize = maxBatchSize;
+    }
 
     /// <summary>
-    ///     The maximum number of <see cref="ModificationCommand"/> instances that can be added to a single batch; defaults to 1000.
+    ///     The maximum number of <see cref="ModificationCommand" /> instances that can be added to a single batch; defaults to 1000.
     /// </summary>
     protected override int MaxBatchSize { get; }
-
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -77,7 +76,9 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
         var npgsqlReader = (NpgsqlDataReader)reader.DbDataReader;
 
 #pragma warning disable 618
-        Debug.Assert(npgsqlReader.Statements.Count == ModificationCommands.Count, $"Reader has {npgsqlReader.Statements.Count} statements, expected {ModificationCommands.Count}");
+        Debug.Assert(
+            npgsqlReader.Statements.Count == ModificationCommands.Count,
+            $"Reader has {npgsqlReader.Statements.Count} statements, expected {ModificationCommands.Count}");
 #pragma warning restore 618
 
         var commandIndex = 0;
@@ -109,7 +110,6 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
                             ThrowAggregateUpdateConcurrencyException(reader, commandIndex, 1, 0);
                         }
                     }
-
 
                     if (command.RowsAffectedColumn is { } rowsAffectedColumn)
                     {
@@ -153,7 +153,6 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
                     onResultSet = async
                         ? await npgsqlReader.NextResultAsync(cancellationToken).ConfigureAwait(false)
                         : npgsqlReader.NextResult();
-
                 }
                 else
                 {

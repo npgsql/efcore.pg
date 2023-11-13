@@ -2,12 +2,15 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class ConvertToProviderTypesNpgsqlTest : ConvertToProviderTypesTestBase<ConvertToProviderTypesNpgsqlTest.ConvertToProviderTypesNpgsqlFixture>
+public class ConvertToProviderTypesNpgsqlTest : ConvertToProviderTypesTestBase<
+    ConvertToProviderTypesNpgsqlTest.ConvertToProviderTypesNpgsqlFixture>
 {
     // ReSharper disable once UnusedParameter.Local
     public ConvertToProviderTypesNpgsqlTest(ConvertToProviderTypesNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         : base(fixture)
-        => Fixture.TestSqlLoggerFactory.Clear();
+    {
+        Fixture.TestSqlLoggerFactory.Clear();
+    }
 
     [Fact]
     public override void Can_insert_and_read_with_max_length_set()
@@ -49,35 +52,45 @@ public class ConvertToProviderTypesNpgsqlTest : ConvertToProviderTypesTestBase<C
     }
 
     [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
-    public override void Can_insert_and_read_back_non_nullable_backed_data_types() {}
+    public override void Can_insert_and_read_back_non_nullable_backed_data_types() { }
 
     [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
-    public override void Can_insert_and_read_back_nullable_backed_data_types() {}
+    public override void Can_insert_and_read_back_nullable_backed_data_types() { }
 
     [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
-    public override void Can_insert_and_read_back_object_backed_data_types() {}
+    public override void Can_insert_and_read_back_object_backed_data_types() { }
 
     public class ConvertToProviderTypesNpgsqlFixture : ConvertToProviderTypesFixtureBase
     {
-        public override bool StrictEquality => true;
+        public override bool StrictEquality
+            => true;
 
-        public override bool SupportsAnsi => false;
+        public override bool SupportsAnsi
+            => false;
 
-        public override bool SupportsUnicodeToAnsiConversion => false;
+        public override bool SupportsUnicodeToAnsiConversion
+            => false;
 
-        public override bool SupportsLargeStringComparisons => true;
+        public override bool SupportsLargeStringComparisons
+            => true;
 
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
 
-        public override bool SupportsBinaryKeys => true;
+        public override bool SupportsBinaryKeys
+            => true;
 
-        public override bool SupportsDecimalComparisons => true;
+        public override bool SupportsDecimalComparisons
+            => true;
 
-        public override DateTime DefaultDateTime => new();
+        public override DateTime DefaultDateTime
+            => new();
 
-        public override bool PreservesDateTimeKind => false;
+        public override bool PreservesDateTimeKind
+            => false;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {

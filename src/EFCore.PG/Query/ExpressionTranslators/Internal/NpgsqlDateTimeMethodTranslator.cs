@@ -32,7 +32,6 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
         { typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddYears), new[] { typeof(int) })!, "years" },
         { typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddMonths), new[] { typeof(int) })!, "months" },
         { typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddDays), new[] { typeof(int) })!, "days" },
-
         { typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.AddHours), new[] { typeof(int) })!, "hours" },
         { typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.AddMinutes), new[] { typeof(int) })!, "mins" },
     };
@@ -40,30 +39,39 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
     // ReSharper disable InconsistentNaming
     private static readonly MethodInfo DateTime_ToUniversalTime
         = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.ToUniversalTime), Array.Empty<Type>())!;
+
     private static readonly MethodInfo DateTime_ToLocalTime
         = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.ToLocalTime), Array.Empty<Type>())!;
+
     private static readonly MethodInfo DateTime_SpecifyKind
         = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.SpecifyKind), new[] { typeof(DateTime), typeof(DateTimeKind) })!;
+
     private static readonly MethodInfo DateTime_Distance
         = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
             nameof(NpgsqlDbFunctionsExtensions.Distance), new[] { typeof(DbFunctions), typeof(DateTime), typeof(DateTime) })!;
 
     private static readonly MethodInfo DateOnly_FromDateTime
         = typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.FromDateTime), new[] { typeof(DateTime) })!;
+
     private static readonly MethodInfo DateOnly_ToDateTime
         = typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.ToDateTime), new[] { typeof(TimeOnly) })!;
+
     private static readonly MethodInfo DateOnly_Distance
         = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
             nameof(NpgsqlDbFunctionsExtensions.Distance), new[] { typeof(DbFunctions), typeof(DateOnly), typeof(DateOnly) })!;
 
     private static readonly MethodInfo TimeOnly_FromDateTime
         = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.FromDateTime), new[] { typeof(DateTime) })!;
+
     private static readonly MethodInfo TimeOnly_FromTimeSpan
         = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.FromTimeSpan), new[] { typeof(TimeSpan) })!;
+
     private static readonly MethodInfo TimeOnly_ToTimeSpan
         = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.ToTimeSpan), Type.EmptyTypes)!;
+
     private static readonly MethodInfo TimeOnly_IsBetween
         = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.IsBetween), new[] { typeof(TimeOnly), typeof(TimeOnly) })!;
+
     private static readonly MethodInfo TimeOnly_Add_TimeSpan
         = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.Add), new[] { typeof(TimeSpan) })!;
 
@@ -136,9 +144,8 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
         if (interval is SqlConstantExpression constantExpression)
         {
             // We generate constant intervals as INTERVAL '1 days'
-            if (constantExpression.Type == typeof(double) &&
-                ((double)constantExpression.Value! >= int.MaxValue ||
-                    (double)constantExpression.Value <= int.MinValue))
+            if (constantExpression.Type == typeof(double)
+                && ((double)constantExpression.Value! >= int.MaxValue || (double)constantExpression.Value <= int.MinValue))
             {
                 return null;
             }
@@ -267,7 +274,6 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
 
         return null;
     }
-
 
     private SqlExpression? TranslateTimeOnly(
         SqlExpression? instance,

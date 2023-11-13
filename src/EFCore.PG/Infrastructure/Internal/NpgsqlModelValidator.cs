@@ -12,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 public class NpgsqlModelValidator : RelationalModelValidator
 {
     /// <summary>
-    /// The backend version to target.
+    ///     The backend version to target.
     /// </summary>
     private readonly Version _postgresVersion;
 
@@ -27,7 +27,9 @@ public class NpgsqlModelValidator : RelationalModelValidator
         RelationalModelValidatorDependencies relationalDependencies,
         INpgsqlSingletonOptions npgsqlSingletonOptions)
         : base(dependencies, relationalDependencies)
-        => _postgresVersion = npgsqlSingletonOptions.PostgresVersion;
+    {
+        _postgresVersion = npgsqlSingletonOptions.PostgresVersion;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -44,7 +46,7 @@ public class NpgsqlModelValidator : RelationalModelValidator
     }
 
     /// <summary>
-    /// Validates that identity columns are used only with PostgreSQL 10.0 or later.
+    ///     Validates that identity columns are used only with PostgreSQL 10.0 or later.
     /// </summary>
     /// <param name="model">The model to validate.</param>
     protected virtual void ValidateIdentityVersionCompatibility(IModel model)
@@ -59,10 +61,10 @@ public class NpgsqlModelValidator : RelationalModelValidator
         if (strategy is NpgsqlValueGenerationStrategy.IdentityAlwaysColumn or NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
         {
             throw new InvalidOperationException(
-                $"'{strategy}' requires PostgreSQL 10.0 or later. " +
-                "If you're using an older version, set PostgreSQL compatibility mode by calling " +
-                $"'optionsBuilder.{nameof(NpgsqlDbContextOptionsBuilder.SetPostgresVersion)}()' in your model's OnConfiguring. " +
-                "See the docs for more info.");
+                $"'{strategy}' requires PostgreSQL 10.0 or later. "
+                + "If you're using an older version, set PostgreSQL compatibility mode by calling "
+                + $"'optionsBuilder.{nameof(NpgsqlDbContextOptionsBuilder.SetPostgresVersion)}()' in your model's OnConfiguring. "
+                + "See the docs for more info.");
         }
 
         foreach (var property in model.GetEntityTypes().SelectMany(e => e.GetProperties()))
@@ -179,16 +181,18 @@ public class NpgsqlModelValidator : RelationalModelValidator
 
             if (sproc.ResultColumns.Any())
             {
-                throw new InvalidOperationException(NpgsqlStrings.StoredProcedureResultColumnsNotSupported(
-                    entityType.DisplayName(),
-                    storeObjectIdentifier.DisplayName()));
+                throw new InvalidOperationException(
+                    NpgsqlStrings.StoredProcedureResultColumnsNotSupported(
+                        entityType.DisplayName(),
+                        storeObjectIdentifier.DisplayName()));
             }
 
             if (sproc.IsRowsAffectedReturned)
             {
-                throw new InvalidOperationException(NpgsqlStrings.StoredProcedureReturnValueNotSupported(
-                    entityType.DisplayName(),
-                    storeObjectIdentifier.DisplayName()));
+                throw new InvalidOperationException(
+                    NpgsqlStrings.StoredProcedureReturnValueNotSupported(
+                        entityType.DisplayName(),
+                        storeObjectIdentifier.DisplayName()));
             }
         }
     }

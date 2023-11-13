@@ -76,7 +76,8 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
 
                 return _sqlExpressionFactory.Function(
                     "range_merge",
-                    new[] {
+                    new[]
+                    {
                         _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping),
                         _sqlExpressionFactory.ApplyTypeMapping(arguments[1], inferredMapping)
                     },
@@ -161,11 +162,11 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
 
         return member.Name switch
         {
-            nameof(NpgsqlRange<int>.IsEmpty)               => SingleArgBoolFunction("isempty", instance!),
+            nameof(NpgsqlRange<int>.IsEmpty) => SingleArgBoolFunction("isempty", instance!),
             nameof(NpgsqlRange<int>.LowerBoundIsInclusive) => SingleArgBoolFunction("lower_inc", instance!),
             nameof(NpgsqlRange<int>.UpperBoundIsInclusive) => SingleArgBoolFunction("upper_inc", instance!),
-            nameof(NpgsqlRange<int>.LowerBoundInfinite)    => SingleArgBoolFunction("lower_inf", instance!),
-            nameof(NpgsqlRange<int>.UpperBoundInfinite)    => SingleArgBoolFunction("upper_inf", instance!),
+            nameof(NpgsqlRange<int>.LowerBoundInfinite) => SingleArgBoolFunction("lower_inf", instance!),
+            nameof(NpgsqlRange<int>.UpperBoundInfinite) => SingleArgBoolFunction("upper_inf", instance!),
 
             _ => null
         };

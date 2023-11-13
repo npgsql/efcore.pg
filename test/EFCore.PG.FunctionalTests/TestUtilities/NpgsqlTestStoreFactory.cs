@@ -10,7 +10,9 @@ public class NpgsqlTestStoreFactory : RelationalTestStoreFactory
         => new(connectionStringOptions);
 
     protected NpgsqlTestStoreFactory(string connectionStringOptions = null)
-        => _connectionStringOptions = connectionStringOptions;
+    {
+        _connectionStringOptions = connectionStringOptions;
+    }
 
     public override TestStore Create(string storeName)
         => NpgsqlTestStore.Create(storeName, _connectionStringOptions);

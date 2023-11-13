@@ -65,7 +65,8 @@ public class LoggingNpgsqlTest : LoggingRelationalTestBase<NpgsqlDbContextOption
     protected override TestLogger CreateTestLogger()
         => new TestLogger<NpgsqlLoggingDefinitions>();
 
-    protected override string ProviderName => "Npgsql.EntityFrameworkCore.PostgreSQL";
+    protected override string ProviderName
+        => "Npgsql.EntityFrameworkCore.PostgreSQL";
 
     protected override string ProviderVersion
         => typeof(NpgsqlOptionsExtension).Assembly

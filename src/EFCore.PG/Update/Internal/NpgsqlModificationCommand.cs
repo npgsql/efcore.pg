@@ -1,6 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
 using System.Data;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
@@ -23,7 +20,9 @@ public class NpgsqlModificationCommand : ModificationCommand
     /// </summary>
     public NpgsqlModificationCommand(in ModificationCommandParameters modificationCommandParameters)
         : base(in modificationCommandParameters)
-        => _detailedErrorsEnabled = modificationCommandParameters.DetailedErrorsEnabled;
+    {
+        _detailedErrorsEnabled = modificationCommandParameters.DetailedErrorsEnabled;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

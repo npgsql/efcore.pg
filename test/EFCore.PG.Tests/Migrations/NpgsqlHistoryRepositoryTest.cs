@@ -10,7 +10,7 @@ public class NpgsqlHistoryRepositoryTest
         var sql = CreateHistoryRepository().GetCreateScript();
 
         Assert.Equal(
-"""
+            """
 CREATE TABLE "__EFMigrationsHistory" (
     "MigrationId" character varying(150) NOT NULL,
     "ProductVersion" character varying(32) NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE "__EFMigrationsHistory" (
         var sql = CreateHistoryRepository("my").GetCreateScript();
 
         Assert.Equal(
-"""
+            """
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'my') THEN
@@ -48,7 +48,7 @@ CREATE TABLE my."__EFMigrationsHistory" (
         var sql = CreateHistoryRepository().GetCreateIfNotExistsScript();
 
         Assert.Equal(
-"""
+            """
 CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
     "MigrationId" character varying(150) NOT NULL,
     "ProductVersion" character varying(32) NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
         var sql = CreateHistoryRepository("my").GetCreateIfNotExistsScript();
 
         Assert.Equal(
-"""
+            """
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'my') THEN
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS my."__EFMigrationsHistory" (
         var sql = CreateHistoryRepository().GetDeleteScript("Migration1");
 
         Assert.Equal(
-"""
+            """
 DELETE FROM "__EFMigrationsHistory"
 WHERE "MigrationId" = 'Migration1';
 
@@ -100,7 +100,7 @@ WHERE "MigrationId" = 'Migration1';
             new HistoryRow("Migration1", "7.0.0"));
 
         Assert.Equal(
-"""
+            """
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('Migration1', '7.0.0');
 
@@ -113,7 +113,7 @@ VALUES ('Migration1', '7.0.0');
         var sql = CreateHistoryRepository().GetBeginIfNotExistsScript("Migration1");
 
         Assert.Equal(
-"""
+            """
 
 DO $EF$
 BEGIN
@@ -127,7 +127,7 @@ BEGIN
         var sql = CreateHistoryRepository().GetBeginIfExistsScript("Migration1");
 
         Assert.Equal(
-"""
+            """
 
 DO $EF$
 BEGIN
@@ -141,7 +141,7 @@ BEGIN
         var sql = CreateHistoryRepository().GetEndIfScript();
 
         Assert.Equal(
-"""
+            """
     END IF;
 END $EF$;
 """, sql, ignoreLineEndingDifferences: true);

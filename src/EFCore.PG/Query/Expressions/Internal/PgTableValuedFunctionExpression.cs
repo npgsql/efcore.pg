@@ -137,7 +137,7 @@ public class PgTableValuedFunctionExpression : TableValuedFunctionExpression, IE
         => base.GetHashCode();
 
     /// <summary>
-    /// Defines the name of a column coming out of a <see cref="PgTableValuedFunctionExpression" /> and optionally its type.
+    ///     Defines the name of a column coming out of a <see cref="PgTableValuedFunctionExpression" /> and optionally its type.
     /// </summary>
     public readonly record struct ColumnInfo(string Name, RelationalTypeMapping? TypeMapping = null);
 }

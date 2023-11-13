@@ -30,7 +30,9 @@ public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMappin
     /// </summary>
     public NpgsqlGeometryTypeMapping(string storeType, bool isGeography)
         : base(converter: null, storeType, NpgsqlJsonGeometryWktReaderWriter.Instance)
-        => _isGeography = isGeography;
+    {
+        _isGeography = isGeography;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -39,7 +41,9 @@ public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMappin
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlGeometryTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, converter: null) {}
+        : base(parameters, converter: null)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -99,7 +103,8 @@ public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMappin
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected override string AsText(object value) => ((Geometry)value).AsText();
+    protected override string AsText(object value)
+        => ((Geometry)value).AsText();
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -107,7 +112,8 @@ public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMappin
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected override int GetSrid(object value) => ((Geometry)value).SRID;
+    protected override int GetSrid(object value)
+        => ((Geometry)value).SRID;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -115,5 +121,6 @@ public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMappin
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected override Type WktReaderType => typeof(WKTReader);
+    protected override Type WktReaderType
+        => typeof(WKTReader);
 }

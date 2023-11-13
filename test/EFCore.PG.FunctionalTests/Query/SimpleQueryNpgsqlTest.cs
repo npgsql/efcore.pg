@@ -4,7 +4,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class SimpleQueryNpgsqlTest : SimpleQueryRelationalTestBase
 {
-    protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+    protected override ITestStoreFactory TestStoreFactory
+        => NpgsqlTestStoreFactory.Instance;
 
     // Writes DateTime with Kind=Unspecified to timestamptz
     public override Task SelectMany_where_Select(bool async)

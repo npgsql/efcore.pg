@@ -3,8 +3,8 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 /// <summary>
-/// Represents a SQL function call expression, supporting PostgreSQL's named parameter notation
-/// (e.g. make_interval(weeks => 2) and non-comma parameter separators (e.g. position(substring in string)).
+///     Represents a SQL function call expression, supporting PostgreSQL's named parameter notation
+///     (e.g. make_interval(weeks => 2) and non-comma parameter separators (e.g. position(substring in string)).
 /// </summary>
 [DebuggerDisplay("{" + nameof(ToString) + "()}")]
 public class PgFunctionExpression : SqlFunctionExpression, IEquatable<PgFunctionExpression>
@@ -18,30 +18,30 @@ public class PgFunctionExpression : SqlFunctionExpression, IEquatable<PgFunction
         => base.ArgumentsPropagateNullability!;
 
     /// <summary>
-    /// For aggregate methods, contains whether to apply distinct.
+    ///     For aggregate methods, contains whether to apply distinct.
     /// </summary>
     public virtual bool IsAggregateDistinct { get; }
 
     /// <summary>
-    /// For aggregate methods, contains the predicate to be applied (generated as the SQL FILTER clause).
+    ///     For aggregate methods, contains the predicate to be applied (generated as the SQL FILTER clause).
     /// </summary>
     public virtual SqlExpression? AggregatePredicate { get; }
 
     /// <summary>
-    /// For aggregate methods, contains the orderings to be applied.
+    ///     For aggregate methods, contains the orderings to be applied.
     /// </summary>
     public virtual IReadOnlyList<OrderingExpression> AggregateOrderings { get; }
 
     /// <summary>
-    /// List of argument names, corresponding position-wise to arguments in <see cref="SqlFunctionExpression.Arguments"/>.
-    /// Unnamed (positional) arguments must come first, so this list must contain possible nulls, followed by
-    /// non-nulls.
+    ///     List of argument names, corresponding position-wise to arguments in <see cref="SqlFunctionExpression.Arguments" />.
+    ///     Unnamed (positional) arguments must come first, so this list must contain possible nulls, followed by
+    ///     non-nulls.
     /// </summary>
     public virtual IReadOnlyList<string?> ArgumentNames { get; }
 
     /// <summary>
-    /// List of non-comma separators between argument separators, in the order in which they appear between
-    /// the arguments. <c>null</c> as well as positions beyond the end of the list mean regular commas.
+    ///     List of non-comma separators between argument separators, in the order in which they appear between
+    ///     the arguments. <c>null</c> as well as positions beyond the end of the list mean regular commas.
     /// </summary>
     public virtual IReadOnlyList<string?> ArgumentSeparators { get; }
 
@@ -232,8 +232,7 @@ public class PgFunctionExpression : SqlFunctionExpression, IEquatable<PgFunction
     public virtual PgFunctionExpression UpdateAggregateComponents(
         SqlExpression? predicate,
         IReadOnlyList<OrderingExpression> orderings)
-    {
-        return predicate != AggregatePredicate || orderings != AggregateOrderings
+        => predicate != AggregatePredicate || orderings != AggregateOrderings
             ? new PgFunctionExpression(
                 Name, Arguments, ArgumentNames, ArgumentSeparators,
                 IsAggregateDistinct,
@@ -241,7 +240,6 @@ public class PgFunctionExpression : SqlFunctionExpression, IEquatable<PgFunction
                 orderings,
                 IsNullable, ArgumentsPropagateNullability, Type, TypeMapping)
             : this;
-    }
 
     /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)

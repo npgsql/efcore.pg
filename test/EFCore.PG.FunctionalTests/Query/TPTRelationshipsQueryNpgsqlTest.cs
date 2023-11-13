@@ -7,11 +7,16 @@ public class TPTRelationshipsQueryNpgsqlTest
 {
     // ReSharper disable once UnusedParameter.Local
     public TPTRelationshipsQueryNpgsqlTest(
-        TPTRelationshipsQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper) : base(fixture)
-        => fixture.TestSqlLoggerFactory.Clear();
+        TPTRelationshipsQueryNpgsqlFixture fixture,
+        ITestOutputHelper testOutputHelper)
+        : base(fixture)
+    {
+        fixture.TestSqlLoggerFactory.Clear();
+    }
 
     public class TPTRelationshipsQueryNpgsqlFixture : TPTRelationshipsQueryRelationalFixture
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
     }
 }

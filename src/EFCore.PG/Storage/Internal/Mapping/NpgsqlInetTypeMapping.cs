@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Storage.Json;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// The type mapping for the PostgreSQL inet type.
+///     The type mapping for the PostgreSQL inet type.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-INET
+///     See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-INET
 /// </remarks>
 public class NpgsqlInetTypeMapping : NpgsqlTypeMapping
 {
@@ -38,7 +38,9 @@ public class NpgsqlInetTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlInetTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Inet) {}
+        : base(parameters, NpgsqlDbType.Inet)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

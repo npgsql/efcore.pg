@@ -55,6 +55,9 @@ public class F1NpgsqlFixture : F1NpgsqlFixtureBase<uint>
 
 public abstract class F1NpgsqlFixtureBase<TRowVersion> : F1RelationalFixture<TRowVersion>
 {
-    protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-    public override TestHelpers TestHelpers => NpgsqlTestHelpers.Instance;
+    protected override ITestStoreFactory TestStoreFactory
+        => NpgsqlTestStoreFactory.Instance;
+
+    public override TestHelpers TestHelpers
+        => NpgsqlTestHelpers.Instance;
 }

@@ -15,10 +15,5 @@ internal static class Statics
         new[] { true, true, true, true, true, true, true, true }
     };
 
-    internal static readonly bool[][] FalseArrays =
-    {
-        Array.Empty<bool>(),
-        new[] { false },
-        new[] { false, false }
-    };
+    internal static readonly bool[][] FalseArrays = { Array.Empty<bool>(), new[] { false }, new[] { false, false } };
 }

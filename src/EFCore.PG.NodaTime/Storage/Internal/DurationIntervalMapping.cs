@@ -13,9 +13,15 @@ public class DurationIntervalMapping : NpgsqlTypeMapping
 {
     private static readonly MethodInfo FromDays = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromDays), new[] { typeof(int) })!;
     private static readonly MethodInfo FromHours = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromHours), new[] { typeof(int) })!;
-    private static readonly MethodInfo FromMinutes = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMinutes), new[] { typeof(long) })!;
-    private static readonly MethodInfo FromSeconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromSeconds), new[] { typeof(long) })!;
-    private static readonly MethodInfo FromMilliseconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMilliseconds), new[] { typeof(long) })!;
+
+    private static readonly MethodInfo FromMinutes =
+        typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMinutes), new[] { typeof(long) })!;
+
+    private static readonly MethodInfo FromSeconds =
+        typeof(Duration).GetRuntimeMethod(nameof(Duration.FromSeconds), new[] { typeof(long) })!;
+
+    private static readonly MethodInfo FromMilliseconds = typeof(Duration).GetRuntimeMethod(
+        nameof(Duration.FromMilliseconds), new[] { typeof(long) })!;
 
     private static readonly PropertyInfo Zero = typeof(Duration).GetProperty(nameof(Duration.Zero))!;
 
@@ -25,7 +31,10 @@ public class DurationIntervalMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public DurationIntervalMapping() : base("interval", typeof(Duration), NpgsqlDbType.Interval) {}
+    public DurationIntervalMapping()
+        : base("interval", typeof(Duration), NpgsqlDbType.Interval)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -34,7 +43,9 @@ public class DurationIntervalMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected DurationIntervalMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Interval) {}
+        : base(parameters, NpgsqlDbType.Interval)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -101,6 +112,7 @@ public class DurationIntervalMapping : NpgsqlTypeMapping
 
         return e ?? Expression.MakeMemberAccess(null, Zero);
 
-        void Compose(Expression toAdd) => e = e is null ? toAdd : Expression.Add(e, toAdd);
+        void Compose(Expression toAdd)
+            => e = e is null ? toAdd : Expression.Add(e, toAdd);
     }
 }

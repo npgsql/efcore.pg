@@ -5,8 +5,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class GearsOfWarQueryNpgsqlFixture : GearsOfWarQueryRelationalFixture
 {
-    protected override string StoreName => "GearsOfWarQueryTest";
-    protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+    protected override string StoreName
+        => "GearsOfWarQueryTest";
+
+    protected override ITestStoreFactory TestStoreFactory
+        => NpgsqlTestStoreFactory.Instance;
 
     private GearsOfWarData _expectedData;
 

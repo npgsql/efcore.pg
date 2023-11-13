@@ -9,10 +9,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 /// <summary>
-/// Provides unit tests for network address operator and function translations.
+///     Provides unit tests for network address operator and function translations.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/functions-net.html
+///     See: https://www.postgresql.org/docs/current/static/functions-net.html
 /// </remarks>
 public class NetworkQueryNpgsqlTest : IClassFixture<NetworkQueryNpgsqlTest.NetworkAddressQueryNpgsqlFixture>
 {
@@ -40,7 +40,7 @@ public class NetworkQueryNpgsqlTest : IClassFixture<NetworkQueryNpgsqlTest.Netwo
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__cidr_2='0.0.0.0/0' (DbType = Object)
 @__p_1='0.0.0.0/0' (DbType = Object)
 
@@ -62,7 +62,7 @@ WHERE n."Cidr" >>= @__p_1
 
         Assert.Equal(9, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Inet" = n."TextInet"::inet OR (n."Inet" IS NULL AND n."TextInet" IS NULL)
@@ -77,7 +77,7 @@ WHERE n."Inet" = n."TextInet"::inet OR (n."Inet" IS NULL AND n."TextInet" IS NUL
 
         Assert.Equal(9, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Macaddr" = n."TextMacaddr"::macaddr OR (n."Macaddr" IS NULL AND n."TextMacaddr" IS NULL)
@@ -92,7 +92,7 @@ WHERE n."Macaddr" = n."TextMacaddr"::macaddr OR (n."Macaddr" IS NULL AND n."Text
 
         Assert.Equal(1, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Inet" = INET '192.168.1.2'
@@ -107,7 +107,7 @@ WHERE n."Inet" = INET '192.168.1.2'
 
         Assert.Equal(1, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Macaddr" = MACADDR '123456000002'
@@ -146,7 +146,7 @@ WHERE n."Macaddr" = MACADDR '123456000002'
 
         Assert.Equal(6, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Inet" < INET '192.168.1.7'
@@ -163,7 +163,7 @@ WHERE n."Inet" < INET '192.168.1.7'
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -180,7 +180,7 @@ WHERE n."Cidr" < @__p_1
 
         Assert.Equal(6, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Macaddr" < MACADDR '123456000007'
@@ -196,7 +196,7 @@ WHERE n."Macaddr" < MACADDR '123456000007'
 
         Assert.Equal(6, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Macaddr8" < MACADDR8 '08002B0102030407'
@@ -211,7 +211,7 @@ WHERE n."Macaddr8" < MACADDR8 '08002B0102030407'
 
         Assert.Equal(7, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Inet" <= INET '192.168.1.7'
@@ -228,7 +228,7 @@ WHERE n."Inet" <= INET '192.168.1.7'
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -245,7 +245,7 @@ WHERE n."Cidr" <= @__p_1
 
         Assert.Equal(7, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Macaddr" <= MACADDR '123456000007'
@@ -257,11 +257,12 @@ WHERE n."Macaddr" <= MACADDR '123456000007'
     public void LessThanOrEqual_PhysicalAddress_macaddr8()
     {
         using var context = CreateContext();
-        var count = context.NetTestEntities.Count(x => EF.Functions.LessThanOrEqual(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
+        var count = context.NetTestEntities.Count(
+            x => EF.Functions.LessThanOrEqual(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
 
         Assert.Equal(7, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Macaddr8" <= MACADDR8 '08002B0102030407'
@@ -276,7 +277,7 @@ WHERE n."Macaddr8" <= MACADDR8 '08002B0102030407'
 
         Assert.Equal(3, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Inet" >= INET '192.168.1.7'
@@ -293,7 +294,7 @@ WHERE n."Inet" >= INET '192.168.1.7'
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -306,11 +307,12 @@ WHERE n."Cidr" >= @__p_1
     public void GreaterThanOrEqual_PhysicalAddress()
     {
         using var context = CreateContext();
-        var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThanOrEqual(x.Macaddr, PhysicalAddress.Parse("12-34-56-00-00-07")));
+        var count = context.NetTestEntities.Count(
+            x => EF.Functions.GreaterThanOrEqual(x.Macaddr, PhysicalAddress.Parse("12-34-56-00-00-07")));
 
         Assert.Equal(3, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Macaddr" >= MACADDR '123456000007'
@@ -322,11 +324,12 @@ WHERE n."Macaddr" >= MACADDR '123456000007'
     public void GreaterThanOrEqual_PhysicalAddress_macaddr8()
     {
         using var context = CreateContext();
-        var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThanOrEqual(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
+        var count = context.NetTestEntities.Count(
+            x => EF.Functions.GreaterThanOrEqual(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
 
         Assert.Equal(3, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Macaddr8" >= MACADDR8 '08002B0102030407'
@@ -341,7 +344,7 @@ WHERE n."Macaddr8" >= MACADDR8 '08002B0102030407'
 
         Assert.Equal(2, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Inet" > INET '192.168.1.7'
@@ -358,7 +361,7 @@ WHERE n."Inet" > INET '192.168.1.7'
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -375,7 +378,7 @@ WHERE n."Cidr" > @__p_1
 
         Assert.Equal(2, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Macaddr" > MACADDR '123456000007'
@@ -387,11 +390,12 @@ WHERE n."Macaddr" > MACADDR '123456000007'
     public void GreaterThan_PhysicalAddress_macaddr8()
     {
         using var context = CreateContext();
-        var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThan(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
+        var count = context.NetTestEntities.Count(
+            x => EF.Functions.GreaterThan(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
 
         Assert.Equal(2, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
 WHERE n."Macaddr8" > MACADDR8 '08002B0102030407'
@@ -412,7 +416,7 @@ WHERE n."Macaddr8" > MACADDR8 '08002B0102030407'
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -431,7 +435,7 @@ WHERE n."Inet" << @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -450,7 +454,7 @@ WHERE n."Inet" << @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -469,7 +473,7 @@ WHERE n."Cidr" << @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -488,7 +492,7 @@ WHERE n."Inet" <<= @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -507,7 +511,7 @@ WHERE n."Inet" <<= @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -526,7 +530,7 @@ WHERE n."Cidr" <<= @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -545,7 +549,7 @@ WHERE n."Inet" >> @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -564,7 +568,7 @@ WHERE n."Cidr" >> @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -583,7 +587,7 @@ WHERE n."Cidr" >> @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -602,7 +606,7 @@ WHERE n."Inet" >>= @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -621,7 +625,7 @@ WHERE n."Cidr" >>= @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -640,7 +644,7 @@ WHERE n."Cidr" >>= @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -659,7 +663,7 @@ WHERE n."Inet" && @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -678,7 +682,7 @@ WHERE n."Inet" && @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -697,7 +701,7 @@ WHERE n."Cidr" && @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
@@ -719,7 +723,7 @@ WHERE n."Cidr" && @__p_1
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT ~n."Inet"
 FROM "NetTestEntities" AS n
 """);
@@ -734,7 +738,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT ~n."Cidr"
 FROM "NetTestEntities" AS n
 """);
@@ -749,7 +753,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT ~n."Macaddr"
 FROM "NetTestEntities" AS n
 """);
@@ -765,7 +769,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT ~n."Macaddr8"
 FROM "NetTestEntities" AS n
 """);
@@ -780,7 +784,7 @@ FROM "NetTestEntities" AS n
 
         Assert.Equal(0, count);
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0' (DbType = Object)
 
 SELECT count(*)::int
@@ -799,7 +803,7 @@ WHERE n."Inet" = n."Inet" & @__p_1 OR n."Inet" IS NULL
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Cidr" & @__p_1
@@ -817,7 +821,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__macaddr_1='000000000000' (DbType = Object)
 
 SELECT n."Macaddr" & @__macaddr_1
@@ -835,7 +839,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT n."Macaddr8" & n."Macaddr8"
 FROM "NetTestEntities" AS n
 """);
@@ -851,7 +855,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0' (DbType = Object)
 
 SELECT n."Inet" | @__p_1
@@ -869,7 +873,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Cidr" | @__p_1
@@ -887,7 +891,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__macaddr_1='000000000000' (DbType = Object)
 
 SELECT n."Macaddr" | @__macaddr_1
@@ -905,7 +909,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT n."Macaddr8" | n."Macaddr8"
 FROM "NetTestEntities" AS n
 """);
@@ -923,7 +927,7 @@ FROM "NetTestEntities" AS n
 
         Assert.Equal(actual, IPAddress.Parse("192.168.1.1"));
         AssertSql(
-"""
+            """
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
 WHERE n."Inet" + 1 = INET '192.168.1.2'
@@ -940,7 +944,7 @@ LIMIT 2
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT n."Cidr" + 1
 FROM "NetTestEntities" AS n
 """);
@@ -954,7 +958,7 @@ FROM "NetTestEntities" AS n
 
         Assert.Equal(actual, IPAddress.Parse("192.168.1.2"));
         AssertSql(
-"""
+            """
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
 WHERE n."Inet" - 1 = INET '192.168.1.1'
@@ -971,7 +975,7 @@ LIMIT 2
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT n."Cidr" - 1
 FROM "NetTestEntities" AS n
 """);
@@ -987,7 +991,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0' (DbType = Object)
 
 SELECT n."Inet" - @__p_1
@@ -1005,7 +1009,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Cidr" - @__p_1
@@ -1026,7 +1030,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT abbrev(n."Inet")
 FROM "NetTestEntities" AS n
 """);
@@ -1041,7 +1045,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT abbrev(n."Cidr")
 FROM "NetTestEntities" AS n
 """);
@@ -1056,7 +1060,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT broadcast(n."Inet")
 FROM "NetTestEntities" AS n
 """);
@@ -1071,7 +1075,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT broadcast(n."Cidr")
 FROM "NetTestEntities" AS n
 """);
@@ -1086,7 +1090,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT family(n."Inet")
 FROM "NetTestEntities" AS n
 """);
@@ -1101,7 +1105,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT family(n."Cidr")
 FROM "NetTestEntities" AS n
 """);
@@ -1116,7 +1120,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT host(n."Inet")
 FROM "NetTestEntities" AS n
 """);
@@ -1131,7 +1135,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT host(n."Cidr")
 FROM "NetTestEntities" AS n
 """);
@@ -1146,7 +1150,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT hostmask(n."Inet")
 FROM "NetTestEntities" AS n
 """);
@@ -1161,7 +1165,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT hostmask(n."Cidr")
 FROM "NetTestEntities" AS n
 """);
@@ -1176,7 +1180,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT masklen(n."Inet")
 FROM "NetTestEntities" AS n
 """);
@@ -1191,7 +1195,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT masklen(n."Cidr")
 FROM "NetTestEntities" AS n
 """);
@@ -1206,7 +1210,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT netmask(n."Inet")
 FROM "NetTestEntities" AS n
 """);
@@ -1221,7 +1225,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT netmask(n."Cidr")
 FROM "NetTestEntities" AS n
 """);
@@ -1236,7 +1240,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT network(n."Inet")
 FROM "NetTestEntities" AS n
 """);
@@ -1251,7 +1255,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT network(n."Cidr")
 FROM "NetTestEntities" AS n
 """);
@@ -1266,7 +1270,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT set_masklen(n."Inet", 0)
 FROM "NetTestEntities" AS n
 """);
@@ -1281,7 +1285,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT set_masklen(n."Cidr", 0)
 FROM "NetTestEntities" AS n
 """);
@@ -1296,7 +1300,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT text(n."Inet")
 FROM "NetTestEntities" AS n
 """);
@@ -1311,7 +1315,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT text(n."Cidr")
 FROM "NetTestEntities" AS n
 """);
@@ -1327,7 +1331,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0' (DbType = Object)
 
 SELECT inet_same_family(n."Inet", @__p_1)
@@ -1345,7 +1349,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT inet_same_family(n."Cidr", @__p_1)
@@ -1363,7 +1367,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0' (DbType = Object)
 
 SELECT inet_merge(n."Inet", @__p_1)
@@ -1381,7 +1385,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 @__p_1='0.0.0.0/0' (DbType = Object)
 
 SELECT inet_merge(n."Cidr", @__p_1)
@@ -1398,7 +1402,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT trunc(n."Macaddr")
 FROM "NetTestEntities" AS n
 """);
@@ -1414,7 +1418,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT trunc(n."Macaddr8")
 FROM "NetTestEntities" AS n
 """);
@@ -1430,7 +1434,7 @@ FROM "NetTestEntities" AS n
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT macaddr8_set7bit(n."Macaddr8")
 FROM "NetTestEntities" AS n
 """);
@@ -1441,77 +1445,87 @@ FROM "NetTestEntities" AS n
     #region Fixtures
 
     /// <summary>
-    /// Represents a fixture suitable for testing network address operators.
+    ///     Represents a fixture suitable for testing network address operators.
     /// </summary>
     public class NetworkAddressQueryNpgsqlFixture : SharedStoreFixtureBase<NetContext>
     {
-        protected override string StoreName => "NetworkQueryTest";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
-        protected override void Seed(NetContext context) => NetContext.Seed(context);
+        protected override string StoreName
+            => "NetworkQueryTest";
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
+
+        protected override void Seed(NetContext context)
+            => NetContext.Seed(context);
     }
 
     /// <summary>
-    /// Represents an entity suitable for testing network address operators.
+    ///     Represents an entity suitable for testing network address operators.
     /// </summary>
     public class NetTestEntity
     {
         // ReSharper disable once UnusedMember.Global
         /// <summary>
-        /// The primary key.
+        ///     The primary key.
         /// </summary>
         [Key]
         public int Id { get; set; }
 
         /// <summary>
-        /// The network address.
+        ///     The network address.
         /// </summary>
         public IPAddress Inet { get; set; }
 
         /// <summary>
-        /// The network address.
+        ///     The network address.
         /// </summary>
         public NpgsqlCidr Cidr { get; set; }
 
         /// <summary>
-        /// The MAC address.
+        ///     The MAC address.
         /// </summary>
         public PhysicalAddress Macaddr { get; set; }
 
         /// <summary>
-        /// The MAC address.
+        ///     The MAC address.
         /// </summary>
         [Column(TypeName = "macaddr8")]
         public PhysicalAddress Macaddr8 { get; set; }
 
         /// <summary>
-        /// The text form of <see cref="Inet"/>.
+        ///     The text form of <see cref="Inet" />.
         /// </summary>
         public string TextInet { get; set; }
 
         /// <summary>
-        /// The text form of <see cref="Macaddr"/>.
+        ///     The text form of <see cref="Macaddr" />.
         /// </summary>
         public string TextMacaddr { get; set; }
     }
 
     /// <summary>
-    /// Represents a database suitable for testing network address operators.
+    ///     Represents a database suitable for testing network address operators.
     /// </summary>
     public class NetContext : PoolableDbContext
     {
         /// <summary>
-        /// Represents a set of entities with <see cref="IPAddress"/> properties.
+        ///     Represents a set of entities with <see cref="IPAddress" /> properties.
         /// </summary>
         public DbSet<NetTestEntity> NetTestEntities { get; set; }
 
         /// <summary>
-        /// Initializes a <see cref="NetContext"/>.
+        ///     Initializes a <see cref="NetContext" />.
         /// </summary>
         /// <param name="options">
-        /// The options to be used for configuration.
+        ///     The options to be used for configuration.
         /// </param>
-        public NetContext(DbContextOptions options) : base(options) {}
+        public NetContext(DbContextOptions options)
+            : base(options)
+        {
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -1542,6 +1556,7 @@ FROM "NetTestEntities" AS n
                         TextMacaddr = macaddr.ToString()
                     });
             }
+
             context.SaveChanges();
         }
     }
@@ -1550,9 +1565,11 @@ FROM "NetTestEntities" AS n
 
     #region Helpers
 
-    protected NetContext CreateContext() => Fixture.CreateContext();
+    protected NetContext CreateContext()
+        => Fixture.CreateContext();
 
-    private void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
+    private void AssertSql(params string[] expected)
+        => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
     #endregion
 }

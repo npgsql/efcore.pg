@@ -15,7 +15,7 @@ public class NpgsqlEnumTypeMapping : RelationalTypeMapping
     private readonly INpgsqlNameTranslator _nameTranslator;
 
     /// <summary>
-    /// Translates the CLR member value to the PostgreSQL value label.
+    ///     Translates the CLR member value to the PostgreSQL value label.
     /// </summary>
     private readonly Dictionary<object, string> _members;
 
@@ -83,7 +83,8 @@ public class NpgsqlEnumTypeMapping : RelationalTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected override string GenerateNonNullSqlLiteral(object value) => $"'{_members[value]}'::{StoreType}";
+    protected override string GenerateNonNullSqlLiteral(object value)
+        => $"'{_members[value]}'::{StoreType}";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

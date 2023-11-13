@@ -12,7 +12,8 @@ public class MusicStoreNpgsqlTest : MusicStoreTestBase<MusicStoreNpgsqlTest.Musi
 
     public class MusicStoreNpgsqlFixture : MusicStoreFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {

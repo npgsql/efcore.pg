@@ -1,14 +1,15 @@
 // ReSharper disable once CheckNamespace
+
 namespace Microsoft.EntityFrameworkCore;
 
 /// <summary>
-/// Provides extension methods supporting aggregate function translation for PostgreSQL.
+///     Provides extension methods supporting aggregate function translation for PostgreSQL.
 /// </summary>
 public static class NpgsqlAggregateDbFunctionsExtensions
 {
     /// <summary>
-    /// Collects all the input values, including nulls, into a PostgreSQL array.
-    /// Corresponds to the PostgreSQL <c>array_agg</c> aggregate function.
+    ///     Collects all the input values, including nulls, into a PostgreSQL array.
+    ///     Corresponds to the PostgreSQL <c>array_agg</c> aggregate function.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
     /// <param name="input">The input values to be aggregated into an array.</param>
@@ -17,8 +18,8 @@ public static class NpgsqlAggregateDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ArrayAgg)));
 
     /// <summary>
-    /// Collects all the input values, including nulls, into a json array. Values are converted to JSON as per <c>to_json</c> or
-    /// <c>to_jsonb</c>. Corresponds to the PostgreSQL <c>json_agg</c> aggregate function.
+    ///     Collects all the input values, including nulls, into a json array. Values are converted to JSON as per <c>to_json</c> or
+    ///     <c>to_jsonb</c>. Corresponds to the PostgreSQL <c>json_agg</c> aggregate function.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
     /// <param name="input">The input values to be aggregated into a JSON array.</param>
@@ -27,8 +28,8 @@ public static class NpgsqlAggregateDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonAgg)));
 
     /// <summary>
-    /// Collects all the input values, including nulls, into a jsonb array. Values are converted to JSON as per <c>to_json</c> or
-    /// <c>to_jsonb</c>. Corresponds to the PostgreSQL <c>jsonb_agg</c> aggregate function.
+    ///     Collects all the input values, including nulls, into a jsonb array. Values are converted to JSON as per <c>to_json</c> or
+    ///     <c>to_jsonb</c>. Corresponds to the PostgreSQL <c>jsonb_agg</c> aggregate function.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
     /// <param name="input">The input values to be aggregated into a JSON array.</param>
@@ -37,7 +38,7 @@ public static class NpgsqlAggregateDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonbAgg)));
 
     /// <summary>
-    /// Computes the sum of the non-null input intervals. Corresponds to the PostgreSQL <c>sum</c> aggregate function.
+    ///     Computes the sum of the non-null input intervals. Corresponds to the PostgreSQL <c>sum</c> aggregate function.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
     /// <param name="input">The input values to be summed.</param>
@@ -46,7 +47,7 @@ public static class NpgsqlAggregateDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Sum)));
 
     /// <summary>
-    /// Computes the average (arithmetic mean) of the non-null input intervals. Corresponds to the PostgreSQL <c>avg</c> aggregate function.
+    ///     Computes the average (arithmetic mean) of the non-null input intervals. Corresponds to the PostgreSQL <c>avg</c> aggregate function.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
     /// <param name="input">The input values to be computed into an average.</param>
@@ -59,9 +60,9 @@ public static class NpgsqlAggregateDbFunctionsExtensions
     #region JsonObjectAgg
 
     /// <summary>
-    /// Collects all the key/value pairs into a JSON object. Key arguments are coerced to text; value arguments are converted as per
-    /// <c>to_json</c>. Values can be <see langword="null" />, but not keys.
-    /// Corresponds to the PostgreSQL <c>json_object_agg</c> aggregate function.
+    ///     Collects all the key/value pairs into a JSON object. Key arguments are coerced to text; value arguments are converted as per
+    ///     <c>to_json</c>. Values can be <see langword="null" />, but not keys.
+    ///     Corresponds to the PostgreSQL <c>json_object_agg</c> aggregate function.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
     /// <param name="keyValuePairs">An enumerable of key-value pairs to be aggregated into a JSON object.</param>
@@ -70,9 +71,9 @@ public static class NpgsqlAggregateDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonObjectAgg)));
 
     /// <summary>
-    /// Collects all the key/value pairs into a JSON object. Key arguments are coerced to text; value arguments are converted as per
-    /// <c>to_json</c>. Values can be <see langword="null" />, but not keys.
-    /// Corresponds to the PostgreSQL <c>json_object_agg</c> aggregate function.
+    ///     Collects all the key/value pairs into a JSON object. Key arguments are coerced to text; value arguments are converted as per
+    ///     <c>to_json</c>. Values can be <see langword="null" />, but not keys.
+    ///     Corresponds to the PostgreSQL <c>json_object_agg</c> aggregate function.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
     /// <param name="keyValuePairs">An enumerable of key-value pairs to be aggregated into a JSON object.</param>
@@ -81,9 +82,9 @@ public static class NpgsqlAggregateDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonObjectAgg)));
 
     /// <summary>
-    /// Collects all the key/value pairs into a JSON object. Key arguments are coerced to text; value arguments are converted as per
-    /// <c>to_jsonb</c>. Values can be <see langword="null" />, but not keys.
-    /// Corresponds to the PostgreSQL <c>jsonb_object_agg</c> aggregate function.
+    ///     Collects all the key/value pairs into a JSON object. Key arguments are coerced to text; value arguments are converted as per
+    ///     <c>to_jsonb</c>. Values can be <see langword="null" />, but not keys.
+    ///     Corresponds to the PostgreSQL <c>jsonb_object_agg</c> aggregate function.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
     /// <param name="keyValuePairs">An enumerable of key-value pairs to be aggregated into a JSON object.</param>
@@ -92,9 +93,9 @@ public static class NpgsqlAggregateDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonbObjectAgg)));
 
     /// <summary>
-    /// Collects all the key/value pairs into a JSON object. Key arguments are coerced to text; value arguments are converted as per
-    /// <c>to_jsonb</c>. Values can be <see langword="null" />, but not keys.
-    /// Corresponds to the PostgreSQL <c>jsonb_object_agg</c> aggregate function.
+    ///     Collects all the key/value pairs into a JSON object. Key arguments are coerced to text; value arguments are converted as per
+    ///     <c>to_jsonb</c>. Values can be <see langword="null" />, but not keys.
+    ///     Corresponds to the PostgreSQL <c>jsonb_object_agg</c> aggregate function.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
     /// <param name="keyValuePairs">An enumerable of key-value pairs to be aggregated into a JSON object.</param>

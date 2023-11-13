@@ -26,7 +26,8 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     /// <summary>
     ///     Indicates whether the store connection supports ambient transactions
     /// </summary>
-    protected override bool SupportsAmbientTransactions => true;
+    protected override bool SupportsAmbientTransactions
+        => true;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -56,11 +57,14 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
             // We validate in NpgsqlOptionsExtensions.Validate that DataSource and these callbacks aren't specified together
             if (dependencies.ContextOptions.FindExtension<NpgsqlOptionsExtension>() is { } npgsqlOptions)
             {
-                Check.DebugAssert(npgsqlOptions?.ProvideClientCertificatesCallback is null,
+                Check.DebugAssert(
+                    npgsqlOptions?.ProvideClientCertificatesCallback is null,
                     "Both DataSource and ProvideClientCertificatesCallback are non-null");
-                Check.DebugAssert(npgsqlOptions?.RemoteCertificateValidationCallback is null,
+                Check.DebugAssert(
+                    npgsqlOptions?.RemoteCertificateValidationCallback is null,
                     "Both DataSource and RemoteCertificateValidationCallback are non-null");
-                Check.DebugAssert(npgsqlOptions?.ProvidePasswordCallback is null,
+                Check.DebugAssert(
+                    npgsqlOptions?.ProvidePasswordCallback is null,
                     "Both DataSource and ProvidePasswordCallback are non-null");
             }
 #endif

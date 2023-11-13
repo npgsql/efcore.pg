@@ -24,7 +24,7 @@ public class NpgsqlLTreeTypeMapping : NpgsqlStringTypeMapping
             new RelationalTypeMappingParameters(
                 new CoreTypeMappingParameters(
                     typeof(LTree),
-                    new ValueConverter<LTree, string>(l => l, s => new(s)),
+                    new ValueConverter<LTree, string>(l => l, s => new LTree(s)),
                     jsonValueReaderWriter: JsonLTreeReaderWriter.Instance),
                 "ltree"),
             NpgsqlDbType.LTree)

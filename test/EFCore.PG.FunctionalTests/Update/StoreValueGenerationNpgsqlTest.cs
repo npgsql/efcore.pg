@@ -37,7 +37,7 @@ public class StoreValueGenerationNpgsqlTest : StoreValueGenerationTestBase<
         await base.Add_with_generated_values(async);
 
         AssertSql(
-"""
+            """
 @p0='1000'
 
 INSERT INTO "WithSomeDatabaseGenerated" ("Data2")
@@ -51,7 +51,7 @@ RETURNING "Id", "Data1";
         await base.Add_with_no_generated_values(async);
 
         AssertSql(
-"""
+            """
 @p0='100'
 @p1='1000'
 @p2='1000'
@@ -66,7 +66,7 @@ VALUES (@p0, @p1, @p2);
         await base.Add_with_all_generated_values(async);
 
         AssertSql(
-"""
+            """
 INSERT INTO "WithAllDatabaseGenerated"
 DEFAULT VALUES
 RETURNING "Id", "Data1", "Data2";
@@ -78,7 +78,7 @@ RETURNING "Id", "Data1", "Data2";
         await base.Modify_with_generated_values(async);
 
         AssertSql(
-"""
+            """
 @p1='1'
 @p0='1000'
 
@@ -93,7 +93,7 @@ RETURNING "Data1";
         await base.Modify_with_no_generated_values(async);
 
         AssertSql(
-"""
+            """
 @p2='1'
 @p0='1000'
 @p1='1000'
@@ -108,7 +108,7 @@ WHERE "Id" = @p2;
         await base.Delete(async);
 
         AssertSql(
-"""
+            """
 @p0='1'
 
 DELETE FROM "WithSomeDatabaseGenerated"
@@ -125,7 +125,7 @@ WHERE "Id" = @p0;
         await base.Add_Add_with_same_entity_type_and_generated_values(async);
 
         AssertSql(
-"""
+            """
 @p0='1000'
 @p1='1001'
 
@@ -143,7 +143,7 @@ RETURNING "Id", "Data1";
         await base.Add_Add_with_same_entity_type_and_no_generated_values(async);
 
         AssertSql(
-"""
+            """
 @p0='100'
 @p1='1000'
 @p2='1000'
@@ -163,7 +163,7 @@ VALUES (@p3, @p4, @p5);
         await base.Add_Add_with_same_entity_type_and_all_generated_values(async);
 
         AssertSql(
-"""
+            """
 INSERT INTO "WithAllDatabaseGenerated"
 DEFAULT VALUES
 RETURNING "Id", "Data1", "Data2";
@@ -178,7 +178,7 @@ RETURNING "Id", "Data1", "Data2";
         await base.Modify_Modify_with_same_entity_type_and_generated_values(async);
 
         AssertSql(
-"""
+            """
 @p1='1'
 @p0='1000'
 @p3='2'
@@ -198,7 +198,7 @@ RETURNING "Data1";
         await base.Modify_Modify_with_same_entity_type_and_no_generated_values(async);
 
         AssertSql(
-"""
+            """
 @p2='1'
 @p0='1000'
 @p1='1000'
@@ -218,7 +218,7 @@ WHERE "Id" = @p5;
         await base.Delete_Delete_with_same_entity_type(async);
 
         AssertSql(
-"""
+            """
 @p0='1'
 @p1='2'
 
@@ -238,7 +238,7 @@ WHERE "Id" = @p1;
         await base.Add_Add_with_different_entity_types_and_generated_values(async);
 
         AssertSql(
-"""
+            """
 @p0='1000'
 @p1='1001'
 
@@ -256,7 +256,7 @@ RETURNING "Id", "Data1";
         await base.Add_Add_with_different_entity_types_and_no_generated_values(async);
 
         AssertSql(
-"""
+            """
 @p0='100'
 @p1='1000'
 @p2='1000'
@@ -276,7 +276,7 @@ VALUES (@p3, @p4, @p5);
         await base.Add_Add_with_different_entity_types_and_all_generated_values(async);
 
         AssertSql(
-"""
+            """
 INSERT INTO "WithAllDatabaseGenerated"
 DEFAULT VALUES
 RETURNING "Id", "Data1", "Data2";
@@ -291,7 +291,7 @@ RETURNING "Id", "Data1", "Data2";
         await base.Modify_Modify_with_different_entity_types_and_generated_values(async);
 
         AssertSql(
-"""
+            """
 @p1='1'
 @p0='1000'
 @p3='2'
@@ -311,7 +311,7 @@ RETURNING "Data1";
         await base.Modify_Modify_with_different_entity_types_and_no_generated_values(async);
 
         AssertSql(
-"""
+            """
 @p2='1'
 @p0='1000'
 @p1='1000'
@@ -331,7 +331,7 @@ WHERE "Id" = @p5;
         await base.Delete_Delete_with_different_entity_types(async);
 
         AssertSql(
-"""
+            """
 @p0='1'
 @p1='2'
 

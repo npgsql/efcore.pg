@@ -73,7 +73,7 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
     #endregion
 
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlNodaTimeTypeMappingSourcePlugin"/> class.
+    ///     Constructs an instance of the <see cref="NpgsqlNodaTimeTypeMappingSourcePlugin" /> class.
     /// </summary>
     public NpgsqlNodaTimeTypeMappingSourcePlugin(ISqlGenerationHelper sqlGenerationHelper)
     {
@@ -100,17 +100,26 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
                     ? new RelationalTypeMapping[] { _legacyTimestampInstant, _timestampLocalDateTime }
                     : new RelationalTypeMapping[] { _timestampLocalDateTime, _legacyTimestampInstant }
             },
-            { "timestamp with time zone", new RelationalTypeMapping[] { _timestamptzInstant, _timestamptzZonedDateTime, _timestamptzOffsetDateTime } },
+            {
+                "timestamp with time zone",
+                new RelationalTypeMapping[] { _timestamptzInstant, _timestamptzZonedDateTime, _timestamptzOffsetDateTime }
+            },
             { "date", new RelationalTypeMapping[] { _date } },
             { "time without time zone", new RelationalTypeMapping[] { _time } },
             { "time with time zone", new RelationalTypeMapping[] { _timetz } },
             { "interval", new RelationalTypeMapping[] { _periodInterval, _durationInterval } },
-
-            { "tsrange", LegacyTimestampBehavior
-                ? new RelationalTypeMapping[] { _legacyTimestampInstantRange, _timestampLocalDateTimeRange }
-                : new RelationalTypeMapping[] { _timestampLocalDateTimeRange, _legacyTimestampInstantRange }
+            {
+                "tsrange", LegacyTimestampBehavior
+                    ? new RelationalTypeMapping[] { _legacyTimestampInstantRange, _timestampLocalDateTimeRange }
+                    : new RelationalTypeMapping[] { _timestampLocalDateTimeRange, _legacyTimestampInstantRange }
             },
-            { "tstzrange", new RelationalTypeMapping[] { _intervalRange, _timestamptzInstantRange, _timestamptzZonedDateTimeRange, _timestamptzOffsetDateTimeRange } },
+            {
+                "tstzrange",
+                new RelationalTypeMapping[]
+                {
+                    _intervalRange, _timestamptzInstantRange, _timestamptzZonedDateTimeRange, _timestamptzOffsetDateTimeRange
+                }
+            },
             { "daterange", new RelationalTypeMapping[] { _dateIntervalRange, _dateRange } }
         };
 
@@ -123,7 +132,6 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
         var clrTypeMappings = new Dictionary<Type, RelationalTypeMapping>
         {
             { typeof(Instant), LegacyTimestampBehavior ? _legacyTimestampInstant : _timestamptzInstant },
-
             { typeof(LocalDateTime), _timestampLocalDateTime },
             { typeof(ZonedDateTime), _timestamptzZonedDateTime },
             { typeof(OffsetDateTime), _timestamptzOffsetDateTime },

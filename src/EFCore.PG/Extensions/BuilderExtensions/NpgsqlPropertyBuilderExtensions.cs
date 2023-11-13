@@ -1,21 +1,20 @@
 ﻿using System.Collections;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore;
 
 /// <summary>
-/// Npgsql specific extension methods for <see cref="PropertyBuilder" />.
+///     Npgsql specific extension methods for <see cref="PropertyBuilder" />.
 /// </summary>
 public static class NpgsqlPropertyBuilderExtensions
 {
     #region HiLo
 
     /// <summary>
-    /// Configures the property to use a sequence-based hi-lo pattern to generate values for new entities,
-    /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+    ///     Configures the property to use a sequence-based hi-lo pattern to generate values for new entities,
+    ///     when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
     /// </summary>
     /// <param name="propertyBuilder"> The builder for the property being configured.</param>
     /// <param name="name"> The comment of the sequence.</param>
@@ -52,8 +51,8 @@ public static class NpgsqlPropertyBuilderExtensions
     }
 
     /// <summary>
-    /// Configures the property to use a sequence-based hi-lo pattern to generate values for new entities,
-    /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+    ///     Configures the property to use a sequence-based hi-lo pattern to generate values for new entities,
+    ///     when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
     /// </summary>
     /// <param name="propertyBuilder"> The builder for the property being configured.</param>
     /// <param name="name"> The comment of the sequence.</param>
@@ -66,8 +65,8 @@ public static class NpgsqlPropertyBuilderExtensions
         => (PropertyBuilder<TProperty>)UseHiLo((PropertyBuilder)propertyBuilder, name, schema);
 
     /// <summary>
-    /// Configures the database sequence used for the hi-lo pattern to generate values for the key property,
-    /// when targeting SQL Server.
+    ///     Configures the database sequence used for the hi-lo pattern to generate values for the key property,
+    ///     when targeting SQL Server.
     /// </summary>
     /// <param name="propertyBuilder"> The builder for the property being configured.</param>
     /// <param name="name"> The name of the sequence.</param>
@@ -94,7 +93,7 @@ public static class NpgsqlPropertyBuilderExtensions
     }
 
     /// <summary>
-    /// Returns a value indicating whether the given name and schema can be set for the hi-lo sequence.
+    ///     Returns a value indicating whether the given name and schema can be set for the hi-lo sequence.
     /// </summary>
     /// <param name="propertyBuilder"> The builder for the property being configured.</param>
     /// <param name="name"> The name of the sequence.</param>
@@ -220,11 +219,11 @@ public static class NpgsqlPropertyBuilderExtensions
     #region Serial
 
     /// <summary>
-    /// Configures the property to use the PostgreSQL SERIAL feature to generate values for new entities,
-    /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+    ///     Configures the property to use the PostgreSQL SERIAL feature to generate values for new entities,
+    ///     when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
     /// </summary>
     /// <para>
-    /// This option should be considered deprecated starting with PostgreSQL 10, consider using <see cref="UseIdentityColumn"/> instead.
+    ///     This option should be considered deprecated starting with PostgreSQL 10, consider using <see cref="UseIdentityColumn" /> instead.
     /// </para>
     /// <param name="propertyBuilder"> The builder for the property being configured.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
@@ -244,11 +243,11 @@ public static class NpgsqlPropertyBuilderExtensions
     }
 
     /// <summary>
-    /// Configures the property to use the PostgreSQL SERIAL feature to generate values for new entities,
-    /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+    ///     Configures the property to use the PostgreSQL SERIAL feature to generate values for new entities,
+    ///     when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
     /// </summary>
     /// <para>
-    /// This option should be considered deprecated starting with PostgreSQL 10, consider using <see cref="UseIdentityColumn"/> instead.
+    ///     This option should be considered deprecated starting with PostgreSQL 10, consider using <see cref="UseIdentityColumn" /> instead.
     /// </para>
     /// <typeparam name="TProperty"> The type of the property being configured.</typeparam>
     /// <param name="propertyBuilder"> The builder for the property being configured.</param>
@@ -262,13 +261,13 @@ public static class NpgsqlPropertyBuilderExtensions
     #region Identity always
 
     /// <summary>
-    /// <para>
-    /// Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
-    /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
-    /// Values for this property will always be generated as identity, and the application will not be able
-    /// to override this behavior by providing a value.
-    /// </para>
-    /// <para>Available only starting PostgreSQL 10.</para>
+    ///     <para>
+    ///         Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
+    ///         when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+    ///         Values for this property will always be generated as identity, and the application will not be able
+    ///         to override this behavior by providing a value.
+    ///     </para>
+    ///     <para>Available only starting PostgreSQL 10.</para>
     /// </summary>
     /// <param name="propertyBuilder"> The builder for the property being configured.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
@@ -287,13 +286,13 @@ public static class NpgsqlPropertyBuilderExtensions
     }
 
     /// <summary>
-    /// <para>
-    /// Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
-    /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
-    /// Values for this property will always be generated as identity, and the application will not be able
-    /// to override this behavior by providing a value.
-    /// </para>
-    /// <para>Available only starting PostgreSQL 10.</para>
+    ///     <para>
+    ///         Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
+    ///         when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+    ///         Values for this property will always be generated as identity, and the application will not be able
+    ///         to override this behavior by providing a value.
+    ///     </para>
+    ///     <para>Available only starting PostgreSQL 10.</para>
     /// </summary>
     /// <param name="propertyBuilder"> The builder for the property being configured.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
@@ -306,15 +305,15 @@ public static class NpgsqlPropertyBuilderExtensions
     #region Identity by default
 
     /// <summary>
-    /// <para>
-    /// Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
-    /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
-    /// Values for this property will be generated as identity by default, but the application will be able
-    /// to override this behavior by providing a value.
-    /// </para>
-    /// <para>
-    /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
-    /// </para>
+    ///     <para>
+    ///         Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
+    ///         when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+    ///         Values for this property will be generated as identity by default, but the application will be able
+    ///         to override this behavior by providing a value.
+    ///     </para>
+    ///     <para>
+    ///         This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
+    ///     </para>
     /// </summary>
     /// <param name="propertyBuilder"> The builder for the property being configured.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
@@ -333,15 +332,15 @@ public static class NpgsqlPropertyBuilderExtensions
     }
 
     /// <summary>
-    /// <para>
-    /// Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
-    /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
-    /// Values for this property will be generated as identity by default, but the application will be able
-    /// to override this behavior by providing a value.
-    /// </para>
-    /// <para>
-    /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
-    /// </para>
+    ///     <para>
+    ///         Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
+    ///         when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+    ///         Values for this property will be generated as identity by default, but the application will be able
+    ///         to override this behavior by providing a value.
+    ///     </para>
+    ///     <para>
+    ///         This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
+    ///     </para>
     /// </summary>
     /// <typeparam name="TProperty"> The type of the property being configured.</typeparam>
     /// <param name="propertyBuilder"> The builder for the property being configured.</param>
@@ -351,16 +350,16 @@ public static class NpgsqlPropertyBuilderExtensions
         => (PropertyBuilder<TProperty>)UseIdentityByDefaultColumn((PropertyBuilder)propertyBuilder);
 
     /// <summary>
-    /// <para>
-    /// Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
-    /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
-    /// Values for this property will be generated as identity by default, but the application will be able
-    /// to override this behavior by providing a value.
-    /// </para>
-    /// <para>
-    /// This internally calls <see cref="UseIdentityByDefaultColumn(Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder)"/>.
-    /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
-    /// </para>
+    ///     <para>
+    ///         Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
+    ///         when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+    ///         Values for this property will be generated as identity by default, but the application will be able
+    ///         to override this behavior by providing a value.
+    ///     </para>
+    ///     <para>
+    ///         This internally calls <see cref="UseIdentityByDefaultColumn(Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder)" />.
+    ///         This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
+    ///     </para>
     /// </summary>
     /// <param name="propertyBuilder"> The builder for the property being configured.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
@@ -369,16 +368,16 @@ public static class NpgsqlPropertyBuilderExtensions
         => propertyBuilder.UseIdentityByDefaultColumn();
 
     /// <summary>
-    /// <para>
-    /// Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
-    /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
-    /// Values for this property will be generated as identity by default, but the application will be able
-    /// to override this behavior by providing a value.
-    /// </para>
-    /// <para>
-    /// This internally calls <see cref="UseIdentityByDefaultColumn(Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder)"/>.
-    /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
-    /// </para>
+    ///     <para>
+    ///         Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
+    ///         when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+    ///         Values for this property will be generated as identity by default, but the application will be able
+    ///         to override this behavior by providing a value.
+    ///     </para>
+    ///     <para>
+    ///         This internally calls <see cref="UseIdentityByDefaultColumn(Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder)" />.
+    ///         This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
+    ///     </para>
     /// </summary>
     /// <typeparam name="TProperty"> The type of the property being configured.</typeparam>
     /// <param name="propertyBuilder"> The builder for the property being configured.</param>
@@ -392,13 +391,13 @@ public static class NpgsqlPropertyBuilderExtensions
     #region General value generation strategy
 
     /// <summary>
-    /// Configures the value generation strategy for the key property, when targeting PostgreSQL.
+    ///     Configures the value generation strategy for the key property, when targeting PostgreSQL.
     /// </summary>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="valueGenerationStrategy">The value generation strategy.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     /// <returns>
-    /// The same builder instance if the configuration was applied, <c>null</c> otherwise.
+    ///     The same builder instance if the configuration was applied, <c>null</c> otherwise.
     /// </returns>
     public static IConventionPropertyBuilder? HasValueGenerationStrategy(
         this IConventionPropertyBuilder propertyBuilder,
@@ -427,7 +426,7 @@ public static class NpgsqlPropertyBuilderExtensions
     }
 
     /// <summary>
-    /// Returns a value indicating whether the given value can be set as the value generation strategy.
+    ///     Returns a value indicating whether the given value can be set as the value generation strategy.
     /// </summary>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="valueGenerationStrategy">The value generation strategy.</param>
@@ -452,7 +451,7 @@ public static class NpgsqlPropertyBuilderExtensions
 
     /// <summary>
     ///     Sets the sequence options on an identity column. The column must be set as identity via
-    ///     <see cref="UseIdentityColumn(PropertyBuilder)"/> or <see cref="UseIdentityAlwaysColumn(PropertyBuilder)"/>.
+    ///     <see cref="UseIdentityColumn(PropertyBuilder)" /> or <see cref="UseIdentityAlwaysColumn(PropertyBuilder)" />.
     /// </summary>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="startValue">
@@ -499,12 +498,12 @@ public static class NpgsqlPropertyBuilderExtensions
 
     /// <summary>
     ///     Sets the sequence options on an identity column. The column must be set as identity via
-    ///     <see cref="UseIdentityColumn(PropertyBuilder)"/> or <see cref="UseIdentityAlwaysColumn(PropertyBuilder)"/>.
+    ///     <see cref="UseIdentityColumn(PropertyBuilder)" /> or <see cref="UseIdentityAlwaysColumn(PropertyBuilder)" />.
     /// </summary>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="startValue">
     ///     The starting value for the sequence.
-    ///     The default starting value is <paramref name="minValue"/> for ascending sequences and <paramref name="maxValue"/> for descending
+    ///     The default starting value is <paramref name="minValue" /> for ascending sequences and <paramref name="maxValue" /> for descending
     ///     ones.
     /// </param>
     /// <param name="incrementBy">The amount to increment between values. Defaults to 1.</param>
@@ -538,12 +537,12 @@ public static class NpgsqlPropertyBuilderExtensions
 
     /// <summary>
     ///     Sets the sequence options on an identity column. The column must be set as identity via
-    ///     <see cref="UseIdentityColumn(PropertyBuilder)"/> or <see cref="UseIdentityAlwaysColumn(PropertyBuilder)"/>.
+    ///     <see cref="UseIdentityColumn(PropertyBuilder)" /> or <see cref="UseIdentityAlwaysColumn(PropertyBuilder)" />.
     /// </summary>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="startValue">
     ///     The starting value for the sequence.
-    ///     The default starting value is <paramref name="minValue"/> for ascending sequences and <paramref name="maxValue"/> for descending
+    ///     The default starting value is <paramref name="minValue" /> for ascending sequences and <paramref name="maxValue" /> for descending
     ///     ones.
     /// </param>
     /// <param name="incrementBy">The amount to increment between values. Defaults to 1.</param>
@@ -593,8 +592,8 @@ public static class NpgsqlPropertyBuilderExtensions
     /// </summary>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="startValue">
-    ///     The starting value for the sequence. The default starting value is <paramref name="minValue"/> for ascending sequences and
-    ///     <paramref name="maxValue"/> for descending ones.
+    ///     The starting value for the sequence. The default starting value is <paramref name="minValue" /> for ascending sequences and
+    ///     <paramref name="maxValue" /> for descending ones.
     /// </param>
     /// <param name="incrementBy">The amount to increment between values. Defaults to 1.</param>
     /// <param name="minValue">
@@ -699,17 +698,17 @@ public static class NpgsqlPropertyBuilderExtensions
     // Note: tsvector properties can be configured with a generic API through the entity type builder
 
     /// <summary>
-    /// Configures the property to be a full-text search tsvector column over the given properties.
+    ///     Configures the property to be a full-text search tsvector column over the given properties.
     /// </summary>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="config">
-    /// <para>
-    /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
-    /// </para>
-    /// <para>
-    /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
-    /// </para>
+    ///     <para>
+    ///         The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///         generated tsvector property.
+    ///     </para>
+    ///     <para>
+    ///         See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+    ///     </para>
     /// </param>
     /// <param name="includedPropertyNames">An array of property names to be included in the tsvector.</param>
     /// <returns>A builder to further configure the property.</returns>
@@ -730,17 +729,17 @@ public static class NpgsqlPropertyBuilderExtensions
     }
 
     /// <summary>
-    /// Configures the property to be a full-text search tsvector column over the given properties.
+    ///     Configures the property to be a full-text search tsvector column over the given properties.
     /// </summary>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="config">
-    /// <para>
-    /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
-    /// </para>
-    /// <para>
-    /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
-    /// </para>
+    ///     <para>
+    ///         The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///         generated tsvector property.
+    ///     </para>
+    ///     <para>
+    ///         See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+    ///     </para>
     /// </param>
     /// <param name="includedPropertyNames">An array of property names to be included in the tsvector.</param>
     /// <returns>A builder to further configure the property.</returns>
@@ -751,22 +750,22 @@ public static class NpgsqlPropertyBuilderExtensions
         => (PropertyBuilder<NpgsqlTsVector>)IsGeneratedTsVectorColumn((PropertyBuilder)propertyBuilder, config, includedPropertyNames);
 
     /// <summary>
-    /// Configures the property to be a full-text search tsvector column over the given properties.
+    ///     Configures the property to be a full-text search tsvector column over the given properties.
     /// </summary>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="config">
-    /// <para>
-    /// The text search configuration for this generated tsvector property.
-    /// </para>
-    /// <para>
-    /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
-    /// </para>
+    ///     <para>
+    ///         The text search configuration for this generated tsvector property.
+    ///     </para>
+    ///     <para>
+    ///         See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+    ///     </para>
     /// </param>
     /// <param name="includedPropertyNames">An array of property names to be included in the tsvector.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     /// <returns>
-    /// The same builder instance if the configuration was applied,
-    /// <c>null</c> otherwise.
+    ///     The same builder instance if the configuration was applied,
+    ///     <c>null</c> otherwise.
     /// </returns>
     public static IConventionPropertyBuilder? IsGeneratedTsVectorColumn(
         this IConventionPropertyBuilder propertyBuilder,
@@ -789,17 +788,17 @@ public static class NpgsqlPropertyBuilderExtensions
     }
 
     /// <summary>
-    /// Returns a value indicating whether the property can be configured as a full-text search tsvector column.
+    ///     Returns a value indicating whether the property can be configured as a full-text search tsvector column.
     /// </summary>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="config">
-    /// <para>
-    /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
-    /// </para>
-    /// <para>
-    /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
-    /// </para>
+    ///     <para>
+    ///         The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///         generated tsvector property.
+    ///     </para>
+    ///     <para>
+    ///         See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+    ///     </para>
     /// </param>
     /// <param name="includedPropertyNames">An array of property names to be included in the tsvector.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
@@ -813,12 +812,11 @@ public static class NpgsqlPropertyBuilderExtensions
         Check.NotNull(propertyBuilder, nameof(propertyBuilder));
 
         return (fromDataAnnotation ? ConfigurationSource.DataAnnotation : ConfigurationSource.Convention)
-            .Overrides(propertyBuilder.Metadata.GetTsVectorConfigConfigurationSource()) &&
-            (fromDataAnnotation ? ConfigurationSource.DataAnnotation : ConfigurationSource.Convention)
+            .Overrides(propertyBuilder.Metadata.GetTsVectorConfigConfigurationSource())
+            && (fromDataAnnotation ? ConfigurationSource.DataAnnotation : ConfigurationSource.Convention)
             .Overrides(propertyBuilder.Metadata.GetTsVectorPropertiesConfigurationSource())
-            ||
-            config == propertyBuilder.Metadata.GetTsVectorConfig() &&
-            StructuralComparisons.StructuralEqualityComparer.Equals(
+            || config == propertyBuilder.Metadata.GetTsVectorConfig()
+            && StructuralComparisons.StructuralEqualityComparer.Equals(
                 includedPropertyNames, propertyBuilder.Metadata.GetTsVectorProperties());
     }
 
@@ -827,7 +825,7 @@ public static class NpgsqlPropertyBuilderExtensions
     #region Compression method
 
     /// <summary>
-    /// Sets the compression method for the column.
+    ///     Sets the compression method for the column.
     /// </summary>
     /// <remarks>This feature was introduced in PostgreSQL 14.</remarks>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
@@ -846,7 +844,7 @@ public static class NpgsqlPropertyBuilderExtensions
     }
 
     /// <summary>
-    /// Sets the compression method for the column.
+    ///     Sets the compression method for the column.
     /// </summary>
     /// <remarks>This feature was introduced in PostgreSQL 14.</remarks>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
@@ -858,7 +856,7 @@ public static class NpgsqlPropertyBuilderExtensions
         => (PropertyBuilder<TEntity>)UseCompressionMethod((PropertyBuilder)propertyBuilder, compressionMethod);
 
     /// <summary>
-    /// Sets the compression method for the column.
+    ///     Sets the compression method for the column.
     /// </summary>
     /// <remarks>This feature was introduced in PostgreSQL 14.</remarks>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
@@ -881,7 +879,7 @@ public static class NpgsqlPropertyBuilderExtensions
     }
 
     /// <summary>
-    /// Whether the compression method for the column can be set.
+    ///     Whether the compression method for the column can be set.
     /// </summary>
     /// <remarks>This feature was introduced in PostgreSQL 14.</remarks>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>

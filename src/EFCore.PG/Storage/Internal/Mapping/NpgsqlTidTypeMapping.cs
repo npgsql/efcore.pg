@@ -17,7 +17,9 @@ public class NpgsqlTidTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlTidTypeMapping()
-        : base("tid", typeof(NpgsqlTid), NpgsqlDbType.Tid) {}
+        : base("tid", typeof(NpgsqlTid), NpgsqlDbType.Tid)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -26,7 +28,9 @@ public class NpgsqlTidTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlTidTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Tid) {}
+        : base(parameters, NpgsqlDbType.Tid)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

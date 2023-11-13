@@ -10,15 +10,14 @@ public class SqlExecutorNpgsqlTest : SqlExecutorTestBase<NorthwindQueryNpgsqlFix
     }
 
     protected override DbParameter CreateDbParameter(string name, object value)
-        => new NpgsqlParameter
-        {
-            ParameterName = name,
-            Value = value
-        };
+        => new NpgsqlParameter { ParameterName = name, Value = value };
 
-    protected override string TenMostExpensiveProductsSproc => @"SELECT * FROM ""Ten Most Expensive Products""()";
+    protected override string TenMostExpensiveProductsSproc
+        => @"SELECT * FROM ""Ten Most Expensive Products""()";
 
-    protected override string CustomerOrderHistorySproc => @"SELECT * FROM ""CustOrderHist""(@CustomerID)";
+    protected override string CustomerOrderHistorySproc
+        => @"SELECT * FROM ""CustOrderHist""(@CustomerID)";
 
-    protected override string CustomerOrderHistoryWithGeneratedParameterSproc => @"SELECT * FROM ""CustOrderHist""({0})";
+    protected override string CustomerOrderHistoryWithGeneratedParameterSproc
+        => @"SELECT * FROM ""CustOrderHist""({0})";
 }

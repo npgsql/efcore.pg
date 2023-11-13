@@ -2,7 +2,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class StoreGeneratedFixupNpgsqlTest : StoreGeneratedFixupRelationalTestBase<StoreGeneratedFixupNpgsqlTest.StoreGeneratedFixupNpgsqlFixture>
+public class StoreGeneratedFixupNpgsqlTest : StoreGeneratedFixupRelationalTestBase<
+    StoreGeneratedFixupNpgsqlTest.StoreGeneratedFixupNpgsqlFixture>
 {
     public StoreGeneratedFixupNpgsqlTest(StoreGeneratedFixupNpgsqlFixture fixture)
         : base(fixture)
@@ -11,8 +12,7 @@ public class StoreGeneratedFixupNpgsqlTest : StoreGeneratedFixupRelationalTestBa
 
     [Fact]
     public void Temp_values_are_replaced_on_save()
-    {
-        ExecuteWithStrategyInTransaction(
+        => ExecuteWithStrategyInTransaction(
             context =>
             {
                 var entry = context.Add(new TestTemp());
@@ -27,7 +27,6 @@ public class StoreGeneratedFixupNpgsqlTest : StoreGeneratedFixupRelationalTestBa
                 Assert.False(entry.Property(e => e.Id).IsTemporary);
                 Assert.NotEqual(tempValue, entry.Property(e => e.Id).CurrentValue);
             });
-    }
 
     protected override void MarkIdsTemporary(DbContext context, object dependent, object principal)
     {
@@ -57,14 +56,16 @@ public class StoreGeneratedFixupNpgsqlTest : StoreGeneratedFixupRelationalTestBa
         entry.Property("Id").IsTemporary = true;
     }
 
-    protected override bool EnforcesFKs => true;
+    protected override bool EnforcesFKs
+        => true;
 
     protected override void UseTransaction(DatabaseFacade facade, IDbContextTransaction transaction)
         => facade.UseTransaction(transaction.GetDbTransaction());
 
     public class StoreGeneratedFixupNpgsqlFixture : StoreGeneratedFixupRelationalFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {

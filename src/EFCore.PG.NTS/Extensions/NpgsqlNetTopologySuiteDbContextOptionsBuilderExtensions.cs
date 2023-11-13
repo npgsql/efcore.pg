@@ -5,15 +5,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 namespace Microsoft.EntityFrameworkCore;
 
 /// <summary>
-/// NetTopologySuite specific extension methods for <see cref="NpgsqlDbContextOptionsBuilder"/>.
+///     NetTopologySuite specific extension methods for <see cref="NpgsqlDbContextOptionsBuilder" />.
 /// </summary>
 public static class NpgsqlNetTopologySuiteDbContextOptionsBuilderExtensions
 {
     /// <summary>
-    /// Use NetTopologySuite to access SQL Server spatial data.
+    ///     Use NetTopologySuite to access SQL Server spatial data.
     /// </summary>
     /// <returns>
-    /// The options builder so that further configuration can be chained.
+    ///     The options builder so that further configuration can be chained.
     /// </returns>
     public static NpgsqlDbContextOptionsBuilder UseNetTopologySuite(
         this NpgsqlDbContextOptionsBuilder optionsBuilder,
@@ -26,7 +26,8 @@ public static class NpgsqlNetTopologySuiteDbContextOptionsBuilderExtensions
 
         // TODO: Global-only setup at the ADO.NET level for now, optionally allow per-connection?
 #pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
-        NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite(coordinateSequenceFactory, precisionModel, handleOrdinates, geographyAsDefault);
+        NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite(
+            coordinateSequenceFactory, precisionModel, handleOrdinates, geographyAsDefault);
 #pragma warning restore CS0618
 
         var coreOptionsBuilder = ((IRelationalDbContextOptionsBuilderInfrastructure)optionsBuilder).OptionsBuilder;

@@ -118,8 +118,7 @@ public class BatchingTest : IClassFixture<BatchingTest.BatchingTestFixture>
 
     [Fact]
     public void Inserts_when_database_type_is_different()
-    {
-        ExecuteWithStrategyInTransaction(
+        => ExecuteWithStrategyInTransaction(
             context =>
             {
                 var owner1 = new Owner { Id = "0", Name = "Zero" };
@@ -130,8 +129,6 @@ public class BatchingTest : IClassFixture<BatchingTest.BatchingTestFixture>
                 context.SaveChanges();
             },
             context => Assert.Equal(2, context.Owners.Count()));
-    }
-
 
     [ConditionalTheory]
     [InlineData(3)]
@@ -192,7 +189,8 @@ public class BatchingTest : IClassFixture<BatchingTest.BatchingTestFixture>
         }
     }
 
-    private BloggingContext CreateContext() => (BloggingContext)Fixture.CreateContext();
+    private BloggingContext CreateContext()
+        => (BloggingContext)Fixture.CreateContext();
 
     private void ExecuteWithStrategyInTransaction(
         Action<BloggingContext> testOperation,
@@ -254,17 +252,20 @@ public class BatchingTest : IClassFixture<BatchingTest.BatchingTestFixture>
     public class BatchingTestFixture : SharedStoreFixtureBase<PoolableDbContext>
     {
         protected override string StoreName { get; } = "BatchingTest";
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
         protected override Type ContextType { get; } = typeof(BloggingContext);
 
         protected override bool ShouldLogCategory(string logCategory)
             => logCategory == DbLoggerCategory.Update.Name;
 
         protected override void Seed(PoolableDbContext context)
-        {
-            context.Database.EnsureCreatedResiliently();
-        }
+            => context.Database.EnsureCreatedResiliently();
 
         public DbContext CreateContext(int minBatchSize)
         {

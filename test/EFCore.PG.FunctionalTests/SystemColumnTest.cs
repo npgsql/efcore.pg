@@ -32,7 +32,10 @@ public class SystemColumnTest : IClassFixture<SystemColumnTest.SystemColumnFixtu
 
     public class SystemColumnContext : PoolableDbContext
     {
-        public SystemColumnContext(DbContextOptions options) : base(options) {}
+        public SystemColumnContext(DbContextOptions options)
+            : base(options)
+        {
+        }
 
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public DbSet<SomeEntity> Entities { get; set; }
@@ -52,17 +55,24 @@ public class SystemColumnTest : IClassFixture<SystemColumnTest.SystemColumnFixtu
         // ReSharper disable UnusedAutoPropertyAccessor.Global
         public int Id { get; set; }
         public string Name { get; set; }
+
         public uint Version { get; set; }
         // ReSharper restore UnusedMember.Global
         // ReSharper restore UnusedAutoPropertyAccessor.Global
     }
 
-    private SystemColumnContext CreateContext() => Fixture.CreateContext();
+    private SystemColumnContext CreateContext()
+        => Fixture.CreateContext();
 
     public class SystemColumnFixture : SharedStoreFixtureBase<SystemColumnContext>
     {
-        protected override string StoreName => "SystemColumnTest";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
+        protected override string StoreName
+            => "SystemColumnTest";
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
     }
 }

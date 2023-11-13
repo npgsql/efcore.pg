@@ -9,7 +9,8 @@ public class NorthwindFunctionsQueryNpgsqlTest : NorthwindFunctionsQueryRelation
 {
     // ReSharper disable once UnusedParameter.Local
     public NorthwindFunctionsQueryNpgsqlTest(
-        NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
+        NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture,
+        ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
         ClearLog();
@@ -21,7 +22,7 @@ public class NorthwindFunctionsQueryNpgsqlTest : NorthwindFunctionsQueryRelation
         await base.IsNullOrWhiteSpace_in_predicate(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE c."Region" IS NULL OR btrim(c."Region", E' \t\n\r') = ''
@@ -53,11 +54,13 @@ WHERE c."Region" IS NULL OR btrim(c."Region", E' \t\n\r') = ''
 
         await AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(c => string.Join("|", c.CustomerID, c.CompanyName, param, nullParam, "constant", null) == "ALFKI|Alfreds Futterkiste|param||constant|"),
+            ss => ss.Set<Customer>().Where(
+                c => string.Join("|", c.CustomerID, c.CompanyName, param, nullParam, "constant", null)
+                    == "ALFKI|Alfreds Futterkiste|param||constant|"),
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__param_0='param'
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
@@ -113,7 +116,7 @@ WHERE concat_ws('|', c."CustomerID", c."CompanyName", COALESCE(@__param_0, ''), 
             entryCount: 4);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE c."CompanyName" ~ '(?p)^A'
@@ -132,7 +135,7 @@ WHERE c."CompanyName" ~ '(?p)^A'
             entryCount: 4);
 
         AssertSql(
-"""
+            """
 @__pattern_0='^A'
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
@@ -151,7 +154,7 @@ WHERE c."CompanyName" ~ ('(?p)' || @__pattern_0)
             entryCount: 4);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE c."CompanyName" ~ '(?p)^A'
@@ -168,7 +171,7 @@ WHERE c."CompanyName" ~ '(?p)^A'
             entryCount: 4);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE c."CompanyName" ~* '(?p)^a'
@@ -185,7 +188,7 @@ WHERE c."CompanyName" ~* '(?p)^a'
             entryCount: 4);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE c."CompanyName" ~ '(?n)^A'
@@ -202,7 +205,7 @@ WHERE c."CompanyName" ~ '(?n)^A'
             entryCount: 4);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE c."CompanyName" ~ '^A'
@@ -236,7 +239,7 @@ WHERE c."CompanyName" ~* '^a'
             entryCount: 4);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE c."CompanyName" ~ '(?px)^ A'
@@ -245,8 +248,9 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
     [Fact]
     public void Regex_IsMatch_with_unsupported_option()
-        => Assert.Throws<InvalidOperationException>(() =>
-            Fixture.CreateContext().Customers.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.RightToLeft)).ToList());
+        => Assert.Throws<InvalidOperationException>(
+            () =>
+                Fixture.CreateContext().Customers.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.RightToLeft)).ToList());
 
     #endregion Regex
 
@@ -261,7 +265,7 @@ WHERE c."CompanyName" ~ '(?px)^ A'
         await base.Where_guid_newguid(async);
 
         AssertSql(
-$"""
+            $"""
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE {UuidGenerationFunction}() <> '00000000-0000-0000-0000-000000000000'
@@ -278,7 +282,7 @@ WHERE {UuidGenerationFunction}() <> '00000000-0000-0000-0000-000000000000'
             entryCount: 2155);
 
         AssertSql(
-$"""
+            $"""
 SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
 FROM "Order Details" AS o
 ORDER BY {UuidGenerationFunction}() NULLS FIRST
@@ -378,7 +382,7 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST
         await base.String_Join_over_non_nullable_column(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City", COALESCE(string_agg(c."CustomerID", '|'), '') AS "Customers"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -390,7 +394,7 @@ GROUP BY c."City"
         await base.String_Join_over_nullable_column(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City", COALESCE(string_agg(COALESCE(c."Region", ''), '|'), '') AS "Regions"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -402,7 +406,7 @@ GROUP BY c."City"
         await base.String_Join_with_predicate(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City", COALESCE(string_agg(c."CustomerID", '|') FILTER (WHERE length(c."ContactName")::int > 10), '') AS "Customers"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -414,7 +418,7 @@ GROUP BY c."City"
         await base.String_Join_with_ordering(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City", COALESCE(string_agg(c."CustomerID", '|' ORDER BY c."CustomerID" DESC NULLS LAST), '') AS "Customers"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -426,7 +430,7 @@ GROUP BY c."City"
         await base.String_Concat(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City", COALESCE(string_agg(c."CustomerID", ''), '') AS "Customers"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -441,11 +445,7 @@ GROUP BY c."City"
 
         var query = ctx.Set<Customer>()
             .GroupBy(c => c.City)
-            .Select(g => new
-            {
-                City = g.Key,
-                FaxNumbers = EF.Functions.ArrayAgg(g.Select(c => c.Fax).OrderBy(id => id))
-            });
+            .Select(g => new { City = g.Key, FaxNumbers = EF.Functions.ArrayAgg(g.Select(c => c.Fax).OrderBy(id => id)) });
 
         var results = async
             ? await query.ToListAsync()
@@ -462,7 +462,7 @@ GROUP BY c."City"
             f => Assert.Equal("(171) 555-9199", f));
 
         AssertSql(
-"""
+            """
 SELECT c."City", array_agg(c."Fax" ORDER BY c."Fax" NULLS FIRST) AS "FaxNumbers"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -477,11 +477,7 @@ GROUP BY c."City"
 
         var query = ctx.Set<Customer>()
             .GroupBy(c => c.City)
-            .Select(g => new
-            {
-                City = g.Key,
-                FaxNumbers = EF.Functions.JsonAgg(g.Select(c => c.Fax).OrderBy(id => id))
-            });
+            .Select(g => new { City = g.Key, FaxNumbers = EF.Functions.JsonAgg(g.Select(c => c.Fax).OrderBy(id => id)) });
 
         var results = async
             ? await query.ToListAsync()
@@ -498,7 +494,7 @@ GROUP BY c."City"
             f => Assert.Equal("(171) 555-9199", f));
 
         AssertSql(
-"""
+            """
 SELECT c."City", json_agg(c."Fax" ORDER BY c."Fax" NULLS FIRST) AS "FaxNumbers"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -513,11 +509,7 @@ GROUP BY c."City"
 
         var query = ctx.Set<Customer>()
             .GroupBy(c => c.City)
-            .Select(g => new
-            {
-                City = g.Key,
-                FaxNumbers = EF.Functions.JsonbAgg(g.Select(c => c.Fax).OrderBy(id => id))
-            });
+            .Select(g => new { City = g.Key, FaxNumbers = EF.Functions.JsonbAgg(g.Select(c => c.Fax).OrderBy(id => id)) });
 
         var results = async
             ? await query.ToListAsync()
@@ -534,7 +526,7 @@ GROUP BY c."City"
             f => Assert.Equal("(171) 555-9199", f));
 
         AssertSql(
-"""
+            """
 SELECT c."City", jsonb_agg(c."Fax" ORDER BY c."Fax" NULLS FIRST) AS "FaxNumbers"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -574,7 +566,7 @@ GROUP BY c."City"
             london.Companies);
 
         AssertSql(
-"""
+            """
 SELECT c."City", json_object_agg(c."CompanyName", c."ContactName" ORDER BY c."CompanyName" NULLS FIRST) AS "Companies"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -616,7 +608,7 @@ GROUP BY c."City"
             london.Companies);
 
         AssertSql(
-"""
+            """
 SELECT c."City", json_object_agg(c."CompanyName", c."ContactName") AS "Companies"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -659,7 +651,7 @@ GROUP BY c."City"
             companiesDictionary);
 
         AssertSql(
-"""
+            """
 SELECT c."City", jsonb_object_agg(c."CompanyName", c."ContactName") AS "Companies"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -701,7 +693,7 @@ GROUP BY c."City"
             london.Companies);
 
         AssertSql(
-"""
+            """
 SELECT c."City", jsonb_object_agg(c."CompanyName", c."ContactName") AS "Companies"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -720,12 +712,13 @@ GROUP BY c."City"
 
         var query = ctx.Set<OrderDetail>()
             .GroupBy(od => od.ProductID)
-            .Select(g => new
-            {
-                ProductID = g.Key,
-                SampleStandardDeviation = EF.Functions.StandardDeviationSample(g.Select(od => od.UnitPrice)),
-                PopulationStandardDeviation = EF.Functions.StandardDeviationPopulation(g.Select(od => od.UnitPrice))
-            });
+            .Select(
+                g => new
+                {
+                    ProductID = g.Key,
+                    SampleStandardDeviation = EF.Functions.StandardDeviationSample(g.Select(od => od.UnitPrice)),
+                    PopulationStandardDeviation = EF.Functions.StandardDeviationPopulation(g.Select(od => od.UnitPrice))
+                });
 
         var results = async
             ? await query.ToListAsync()
@@ -736,7 +729,7 @@ GROUP BY c."City"
         Assert.Equal(7.759999999999856, product9.PopulationStandardDeviation.Value, 5);
 
         AssertSql(
-"""
+            """
 SELECT o."ProductID", stddev_samp(o."UnitPrice") AS "SampleStandardDeviation", stddev_pop(o."UnitPrice") AS "PopulationStandardDeviation"
 FROM "Order Details" AS o
 GROUP BY o."ProductID"
@@ -768,7 +761,7 @@ GROUP BY o."ProductID"
         Assert.Equal(60.217599999997766, product9.PopulationStandardDeviation.Value, 5);
 
         AssertSql(
-"""
+            """
 SELECT o."ProductID", var_samp(o."UnitPrice") AS "SampleStandardDeviation", var_pop(o."UnitPrice") AS "PopulationStandardDeviation"
 FROM "Order Details" AS o
 GROUP BY o."ProductID"
@@ -783,21 +776,24 @@ GROUP BY o."ProductID"
 
         var query = ctx.Set<OrderDetail>()
             .GroupBy(od => od.ProductID)
-            .Select(g => new
-            {
-                ProductID = g.Key,
-                Correlation = EF.Functions.Correlation(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
-                CovariancePopulation = EF.Functions.CovariancePopulation(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
-                CovarianceSample = EF.Functions.CovarianceSample(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
-                RegrAverageX = EF.Functions.RegrAverageX(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
-                RegrAverageY = EF.Functions.RegrAverageY(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
-                RegrCount = EF.Functions.RegrCount(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
-                RegrIntercept = EF.Functions.RegrIntercept(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
-                RegrR2 = EF.Functions.RegrR2(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
-                RegrSlope = EF.Functions.RegrSlope(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
-                RegrSXX = EF.Functions.RegrSXX(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
-                RegrSXY = EF.Functions.RegrSXY(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
-            });
+            .Select(
+                g => new
+                {
+                    ProductID = g.Key,
+                    Correlation = EF.Functions.Correlation(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                    CovariancePopulation =
+                        EF.Functions.CovariancePopulation(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                    CovarianceSample =
+                        EF.Functions.CovarianceSample(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                    RegrAverageX = EF.Functions.RegrAverageX(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                    RegrAverageY = EF.Functions.RegrAverageY(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                    RegrCount = EF.Functions.RegrCount(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                    RegrIntercept = EF.Functions.RegrIntercept(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                    RegrR2 = EF.Functions.RegrR2(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                    RegrSlope = EF.Functions.RegrSlope(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                    RegrSXX = EF.Functions.RegrSXX(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                    RegrSXY = EF.Functions.RegrSXY(g.Select(od => ValueTuple.Create((double)od.Quantity, (double)od.Discount))),
+                });
 
         var results = async
             ? await query.ToListAsync()
@@ -817,7 +813,7 @@ GROUP BY o."ProductID"
         Assert.Equal(7.399999983608723, product9.RegrSXY.Value, 5);
 
         AssertSql(
-"""
+            """
 SELECT o."ProductID", corr(o."Quantity"::double precision, o."Discount"::double precision) AS "Correlation", covar_pop(o."Quantity"::double precision, o."Discount"::double precision) AS "CovariancePopulation", covar_samp(o."Quantity"::double precision, o."Discount"::double precision) AS "CovarianceSample", regr_avgx(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrAverageX", regr_avgy(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrAverageY", regr_count(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrCount", regr_intercept(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrIntercept", regr_r2(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrR2", regr_slope(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrSlope", regr_sxx(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrSXX", regr_sxy(o."Quantity"::double precision, o."Discount"::double precision) AS "RegrSXY"
 FROM "Order Details" AS o
 GROUP BY o."ProductID"
@@ -838,12 +834,23 @@ GROUP BY o."ProductID"
 
     // These tests convert (among other things) to and from boolean, which PostgreSQL
     // does not support (https://github.com/dotnet/efcore/issues/19606)
-    public override Task Convert_ToBoolean(bool async) => Task.CompletedTask;
-    public override Task Convert_ToByte(bool async) => Task.CompletedTask;
-    public override Task Convert_ToDecimal(bool async) => Task.CompletedTask;
-    public override Task Convert_ToDouble(bool async) => Task.CompletedTask;
-    public override Task Convert_ToInt16(bool async) => Task.CompletedTask;
-    public override Task Convert_ToInt64(bool async) => Task.CompletedTask;
+    public override Task Convert_ToBoolean(bool async)
+        => Task.CompletedTask;
+
+    public override Task Convert_ToByte(bool async)
+        => Task.CompletedTask;
+
+    public override Task Convert_ToDecimal(bool async)
+        => Task.CompletedTask;
+
+    public override Task Convert_ToDouble(bool async)
+        => Task.CompletedTask;
+
+    public override Task Convert_ToInt16(bool async)
+        => Task.CompletedTask;
+
+    public override Task Convert_ToInt64(bool async)
+        => Task.CompletedTask;
 
     #endregion Unsupported
 

@@ -150,5 +150,6 @@ public class ComputedColumnTest : IDisposable
 
     protected NpgsqlTestStore TestStore { get; }
 
-    public virtual void Dispose() => TestStore.Dispose();
+    public virtual void Dispose()
+        => TestStore.Dispose();
 }

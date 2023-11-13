@@ -1,6 +1,7 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class NpgsqlNetTopologySuiteApiConsistencyTest : ApiConsistencyTestBase<NpgsqlNetTopologySuiteApiConsistencyTest.NpgsqlNetTopologySuiteApiConsistencyFixture>
+public class NpgsqlNetTopologySuiteApiConsistencyTest : ApiConsistencyTestBase<
+    NpgsqlNetTopologySuiteApiConsistencyTest.NpgsqlNetTopologySuiteApiConsistencyFixture>
 {
     public NpgsqlNetTopologySuiteApiConsistencyTest(NpgsqlNetTopologySuiteApiConsistencyFixture fixture)
         : base(fixture)
@@ -17,8 +18,7 @@ public class NpgsqlNetTopologySuiteApiConsistencyTest : ApiConsistencyTestBase<N
     {
         public override HashSet<Type> FluentApiTypes { get; } = new()
         {
-            typeof(NpgsqlNetTopologySuiteDbContextOptionsBuilderExtensions),
-            typeof(NpgsqlNetTopologySuiteServiceCollectionExtensions)
+            typeof(NpgsqlNetTopologySuiteDbContextOptionsBuilderExtensions), typeof(NpgsqlNetTopologySuiteServiceCollectionExtensions)
         };
     }
 }

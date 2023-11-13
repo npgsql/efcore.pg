@@ -5,12 +5,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 namespace Microsoft.EntityFrameworkCore;
 
 /// <summary>
-/// NodaTime specific extension methods for <see cref="NpgsqlDbContextOptionsBuilder"/>.
+///     NodaTime specific extension methods for <see cref="NpgsqlDbContextOptionsBuilder" />.
 /// </summary>
 public static class NpgsqlNodaTimeDbContextOptionsBuilderExtensions
 {
     /// <summary>
-    /// Configure NodaTime type mappings for Entity Framework.
+    ///     Configure NodaTime type mappings for Entity Framework.
     /// </summary>
     /// <returns> The options builder so that further configuration can be chained. </returns>
     public static NpgsqlDbContextOptionsBuilder UseNodaTime(

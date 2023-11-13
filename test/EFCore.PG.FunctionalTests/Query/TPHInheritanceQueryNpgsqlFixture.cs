@@ -5,7 +5,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class TPHInheritanceQueryNpgsqlFixture : TPHInheritanceQueryFixture
 {
-    protected override ITestStoreFactory TestStoreFactory =>  NpgsqlTestStoreFactory.Instance;
+    protected override ITestStoreFactory TestStoreFactory
+        => NpgsqlTestStoreFactory.Instance;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
     {

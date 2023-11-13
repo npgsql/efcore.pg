@@ -4,10 +4,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Json;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// The type mapping for the PostgreSQL macaddr8 type.
+///     The type mapping for the PostgreSQL macaddr8 type.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-MACADDR8
+///     See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-MACADDR8
 /// </remarks>
 public class NpgsqlMacaddr8TypeMapping : NpgsqlTypeMapping
 {
@@ -33,7 +33,9 @@ public class NpgsqlMacaddr8TypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlMacaddr8TypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.MacAddr8) {}
+        : base(parameters, NpgsqlDbType.MacAddr8)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

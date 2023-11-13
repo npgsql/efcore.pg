@@ -5,12 +5,12 @@ using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExten
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 /// <summary>
-/// Provides translation services for static <see cref="Math"/> methods..
+///     Provides translation services for static <see cref="Math" /> methods..
 /// </summary>
 /// <remarks>
-/// See:
-///   - https://www.postgresql.org/docs/current/static/functions-math.html
-///   - https://www.postgresql.org/docs/current/static/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
+///     See:
+///     - https://www.postgresql.org/docs/current/static/functions-math.html
+///     - https://www.postgresql.org/docs/current/static/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
 /// </remarks>
 public class NpgsqlMathTranslator : IMethodCallTranslator
 {
@@ -24,53 +24,39 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
         { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(short) })!, "abs" },
         { typeof(MathF).GetRuntimeMethod(nameof(MathF.Abs), new[] { typeof(float) })!, "abs" },
         { typeof(BigInteger).GetRuntimeMethod(nameof(BigInteger.Abs), new[] { typeof(BigInteger) })!, "abs" },
-
         { typeof(Math).GetRuntimeMethod(nameof(Math.Ceiling), new[] { typeof(decimal) })!, "ceiling" },
         { typeof(Math).GetRuntimeMethod(nameof(Math.Ceiling), new[] { typeof(double) })!, "ceiling" },
         { typeof(MathF).GetRuntimeMethod(nameof(MathF.Ceiling), new[] { typeof(float) })!, "ceiling" },
-
         { typeof(Math).GetRuntimeMethod(nameof(Math.Floor), new[] { typeof(decimal) })!, "floor" },
         { typeof(Math).GetRuntimeMethod(nameof(Math.Floor), new[] { typeof(double) })!, "floor" },
         { typeof(MathF).GetRuntimeMethod(nameof(MathF.Floor), new[] { typeof(float) })!, "floor" },
-
         { typeof(Math).GetRuntimeMethod(nameof(Math.Pow), new[] { typeof(double), typeof(double) })!, "power" },
         { typeof(MathF).GetRuntimeMethod(nameof(MathF.Pow), new[] { typeof(float), typeof(float) })!, "power" },
         { typeof(BigInteger).GetRuntimeMethod(nameof(BigInteger.Pow), new[] { typeof(BigInteger), typeof(int) })!, "power" },
-
         { typeof(Math).GetRuntimeMethod(nameof(Math.Exp), new[] { typeof(double) })!, "exp" },
         { typeof(MathF).GetRuntimeMethod(nameof(MathF.Exp), new[] { typeof(float) })!, "exp" },
-
         { typeof(Math).GetRuntimeMethod(nameof(Math.Log10), new[] { typeof(double) })!, "log" },
         { typeof(MathF).GetRuntimeMethod(nameof(MathF.Log10), new[] { typeof(float) })!, "log" },
-
         { typeof(Math).GetRuntimeMethod(nameof(Math.Log), new[] { typeof(double) })!, "ln" },
         { typeof(MathF).GetRuntimeMethod(nameof(MathF.Log), new[] { typeof(float) })!, "ln" },
         // Note: PostgreSQL has log(x,y) but only for decimal, whereas .NET has it only for double/float
 
         { typeof(Math).GetRuntimeMethod(nameof(Math.Sqrt), new[] { typeof(double) })!, "sqrt" },
         { typeof(MathF).GetRuntimeMethod(nameof(MathF.Sqrt), new[] { typeof(float) })!, "sqrt" },
-
         { typeof(Math).GetRuntimeMethod(nameof(Math.Acos), new[] { typeof(double) })!, "acos" },
         { typeof(MathF).GetRuntimeMethod(nameof(MathF.Acos), new[] { typeof(float) })!, "acos" },
-
         { typeof(Math).GetRuntimeMethod(nameof(Math.Asin), new[] { typeof(double) })!, "asin" },
         { typeof(MathF).GetRuntimeMethod(nameof(MathF.Asin), new[] { typeof(float) })!, "asin" },
-
         { typeof(Math).GetRuntimeMethod(nameof(Math.Atan), new[] { typeof(double) })!, "atan" },
         { typeof(MathF).GetRuntimeMethod(nameof(MathF.Atan), new[] { typeof(float) })!, "atan" },
-
         { typeof(Math).GetRuntimeMethod(nameof(Math.Atan2), new[] { typeof(double), typeof(double) })!, "atan2" },
         { typeof(MathF).GetRuntimeMethod(nameof(MathF.Atan2), new[] { typeof(float), typeof(float) })!, "atan2" },
-
         { typeof(Math).GetRuntimeMethod(nameof(Math.Cos), new[] { typeof(double) })!, "cos" },
         { typeof(MathF).GetRuntimeMethod(nameof(MathF.Cos), new[] { typeof(float) })!, "cos" },
-
         { typeof(Math).GetRuntimeMethod(nameof(Math.Sin), new[] { typeof(double) })!, "sin" },
         { typeof(MathF).GetRuntimeMethod(nameof(MathF.Sin), new[] { typeof(float) })!, "sin" },
-
         { typeof(Math).GetRuntimeMethod(nameof(Math.Tan), new[] { typeof(double) })!, "tan" },
         { typeof(MathF).GetRuntimeMethod(nameof(MathF.Tan), new[] { typeof(float) })!, "tan" },
-
         { typeof(double).GetRuntimeMethod(nameof(double.DegreesToRadians), new[] { typeof(double) })!, "radians" },
         { typeof(float).GetRuntimeMethod(nameof(float.DegreesToRadians), new[] { typeof(float) })!, "radians" },
         { typeof(double).GetRuntimeMethod(nameof(double.RadiansToDegrees), new[] { typeof(double) })!, "degrees" },
@@ -128,15 +114,19 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
 
     private static readonly MethodInfo DoubleIsNanMethodInfo
         = typeof(double).GetRuntimeMethod(nameof(double.IsNaN), new[] { typeof(double) })!;
+
     private static readonly MethodInfo DoubleIsPositiveInfinityMethodInfo
         = typeof(double).GetRuntimeMethod(nameof(double.IsPositiveInfinity), new[] { typeof(double) })!;
+
     private static readonly MethodInfo DoubleIsNegativeInfinityMethodInfo
         = typeof(double).GetRuntimeMethod(nameof(double.IsNegativeInfinity), new[] { typeof(double) })!;
 
     private static readonly MethodInfo FloatIsNanMethodInfo
         = typeof(float).GetRuntimeMethod(nameof(float.IsNaN), new[] { typeof(float) })!;
+
     private static readonly MethodInfo FloatIsPositiveInfinityMethodInfo
         = typeof(float).GetRuntimeMethod(nameof(float.IsPositiveInfinity), new[] { typeof(float) })!;
+
     private static readonly MethodInfo FloatIsNegativeInfinityMethodInfo
         = typeof(float).GetRuntimeMethod(nameof(float.IsNegativeInfinity), new[] { typeof(float) })!;
 
@@ -219,7 +209,7 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
 
             // C# has Round over decimal/double/float only so our argument will be one of those types (compiler puts convert node)
             // In database result will be same type except for float which returns double which we need to cast back to float.
-            var result = (SqlExpression) _sqlExpressionFactory.Function(
+            var result = (SqlExpression)_sqlExpressionFactory.Function(
                 "round",
                 new[] { argument },
                 nullable: true,
@@ -252,7 +242,9 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
 
         if (method == RoundDecimalTwoParams)
         {
-            return _sqlExpressionFactory.Function("round", new[]
+            return _sqlExpressionFactory.Function(
+                "round",
+                new[]
                 {
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]),
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1])

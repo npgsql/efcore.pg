@@ -123,7 +123,6 @@ public class NpgsqlValueGeneratorSelectorTest
         AssertGenerator<BinaryValueGenerator>("Binary", setSequences: true);
     }
 
-
 //        [ConditionalFact]
 //        public void Throws_for_unsupported_combinations()
 //        {
@@ -193,8 +192,10 @@ public class NpgsqlValueGeneratorSelectorTest
     // ReSharper disable once ClassNeverInstantiated.Local
     private class CustomValueGenerator : ValueGenerator<int>
     {
-        public override int Next(EntityEntry entry) => throw new NotImplementedException();
+        public override int Next(EntityEntry entry)
+            => throw new NotImplementedException();
 
-        public override bool GeneratesTemporaryValues => false;
+        public override bool GeneratesTemporaryValues
+            => false;
     }
 }

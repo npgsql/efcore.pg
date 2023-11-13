@@ -8,15 +8,18 @@ public class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlTest.Upd
     // ReSharper disable once UnusedParameter.Local
     public UpdatesNpgsqlTest(UpdatesNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         : base(fixture)
-        => Fixture.TestSqlLoggerFactory.Clear();
+    {
+        Fixture.TestSqlLoggerFactory.Clear();
+    }
 
     public override void Identifiers_are_generated_correctly()
     {
         using var context = CreateContext();
 
-        var entityType = context.Model.FindEntityType(typeof(
-            LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThatIsUsedToVerifyThatTheStoreIdentifierGenerationLengthLimitIsWorkingCorrectly
-        ));
+        var entityType = context.Model.FindEntityType(
+            typeof(
+                LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThatIsUsedToVerifyThatTheStoreIdentifierGenerationLengthLimitIsWorkingCorrectly
+            ));
         Assert.Equal(
             "LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThatI~",
             entityType.GetTableName());

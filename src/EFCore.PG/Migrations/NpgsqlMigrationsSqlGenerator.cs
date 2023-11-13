@@ -27,7 +27,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     private readonly RelationalTypeMapping _stringTypeMapping;
 
     /// <summary>
-    /// The backend version to target.
+    ///     The backend version to target.
     /// </summary>
     private readonly Version _postgresVersion;
 
@@ -162,7 +162,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     {
         if (!terminate && operation.Comment is not null)
         {
-            throw new ArgumentException($"When generating migrations SQL for {nameof(CreateTableOperation)}, can't produce unterminated SQL with comments");
+            throw new ArgumentException(
+                $"When generating migrations SQL for {nameof(CreateTableOperation)}, can't produce unterminated SQL with comments");
         }
 
         operation.Columns.RemoveAll(c => IsSystemColumn(c.Name));
@@ -309,7 +310,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     {
         if (!terminate && operation.Comment is not null)
         {
-            throw new ArgumentException($"When generating migrations SQL for {nameof(AddColumnOperation)}, can't produce unterminated SQL with comments");
+            throw new ArgumentException(
+                $"When generating migrations SQL for {nameof(AddColumnOperation)}, can't produce unterminated SQL with comments");
         }
 
         // Never touch system columns
@@ -426,15 +428,13 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
         string? newSequenceName = null;
 
-        var alterBase = $"ALTER TABLE {DelimitIdentifier(operation.Table, operation.Schema)} " +
-            $"ALTER COLUMN {DelimitIdentifier(operation.Name)} ";
+        var alterBase = $"ALTER TABLE {DelimitIdentifier(operation.Table, operation.Schema)} "
+            + $"ALTER COLUMN {DelimitIdentifier(operation.Name)} ";
 
         // TYPE + COLLATION
-        var type = operation.ColumnType ??
-            GetColumnType(operation.Schema, operation.Table, operation.Name, operation, model)!;
+        var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation, model)!;
         var oldType = IsOldColumnSupported(model)
-            ? operation.OldColumn.ColumnType ??
-            GetColumnType(operation.Schema, operation.Table, operation.Name, operation.OldColumn, model)
+            ? operation.OldColumn.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.OldColumn, model)
             : null;
 
         // If a collation was defined on the column specifically, via the standard EF mechanism, it will be
@@ -607,12 +607,13 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                             case "smallint":
                             case "int2":
                                 newSequenceName = $"{operation.Table}_{operation.Name}_seq";
-                                Generate(new CreateSequenceOperation
-                                {
-                                    Schema = operation.Schema,
-                                    Name = newSequenceName,
-                                    ClrType = operation.ClrType
-                                }, model, builder);
+                                Generate(
+                                    new CreateSequenceOperation
+                                    {
+                                        Schema = operation.Schema,
+                                        Name = newSequenceName,
+                                        ClrType = operation.ClrType
+                                    }, model, builder);
 
                                 builder.Append(alterBase).Append("SET");
                                 DefaultValue(null, $@"nextval('{DelimitIdentifier(newSequenceName, operation.Schema)}')", type, builder);
@@ -620,6 +621,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                                 // Note: we also need to set the sequence ownership, this is done below after the ALTER COLUMN
                                 break;
                         }
+
                         break;
                     default:
                         throw new NotSupportedException($"Don't know how to apply value generation strategy {newStrategy}");
@@ -657,9 +659,10 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             {
                 builder
                     .Append(alterBase)
-                    .Append(newSequenceOptions.MinValue is null
-                        ? "SET NO MINVALUE"
-                        : "SET MINVALUE " + newSequenceOptions.MinValue)
+                    .Append(
+                        newSequenceOptions.MinValue is null
+                            ? "SET NO MINVALUE"
+                            : "SET MINVALUE " + newSequenceOptions.MinValue)
                     .AppendLine(";");
             }
 
@@ -667,9 +670,10 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             {
                 builder
                     .Append(alterBase)
-                    .Append(newSequenceOptions.MaxValue is null
-                        ? "SET NO MAXVALUE"
-                        : "SET MAXVALUE " + newSequenceOptions.MaxValue)
+                    .Append(
+                        newSequenceOptions.MaxValue is null
+                            ? "SET NO MAXVALUE"
+                            : "SET MAXVALUE " + newSequenceOptions.MaxValue)
                     .AppendLine(";");
             }
 
@@ -677,9 +681,10 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             {
                 builder
                     .Append(alterBase)
-                    .Append(newSequenceOptions.IsCyclic
-                        ? "SET CYCLE"
-                        : "SET NO CYCLE")
+                    .Append(
+                        newSequenceOptions.IsCyclic
+                            ? "SET CYCLE"
+                            : "SET NO CYCLE")
                     .AppendLine(";");
             }
 
@@ -696,9 +701,9 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         // DEFAULT.
         // Note that defaults values for value-generated columns (identity, serial) are managed above. This is
         // only for regular columns with user-specified default settings.
-        if (newStrategy is null &&
-            (operation.DefaultValueSql != operation.OldColumn.DefaultValueSql ||
-                !Equals(operation.DefaultValue, operation.OldColumn.DefaultValue)))
+        if (newStrategy is null
+            && (operation.DefaultValueSql != operation.OldColumn.DefaultValueSql
+                || !Equals(operation.DefaultValue, operation.OldColumn.DefaultValue)))
         {
             builder.Append(alterBase);
             if (operation.DefaultValue is not null || operation.DefaultValueSql is not null)
@@ -750,8 +755,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
 
-        if (operation.NewName is not null &&
-            operation.NewName != operation.Name)
+        if (operation.NewName is not null && operation.NewName != operation.Name)
         {
             Rename(operation.Schema, operation.Name, operation.NewName, "INDEX", builder);
         }
@@ -767,16 +771,14 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         Check.NotNull(builder, nameof(builder));
 
         var name = operation.Name;
-        if (operation.NewName is not null &&
-            operation.NewName != operation.Name)
+        if (operation.NewName is not null && operation.NewName != operation.Name)
         {
             Rename(operation.Schema, operation.Name, operation.NewName, "SEQUENCE", builder);
 
             name = operation.NewName;
         }
 
-        if (operation.NewSchema is not null &&
-            operation.NewSchema != operation.Schema)
+        if (operation.NewSchema is not null && operation.NewSchema != operation.Schema)
         {
             Transfer(operation.NewSchema, operation.Schema, name, "SEQUENCE", builder);
         }
@@ -827,16 +829,14 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         Check.NotNull(builder, nameof(builder));
 
         var name = operation.Name;
-        if (operation.NewName is not null &&
-            operation.NewName != operation.Name)
+        if (operation.NewName is not null && operation.NewName != operation.Name)
         {
             Rename(operation.Schema, operation.Name, operation.NewName, "TABLE", builder);
 
             name = operation.NewName;
         }
 
-        if (operation.NewSchema is not null &&
-            operation.NewSchema != operation.Schema)
+        if (operation.NewSchema is not null && operation.NewSchema != operation.Schema)
         {
             Transfer(operation.NewSchema, operation.Schema, name, "TABLE", builder);
         }
@@ -904,8 +904,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     /// <inheritdoc />
     protected override void IndexOptions(CreateIndexOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
-        if (_postgresVersion.AtLeast(11) &&
-            operation[NpgsqlAnnotationNames.IndexInclude] is string[] { Length: > 0 } includeColumns)
+        if (_postgresVersion.AtLeast(11) && operation[NpgsqlAnnotationNames.IndexInclude] is string[] { Length: > 0 } includeColumns)
         {
             builder
                 .Append(" INCLUDE (")
@@ -1020,7 +1019,6 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 .AppendLine($"DROP DATABASE {dbName};");
         }
 
-
         EndStatement(builder, suppressTransaction: true);
     }
 
@@ -1086,7 +1084,6 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         builder.AppendLine(";");
     }
 
-
     #region Collation management
 
     /// <inheritdoc />
@@ -1105,15 +1102,16 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
 
         foreach (var (newCollation, oldCollation) in operation.GetPostgresCollations()
-                     .Join(operation.GetOldPostgresCollations(),
+                     .Join(
+                         operation.GetOldPostgresCollations(),
                          e => new { e.Name, e.Schema },
                          e => new { e.Name, e.Schema },
                          (ne, oe) => (New: ne, Old: oe)))
         {
-            if (newCollation.LcCollate != oldCollation.LcCollate ||
-                newCollation.LcCtype != oldCollation.LcCtype ||
-                newCollation.Provider != oldCollation.Provider ||
-                newCollation.IsDeterministic != oldCollation.IsDeterministic)
+            if (newCollation.LcCollate != oldCollation.LcCollate
+                || newCollation.LcCtype != oldCollation.LcCtype
+                || newCollation.Provider != oldCollation.Provider
+                || newCollation.IsDeterministic != oldCollation.IsDeterministic)
             {
                 throw new NotSupportedException("Altering an existing collation is not supported.");
             }
@@ -1203,7 +1201,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
 
         foreach (var (newEnum, oldEnum) in operation.GetPostgresEnums()
-                     .Join(operation.GetOldPostgresEnums(),
+                     .Join(
+                         operation.GetOldPostgresEnums(),
                          e => new { e.Name, e.Schema },
                          e => new { e.Name, e.Schema },
                          (ne, oe) => (New: ne, Old: oe)))
@@ -1217,9 +1216,9 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             if (oldLabels.Except(newLabels).FirstOrDefault() is { } removedLabel)
             {
                 throw new NotSupportedException(
-                    $"Can't remove enum label '{removedLabel}' from enum type '{newEnum}'. " +
-                    "Renaming a label is possible via a raw SQL migration (see " +
-                    "https://www.postgresql.org/docs/current/sql-altertype.html)");
+                    $"Can't remove enum label '{removedLabel}' from enum type '{newEnum}'. "
+                    + "Renaming a label is possible via a raw SQL migration (see "
+                    + "https://www.postgresql.org/docs/current/sql-altertype.html)");
             }
 
             for (var (newPos, oldPos) = (0, 0); newPos < newLabels.Count; newPos++)
@@ -1330,8 +1329,9 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             GenerateDropRange(rangeTypeToDrop, model, builder);
         }
 
-        if (operation.GetPostgresRanges().FirstOrDefault(nr =>
-                operation.GetOldPostgresRanges().Any(or => or.Name == nr.Name)
+        if (operation.GetPostgresRanges().FirstOrDefault(
+                nr =>
+                    operation.GetOldPostgresRanges().Any(or => or.Name == nr.Name)
             ) is { } rangeTypeToAlter)
         {
             throw new NotSupportedException($"Altering range type ${rangeTypeToAlter} isn't supported.");
@@ -1441,8 +1441,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     }
 
     /// <summary>
-    /// Builds commands for the given <see cref="InsertDataOperation" /> by making calls on the given
-    /// <see cref="MigrationCommandListBuilder" />, and then terminates the final command.
+    ///     Builds commands for the given <see cref="InsertDataOperation" /> by making calls on the given
+    ///     <see cref="MigrationCommandListBuilder" />, and then terminates the final command.
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="model"> The target model which may be <c>null</c> if the operations exist without a model. </param>
@@ -1460,8 +1460,9 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         var sqlBuilder = new StringBuilder();
         foreach (var modificationCommand in GenerateModificationCommands(operation, model))
         {
-            var overridingSystemValue = modificationCommand.ColumnModifications.Any(m =>
-                m.Property?.GetValueGenerationStrategy() == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
+            var overridingSystemValue = modificationCommand.ColumnModifications.Any(
+                m =>
+                    m.Property?.GetValueGenerationStrategy() == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
             ((NpgsqlUpdateSqlGenerator)Dependencies.UpdateSqlGenerator).AppendInsertOperation(
                 sqlBuilder,
                 modificationCommand,
@@ -1601,8 +1602,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     }
 
     /// <summary>
-    /// Checks for a <see cref="NpgsqlAnnotationNames.TsVectorConfig"/> annotation on the given column, and if found, assigns
-    /// the appropriate SQL to <see cref="ColumnOperation.ComputedColumnSql"/>.
+    ///     Checks for a <see cref="NpgsqlAnnotationNames.TsVectorConfig" /> annotation on the given column, and if found, assigns
+    ///     the appropriate SQL to <see cref="ColumnOperation.ComputedColumnSql" />.
     /// </summary>
     protected virtual void ApplyTsVectorColumnSql(ColumnOperation column, IModel? model, string name, string? schema, string table)
     {
@@ -1612,8 +1613,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             if (tsVectorIncludedColumns is null)
             {
                 throw new InvalidOperationException(
-                    $"{nameof(NpgsqlAnnotationNames.TsVectorConfig)} is present in a migration but " +
-                    $"{nameof(NpgsqlAnnotationNames.TsVectorProperties)} is absent or empty");
+                    $"{nameof(NpgsqlAnnotationNames.TsVectorConfig)} is present in a migration but "
+                    + $"{nameof(NpgsqlAnnotationNames.TsVectorProperties)} is absent or empty");
             }
 
             column.ComputedColumnSql = ColumnsToTsVector(name, tsVectorIncludedColumns, tsVectorConfig, model, schema, table);
@@ -1629,15 +1630,16 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         ColumnOperation operation,
         MigrationCommandListBuilder builder)
     {
-        if (operation[NpgsqlAnnotationNames.ValueGenerationStrategy] is not NpgsqlValueGenerationStrategy strategy ||
-            !strategy.IsIdentity())
+        if (operation[NpgsqlAnnotationNames.ValueGenerationStrategy] is not NpgsqlValueGenerationStrategy strategy
+            || !strategy.IsIdentity())
         {
             return;
         }
 
-        builder.Append(strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
-            ? " GENERATED BY DEFAULT AS IDENTITY"
-            : " GENERATED ALWAYS AS IDENTITY");
+        builder.Append(
+            strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
+                ? " GENERATED BY DEFAULT AS IDENTITY"
+                : " GENERATED ALWAYS AS IDENTITY");
 
         // Handle sequence options for the identity column
         if (operation[NpgsqlAnnotationNames.IdentityOptions] is string identitySequenceOptions)
@@ -1774,8 +1776,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         if (operation.IsStored != true)
         {
             throw new NotSupportedException(
-                "Generated columns currently must be stored, specify 'stored: true' in " +
-                $"'{nameof(RelationalPropertyBuilderExtensions.HasComputedColumnSql)}' in your context's OnModelCreating.");
+                "Generated columns currently must be stored, specify 'stored: true' in "
+                + $"'{nameof(RelationalPropertyBuilderExtensions.HasComputedColumnSql)}' in your context's OnModelCreating.");
         }
 
         builder
@@ -1808,13 +1810,14 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     {
         if (annotatable.FindAnnotation(NpgsqlAnnotationNames.ValueGeneratedOnAdd) is not null)
         {
-            throw new NotSupportedException("The Npgsql:ValueGeneratedOnAdd annotation has been found in your migrations, but is no longer supported. Please replace it with '.Annotation(\"Npgsql:ValueGenerationStrategy\", NpgsqlValueGenerationStrategy.SerialColumn)' where you want PostgreSQL serial (autoincrement) columns, and remove it in all other cases.");
+            throw new NotSupportedException(
+                "The Npgsql:ValueGeneratedOnAdd annotation has been found in your migrations, but is no longer supported. Please replace it with '.Annotation(\"Npgsql:ValueGenerationStrategy\", NpgsqlValueGenerationStrategy.SerialColumn)' where you want PostgreSQL serial (autoincrement) columns, and remove it in all other cases.");
         }
     }
 #pragma warning restore 618
 
     /// <summary>
-    /// Renames a database object such as a table, index, or sequence.
+    ///     Renames a database object such as a table, index, or sequence.
     /// </summary>
     /// <param name="schema">The current schema of the object to rename.</param>
     /// <param name="name">The current name of the object to rename.</param>
@@ -1844,7 +1847,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     }
 
     /// <summary>
-    /// Transfers a database object such as a table, index, or sequence between schemas.
+    ///     Transfers a database object such as a table, index, or sequence between schemas.
     /// </summary>
     /// <param name="newSchema">The new schema.</param>
     /// <param name="schema">The current schema.</param>
@@ -1921,12 +1924,12 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         => name == "oid" && _postgresVersion.IsUnder(12) || SystemColumnNames.Contains(name);
 
     /// <summary>
-    /// Tables in PostgreSQL implicitly have a set of system columns, which are always there.
-    /// We want to allow users to access these columns (i.e. xmin for optimistic concurrency) but
-    /// they should never generate migration operations.
+    ///     Tables in PostgreSQL implicitly have a set of system columns, which are always there.
+    ///     We want to allow users to access these columns (i.e. xmin for optimistic concurrency) but
+    ///     they should never generate migration operations.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/ddl-system-columns.html
+    ///     https://www.postgresql.org/docs/current/static/ddl-system-columns.html
     /// </remarks>
     private static readonly string[] SystemColumnNames = { "tableoid", "xmin", "cmin", "xmax", "cmax", "ctid" };
 
@@ -1979,9 +1982,9 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         var oldStorageParameters = GetStorageParameters(oldAnnotatable);
         var newStorageParameters = GetStorageParameters(newAnnotatable);
 
-        var newOrChanged = newStorageParameters.Where(p =>
-                !oldStorageParameters.ContainsKey(p.Key) ||
-                oldStorageParameters[p.Key] != p.Value)
+        var newOrChanged = newStorageParameters.Where(
+                p =>
+                    !oldStorageParameters.ContainsKey(p.Key) || oldStorageParameters[p.Key] != p.Value)
             .ToList();
 
         if (newOrChanged.Count > 0)
@@ -2020,11 +2023,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
     #region Helpers
 
-    private string DelimitIdentifier(string identifier) =>
-        Dependencies.SqlGenerationHelper.DelimitIdentifier(identifier);
+    private string DelimitIdentifier(string identifier)
+        => Dependencies.SqlGenerationHelper.DelimitIdentifier(identifier);
 
-    private string DelimitIdentifier(string name, string? schema) =>
-        Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema);
+    private string DelimitIdentifier(string name, string? schema)
+        => Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema);
 
     private string IndexColumnList(IndexColumn[] columns, string? method)
     {
@@ -2071,9 +2074,14 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
                     switch (column.NullSortOrder)
                     {
-                        case NullSortOrder.NullsFirst: builder.Append("FIRST"); break;
-                        case NullSortOrder.NullsLast: builder.Append("LAST"); break;
-                        default: throw new ArgumentOutOfRangeException();
+                        case NullSortOrder.NullsFirst:
+                            builder.Append("FIRST");
+                            break;
+                        case NullSortOrder.NullsLast:
+                            builder.Append("LAST");
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
                 }
             }
@@ -2119,17 +2127,22 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 builder.Append(" || ");
             }
 
-            builder.Append(columnGroup.Key switch
-            {
-                "text" => $"to_tsvector({tsVectorConfigLiteral}, {string.Join(" || ' ' || ", columnGroup.Select(TextColumn))})",
-                "json" => string.Join(" || ", columnGroup.Select(c =>
-                    $@"json_to_tsvector({tsVectorConfigLiteral}, {JsonColumn(c)}, '""all""')")),
-                "jsonb" => string.Join(" || ", columnGroup.Select(c =>
-                    $@"jsonb_to_tsvector({tsVectorConfigLiteral}, {JsonColumn(c)}, '""all""')")),
-                "null" => throw new InvalidOperationException(
-                    $"Column or index {columnOrIndexName} refers to unknown column in tsvector definition"),
-                _ => throw new ArgumentOutOfRangeException()
-            });
+            builder.Append(
+                columnGroup.Key switch
+                {
+                    "text" => $"to_tsvector({tsVectorConfigLiteral}, {string.Join(" || ' ' || ", columnGroup.Select(TextColumn))})",
+                    "json" => string.Join(
+                        " || ", columnGroup.Select(
+                            c =>
+                                $@"json_to_tsvector({tsVectorConfigLiteral}, {JsonColumn(c)}, '""all""')")),
+                    "jsonb" => string.Join(
+                        " || ", columnGroup.Select(
+                            c =>
+                                $@"jsonb_to_tsvector({tsVectorConfigLiteral}, {JsonColumn(c)}, '""all""')")),
+                    "null" => throw new InvalidOperationException(
+                        $"Column or index {columnOrIndexName} refers to unknown column in tsvector definition"),
+                    _ => throw new ArgumentOutOfRangeException()
+                });
         }
 
         return builder.ToString();

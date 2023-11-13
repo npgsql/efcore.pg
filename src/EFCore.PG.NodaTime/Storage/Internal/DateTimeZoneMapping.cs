@@ -1,4 +1,5 @@
 // ReSharper disable once CheckNamespace
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 /// <summary>

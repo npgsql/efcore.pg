@@ -19,7 +19,9 @@ public class NpgsqlTimeSpanMemberTranslator : IMemberTranslator
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlTimeSpanMemberTranslator(ISqlExpressionFactory sqlExpressionFactory)
-        => _sqlExpressionFactory = sqlExpressionFactory;
+    {
+        _sqlExpressionFactory = sqlExpressionFactory;
+    }
 
     private static readonly bool[] FalseTrueArray = { false, true };
 
@@ -29,7 +31,8 @@ public class NpgsqlTimeSpanMemberTranslator : IMemberTranslator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual SqlExpression? Translate(SqlExpression? instance,
+    public virtual SqlExpression? Translate(
+        SqlExpression? instance,
         MemberInfo member,
         Type returnType,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -72,11 +75,8 @@ public class NpgsqlTimeSpanMemberTranslator : IMemberTranslator
                 typeof(int));
 
         SqlFunctionExpression DatePart(string part, SqlExpression value)
-            => _sqlExpressionFactory.Function("date_part", new[]
-                {
-                    _sqlExpressionFactory.Constant(part),
-                    value
-                },
+            => _sqlExpressionFactory.Function(
+                "date_part", new[] { _sqlExpressionFactory.Constant(part), value },
                 nullable: true,
                 argumentsPropagateNullability: FalseTrueArray,
                 returnType);

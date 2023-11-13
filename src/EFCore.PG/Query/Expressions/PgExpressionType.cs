@@ -1,7 +1,7 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 
 /// <summary>
-/// PostgreSQL-specific expression node types.
+///     PostgreSQL-specific expression node types.
 /// </summary>
 public enum PgExpressionType
 {
@@ -10,23 +10,23 @@ public enum PgExpressionType
     /// <summary>
     ///     Represents a PostgreSQL contains operator.
     /// </summary>
-    Contains,                     // >> (inet/cidr), @>
+    Contains, // >> (inet/cidr), @>
 
     /// <summary>
     ///     Represents a PostgreSQL contained-by operator.
     /// </summary>
-    ContainedBy,                  // << (inet/cidr), <@
+    ContainedBy, // << (inet/cidr), <@
 
     /// <summary>
     ///     Represents a PostgreSQL overlap operator.
     /// </summary>
-    Overlaps,                     // &&
+    Overlaps, // &&
 
     /// <summary>
     ///     Represents a PostgreSQL operator for finding the distance between two things (e.g. 2D distance between two geometries,
     ///     between timestamps...)
     /// </summary>
-    Distance,                     // <->
+    Distance, // <->
 
     #endregion General operators
 
@@ -35,12 +35,12 @@ public enum PgExpressionType
     /// <summary>
     ///     Represents a PostgreSQL network contained-by-or-equal operator.
     /// </summary>
-    NetworkContainedByOrEqual,    // <<=
+    NetworkContainedByOrEqual, // <<=
 
     /// <summary>
     ///     Represents a PostgreSQL network contains-or-equal operator.
     /// </summary>
-    NetworkContainsOrEqual,       // >>=
+    NetworkContainsOrEqual, // >>=
 
     /// <summary>
     ///     Represents a PostgreSQL network contains-or-contained-by operator.
@@ -54,42 +54,42 @@ public enum PgExpressionType
     /// <summary>
     ///     Represents a PostgreSQL operator for checking if a range is strictly to the left of another range.
     /// </summary>
-    RangeIsStrictlyLeftOf,        // <<
+    RangeIsStrictlyLeftOf, // <<
 
     /// <summary>
     ///     Represents a PostgreSQL operator for checking if a range is strictly to the right of another range.
     /// </summary>
-    RangeIsStrictlyRightOf,       // >>
+    RangeIsStrictlyRightOf, // >>
 
     /// <summary>
     ///     Represents a PostgreSQL operator for checking if a range does not extend to the right of another range.
     /// </summary>
-    RangeDoesNotExtendRightOf,    // &<
+    RangeDoesNotExtendRightOf, // &<
 
     /// <summary>
     ///     Represents a PostgreSQL operator for checking if a range does not extend to the left of another range.
     /// </summary>
-    RangeDoesNotExtendLeftOf,     // &>
+    RangeDoesNotExtendLeftOf, // &>
 
     /// <summary>
     ///     Represents a PostgreSQL operator for checking if a range is adjacent to another range.
     /// </summary>
-    RangeIsAdjacentTo,            // -|-
+    RangeIsAdjacentTo, // -|-
 
     /// <summary>
     ///     Represents a PostgreSQL operator for performing a union between two ranges.
     /// </summary>
-    RangeUnion,                   // +
+    RangeUnion, // +
 
     /// <summary>
     ///     Represents a PostgreSQL operator for performing an intersection between two ranges.
     /// </summary>
-    RangeIntersect,               // *
+    RangeIntersect, // *
 
     /// <summary>
     ///     Represents a PostgreSQL operator for performing an except operation between two ranges.
     /// </summary>
-    RangeExcept,                  // -
+    RangeExcept, // -
 
     #endregion Range
 
@@ -98,17 +98,17 @@ public enum PgExpressionType
     /// <summary>
     ///     Represents a PostgreSQL operator for performing a full-text search match.
     /// </summary>
-    TextSearchMatch,              // @@
+    TextSearchMatch, // @@
 
     /// <summary>
     ///     Represents a PostgreSQL operator for logical AND within a full-text search match.
     /// </summary>
-    TextSearchAnd,                // &&
+    TextSearchAnd, // &&
 
     /// <summary>
     ///     Represents a PostgreSQL operator for logical OR within a full-text search match.
     /// </summary>
-    TextSearchOr,                 // ||
+    TextSearchOr, // ||
 
     #endregion Text search
 
@@ -117,17 +117,17 @@ public enum PgExpressionType
     /// <summary>
     ///     Represents a PostgreSQL operator for checking whether a key exists in a JSON document.
     /// </summary>
-    JsonExists,                   // ?
+    JsonExists, // ?
 
     /// <summary>
     ///     Represents a PostgreSQL operator for checking whether any of multiple keys exists in a JSON document.
     /// </summary>
-    JsonExistsAny,                // ?@>
+    JsonExistsAny, // ?@>
 
     /// <summary>
     ///     Represents a PostgreSQL operator for checking whether all the given keys exist in a JSON document.
     /// </summary>
-    JsonExistsAll,                // ?<@
+    JsonExistsAll, // ?<@
 
     #endregion JSON
 
@@ -136,27 +136,27 @@ public enum PgExpressionType
     /// <summary>
     ///     Represents a PostgreSQL operator for matching in an ltree type.
     /// </summary>
-    LTreeMatches,                 // ~ or @
+    LTreeMatches, // ~ or @
 
     /// <summary>
     ///     Represents a PostgreSQL operator for matching in an ltree type.
     /// </summary>
-    LTreeMatchesAny,              // ?
+    LTreeMatchesAny, // ?
 
     /// <summary>
     ///     Represents a PostgreSQL operator for finding the first ancestor in an ltree type.
     /// </summary>
-    LTreeFirstAncestor,           // ?@>
+    LTreeFirstAncestor, // ?@>
 
     /// <summary>
     ///     Represents a PostgreSQL operator for finding the first descendent in an ltree type.
     /// </summary>
-    LTreeFirstDescendent,         // ?<@
+    LTreeFirstDescendent, // ?<@
 
     /// <summary>
     ///     Represents a PostgreSQL operator for finding the first match in an ltree type.
     /// </summary>
-    LTreeFirstMatches,            // ?~ or ?@
+    LTreeFirstMatches, // ?~ or ?@
 
     #endregion LTree
 }

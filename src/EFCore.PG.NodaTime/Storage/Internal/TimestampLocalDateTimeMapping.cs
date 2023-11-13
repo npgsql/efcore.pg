@@ -28,7 +28,10 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public TimestampLocalDateTimeMapping() : base("timestamp without time zone", typeof(LocalDateTime), NpgsqlDbType.Timestamp) {}
+    public TimestampLocalDateTimeMapping()
+        : base("timestamp without time zone", typeof(LocalDateTime), NpgsqlDbType.Timestamp)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -37,7 +40,9 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected TimestampLocalDateTimeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Timestamp) {}
+        : base(parameters, NpgsqlDbType.Timestamp)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -111,7 +116,8 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override Expression GenerateCodeLiteral(object value) => GenerateCodeLiteral((LocalDateTime)value);
+    public override Expression GenerateCodeLiteral(object value)
+        => GenerateCodeLiteral((LocalDateTime)value);
 
     internal static Expression GenerateCodeLiteral(LocalDateTime dateTime)
     {
@@ -120,7 +126,8 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
             return ConstantNew(ConstructorWithMinutes, dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute);
         }
 
-        var newExpr = ConstantNew(ConstructorWithSeconds, dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute, dateTime.Second);
+        var newExpr = ConstantNew(
+            ConstructorWithSeconds, dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute, dateTime.Second);
 
         return dateTime.NanosecondOfSecond == 0
             ? newExpr

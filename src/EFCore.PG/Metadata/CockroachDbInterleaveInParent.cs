@@ -21,7 +21,8 @@ public class CockroachDbInterleaveInParent
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual Annotatable Annotatable => (Annotatable)_annotatable;
+    public virtual Annotatable Annotatable
+        => (Annotatable)_annotatable;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -30,7 +31,9 @@ public class CockroachDbInterleaveInParent
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public CockroachDbInterleaveInParent(IReadOnlyAnnotatable annotatable)
-        => _annotatable = annotatable;
+    {
+        _annotatable = annotatable;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -43,7 +46,7 @@ public class CockroachDbInterleaveInParent
         get => GetData().ParentTableSchema;
         set
         {
-            (var _, var parentTableName, var interleavePrefix) = GetData();
+            var (_, parentTableName, interleavePrefix) = GetData();
             SetData(value, parentTableName, interleavePrefix);
         }
     }
@@ -59,7 +62,7 @@ public class CockroachDbInterleaveInParent
         get => GetData().ParentTableName;
         set
         {
-            (var parentTableSchema, var _, var interleavePrefix) = GetData();
+            var (parentTableSchema, _, interleavePrefix) = GetData();
             SetData(parentTableSchema, value, interleavePrefix);
         }
     }
@@ -75,7 +78,7 @@ public class CockroachDbInterleaveInParent
         get => GetData().InterleavePrefix;
         set
         {
-            (var parentTableSchema, var parentTableName, var _) = GetData();
+            var (parentTableSchema, parentTableName, _) = GetData();
             SetData(parentTableSchema, parentTableName, value);
         }
     }
@@ -110,6 +113,7 @@ public class CockroachDbInterleaveInParent
                 }
             }
         }
+
         return builder.ToString();
     }
 

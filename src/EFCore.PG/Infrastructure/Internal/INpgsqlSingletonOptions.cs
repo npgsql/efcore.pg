@@ -3,7 +3,7 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 /// <summary>
-///     Represents options for Npgsql that can only be set at the <see cref="IServiceProvider"/> singleton level.
+///     Represents options for Npgsql that can only be set at the <see cref="IServiceProvider" /> singleton level.
 /// </summary>
 public interface INpgsqlSingletonOptions : ISingletonOptions
 {

@@ -17,7 +17,10 @@ public class NpgsqlPointTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlPointTypeMapping() : base("point", typeof(NpgsqlPoint), NpgsqlDbType.Point) {}
+    public NpgsqlPointTypeMapping()
+        : base("point", typeof(NpgsqlPoint), NpgsqlDbType.Point)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -26,7 +29,9 @@ public class NpgsqlPointTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlPointTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Point) {}
+        : base(parameters, NpgsqlDbType.Point)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -79,7 +84,10 @@ public class NpgsqlLineTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlLineTypeMapping() : base("line", typeof(NpgsqlLine), NpgsqlDbType.Line) {}
+    public NpgsqlLineTypeMapping()
+        : base("line", typeof(NpgsqlLine), NpgsqlDbType.Line)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -88,7 +96,9 @@ public class NpgsqlLineTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlLineTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Line) {}
+        : base(parameters, NpgsqlDbType.Line)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -146,7 +156,10 @@ public class NpgsqlLineSegmentTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlLineSegmentTypeMapping() : base("lseg", typeof(NpgsqlLSeg), NpgsqlDbType.LSeg) {}
+    public NpgsqlLineSegmentTypeMapping()
+        : base("lseg", typeof(NpgsqlLSeg), NpgsqlDbType.LSeg)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -155,7 +168,9 @@ public class NpgsqlLineSegmentTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlLineSegmentTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.LSeg) {}
+        : base(parameters, NpgsqlDbType.LSeg)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -211,7 +226,10 @@ public class NpgsqlBoxTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlBoxTypeMapping() : base("box", typeof(NpgsqlBox), NpgsqlDbType.Box) {}
+    public NpgsqlBoxTypeMapping()
+        : base("box", typeof(NpgsqlBox), NpgsqlDbType.Box)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -220,7 +238,9 @@ public class NpgsqlBoxTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlBoxTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Box) {}
+        : base(parameters, NpgsqlDbType.Box)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -276,7 +296,10 @@ public class NpgsqlPathTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlPathTypeMapping() : base("path", typeof(NpgsqlPath), NpgsqlDbType.Path) {}
+    public NpgsqlPathTypeMapping()
+        : base("path", typeof(NpgsqlPath), NpgsqlDbType.Path)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -285,7 +308,9 @@ public class NpgsqlPathTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlPathTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Path) {}
+        : base(parameters, NpgsqlDbType.Path)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -320,6 +345,7 @@ public class NpgsqlPathTypeMapping : NpgsqlTypeMapping
                 sb.Append(',');
             }
         }
+
         sb.Append(path.Open ? ']' : ')');
         sb.Append('\'');
         return sb.ToString();
@@ -336,10 +362,12 @@ public class NpgsqlPathTypeMapping : NpgsqlTypeMapping
         var path = (NpgsqlPath)value;
         return Expression.New(
             Constructor,
-            Expression.NewArrayInit(typeof(NpgsqlPoint),
-                path.Select(p => Expression.New(
-                    PointConstructor,
-                    Expression.Constant(p.X), Expression.Constant(p.Y)))),
+            Expression.NewArrayInit(
+                typeof(NpgsqlPoint),
+                path.Select(
+                    p => Expression.New(
+                        PointConstructor,
+                        Expression.Constant(p.X), Expression.Constant(p.Y)))),
             Expression.Constant(path.Open));
     }
 
@@ -364,7 +392,10 @@ public class NpgsqlPolygonTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlPolygonTypeMapping() : base("polygon", typeof(NpgsqlPolygon), NpgsqlDbType.Polygon) {}
+    public NpgsqlPolygonTypeMapping()
+        : base("polygon", typeof(NpgsqlPolygon), NpgsqlDbType.Polygon)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -373,7 +404,9 @@ public class NpgsqlPolygonTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlPolygonTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Polygon) {}
+        : base(parameters, NpgsqlDbType.Polygon)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -407,6 +440,7 @@ public class NpgsqlPolygonTypeMapping : NpgsqlTypeMapping
                 sb.Append(',');
             }
         }
+
         sb.Append(")'");
         return sb.ToString();
     }
@@ -422,10 +456,12 @@ public class NpgsqlPolygonTypeMapping : NpgsqlTypeMapping
         var polygon = (NpgsqlPolygon)value;
         return Expression.New(
             Constructor,
-            Expression.NewArrayInit(typeof(NpgsqlPoint),
-                polygon.Select(p => Expression.New(
-                    PointConstructor,
-                    Expression.Constant(p.X), Expression.Constant(p.Y)))));
+            Expression.NewArrayInit(
+                typeof(NpgsqlPoint),
+                polygon.Select(
+                    p => Expression.New(
+                        PointConstructor,
+                        Expression.Constant(p.X), Expression.Constant(p.Y)))));
     }
 
     private static readonly ConstructorInfo Constructor =
@@ -449,7 +485,10 @@ public class NpgsqlCircleTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlCircleTypeMapping() : base("circle", typeof(NpgsqlCircle), NpgsqlDbType.Circle) {}
+    public NpgsqlCircleTypeMapping()
+        : base("circle", typeof(NpgsqlCircle), NpgsqlDbType.Circle)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -458,7 +497,9 @@ public class NpgsqlCircleTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlCircleTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Circle) {}
+        : base(parameters, NpgsqlDbType.Circle)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

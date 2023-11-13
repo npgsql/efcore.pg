@@ -9,7 +9,8 @@ public class TwoDatabasesNpgsqlTest : TwoDatabasesTestBase, IClassFixture<Npgsql
     {
     }
 
-    protected new NpgsqlFixture Fixture => (NpgsqlFixture)base.Fixture;
+    protected new NpgsqlFixture Fixture
+        => (NpgsqlFixture)base.Fixture;
 
     protected override DbContextOptionsBuilder CreateTestOptions(
         DbContextOptionsBuilder optionsBuilder,

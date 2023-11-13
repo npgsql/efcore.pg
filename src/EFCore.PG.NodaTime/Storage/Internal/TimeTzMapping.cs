@@ -23,7 +23,8 @@ public class TimeTzMapping : NpgsqlTypeMapping
         typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
 
     private static readonly MethodInfo LocalTimeFromHourMinuteSecondNanosecondMethod =
-        typeof(LocalTime).GetMethod(nameof(LocalTime.FromHourMinuteSecondNanosecond),
+        typeof(LocalTime).GetMethod(
+            nameof(LocalTime.FromHourMinuteSecondNanosecond),
             new[] { typeof(int), typeof(int), typeof(int), typeof(long) })!;
 
     private static readonly MethodInfo OffsetFromHoursMethod =
@@ -41,7 +42,10 @@ public class TimeTzMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public TimeTzMapping() : base("time with time zone", typeof(OffsetTime), NpgsqlDbType.TimeTz) {}
+    public TimeTzMapping()
+        : base("time with time zone", typeof(OffsetTime), NpgsqlDbType.TimeTz)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -50,7 +54,9 @@ public class TimeTzMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected TimeTzMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.TimeTz) {}
+        : base(parameters, NpgsqlDbType.TimeTz)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -114,7 +120,9 @@ public class TimeTzMapping : NpgsqlTypeMapping
         Expression newLocalTimeExpr;
         if (offsetTime.NanosecondOfSecond != 0)
         {
-            newLocalTimeExpr = ConstantCall(LocalTimeFromHourMinuteSecondNanosecondMethod, offsetTime.Hour, offsetTime.Minute, offsetTime.Second, (long)offsetTime.NanosecondOfSecond);
+            newLocalTimeExpr = ConstantCall(
+                LocalTimeFromHourMinuteSecondNanosecondMethod, offsetTime.Hour, offsetTime.Minute, offsetTime.Second,
+                (long)offsetTime.NanosecondOfSecond);
         }
         else if (offsetTime.Second != 0)
         {
@@ -125,7 +133,8 @@ public class TimeTzMapping : NpgsqlTypeMapping
             newLocalTimeExpr = ConstantNew(LocalTimeConstructorWithMinutes, offsetTime.Hour, offsetTime.Minute);
         }
 
-        return Expression.New(OffsetTimeConstructor,
+        return Expression.New(
+            OffsetTimeConstructor,
             newLocalTimeExpr,
             offsetSeconds % 3600 == 0
                 ? ConstantCall(OffsetFromHoursMethod, offsetSeconds / 3600)

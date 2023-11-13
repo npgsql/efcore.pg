@@ -14,8 +14,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
 {
     private static readonly MemberInfo RootElement = typeof(JsonDocument).GetProperty(nameof(JsonDocument.RootElement))!;
-    private static readonly MethodInfo GetProperty = typeof(JsonElement).GetRuntimeMethod(nameof(JsonElement.GetProperty), new[] { typeof(string) })!;
-    private static readonly MethodInfo GetArrayLength = typeof(JsonElement).GetRuntimeMethod(nameof(JsonElement.GetArrayLength), Type.EmptyTypes)!;
+
+    private static readonly MethodInfo GetProperty = typeof(JsonElement).GetRuntimeMethod(
+        nameof(JsonElement.GetProperty), new[] { typeof(string) })!;
+
+    private static readonly MethodInfo GetArrayLength = typeof(JsonElement).GetRuntimeMethod(
+        nameof(JsonElement.GetArrayLength), Type.EmptyTypes)!;
 
     private static readonly MethodInfo ArrayIndexer = typeof(JsonElement).GetProperties()
         .Single(p => p.GetIndexParameters().Length == 1 && p.GetIndexParameters()[0].ParameterType == typeof(int))
@@ -64,7 +68,8 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual SqlExpression? Translate(SqlExpression? instance,
+    public virtual SqlExpression? Translate(
+        SqlExpression? instance,
         MemberInfo member,
         Type returnType,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -74,8 +79,7 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
             return null;
         }
 
-        if (member == RootElement &&
-            instance is ColumnExpression { TypeMapping: NpgsqlJsonTypeMapping } column)
+        if (member == RootElement && instance is ColumnExpression { TypeMapping: NpgsqlJsonTypeMapping } column)
         {
             // Simply get rid of the RootElement member access
             return column;
@@ -96,8 +100,7 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (method.DeclaringType != typeof(JsonElement) ||
-            instance?.TypeMapping is not NpgsqlJsonTypeMapping mapping)
+        if (method.DeclaringType != typeof(JsonElement) || instance?.TypeMapping is not NpgsqlJsonTypeMapping mapping)
         {
             return null;
         }
@@ -118,9 +121,7 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
                 : null;
         }
 
-        if (GetMethods.Contains(method.Name) &&
-            arguments.Count == 0 &&
-            instance is PgJsonTraversalExpression traversal)
+        if (GetMethods.Contains(method.Name) && arguments.Count == 0 && instance is PgJsonTraversalExpression traversal)
         {
             var traversalToText = new PgJsonTraversalExpression(
                 traversal.Expression,

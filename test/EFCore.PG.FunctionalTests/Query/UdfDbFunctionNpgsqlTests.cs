@@ -20,7 +20,7 @@ public class UdfDbFunctionNpgsqlTests : UdfDbFunctionTestBase<UdfDbFunctionNpgsq
         base.Scalar_Function_Extension_Method_Static();
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE "IsDate"(c."FirstName") = FALSE
@@ -33,7 +33,7 @@ WHERE "IsDate"(c."FirstName") = FALSE
         base.Scalar_Function_With_Translator_Translates_Static();
 
         AssertSql(
-"""
+            """
 @__customerId_0='3'
 
 SELECT length(c."LastName")
@@ -53,7 +53,7 @@ LIMIT 2
         base.Scalar_Function_Constant_Parameter_Static();
 
         AssertSql(
-"""
+            """
 @__customerId_0='1'
 
 SELECT "CustomerOrderCount"(@__customerId_0)
@@ -67,7 +67,7 @@ FROM "Customers" AS c
         base.Scalar_Function_Anonymous_Type_Select_Correlated_Static();
 
         AssertSql(
-"""
+            """
 SELECT c."LastName", "CustomerOrderCount"(c."Id") AS "OrderCount"
 FROM "Customers" AS c
 WHERE c."Id" = 1
@@ -81,7 +81,7 @@ LIMIT 2
         base.Scalar_Function_Anonymous_Type_Select_Not_Correlated_Static();
 
         AssertSql(
-"""
+            """
 SELECT c."LastName", "CustomerOrderCount"(1) AS "OrderCount"
 FROM "Customers" AS c
 WHERE c."Id" = 1
@@ -95,7 +95,7 @@ LIMIT 2
         base.Scalar_Function_Anonymous_Type_Select_Parameter_Static();
 
         AssertSql(
-"""
+            """
 @__customerId_0='1'
 
 SELECT c."LastName", "CustomerOrderCount"(@__customerId_0) AS "OrderCount"
@@ -111,7 +111,7 @@ LIMIT 2
         base.Scalar_Function_Anonymous_Type_Select_Nested_Static();
 
         AssertSql(
-"""
+            """
 @__starCount_1='3'
 @__customerId_0='3'
 
@@ -128,7 +128,7 @@ LIMIT 2
         base.Scalar_Function_Where_Correlated_Static();
 
         AssertSql(
-"""
+            """
 SELECT lower(c."Id"::text)
 FROM "Customers" AS c
 WHERE "IsTopCustomer"(c."Id")
@@ -141,7 +141,7 @@ WHERE "IsTopCustomer"(c."Id")
         base.Scalar_Function_Where_Not_Correlated_Static();
 
         AssertSql(
-"""
+            """
 @__startDate_0='2000-04-01T00:00:00.0000000' (Nullable = true) (DbType = DateTime)
 
 SELECT c."Id"
@@ -157,7 +157,7 @@ LIMIT 2
         base.Scalar_Function_Where_Parameter_Static();
 
         AssertSql(
-"""
+            """
 @__period_0='0'
 
 SELECT c."Id"
@@ -173,7 +173,7 @@ LIMIT 2
         base.Scalar_Function_Where_Nested_Static();
 
         AssertSql(
-"""
+            """
 SELECT c."Id"
 FROM "Customers" AS c
 WHERE c."Id" = "GetCustomerWithMostOrdersAfterDate"("GetReportingPeriodStartDate"(0))
@@ -187,7 +187,7 @@ LIMIT 2
         base.Scalar_Function_Let_Correlated_Static();
 
         AssertSql(
-"""
+            """
 SELECT c."LastName", "CustomerOrderCount"(c."Id") AS "OrderCount"
 FROM "Customers" AS c
 WHERE c."Id" = 2
@@ -201,7 +201,7 @@ LIMIT 2
         base.Scalar_Function_Let_Not_Correlated_Static();
 
         AssertSql(
-"""
+            """
 SELECT c."LastName", "CustomerOrderCount"(2) AS "OrderCount"
 FROM "Customers" AS c
 WHERE c."Id" = 2
@@ -215,7 +215,7 @@ LIMIT 2
         base.Scalar_Function_Let_Not_Parameter_Static();
 
         AssertSql(
-"""
+            """
 @__customerId_0='2'
 
 SELECT c."LastName", "CustomerOrderCount"(@__customerId_0) AS "OrderCount"
@@ -231,7 +231,7 @@ LIMIT 2
         base.Scalar_Function_Let_Nested_Static();
 
         AssertSql(
-"""
+            """
 @__starCount_0='3'
 @__customerId_1='1'
 
@@ -248,7 +248,7 @@ LIMIT 2
         base.Scalar_Nested_Function_Unwind_Client_Eval_Select_Static();
 
         AssertSql(
-"""
+            """
 SELECT c."Id"
 FROM "Customers" AS c
 ORDER BY c."Id" NULLS FIRST
@@ -261,7 +261,7 @@ ORDER BY c."Id" NULLS FIRST
         base.Scalar_Nested_Function_BCL_UDF_Static();
 
         AssertSql(
-"""
+            """
 SELECT c."Id"
 FROM "Customers" AS c
 WHERE 3 = abs("CustomerOrderCount"(c."Id"))
@@ -275,7 +275,7 @@ LIMIT 2
         base.Scalar_Nested_Function_UDF_BCL_Static();
 
         AssertSql(
-"""
+            """
 SELECT c."Id"
 FROM "Customers" AS c
 WHERE 3 = "CustomerOrderCount"(abs(c."Id"))
@@ -289,7 +289,7 @@ LIMIT 2
         base.Nullable_navigation_property_access_preserves_schema_for_sql_function();
 
         AssertSql(
-"""
+            """
 SELECT dbo."IdentityString"(c."FirstName")
 FROM "Orders" AS o
 INNER JOIN "Customers" AS c ON o."CustomerId" = c."Id"
@@ -308,7 +308,7 @@ LIMIT 1
         base.Scalar_Function_Non_Static();
 
         AssertSql(
-"""
+            """
 SELECT "StarValue"(4, c."Id") AS "Id", "DollarValue"(2, c."LastName") AS "LastName"
 FROM "Customers" AS c
 WHERE c."Id" = 1
@@ -322,7 +322,7 @@ LIMIT 2
         base.Scalar_Function_Extension_Method_Instance();
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE "IsDate"(c."FirstName") = FALSE
@@ -335,7 +335,7 @@ WHERE "IsDate"(c."FirstName") = FALSE
         base.Scalar_Function_With_Translator_Translates_Instance();
 
         AssertSql(
-"""
+            """
 @__customerId_0='3'
 
 SELECT length(c."LastName")
@@ -351,7 +351,7 @@ LIMIT 2
         base.Scalar_Function_Constant_Parameter_Instance();
 
         AssertSql(
-"""
+            """
 @__customerId_1='1'
 
 SELECT "CustomerOrderCount"(@__customerId_1)
@@ -365,7 +365,7 @@ FROM "Customers" AS c
         base.Scalar_Function_Anonymous_Type_Select_Correlated_Instance();
 
         AssertSql(
-"""
+            """
 SELECT c."LastName", "CustomerOrderCount"(c."Id") AS "OrderCount"
 FROM "Customers" AS c
 WHERE c."Id" = 1
@@ -379,7 +379,7 @@ LIMIT 2
         base.Scalar_Function_Anonymous_Type_Select_Not_Correlated_Instance();
 
         AssertSql(
-"""
+            """
 SELECT c."LastName", "CustomerOrderCount"(1) AS "OrderCount"
 FROM "Customers" AS c
 WHERE c."Id" = 1
@@ -393,7 +393,7 @@ LIMIT 2
         base.Scalar_Function_Anonymous_Type_Select_Parameter_Instance();
 
         AssertSql(
-"""
+            """
 @__customerId_0='1'
 
 SELECT c."LastName", "CustomerOrderCount"(@__customerId_0) AS "OrderCount"
@@ -409,7 +409,7 @@ LIMIT 2
         base.Scalar_Function_Anonymous_Type_Select_Nested_Instance();
 
         AssertSql(
-"""
+            """
 @__starCount_2='3'
 @__customerId_0='3'
 
@@ -426,7 +426,7 @@ LIMIT 2
         base.Scalar_Function_Where_Correlated_Instance();
 
         AssertSql(
-"""
+            """
 SELECT lower(c."Id"::text)
 FROM "Customers" AS c
 WHERE "IsTopCustomer"(c."Id")
@@ -439,7 +439,7 @@ WHERE "IsTopCustomer"(c."Id")
         base.Scalar_Function_Where_Not_Correlated_Instance();
 
         AssertSql(
-"""
+            """
 @__startDate_1='2000-04-01T00:00:00.0000000' (Nullable = true) (DbType = DateTime)
 
 SELECT c."Id"
@@ -455,7 +455,7 @@ LIMIT 2
         base.Scalar_Function_Where_Parameter_Instance();
 
         AssertSql(
-"""
+            """
 @__period_1='0'
 
 SELECT c."Id"
@@ -471,7 +471,7 @@ LIMIT 2
         base.Scalar_Function_Where_Nested_Instance();
 
         AssertSql(
-"""
+            """
 SELECT c."Id"
 FROM "Customers" AS c
 WHERE c."Id" = "GetCustomerWithMostOrdersAfterDate"("GetReportingPeriodStartDate"(0))
@@ -485,7 +485,7 @@ LIMIT 2
         base.Scalar_Function_Let_Correlated_Instance();
 
         AssertSql(
-"""
+            """
 SELECT c."LastName", "CustomerOrderCount"(c."Id") AS "OrderCount"
 FROM "Customers" AS c
 WHERE c."Id" = 2
@@ -499,7 +499,7 @@ LIMIT 2
         base.Scalar_Function_Let_Not_Correlated_Instance();
 
         AssertSql(
-"""
+            """
 SELECT c."LastName", "CustomerOrderCount"(2) AS "OrderCount"
 FROM "Customers" AS c
 WHERE c."Id" = 2
@@ -513,7 +513,7 @@ LIMIT 2
         base.Scalar_Function_Let_Not_Parameter_Instance();
 
         AssertSql(
-"""
+            """
 @__customerId_1='2'
 
 SELECT c."LastName", "CustomerOrderCount"(@__customerId_1) AS "OrderCount"
@@ -529,7 +529,7 @@ LIMIT 2
         base.Scalar_Function_Let_Nested_Instance();
 
         AssertSql(
-"""
+            """
 @__starCount_1='3'
 @__customerId_2='1'
 
@@ -546,7 +546,7 @@ LIMIT 2
         base.Scalar_Nested_Function_Unwind_Client_Eval_Select_Instance();
 
         AssertSql(
-"""
+            """
 SELECT c."Id"
 FROM "Customers" AS c
 ORDER BY c."Id" NULLS FIRST
@@ -559,7 +559,7 @@ ORDER BY c."Id" NULLS FIRST
         base.Scalar_Nested_Function_BCL_UDF_Instance();
 
         AssertSql(
-"""
+            """
 SELECT c."Id"
 FROM "Customers" AS c
 WHERE 3 = abs("CustomerOrderCount"(c."Id"))
@@ -573,7 +573,7 @@ LIMIT 2
         base.Scalar_Nested_Function_UDF_BCL_Instance();
 
         AssertSql(
-"""
+            """
 SELECT c."Id"
 FROM "Customers" AS c
 WHERE 3 = "CustomerOrderCount"(abs(c."Id"))
@@ -603,53 +603,60 @@ LIMIT 2
             // don't get any quotes. We remap it as non-built-in by including a (null) schema.
             var isDateMethodInfo = typeof(UDFSqlContext).GetMethod(nameof(IsDateStatic));
             modelBuilder.HasDbFunction(isDateMethodInfo)
-                .HasTranslation(args => new SqlFunctionExpression(
-                    schema: null,
-                    "IsDate",
-                    args,
-                    nullable: true,
-                    argumentsPropagateNullability: args.Select(_ => true).ToList(),
-                    isDateMethodInfo.ReturnType,
-                    typeMapping: null));
+                .HasTranslation(
+                    args => new SqlFunctionExpression(
+                        schema: null,
+                        "IsDate",
+                        args,
+                        nullable: true,
+                        argumentsPropagateNullability: args.Select(_ => true).ToList(),
+                        isDateMethodInfo.ReturnType,
+                        typeMapping: null));
 
             var isDateMethodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(IsDateInstance));
             modelBuilder.HasDbFunction(isDateMethodInfo2)
-                .HasTranslation(args => new SqlFunctionExpression(
-                    schema: null,
-                    "IsDate",
-                    args,
-                    nullable: true,
-                    argumentsPropagateNullability: args.Select(_ => true).ToList(),
-                    isDateMethodInfo2.ReturnType,
-                    typeMapping: null));
+                .HasTranslation(
+                    args => new SqlFunctionExpression(
+                        schema: null,
+                        "IsDate",
+                        args,
+                        nullable: true,
+                        argumentsPropagateNullability: args.Select(_ => true).ToList(),
+                        isDateMethodInfo2.ReturnType,
+                        typeMapping: null));
 
             // Base class maps to len(), but in PostgreSQL it's called length()
             var methodInfo = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthStatic));
             modelBuilder.HasDbFunction(methodInfo)
-                .HasTranslation(args => new SqlFunctionExpression(
-                    "length",
-                    args,
-                    nullable: true,
-                    argumentsPropagateNullability: args.Select(_ => true).ToList(),
-                    methodInfo.ReturnType,
-                    typeMapping: null));
+                .HasTranslation(
+                    args => new SqlFunctionExpression(
+                        "length",
+                        args,
+                        nullable: true,
+                        argumentsPropagateNullability: args.Select(_ => true).ToList(),
+                        methodInfo.ReturnType,
+                        typeMapping: null));
 
             var methodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthInstance));
             modelBuilder.HasDbFunction(methodInfo2)
-                .HasTranslation(args => new SqlFunctionExpression(
-                    "length",
-                    args,
-                    nullable: true,
-                    argumentsPropagateNullability: args.Select(_ => true).ToList(),
-                    methodInfo2.ReturnType,
-                    typeMapping: null));
+                .HasTranslation(
+                    args => new SqlFunctionExpression(
+                        "length",
+                        args,
+                        nullable: true,
+                        argumentsPropagateNullability: args.Select(_ => true).ToList(),
+                        methodInfo2.ReturnType,
+                        typeMapping: null));
         }
     }
 
     public class UdfNpgsqlFixture : UdfFixtureBase
     {
         protected override string StoreName { get; } = "UDFDbFunctionNpgsqlTests";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
         protected override Type ContextType { get; } = typeof(NpgsqlUDFSqlContext);
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
@@ -674,7 +681,7 @@ LIMIT 2
             base.Seed(context);
 
             context.Database.ExecuteSqlRaw(
-"""
+                """
 CREATE FUNCTION "CustomerOrderCount" ("customerId" INTEGER) RETURNS INTEGER
 AS $$ SELECT COUNT("Id")::INTEGER FROM "Orders" WHERE "CustomerId" = $1 $$
 LANGUAGE SQL;

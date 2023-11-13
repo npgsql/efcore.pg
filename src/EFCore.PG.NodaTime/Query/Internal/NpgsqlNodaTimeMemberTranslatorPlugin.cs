@@ -4,10 +4,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal;
 
 /// <summary>
-/// Provides translation services for <see cref="NodaTime"/> members.
+///     Provides translation services for <see cref="NodaTime" /> members.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/functions-datetime.html
+///     See: https://www.postgresql.org/docs/current/static/functions-datetime.html
 /// </remarks>
 public class NpgsqlNodaTimeMemberTranslatorPlugin : IMemberTranslatorPlugin
 {
@@ -46,24 +46,31 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
 {
     private static readonly MemberInfo SystemClock_Instance =
         typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance))!;
+
     private static readonly MemberInfo ZonedDateTime_LocalDateTime =
         typeof(ZonedDateTime).GetRuntimeProperty(nameof(ZonedDateTime.LocalDateTime))!;
 
     private static readonly MemberInfo Interval_Start =
         typeof(Interval).GetRuntimeProperty(nameof(Interval.Start))!;
+
     private static readonly MemberInfo Interval_End =
         typeof(Interval).GetRuntimeProperty(nameof(Interval.End))!;
+
     private static readonly MemberInfo Interval_HasStart =
         typeof(Interval).GetRuntimeProperty(nameof(Interval.HasStart))!;
+
     private static readonly MemberInfo Interval_HasEnd =
         typeof(Interval).GetRuntimeProperty(nameof(Interval.HasEnd))!;
+
     private static readonly MemberInfo Interval_Duration =
         typeof(Interval).GetRuntimeProperty(nameof(Interval.Duration))!;
 
     private static readonly MemberInfo DateInterval_Start =
         typeof(DateInterval).GetRuntimeProperty(nameof(DateInterval.Start))!;
+
     private static readonly MemberInfo DateInterval_End =
         typeof(DateInterval).GetRuntimeProperty(nameof(DateInterval.End))!;
+
     private static readonly MemberInfo DateInterval_Length =
         typeof(DateInterval).GetRuntimeProperty(nameof(DateInterval.Length))!;
 
@@ -93,12 +100,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
         _localDateTimeTypeMapping = typeMappingSource.FindMapping(typeof(LocalDateTime))!;
     }
 
-    private static readonly bool[][] TrueArrays =
-    {
-        Array.Empty<bool>(),
-        new[] { true },
-        new[] { true, true }
-    };
+    private static readonly bool[][] TrueArrays = { Array.Empty<bool>(), new[] { true }, new[] { true, true } };
 
     /// <inheritdoc />
     public virtual SqlExpression? Translate(
@@ -299,10 +301,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
             "DayOfWeek" when GetDatePartExpression(instance, "dow", true) is var getValueExpression
                 => _sqlExpressionFactory.Case(
                     getValueExpression,
-                    new[]
-                    {
-                        new CaseWhenClause(_sqlExpressionFactory.Constant(0), _sqlExpressionFactory.Constant(7))
-                    },
+                    new[] { new CaseWhenClause(_sqlExpressionFactory.Constant(0), _sqlExpressionFactory.Constant(7)) },
                     getValueExpression),
 
             // PG allows converting a timestamp directly to date, truncating the time; but given a timestamptz, it performs a time zone
@@ -320,17 +319,17 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
         };
 
     /// <summary>
-    /// Constructs the date_part expression.
+    ///     Constructs the date_part expression.
     /// </summary>
     /// <param name="instance">The expression.</param>
     /// <param name="partName">The name of the date_part to construct.</param>
     /// <param name="floor">True if the result should be wrapped with floor(...); otherwise, false.</param>
     /// <returns>
-    /// The date_part expression.
+    ///     The date_part expression.
     /// </returns>
     /// <remarks>
-    /// date_part returns doubles, which we floor and cast into ints
-    /// This also gets rid of sub-second components when retrieving seconds.
+    ///     date_part returns doubles, which we floor and cast into ints
+    ///     This also gets rid of sub-second components when retrieving seconds.
     /// </remarks>
     private SqlExpression GetDatePartExpression(
         SqlExpression instance,

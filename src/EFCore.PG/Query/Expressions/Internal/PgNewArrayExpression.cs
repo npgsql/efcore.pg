@@ -1,16 +1,16 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 /// <summary>
-/// Represents creating a new PostgreSQL array.
+///     Represents creating a new PostgreSQL array.
 /// </summary>
 public class PgNewArrayExpression : SqlExpression
 {
     /// <summary>
-    /// Creates a new instance of the <see cref="PgNewArrayExpression" /> class.
+    ///     Creates a new instance of the <see cref="PgNewArrayExpression" /> class.
     /// </summary>
     /// <param name="expressions">The values to initialize the elements of the new array.</param>
-    /// <param name="type">The <see cref="Type"/> of the expression.</param>
-    /// <param name="typeMapping">The <see cref="RelationalTypeMapping"/> associated with the expression.</param>
+    /// <param name="type">The <see cref="Type" /> of the expression.</param>
+    /// <param name="typeMapping">The <see cref="RelationalTypeMapping" /> associated with the expression.</param>
     public PgNewArrayExpression(
         IReadOnlyList<SqlExpression> expressions,
         Type type,
@@ -60,8 +60,8 @@ public class PgNewArrayExpression : SqlExpression
     }
 
     /// <summary>
-    /// Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
-    /// return this expression.
+    ///     Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
+    ///     return this expression.
     /// </summary>
     /// <param name="expressions">The values to initialize the elements of the new array.</param>
     /// <returns>This expression if no children changed, or an expression with the updated children.</returns>

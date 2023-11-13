@@ -80,7 +80,7 @@ public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.C
     }
 
     /// <summary>
-    /// Test something like: select '123456  '::char(8) = '123456'::char(8);
+    ///     Test something like: select '123456  '::char(8) = '123456'::char(8);
     /// </summary>
     [Fact]
     public void Test_change_tracking()
@@ -104,7 +104,7 @@ public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.C
     }
 
     /// <summary>
-    /// Test that comparisons are treated correctly.
+    ///     Test that comparisons are treated correctly.
     /// </summary>
     [Fact]
     public void Test_change_tracking_key_sizes()
@@ -151,16 +151,21 @@ public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.C
 
     // ReSharper disable once ClassNeverInstantiated.Global
     /// <summary>
-    /// Represents a fixture suitable for testing character data.
+    ///     Represents a fixture suitable for testing character data.
     /// </summary>
     public class CharacterQueryNpgsqlFixture : SharedStoreFixtureBase<CharacterContext>
     {
-        protected override string StoreName => "CharacterQueryNpgsqlTest";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
+        protected override string StoreName
+            => "CharacterQueryNpgsqlTest";
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
 
         /// <summary>
-        /// Clears the entities in the context.
+        ///     Clears the entities in the context.
         /// </summary>
         public void ClearEntities()
         {
@@ -181,16 +186,20 @@ public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.C
         public string Character6 { get; set; }
     }
 
-    public class CharacterContext : PoolableDbContext{
+    public class CharacterContext : PoolableDbContext
+    {
         public DbSet<CharacterTestEntity> CharacterTestEntities { get; set; }
 
         /// <summary>
-        /// Initializes a <see cref="CharacterContext"/>.
+        ///     Initializes a <see cref="CharacterContext" />.
         /// </summary>
         /// <param name="options">
-        /// The options to be used for configuration.
+        ///     The options to be used for configuration.
         /// </param>
-        public CharacterContext(DbContextOptions options) : base(options) {}
+        public CharacterContext(DbContextOptions options)
+            : base(options)
+        {
+        }
 
         /// <inheritdoc />
         protected override void OnModelCreating(ModelBuilder builder)
@@ -207,14 +216,16 @@ public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.C
 
     #region Helpers
 
-    protected CharacterContext CreateContext() => Fixture.CreateContext();
+    protected CharacterContext CreateContext()
+        => Fixture.CreateContext();
 
     // ReSharper disable once UnusedMember.Global
     /// <summary>
-    /// Asserts that the SQL fragment appears in the logs.
+    ///     Asserts that the SQL fragment appears in the logs.
     /// </summary>
     /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-    public void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
+    public void AssertContainsSql(string sql)
+        => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
 
     #endregion
 }

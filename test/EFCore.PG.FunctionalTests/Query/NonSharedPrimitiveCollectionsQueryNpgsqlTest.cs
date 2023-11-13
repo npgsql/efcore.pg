@@ -1,4 +1,3 @@
-using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
@@ -67,14 +66,11 @@ public class NonSharedPrimitiveCollectionsQueryNpgsqlTest : NonSharedPrimitiveCo
 
         await using var context = contextFactory.CreateContext();
 
-        var arrays = new[]
-        {
-            new[,] { { 1, 2 }, { 3, 4 } },
-            new[,] { { 1, 2 }, { 3, 5 } }
-        };
+        var arrays = new[] { new[,] { { 1, 2 }, { 3, 4 } }, new[,] { { 1, 2 }, { 3, 5 } } };
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            context.Set<TestEntity>().Where(t => arrays.Contains(EF.Property<int[,]>(t, "MultidimensionalArray"))).ToArrayAsync());
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () =>
+                context.Set<TestEntity>().Where(t => arrays.Contains(EF.Property<int[,]>(t, "MultidimensionalArray"))).ToArrayAsync());
     }
 
     #endregion Support for specific element types

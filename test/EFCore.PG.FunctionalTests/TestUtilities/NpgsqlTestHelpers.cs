@@ -4,7 +4,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 public class NpgsqlTestHelpers : RelationalTestHelpers
 {
-    protected NpgsqlTestHelpers() {}
+    protected NpgsqlTestHelpers() { }
 
     public static NpgsqlTestHelpers Instance { get; } = new();
 

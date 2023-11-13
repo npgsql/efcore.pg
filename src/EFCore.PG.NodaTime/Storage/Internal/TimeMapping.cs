@@ -20,7 +20,8 @@ public class TimeMapping : NpgsqlTypeMapping
         typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
 
     private static readonly MethodInfo FromHourMinuteSecondNanosecondMethod =
-        typeof(LocalTime).GetMethod(nameof(LocalTime.FromHourMinuteSecondNanosecond),
+        typeof(LocalTime).GetMethod(
+            nameof(LocalTime.FromHourMinuteSecondNanosecond),
             new[] { typeof(int), typeof(int), typeof(int), typeof(long) })!;
 
     /// <summary>
@@ -29,7 +30,10 @@ public class TimeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public TimeMapping() : base("time", typeof(LocalTime), NpgsqlDbType.Time) {}
+    public TimeMapping()
+        : base("time", typeof(LocalTime), NpgsqlDbType.Time)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -38,7 +42,9 @@ public class TimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected TimeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Time) {}
+        : base(parameters, NpgsqlDbType.Time)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

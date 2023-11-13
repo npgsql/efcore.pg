@@ -13,8 +13,11 @@ public abstract class CommandInterceptionNpgsqlTestBase : CommandInterceptionTes
 
     public abstract class InterceptionNpgsqlFixtureBase : InterceptionFixtureBase
     {
-        protected override string StoreName => "CommandInterception";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override string StoreName
+            => "CommandInterception";
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override IServiceCollection InjectInterceptors(
             IServiceCollection serviceCollection,
@@ -32,7 +35,8 @@ public abstract class CommandInterceptionNpgsqlTestBase : CommandInterceptionTes
 
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
-            protected override bool ShouldSubscribeToDiagnosticListener => false;
+            protected override bool ShouldSubscribeToDiagnosticListener
+                => false;
 
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             {
@@ -53,7 +57,8 @@ public abstract class CommandInterceptionNpgsqlTestBase : CommandInterceptionTes
 
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
-            protected override bool ShouldSubscribeToDiagnosticListener => true;
+            protected override bool ShouldSubscribeToDiagnosticListener
+                => true;
 
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             {

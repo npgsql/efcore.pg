@@ -2,5 +2,6 @@
 
 public class TPHFiltersInheritanceQueryNpgsqlFixture : TPHInheritanceQueryNpgsqlFixture
 {
-    public override bool EnableFilters => true;
+    public override bool EnableFilters
+        => true;
 }

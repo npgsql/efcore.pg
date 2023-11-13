@@ -20,7 +20,8 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
 
     private static readonly MethodInfo ModelHasPostgresExtensionMethodInfo2
         = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
-            nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension), typeof(ModelBuilder), typeof(string), typeof(string), typeof(string));
+            nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension), typeof(ModelBuilder), typeof(string), typeof(string),
+            typeof(string));
 
     private static readonly MethodInfo ModelHasPostgresEnumMethodInfo1
         = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
@@ -36,7 +37,8 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
 
     private static readonly MethodInfo ModelHasPostgresRangeMethodInfo2
         = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
-            nameof(NpgsqlModelBuilderExtensions.HasPostgresRange), typeof(ModelBuilder), typeof(string), typeof(string),typeof(string), typeof(string),typeof(string), typeof(string),typeof(string));
+            nameof(NpgsqlModelBuilderExtensions.HasPostgresRange), typeof(ModelBuilder), typeof(string), typeof(string), typeof(string),
+            typeof(string), typeof(string), typeof(string), typeof(string));
 
     private static readonly MethodInfo ModelUseSerialColumnsMethodInfo
         = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
@@ -128,7 +130,9 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlAnnotationCodeGenerator(AnnotationCodeGeneratorDependencies dependencies)
-        : base(dependencies) {}
+        : base(dependencies)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -253,16 +257,17 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         {
             var rangeTypeDef = new PostgresRange(model, annotation.Name);
 
-            if (rangeTypeDef.Schema is null &&
-                rangeTypeDef.CanonicalFunction is null &&
-                rangeTypeDef.SubtypeOpClass is null &&
-                rangeTypeDef.Collation is null &&
-                rangeTypeDef.SubtypeDiff is null)
+            if (rangeTypeDef.Schema is null
+                && rangeTypeDef.CanonicalFunction is null
+                && rangeTypeDef.SubtypeOpClass is null
+                && rangeTypeDef.Collation is null
+                && rangeTypeDef.SubtypeDiff is null)
             {
                 return new MethodCallCodeFragment(ModelHasPostgresRangeMethodInfo1, rangeTypeDef.Name, rangeTypeDef.Subtype);
             }
 
-            return new MethodCallCodeFragment(ModelHasPostgresRangeMethodInfo2,
+            return new MethodCallCodeFragment(
+                ModelHasPostgresRangeMethodInfo2,
                 rangeTypeDef.Schema,
                 rangeTypeDef.Name,
                 rangeTypeDef.Subtype,
@@ -329,19 +334,21 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         switch (strategy)
         {
             case NpgsqlValueGenerationStrategy.SerialColumn:
-                return new(onModel ? ModelUseSerialColumnsMethodInfo : PropertyUseSerialColumnMethodInfo);
+                return new MethodCallCodeFragment(onModel ? ModelUseSerialColumnsMethodInfo : PropertyUseSerialColumnMethodInfo);
 
             case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
-                return new(onModel ? ModelUseIdentityAlwaysColumnsMethodInfo : PropertyUseIdentityAlwaysColumnMethodInfo);
+                return new MethodCallCodeFragment(
+                    onModel ? ModelUseIdentityAlwaysColumnsMethodInfo : PropertyUseIdentityAlwaysColumnMethodInfo);
 
             case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
-                return new(onModel ? ModelUseIdentityByDefaultColumnsMethodInfo : PropertyUseIdentityByDefaultColumnMethodInfo);
+                return new MethodCallCodeFragment(
+                    onModel ? ModelUseIdentityByDefaultColumnsMethodInfo : PropertyUseIdentityByDefaultColumnMethodInfo);
 
             case NpgsqlValueGenerationStrategy.SequenceHiLo:
             {
                 var name = GetAndRemove<string>(NpgsqlAnnotationNames.HiLoSequenceName)!;
                 var schema = GetAndRemove<string>(NpgsqlAnnotationNames.HiLoSequenceSchema);
-                return new(
+                return new MethodCallCodeFragment(
                     onModel ? ModelUseHiLoMethodInfo : PropertyUseHiLoMethodInfo,
                     (name, schema) switch
                     {
@@ -367,7 +374,8 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
                     });
             }
             case NpgsqlValueGenerationStrategy.None:
-                return new(ModelHasAnnotationMethodInfo, NpgsqlAnnotationNames.ValueGenerationStrategy, NpgsqlValueGenerationStrategy.None);
+                return new MethodCallCodeFragment(
+                    ModelHasAnnotationMethodInfo, NpgsqlAnnotationNames.ValueGenerationStrategy, NpgsqlValueGenerationStrategy.None);
 
             default:
                 throw new ArgumentOutOfRangeException(strategy.ToString());
@@ -381,14 +389,15 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
 
     private MethodCallCodeFragment? GenerateIdentityOptions(IDictionary<string, IAnnotation> annotations)
     {
-        if (!TryGetAndRemove(annotations, NpgsqlAnnotationNames.IdentityOptions,
+        if (!TryGetAndRemove(
+                annotations, NpgsqlAnnotationNames.IdentityOptions,
                 out string? annotationValue))
         {
             return null;
         }
 
         var identityOptions = IdentitySequenceOptionsData.Deserialize(annotationValue);
-        return new(
+        return new MethodCallCodeFragment(
             PropertyHasIdentityOptionsMethodInfo,
             identityOptions.StartValue,
             identityOptions.IncrementBy == 1 ? null : (long?)identityOptions.IncrementBy,

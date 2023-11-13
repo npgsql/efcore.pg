@@ -1,6 +1,6 @@
-using System.Data.Common;
-
 #nullable enable
+
+using System.Data.Common;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 

@@ -6,7 +6,8 @@ public class NorthwindGroupByQueryNpgsqlTest : NorthwindGroupByQueryRelationalTe
 {
     // ReSharper disable once UnusedParameter.Local
     public NorthwindGroupByQueryNpgsqlTest(
-        NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
+        NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture,
+        ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
@@ -22,7 +23,7 @@ public class NorthwindGroupByQueryNpgsqlTest : NorthwindGroupByQueryRelationalTe
         await base.GroupBy_Property_Select_Average(async);
 
         AssertSql(
-"""
+            """
 SELECT avg(o."OrderID"::double precision)
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -46,7 +47,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_Count(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -58,7 +59,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_LongCount(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -70,7 +71,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_Count_with_nulls(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City", count(*)::int AS "Faxes"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -82,7 +83,7 @@ GROUP BY c."City"
         await base.GroupBy_Property_Select_LongCount_with_nulls(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City", count(*) AS "Faxes"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -94,7 +95,7 @@ GROUP BY c."City"
         await base.GroupBy_Property_Select_Max(async);
 
         AssertSql(
-"""
+            """
 SELECT max(o."OrderID")
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -106,7 +107,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_Min(async);
 
         AssertSql(
-"""
+            """
 SELECT min(o."OrderID")
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -118,7 +119,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_Sum(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -130,7 +131,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_Sum_Min_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int AS "Sum", min(o."OrderID") AS "Min", max(o."OrderID") AS "Max", avg(o."OrderID"::double precision) AS "Avg"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -142,7 +143,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_Key_Average(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", avg(o."OrderID"::double precision) AS "Average"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -154,7 +155,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_Key_Count(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", count(*)::int AS "Count"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -166,7 +167,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_Key_LongCount(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", count(*) AS "LongCount"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -178,7 +179,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_Key_Max(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", max(o."OrderID") AS "Max"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -190,7 +191,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_Key_Min(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", min(o."OrderID") AS "Min"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -202,7 +203,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_Key_Sum(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", COALESCE(sum(o."OrderID"), 0)::int AS "Sum"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -214,7 +215,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_Key_Sum_Min_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", COALESCE(sum(o."OrderID"), 0)::int AS "Sum", min(o."OrderID") AS "Min", max(o."OrderID") AS "Max", avg(o."OrderID"::double precision) AS "Avg"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -226,7 +227,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_Sum_Min_Key_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int AS "Sum", min(o."OrderID") AS "Min", o."CustomerID" AS "Key", max(o."OrderID") AS "Max", avg(o."OrderID"::double precision) AS "Avg"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -238,7 +239,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_key_multiple_times_and_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key1", COALESCE(sum(o."OrderID"), 0)::int AS "Sum"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -250,7 +251,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_Key_with_constant(async);
 
         AssertSql(
-"""
+            """
 SELECT t."Name", t."CustomerID" AS "Value", count(*)::int AS "Count"
 FROM (
     SELECT o."CustomerID", 'CustomerID' AS "Name"
@@ -265,7 +266,7 @@ GROUP BY t."Name", t."CustomerID"
         await base.GroupBy_aggregate_projecting_conditional_expression(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderDate" AS "Key", CASE
     WHEN count(*)::int = 0 THEN 1
     ELSE COALESCE(sum(CASE
@@ -283,7 +284,7 @@ GROUP BY o."OrderDate"
         await base.GroupBy_aggregate_projecting_conditional_expression_based_on_group_key(async);
 
         AssertSql(
-"""
+            """
 SELECT CASE
     WHEN o."OrderDate" IS NULL THEN 'is null'
     ELSE 'is not null'
@@ -298,7 +299,7 @@ GROUP BY o."OrderDate"
         await base.GroupBy_anonymous_Select_Average(async);
 
         AssertSql(
-"""
+            """
 SELECT avg(o."OrderID"::double precision)
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -310,7 +311,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_anonymous_Select_Count(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -322,7 +323,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_anonymous_Select_LongCount(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -334,7 +335,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_anonymous_Select_Max(async);
 
         AssertSql(
-"""
+            """
 SELECT max(o."OrderID")
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -346,7 +347,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_anonymous_Select_Min(async);
 
         AssertSql(
-"""
+            """
 SELECT min(o."OrderID")
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -358,7 +359,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_anonymous_Select_Sum(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -370,7 +371,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_anonymous_Select_Sum_Min_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int AS "Sum", min(o."OrderID") AS "Min", max(o."OrderID") AS "Max", avg(o."OrderID"::double precision) AS "Avg"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -382,7 +383,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_anonymous_with_alias_Select_Key_Sum(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", COALESCE(sum(o."OrderID"), 0)::int AS "Sum"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -394,7 +395,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Composite_Select_Average(async);
 
         AssertSql(
-"""
+            """
 SELECT avg(o."OrderID"::double precision)
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -406,7 +407,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_Count(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -418,7 +419,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_LongCount(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -430,7 +431,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_Max(async);
 
         AssertSql(
-"""
+            """
 SELECT max(o."OrderID")
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -442,7 +443,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_Min(async);
 
         AssertSql(
-"""
+            """
 SELECT min(o."OrderID")
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -454,7 +455,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_Sum(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -466,7 +467,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_Sum_Min_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int AS "Sum", min(o."OrderID") AS "Min", max(o."OrderID") AS "Max", avg(o."OrderID"::double precision) AS "Avg"
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -478,7 +479,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_Key_Average(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID", o."EmployeeID", avg(o."OrderID"::double precision) AS "Average"
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -490,7 +491,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_Key_Count(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID", o."EmployeeID", count(*)::int AS "Count"
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -502,7 +503,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_Key_LongCount(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID", o."EmployeeID", count(*) AS "LongCount"
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -514,7 +515,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_Key_Max(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID", o."EmployeeID", max(o."OrderID") AS "Max"
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -526,7 +527,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_Key_Min(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID", o."EmployeeID", min(o."OrderID") AS "Min"
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -538,7 +539,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_Key_Sum(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID", o."EmployeeID", COALESCE(sum(o."OrderID"), 0)::int AS "Sum"
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -550,7 +551,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_Key_Sum_Min_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID", o."EmployeeID", COALESCE(sum(o."OrderID"), 0)::int AS "Sum", min(o."OrderID") AS "Min", max(o."OrderID") AS "Max", avg(o."OrderID"::double precision) AS "Avg"
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -562,7 +563,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_Sum_Min_Key_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int AS "Sum", min(o."OrderID") AS "Min", o."CustomerID", o."EmployeeID", max(o."OrderID") AS "Max", avg(o."OrderID"::double precision) AS "Avg"
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -574,7 +575,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_Sum_Min_Key_flattened_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int AS "Sum", min(o."OrderID") AS "Min", o."CustomerID", o."EmployeeID", max(o."OrderID") AS "Max", avg(o."OrderID"::double precision) AS "Avg"
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -586,7 +587,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Dto_as_key_Select_Sum(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int AS "Sum", o."CustomerID", o."EmployeeID"
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -598,7 +599,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Dto_as_element_selector_Select_Sum(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."EmployeeID"::bigint), 0.0)::bigint AS "Sum", o."CustomerID" AS "Key"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -610,7 +611,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Composite_Select_Dto_Sum_Min_Key_flattened_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int AS "Sum", min(o."OrderID") AS "Min", o."CustomerID" AS "CustomerId", o."EmployeeID" AS "EmployeeId", max(o."OrderID") AS "Max", avg(o."OrderID"::double precision) AS "Avg"
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -622,7 +623,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Composite_Select_Sum_Min_part_Key_flattened_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int AS "Sum", min(o."OrderID") AS "Min", o."CustomerID", max(o."OrderID") AS "Max", avg(o."OrderID"::double precision) AS "Avg"
 FROM "Orders" AS o
 GROUP BY o."CustomerID", o."EmployeeID"
@@ -634,7 +635,7 @@ GROUP BY o."CustomerID", o."EmployeeID"
         await base.GroupBy_Constant_Select_Sum_Min_Key_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(t."OrderID"), 0)::int AS "Sum", min(t."OrderID") AS "Min", t."Key", max(t."OrderID") AS "Max", avg(t."OrderID"::double precision) AS "Avg"
 FROM (
     SELECT o."OrderID", 2 AS "Key"
@@ -649,7 +650,7 @@ GROUP BY t."Key"
         await base.GroupBy_Constant_with_element_selector_Select_Sum(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(t."OrderID"), 0)::int AS "Sum"
 FROM (
     SELECT o."OrderID", 2 AS "Key"
@@ -664,7 +665,7 @@ GROUP BY t."Key"
         await base.GroupBy_Constant_with_element_selector_Select_Sum2(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(t."OrderID"), 0)::int AS "Sum"
 FROM (
     SELECT o."OrderID", 2 AS "Key"
@@ -679,7 +680,7 @@ GROUP BY t."Key"
         await base.GroupBy_Constant_with_element_selector_Select_Sum3(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(t."OrderID"), 0)::int AS "Sum"
 FROM (
     SELECT o."OrderID", 2 AS "Key"
@@ -694,7 +695,7 @@ GROUP BY t."Key"
         await base.GroupBy_after_predicate_Constant_Select_Sum_Min_Key_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(t."OrderID"), 0)::int AS "Sum", min(t."OrderID") AS "Min", t."Key" AS "Random", max(t."OrderID") AS "Max", avg(t."OrderID"::double precision) AS "Avg"
 FROM (
     SELECT o."OrderID", 2 AS "Key"
@@ -710,7 +711,7 @@ GROUP BY t."Key"
         await base.GroupBy_Constant_with_element_selector_Select_Sum_Min_Key_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(t."OrderID"), 0)::int AS "Sum", t."Key"
 FROM (
     SELECT o."OrderID", 2 AS "Key"
@@ -725,7 +726,7 @@ GROUP BY t."Key"
         await base.GroupBy_constant_with_where_on_grouping_with_aggregate_operators(async);
 
         AssertSql(
-"""
+            """
 SELECT min(t."OrderDate") FILTER (WHERE 1 = t."Key") AS "Min", max(t."OrderDate") FILTER (WHERE 1 = t."Key") AS "Max", COALESCE(sum(t."OrderID") FILTER (WHERE 1 = t."Key"), 0)::int AS "Sum", avg(t."OrderID"::double precision) FILTER (WHERE 1 = t."Key") AS "Average"
 FROM (
     SELECT o."OrderID", o."OrderDate", 1 AS "Key"
@@ -741,7 +742,7 @@ ORDER BY t."Key" NULLS FIRST
         await base.GroupBy_param_Select_Sum_Min_Key_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 @__a_0='2'
 
 SELECT COALESCE(sum(t."OrderID"), 0)::int AS "Sum", min(t."OrderID") AS "Min", t."Key", max(t."OrderID") AS "Max", avg(t."OrderID"::double precision) AS "Avg"
@@ -758,7 +759,7 @@ GROUP BY t."Key"
         await base.GroupBy_param_with_element_selector_Select_Sum(async);
 
         AssertSql(
-"""
+            """
 @__a_0='2'
 
 SELECT COALESCE(sum(t."OrderID"), 0)::int AS "Sum"
@@ -775,7 +776,7 @@ GROUP BY t."Key"
         await base.GroupBy_param_with_element_selector_Select_Sum2(async);
 
         AssertSql(
-"""
+            """
 @__a_0='2'
 
 SELECT COALESCE(sum(t."OrderID"), 0)::int AS "Sum"
@@ -792,7 +793,7 @@ GROUP BY t."Key"
         await base.GroupBy_param_with_element_selector_Select_Sum3(async);
 
         AssertSql(
-"""
+            """
 @__a_0='2'
 
 SELECT COALESCE(sum(t."OrderID"), 0)::int AS "Sum"
@@ -809,7 +810,7 @@ GROUP BY t."Key"
         await base.GroupBy_param_with_element_selector_Select_Sum_Min_Key_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 @__a_0='2'
 
 SELECT COALESCE(sum(t."OrderID"), 0)::int AS "Sum", t."Key"
@@ -826,7 +827,7 @@ GROUP BY t."Key"
         await base.GroupBy_anonymous_key_type_mismatch_with_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int AS "I0", t."I0" AS "I1"
 FROM (
     SELECT date_part('year', o."OrderDate")::int AS "I0"
@@ -842,7 +843,7 @@ ORDER BY t."I0" NULLS FIRST
         await base.GroupBy_Property_scalar_element_selector_Average(async);
 
         AssertSql(
-"""
+            """
 SELECT avg(o."OrderID"::double precision)
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -854,7 +855,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_scalar_element_selector_Count(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -866,7 +867,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_scalar_element_selector_LongCount(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -878,7 +879,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_scalar_element_selector_Max(async);
 
         AssertSql(
-"""
+            """
 SELECT max(o."OrderID")
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -890,7 +891,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_scalar_element_selector_Min(async);
 
         AssertSql(
-"""
+            """
 SELECT min(o."OrderID")
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -902,7 +903,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_scalar_element_selector_Sum(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -914,7 +915,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_scalar_element_selector_Sum_Min_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int AS "Sum", min(o."OrderID") AS "Min", max(o."OrderID") AS "Max", avg(o."OrderID"::double precision) AS "Avg"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -926,7 +927,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_anonymous_element_selector_Average(async);
 
         AssertSql(
-"""
+            """
 SELECT avg(o."OrderID"::double precision)
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -938,7 +939,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_anonymous_element_selector_Count(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -950,7 +951,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_anonymous_element_selector_LongCount(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -962,7 +963,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_anonymous_element_selector_Max(async);
 
         AssertSql(
-"""
+            """
 SELECT max(o."OrderID")
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -974,7 +975,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_anonymous_element_selector_Min(async);
 
         AssertSql(
-"""
+            """
 SELECT min(o."OrderID")
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -986,7 +987,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_anonymous_element_selector_Sum(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -998,7 +999,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_anonymous_element_selector_Sum_Min_Max_Avg(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int AS "Sum", min(o."EmployeeID") AS "Min", max(o."EmployeeID") AS "Max", avg(o."OrderID"::double precision) AS "Avg"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -1010,7 +1011,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_element_selector_complex_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID" + 1), 0)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -1022,7 +1023,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_element_selector_complex_aggregate2(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID" + 1), 0)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -1034,7 +1035,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_element_selector_complex_aggregate3(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID" + 1), 0)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -1046,7 +1047,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_element_selector_complex_aggregate4(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID" + 1), 0)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -1058,7 +1059,7 @@ GROUP BY o."CustomerID"
         await base.Element_selector_with_case_block_repeated_inside_another_case_block_in_projection(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", COALESCE(sum(CASE
     WHEN o."CustomerID" = 'ALFKI' THEN CASE
         WHEN o."OrderID" > 1000 THEN o."OrderID"
@@ -1079,7 +1080,7 @@ GROUP BY o."OrderID"
         await base.GroupBy_conditional_properties(async);
 
         AssertSql(
-"""
+            """
 SELECT t."OrderMonth", t."CustomerID" AS "Customer", count(*)::int AS "Count"
 FROM (
     SELECT o."CustomerID", NULL AS "OrderMonth"
@@ -1094,7 +1095,7 @@ GROUP BY t."OrderMonth", t."CustomerID"
         await base.GroupBy_empty_key_Aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(t."OrderID"), 0)::int
 FROM (
     SELECT o."OrderID", 1 AS "Key"
@@ -1109,7 +1110,7 @@ GROUP BY t."Key"
         await base.GroupBy_empty_key_Aggregate_Key(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(t."OrderID"), 0)::int AS "Sum"
 FROM (
     SELECT o."OrderID", 1 AS "Key"
@@ -1124,7 +1125,7 @@ GROUP BY t."Key"
         await base.OrderBy_GroupBy_Aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -1136,7 +1137,7 @@ GROUP BY o."CustomerID"
         await base.OrderBy_Skip_GroupBy_Aggregate(async);
 
         AssertSql(
-"""
+            """
 @__p_0='80'
 
 SELECT avg(t."OrderID"::double precision)
@@ -1155,7 +1156,7 @@ GROUP BY t."CustomerID"
         await base.OrderBy_Take_GroupBy_Aggregate(async);
 
         AssertSql(
-"""
+            """
 @__p_0='500'
 
 SELECT min(t."OrderID")
@@ -1174,7 +1175,7 @@ GROUP BY t."CustomerID"
         await base.OrderBy_Skip_Take_GroupBy_Aggregate(async);
 
         AssertSql(
-"""
+            """
 @__p_1='500'
 @__p_0='80'
 
@@ -1194,7 +1195,7 @@ GROUP BY t."CustomerID"
         await base.Distinct_GroupBy_Aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT t."CustomerID" AS "Key", count(*)::int AS c
 FROM (
     SELECT DISTINCT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
@@ -1209,7 +1210,7 @@ GROUP BY t."CustomerID"
         await base.Anonymous_projection_Distinct_GroupBy_Aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT t."EmployeeID" AS "Key", count(*)::int AS c
 FROM (
     SELECT DISTINCT o."OrderID", o."EmployeeID"
@@ -1224,7 +1225,7 @@ GROUP BY t."EmployeeID"
         await base.SelectMany_GroupBy_Aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT o."EmployeeID" AS "Key", count(*)::int AS c
 FROM "Customers" AS c
 INNER JOIN "Orders" AS o ON c."CustomerID" = o."CustomerID"
@@ -1237,7 +1238,7 @@ GROUP BY o."EmployeeID"
         await base.Join_GroupBy_Aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID" AS "Key", avg(o."OrderID"::double precision) AS "Count"
 FROM "Orders" AS o
 INNER JOIN "Customers" AS c ON o."CustomerID" = c."CustomerID"
@@ -1250,7 +1251,7 @@ GROUP BY c."CustomerID"
         await base.GroupBy_required_navigation_member_Aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT o0."CustomerID" AS "CustomerId", count(*)::int AS "Count"
 FROM "Order Details" AS o
 INNER JOIN "Orders" AS o0 ON o."OrderID" = o0."OrderID"
@@ -1263,7 +1264,7 @@ GROUP BY o0."CustomerID"
         await base.Join_complex_GroupBy_Aggregate(async);
 
         AssertSql(
-"""
+            """
 @__p_0='100'
 @__p_2='50'
 @__p_1='10'
@@ -1292,7 +1293,7 @@ GROUP BY t0."CustomerID"
         await base.GroupJoin_GroupBy_Aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", avg(o."OrderID"::double precision) AS "Average"
 FROM "Customers" AS c
 LEFT JOIN "Orders" AS o ON c."CustomerID" = o."CustomerID"
@@ -1306,7 +1307,7 @@ GROUP BY o."CustomerID"
         await base.GroupJoin_GroupBy_Aggregate_2(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID" AS "Key", max(c."City") AS "Max"
 FROM "Customers" AS c
 LEFT JOIN "Orders" AS o ON c."CustomerID" = o."CustomerID"
@@ -1319,7 +1320,7 @@ GROUP BY c."CustomerID"
         await base.GroupJoin_GroupBy_Aggregate_3(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", avg(o."OrderID"::double precision) AS "Average"
 FROM "Orders" AS o
 LEFT JOIN "Customers" AS c ON o."CustomerID" = c."CustomerID"
@@ -1332,7 +1333,7 @@ GROUP BY o."CustomerID"
         await base.GroupJoin_GroupBy_Aggregate_4(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID" AS "Value", max(c."City") AS "Max"
 FROM "Customers" AS c
 LEFT JOIN "Orders" AS o ON c."CustomerID" = o."CustomerID"
@@ -1345,7 +1346,7 @@ GROUP BY c."CustomerID"
         await base.GroupJoin_GroupBy_Aggregate_5(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID" AS "Value", avg(o."OrderID"::double precision) AS "Average"
 FROM "Orders" AS o
 LEFT JOIN "Customers" AS c ON o."CustomerID" = c."CustomerID"
@@ -1358,7 +1359,7 @@ GROUP BY o."OrderID"
         await base.GroupBy_optional_navigation_member_Aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT c."Country", count(*)::int AS "Count"
 FROM "Orders" AS o
 LEFT JOIN "Customers" AS c ON o."CustomerID" = c."CustomerID"
@@ -1371,7 +1372,7 @@ GROUP BY c."Country"
         await base.GroupJoin_complex_GroupBy_Aggregate(async);
 
         AssertSql(
-"""
+            """
 @__p_1='50'
 @__p_0='10'
 @__p_2='100'
@@ -1401,7 +1402,7 @@ GROUP BY t0."CustomerID"
         await base.Self_join_GroupBy_Aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", avg(o0."OrderID"::double precision) AS "Count"
 FROM "Orders" AS o
 INNER JOIN "Orders" AS o0 ON o."OrderID" = o0."OrderID"
@@ -1415,7 +1416,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_multi_navigation_members_Aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT o0."CustomerID", p."ProductName", count(*)::int AS "Count"
 FROM "Order Details" AS o
 INNER JOIN "Orders" AS o0 ON o."OrderID" = o0."OrderID"
@@ -1429,7 +1430,7 @@ GROUP BY o0."CustomerID", p."ProductName"
         await base.Union_simple_groupby(async);
 
         AssertSql(
-"""
+            """
 SELECT t."City" AS "Key", count(*)::int AS "Total"
 FROM (
     SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
@@ -1449,7 +1450,7 @@ GROUP BY t."City"
         await base.Select_anonymous_GroupBy_Aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT min(o."OrderDate") AS "Min", max(o."OrderDate") AS "Max", COALESCE(sum(o."OrderID"), 0)::int AS "Sum", avg(o."OrderID"::double precision) AS "Avg"
 FROM "Orders" AS o
 WHERE o."OrderID" < 10300
@@ -1462,7 +1463,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_principal_key_property_optimization(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID" AS "Key", count(*)::int AS "Count"
 FROM "Orders" AS o
 LEFT JOIN "Customers" AS c ON o."CustomerID" = c."CustomerID"
@@ -1475,7 +1476,7 @@ GROUP BY c."CustomerID"
         await base.GroupBy_after_anonymous_projection_and_distinct_followed_by_another_anonymous_projection(async);
 
         AssertSql(
-"""
+            """
 SELECT t."CustomerID" AS "Key", count(*)::int AS "Count"
 FROM (
     SELECT DISTINCT o."CustomerID", o."OrderID"
@@ -1490,7 +1491,7 @@ GROUP BY t."CustomerID"
         await base.GroupBy_complex_key_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT t."Key", count(*)::int AS "Count"
 FROM (
     SELECT substring(c."CustomerID", 1, 1) AS "Key"
@@ -1506,7 +1507,7 @@ GROUP BY t."Key"
         await base.GroupBy_complex_key_aggregate_2(async);
 
         AssertSql(
-"""
+            """
 SELECT t."Key" AS "Month", COALESCE(sum(t."OrderID"), 0)::int AS "Total", (
     SELECT COALESCE(sum(o0."OrderID"), 0)::int
     FROM "Orders" AS o0
@@ -1524,7 +1525,7 @@ GROUP BY t."Key"
         await base.Select_collection_of_scalar_before_GroupBy_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City" AS "Key", count(*)::int AS "Count"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -1536,7 +1537,7 @@ GROUP BY c."City"
         await base.GroupBy_OrderBy_key(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", count(*)::int AS c
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -1549,7 +1550,7 @@ ORDER BY o."CustomerID" NULLS FIRST
         await base.GroupBy_OrderBy_count(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", count(*)::int AS "Count"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -1562,7 +1563,7 @@ ORDER BY count(*)::int NULLS FIRST, o."CustomerID" NULLS FIRST
         await base.GroupBy_OrderBy_count_Select_sum(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", COALESCE(sum(o."OrderID"), 0)::int AS "Sum"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -1575,7 +1576,7 @@ ORDER BY count(*)::int NULLS FIRST, o."CustomerID" NULLS FIRST
         await base.GroupBy_aggregate_Contains(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
 WHERE EXISTS (
@@ -1591,7 +1592,7 @@ WHERE EXISTS (
         await base.GroupBy_aggregate_Pushdown(async);
 
         AssertSql(
-"""
+            """
 @__p_0='20'
 @__p_1='4'
 
@@ -1614,7 +1615,7 @@ OFFSET @__p_1
         await base.GroupBy_aggregate_using_grouping_key_Pushdown(async);
 
         AssertSql(
-"""
+            """
 @__p_0='20'
 @__p_1='4'
 
@@ -1637,7 +1638,7 @@ OFFSET @__p_1
         await base.GroupBy_aggregate_Pushdown_followed_by_projecting_Length(async);
 
         AssertSql(
-"""
+            """
 @__p_0='20'
 @__p_1='4'
 
@@ -1660,7 +1661,7 @@ OFFSET @__p_1
         await base.GroupBy_aggregate_Pushdown_followed_by_projecting_constant(async);
 
         AssertSql(
-"""
+            """
 @__p_0='20'
 @__p_1='4'
 
@@ -1683,7 +1684,7 @@ OFFSET @__p_1
         await base.GroupBy_filter_key(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", count(*)::int AS c
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -1696,7 +1697,7 @@ HAVING o."CustomerID" = 'ALFKI'
         await base.GroupBy_filter_count(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", count(*)::int AS "Count"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -1709,7 +1710,7 @@ HAVING count(*)::int > 4
         await base.GroupBy_count_filter(async);
 
         AssertSql(
-"""
+            """
 SELECT t."Key" AS "Name", count(*)::int AS "Count"
 FROM (
     SELECT 'Order' AS "Key"
@@ -1725,7 +1726,7 @@ HAVING count(*)::int > 0
         await base.GroupBy_filter_count_OrderBy_count_Select_sum(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", count(*)::int AS "Count", COALESCE(sum(o."OrderID"), 0)::int AS "Sum"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -1739,7 +1740,7 @@ ORDER BY count(*)::int NULLS FIRST, o."CustomerID" NULLS FIRST
         await base.GroupBy_Aggregate_Join(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region", o0."OrderID", o0."CustomerID", o0."EmployeeID", o0."OrderDate"
 FROM (
     SELECT o."CustomerID", max(o."OrderID") AS "LastOrderID"
@@ -1757,7 +1758,7 @@ INNER JOIN "Orders" AS o0 ON t."LastOrderID" = o0."OrderID"
         await base.GroupBy_Aggregate_Join_converted_from_SelectMany(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 INNER JOIN (
@@ -1774,7 +1775,7 @@ INNER JOIN (
         await base.GroupBy_Aggregate_LeftJoin_converted_from_SelectMany(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 LEFT JOIN (
@@ -1791,7 +1792,7 @@ LEFT JOIN (
         await base.Join_GroupBy_Aggregate_multijoins(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region", o0."OrderID", o0."CustomerID", o0."EmployeeID", o0."OrderDate"
 FROM "Customers" AS c
 INNER JOIN (
@@ -1809,7 +1810,7 @@ INNER JOIN "Orders" AS o0 ON t."LastOrderID" = o0."OrderID"
         await base.Join_GroupBy_Aggregate_single_join(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region", t."LastOrderID"
 FROM "Customers" AS c
 INNER JOIN (
@@ -1826,7 +1827,7 @@ INNER JOIN (
         await base.Join_GroupBy_Aggregate_with_another_join(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region", t."LastOrderID", o0."OrderID"
 FROM "Customers" AS c
 INNER JOIN (
@@ -1844,7 +1845,7 @@ INNER JOIN "Orders" AS o0 ON c."CustomerID" = o0."CustomerID"
         await base.Join_GroupBy_Aggregate_distinct_single_join(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region", t0."LastOrderID"
 FROM "Customers" AS c
 INNER JOIN (
@@ -1864,7 +1865,7 @@ INNER JOIN (
         await base.Join_GroupBy_Aggregate_with_left_join(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region", t."LastOrderID"
 FROM "Customers" AS c
 LEFT JOIN (
@@ -1882,7 +1883,7 @@ WHERE c."CustomerID" LIKE 'A%'
         await base.Join_GroupBy_Aggregate_in_subquery(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate", t0."CustomerID", t0."Address", t0."City", t0."CompanyName", t0."ContactName", t0."ContactTitle", t0."Country", t0."Fax", t0."Phone", t0."PostalCode", t0."Region"
 FROM "Orders" AS o
 INNER JOIN (
@@ -1904,7 +1905,7 @@ WHERE o."OrderID" < 10400
         await base.Join_GroupBy_Aggregate_on_key(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region", t."LastOrderID"
 FROM "Customers" AS c
 INNER JOIN (
@@ -1921,7 +1922,7 @@ INNER JOIN (
         await base.GroupBy_with_result_selector(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID"), 0)::int AS "Sum", min(o."OrderID") AS "Min", max(o."OrderID") AS "Max", avg(o."OrderID"::double precision) AS "Avg"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -1933,7 +1934,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Sum_constant(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(1), 0)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -1945,7 +1946,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Sum_constant_cast(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(1), 0.0)::bigint
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -1957,7 +1958,7 @@ GROUP BY o."CustomerID"
         await base.Distinct_GroupBy_OrderBy_key(async);
 
         AssertSql(
-"""
+            """
 SELECT t."CustomerID" AS "Key", count(*)::int AS c
 FROM (
     SELECT DISTINCT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
@@ -1974,7 +1975,7 @@ ORDER BY t."CustomerID" NULLS FIRST
         await base.Select_nested_collection_with_groupby(async);
 
         AssertSql(
-"""
+            """
 SELECT EXISTS (
     SELECT 1
     FROM "Orders" AS o
@@ -1996,7 +1997,7 @@ ORDER BY c."CustomerID" NULLS FIRST
         await base.Select_uncorrelated_collection_with_groupby_works(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", t."OrderID"
 FROM "Customers" AS c
 LEFT JOIN LATERAL (
@@ -2014,7 +2015,7 @@ ORDER BY c."CustomerID" NULLS FIRST
         await base.Select_uncorrelated_collection_with_groupby_multiple_collections_work(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", t."ProductID", t0.c, t0."ProductID"
 FROM "Orders" AS o
 LEFT JOIN LATERAL (
@@ -2037,7 +2038,7 @@ ORDER BY o."OrderID" NULLS FIRST, t."ProductID" NULLS FIRST
         await base.Select_GroupBy_All(async);
 
         AssertSql(
-"""
+            """
 SELECT NOT EXISTS (
     SELECT 1
     FROM "Orders" AS o
@@ -2051,7 +2052,7 @@ SELECT NOT EXISTS (
         await base.GroupBy_Where_Average(async);
 
         AssertSql(
-"""
+            """
 SELECT avg(o."OrderID"::double precision) FILTER (WHERE o."OrderID" < 10300)
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2063,7 +2064,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Where_Count(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*) FILTER (WHERE o."OrderID" < 10300)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2075,7 +2076,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Where_LongCount(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*) FILTER (WHERE o."OrderID" < 10300)
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2087,7 +2088,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Where_Max(async);
 
         AssertSql(
-"""
+            """
 SELECT max(o."OrderID") FILTER (WHERE o."OrderID" < 10300)
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2099,7 +2100,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Where_Min(async);
 
         AssertSql(
-"""
+            """
 SELECT min(o."OrderID") FILTER (WHERE o."OrderID" < 10300)
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2111,7 +2112,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Where_Sum(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(sum(o."OrderID") FILTER (WHERE o."OrderID" < 10300), 0)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2123,7 +2124,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Where_Count_with_predicate(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*) FILTER (WHERE o."OrderID" < 10300 AND o."OrderDate" IS NOT NULL AND date_part('year', o."OrderDate")::int = 1997)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2135,7 +2136,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Where_Where_Count(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*) FILTER (WHERE o."OrderID" < 10300 AND o."OrderDate" IS NOT NULL AND date_part('year', o."OrderDate")::int = 1997)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2147,7 +2148,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Where_Select_Where_Count(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*) FILTER (WHERE o."OrderID" < 10300 AND o."OrderDate" IS NOT NULL AND date_part('year', o."OrderDate")::int = 1997)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2159,7 +2160,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Where_Select_Where_Select_Min(async);
 
         AssertSql(
-"""
+            """
 SELECT min(o."OrderID") FILTER (WHERE o."OrderID" < 10300 AND o."OrderDate" IS NOT NULL AND date_part('year', o."OrderDate")::int = 1997)
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2171,7 +2172,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_multiple_Count_with_predicate(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID", count(*)::int AS "All", count(*) FILTER (WHERE o."OrderID" < 11000)::int AS "TenK", count(*) FILTER (WHERE o."OrderID" < 12000)::int AS "EleventK"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2183,7 +2184,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_multiple_Sum_with_conditional_projection(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID", COALESCE(sum(CASE
     WHEN o."OrderID" < 11000 THEN o."OrderID"
     ELSE 0
@@ -2201,7 +2202,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_multiple_Sum_with_Select_conditional_projection(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID", COALESCE(sum(CASE
     WHEN o."OrderID" < 11000 THEN o."OrderID"
     ELSE 0
@@ -2219,7 +2220,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Key_as_part_of_element_selector(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID" AS "Key", avg(o."OrderID"::double precision) AS "Avg", max(o."OrderDate") AS "Max"
 FROM "Orders" AS o
 GROUP BY o."OrderID"
@@ -2231,7 +2232,7 @@ GROUP BY o."OrderID"
         await base.GroupBy_composite_Key_as_part_of_element_selector(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", o."CustomerID", avg(o."OrderID"::double precision) AS "Avg", max(o."OrderDate") AS "Max"
 FROM "Orders" AS o
 GROUP BY o."OrderID", o."CustomerID"
@@ -2243,7 +2244,7 @@ GROUP BY o."OrderID", o."CustomerID"
         await base.GroupBy_with_aggregate_through_navigation_property(async);
 
         AssertSql(
-"""
+            """
 SELECT (
     SELECT max(c."Region")
     FROM "Orders" AS o0
@@ -2259,7 +2260,7 @@ GROUP BY o."EmployeeID"
         await base.GroupBy_with_aggregate_containing_complex_where(async);
 
         AssertSql(
-"""
+            """
 SELECT o."EmployeeID" AS "Key", (
     SELECT max(o0."OrderID")
     FROM "Orders" AS o0
@@ -2274,7 +2275,7 @@ GROUP BY o."EmployeeID"
         await base.GroupBy_Shadow(async);
 
         AssertSql(
-"""
+            """
 SELECT (
     SELECT e0."Title"
     FROM "Employees" AS e0
@@ -2291,7 +2292,7 @@ GROUP BY e."Title"
         await base.GroupBy_Shadow2(async);
 
         AssertSql(
-"""
+            """
 SELECT t0."EmployeeID", t0."City", t0."Country", t0."FirstName", t0."ReportsTo", t0."Title"
 FROM (
     SELECT e."Title"
@@ -2316,7 +2317,7 @@ LEFT JOIN (
         await base.GroupBy_Shadow3(async);
 
         AssertSql(
-"""
+            """
 SELECT (
     SELECT e0."Title"
     FROM "Employees" AS e0
@@ -2333,7 +2334,7 @@ GROUP BY e."EmployeeID"
         await base.GroupBy_select_grouping_list(async);
 
         AssertSql(
-"""
+            """
 SELECT t."City", c0."CustomerID", c0."Address", c0."City", c0."CompanyName", c0."ContactName", c0."ContactTitle", c0."Country", c0."Fax", c0."Phone", c0."PostalCode", c0."Region"
 FROM (
     SELECT c."City"
@@ -2350,7 +2351,7 @@ ORDER BY t."City" NULLS FIRST
         await base.GroupBy_select_grouping_array(async);
 
         AssertSql(
-"""
+            """
 SELECT t."City", c0."CustomerID", c0."Address", c0."City", c0."CompanyName", c0."ContactName", c0."ContactTitle", c0."Country", c0."Fax", c0."Phone", c0."PostalCode", c0."Region"
 FROM (
     SELECT c."City"
@@ -2367,7 +2368,7 @@ ORDER BY t."City" NULLS FIRST
         await base.GroupBy_select_grouping_composed_list(async);
 
         AssertSql(
-"""
+            """
 SELECT t."City", t0."CustomerID", t0."Address", t0."City", t0."CompanyName", t0."ContactName", t0."ContactTitle", t0."Country", t0."Fax", t0."Phone", t0."PostalCode", t0."Region"
 FROM (
     SELECT c."City"
@@ -2388,7 +2389,7 @@ ORDER BY t."City" NULLS FIRST
         await base.GroupBy_select_grouping_composed_list_2(async);
 
         AssertSql(
-"""
+            """
 SELECT t."City", c0."CustomerID", c0."Address", c0."City", c0."CompanyName", c0."ContactName", c0."ContactTitle", c0."Country", c0."Fax", c0."Phone", c0."PostalCode", c0."Region"
 FROM (
     SELECT c."City"
@@ -2412,7 +2413,7 @@ ORDER BY t."City" NULLS FIRST, c0."CustomerID" NULLS FIRST
         await base.Count_after_GroupBy_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM (
     SELECT o."CustomerID"
@@ -2427,7 +2428,7 @@ FROM (
         await base.LongCount_after_GroupBy_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)
 FROM (
     SELECT o."CustomerID"
@@ -2442,7 +2443,7 @@ FROM (
         await base.GroupBy_Select_Distinct_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", avg(DISTINCT o."OrderID"::double precision) AS "Average", count(DISTINCT o."EmployeeID")::int AS "Count", count(DISTINCT o."EmployeeID") AS "LongCount", max(DISTINCT o."OrderDate") AS "Max", min(DISTINCT o."OrderDate") AS "Min", COALESCE(sum(DISTINCT o."OrderID"), 0)::int AS "Sum"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2454,7 +2455,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_group_Distinct_Select_Distinct_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", max(DISTINCT o."OrderDate") AS "Max"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2466,7 +2467,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_group_Where_Select_Distinct_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", max(DISTINCT o."OrderDate") FILTER (WHERE o."OrderDate" IS NOT NULL) AS "Max"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2478,7 +2479,7 @@ GROUP BY o."CustomerID"
         await base.MinMax_after_GroupBy_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT min(t.c)
 FROM (
     SELECT COALESCE(sum(o."OrderID"), 0)::int AS c
@@ -2487,7 +2488,7 @@ FROM (
 ) AS t
 """,
             //
-"""
+            """
 SELECT max(t.c)
 FROM (
     SELECT COALESCE(sum(o."OrderID"), 0)::int AS c
@@ -2502,7 +2503,7 @@ FROM (
         await base.All_after_GroupBy_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT NOT EXISTS (
     SELECT 1
     FROM "Orders" AS o
@@ -2516,7 +2517,7 @@ SELECT NOT EXISTS (
         await base.All_after_GroupBy_aggregate2(async);
 
         AssertSql(
-"""
+            """
 SELECT NOT EXISTS (
     SELECT 1
     FROM "Orders" AS o
@@ -2530,7 +2531,7 @@ SELECT NOT EXISTS (
         await base.Any_after_GroupBy_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT EXISTS (
     SELECT 1
     FROM "Orders" AS o
@@ -2543,7 +2544,7 @@ SELECT EXISTS (
         await base.Count_after_GroupBy_without_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM (
     SELECT o."CustomerID"
@@ -2558,7 +2559,7 @@ FROM (
         await base.Count_with_predicate_after_GroupBy_without_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM (
     SELECT o."CustomerID"
@@ -2574,7 +2575,7 @@ FROM (
         await base.LongCount_after_GroupBy_without_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)
 FROM (
     SELECT o."CustomerID"
@@ -2589,7 +2590,7 @@ FROM (
         await base.LongCount_with_predicate_after_GroupBy_without_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)
 FROM (
     SELECT o."CustomerID"
@@ -2605,7 +2606,7 @@ FROM (
         await base.Any_after_GroupBy_without_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT EXISTS (
     SELECT 1
     FROM "Orders" AS o
@@ -2618,7 +2619,7 @@ SELECT EXISTS (
         await base.Any_with_predicate_after_GroupBy_without_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT EXISTS (
     SELECT 1
     FROM "Orders" AS o
@@ -2632,7 +2633,7 @@ SELECT EXISTS (
         await base.All_with_predicate_after_GroupBy_without_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT NOT EXISTS (
     SELECT 1
     FROM "Orders" AS o
@@ -2646,7 +2647,7 @@ SELECT NOT EXISTS (
         await base.GroupBy_aggregate_followed_by_another_GroupBy_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT t0."Key0" AS "Key", COALESCE(sum(t0."Count"), 0)::int AS "Count"
 FROM (
     SELECT t."Count", 1 AS "Key0"
@@ -2665,7 +2666,7 @@ GROUP BY t0."Key0"
         await base.GroupBy_Count_in_projection(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", o."OrderDate", EXISTS (
     SELECT 1
     FROM "Order Details" AS o0
@@ -2688,7 +2689,7 @@ WHERE o."OrderDate" IS NOT NULL
         await base.GroupBy_nominal_type_count(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM (
     SELECT o."CustomerID"
@@ -2703,7 +2704,7 @@ FROM (
         await base.GroupBy_based_on_renamed_property_simple(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City" AS "Renamed", count(*)::int AS "Count"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -2715,7 +2716,7 @@ GROUP BY c."City"
         await base.GroupBy_based_on_renamed_property_complex(async);
 
         AssertSql(
-"""
+            """
 SELECT t."Renamed" AS "Key", count(*)::int AS "Count"
 FROM (
     SELECT DISTINCT c."City" AS "Renamed", c."CustomerID"
@@ -2730,7 +2731,7 @@ GROUP BY t."Renamed"
         await base.Join_groupby_anonymous_orderby_anonymous_projection(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", o."OrderDate"
 FROM "Customers" AS c
 INNER JOIN "Orders" AS o ON c."CustomerID" = o."CustomerID"
@@ -2744,7 +2745,7 @@ ORDER BY o."OrderDate" NULLS FIRST
         await base.Odata_groupby_empty_key(async);
 
         AssertSql(
-"""
+            """
 SELECT 'TotalAmount' AS "Name", COALESCE(sum(t."OrderID"::numeric), 0.0) AS "Value"
 FROM (
     SELECT o."OrderID", 1 AS "Key"
@@ -2759,7 +2760,7 @@ GROUP BY t."Key"
         await base.GroupBy_with_group_key_access_thru_navigation(async);
 
         AssertSql(
-"""
+            """
 SELECT o0."CustomerID" AS "Key", COALESCE(sum(o."OrderID"), 0)::int AS "Aggregate"
 FROM "Order Details" AS o
 INNER JOIN "Orders" AS o0 ON o."OrderID" = o0."OrderID"
@@ -2772,7 +2773,7 @@ GROUP BY o0."CustomerID"
         await base.GroupBy_with_group_key_access_thru_nested_navigation(async);
 
         AssertSql(
-"""
+            """
 SELECT c."Country" AS "Key", COALESCE(sum(o."OrderID"), 0)::int AS "Aggregate"
 FROM "Order Details" AS o
 INNER JOIN "Orders" AS o0 ON o."OrderID" = o0."OrderID"
@@ -2786,7 +2787,7 @@ GROUP BY c."Country"
         await base.GroupBy_with_group_key_being_navigation(async);
 
         AssertSql(
-"""
+            """
 SELECT o0."OrderID", o0."CustomerID", o0."EmployeeID", o0."OrderDate", COALESCE(sum(o."OrderID"), 0)::int AS "Aggregate"
 FROM "Order Details" AS o
 INNER JOIN "Orders" AS o0 ON o."OrderID" = o0."OrderID"
@@ -2799,7 +2800,7 @@ GROUP BY o0."OrderID", o0."CustomerID", o0."EmployeeID", o0."OrderDate"
         await base.GroupBy_with_group_key_being_nested_navigation(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region", COALESCE(sum(o."OrderID"), 0)::int AS "Aggregate"
 FROM "Order Details" AS o
 INNER JOIN "Orders" AS o0 ON o."OrderID" = o0."OrderID"
@@ -2813,7 +2814,7 @@ GROUP BY c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName"
         await base.GroupBy_with_group_key_being_navigation_with_entity_key_projection(async);
 
         AssertSql(
-"""
+            """
 SELECT o0."OrderID", o0."CustomerID", o0."EmployeeID", o0."OrderDate"
 FROM "Order Details" AS o
 INNER JOIN "Orders" AS o0 ON o."OrderID" = o0."OrderID"
@@ -2833,7 +2834,7 @@ GROUP BY o0."OrderID", o0."CustomerID", o0."EmployeeID", o0."OrderDate"
         await base.GroupBy_with_order_by_skip_and_another_order_by(async);
 
         AssertSql(
-"""
+            """
 @__p_0='80'
 
 SELECT COALESCE(sum(t."OrderID"), 0)::int
@@ -2852,7 +2853,7 @@ GROUP BY t."CustomerID"
         await base.GroupBy_Property_Select_Count_with_predicate(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*) FILTER (WHERE o."OrderID" < 10300)::int
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2864,7 +2865,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_Property_Select_LongCount_with_predicate(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*) FILTER (WHERE o."OrderID" < 10300)
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -2876,7 +2877,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_orderby_projection_with_coalesce_operation(async);
 
         AssertSql(
-"""
+            """
 SELECT COALESCE(c."City", 'Unknown') AS "Locality", count(*)::int AS "Count"
 FROM "Customers" AS c
 GROUP BY c."City"
@@ -2896,7 +2897,7 @@ ORDER BY count(*)::int DESC NULLS LAST, c."City" NULLS FIRST
         await base.GroupBy_Min_Where_optional_relationship(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID" AS "Key", count(*)::int AS "Count"
 FROM "Orders" AS o
 LEFT JOIN "Customers" AS c ON o."CustomerID" = c."CustomerID"
@@ -2910,7 +2911,7 @@ HAVING count(*)::int <> 2
         await base.GroupBy_Min_Where_optional_relationship_2(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID" AS "Key", count(*)::int AS "Count"
 FROM "Orders" AS o
 LEFT JOIN "Customers" AS c ON o."CustomerID" = c."CustomerID"
@@ -2924,7 +2925,7 @@ HAVING count(*)::int < 2 OR count(*)::int > 2
         await base.GroupBy_aggregate_over_a_subquery(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", (
     SELECT count(*)::int
     FROM "Customers" AS c
@@ -2939,7 +2940,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_aggregate_join_with_grouping_key(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region", t."Count"
 FROM (
     SELECT o."CustomerID" AS "Key", count(*)::int AS "Count"
@@ -2955,7 +2956,7 @@ INNER JOIN "Customers" AS c ON t."Key" = c."CustomerID"
         await base.GroupBy_aggregate_join_with_group_result(async);
 
         AssertSql(
-"""
+            """
 SELECT o0."OrderID", o0."CustomerID", o0."EmployeeID", o0."OrderDate"
 FROM (
     SELECT o."CustomerID" AS "Key", max(o."OrderDate") AS "LastOrderDate"
@@ -2971,7 +2972,7 @@ INNER JOIN "Orders" AS o0 ON (t."Key" = o0."CustomerID" OR (t."Key" IS NULL AND 
         await base.GroupBy_aggregate_from_right_side_of_join(async);
 
         AssertSql(
-"""
+            """
 @__p_0='10'
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region", t."Max"
@@ -2991,7 +2992,7 @@ LIMIT @__p_0 OFFSET @__p_0
         await base.GroupBy_aggregate_join_another_GroupBy_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT t."Key", t."Total", t0."ThatYear"
 FROM (
     SELECT o."CustomerID" AS "Key", count(*)::int AS "Total"
@@ -3012,7 +3013,7 @@ INNER JOIN (
         await base.GroupBy_aggregate_after_skip_0_take_0(async);
 
         AssertSql(
-"""
+            """
 @__p_0='0'
 
 SELECT t."CustomerID" AS "Key", count(*)::int AS "Total"
@@ -3030,7 +3031,7 @@ GROUP BY t."CustomerID"
         await base.GroupBy_skip_0_take_0_aggregate(async);
 
         AssertSql(
-"""
+            """
 @__p_0='0'
 
 SELECT o."CustomerID" AS "Key", count(*)::int AS "Total"
@@ -3046,7 +3047,7 @@ LIMIT @__p_0 OFFSET @__p_0
         await base.GroupBy_aggregate_followed_another_GroupBy_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT t0."CustomerID" AS "Key", count(*)::int AS "Count"
 FROM (
     SELECT t."CustomerID"
@@ -3065,7 +3066,7 @@ GROUP BY t0."CustomerID"
         await base.GroupBy_aggregate_without_selectMany_selecting_first(async);
 
         AssertSql(
-"""
+            """
 SELECT o0."OrderID", o0."CustomerID", o0."EmployeeID", o0."OrderDate"
 FROM (
     SELECT min(o."OrderID") AS c
@@ -3082,7 +3083,7 @@ WHERE o0."OrderID" = t.c
         await base.GroupBy_aggregate_left_join_GroupBy_aggregate_left_join(async);
 
         AssertSql(
-"""
+            """
 SELECT [o0].[OrderID], [o0].[CustomerID], [o0].[EmployeeID], [o0].[OrderDate]
 FROM (
     SELECT MIN([o].[OrderID]) AS [c]
@@ -3099,7 +3100,7 @@ WHERE [o0].[OrderID] = [t].[c]
         await base.GroupBy_selecting_grouping_key_list(async);
 
         AssertSql(
-"""
+            """
 SELECT t."CustomerID", o0."CustomerID", o0."OrderID"
 FROM (
     SELECT o."CustomerID"
@@ -3116,7 +3117,7 @@ ORDER BY t."CustomerID" NULLS FIRST
         await base.GroupBy_with_grouping_key_using_Like(async);
 
         AssertSql(
-"""
+            """
 SELECT t."Key", count(*)::int AS "Count"
 FROM (
     SELECT o."CustomerID" LIKE 'A%' AND o."CustomerID" IS NOT NULL AS "Key"
@@ -3131,7 +3132,7 @@ GROUP BY t."Key"
         await base.GroupBy_with_grouping_key_DateTime_Day(async);
 
         AssertSql(
-"""
+            """
 SELECT t."Key", count(*)::int AS "Count"
 FROM (
     SELECT date_part('day', o."OrderDate")::int AS "Key"
@@ -3146,7 +3147,7 @@ GROUP BY t."Key"
         await base.GroupBy_with_cast_inside_grouping_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", count(*)::int AS "Count", COALESCE(sum(o."OrderID"::bigint), 0.0)::bigint AS "Sum"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -3158,7 +3159,7 @@ GROUP BY o."CustomerID"
         await base.Complex_query_with_groupBy_in_subquery1(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", t."Sum", t."CustomerID"
 FROM "Customers" AS c
 LEFT JOIN LATERAL (
@@ -3176,7 +3177,7 @@ ORDER BY c."CustomerID" NULLS FIRST
         await base.Complex_query_with_groupBy_in_subquery2(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", t."Max", t."Sum", t."CustomerID"
 FROM "Customers" AS c
 LEFT JOIN LATERAL (
@@ -3194,7 +3195,7 @@ ORDER BY c."CustomerID" NULLS FIRST
         await base.Complex_query_with_groupBy_in_subquery3(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", t."Max", t."Sum", t."CustomerID"
 FROM "Customers" AS c
 LEFT JOIN LATERAL (
@@ -3211,7 +3212,7 @@ ORDER BY c."CustomerID" NULLS FIRST
         await base.Group_by_with_projection_into_DTO(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID"::bigint AS "Id", count(*)::int AS "Count"
 FROM "Orders" AS o
 GROUP BY o."OrderID"
@@ -3223,7 +3224,7 @@ GROUP BY o."OrderID"
         await base.Where_select_function_groupby_followed_by_another_select_with_aggregates(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", COALESCE(sum(CASE
     WHEN 2020 - date_part('year', o."OrderDate")::int <= 30 THEN o."OrderID"
     ELSE 0
@@ -3242,7 +3243,7 @@ GROUP BY o."CustomerID"
         await base.Group_by_column_project_constant(async);
 
         AssertSql(
-"""
+            """
 SELECT 42
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -3255,7 +3256,7 @@ ORDER BY o."CustomerID" NULLS FIRST
         await base.Key_plus_key_in_projection(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID" + o."OrderID" AS "Value", avg(o."OrderID"::double precision) AS "Average"
 FROM "Orders" AS o
 LEFT JOIN "Customers" AS c ON o."CustomerID" = c."CustomerID"
@@ -3268,7 +3269,7 @@ GROUP BY o."OrderID"
         await base.Group_by_with_arithmetic_operation_inside_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", COALESCE(sum(o."OrderID" + length(o."CustomerID")::int), 0)::int AS "Sum"
 FROM "Orders" AS o
 GROUP BY o."CustomerID"
@@ -3280,7 +3281,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_scalar_subquery(async);
 
         AssertSql(
-"""
+            """
 SELECT t."Key", count(*)::int AS "Count"
 FROM (
     SELECT (
@@ -3299,7 +3300,7 @@ GROUP BY t."Key"
         await base.AsEnumerable_in_subquery_for_GroupBy(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region", t2."OrderID", t2."CustomerID", t2."EmployeeID", t2."OrderDate", t2."CustomerID0"
 FROM "Customers" AS c
 LEFT JOIN LATERAL (
@@ -3330,7 +3331,7 @@ ORDER BY c."CustomerID" NULLS FIRST, t2."CustomerID0" NULLS FIRST
         await base.GroupBy_aggregate_from_multiple_query_in_same_projection(async);
 
         AssertSql(
-"""
+            """
 SELECT [t].[CustomerID], [t0].[Key], [t0].[C], [t0].[c0]
 FROM (
     SELECT [o].[CustomerID]
@@ -3355,7 +3356,7 @@ OUTER APPLY (
         await base.GroupBy_aggregate_from_multiple_query_in_same_projection_2(async);
 
         AssertSql(
-"""
+            """
 SELECT o."CustomerID" AS "Key", COALESCE((
     SELECT count(*)::int + min(o."OrderID")
     FROM "Employees" AS e
@@ -3373,7 +3374,7 @@ GROUP BY o."CustomerID"
         await base.GroupBy_aggregate_from_multiple_query_in_same_projection_3(async);
 
         AssertSql(
-"""
+            """
 SELECT [o].[CustomerID] AS [Key], COALESCE((
     SELECT TOP(1) COUNT(*) + (
         SELECT COUNT(*)
@@ -3396,7 +3397,7 @@ GROUP BY [o].[CustomerID]
         await base.GroupBy_scalar_aggregate_in_set_operation(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", 0 AS "Sequence"
 FROM "Customers" AS c
 WHERE c."CustomerID" LIKE 'F%'
@@ -3412,7 +3413,7 @@ GROUP BY o."CustomerID"
         await base.Select_uncorrelated_collection_with_groupby_when_outer_is_distinct(async);
 
         AssertSql(
-"""
+            """
 SELECT t."City", t0."ProductID", t1.c, t1."ProductID"
 FROM (
     SELECT DISTINCT c."City"
@@ -3439,7 +3440,7 @@ ORDER BY t."City" NULLS FIRST, t0."ProductID" NULLS FIRST
         await base.Select_correlated_collection_after_GroupBy_aggregate_when_identifier_does_not_change(async);
 
         AssertSql(
-"""
+            """
 SELECT t."CustomerID", o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM (
     SELECT c."CustomerID"
@@ -3457,7 +3458,7 @@ ORDER BY t."CustomerID" NULLS FIRST
         await base.Select_correlated_collection_after_GroupBy_aggregate_when_identifier_changes(async);
 
         AssertSql(
-"""
+            """
 SELECT t."CustomerID", o0."OrderID", o0."CustomerID", o0."EmployeeID", o0."OrderDate"
 FROM (
     SELECT o."CustomerID"
@@ -3479,7 +3480,7 @@ ORDER BY t."CustomerID" NULLS FIRST
         await base.Complex_query_with_group_by_in_subquery5(async);
 
         AssertSql(
-"""
+            """
 SELECT t.c, t."ProductID", t0."CustomerID", t0."City"
 FROM (
     SELECT COALESCE(sum(o."ProductID" + o."OrderID" * 1000), 0)::int AS c, o."ProductID", min(o."OrderID" / 100) AS c0
@@ -3503,7 +3504,7 @@ ORDER BY t."ProductID" NULLS FIRST, t0."CustomerID" NULLS FIRST
         await base.Complex_query_with_groupBy_in_subquery4(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", t1."Sum", t1."Count", t1."Key"
 FROM "Customers" AS c
 LEFT JOIN LATERAL (
@@ -3541,7 +3542,7 @@ ORDER BY c."CustomerID" NULLS FIRST
         await base.Final_GroupBy_property_entity(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City", c."CustomerID", c."Address", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 ORDER BY c."City" NULLS FIRST
@@ -3553,7 +3554,7 @@ ORDER BY c."City" NULLS FIRST
         await base.Final_GroupBy_entity(async);
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region", o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
 LEFT JOIN "Customers" AS c ON o."CustomerID" = c."CustomerID"
@@ -3567,7 +3568,7 @@ ORDER BY c."CustomerID" NULLS FIRST, c."Address" NULLS FIRST, c."City" NULLS FIR
         await base.Final_GroupBy_property_entity_non_nullable(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
 FROM "Order Details" AS o
 WHERE o."OrderID" < 10500
@@ -3580,7 +3581,7 @@ ORDER BY o."OrderID" NULLS FIRST
         await base.Final_GroupBy_property_anonymous_type(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City", c."ContactName", c."ContactTitle"
 FROM "Customers" AS c
 ORDER BY c."City" NULLS FIRST
@@ -3592,7 +3593,7 @@ ORDER BY c."City" NULLS FIRST
         await base.Final_GroupBy_multiple_properties_entity(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City", c."Region", c."CustomerID", c."Address", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode"
 FROM "Customers" AS c
 ORDER BY c."City" NULLS FIRST, c."Region" NULLS FIRST
@@ -3604,7 +3605,7 @@ ORDER BY c."City" NULLS FIRST, c."Region" NULLS FIRST
         await base.Final_GroupBy_complex_key_entity(async);
 
         AssertSql(
-"""
+            """
 SELECT t."City", t."Region", t."Constant", t."CustomerID", t."Address", t."CompanyName", t."ContactName", t."ContactTitle", t."Country", t."Fax", t."Phone", t."PostalCode"
 FROM (
     SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region", 1 AS "Constant"
@@ -3619,7 +3620,7 @@ ORDER BY t."City" NULLS FIRST, t."Region" NULLS FIRST, t."Constant" NULLS FIRST
         await base.Final_GroupBy_nominal_type_entity(async);
 
         AssertSql(
-"""
+            """
 SELECT t."City", t."Constant", t."CustomerID", t."Address", t."CompanyName", t."ContactName", t."ContactTitle", t."Country", t."Fax", t."Phone", t."PostalCode", t."Region"
 FROM (
     SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region", 1 AS "Constant"
@@ -3634,7 +3635,7 @@ ORDER BY t."City" NULLS FIRST, t."Constant" NULLS FIRST
         await base.Final_GroupBy_property_anonymous_type_element_selector(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City", c."ContactName", c."ContactTitle"
 FROM "Customers" AS c
 ORDER BY c."City" NULLS FIRST
@@ -3646,7 +3647,7 @@ ORDER BY c."City" NULLS FIRST
         await base.Final_GroupBy_property_entity_Include_collection(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City", c."CustomerID", c."Address", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region", o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Customers" AS c
 LEFT JOIN "Orders" AS o ON c."CustomerID" = o."CustomerID"
@@ -3660,7 +3661,7 @@ ORDER BY c."City" NULLS FIRST, c."CustomerID" NULLS FIRST
         await base.Final_GroupBy_property_entity_projecting_collection(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City", c."CustomerID", o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Customers" AS c
 LEFT JOIN "Orders" AS o ON c."CustomerID" = o."CustomerID"
@@ -3674,7 +3675,7 @@ ORDER BY c."City" NULLS FIRST, c."CustomerID" NULLS FIRST
         await base.Final_GroupBy_property_entity_projecting_collection_composed(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City", c."CustomerID", t."OrderID", t."CustomerID", t."EmployeeID", t."OrderDate"
 FROM "Customers" AS c
 LEFT JOIN (
@@ -3692,7 +3693,7 @@ ORDER BY c."City" NULLS FIRST, c."CustomerID" NULLS FIRST
         await base.Final_GroupBy_property_entity_projecting_collection_and_single_result(async);
 
         AssertSql(
-"""
+            """
 SELECT c."City", c."CustomerID", t."OrderID", t."CustomerID", t."EmployeeID", t."OrderDate", t0."OrderID", t0."CustomerID", t0."EmployeeID", t0."OrderDate"
 FROM "Customers" AS c
 LEFT JOIN (
@@ -3767,7 +3768,7 @@ ORDER BY c."City" NULLS FIRST, c."CustomerID" NULLS FIRST
         await base.GroupBy_complex_key_without_aggregate(async);
 
         AssertSql(
-"""
+            """
 SELECT t0."Key", t1."OrderID", t1."CustomerID", t1."EmployeeID", t1."OrderDate", t1."CustomerID0"
 FROM (
     SELECT t."Key"
@@ -3806,7 +3807,7 @@ ORDER BY t0."Key" NULLS FIRST, t1."OrderID" NULLS FIRST
                   select g.OrderBy(e => e.OrderID).Select(e => (int?)e.OrderID).Average());
 
         AssertSql(
-"""
+            """
 SELECT avg(o."OrderID"::double precision ORDER BY o."OrderID" NULLS FIRST)
 FROM "Orders" AS o
 GROUP BY o."CustomerID"

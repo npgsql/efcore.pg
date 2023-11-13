@@ -1,13 +1,12 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 /// <summary>
-/// Provides translation services for PostgreSQL UUID functions.
+///     Provides translation services for PostgreSQL UUID functions.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/datatype-uuid.html
+///     See: https://www.postgresql.org/docs/current/datatype-uuid.html
 /// </remarks>
 public class NpgsqlNewGuidTranslator : IMethodCallTranslator
 {

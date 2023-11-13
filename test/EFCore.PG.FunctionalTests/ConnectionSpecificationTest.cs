@@ -61,7 +61,9 @@ public class ConnectionSpecificationTest
         private readonly NpgsqlConnection _connection;
 
         public ConnectionInOnConfiguringContext(NpgsqlConnection connection)
-            => _connection = connection;
+        {
+            _connection = connection;
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder.UseNpgsql(_connection, b => b.ApplyConfiguration());
@@ -191,7 +193,9 @@ public class ConnectionSpecificationTest
 
         public NonGenericOptionsContext(DbContextOptions options)
             : base(options)
-            => _options = options;
+        {
+            _options = options;
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -218,11 +222,12 @@ public class ConnectionSpecificationTest
         public DbSet<Customer> Customers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-            => modelBuilder.Entity<Customer>(b =>
-            {
-                b.HasKey(c => c.CustomerId);
-                b.ToTable("Customers");
-            });
+            => modelBuilder.Entity<Customer>(
+                b =>
+                {
+                    b.HasKey(c => c.CustomerId);
+                    b.ToTable("Customers");
+                });
     }
 
     // ReSharper disable once ClassNeverInstantiated.Local
@@ -230,8 +235,10 @@ public class ConnectionSpecificationTest
     {
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public string CustomerId { get; set; }
+
         // ReSharper disable once UnusedMember.Local
         public string CompanyName { get; set; }
+
         // ReSharper disable once UnusedMember.Local
         public string Fax { get; set; }
     }

@@ -16,7 +16,7 @@ public class ComplexTypeBulkUpdatesNpgsqlTest : ComplexTypeBulkUpdatesTestBase<
         await base.Delete_entity_type_with_complex_type(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Customer" AS c
 WHERE c."Name" = 'Monty Elias'
 """);
@@ -34,7 +34,7 @@ WHERE c."Name" = 'Monty Elias'
         await base.Update_property_inside_complex_type(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Customer" AS c
 SET "ShippingAddress_ZipCode" = 12345
 WHERE c."ShippingAddress_ZipCode" = 7728
@@ -46,7 +46,7 @@ WHERE c."ShippingAddress_ZipCode" = 7728
         await base.Update_property_inside_nested_complex_type(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Customer" AS c
 SET "ShippingAddress_Country_FullName" = 'United States Modified'
 WHERE c."ShippingAddress_Country_Code" = 'US'
@@ -58,7 +58,7 @@ WHERE c."ShippingAddress_Country_Code" = 'US'
         await base.Update_multiple_properties_inside_multiple_complex_types_and_on_entity_type(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Customer" AS c
 SET "BillingAddress_ZipCode" = 54321,
     "ShippingAddress_ZipCode" = c."BillingAddress_ZipCode",
@@ -72,7 +72,7 @@ WHERE c."ShippingAddress_ZipCode" = 7728
         await base.Update_projected_complex_type(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Customer" AS c
 SET "ShippingAddress_ZipCode" = 12345
 """);
@@ -83,7 +83,7 @@ SET "ShippingAddress_ZipCode" = 12345
         await base.Update_multiple_projected_complex_types_via_anonymous_type(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Customer" AS c
 SET "BillingAddress_ZipCode" = 54321,
     "ShippingAddress_ZipCode" = c."BillingAddress_ZipCode"
@@ -99,24 +99,16 @@ SET "BillingAddress_ZipCode" = 54321,
 
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
-    {
-        TestHelpers.AssertAllMethodsOverridden(GetType());
-    }
+        => TestHelpers.AssertAllMethodsOverridden(GetType());
 
     private void AssertExecuteUpdateSql(params string[] expected)
-    {
-        Fixture.TestSqlLoggerFactory.AssertBaseline(expected, forUpdate: true);
-    }
+        => Fixture.TestSqlLoggerFactory.AssertBaseline(expected, forUpdate: true);
 
     private void AssertSql(params string[] expected)
-    {
-        Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
-    }
+        => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
     protected void ClearLog()
-    {
-        Fixture.TestSqlLoggerFactory.Clear();
-    }
+        => Fixture.TestSqlLoggerFactory.Clear();
 
     public class ComplexTypeBulkUpdatesNpgsqlFixture : ComplexTypeBulkUpdatesFixtureBase
     {

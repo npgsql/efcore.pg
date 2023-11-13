@@ -24,7 +24,7 @@ public class TPCFiltersInheritanceBulkUpdatesNpgsqlTest
         await base.Delete_where_hierarchy_derived(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Kiwi" AS k
 WHERE k."CountryId" = 1 AND k."Name" = 'Great spotted kiwi'
 """);
@@ -35,7 +35,7 @@ WHERE k."CountryId" = 1 AND k."Name" = 'Great spotted kiwi'
         await base.Delete_where_using_hierarchy(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Countries" AS c
 WHERE (
     SELECT count(*)::int
@@ -55,7 +55,7 @@ WHERE (
         await base.Delete_where_using_hierarchy_derived(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Countries" AS c
 WHERE (
     SELECT count(*)::int
@@ -128,7 +128,7 @@ WHERE (
         await base.Update_base_property_on_derived_type(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Kiwi" AS k
 SET "Name" = 'SomeOtherKiwi'
 WHERE k."CountryId" = 1
@@ -140,7 +140,7 @@ WHERE k."CountryId" = 1
         await base.Update_derived_property_on_derived_type(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Kiwi" AS k
 SET "FoundOn" = 0
 WHERE k."CountryId" = 1
@@ -152,7 +152,7 @@ WHERE k."CountryId" = 1
         await base.Update_where_using_hierarchy(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Countries" AS c
 SET "Name" = 'Monovia'
 WHERE (
@@ -173,7 +173,7 @@ WHERE (
         await base.Update_base_and_derived_types(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Kiwi" AS k
 SET "FoundOn" = 0,
     "Name" = 'Kiwi'
@@ -186,7 +186,7 @@ WHERE k."CountryId" = 1
         await base.Update_where_using_hierarchy_derived(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Countries" AS c
 SET "Name" = 'Monovia'
 WHERE (
@@ -210,7 +210,8 @@ WHERE (
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());
 
-    protected override void ClearLog() => Fixture.TestSqlLoggerFactory.Clear();
+    protected override void ClearLog()
+        => Fixture.TestSqlLoggerFactory.Clear();
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

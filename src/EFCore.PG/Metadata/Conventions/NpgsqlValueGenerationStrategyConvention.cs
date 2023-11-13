@@ -1,16 +1,16 @@
 ﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 
 /// <summary>
-/// A convention that configures the default model <see cref="NpgsqlValueGenerationStrategy"/> as
-/// <see cref="NpgsqlValueGenerationStrategy.IdentityByDefaultColumn"/> for newer PostgreSQL versions,
-/// and <see cref="NpgsqlValueGenerationStrategy.SerialColumn"/> for pre-10.0 versions.
+///     A convention that configures the default model <see cref="NpgsqlValueGenerationStrategy" /> as
+///     <see cref="NpgsqlValueGenerationStrategy.IdentityByDefaultColumn" /> for newer PostgreSQL versions,
+///     and <see cref="NpgsqlValueGenerationStrategy.SerialColumn" /> for pre-10.0 versions.
 /// </summary>
 public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConvention, IModelFinalizingConvention
 {
     private readonly Version? _postgresVersion;
 
     /// <summary>
-    /// Creates a new instance of <see cref="NpgsqlValueGenerationStrategyConvention" />.
+    ///     Creates a new instance of <see cref="NpgsqlValueGenerationStrategyConvention" />.
     /// </summary>
     /// <param name="dependencies">Parameter object containing dependencies for this convention.</param>
     /// <param name="relationalDependencies"> Parameter object containing relational dependencies for this convention.</param>
@@ -26,7 +26,7 @@ public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConventi
     }
 
     /// <summary>
-    /// Parameter object containing service dependencies.
+    ///     Parameter object containing service dependencies.
     /// </summary>
     protected virtual ProviderConventionSetBuilderDependencies Dependencies { get; }
 
@@ -44,7 +44,8 @@ public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConventi
 
     /// <inheritdoc />
     public virtual void ProcessModelFinalizing(
-        IConventionModelBuilder modelBuilder, IConventionContext<IConventionModelBuilder> context)
+        IConventionModelBuilder modelBuilder,
+        IConventionContext<IConventionModelBuilder> context)
     {
         foreach (var entityType in modelBuilder.Metadata.GetEntityTypes())
         {

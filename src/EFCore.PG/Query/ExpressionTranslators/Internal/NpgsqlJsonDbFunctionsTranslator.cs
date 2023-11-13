@@ -122,6 +122,7 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
                 ? traversal
                 : returnsText
                     ? new PgJsonTraversalExpression(traversal.Expression, traversal.Path, true, typeof(string), _stringTypeMapping)
-                    : new PgJsonTraversalExpression(traversal.Expression, traversal.Path, false, traversal.Type, traversal.Expression.TypeMapping);
+                    : new PgJsonTraversalExpression(
+                        traversal.Expression, traversal.Path, false, traversal.Type, traversal.Expression.TypeMapping);
     }
 }

@@ -7,5 +7,5 @@ public class InheritanceRelationshipsQueryNpgsqlTest : InheritanceRelationshipsQ
     {
     }
 
-    protected override void ClearLog() {}
+    protected override void ClearLog() { }
 }

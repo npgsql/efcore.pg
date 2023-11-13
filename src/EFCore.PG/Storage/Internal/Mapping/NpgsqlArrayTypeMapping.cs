@@ -39,9 +39,11 @@ public abstract class NpgsqlArrayTypeMapping : RelationalTypeMapping
         get
         {
             var elementTypeMapping = base.ElementTypeMapping;
-            Check.DebugAssert(elementTypeMapping is not null,
+            Check.DebugAssert(
+                elementTypeMapping is not null,
                 "NpgsqlArrayTypeMapping without an element type mapping");
-            Check.DebugAssert(elementTypeMapping is RelationalTypeMapping,
+            Check.DebugAssert(
+                elementTypeMapping is RelationalTypeMapping,
                 "NpgsqlArrayTypeMapping with a non-relational element type mapping");
             return (RelationalTypeMapping)elementTypeMapping;
         }
@@ -57,7 +59,7 @@ public abstract class NpgsqlArrayTypeMapping : RelationalTypeMapping
 public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> : NpgsqlArrayTypeMapping
 {
     /// <summary>
-    /// The database type used by Npgsql.
+    ///     The database type used by Npgsql.
     /// </summary>
     public virtual NpgsqlDbType? NpgsqlDbType { get; }
 
@@ -69,7 +71,9 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
     /// </summary>
     [UsedImplicitly]
     public NpgsqlArrayTypeMapping(RelationalTypeMapping elementTypeMapping)
-        : this(elementTypeMapping.StoreType + "[]", elementTypeMapping) {}
+        : this(elementTypeMapping.StoreType + "[]", elementTypeMapping)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -104,13 +108,15 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
             }
 
             converter = (ValueConverter)Activator.CreateInstance(
-                typeof(NpgsqlArrayConverter<,,>).MakeGenericType(typeof(TCollection), typeof(TConcreteCollection), providerElementType.MakeArrayType()),
+                typeof(NpgsqlArrayConverter<,,>).MakeGenericType(
+                    typeof(TCollection), typeof(TConcreteCollection), providerElementType.MakeArrayType()),
                 elementConverter)!;
         }
         else if (typeof(TCollection) != typeof(TConcreteCollection))
         {
             converter = (ValueConverter)Activator.CreateInstance(
-                typeof(NpgsqlArrayConverter<,,>).MakeGenericType(typeof(TCollection), typeof(TConcreteCollection), elementType.MakeArrayType()))!;
+                typeof(NpgsqlArrayConverter<,,>).MakeGenericType(
+                    typeof(TCollection), typeof(TConcreteCollection), elementType.MakeArrayType()))!;
         }
 
 #pragma warning disable EF1001
@@ -135,14 +141,15 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
         // If there's no JsonValueReaderWriter on the element, we also don't set one on its array (this is for rare edge cases such as
         // NpgsqlRowValueTypeMapping).
         // TODO: Also, we don't (yet) support JSON serialization of multidimensional arrays.
-        var collectionJsonReaderWriter = elementJsonReaderWriter is null || typeof(TCollection).IsArray && typeof(TCollection).GetArrayRank() > 1
-            ? null
-            : (JsonValueReaderWriter?)Activator.CreateInstance(
-                (elementType.IsNullableValueType()
-                    ? typeof(JsonNullableStructCollectionReaderWriter<,,>)
-                    : typeof(JsonCollectionReaderWriter<,,>))
-                .MakeGenericType(typeof(TCollection), typeof(TConcreteCollection), elementType.UnwrapNullableType()),
-                elementJsonReaderWriter);
+        var collectionJsonReaderWriter =
+            elementJsonReaderWriter is null || typeof(TCollection).IsArray && typeof(TCollection).GetArrayRank() > 1
+                ? null
+                : (JsonValueReaderWriter?)Activator.CreateInstance(
+                    (elementType.IsNullableValueType()
+                        ? typeof(JsonNullableStructCollectionReaderWriter<,,>)
+                        : typeof(JsonCollectionReaderWriter<,,>))
+                    .MakeGenericType(typeof(TCollection), typeof(TConcreteCollection), elementType.UnwrapNullableType()),
+                    elementJsonReaderWriter);
 
         return new RelationalTypeMappingParameters(
             new CoreTypeMappingParameters(
@@ -170,8 +177,8 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
         // If the element mapping has an NpgsqlDbType or DbType, set our own NpgsqlDbType as an array of that.
         // Otherwise let the ADO.NET layer infer the PostgreSQL type. We can't always let it infer, otherwise
         // when given a byte[] it will infer byte (but we want smallint[])
-        NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Array |
-            (ElementTypeMapping is INpgsqlTypeMapping elementNpgsqlTypeMapping
+        NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Array
+            | (ElementTypeMapping is INpgsqlTypeMapping elementNpgsqlTypeMapping
                 ? elementNpgsqlTypeMapping.NpgsqlDbType
                 : ElementTypeMapping.DbType.HasValue
                     ? new NpgsqlParameter { DbType = ElementTypeMapping.DbType.Value }.NpgsqlDbType

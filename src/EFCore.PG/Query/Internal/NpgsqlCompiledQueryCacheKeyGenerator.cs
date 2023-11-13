@@ -40,7 +40,8 @@ public class NpgsqlCompiledQueryCacheKeyGenerator : RelationalCompiledQueryCache
         private readonly bool _reverseNullOrdering;
 
         public NpgsqlCompiledQueryCacheKey(
-            RelationalCompiledQueryCacheKey relationalCompiledQueryCacheKey, bool reverseNullOrdering)
+            RelationalCompiledQueryCacheKey relationalCompiledQueryCacheKey,
+            bool reverseNullOrdering)
         {
             _relationalCompiledQueryCacheKey = relationalCompiledQueryCacheKey;
             _reverseNullOrdering = reverseNullOrdering;
@@ -55,6 +56,7 @@ public class NpgsqlCompiledQueryCacheKeyGenerator : RelationalCompiledQueryCache
             => _relationalCompiledQueryCacheKey.Equals(other._relationalCompiledQueryCacheKey)
                 && _reverseNullOrdering == other._reverseNullOrdering;
 
-        public override int GetHashCode() => HashCode.Combine(_relationalCompiledQueryCacheKey, _reverseNullOrdering);
+        public override int GetHashCode()
+            => HashCode.Combine(_relationalCompiledQueryCacheKey, _reverseNullOrdering);
     }
 }

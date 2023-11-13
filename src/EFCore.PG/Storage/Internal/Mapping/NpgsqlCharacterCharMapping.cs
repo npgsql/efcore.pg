@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore.Storage.Json;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// Type mapping for the PostgreSQL 'character' data type. Handles both CLR strings and chars.
+///     Type mapping for the PostgreSQL 'character' data type. Handles both CLR strings and chars.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/datatype-character.html
+///     See: https://www.postgresql.org/docs/current/static/datatype-character.html
 /// </remarks>
 public class NpgsqlCharacterCharTypeMapping : CharTypeMapping, INpgsqlTypeMapping
 {
@@ -63,7 +63,8 @@ public class NpgsqlCharacterCharTypeMapping : CharTypeMapping, INpgsqlTypeMappin
     {
         if (parameter is not NpgsqlParameter npgsqlParameter)
         {
-            throw new InvalidOperationException($"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+            throw new InvalidOperationException(
+                $"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
         }
 
         base.ConfigureParameter(parameter);

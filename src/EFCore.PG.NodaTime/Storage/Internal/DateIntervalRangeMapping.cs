@@ -90,8 +90,10 @@ public class DateIntervalRangeMapping : NpgsqlTypeMapping
         var (start, end) = (DateInterval)value;
         return Expression.New(
             _constructorWithDates,
-            Expression.New(_localDateConstructor, Expression.Constant(start.Year), Expression.Constant(start.Month), Expression.Constant(start.Day)),
-            Expression.New(_localDateConstructor, Expression.Constant(end.Year), Expression.Constant(end.Month), Expression.Constant(end.Day))
+            Expression.New(
+                _localDateConstructor, Expression.Constant(start.Year), Expression.Constant(start.Month), Expression.Constant(start.Day)),
+            Expression.New(
+                _localDateConstructor, Expression.Constant(end.Year), Expression.Constant(end.Month), Expression.Constant(end.Day))
         );
     }
 }

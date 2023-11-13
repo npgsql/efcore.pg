@@ -4,27 +4,27 @@ using Microsoft.EntityFrameworkCore.Storage.Json;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// Type mapping for the PostgreSQL 'character' data type. Handles both CLR strings and chars.
+///     Type mapping for the PostgreSQL 'character' data type. Handles both CLR strings and chars.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/datatype-character.html
+///     See: https://www.postgresql.org/docs/current/static/datatype-character.html
 /// </remarks>
 /// <inheritdoc />
 public class NpgsqlCharacterStringTypeMapping : NpgsqlStringTypeMapping
 {
     /// <summary>
-    /// Static <see cref="ValueComparer{T}"/> for fixed-width character types.
+    ///     Static <see cref="ValueComparer{T}" /> for fixed-width character types.
     /// </summary>
     /// <remarks>
-    /// <p>
-    /// Comparisons of 'character' data as defined in the SQL standard differ dramatically from CLR string
-    /// comparisons. This value comparer adjusts for this by only comparing strings after truncating trailing
-    /// whitespace.
-    /// </p>
-    /// <p>
-    /// Note that if a value converter is used and the CLR type isn't a string at all, we just use the default
-    /// value converter instead.
-    /// </p>
+    ///     <p>
+    ///         Comparisons of 'character' data as defined in the SQL standard differ dramatically from CLR string
+    ///         comparisons. This value comparer adjusts for this by only comparing strings after truncating trailing
+    ///         whitespace.
+    ///     </p>
+    ///     <p>
+    ///         Note that if a value converter is used and the CLR type isn't a string at all, we just use the default
+    ///         value converter instead.
+    ///     </p>
     /// </remarks>
     private static readonly ValueComparer<string> CharacterValueComparer =
         new(
@@ -37,7 +37,8 @@ public class NpgsqlCharacterStringTypeMapping : NpgsqlStringTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override ValueComparer Comparer => ClrType == typeof(string) ? CharacterValueComparer : base.Comparer;
+    public override ValueComparer Comparer
+        => ClrType == typeof(string) ? CharacterValueComparer : base.Comparer;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -45,7 +46,8 @@ public class NpgsqlCharacterStringTypeMapping : NpgsqlStringTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override ValueComparer KeyComparer => Comparer;
+    public override ValueComparer KeyComparer
+        => Comparer;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -84,16 +86,17 @@ public class NpgsqlCharacterStringTypeMapping : NpgsqlStringTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-        => new NpgsqlCharacterStringTypeMapping(new RelationalTypeMappingParameters(
-            parameters.CoreParameters,
-            parameters.StoreType,
-            StoreTypePostfix.Size,
-            parameters.DbType,
-            parameters.Unicode,
-            parameters.Size,
-            parameters.FixedLength,
-            parameters.Precision,
-            parameters.Scale));
+        => new NpgsqlCharacterStringTypeMapping(
+            new RelationalTypeMappingParameters(
+                parameters.CoreParameters,
+                parameters.StoreType,
+                StoreTypePostfix.Size,
+                parameters.DbType,
+                parameters.Unicode,
+                parameters.Size,
+                parameters.FixedLength,
+                parameters.Precision,
+                parameters.Scale));
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

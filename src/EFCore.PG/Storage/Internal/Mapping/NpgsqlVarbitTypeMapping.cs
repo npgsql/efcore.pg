@@ -30,7 +30,9 @@ public class NpgsqlVarbitTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlVarbitTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Varbit) {}
+        : base(parameters, NpgsqlDbType.Varbit)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -76,7 +78,8 @@ public class NpgsqlVarbitTypeMapping : NpgsqlTypeMapping
             exprs[i] = Expression.Constant(bits[i]);
         }
 
-        return Expression.New(Constructor,
+        return Expression.New(
+            Constructor,
             Expression.NewArrayInit(typeof(bool), exprs));
     }
 

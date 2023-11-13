@@ -5,7 +5,10 @@ public class ArrayQueryContext : PoolableDbContext
     public DbSet<ArrayEntity> SomeEntities { get; set; }
     public DbSet<ArrayContainerEntity> SomeEntityContainers { get; set; }
 
-    public ArrayQueryContext(DbContextOptions options) : base(options) {}
+    public ArrayQueryContext(DbContextOptions options)
+        : base(options)
+    {
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
         => modelBuilder.Entity<ArrayEntity>(
@@ -44,11 +47,7 @@ public class ArrayQueryContext : PoolableDbContext
 
         context.SomeEntities.AddRange(arrayEntities);
         context.SomeEntityContainers.Add(
-            new ArrayContainerEntity
-            {
-                Id = 1,
-                ArrayEntities = arrayEntities.ToList()
-            }
+            new ArrayContainerEntity { Id = 1, ArrayEntities = arrayEntities.ToList() }
         );
         context.SaveChanges();
     }

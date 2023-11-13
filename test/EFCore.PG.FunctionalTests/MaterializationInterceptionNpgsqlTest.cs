@@ -6,7 +6,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class MaterializationInterceptionNpgsqlTest : MaterializationInterceptionTestBase<MaterializationInterceptionNpgsqlTest.SqlServerLibraryContext>,
+public class MaterializationInterceptionNpgsqlTest :
+    MaterializationInterceptionTestBase<MaterializationInterceptionNpgsqlTest.SqlServerLibraryContext>,
     IClassFixture<MaterializationInterceptionNpgsqlTest.MaterializationInterceptionNpgsqlFixture>
 {
     public MaterializationInterceptionNpgsqlTest(MaterializationInterceptionNpgsqlFixture fixture)
