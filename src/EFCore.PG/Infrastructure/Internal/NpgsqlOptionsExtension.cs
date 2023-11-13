@@ -22,7 +22,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public static readonly Version DefaultPostgresVersion = new(12, 0);
+    public static readonly Version DefaultPostgresVersion = new(14, 0);
 
     /// <summary>
     /// The backend version to target.

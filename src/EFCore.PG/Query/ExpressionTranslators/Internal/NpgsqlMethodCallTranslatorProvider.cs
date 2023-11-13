@@ -32,8 +32,7 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
         : base(dependencies)
     {
         var npgsqlOptions = contextOptions.FindExtension<NpgsqlOptionsExtension>() ?? new();
-        var supportsMultiranges = !npgsqlOptions.IsPostgresVersionSet
-            || npgsqlOptions.IsPostgresVersionSet && npgsqlOptions.PostgresVersion.AtLeast(14);
+        var supportsMultiranges = npgsqlOptions.PostgresVersion.AtLeast(14);
 
         var sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
         var typeMappingSource = (NpgsqlTypeMappingSource)dependencies.RelationalTypeMappingSource;

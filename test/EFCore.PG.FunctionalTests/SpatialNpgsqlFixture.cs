@@ -22,7 +22,9 @@ public class SpatialNpgsqlFixture : SpatialFixtureBase
     public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
     {
         var optionsBuilder = base.AddOptions(builder);
-        new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseNetTopologySuite();
+        new NpgsqlDbContextOptionsBuilder(optionsBuilder)
+            .UseNetTopologySuite()
+            .SetPostgresVersion(TestEnvironment.PostgresVersion);
 
         return optionsBuilder;
     }
