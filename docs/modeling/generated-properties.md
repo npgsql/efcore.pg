@@ -19,10 +19,7 @@ The Npgsql EF Core provider allows you to choose which of the above you want on 
 * *Serial*: the traditional PostgreSQL serial column. This will create the column with the `serial` datatype. Recommended only if you are using an older PostgreSQL version.
 * *Sequence HiLo*: See below
 
-Prior to version 3.0, the Npgsql provider generates "serial" columns for ID columns; starting with version 3.0, it generates "identity by default" instead. In other words, when `ValueGeneratedOnAdd` is specified on a `short`, `int` or `long` property, the Npgsql provider will automatically map it to a serial or identity column. Note that EF Core will automatically recognize key properties by convention (e.g. a property called `Id` in your entity) and will implicitly set them to `ValueGeneratedOnAdd`; a standard model with ID columns should automatically get created with the appropriate column type.
-
-> [!CAUTION]
-> Since the default strategy has changed, if you have an existing database with migrations, the the first migration created after upgrading to version 3.0 will alter your tables and convert serial columns to identity ones. This is a sensitive, one-time migration operation that should be done with care, and carefully tested before deployment to production. Changing a value generation strategy is a significant change to an existing database.
+The default value generation strategy is "identity by default". In other words, when EF decides that an int property should be value generated (e.g. because it's named `Id`, or because you explicitly specified `ValueGeneratedOnAdd` on it), the Npgsql provider will automatically map it to an identity column.
 
 ### Defining the default strategy for the entire model
 
@@ -30,14 +27,7 @@ You can easily control the value generation strategy for the entire model. For e
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
-    => modelBuilder.UseSerialColumns();
-```
-
-Note that if you are using PostgreSQL 9.6 or older, identity columns will not work. It is recommended to place the provider in compatibility mode with your specific version - this will also affect the default value generation strategy:
-
-```c#
-protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    => optionsBuilder.UseNpgsql("...", o => o.SetPostgresVersion(9, 6));
+    => modelBuilder.UseIdentityByDefaultColumns();
 ```
 
 ### Defining the strategy for a single property
@@ -187,7 +177,7 @@ CREATE TRIGGER "UpdateTimestamp"
 ## Computed Columns
 
 > [!NOTE]
-> This feature works only on PostgreSQL 12 or above, and was introduced in version 3.0.0 of the provider.
+> This feature works only on PostgreSQL 12 or above.
 
 PostgreSQL 12 added support for [stored generated columns](https://www.postgresql.org/docs/current/ddl-generated-columns.html), and Npgsql feature supports that feature as well:
 
