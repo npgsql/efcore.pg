@@ -4,7 +4,9 @@ public class NorthwindKeylessEntitiesQueryNpgsqlTest : NorthwindKeylessEntitiesQ
     NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
 {
     // ReSharper disable once UnusedParameter.Local
-    public NorthwindKeylessEntitiesQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
+    public NorthwindKeylessEntitiesQueryNpgsqlTest(
+        NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture,
+        ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
@@ -17,7 +19,7 @@ public class NorthwindKeylessEntitiesQueryNpgsqlTest : NorthwindKeylessEntitiesQ
         await Assert.ThrowsAsync<PostgresException>(() => base.KeylessEntity_with_nav_defining_query(async));
 
         AssertSql(
-"""
+            """
 SELECT c."CompanyName", c."OrderCount", c."SearchTerm"
 FROM "CustomerQueryWithQueryFilter" AS c
 WHERE c."OrderCount" > 0

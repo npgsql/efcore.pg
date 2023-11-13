@@ -13,7 +13,8 @@ public class PropertyValuesNpgsqlTest : PropertyValuesTestBase<PropertyValuesNpg
     {
         protected override string StoreName { get; } = "PropertyValues";
 
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {

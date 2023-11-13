@@ -383,13 +383,11 @@ public abstract class ArrayQueryTest<TFixture> : QueryTestBase<TFixture>
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task Any_like_column(bool async)
-    {
-        await AssertQuery(
+        => await AssertQuery(
             async,
             ss => ss.Set<ArrayEntity>().Where(e => e.StringArray.Any(s => EF.Functions.Like(s, "3"))),
             ss => ss.Set<ArrayEntity>().Where(e => e.StringArray.Any(s => s.Contains("3"))),
             entryCount: 1);
-    }
 
     #endregion Any/All
 
@@ -406,7 +404,7 @@ public abstract class ArrayQueryTest<TFixture> : QueryTestBase<TFixture>
             elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
 
         AssertSql(
-"""
+            """
 SELECT ARRAY[s."NullableText",s."NonNullableText"]::text[]
 FROM "SomeEntities" AS s
 """);
@@ -441,7 +439,7 @@ FROM "SomeEntities" AS s
             elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
 
         AssertSql(
-"""
+            """
 SELECT ARRAY[s."Varchar10",s."Varchar15"]::varchar(15)[]
 FROM "SomeEntities" AS s
 """);
@@ -458,7 +456,7 @@ FROM "SomeEntities" AS s
             elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
 
         AssertSql(
-"""
+            """
 SELECT ARRAY[s."NonNullableText",s."Varchar15"]::text[]
 FROM "SomeEntities" AS s
 """);
@@ -475,7 +473,7 @@ FROM "SomeEntities" AS s
             elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
 
         AssertSql(
-"""
+            """
 SELECT ARRAY[s."Id"::text,s."Varchar15"]::text[]
 FROM "SomeEntities" AS s
 """);
@@ -492,7 +490,7 @@ FROM "SomeEntities" AS s
             elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
 
         AssertSql(
-"""
+            """
 SELECT ARRAY[s."NonNullableText",COALESCE(s."NullableText", '')]::text[]
 FROM "SomeEntities" AS s
 """);

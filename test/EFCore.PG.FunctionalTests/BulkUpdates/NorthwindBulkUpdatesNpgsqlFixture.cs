@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.BulkUpdates;
 
 public class NorthwindBulkUpdatesNpgsqlFixture<TModelCustomizer> : NorthwindBulkUpdatesFixture<TModelCustomizer>
-    where TModelCustomizer: IModelCustomizer, new()
+    where TModelCustomizer : IModelCustomizer, new()
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlNorthwindTestStoreFactory.Instance;

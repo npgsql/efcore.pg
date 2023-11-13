@@ -1,6 +1,3 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
@@ -8,15 +5,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public abstract class ArrayQueryFixture : SharedStoreFixtureBase<ArrayQueryContext>, IQueryFixtureBase
 {
-    protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-    public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
+    protected override ITestStoreFactory TestStoreFactory
+        => NpgsqlTestStoreFactory.Instance;
+
+    public TestSqlLoggerFactory TestSqlLoggerFactory
+        => (TestSqlLoggerFactory)ListLoggerFactory;
 
     private ArrayQueryData _expectedData;
 
     public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
         => base.AddOptions(builder).ConfigureWarnings(wcb => wcb.Ignore(CoreEventId.CollectionWithoutComparer));
 
-    protected override void Seed(ArrayQueryContext context) => ArrayQueryContext.Seed(context);
+    protected override void Seed(ArrayQueryContext context)
+        => ArrayQueryContext.Seed(context);
 
     public Func<DbContext> GetContextCreator()
         => CreateContext;
@@ -25,9 +26,9 @@ public abstract class ArrayQueryFixture : SharedStoreFixtureBase<ArrayQueryConte
         => _expectedData ??= new ArrayQueryData();
 
     public IReadOnlyDictionary<Type, object> EntitySorters
-        => new Dictionary<Type, Func<object, object>> {
-            { typeof(ArrayEntity), e => ((ArrayEntity)e)?.Id },
-            { typeof(ArrayContainerEntity), e => ((ArrayContainerEntity)e)?.Id }
+        => new Dictionary<Type, Func<object, object>>
+        {
+            { typeof(ArrayEntity), e => ((ArrayEntity)e)?.Id }, { typeof(ArrayContainerEntity), e => ((ArrayContainerEntity)e)?.Id }
         }.ToDictionary(e => e.Key, e => (object)e.Value);
 
     public IReadOnlyDictionary<Type, object> EntityAsserters

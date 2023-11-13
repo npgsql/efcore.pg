@@ -3,7 +3,7 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 
 /// <summary>
-/// The default code generator for Npgsql.
+///     The default code generator for Npgsql.
 /// </summary>
 public class NpgsqlCodeGenerator : ProviderCodeGenerator
 {
@@ -15,11 +15,13 @@ public class NpgsqlCodeGenerator : ProviderCodeGenerator
             typeof(Action<NpgsqlDbContextOptionsBuilder>));
 
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlCodeGenerator"/> class.
+    ///     Constructs an instance of the <see cref="NpgsqlCodeGenerator" /> class.
     /// </summary>
     /// <param name="dependencies">The dependencies.</param>
     public NpgsqlCodeGenerator(ProviderCodeGeneratorDependencies dependencies)
-        : base(dependencies) {}
+        : base(dependencies)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

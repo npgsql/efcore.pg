@@ -12,11 +12,12 @@ public class NpgsqlNetTopologySuiteOptions : INpgsqlNetTopologySuiteOptions
     /// <inheritdoc />
     public virtual void Initialize(IDbContextOptions options)
     {
-        var npgsqlNtsOptions = options.FindExtension<NpgsqlNetTopologySuiteOptionsExtension>() ?? new NpgsqlNetTopologySuiteOptionsExtension();
+        var npgsqlNtsOptions = options.FindExtension<NpgsqlNetTopologySuiteOptionsExtension>()
+            ?? new NpgsqlNetTopologySuiteOptionsExtension();
 
         IsGeographyDefault = npgsqlNtsOptions.IsGeographyDefault;
     }
 
     /// <inheritdoc />
-    public virtual void Validate(IDbContextOptions options) {}
+    public virtual void Validate(IDbContextOptions options) { }
 }

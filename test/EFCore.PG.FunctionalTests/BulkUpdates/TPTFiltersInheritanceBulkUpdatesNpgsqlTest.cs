@@ -31,7 +31,7 @@ public class TPTFiltersInheritanceBulkUpdatesSqlServerTest
         await base.Delete_where_using_hierarchy(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Countries" AS c
 WHERE (
     SELECT count(*)::int
@@ -48,7 +48,7 @@ WHERE (
         await base.Delete_where_using_hierarchy_derived(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Countries" AS c
 WHERE (
     SELECT count(*)::int
@@ -87,7 +87,7 @@ WHERE (
 
         // TODO: This over-complex SQL would get pruned after https://github.com/dotnet/efcore/issues/31083
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Animals" AS a
 SET "Name" = 'Animal'
 FROM (
@@ -111,7 +111,7 @@ WHERE a."Id" = t."Id"
 
         // TODO: This over-complex SQL would get pruned after https://github.com/dotnet/efcore/issues/31083
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Animals" AS a
 SET "Name" = 'NewBird'
 FROM "Birds" AS b,
@@ -169,7 +169,7 @@ WHERE a."Id" = k."Id" AND a."Id" = b."Id" AND a."CountryId" = 1
         await base.Update_derived_property_on_derived_type(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Kiwi" AS k
 SET "FoundOn" = 0
 FROM "Animals" AS a
@@ -190,7 +190,7 @@ WHERE a."Id" = k."Id" AND a."CountryId" = 1
         await base.Update_where_using_hierarchy(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Countries" AS c
 SET "Name" = 'Monovia'
 WHERE (
@@ -208,7 +208,7 @@ WHERE (
         await base.Update_where_using_hierarchy_derived(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Countries" AS c
 SET "Name" = 'Monovia'
 WHERE (
@@ -232,7 +232,8 @@ WHERE (
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());
 
-    protected override void ClearLog() => Fixture.TestSqlLoggerFactory.Clear();
+    protected override void ClearLog()
+        => Fixture.TestSqlLoggerFactory.Clear();
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

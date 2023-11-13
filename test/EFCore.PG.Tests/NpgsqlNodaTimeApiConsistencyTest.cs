@@ -17,8 +17,7 @@ public class NpgsqlNodaTimeApiConsistencyTest : ApiConsistencyTestBase<NpgsqlNod
     {
         public override HashSet<Type> FluentApiTypes { get; } = new()
         {
-            typeof(NpgsqlNodaTimeDbContextOptionsBuilderExtensions),
-            typeof(NpgsqlNodaTimeServiceCollectionExtensions)
+            typeof(NpgsqlNodaTimeDbContextOptionsBuilderExtensions), typeof(NpgsqlNodaTimeServiceCollectionExtensions)
         };
     }
 }

@@ -38,7 +38,7 @@ public class EnumQueryTest : QueryTestBase<EnumQueryTest.EnumFixture>
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."MappedEnum" = 'sad'::test.mapped_enum
@@ -57,7 +57,7 @@ WHERE s."MappedEnum" = 'sad'::test.mapped_enum
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."SchemaQualifiedEnum" = 'Happy (PgName)'::test.schema_qualified_enum
@@ -77,7 +77,7 @@ WHERE s."SchemaQualifiedEnum" = 'Happy (PgName)'::test.schema_qualified_enum
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__sad_0='Sad' (DbType = Object)
 
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
@@ -99,7 +99,7 @@ WHERE s."MappedEnum" = @__sad_0
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__sad_0='1'
 
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
@@ -121,7 +121,7 @@ WHERE s."UnmappedEnum" = @__sad_0
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__sad_0='1'
 
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
@@ -143,7 +143,7 @@ WHERE s."UnmappedEnum" = @__sad_0
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__sad_0='Sad' (DbType = Object)
 
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
@@ -165,12 +165,11 @@ WHERE s."MappedEnum" = @__sad_0
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."MappedEnum"::text LIKE '%sa%'
 """);
-
     }
 
     [ConditionalTheory]
@@ -186,7 +185,7 @@ WHERE s."MappedEnum"::text LIKE '%sa%'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__values_0='0x01' (DbType = Object)
 
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
@@ -208,7 +207,7 @@ WHERE s."ByteEnum" = ANY (@__values_0)
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__values_0='0x01' (DbType = Object)
 
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
@@ -221,7 +220,8 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
 
     #region Support
 
-    protected EnumContext CreateContext() => Fixture.CreateContext();
+    protected EnumContext CreateContext()
+        => Fixture.CreateContext();
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
@@ -231,7 +231,10 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<SomeEnumEntity> SomeEntities { get; set; }
 
-        public EnumContext(DbContextOptions options) : base(options) {}
+        public EnumContext(DbContextOptions options)
+            : base(options)
+        {
+        }
 
         protected override void OnModelCreating(ModelBuilder builder)
             => builder
@@ -300,9 +303,14 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
     // ReSharper disable once ClassNeverInstantiated.Global
     public class EnumFixture : SharedStoreFixtureBase<EnumContext>, IQueryFixtureBase
     {
-        protected override string StoreName => "EnumQueryTest";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
+        protected override string StoreName
+            => "EnumQueryTest";
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
 
         static EnumFixture()
         {
@@ -316,7 +324,8 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
 
         private EnumData _expectedData;
 
-        protected override void Seed(EnumContext context) => EnumContext.Seed(context);
+        protected override void Seed(EnumContext context)
+            => EnumContext.Seed(context);
 
         public Func<DbContext> GetContextCreator()
             => CreateContext;

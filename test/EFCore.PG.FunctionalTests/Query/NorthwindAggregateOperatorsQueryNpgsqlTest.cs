@@ -2,10 +2,13 @@ using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class NorthwindAggregateOperatorsQueryNpgsqlTest : NorthwindAggregateOperatorsQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
+public class NorthwindAggregateOperatorsQueryNpgsqlTest : NorthwindAggregateOperatorsQueryRelationalTestBase<
+    NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
 {
     // ReSharper disable once UnusedParameter.Local
-    public NorthwindAggregateOperatorsQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
+    public NorthwindAggregateOperatorsQueryNpgsqlTest(
+        NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture,
+        ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
         ClearLog();
@@ -28,7 +31,7 @@ public class NorthwindAggregateOperatorsQueryNpgsqlTest : NorthwindAggregateOper
 
         // Note: PostgreSQL doesn't support uint, but value converters make this into bigint
         AssertSql(
-"""
+            """
 @__ids_0={ '0', '1' } (DbType = Object)
 
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
@@ -36,7 +39,7 @@ FROM "Employees" AS e
 WHERE e."EmployeeID" = ANY (@__ids_0)
 """,
             //
-"""
+            """
 @__ids_0={ '0' } (DbType = Object)
 
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
@@ -52,7 +55,7 @@ WHERE e."EmployeeID" = ANY (@__ids_0)
         // Note: PostgreSQL doesn't support uint, but value converters make this into bigint
 
         AssertSql(
-"""
+            """
 @__ids_0={ '0', '1' } (DbType = Object)
 
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
@@ -60,7 +63,7 @@ FROM "Employees" AS e
 WHERE e."EmployeeID" = ANY (@__ids_0)
 """,
             //
-"""
+            """
 @__ids_0={ '0' } (DbType = Object)
 
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
@@ -101,7 +104,7 @@ WHERE e."EmployeeID" = ANY (@__ids_0)
         await base.Contains_with_local_non_primitive_list_closure_mix(async);
 
         AssertSql(
-"""
+            """
 @__Select_0={ 'ABCDE', 'ALFKI' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
@@ -115,7 +118,7 @@ WHERE c."CustomerID" = ANY (@__Select_0)
         await base.Contains_with_local_non_primitive_list_inline_closure_mix(async);
 
         AssertSql(
-"""
+            """
 @__Select_0={ 'ABCDE', 'ALFKI' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
@@ -123,7 +126,7 @@ FROM "Customers" AS c
 WHERE c."CustomerID" = ANY (@__Select_0)
 """,
             //
-"""
+            """
 @__Select_0={ 'ABCDE', 'ANATR' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"

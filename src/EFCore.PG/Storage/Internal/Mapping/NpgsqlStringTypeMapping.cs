@@ -3,8 +3,8 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// The base class for mapping Npgsql-specific string types. It configures parameters with the
-/// <see cref="NpgsqlDbType"/> provider-specific type enum.
+///     The base class for mapping Npgsql-specific string types. It configures parameters with the
+///     <see cref="NpgsqlDbType" /> provider-specific type enum.
 /// </summary>
 public class NpgsqlStringTypeMapping : StringTypeMapping, INpgsqlTypeMapping
 {
@@ -24,7 +24,9 @@ public class NpgsqlStringTypeMapping : StringTypeMapping, INpgsqlTypeMapping
     /// </summary>
     public NpgsqlStringTypeMapping(string storeType, NpgsqlDbType npgsqlDbType)
         : base(storeType, System.Data.DbType.String)
-        => NpgsqlDbType = npgsqlDbType;
+    {
+        NpgsqlDbType = npgsqlDbType;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -36,7 +38,9 @@ public class NpgsqlStringTypeMapping : StringTypeMapping, INpgsqlTypeMapping
         RelationalTypeMappingParameters parameters,
         NpgsqlDbType npgsqlDbType)
         : base(parameters)
-        => NpgsqlDbType = npgsqlDbType;
+    {
+        NpgsqlDbType = npgsqlDbType;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -57,7 +61,8 @@ public class NpgsqlStringTypeMapping : StringTypeMapping, INpgsqlTypeMapping
     {
         if (parameter is not NpgsqlParameter npgsqlParameter)
         {
-            throw new InvalidOperationException($"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+            throw new InvalidOperationException(
+                $"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
         }
 
         base.ConfigureParameter(parameter);

@@ -16,7 +16,8 @@ public class ManyToManyTrackingNpgsqlTest : ManyToManyTrackingRelationalTestBase
 
     public class ManyToManyTrackingNpgsqlFixture : ManyToManyTrackingRelationalFixture
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {

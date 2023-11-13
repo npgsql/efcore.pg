@@ -39,9 +39,11 @@ public abstract class SaveChangesInterceptionNpgsqlTestBase : SaveChangesInterce
 
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
-            protected override string StoreName => "SaveChangesInterception";
+            protected override string StoreName
+                => "SaveChangesInterception";
 
-            protected override bool ShouldSubscribeToDiagnosticListener => false;
+            protected override bool ShouldSubscribeToDiagnosticListener
+                => false;
 
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             {
@@ -63,9 +65,11 @@ public abstract class SaveChangesInterceptionNpgsqlTestBase : SaveChangesInterce
 
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
-            protected override string StoreName => "SaveChangesInterceptionWithDiagnostics";
+            protected override string StoreName
+                => "SaveChangesInterceptionWithDiagnostics";
 
-            protected override bool ShouldSubscribeToDiagnosticListener => true;
+            protected override bool ShouldSubscribeToDiagnosticListener
+                => true;
 
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             {

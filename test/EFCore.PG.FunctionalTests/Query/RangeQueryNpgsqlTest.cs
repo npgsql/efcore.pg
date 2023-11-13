@@ -29,7 +29,7 @@ public class RangeQueryNpgsqlTest : IClassFixture<RangeQueryNpgsqlTest.RangeQuer
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
 WHERE r."IntRange" @> 3
@@ -47,7 +47,7 @@ LIMIT 2
         Assert.Equal(2, result.Id);
 
         AssertSql(
-"""
+            """
 @__range_0='[8,13]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -66,7 +66,7 @@ LIMIT 2
         Assert.Equal(2, result.Id);
 
         AssertSql(
-"""
+            """
 @__range_0='[8,13]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -85,7 +85,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__range_0='[1,10]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -104,7 +104,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__range_0='[1,10]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -123,7 +123,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__range_0='[-5,4]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -142,7 +142,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__range_0='[11,15]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -161,7 +161,7 @@ LIMIT 2
         Assert.Equal(2, result.Id);
 
         AssertSql(
-"""
+            """
 @__range_0='[0,4]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -180,7 +180,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__range_0='[2,20]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -199,7 +199,7 @@ LIMIT 2
         Assert.Equal(2, result.Id);
 
         AssertSql(
-"""
+            """
 @__range_0='[1,13]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -218,7 +218,7 @@ LIMIT 2
         Assert.Equal(2, result.Id);
 
         AssertSql(
-"""
+            """
 @__range_0='[2,4]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -237,7 +237,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__range_0='[-2,7]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -262,7 +262,7 @@ LIMIT 2
         Assert.Equal(new NpgsqlRange<int>[] { new(1, true, 16, false) }, union);
 
         AssertSql(
-"""
+            """
 SELECT range_agg(t."IntRange")
 FROM (
     SELECT r."IntRange", TRUE AS "Key"
@@ -283,7 +283,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__range_0='[-2,3]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -308,7 +308,7 @@ LIMIT 2
         Assert.Equal(new NpgsqlRange<int>(5, true, 11, false), intersection);
 
         AssertSql(
-"""
+            """
 SELECT range_intersect_agg(t."IntRange")
 FROM (
     SELECT r."IntRange", TRUE AS "Key"
@@ -329,7 +329,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__range_0='[1,2]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -351,7 +351,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
 WHERE lower(r."IntRange") = 1
@@ -367,7 +367,7 @@ LIMIT 2
         Assert.Equal(2, result.Id);
 
         AssertSql(
-"""
+            """
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
 WHERE upper(r."IntRange") = 16
@@ -379,11 +379,11 @@ LIMIT 2
     public void IsEmpty()
     {
         using var context = CreateContext();
-        var result = context.RangeTestEntities.Single(x => x.IntRange.Intersect(new(1, 2)).IsEmpty);
+        var result = context.RangeTestEntities.Single(x => x.IntRange.Intersect(new NpgsqlRange<int>(1, 2)).IsEmpty);
         Assert.Equal(2, result.Id);
 
         AssertSql(
-"""
+            """
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
 WHERE isempty(r."IntRange" * '[1,2]'::int4range)
@@ -399,7 +399,7 @@ LIMIT 2
         Assert.Equal(0, count);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "RangeTestEntities" AS r
 WHERE NOT (lower_inc(r."IntRange"))
@@ -414,7 +414,7 @@ WHERE NOT (lower_inc(r."IntRange"))
         Assert.Equal(0, count);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "RangeTestEntities" AS r
 WHERE upper_inc(r."IntRange")
@@ -429,7 +429,7 @@ WHERE upper_inc(r."IntRange")
         Assert.Equal(0, count);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "RangeTestEntities" AS r
 WHERE lower_inf(r."IntRange")
@@ -444,7 +444,7 @@ WHERE lower_inf(r."IntRange")
         Assert.Equal(0, count);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "RangeTestEntities" AS r
 WHERE upper_inf(r."IntRange")
@@ -455,11 +455,11 @@ WHERE upper_inf(r."IntRange")
     public void Merge()
     {
         using var context = CreateContext();
-        var result = context.RangeTestEntities.Single(x => x.IntRange.Merge(new(12, 13)) == new NpgsqlRange<int>(1, 13));
+        var result = context.RangeTestEntities.Single(x => x.IntRange.Merge(new NpgsqlRange<int>(12, 13)) == new NpgsqlRange<int>(1, 13));
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
 WHERE range_merge(r."IntRange", '[12,13]'::int4range) = '[1,13]'::int4range
@@ -479,7 +479,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
 WHERE r."IntRange" @> 3
@@ -496,7 +496,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__p_0='3'
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -515,7 +515,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__p_0='3'
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -534,7 +534,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__value_0='01/03/2020' (DbType = Date)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -553,7 +553,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__value_0='2020-01-03T00:00:00.0000000'
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
@@ -577,7 +577,7 @@ LIMIT 2
         Assert.Equal(15.0, result.UserDefinedRange.UpperBound);
 
         AssertSql(
-"""
+            """
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
 WHERE upper(r."UserDefinedRange") > 12.0
@@ -595,7 +595,7 @@ LIMIT 2
         Assert.Equal(15.0, result.UserDefinedRangeWithSchema.UpperBound);
 
         AssertSql(
-"""
+            """
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
 WHERE upper(r."UserDefinedRangeWithSchema")::double precision > 12.0
@@ -617,10 +617,17 @@ LIMIT 2
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        protected override string StoreName => "RangeQueryTest";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
-        protected override void Seed(RangeContext context) => RangeContext.Seed(context);
+        protected override string StoreName
+            => "RangeQueryTest";
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
+
+        protected override void Seed(RangeContext context)
+            => RangeContext.Seed(context);
 
         public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
         {
@@ -639,8 +646,10 @@ LIMIT 2
         public NpgsqlRange<long> LongRange { get; set; }
         public NpgsqlRange<decimal> DecimalRange { get; set; }
         public NpgsqlRange<DateOnly> DateOnlyDateRange { get; set; }
+
         [Column(TypeName = "tsrange")]
         public NpgsqlRange<DateTime> DateTimeDateRange { get; set; }
+
         public NpgsqlRange<double> UserDefinedRange { get; set; }
         public NpgsqlRange<float> UserDefinedRangeWithSchema { get; set; }
     }
@@ -649,7 +658,10 @@ LIMIT 2
     {
         public DbSet<RangeTestEntity> RangeTestEntities { get; set; }
 
-        public RangeContext(DbContextOptions options) : base(options) {}
+        public RangeContext(DbContextOptions options)
+            : base(options)
+        {
+        }
 
         protected override void OnModelCreating(ModelBuilder builder)
             => builder.HasPostgresRange("doublerange", "double precision")
@@ -664,8 +676,8 @@ LIMIT 2
                     IntRange = new NpgsqlRange<int>(1, 10),
                     LongRange = new NpgsqlRange<long>(1, 10),
                     DecimalRange = new NpgsqlRange<decimal>(1, 10),
-                    DateOnlyDateRange = new NpgsqlRange<DateOnly>(new(2020, 1, 1), new(2020, 1, 10)),
-                    DateTimeDateRange = new NpgsqlRange<DateTime>(new(2020, 1, 1), new(2020, 1, 10)),
+                    DateOnlyDateRange = new NpgsqlRange<DateOnly>(new DateOnly(2020, 1, 1), new DateOnly(2020, 1, 10)),
+                    DateTimeDateRange = new NpgsqlRange<DateTime>(new DateTime(2020, 1, 1), new DateTime(2020, 1, 10)),
                     UserDefinedRange = new NpgsqlRange<double>(1, 10),
                     UserDefinedRangeWithSchema = new NpgsqlRange<float>(1, 10)
                 },
@@ -675,8 +687,8 @@ LIMIT 2
                     IntRange = new NpgsqlRange<int>(5, 15),
                     LongRange = new NpgsqlRange<long>(5, 15),
                     DecimalRange = new NpgsqlRange<decimal>(5, 15),
-                    DateOnlyDateRange = new NpgsqlRange<DateOnly>(new(2020, 1, 5), new(2020, 1, 15)),
-                    DateTimeDateRange = new NpgsqlRange<DateTime>(new(2020, 1, 5), new(2020, 1, 15)),
+                    DateOnlyDateRange = new NpgsqlRange<DateOnly>(new DateOnly(2020, 1, 5), new DateOnly(2020, 1, 15)),
+                    DateTimeDateRange = new NpgsqlRange<DateTime>(new DateTime(2020, 1, 5), new DateTime(2020, 1, 15)),
                     UserDefinedRange = new NpgsqlRange<double>(5, 15),
                     UserDefinedRangeWithSchema = new NpgsqlRange<float>(5, 15)
                 });
@@ -689,7 +701,8 @@ LIMIT 2
 
     #region Helpers
 
-    protected RangeContext CreateContext() => Fixture.CreateContext();
+    protected RangeContext CreateContext()
+        => Fixture.CreateContext();
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

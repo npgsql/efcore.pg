@@ -45,9 +45,11 @@ public class NpgsqlNodaTimeOptionsExtension : IDbContextOptionsExtension
             using (var scope = internalServiceProvider.CreateScope())
             {
                 if (scope.ServiceProvider.GetService<IEnumerable<IRelationalTypeMappingSourcePlugin>>()
-                        ?.Any(s => s is NpgsqlNodaTimeTypeMappingSourcePlugin) != true)
+                        ?.Any(s => s is NpgsqlNodaTimeTypeMappingSourcePlugin)
+                    != true)
                 {
-                    throw new InvalidOperationException($"{nameof(NpgsqlNodaTimeDbContextOptionsBuilderExtensions.UseNodaTime)} requires {nameof(NpgsqlNodaTimeServiceCollectionExtensions.AddEntityFrameworkNpgsqlNodaTime)} to be called on the internal service provider used.");
+                    throw new InvalidOperationException(
+                        $"{nameof(NpgsqlNodaTimeDbContextOptionsBuilderExtensions.UseNodaTime)} requires {nameof(NpgsqlNodaTimeServiceCollectionExtensions.AddEntityFrameworkNpgsqlNodaTime)} to be called on the internal service provider used.");
                 }
             }
         }
@@ -63,9 +65,11 @@ public class NpgsqlNodaTimeOptionsExtension : IDbContextOptionsExtension
         private new NpgsqlNodaTimeOptionsExtension Extension
             => (NpgsqlNodaTimeOptionsExtension)base.Extension;
 
-        public override bool IsDatabaseProvider => false;
+        public override bool IsDatabaseProvider
+            => false;
 
-        public override int GetServiceProviderHashCode() => 0;
+        public override int GetServiceProviderHashCode()
+            => 0;
 
         public override bool ShouldUseSameServiceProvider(DbContextOptionsExtensionInfo other)
             => true;
@@ -73,6 +77,7 @@ public class NpgsqlNodaTimeOptionsExtension : IDbContextOptionsExtension
         public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
             => debugInfo["Npgsql:" + nameof(NpgsqlNodaTimeDbContextOptionsBuilderExtensions.UseNodaTime)] = "1";
 
-        public override string LogFragment => "using NodaTime ";
+        public override string LogFragment
+            => "using NodaTime ";
     }
 }

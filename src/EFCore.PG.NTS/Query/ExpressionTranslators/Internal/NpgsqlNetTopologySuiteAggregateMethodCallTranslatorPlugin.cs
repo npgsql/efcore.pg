@@ -87,7 +87,9 @@ public class NpgsqlNetTopologySuiteAggregateMethodTranslator : IAggregateMethodC
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public virtual SqlExpression? Translate(
-        MethodInfo method, EnumerableExpression source, IReadOnlyList<SqlExpression> arguments,
+        MethodInfo method,
+        EnumerableExpression source,
+        IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
         if (source.Selector is not SqlExpression sqlExpression)

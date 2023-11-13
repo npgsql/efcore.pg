@@ -70,13 +70,15 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlSingletonOptions()
-        => UserRangeDefinitions = Array.Empty<UserRangeDefinition>();
+    {
+        UserRangeDefinitions = Array.Empty<UserRangeDefinition>();
+    }
 
     /// <inheritdoc />
     public virtual void Initialize(IDbContextOptions options)
     {
-        var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new();
-        var coreOptions = options.FindExtension<CoreOptionsExtension>() ?? new();
+        var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
+        var coreOptions = options.FindExtension<CoreOptionsExtension>() ?? new CoreOptionsExtension();
 
         PostgresVersion = npgsqlOptions.PostgresVersion;
         IsPostgresVersionSet = npgsqlOptions.IsPostgresVersionSet;
@@ -93,7 +95,7 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
     /// <inheritdoc />
     public virtual void Validate(IDbContextOptions options)
     {
-        var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new();
+        var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
 
         if (PostgresVersion != npgsqlOptions.PostgresVersion)
         {

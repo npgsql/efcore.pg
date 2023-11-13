@@ -5,10 +5,10 @@ using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 /// <summary>
-/// Translates method and property calls on arrays/lists into their corresponding PostgreSQL operations.
+///     Translates method and property calls on arrays/lists into their corresponding PostgreSQL operations.
 /// </summary>
 /// <remarks>
-/// https://www.postgresql.org/docs/current/static/functions-array.html
+///     https://www.postgresql.org/docs/current/static/functions-array.html
 /// </remarks>
 public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
 {
@@ -25,7 +25,10 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
 
     private static readonly MethodInfo Enumerable_ElementAt =
         typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(m => m.Name == nameof(Enumerable.ElementAt) && m.GetParameters().Length == 2 && m.GetParameters()[1].ParameterType == typeof(int));
+            .Single(
+                m => m.Name == nameof(Enumerable.ElementAt)
+                    && m.GetParameters().Length == 2
+                    && m.GetParameters()[1].ParameterType == typeof(int));
 
     private static readonly MethodInfo Enumerable_SequenceEqual =
         typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
@@ -82,8 +85,10 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
         }
 
         if (method.IsClosedFormOf(Enumerable_SequenceEqual)
-            && arguments[0].Type.IsArrayOrGenericList() && !IsMappedToNonArray(arguments[0])
-            && arguments[1].Type.IsArrayOrGenericList() && !IsMappedToNonArray(arguments[1]))
+            && arguments[0].Type.IsArrayOrGenericList()
+            && !IsMappedToNonArray(arguments[0])
+            && arguments[1].Type.IsArrayOrGenericList()
+            && !IsMappedToNonArray(arguments[1]))
         {
             return _sqlExpressionFactory.Equal(arguments[0], arguments[1]);
         }
@@ -112,8 +117,7 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
 #pragma warning restore CS8321
         {
             if (method.IsClosedFormOf(Array_IndexOf1)
-                ||
-                method.Name == nameof(List<int>.IndexOf)
+                || method.Name == nameof(List<int>.IndexOf)
                 && method.DeclaringType.IsGenericList()
                 && method.GetParameters().Length == 1)
             {
@@ -132,8 +136,7 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
             }
 
             if (method.IsClosedFormOf(Array_IndexOf2)
-                ||
-                method.Name == nameof(List<int>.IndexOf)
+                || method.Name == nameof(List<int>.IndexOf)
                 && method.DeclaringType.IsGenericList()
                 && method.GetParameters().Length == 2)
             {

@@ -24,7 +24,9 @@ public class NpgsqlQueryRootProcessor : RelationalQueryRootProcessor
         QueryCompilationContext queryCompilationContext,
         INpgsqlSingletonOptions npgsqlSingletonOptions)
         : base(dependencies, relationalDependencies, queryCompilationContext)
-        => _supportsUnnest = !npgsqlSingletonOptions.UseRedshift;
+    {
+        _supportsUnnest = !npgsqlSingletonOptions.UseRedshift;
+    }
 
     /// <summary>
     ///     Converts a <see cref="ParameterExpression" /> to a <see cref="ParameterQueryRootExpression" />, to be later translated to

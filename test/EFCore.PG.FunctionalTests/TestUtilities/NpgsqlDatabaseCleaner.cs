@@ -12,7 +12,9 @@ public class NpgsqlDatabaseCleaner : RelationalDatabaseCleaner
     private readonly NpgsqlSqlGenerationHelper _sqlGenerationHelper;
 
     public NpgsqlDatabaseCleaner()
-        => _sqlGenerationHelper = new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies());
+    {
+        _sqlGenerationHelper = new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies());
+    }
 
     protected override IDatabaseModelFactory CreateDatabaseModelFactory(ILoggerFactory loggerFactory)
         => new NpgsqlDatabaseModelFactory(
@@ -75,7 +77,7 @@ SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND
     }
 
     /// <summary>
-    /// Drop user-defined ranges and enums, cascading to all tables which depend on them
+    ///     Drop user-defined ranges and enums, cascading to all tables which depend on them
     /// </summary>
     private void DropTypes(NpgsqlConnection conn)
     {
@@ -101,7 +103,7 @@ WHERE typtype IN ('r', 'e') AND nspname <> 'pg_catalog'";
     }
 
     /// <summary>
-    /// Drop all user-defined functions and procedures
+    ///     Drop all user-defined functions and procedures
     /// </summary>
     private void DropFunctions(NpgsqlConnection conn)
     {
@@ -162,14 +164,16 @@ FROM pg_collation coll
         // Some extensions create tables (e.g. PostGIS), so we must drop them first.
         => databaseModel.GetPostgresExtensions()
             .Select(e => _sqlGenerationHelper.DelimitIdentifier(e.Name, e.Schema))
-            .Aggregate(new StringBuilder(),
+            .Aggregate(
+                new StringBuilder(),
                 (builder, s) => builder.Append("DROP EXTENSION ").Append(s).Append(";"),
                 builder => builder.ToString());
 
     protected override string BuildCustomEndingSql(DatabaseModel databaseModel)
         => databaseModel.GetPostgresEnums()
             .Select(e => _sqlGenerationHelper.DelimitIdentifier(e.Name, e.Schema))
-            .Aggregate(new StringBuilder(),
+            .Aggregate(
+                new StringBuilder(),
                 (builder, s) => builder.Append("DROP TYPE ").Append(s).Append(" CASCADE;"),
                 builder => builder.ToString());
 }

@@ -7,11 +7,14 @@ public class MappingQueryNpgsqlTest : MappingQueryTestBase<MappingQueryNpgsqlTes
 {
     public MappingQueryNpgsqlTest(MappingQueryNpgsqlFixture fixture)
         : base(fixture)
-        => Fixture.TestSqlLoggerFactory.Clear();
+    {
+        Fixture.TestSqlLoggerFactory.Clear();
+    }
 
     public class MappingQueryNpgsqlFixture : MappingQueryFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlNorthwindTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlNorthwindTestStoreFactory.Instance;
 
         protected override string DatabaseSchema { get; } = "public";
 

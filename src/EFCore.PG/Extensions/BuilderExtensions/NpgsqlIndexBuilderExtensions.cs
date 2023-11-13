@@ -7,17 +7,17 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 namespace Microsoft.EntityFrameworkCore;
 
 /// <summary>
-/// Npgsql specific extension methods for <see cref="IndexBuilder" />.
+///     Npgsql specific extension methods for <see cref="IndexBuilder" />.
 /// </summary>
 public static class NpgsqlIndexBuilderExtensions
 {
     #region Method
 
     /// <summary>
-    /// The PostgreSQL index method to be used. Null selects the default (currently btree).
+    ///     The PostgreSQL index method to be used. Null selects the default (currently btree).
     /// </summary>
     /// <remarks>
-    /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+    ///     http://www.postgresql.org/docs/current/static/sql-createindex.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="method">The name of the index.</param>
@@ -35,10 +35,10 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// The PostgreSQL index method to be used. Null selects the default (currently btree).
+    ///     The PostgreSQL index method to be used. Null selects the default (currently btree).
     /// </summary>
     /// <remarks>
-    /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+    ///     http://www.postgresql.org/docs/current/static/sql-createindex.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="method">The name of the index.</param>
@@ -49,10 +49,10 @@ public static class NpgsqlIndexBuilderExtensions
         => (IndexBuilder<TEntity>)HasMethod((IndexBuilder)indexBuilder, method);
 
     /// <summary>
-    /// The PostgreSQL index method to be used. Null selects the default (currently btree).
+    ///     The PostgreSQL index method to be used. Null selects the default (currently btree).
     /// </summary>
     /// <remarks>
-    /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+    ///     http://www.postgresql.org/docs/current/static/sql-createindex.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="method">The name of the index.</param>
@@ -74,10 +74,10 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// The PostgreSQL index method to be used. Null selects the default (currently btree).
+    ///     The PostgreSQL index method to be used. Null selects the default (currently btree).
     /// </summary>
     /// <remarks>
-    /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+    ///     http://www.postgresql.org/docs/current/static/sql-createindex.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="method">The name of the index.</param>
@@ -98,10 +98,10 @@ public static class NpgsqlIndexBuilderExtensions
     #region Operators
 
     /// <summary>
-    /// The PostgreSQL index operators to be used.
+    ///     The PostgreSQL index operators to be used.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-opclass.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="operators">The operators to use for each column.</param>
@@ -119,10 +119,10 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// The PostgreSQL index operators to be used.
+    ///     The PostgreSQL index operators to be used.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-opclass.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="operators">The operators to use for each column.</param>
@@ -133,10 +133,10 @@ public static class NpgsqlIndexBuilderExtensions
         => (IndexBuilder<TEntity>)HasOperators((IndexBuilder)indexBuilder, operators);
 
     /// <summary>
-    /// The PostgreSQL index operators to be used.
+    ///     The PostgreSQL index operators to be used.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-opclass.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="operators">The operators to use for each column.</param>
@@ -158,10 +158,10 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// Returns a value indicating whether the PostgreSQL index operators can be set.
+    ///     Returns a value indicating whether the PostgreSQL index operators can be set.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-opclass.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="operators">The operators to use for each column.</param>
@@ -182,17 +182,17 @@ public static class NpgsqlIndexBuilderExtensions
     #region IsTsVectorExpressionIndex
 
     /// <summary>
-    /// Configures this index to be a full-text tsvector expression index.
+    ///     Configures this index to be a full-text tsvector expression index.
     /// </summary>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="config">
-    /// <para>
-    /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
-    /// </para>
-    /// <para>
-    /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
-    /// </para>
+    ///     <para>
+    ///         The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///         generated tsvector property.
+    ///     </para>
+    ///     <para>
+    ///         See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+    ///     </para>
     /// </param>
     /// <returns>A builder to further configure the index.</returns>
     public static IndexBuilder IsTsVectorExpressionIndex(
@@ -207,17 +207,17 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// Configures this index to be a full-text tsvector expression index.
+    ///     Configures this index to be a full-text tsvector expression index.
     /// </summary>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="config">
-    /// <para>
-    /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
-    /// </para>
-    /// <para>
-    /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
-    /// </para>
+    ///     <para>
+    ///         The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///         generated tsvector property.
+    ///     </para>
+    ///     <para>
+    ///         See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+    ///     </para>
     /// </param>
     /// <returns>A builder to further configure the index.</returns>
     public static IndexBuilder<TEntity> IsTsVectorExpressionIndex<TEntity>(
@@ -226,21 +226,21 @@ public static class NpgsqlIndexBuilderExtensions
         => (IndexBuilder<TEntity>)IsTsVectorExpressionIndex((IndexBuilder)indexBuilder, config);
 
     /// <summary>
-    /// Configures this index to be a full-text tsvector expression index.
+    ///     Configures this index to be a full-text tsvector expression index.
     /// </summary>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="config">
-    /// <para>
-    /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
-    /// </para>
-    /// <para>
-    /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
-    /// </para>
+    ///     <para>
+    ///         The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///         generated tsvector property.
+    ///     </para>
+    ///     <para>
+    ///         See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+    ///     </para>
     /// </param>
     /// <returns>
-    /// The same builder instance if the configuration was applied,
-    /// <c>null</c> otherwise.
+    ///     The same builder instance if the configuration was applied,
+    ///     <c>null</c> otherwise.
     /// </returns>
     public static IConventionIndexBuilder? IsTsVectorExpressionIndex(
         this IConventionIndexBuilder indexBuilder,
@@ -259,17 +259,17 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// Returns a value indicating whether the index can be configured as a full-text tsvector expression index.
+    ///     Returns a value indicating whether the index can be configured as a full-text tsvector expression index.
     /// </summary>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="config">
-    /// <para>
-    /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
-    /// </para>
-    /// <para>
-    /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
-    /// </para>
+    ///     <para>
+    ///         The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///         generated tsvector property.
+    ///     </para>
+    ///     <para>
+    ///         See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+    ///     </para>
     /// </param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     /// <returns><c>true</c> if the index can be configured as a full-text tsvector expression index.</returns>
@@ -288,10 +288,10 @@ public static class NpgsqlIndexBuilderExtensions
     #region Collation
 
     /// <summary>
-    /// The PostgreSQL index collation to be used.
+    ///     The PostgreSQL index collation to be used.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-collations.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort options to use for each column.</param>
@@ -309,10 +309,10 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// The PostgreSQL index collation to be used.
+    ///     The PostgreSQL index collation to be used.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-collations.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort options to use for each column.</param>
@@ -323,10 +323,10 @@ public static class NpgsqlIndexBuilderExtensions
         => (IndexBuilder<TEntity>)UseCollation((IndexBuilder)indexBuilder, values);
 
     /// <summary>
-    /// The PostgreSQL index collation to be used.
+    ///     The PostgreSQL index collation to be used.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-collations.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort options to use for each column.</param>
@@ -348,10 +348,10 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// Returns a value indicating whether the PostgreSQL index collation can be set.
+    ///     Returns a value indicating whether the PostgreSQL index collation can be set.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-collations.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort options to use for each column.</param>
@@ -372,10 +372,10 @@ public static class NpgsqlIndexBuilderExtensions
     #region Null sort order
 
     /// <summary>
-    /// The PostgreSQL index NULL sort ordering to be used.
+    ///     The PostgreSQL index NULL sort ordering to be used.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort order to use for each column.</param>
@@ -396,10 +396,10 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// The PostgreSQL index NULL sort ordering to be used.
+    ///     The PostgreSQL index NULL sort ordering to be used.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort order to use for each column.</param>
@@ -410,10 +410,10 @@ public static class NpgsqlIndexBuilderExtensions
         => (IndexBuilder<TEntity>)HasNullSortOrder((IndexBuilder)indexBuilder, values);
 
     /// <summary>
-    /// The PostgreSQL index NULL sort ordering to be used.
+    ///     The PostgreSQL index NULL sort ordering to be used.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort order to use for each column.</param>
@@ -438,10 +438,10 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// Returns a value indicating whether the PostgreSQL index null sort ordering can be set.
+    ///     Returns a value indicating whether the PostgreSQL index null sort ordering can be set.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort order to use for each column.</param>
@@ -462,11 +462,11 @@ public static class NpgsqlIndexBuilderExtensions
     #region Include
 
     /// <summary>
-    /// Adds an INCLUDE clause to the index definition with the specified property names.
-    /// This clause specifies a list of columns which will be included as a non-key part in the index.
+    ///     Adds an INCLUDE clause to the index definition with the specified property names.
+    ///     This clause specifies a list of columns which will be included as a non-key part in the index.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/sql-createindex.html
+    ///     https://www.postgresql.org/docs/current/sql-createindex.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="propertyNames">An array of property names to be used in INCLUDE clause.</param>
@@ -484,11 +484,11 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// Adds an INCLUDE clause to the index definition with the specified property names.
-    /// This clause specifies a list of columns which will be included as a non-key part in the index.
+    ///     Adds an INCLUDE clause to the index definition with the specified property names.
+    ///     This clause specifies a list of columns which will be included as a non-key part in the index.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/sql-createindex.html
+    ///     https://www.postgresql.org/docs/current/sql-createindex.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="propertyNames">An array of property names to be used in INCLUDE clause.</param>
@@ -506,22 +506,22 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// Adds an INCLUDE clause to the index definition with property names from the specified expression.
-    /// This clause specifies a list of columns which will be included as a non-key part in the index.
+    ///     Adds an INCLUDE clause to the index definition with property names from the specified expression.
+    ///     This clause specifies a list of columns which will be included as a non-key part in the index.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/sql-createindex.html
+    ///     https://www.postgresql.org/docs/current/sql-createindex.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="includeExpression">
-    /// <para>
-    /// A lambda expression representing the property(s) to be included in the INCLUDE clause
-    /// (<c>blog => blog.Url</c>).
-    /// </para>
-    /// <para>
-    /// If multiple properties are to be included then specify an anonymous type including the
-    /// properties (<c>post => new { post.Title, post.BlogId }</c>).
-    /// </para>
+    ///     <para>
+    ///         A lambda expression representing the property(s) to be included in the INCLUDE clause
+    ///         (<c>blog => blog.Url</c>).
+    ///     </para>
+    ///     <para>
+    ///         If multiple properties are to be included then specify an anonymous type including the
+    ///         properties (<c>post => new { post.Title, post.BlogId }</c>).
+    ///     </para>
     /// </param>
     /// <returns>A builder to further configure the index.</returns>
     public static IndexBuilder<TEntity> IncludeProperties<TEntity>(
@@ -537,11 +537,11 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// Adds an INCLUDE clause to the index definition with the specified property names.
-    /// This clause specifies a list of columns which will be included as a non-key part in the index.
+    ///     Adds an INCLUDE clause to the index definition with the specified property names.
+    ///     This clause specifies a list of columns which will be included as a non-key part in the index.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/sql-createindex.html
+    ///     https://www.postgresql.org/docs/current/sql-createindex.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="propertyNames">An array of property names to be used in INCLUDE clause.</param>
@@ -563,7 +563,7 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// Returns a value indicating whether the given include properties can be set.
+    ///     Returns a value indicating whether the given include properties can be set.
     /// </summary>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="propertyNames">An array of property names to be used in 'include' clause.</param>
@@ -587,11 +587,11 @@ public static class NpgsqlIndexBuilderExtensions
     #region Created concurrently
 
     /// <summary>
-    /// When this option is used, PostgreSQL will build the index without taking any locks that prevent concurrent inserts,
-    /// updates, or deletes on the table; whereas a standard index build locks out writes (but not reads) on the table until it's done.
+    ///     When this option is used, PostgreSQL will build the index without taking any locks that prevent concurrent inserts,
+    ///     updates, or deletes on the table; whereas a standard index build locks out writes (but not reads) on the table until it's done.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
+    ///     https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="createdConcurrently">A value indicating whether the index is created with the "concurrently" option.</param>
@@ -606,24 +606,26 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// When this option is used, PostgreSQL will build the index without taking any locks that prevent concurrent inserts,
-    /// updates, or deletes on the table; whereas a standard index build locks out writes (but not reads) on the table until it's done.
+    ///     When this option is used, PostgreSQL will build the index without taking any locks that prevent concurrent inserts,
+    ///     updates, or deletes on the table; whereas a standard index build locks out writes (but not reads) on the table until it's done.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
+    ///     https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="createdConcurrently">A value indicating whether the index is created with the "concurrently" option.</param>
     /// <returns>A builder to further configure the index.</returns>
-    public static IndexBuilder<TEntity> IsCreatedConcurrently<TEntity>(this IndexBuilder<TEntity> indexBuilder, bool createdConcurrently = true)
+    public static IndexBuilder<TEntity> IsCreatedConcurrently<TEntity>(
+        this IndexBuilder<TEntity> indexBuilder,
+        bool createdConcurrently = true)
         => (IndexBuilder<TEntity>)IsCreatedConcurrently((IndexBuilder)indexBuilder, createdConcurrently);
 
     /// <summary>
-    /// When this option is used, PostgreSQL will build the index without taking any locks that prevent concurrent inserts,
-    /// updates, or deletes on the table; whereas a standard index build locks out writes (but not reads) on the table until it's done.
+    ///     When this option is used, PostgreSQL will build the index without taking any locks that prevent concurrent inserts,
+    ///     updates, or deletes on the table; whereas a standard index build locks out writes (but not reads) on the table until it's done.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
+    ///     https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="createdConcurrently">A value indicating whether the index is created with the "concurrently" option.</param>
@@ -645,10 +647,10 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// Returns a value indicating whether concurrent creation for the index can be set.
+    ///     Returns a value indicating whether concurrent creation for the index can be set.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
+    ///     https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="createdConcurrently">A value indicating whether the index is created with the "concurrently" option.</param>
@@ -669,11 +671,11 @@ public static class NpgsqlIndexBuilderExtensions
     #region NULLS distinct
 
     /// <summary>
-    /// Specifies whether for a unique index, null values should be considered distinct (not equal).
-    /// The default is that they are distinct, so that a unique index could contain multiple null values in a column.
+    ///     Specifies whether for a unique index, null values should be considered distinct (not equal).
+    ///     The default is that they are distinct, so that a unique index could contain multiple null values in a column.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/sql-createindex.html
+    ///     https://www.postgresql.org/docs/current/sql-createindex.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="nullsDistinct">Whether nulls should be considered distinct.</param>
@@ -690,11 +692,11 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// Specifies whether for a unique index, null values should be considered distinct (not equal).
-    /// The default is that they are distinct, so that a unique index could contain multiple null values in a column.
+    ///     Specifies whether for a unique index, null values should be considered distinct (not equal).
+    ///     The default is that they are distinct, so that a unique index could contain multiple null values in a column.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/sql-createindex.html
+    ///     https://www.postgresql.org/docs/current/sql-createindex.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="nullsDistinct">Whether nulls should be considered distinct.</param>
@@ -705,11 +707,11 @@ public static class NpgsqlIndexBuilderExtensions
         => (IndexBuilder<TEntity>)AreNullsDistinct((IndexBuilder)indexBuilder, nullsDistinct);
 
     /// <summary>
-    /// Specifies whether for a unique index, null values should be considered distinct (not equal).
-    /// The default is that they are distinct, so that a unique index could contain multiple null values in a column.
+    ///     Specifies whether for a unique index, null values should be considered distinct (not equal).
+    ///     The default is that they are distinct, so that a unique index could contain multiple null values in a column.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/sql-createindex.html
+    ///     https://www.postgresql.org/docs/current/sql-createindex.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="nullsDistinct">Whether nulls should be considered distinct.</param>
@@ -731,11 +733,11 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// Specifies whether for a unique index, null values should be considered distinct (not equal).
-    /// The default is that they are distinct, so that a unique index could contain multiple null values in a column.
+    ///     Specifies whether for a unique index, null values should be considered distinct (not equal).
+    ///     The default is that they are distinct, so that a unique index could contain multiple null values in a column.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/sql-createindex.html
+    ///     https://www.postgresql.org/docs/current/sql-createindex.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="nullsDistinct">Whether nulls should be considered distinct.</param>
@@ -756,10 +758,10 @@ public static class NpgsqlIndexBuilderExtensions
     #region Storage parameters
 
     /// <summary>
-    /// Sets a PostgreSQL storage parameter on the index.
+    ///     Sets a PostgreSQL storage parameter on the index.
     /// </summary>
     /// <remarks>
-    /// See https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-STORAGE-PARAMETERS
+    ///     See https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-STORAGE-PARAMETERS
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="parameterName">The name of the storage parameter.</param>
@@ -778,10 +780,10 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// Sets a PostgreSQL storage parameter on the index.
+    ///     Sets a PostgreSQL storage parameter on the index.
     /// </summary>
     /// <remarks>
-    /// See https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-STORAGE-PARAMETERS
+    ///     See https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-STORAGE-PARAMETERS
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="parameterName">The name of the storage parameter.</param>
@@ -795,10 +797,10 @@ public static class NpgsqlIndexBuilderExtensions
         => (IndexBuilder<TEntity>)HasStorageParameter((IndexBuilder)indexBuilder, parameterName, parameterValue);
 
     /// <summary>
-    /// Sets a PostgreSQL storage parameter on the index.
+    ///     Sets a PostgreSQL storage parameter on the index.
     /// </summary>
     /// <remarks>
-    /// See https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-STORAGE-PARAMETERS
+    ///     See https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-STORAGE-PARAMETERS
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="parameterName">The name of the storage parameter.</param>
@@ -822,10 +824,10 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// Returns a value indicating whether the PostgreSQL storage parameter is set on the table created for this entity.
+    ///     Returns a value indicating whether the PostgreSQL storage parameter is set on the table created for this entity.
     /// </summary>
     /// <remarks>
-    /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+    ///     See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="parameterName">The name of the storage parameter.</param>
@@ -835,11 +837,13 @@ public static class NpgsqlIndexBuilderExtensions
     public static bool CanSetStorageParameter(
         this IConventionIndexBuilder indexBuilder,
         string parameterName,
-        object? parameterValue, bool fromDataAnnotation = false)
+        object? parameterValue,
+        bool fromDataAnnotation = false)
     {
         Check.NotNull(indexBuilder, nameof(indexBuilder));
 
-        return indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.StorageParameterPrefix + parameterName, parameterValue, fromDataAnnotation);
+        return indexBuilder.CanSetAnnotation(
+            NpgsqlAnnotationNames.StorageParameterPrefix + parameterName, parameterValue, fromDataAnnotation);
     }
 
     #endregion Storage parameters
@@ -847,10 +851,10 @@ public static class NpgsqlIndexBuilderExtensions
     #region Sort order (legacy)
 
     /// <summary>
-    /// The PostgreSQL index sort ordering to be used.
+    ///     The PostgreSQL index sort ordering to be used.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort order to use for each column.</param>
@@ -876,10 +880,10 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// The PostgreSQL index sort ordering to be used.
+    ///     The PostgreSQL index sort ordering to be used.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort order to use for each column.</param>
@@ -891,10 +895,10 @@ public static class NpgsqlIndexBuilderExtensions
         => (IndexBuilder<TEntity>)HasSortOrder((IndexBuilder)indexBuilder, values);
 
     /// <summary>
-    /// The PostgreSQL index sort ordering to be used.
+    ///     The PostgreSQL index sort ordering to be used.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
@@ -927,10 +931,10 @@ public static class NpgsqlIndexBuilderExtensions
     }
 
     /// <summary>
-    /// Returns a value indicating whether the PostgreSQL index sort ordering can be set.
+    ///     Returns a value indicating whether the PostgreSQL index sort ordering can be set.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort order to use for each column.</param>
@@ -952,10 +956,10 @@ public static class NpgsqlIndexBuilderExtensions
     #region Obsolete
 
     /// <summary>
-    /// The PostgreSQL index collation to be used.
+    ///     The PostgreSQL index collation to be used.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-collations.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort options to use for each column.</param>
@@ -967,10 +971,10 @@ public static class NpgsqlIndexBuilderExtensions
         => UseCollation(indexBuilder, values);
 
     /// <summary>
-    /// The PostgreSQL index collation to be used.
+    ///     The PostgreSQL index collation to be used.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-collations.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort options to use for each column.</param>
@@ -982,10 +986,10 @@ public static class NpgsqlIndexBuilderExtensions
         => UseCollation(indexBuilder, values);
 
     /// <summary>
-    /// The PostgreSQL index collation to be used.
+    ///     The PostgreSQL index collation to be used.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-collations.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort options to use for each column.</param>
@@ -999,10 +1003,10 @@ public static class NpgsqlIndexBuilderExtensions
         => UseCollation(indexBuilder, values, fromDataAnnotation);
 
     /// <summary>
-    /// Returns a value indicating whether the PostgreSQL index collation can be set.
+    ///     Returns a value indicating whether the PostgreSQL index collation can be set.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-collations.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort options to use for each column.</param>
@@ -1016,10 +1020,10 @@ public static class NpgsqlIndexBuilderExtensions
         => CanSetCollation(indexBuilder, values, fromDataAnnotation);
 
     /// <summary>
-    /// The PostgreSQL index method to be used. Null selects the default (currently btree).
+    ///     The PostgreSQL index method to be used. Null selects the default (currently btree).
     /// </summary>
     /// <remarks>
-    /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+    ///     http://www.postgresql.org/docs/current/static/sql-createindex.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="method">The name of the index.</param>
@@ -1027,14 +1031,16 @@ public static class NpgsqlIndexBuilderExtensions
     /// <returns><c>true</c> if the index can be configured with the method</returns>
     [Obsolete("Use CanSetMethod")]
     public static bool CanSetHasMethod(
-        this IConventionIndexBuilder indexBuilder, string? method, bool fromDataAnnotation = false)
+        this IConventionIndexBuilder indexBuilder,
+        string? method,
+        bool fromDataAnnotation = false)
         => CanSetMethod(indexBuilder, method, fromDataAnnotation);
 
     /// <summary>
-    /// Returns a value indicating whether the PostgreSQL index operators can be set.
+    ///     Returns a value indicating whether the PostgreSQL index operators can be set.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-opclass.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="operators">The operators to use for each column.</param>
@@ -1042,22 +1048,23 @@ public static class NpgsqlIndexBuilderExtensions
     /// <returns><c>true</c> if the index can be configured with the method.</returns>
     [Obsolete("Use CanSetOperators")]
     public static bool CanSetHasOperators(
-        this IConventionIndexBuilder indexBuilder, IReadOnlyList<string>? operators,
+        this IConventionIndexBuilder indexBuilder,
+        IReadOnlyList<string>? operators,
         bool fromDataAnnotation)
         => CanSetOperators(indexBuilder, operators, fromDataAnnotation);
 
     /// <summary>
-    /// Returns a value indicating whether the index can be configured as a full-text tsvector expression index.
+    ///     Returns a value indicating whether the index can be configured as a full-text tsvector expression index.
     /// </summary>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="config">
-    /// <para>
-    /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
-    /// </para>
-    /// <para>
-    /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
-    /// </para>
+    ///     <para>
+    ///         The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///         generated tsvector property.
+    ///     </para>
+    ///     <para>
+    ///         See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+    ///     </para>
     /// </param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     /// <returns><c>true</c> if the index can be configured as a full-text tsvector expression index.</returns>
@@ -1069,10 +1076,10 @@ public static class NpgsqlIndexBuilderExtensions
         => CanSetIsTsVectorExpressionIndex(indexBuilder, config, fromDataAnnotation);
 
     /// <summary>
-    /// Returns a value indicating whether the PostgreSQL index sort ordering can be set.
+    ///     Returns a value indicating whether the PostgreSQL index sort ordering can be set.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort order to use for each column.</param>
@@ -1086,10 +1093,10 @@ public static class NpgsqlIndexBuilderExtensions
         => CanSetSortOrder(indexBuilder, values, fromDataAnnotation);
 
     /// <summary>
-    /// Returns a value indicating whether the PostgreSQL index null sort ordering can be set.
+    ///     Returns a value indicating whether the PostgreSQL index null sort ordering can be set.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="values">The sort order to use for each column.</param>
@@ -1103,7 +1110,7 @@ public static class NpgsqlIndexBuilderExtensions
         => CanSetNullSortOrder(indexBuilder, values, fromDataAnnotation);
 
     /// <summary>
-    /// Returns a value indicating whether the given include properties can be set.
+    ///     Returns a value indicating whether the given include properties can be set.
     /// </summary>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="propertyNames">An array of property names to be used in 'include' clause.</param>

@@ -37,50 +37,60 @@ public class NpgsqlSequenceValueGeneratorFactory : INpgsqlSequenceValueGenerator
 
         if (type == typeof(long))
         {
-            return new NpgsqlSequenceHiLoValueGenerator<long>(rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
+            return new NpgsqlSequenceHiLoValueGenerator<long>(
+                rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
         }
 
         if (type == typeof(int))
         {
-            return new NpgsqlSequenceHiLoValueGenerator<int>(rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
+            return new NpgsqlSequenceHiLoValueGenerator<int>(
+                rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
         }
 
         if (type == typeof(short))
         {
-            return new NpgsqlSequenceHiLoValueGenerator<short>(rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
+            return new NpgsqlSequenceHiLoValueGenerator<short>(
+                rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
         }
 
         if (type == typeof(byte))
         {
-            return new NpgsqlSequenceHiLoValueGenerator<byte>(rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
+            return new NpgsqlSequenceHiLoValueGenerator<byte>(
+                rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
         }
 
         if (type == typeof(char))
         {
-            return new NpgsqlSequenceHiLoValueGenerator<char>(rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
+            return new NpgsqlSequenceHiLoValueGenerator<char>(
+                rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
         }
 
         if (type == typeof(ulong))
         {
-            return new NpgsqlSequenceHiLoValueGenerator<ulong>(rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
+            return new NpgsqlSequenceHiLoValueGenerator<ulong>(
+                rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
         }
 
         if (type == typeof(uint))
         {
-            return new NpgsqlSequenceHiLoValueGenerator<uint>(rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
+            return new NpgsqlSequenceHiLoValueGenerator<uint>(
+                rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
         }
 
         if (type == typeof(ushort))
         {
-            return new NpgsqlSequenceHiLoValueGenerator<ushort>(rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
+            return new NpgsqlSequenceHiLoValueGenerator<ushort>(
+                rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
         }
 
         if (type == typeof(sbyte))
         {
-            return new NpgsqlSequenceHiLoValueGenerator<sbyte>(rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
+            return new NpgsqlSequenceHiLoValueGenerator<sbyte>(
+                rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
         }
 
-        throw new ArgumentException(CoreStrings.InvalidValueGeneratorFactoryProperty(
-            nameof(NpgsqlSequenceValueGeneratorFactory), property.Name, property.DeclaringType.DisplayName()));
+        throw new ArgumentException(
+            CoreStrings.InvalidValueGeneratorFactoryProperty(
+                nameof(NpgsqlSequenceValueGeneratorFactory), property.Name, property.DeclaringType.DisplayName()));
     }
 }

@@ -34,7 +34,7 @@ public class LTreeQueryTest : IClassFixture<LTreeQueryTest.LTreeQueryFixture>
 
         Assert.Equal(1, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
 WHERE l."LTree" = 'Top.Science'
@@ -50,7 +50,7 @@ WHERE l."LTree" = 'Top.Science'
 
         Assert.Equal(1, count);
         AssertSql(
-"""
+            """
 @__p_0='Top.Science' (Nullable = false) (DbType = Object)
 
 SELECT count(*)::int
@@ -67,7 +67,7 @@ WHERE l."LTree" = @__p_0
 
         Assert.Equal(1, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
 WHERE l."LTreeAsString" = 'Top.Science'
@@ -82,7 +82,7 @@ WHERE l."LTreeAsString" = 'Top.Science'
 
         Assert.Equal(4, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
 WHERE l."LTree"::text LIKE 'Top.Science%'
@@ -97,7 +97,7 @@ WHERE l."LTree"::text LIKE 'Top.Science%'
 
         Assert.Equal(4, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
 WHERE 'Top.Science' @> l."LTree"
@@ -112,7 +112,7 @@ WHERE 'Top.Science' @> l."LTree"
 
         Assert.Equal(4, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
 WHERE l."LTree" <@ 'Top.Science'
@@ -127,7 +127,7 @@ WHERE l."LTree" <@ 'Top.Science'
 
         Assert.Equal(4, entity.Id);
         AssertSql(
-"""
+            """
 SELECT l."Id", l."LTree", l."LTreeAsString", l."LTrees", l."SomeString"
 FROM "LTreeEntities" AS l
 WHERE l."LTree" ~ '*.Astrophysics'
@@ -143,7 +143,7 @@ LIMIT 2
 
         Assert.Equal(4, entity.Id);
         AssertSql(
-"""
+            """
 SELECT l."Id", l."LTree", l."LTreeAsString", l."LTrees", l."SomeString"
 FROM "LTreeEntities" AS l
 WHERE l."LTree" ~ l."SomeString"::lquery
@@ -159,7 +159,7 @@ LIMIT 2
 
         Assert.Equal(0, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
 WHERE l."LTree" ~ CAST('*.Astrophysics.' || l."Id"::text AS lquery)
@@ -176,7 +176,7 @@ WHERE l."LTree" ~ CAST('*.Astrophysics.' || l."Id"::text AS lquery)
         Assert.Equal(4, entity.Id);
 
         AssertSql(
-"""
+            """
 @__lqueries_0={ '*.Astrophysics', '*.Geology' } (DbType = Object)
 
 SELECT l."Id", l."LTree", l."LTreeAsString", l."LTrees", l."SomeString"
@@ -194,7 +194,7 @@ LIMIT 2
 
         Assert.Equal(3, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
 WHERE l."LTree" @ 'Astro*'
@@ -209,7 +209,7 @@ WHERE l."LTree" @ 'Astro*'
 
         Assert.Equal(2, entity.Id);
         AssertSql(
-"""
+            """
 SELECT l."Id", l."LTree", l."LTreeAsString", l."LTrees", l."SomeString"
 FROM "LTreeEntities" AS l
 WHERE l."LTree"::text || '.Astronomy' = 'Top.Science.Astronomy'
@@ -226,7 +226,7 @@ LIMIT 2
 
         Assert.Equal(4, count);
         AssertSql(
-"""
+            """
 @__ltrees_0={ 'Top.Science', 'Top.Art' } (DbType = Object)
 
 SELECT count(*)::int
@@ -244,7 +244,7 @@ WHERE @__ltrees_0 @> l."LTree"
 
         Assert.Equal(3, count);
         AssertSql(
-"""
+            """
 @__ltrees_0={ 'Top.Science.Astronomy', 'Top.Art' } (DbType = Object)
 
 SELECT count(*)::int
@@ -262,7 +262,7 @@ WHERE @__ltrees_0 <@ l."LTree"
         _ = ctx.LTreeEntities.Count(_ => ltrees.Any(t => t.MatchesLQuery("*.Astrophysics")));
 
         AssertSql(
-"""
+            """
 @__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
 
 SELECT count(*)::int
@@ -281,7 +281,7 @@ WHERE @__ltrees_0 ~ '*.Astrophysics'
         _ = ctx.LTreeEntities.Count(l => l.LTrees.Any(t => lqueries.Any(q => t.MatchesLQuery(q))));
 
         AssertSql(
-"""
+            """
 @__lqueries_0={ '*.Astrophysics', '*.Geology' } (DbType = Object)
 
 SELECT count(*)::int
@@ -298,7 +298,7 @@ WHERE l."LTrees" ? @__lqueries_0
         _ = ctx.LTreeEntities.Count(l => l.LTrees.Any(t => t.MatchesLTxtQuery("Astro*")));
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
 WHERE l."LTrees" @ 'Astro*'
@@ -315,7 +315,7 @@ WHERE l."LTrees" @ 'Astro*'
 
         Assert.Equal(4, count);
         AssertSql(
-"""
+            """
 @__ltrees_0={ 'Top.Science', 'Top.Hobbies' } (DbType = Object)
 
 SELECT count(*)::int
@@ -334,7 +334,7 @@ WHERE @__ltrees_0 ?@> l."LTree" = 'Top.Science'
 
         Assert.Equal(3, count);
         AssertSql(
-"""
+            """
 @__ltrees_0={ 'Top.Science.Astronomy', 'Top.Hobbies.Amateurs_Astronomy' } (DbType = Object)
 
 SELECT count(*)::int
@@ -349,10 +349,11 @@ WHERE @__ltrees_0 ?<@ l."LTree" = 'Top.Science.Astronomy'
         using var ctx = CreateContext();
 
         var ltrees = new LTree[] { "Top.Science.Astronomy.Astrophysics", "Top.Science.Astronomy.Cosmology" };
-        _ = ctx.LTreeEntities.Count(_ => ltrees.FirstOrDefault(l => l.MatchesLQuery("*.Astrophysics")) == "Top.Science.Astronomy.Astrophysics");
+        _ = ctx.LTreeEntities.Count(
+            _ => ltrees.FirstOrDefault(l => l.MatchesLQuery("*.Astrophysics")) == "Top.Science.Astronomy.Astrophysics");
 
         AssertSql(
-"""
+            """
 @__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
 
 SELECT count(*)::int
@@ -370,7 +371,7 @@ WHERE @__ltrees_0 ?~ '*.Astrophysics' = 'Top.Science.Astronomy.Astrophysics'
         _ = ctx.LTreeEntities.Count(_ => ltrees.FirstOrDefault(l => l.MatchesLTxtQuery("Astro*")) == "Top.Science.Astronomy.Astrophysics");
 
         AssertSql(
-"""
+            """
 @__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
 
 SELECT count(*)::int
@@ -388,7 +389,7 @@ WHERE @__ltrees_0 ?@ 'Astro*' = 'Top.Science.Astronomy.Astrophysics'
 
         Assert.Equal(7, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
 WHERE subltree(l."LTree", 0, 1) = 'Top'
@@ -404,7 +405,7 @@ WHERE subltree(l."LTree", 0, 1) = 'Top'
 
         Assert.Equal(4, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
 WHERE subpath(l."LTree", 0, 2) = 'Top.Science'
@@ -421,7 +422,7 @@ WHERE subpath(l."LTree", 0, 2) = 'Top.Science'
 
         Assert.Equal(4, result.Id);
         AssertSql(
-"""
+            """
 SELECT l."Id", l."LTree", l."LTreeAsString", l."LTrees", l."SomeString"
 FROM "LTreeEntities" AS l
 WHERE nlevel(l."LTree") > 2 AND subpath(l."LTree", 2) = 'Astronomy.Astrophysics'
@@ -438,7 +439,7 @@ LIMIT 2
 
         Assert.Equal(2, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
 WHERE nlevel(l."LTree") = 2
@@ -454,7 +455,7 @@ WHERE nlevel(l."LTree") = 2
 
         Assert.Equal(3, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
 WHERE index(l."LTree", 'Astronomy') <> -1
@@ -470,7 +471,7 @@ WHERE index(l."LTree", 'Astronomy') <> -1
 
         Assert.Equal(0, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
 WHERE index(l."LTree", 'Top', 1) <> -1
@@ -486,7 +487,7 @@ WHERE index(l."LTree", 'Top', 1) <> -1
 
         Assert.Equal(6, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
 WHERE lca(ARRAY[l."LTree",'Top.Hobbies']::ltree[]) = 'Top'
@@ -495,7 +496,8 @@ WHERE lca(ARRAY[l."LTree",'Top.Hobbies']::ltree[]) = 'Top'
 
     #region Support
 
-    protected LTreeQueryContext CreateContext() => Fixture.CreateContext();
+    protected LTreeQueryContext CreateContext()
+        => Fixture.CreateContext();
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
@@ -504,7 +506,10 @@ WHERE lca(ARRAY[l."LTree",'Top.Hobbies']::ltree[]) = 'Top'
     {
         public DbSet<LTreeEntity> LTreeEntities { get; set; }
 
-        public LTreeQueryContext(DbContextOptions options) : base(options) {}
+        public LTreeQueryContext(DbContextOptions options)
+            : base(options)
+        {
+        }
 
         public static void Seed(LTreeQueryContext context)
         {
@@ -551,10 +556,17 @@ WHERE lca(ARRAY[l."LTree",'Top.Hobbies']::ltree[]) = 'Top'
 
     public class LTreeQueryFixture : SharedStoreFixtureBase<LTreeQueryContext>
     {
-        protected override string StoreName => "LTreeQueryTest";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
-        protected override void Seed(LTreeQueryContext context) => LTreeQueryContext.Seed(context);
+        protected override string StoreName
+            => "LTreeQueryTest";
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
+
+        protected override void Seed(LTreeQueryContext context)
+            => LTreeQueryContext.Seed(context);
     }
 
     #endregion

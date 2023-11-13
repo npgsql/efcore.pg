@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore.Storage.Json;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// The base class for mapping Npgsql-specific types. It configures parameters with the
-/// <see cref="NpgsqlDbType"/> provider-specific type enum.
+///     The base class for mapping Npgsql-specific types. It configures parameters with the
+///     <see cref="NpgsqlDbType" /> provider-specific type enum.
 /// </summary>
 public abstract class NpgsqlTypeMapping : RelationalTypeMapping, INpgsqlTypeMapping
 {
@@ -14,7 +14,7 @@ public abstract class NpgsqlTypeMapping : RelationalTypeMapping, INpgsqlTypeMapp
 
     // ReSharper disable once PublicConstructorInAbstractClass
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlTypeMapping"/> class.
+    ///     Constructs an instance of the <see cref="NpgsqlTypeMapping" /> class.
     /// </summary>
     /// <param name="storeType">The database type to map.</param>
     /// <param name="clrType">The CLR type to map.</param>
@@ -22,16 +22,20 @@ public abstract class NpgsqlTypeMapping : RelationalTypeMapping, INpgsqlTypeMapp
     /// <param name="jsonValueReaderWriter">Handles reading and writing JSON values for instances of the mapped type.</param>
     public NpgsqlTypeMapping(string storeType, Type clrType, NpgsqlDbType npgsqlDbType, JsonValueReaderWriter? jsonValueReaderWriter = null)
         : base(storeType, clrType, jsonValueReaderWriter: jsonValueReaderWriter)
-        => NpgsqlDbType = npgsqlDbType;
+    {
+        NpgsqlDbType = npgsqlDbType;
+    }
 
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlTypeMapping"/> class.
+    ///     Constructs an instance of the <see cref="NpgsqlTypeMapping" /> class.
     /// </summary>
     /// <param name="parameters">The parameters for this mapping.</param>
     /// <param name="npgsqlDbType">The database type of the range subtype.</param>
     protected NpgsqlTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
         : base(parameters)
-        => NpgsqlDbType = npgsqlDbType;
+    {
+        NpgsqlDbType = npgsqlDbType;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -43,7 +47,8 @@ public abstract class NpgsqlTypeMapping : RelationalTypeMapping, INpgsqlTypeMapp
     {
         if (parameter is not NpgsqlParameter npgsqlParameter)
         {
-            throw new InvalidOperationException($"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+            throw new InvalidOperationException(
+                $"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
         }
 
         base.ConfigureParameter(parameter);
@@ -51,11 +56,11 @@ public abstract class NpgsqlTypeMapping : RelationalTypeMapping, INpgsqlTypeMapp
     }
 
     /// <summary>
-    /// Generates the SQL representation of a literal value meant to be embedded in another literal value, e.g. in a range.
+    ///     Generates the SQL representation of a literal value meant to be embedded in another literal value, e.g. in a range.
     /// </summary>
     /// <param name="value">The literal value.</param>
     /// <returns>
-    /// The generated string.
+    ///     The generated string.
     /// </returns>
     public virtual string GenerateEmbeddedSqlLiteral(object? value)
     {
@@ -70,12 +75,12 @@ public abstract class NpgsqlTypeMapping : RelationalTypeMapping, INpgsqlTypeMapp
     }
 
     /// <summary>
-    /// Generates the SQL representation of a literal value without conversion, meant to be embedded in another literal value,
-    /// e.g. in a range.
+    ///     Generates the SQL representation of a literal value without conversion, meant to be embedded in another literal value,
+    ///     e.g. in a range.
     /// </summary>
     /// <param name="value">The literal value.</param>
     /// <returns>
-    /// The generated string.
+    ///     The generated string.
     /// </returns>
     public virtual string GenerateEmbeddedProviderValueSqlLiteral(object? value)
         => value == null
@@ -83,11 +88,11 @@ public abstract class NpgsqlTypeMapping : RelationalTypeMapping, INpgsqlTypeMapp
             : GenerateEmbeddedNonNullSqlLiteral(value);
 
     /// <summary>
-    /// Generates the SQL representation of a non-null literal value, meant to be embedded in another literal value, e.g. in a range.
+    ///     Generates the SQL representation of a non-null literal value, meant to be embedded in another literal value, e.g. in a range.
     /// </summary>
     /// <param name="value">The literal value.</param>
     /// <returns>
-    /// The generated string.
+    ///     The generated string.
     /// </returns>
     protected virtual string GenerateEmbeddedNonNullSqlLiteral(object value)
         => GenerateNonNullSqlLiteral(value);

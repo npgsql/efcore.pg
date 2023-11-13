@@ -32,7 +32,10 @@ public class NpgsqlValueGenerationScenariosTest
 
     public class BlogContextSequence : ContextBase
     {
-        public BlogContextSequence(string databaseName) : base(databaseName) { }
+        public BlogContextSequence(string databaseName)
+            : base(databaseName)
+        {
+        }
     }
 
     [Fact]
@@ -331,7 +334,10 @@ public class NpgsqlValueGenerationScenariosTest
 
     public class BlogContextNoKeyGeneration : ContextBase
     {
-        public BlogContextNoKeyGeneration(string databaseName) : base(databaseName) {}
+        public BlogContextNoKeyGeneration(string databaseName)
+            : base(databaseName)
+        {
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -395,8 +401,7 @@ public class NpgsqlValueGenerationScenariosTest
             context.Database.EnsureCreated();
             var blogs = new List<Blog>
             {
-                new() { Name = "One Unicorn" },
-                new() { Name = "Two Unicorns", CreatedOn = new DateTime(1969, 8, 3, 0, 10, 0) }
+                new() { Name = "One Unicorn" }, new() { Name = "Two Unicorns", CreatedOn = new DateTime(1969, 8, 3, 0, 10, 0) }
             };
             context.AddRange(blogs);
             context.SaveChanges();
@@ -530,7 +535,10 @@ public class NpgsqlValueGenerationScenariosTest
 
     public class BlogContextSequenceNonId : ContextBase
     {
-        public BlogContextSequenceNonId(string databaseName) : base(databaseName) { }
+        public BlogContextSequenceNonId(string databaseName)
+            : base(databaseName)
+        {
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -568,7 +576,10 @@ public class NpgsqlValueGenerationScenariosTest
 
     public class BlogContext : ContextBase
     {
-        public BlogContext(string databaseName) : base(databaseName) {}
+        public BlogContext(string databaseName)
+            : base(databaseName)
+        {
+        }
     }
 
     [Fact]
@@ -582,10 +593,7 @@ public class NpgsqlValueGenerationScenariosTest
             context.Database.EnsureCreated();
 
             var blog = context.Add(
-                new GuidBlog
-                {
-                    Name = "One Unicorn"
-                }).Entity;
+                new GuidBlog { Name = "One Unicorn" }).Entity;
             var beforeSave = blog.Id;
             var beforeSaveNotId = blog.NotId;
 
@@ -672,7 +680,10 @@ public class NpgsqlValueGenerationScenariosTest
     {
         private readonly string _databaseName;
 
-        protected ContextBase(string databaseName) => _databaseName = databaseName;
+        protected ContextBase(string databaseName)
+        {
+            _databaseName = databaseName;
+        }
 
         public DbSet<Blog> Blogs { get; set; }
         public DbSet<NullableKeyBlog> NullableKeyBlogs { get; set; }

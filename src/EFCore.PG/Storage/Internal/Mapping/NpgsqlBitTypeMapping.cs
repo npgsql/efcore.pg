@@ -1,21 +1,19 @@
 ﻿using System.Collections;
 using System.Text;
-using System.Text.Json;
-using Microsoft.EntityFrameworkCore.Storage.Json;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// The type mapping for the PostgreSQL bit string type.
+///     The type mapping for the PostgreSQL bit string type.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/datatype-bit.html
+///     See: https://www.postgresql.org/docs/current/static/datatype-bit.html
 /// </remarks>
 public class NpgsqlBitTypeMapping : NpgsqlTypeMapping
 {
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlBitTypeMapping"/> class.
+    ///     Constructs an instance of the <see cref="NpgsqlBitTypeMapping" /> class.
     /// </summary>
     public NpgsqlBitTypeMapping()
         : base("bit", typeof(BitArray), NpgsqlDbType.Bit, jsonValueReaderWriter: JsonBitArrayReaderWriter.Instance)
@@ -29,7 +27,9 @@ public class NpgsqlBitTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlBitTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Bit) {}
+        : base(parameters, NpgsqlDbType.Bit)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

@@ -19,14 +19,14 @@ public class NpgsqlTimeTypeMapping : NpgsqlTypeMapping
     /// </summary>
     public NpgsqlTimeTypeMapping(Type clrType)
         : base(
-                "time without time zone",
-                clrType,
-                NpgsqlDbType.Time,
-                clrType == typeof(TimeOnly)
-                    ? JsonTimeOnlyReaderWriter.Instance
-                    : clrType == typeof(TimeSpan)
-                        ? JsonTimeSpanReaderWriter.Instance
-                        : throw new ArgumentException("clrType must be TimeOnly or TimeSpan", nameof(clrType)))
+            "time without time zone",
+            clrType,
+            NpgsqlDbType.Time,
+            clrType == typeof(TimeOnly)
+                ? JsonTimeOnlyReaderWriter.Instance
+                : clrType == typeof(TimeSpan)
+                    ? JsonTimeSpanReaderWriter.Instance
+                    : throw new ArgumentException("clrType must be TimeOnly or TimeSpan", nameof(clrType)))
     {
     }
 
@@ -37,7 +37,9 @@ public class NpgsqlTimeTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlTimeTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Time) {}
+        : base(parameters, NpgsqlDbType.Time)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

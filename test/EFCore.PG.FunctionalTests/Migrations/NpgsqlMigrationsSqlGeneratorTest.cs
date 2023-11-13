@@ -28,7 +28,7 @@ public class NpgsqlMigrationsSqlGeneratorTest : MigrationsSqlGeneratorTestBase
             new NpgsqlCreateDatabaseOperation { Name = "Northwind", Collation = "POSIX" });
 
         AssertSql(
-"""
+            """
 CREATE DATABASE "Northwind"
 LC_COLLATE "POSIX";
 
@@ -38,14 +38,10 @@ LC_COLLATE "POSIX";
     [Fact]
     public virtual void CreateDatabaseOperation_with_template()
     {
-        Generate(new NpgsqlCreateDatabaseOperation
-        {
-            Name = "Northwind",
-            Template = "MyTemplate"
-        });
+        Generate(new NpgsqlCreateDatabaseOperation { Name = "Northwind", Template = "MyTemplate" });
 
         AssertSql(
-"""
+            """
 CREATE DATABASE "Northwind"
 TEMPLATE "MyTemplate";
 
@@ -55,14 +51,10 @@ TEMPLATE "MyTemplate";
     [Fact]
     public virtual void CreateDatabaseOperation_with_tablespace()
     {
-        Generate(new NpgsqlCreateDatabaseOperation
-        {
-            Name = "some_db",
-            Tablespace = "MyTablespace"
-        });
+        Generate(new NpgsqlCreateDatabaseOperation { Name = "some_db", Tablespace = "MyTablespace" });
 
         AssertSql(
-"""
+            """
 CREATE DATABASE some_db
 TABLESPACE "MyTablespace";
 
@@ -76,7 +68,7 @@ TABLESPACE "MyTablespace";
         base.AddColumnOperation_without_column_type();
 
         AssertSql(
-"""
+            """
 ALTER TABLE "People" ADD "Alias" text NOT NULL;
 
 """);
@@ -87,7 +79,7 @@ ALTER TABLE "People" ADD "Alias" text NOT NULL;
         base.AddColumnOperation_with_unicode_overridden();
 
         AssertSql(
-"""
+            """
 ALTER TABLE "Person" ADD "Name" text;
 
 """);
@@ -98,7 +90,7 @@ ALTER TABLE "Person" ADD "Name" text;
         base.AddColumnOperation_with_unicode_no_model();
 
         AssertSql(
-"""
+            """
 ALTER TABLE "Person" ADD "Name" text;
 
 """);
@@ -109,7 +101,7 @@ ALTER TABLE "Person" ADD "Name" text;
         base.AddColumnOperation_with_fixed_length_no_model();
 
         AssertSql(
-"""
+            """
 ALTER TABLE "Person" ADD "Name" character(100);
 
 """);
@@ -120,7 +112,7 @@ ALTER TABLE "Person" ADD "Name" character(100);
         base.AddColumnOperation_with_maxLength_overridden();
 
         AssertSql(
-"""
+            """
 ALTER TABLE "Person" ADD "Name" character varying(32);
 
 """);
@@ -131,7 +123,7 @@ ALTER TABLE "Person" ADD "Name" character varying(32);
         base.AddColumnOperation_with_maxLength_no_model();
 
         AssertSql(
-"""
+            """
 ALTER TABLE "Person" ADD "Name" character varying(30);
 
 """);
@@ -142,7 +134,7 @@ ALTER TABLE "Person" ADD "Name" character varying(30);
         base.AddColumnOperation_with_precision_and_scale_overridden();
 
         AssertSql(
-"""
+            """
 ALTER TABLE "Person" ADD "Pi" numeric(15,10) NOT NULL;
 
 """);
@@ -153,7 +145,7 @@ ALTER TABLE "Person" ADD "Pi" numeric(15,10) NOT NULL;
         base.AddColumnOperation_with_precision_and_scale_no_model();
 
         AssertSql(
-"""
+            """
 ALTER TABLE "Person" ADD "Pi" numeric(20,7) NOT NULL;
 
 """);
@@ -164,7 +156,7 @@ ALTER TABLE "Person" ADD "Pi" numeric(20,7) NOT NULL;
         base.AddForeignKeyOperation_without_principal_columns();
 
         AssertSql(
-"""
+            """
 ALTER TABLE "People" ADD FOREIGN KEY ("SpouseId") REFERENCES "People";
 
 """);
@@ -175,7 +167,7 @@ ALTER TABLE "People" ADD FOREIGN KEY ("SpouseId") REFERENCES "People";
         base.AlterColumnOperation_without_column_type();
 
         AssertSql(
-"""
+            """
 ALTER TABLE "People" ALTER COLUMN "LuckyNumber" TYPE integer;
 
 """);
@@ -186,7 +178,7 @@ ALTER TABLE "People" ALTER COLUMN "LuckyNumber" TYPE integer;
         base.RenameTableOperation_legacy();
 
         AssertSql(
-"""
+            """
 ALTER TABLE dbo."People" RENAME TO "Person";
 
 """);
@@ -197,7 +189,7 @@ ALTER TABLE dbo."People" RENAME TO "Person";
         base.RenameTableOperation();
 
         AssertSql(
-"""
+            """
 ALTER TABLE dbo."People" RENAME TO "Person";
 
 """);
@@ -208,7 +200,7 @@ ALTER TABLE dbo."People" RENAME TO "Person";
         base.SqlOperation();
 
         AssertSql(
-"""
+            """
 -- I <3 DDL
 
 """);
@@ -219,7 +211,7 @@ ALTER TABLE dbo."People" RENAME TO "Person";
         base.InsertDataOperation_all_args_spatial();
 
         AssertSql(
-"""
+            """
 INSERT INTO dbo."People" ("Id", "Full Name", "Geometry")
 VALUES (0, NULL, NULL);
 INSERT INTO dbo."People" ("Id", "Full Name", "Geometry")
@@ -245,7 +237,7 @@ VALUES (7, 'Aemon Targaryen', GEOMETRY 'SRID=4326;GEOMETRYCOLLECTION Z(LINESTRIN
         base.InsertDataOperation_required_args();
 
         AssertSql(
-"""
+            """
 INSERT INTO dbo."People" ("First Name")
 VALUES ('John');
 
@@ -257,7 +249,7 @@ VALUES ('John');
         base.InsertDataOperation_required_args_composite();
 
         AssertSql(
-"""
+            """
 INSERT INTO dbo."People" ("First Name", "Last Name")
 VALUES ('John', 'Snow');
 
@@ -269,7 +261,7 @@ VALUES ('John', 'Snow');
         base.InsertDataOperation_required_args_multiple_rows();
 
         AssertSql(
-"""
+            """
 INSERT INTO dbo."People" ("First Name")
 VALUES ('John');
 INSERT INTO dbo."People" ("First Name")
@@ -283,7 +275,7 @@ VALUES ('Daenerys');
         base.DeleteDataOperation_all_args();
 
         AssertSql(
-"""
+            """
 DELETE FROM "People"
 WHERE "First Name" = 'Hodor';
 DELETE FROM "People"
@@ -303,7 +295,7 @@ WHERE "First Name" = 'Harry';
         base.DeleteDataOperation_all_args_composite();
 
         AssertSql(
-"""
+            """
 DELETE FROM "People"
 WHERE "First Name" = 'Hodor' AND "Last Name" IS NULL;
 DELETE FROM "People"
@@ -323,7 +315,7 @@ WHERE "First Name" = 'Harry' AND "Last Name" = 'Strickland';
         base.DeleteDataOperation_required_args();
 
         AssertSql(
-"""
+            """
 DELETE FROM "People"
 WHERE "Last Name" = 'Snow';
 
@@ -335,7 +327,7 @@ WHERE "Last Name" = 'Snow';
         base.DeleteDataOperation_required_args_composite();
 
         AssertSql(
-"""
+            """
 DELETE FROM "People"
 WHERE "First Name" = 'John' AND "Last Name" = 'Snow';
 
@@ -347,7 +339,7 @@ WHERE "First Name" = 'John' AND "Last Name" = 'Snow';
         base.UpdateDataOperation_all_args();
 
         AssertSql(
-"""
+            """
 UPDATE "People" SET "Birthplace" = 'Winterfell', "House Allegiance" = 'Stark', "Culture" = 'Northmen'
 WHERE "First Name" = 'Hodor';
 UPDATE "People" SET "Birthplace" = 'Dragonstone', "House Allegiance" = 'Targaryen', "Culture" = 'Valyrian'
@@ -361,7 +353,7 @@ WHERE "First Name" = 'Daenerys';
         base.UpdateDataOperation_all_args_composite();
 
         AssertSql(
-"""
+            """
 UPDATE "People" SET "House Allegiance" = 'Stark'
 WHERE "First Name" = 'Hodor' AND "Last Name" IS NULL;
 UPDATE "People" SET "House Allegiance" = 'Targaryen'
@@ -375,7 +367,7 @@ WHERE "First Name" = 'Daenerys' AND "Last Name" = 'Targaryen';
         base.UpdateDataOperation_all_args_composite_multi();
 
         AssertSql(
-"""
+            """
 UPDATE "People" SET "Birthplace" = 'Winterfell', "House Allegiance" = 'Stark', "Culture" = 'Northmen'
 WHERE "First Name" = 'Hodor' AND "Last Name" IS NULL;
 UPDATE "People" SET "Birthplace" = 'Dragonstone', "House Allegiance" = 'Targaryen', "Culture" = 'Valyrian'
@@ -389,7 +381,7 @@ WHERE "First Name" = 'Daenerys' AND "Last Name" = 'Targaryen';
         base.UpdateDataOperation_all_args_multi();
 
         AssertSql(
-"""
+            """
 UPDATE "People" SET "Birthplace" = 'Dragonstone', "House Allegiance" = 'Targaryen', "Culture" = 'Valyrian'
 WHERE "First Name" = 'Daenerys';
 
@@ -401,7 +393,7 @@ WHERE "First Name" = 'Daenerys';
         base.UpdateDataOperation_required_args();
 
         AssertSql(
-"""
+            """
 UPDATE "People" SET "House Allegiance" = 'Targaryen'
 WHERE "First Name" = 'Daenerys';
 
@@ -413,7 +405,7 @@ WHERE "First Name" = 'Daenerys';
         base.UpdateDataOperation_required_args_multiple_rows();
 
         AssertSql(
-"""
+            """
 UPDATE "People" SET "House Allegiance" = 'Stark'
 WHERE "First Name" = 'Hodor';
 UPDATE "People" SET "House Allegiance" = 'Targaryen'
@@ -427,7 +419,7 @@ WHERE "First Name" = 'Daenerys';
         base.UpdateDataOperation_required_args_composite();
 
         AssertSql(
-"""
+            """
 UPDATE "People" SET "House Allegiance" = 'Targaryen'
 WHERE "First Name" = 'Daenerys' AND "Last Name" = 'Targaryen';
 
@@ -439,7 +431,7 @@ WHERE "First Name" = 'Daenerys' AND "Last Name" = 'Targaryen';
         base.UpdateDataOperation_required_args_composite_multi();
 
         AssertSql(
-"""
+            """
 UPDATE "People" SET "Birthplace" = 'Dragonstone', "House Allegiance" = 'Targaryen', "Culture" = 'Valyrian'
 WHERE "First Name" = 'Daenerys' AND "Last Name" = 'Targaryen';
 
@@ -451,7 +443,7 @@ WHERE "First Name" = 'Daenerys' AND "Last Name" = 'Targaryen';
         base.UpdateDataOperation_required_args_multi();
 
         AssertSql(
-"""
+            """
 UPDATE "People" SET "Birthplace" = 'Dragonstone', "House Allegiance" = 'Targaryen', "Culture" = 'Valyrian'
 WHERE "First Name" = 'Daenerys';
 
@@ -486,16 +478,18 @@ ALTER SEQUENCE dbo."TestRestartSequenceOperation" RESTART;
     [Fact]
     public void CreateIndexOperation_collation()
     {
-        Generate(new CreateIndexOperation
-        {
-            Name = "IX_People_Name",
-            Table = "People",
-            Schema = "dbo",
-            Columns = new[] { "FirstName", "LastName" },
-            [RelationalAnnotationNames.Collation] = new[] { null, "de_DE" }
-        });
+        Generate(
+            new CreateIndexOperation
+            {
+                Name = "IX_People_Name",
+                Table = "People",
+                Schema = "dbo",
+                Columns = new[] { "FirstName", "LastName" },
+                [RelationalAnnotationNames.Collation] = new[] { null, "de_DE" }
+            });
 
-        AssertSql(@"CREATE INDEX ""IX_People_Name"" ON dbo.""People"" (""FirstName"", ""LastName"" COLLATE ""de_DE"");
+        AssertSql(
+            @"CREATE INDEX ""IX_People_Name"" ON dbo.""People"" (""FirstName"", ""LastName"" COLLATE ""de_DE"");
 ");
     }
 
@@ -519,7 +513,6 @@ ALTER SEQUENCE dbo."TestRestartSequenceOperation" RESTART;
                     ClrType = typeof(int),
                     [NpgsqlAnnotationNames.ValueGenerationStrategy] =
                         NpgsqlValueGenerationStrategy.IdentityByDefaultColumn,
-
                     OldColumn = new AddColumnOperation
                     {
                         Table = "Person",
@@ -533,7 +526,7 @@ ALTER SEQUENCE dbo."TestRestartSequenceOperation" RESTART;
             options);
 
         AssertSql(
-$"""
+            $"""
 ALTER SEQUENCE "Person_Id_seq" RENAME TO "Person_Id_old_seq";
 ALTER TABLE "Person" ALTER COLUMN "Id" DROP DEFAULT;
 ALTER TABLE "Person" ALTER COLUMN "Id" ADD GENERATED BY DEFAULT AS IDENTITY;
@@ -552,7 +545,7 @@ DROP SEQUENCE "Person_Id_old_seq";
             MigrationsSqlGenerationOptions.Idempotent);
 
         AssertSql(
-"""
+            """
     IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'some_schema') THEN
         CREATE SCHEMA some_schema;
     END IF;
@@ -584,10 +577,7 @@ DROP SEQUENCE "Person_Id_old_seq";
                         IsNullable = false
                     },
                 },
-                PrimaryKey = new AddPrimaryKeyOperation
-                {
-                    Columns = new[] { "Id" }
-                }
+                PrimaryKey = new AddPrimaryKeyOperation { Columns = new[] { "Id" } }
             };
 
         var interleaveInParent = new CockroachDbInterleaveInParent(op);
@@ -598,7 +588,7 @@ DROP SEQUENCE "Person_Id_old_seq";
         Generate(op);
 
         AssertSql(
-"""
+            """
 CREATE TABLE dbo."People" (
     "Id" integer NOT NULL,
     PRIMARY KEY ("Id")
@@ -613,18 +603,18 @@ INTERLEAVE IN PARENT my_schema.my_parent (col_a, col_b);
 #pragma warning disable 618
     [Fact]
     public virtual void AddColumnOperation_serial_old_annotation_throws()
-    {
-        Assert.Throws<NotSupportedException>(() =>
-            Generate(new AddColumnOperation
-            {
-                Table = "People",
-                Name = "foo",
-                ClrType = typeof(int),
-                ColumnType = "int",
-                IsNullable = false,
-                [NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
-            }));
-    }
+        => Assert.Throws<NotSupportedException>(
+            () =>
+                Generate(
+                    new AddColumnOperation
+                    {
+                        Table = "People",
+                        Name = "foo",
+                        ClrType = typeof(int),
+                        ColumnType = "int",
+                        IsNullable = false,
+                        [NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
+                    }));
 
     public override void InsertDataOperation_throws_for_unsupported_column_types()
         => Assert.Equal(
@@ -654,5 +644,6 @@ INTERLEAVE IN PARENT my_schema.my_parent (col_a, col_b);
     {
     }
 
-    protected override string GetGeometryCollectionStoreType() => "GEOMETRY(GEOMETRYCOLLECTION)";
+    protected override string GetGeometryCollectionStoreType()
+        => "GEOMETRY(GEOMETRYCOLLECTION)";
 }

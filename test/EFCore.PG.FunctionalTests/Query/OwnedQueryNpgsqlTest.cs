@@ -11,7 +11,8 @@ public class OwnedQueryNpgsqlTest : OwnedQueryRelationalTestBase<OwnedQueryNpgsq
 
     public class OwnedQueryNpgsqlFixture : RelationalOwnedQueryFixture
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {

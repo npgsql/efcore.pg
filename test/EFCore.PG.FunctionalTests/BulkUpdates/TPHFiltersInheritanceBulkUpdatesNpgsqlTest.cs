@@ -2,7 +2,8 @@ using Microsoft.EntityFrameworkCore.BulkUpdates;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.BulkUpdates;
 
-public class TPHFiltersInheritanceBulkUpdatesNpgsqlTest : FiltersInheritanceBulkUpdatesTestBase<TPHFiltersInheritanceBulkUpdatesNpgsqlFixture>
+public class TPHFiltersInheritanceBulkUpdatesNpgsqlTest : FiltersInheritanceBulkUpdatesTestBase<
+    TPHFiltersInheritanceBulkUpdatesNpgsqlFixture>
 {
     public TPHFiltersInheritanceBulkUpdatesNpgsqlTest(
         TPHFiltersInheritanceBulkUpdatesNpgsqlFixture fixture,
@@ -18,7 +19,7 @@ public class TPHFiltersInheritanceBulkUpdatesNpgsqlTest : FiltersInheritanceBulk
         await base.Delete_where_hierarchy(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Animals" AS a
 WHERE a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
 """);
@@ -29,7 +30,7 @@ WHERE a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
         await base.Delete_where_hierarchy_derived(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Animals" AS a
 WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
 """);
@@ -40,7 +41,7 @@ WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1 AND a."Name" = 'Great spo
         await base.Delete_where_using_hierarchy(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Countries" AS c
 WHERE (
     SELECT count(*)::int
@@ -54,7 +55,7 @@ WHERE (
         await base.Delete_where_using_hierarchy_derived(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Countries" AS c
 WHERE (
     SELECT count(*)::int
@@ -82,7 +83,7 @@ WHERE (
         await base.Delete_GroupBy_Where_Select_First_3(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Animals" AS a
 WHERE a."CountryId" = 1 AND a."Id" IN (
     SELECT (
@@ -110,7 +111,7 @@ WHERE a."CountryId" = 1 AND a."Id" IN (
         await base.Update_base_type(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Animals" AS a
 SET "Name" = 'Animal'
 WHERE a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
@@ -122,7 +123,7 @@ WHERE a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
         await base.Update_base_type_with_OfType(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Animals" AS a
 SET "Name" = 'NewBird'
 WHERE a."CountryId" = 1 AND a."Discriminator" = 'Kiwi'
@@ -134,7 +135,7 @@ WHERE a."CountryId" = 1 AND a."Discriminator" = 'Kiwi'
         await base.Delete_where_hierarchy_subquery(async);
 
         AssertSql(
-"""
+            """
 @__p_1='3'
 @__p_0='0'
 
@@ -198,7 +199,7 @@ WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1
         await base.Update_where_using_hierarchy(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Countries" AS c
 SET "Name" = 'Monovia'
 WHERE (
@@ -213,7 +214,7 @@ WHERE (
         await base.Update_where_using_hierarchy_derived(async);
 
         AssertExecuteUpdateSql(
-"""
+            """
 UPDATE "Countries" AS c
 SET "Name" = 'Monovia'
 WHERE (
@@ -234,7 +235,8 @@ WHERE (
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());
 
-    protected override void ClearLog() => Fixture.TestSqlLoggerFactory.Clear();
+    protected override void ClearLog()
+        => Fixture.TestSqlLoggerFactory.Clear();
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

@@ -1,6 +1,5 @@
-
-
 // ReSharper disable once CheckNamespace
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
 internal static class TypeExtensions

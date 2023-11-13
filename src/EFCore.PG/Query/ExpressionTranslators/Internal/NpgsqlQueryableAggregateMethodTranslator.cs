@@ -47,8 +47,8 @@ public class NpgsqlQueryableAggregateMethodTranslator : IAggregateMethodCallTran
             switch (methodInfo.Name)
             {
                 case nameof(Queryable.Average)
-                when (QueryableMethods.IsAverageWithoutSelector(methodInfo)
-                    || QueryableMethods.IsAverageWithSelector(methodInfo))
+                    when (QueryableMethods.IsAverageWithoutSelector(methodInfo)
+                        || QueryableMethods.IsAverageWithSelector(methodInfo))
                     && source.Selector is SqlExpression averageSqlExpression:
                     var averageInputType = averageSqlExpression.Type;
                     if (averageInputType == typeof(int)
@@ -65,7 +65,7 @@ public class NpgsqlQueryableAggregateMethodTranslator : IAggregateMethodCallTran
                                 new[] { averageSqlExpression },
                                 source,
                                 nullable: true,
-                                 argumentsPropagateNullability: FalseArrays[1],
+                                argumentsPropagateNullability: FalseArrays[1],
                                 returnType: typeof(double)),
                             averageSqlExpression.Type,
                             averageSqlExpression.TypeMapping)
@@ -80,7 +80,7 @@ public class NpgsqlQueryableAggregateMethodTranslator : IAggregateMethodCallTran
 
                 // PostgreSQL COUNT() always returns bigint, so we need to downcast to int
                 case nameof(Queryable.Count)
-                when methodInfo == QueryableMethods.CountWithoutPredicate
+                    when methodInfo == QueryableMethods.CountWithoutPredicate
                     || methodInfo == QueryableMethods.CountWithPredicate:
                     var countSqlExpression = (source.Selector as SqlExpression) ?? _sqlExpressionFactory.Fragment("*");
                     return _sqlExpressionFactory.Convert(
@@ -95,49 +95,49 @@ public class NpgsqlQueryableAggregateMethodTranslator : IAggregateMethodCallTran
                         _typeMappingSource.FindMapping(typeof(int)));
 
                 case nameof(Queryable.LongCount)
-                when methodInfo == QueryableMethods.LongCountWithoutPredicate
+                    when methodInfo == QueryableMethods.LongCountWithoutPredicate
                     || methodInfo == QueryableMethods.LongCountWithPredicate:
                     var longCountSqlExpression = (source.Selector as SqlExpression) ?? _sqlExpressionFactory.Fragment("*");
                     return _sqlExpressionFactory.AggregateFunction(
-                            "count",
-                            new[] { longCountSqlExpression },
-                            source,
-                            nullable: false,
-                            argumentsPropagateNullability: FalseArrays[1],
-                            typeof(long));
+                        "count",
+                        new[] { longCountSqlExpression },
+                        source,
+                        nullable: false,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        typeof(long));
 
                 case nameof(Queryable.Max)
-                when (methodInfo == QueryableMethods.MaxWithoutSelector
-                    || methodInfo == QueryableMethods.MaxWithSelector)
+                    when (methodInfo == QueryableMethods.MaxWithoutSelector
+                        || methodInfo == QueryableMethods.MaxWithSelector)
                     && source.Selector is SqlExpression maxSqlExpression:
                     return _sqlExpressionFactory.AggregateFunction(
-                            "max",
-                            new[] { maxSqlExpression },
-                            source,
-                            nullable: true,
-                            argumentsPropagateNullability: FalseArrays[1],
-                            maxSqlExpression.Type,
-                            maxSqlExpression.TypeMapping);
+                        "max",
+                        new[] { maxSqlExpression },
+                        source,
+                        nullable: true,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        maxSqlExpression.Type,
+                        maxSqlExpression.TypeMapping);
 
                 case nameof(Queryable.Min)
-                when (methodInfo == QueryableMethods.MinWithoutSelector
-                    || methodInfo == QueryableMethods.MinWithSelector)
+                    when (methodInfo == QueryableMethods.MinWithoutSelector
+                        || methodInfo == QueryableMethods.MinWithSelector)
                     && source.Selector is SqlExpression minSqlExpression:
                     return _sqlExpressionFactory.AggregateFunction(
-                            "min",
-                            new[] { minSqlExpression },
-                            source,
-                            nullable: true,
-                            argumentsPropagateNullability: FalseArrays[1],
-                            minSqlExpression.Type,
-                            minSqlExpression.TypeMapping);
+                        "min",
+                        new[] { minSqlExpression },
+                        source,
+                        nullable: true,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        minSqlExpression.Type,
+                        minSqlExpression.TypeMapping);
 
                 // In PostgreSQL SUM() doesn't return the same type as its argument for smallint, int and bigint.
                 // Cast to get the same type.
                 // http://www.postgresql.org/docs/current/static/functions-aggregate.html
                 case nameof(Queryable.Sum)
-                when (QueryableMethods.IsSumWithoutSelector(methodInfo)
-                    || QueryableMethods.IsSumWithSelector(methodInfo))
+                    when (QueryableMethods.IsSumWithoutSelector(methodInfo)
+                        || QueryableMethods.IsSumWithSelector(methodInfo))
                     && source.Selector is SqlExpression sumSqlExpression:
                     var sumInputType = sumSqlExpression.Type;
 

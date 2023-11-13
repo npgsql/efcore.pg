@@ -1,6 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
@@ -44,10 +41,12 @@ public class NpgsqlRowValueTranslator : IMethodCallTranslator
     };
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="NpgsqlRowValueTranslator"/> class.
+    ///     Initializes a new instance of the <see cref="NpgsqlRowValueTranslator" /> class.
     /// </summary>
     public NpgsqlRowValueTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
-        => _sqlExpressionFactory = sqlExpressionFactory;
+    {
+        _sqlExpressionFactory = sqlExpressionFactory;
+    }
 
     /// <inheritdoc />
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicMethods, typeof(ValueType))] // For ValueTuple.Create

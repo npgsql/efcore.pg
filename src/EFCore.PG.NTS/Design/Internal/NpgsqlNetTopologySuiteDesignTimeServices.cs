@@ -26,5 +26,4 @@ public class NpgsqlNetTopologySuiteDesignTimeServices : IDesignTimeServices
             .AddSingleton<IRelationalTypeMappingSourcePlugin, NpgsqlNetTopologySuiteTypeMappingSourcePlugin>()
             .AddSingleton<IProviderCodeGeneratorPlugin, NpgsqlNetTopologySuiteCodeGeneratorPlugin>()
             .TryAddSingleton<INpgsqlNetTopologySuiteOptions, NpgsqlNetTopologySuiteOptions>();
-
 }

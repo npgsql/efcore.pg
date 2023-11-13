@@ -7,9 +7,12 @@ public class QueryFilterFuncletizationNpgsqlTest
 {
     // ReSharper disable once UnusedParameter.Local
     public QueryFilterFuncletizationNpgsqlTest(
-        QueryFilterFuncletizationNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
+        QueryFilterFuncletizationNpgsqlFixture fixture,
+        ITestOutputHelper testOutputHelper)
         : base(fixture)
-        => Fixture.TestSqlLoggerFactory.Clear();
+    {
+        Fixture.TestSqlLoggerFactory.Clear();
+    }
 
     public override void DbContext_list_is_parameterized()
     {
@@ -34,6 +37,7 @@ public class QueryFilterFuncletizationNpgsqlTest
 
     public class QueryFilterFuncletizationNpgsqlFixture : QueryFilterFuncletizationRelationalFixture
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
     }
 }

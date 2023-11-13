@@ -21,7 +21,9 @@ public class DateIntervalMultirangeMapping : NpgsqlTypeMapping
     /// </summary>
     public DateIntervalMultirangeMapping(Type clrType, DateIntervalRangeMapping dateIntervalRangeMapping)
         : base("datemultirange", clrType, NpgsqlDbType.DateMultirange)
-        => _dateIntervalRangeMapping = dateIntervalRangeMapping;
+    {
+        _dateIntervalRangeMapping = dateIntervalRangeMapping;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -31,7 +33,9 @@ public class DateIntervalMultirangeMapping : NpgsqlTypeMapping
     /// </summary>
     protected DateIntervalMultirangeMapping(RelationalTypeMappingParameters parameters, DateIntervalRangeMapping dateIntervalRangeMapping)
         : base(parameters, NpgsqlDbType.DateMultirange)
-        => _dateIntervalRangeMapping = dateIntervalRangeMapping;
+    {
+        _dateIntervalRangeMapping = dateIntervalRangeMapping;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

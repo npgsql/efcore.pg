@@ -3,7 +3,7 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 /// <summary>
-/// A composite member translator that dispatches to multiple specialized member translators specific to Npgsql.
+///     A composite member translator that dispatches to multiple specialized member translators specific to Npgsql.
 /// </summary>
 public class NpgsqlMemberTranslatorProvider : RelationalMemberTranslatorProvider
 {
@@ -28,14 +28,15 @@ public class NpgsqlMemberTranslatorProvider : RelationalMemberTranslatorProvider
         IDbContextOptions contextOptions)
         : base(dependencies)
     {
-        var npgsqlOptions = contextOptions.FindExtension<NpgsqlOptionsExtension>() ?? new();
+        var npgsqlOptions = contextOptions.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
         var supportsMultiranges = npgsqlOptions.PostgresVersion.AtLeast(14);
 
         var sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
         JsonPocoTranslator = new NpgsqlJsonPocoTranslator(typeMappingSource, sqlExpressionFactory, model);
 
         AddTranslators(
-            new IMemberTranslator[] {
+            new IMemberTranslator[]
+            {
                 new NpgsqlBigIntegerMemberTranslator(sqlExpressionFactory),
                 new NpgsqlDateTimeMemberTranslator(typeMappingSource, sqlExpressionFactory),
                 new NpgsqlJsonDomTranslator(typeMappingSource, sqlExpressionFactory, model),

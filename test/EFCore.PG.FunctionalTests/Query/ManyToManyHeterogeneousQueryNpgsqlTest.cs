@@ -4,5 +4,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class ManyToManyHeterogeneousQuerySqlServerTest : ManyToManyHeterogeneousQueryRelationalTestBase
 {
-    protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+    protected override ITestStoreFactory TestStoreFactory
+        => NpgsqlTestStoreFactory.Instance;
 }

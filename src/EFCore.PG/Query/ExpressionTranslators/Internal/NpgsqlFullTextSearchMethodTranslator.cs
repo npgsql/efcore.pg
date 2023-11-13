@@ -4,7 +4,7 @@ using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 /// <summary>
-/// Provides translations for PostgreSQL full-text search methods.
+///     Provides translations for PostgreSQL full-text search methods.
 /// </summary>
 public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
 {
@@ -59,21 +59,34 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
             return method.Name switch
             {
                 // Methods accepting a configuration (regconfig)
-                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsVector)         when arguments.Count == 3 => ConfigAccepting("to_tsvector"),
-                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PlainToTsQuery)     when arguments.Count == 3 => ConfigAccepting("plainto_tsquery"),
-                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PhraseToTsQuery)    when arguments.Count == 3 => ConfigAccepting("phraseto_tsquery"),
-                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsQuery)          when arguments.Count == 3 => ConfigAccepting("to_tsquery"),
-                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.WebSearchToTsQuery) when arguments.Count == 3 => ConfigAccepting("websearch_to_tsquery"),
-                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.Unaccent)           when arguments.Count == 3 => DictionaryAccepting("unaccent"),
+                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsVector) when arguments.Count == 3
+                    => ConfigAccepting("to_tsvector"),
+                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PlainToTsQuery) when arguments.Count == 3
+                    => ConfigAccepting("plainto_tsquery"),
+                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PhraseToTsQuery) when arguments.Count == 3
+                    => ConfigAccepting("phraseto_tsquery"),
+                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsQuery) when arguments.Count == 3
+                    => ConfigAccepting("to_tsquery"),
+                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.WebSearchToTsQuery) when arguments.Count == 3
+                    => ConfigAccepting("websearch_to_tsquery"),
+                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.Unaccent) when arguments.Count == 3
+                    => DictionaryAccepting("unaccent"),
 
                 // Methods not accepting a configuration
-                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ArrayToTsVector)    => NonConfigAccepting("array_to_tsvector"),
-                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsVector)         => NonConfigAccepting("to_tsvector"),
-                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PlainToTsQuery)     => NonConfigAccepting("plainto_tsquery"),
-                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PhraseToTsQuery)    => NonConfigAccepting("phraseto_tsquery"),
-                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsQuery)          => NonConfigAccepting("to_tsquery"),
-                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.WebSearchToTsQuery) => NonConfigAccepting("websearch_to_tsquery"),
-                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.Unaccent)           => NonConfigAccepting("unaccent"),
+                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ArrayToTsVector)
+                    => NonConfigAccepting("array_to_tsvector"),
+                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsVector)
+                    => NonConfigAccepting("to_tsvector"),
+                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PlainToTsQuery)
+                    => NonConfigAccepting("plainto_tsquery"),
+                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PhraseToTsQuery)
+                    => NonConfigAccepting("phraseto_tsquery"),
+                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsQuery)
+                    => NonConfigAccepting("to_tsquery"),
+                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.WebSearchToTsQuery)
+                    => NonConfigAccepting("websearch_to_tsquery"),
+                nameof(NpgsqlFullTextSearchDbFunctionsExtensions.Unaccent)
+                    => NonConfigAccepting("unaccent"),
 
                 _ => null
             };
@@ -149,7 +162,8 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
                     => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.TextSearchOr, arguments[0], arguments[1]),
 
                 nameof(NpgsqlFullTextSearchLinqExtensions.ToNegative)
-                    => new SqlUnaryExpression(ExpressionType.Not, arguments[0], arguments[0].Type,
+                    => new SqlUnaryExpression(
+                        ExpressionType.Not, arguments[0], arguments[0].Type,
                         arguments[0].TypeMapping),
 
                 nameof(NpgsqlFullTextSearchLinqExtensions.Contains)
@@ -295,7 +309,8 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
         return null;
 
         SqlExpression ConfigAccepting(string functionName)
-            => _sqlExpressionFactory.Function(functionName, new[]
+            => _sqlExpressionFactory.Function(
+                functionName, new[]
                 {
                     // For the regconfig parameter, if a constant string was provided, just pass it as a string - regconfig-accepting functions
                     // will implicitly cast to regconfig. For (string!) parameters, we add an explicit cast, since regconfig actually is an OID
@@ -311,7 +326,8 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
                 _typeMappingSource.FindMapping(method.ReturnType, _model));
 
         SqlExpression DictionaryAccepting(string functionName)
-            => _sqlExpressionFactory.Function(functionName, new[]
+            => _sqlExpressionFactory.Function(
+                functionName, new[]
                 {
                     // For the regdictionary parameter, if a constant string was provided, just pass it as a string - regdictionary-accepting functions
                     // will implicitly cast to regdictionary. For (string!) parameters, we add an explicit cast, since regdictionary actually is an OID

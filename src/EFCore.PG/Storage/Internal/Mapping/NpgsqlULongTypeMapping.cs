@@ -28,7 +28,9 @@ public class NpgsqlULongTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlULongTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-        : base(parameters, npgsqlDbType) {}
+        : base(parameters, npgsqlDbType)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

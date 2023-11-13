@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Storage.Json;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// The type mapping for the PostgreSQL cidr type.
+///     The type mapping for the PostgreSQL cidr type.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-CIDR
+///     See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-CIDR
 /// </remarks>
 public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
 {
@@ -30,7 +30,9 @@ public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlCidrTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Cidr) {}
+        : base(parameters, NpgsqlDbType.Cidr)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

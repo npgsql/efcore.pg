@@ -4,8 +4,8 @@ using static System.Linq.Expressions.Expression;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 
 /// <summary>
-/// A value converter that can convert between array types; accepts an optional <see cref="ValueConverter"/> for the element, but can be
-/// used without one to convert e.g. from a list to an array.
+///     A value converter that can convert between array types; accepts an optional <see cref="ValueConverter" /> for the element, but can be
+///     used without one to convert e.g. from a list to an array.
 /// </summary>
 public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TProviderCollection>
     : ValueConverter<TModelCollection, TProviderCollection>
@@ -32,8 +32,10 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
     public NpgsqlArrayConverter(ValueConverter? elementConverter)
         : base(
             // We assume that TProviderCollection is always a concrete, instantiable type (in fact it's always an array over the element)
-            ArrayConversionExpression<TModelCollection, TProviderCollection, TProviderCollection>(elementConverter?.ConvertToProviderExpression),
-            ArrayConversionExpression<TProviderCollection, TModelCollection, TConcreteModelCollection>(elementConverter?.ConvertFromProviderExpression))
+            ArrayConversionExpression<TModelCollection, TProviderCollection, TProviderCollection>(
+                elementConverter?.ConvertToProviderExpression),
+            ArrayConversionExpression<TProviderCollection, TModelCollection, TConcreteModelCollection>(
+                elementConverter?.ConvertFromProviderExpression))
     {
         var modelElementType = typeof(TModelCollection).TryGetElementType(typeof(IEnumerable<>));
         var providerElementType = typeof(TProviderCollection).TryGetElementType(typeof(IEnumerable<>));
@@ -46,12 +48,14 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
         {
             if (modelElementType.UnwrapNullableType() != elementConverter.ModelClrType.UnwrapNullableType())
             {
-                throw new ArgumentException($"The element's value converter model type ({elementConverter.ModelClrType}), doesn't match the array's ({modelElementType})");
+                throw new ArgumentException(
+                    $"The element's value converter model type ({elementConverter.ModelClrType}), doesn't match the array's ({modelElementType})");
             }
 
             if (providerElementType.UnwrapNullableType() != elementConverter.ProviderClrType.UnwrapNullableType())
             {
-                throw new ArgumentException($"The element's value converter provider type ({elementConverter.ProviderClrType}), doesn't match the array's ({providerElementType})");
+                throw new ArgumentException(
+                    $"The element's value converter provider type ({elementConverter.ProviderClrType}), doesn't match the array's ({providerElementType})");
             }
         }
 
@@ -59,10 +63,11 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
     }
 
     /// <summary>
-    /// Generates a lambda expression that accepts an array, and converts it to another array by looping and applying
-    /// a conversion lambda to each of its elements.
+    ///     Generates a lambda expression that accepts an array, and converts it to another array by looping and applying
+    ///     a conversion lambda to each of its elements.
     /// </summary>
-    private static Expression<Func<TInput, TOutput>> ArrayConversionExpression<TInput, TOutput, TConcreteOutput>(LambdaExpression? elementConversionExpression)
+    private static Expression<Func<TInput, TOutput>> ArrayConversionExpression<TInput, TOutput, TConcreteOutput>(
+        LambdaExpression? elementConversionExpression)
     {
         var inputElementType = typeof(TInput).IsArray
             ? typeof(TInput).GetElementType()
@@ -124,7 +129,8 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
         else if (typeof(TInput).IsGenericType
                  && typeof(TInput).GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IList<>)))
         {
-            getInputLength = Property(input,
+            getInputLength = Property(
+                input,
                 typeof(TInput).GetProperty("Count")
                 // If TInput is an interface (IList<T>), its Count property needs to be found on ICollection<T>
                 ?? typeof(ICollection<>).MakeGenericType(typeof(TInput).GetGenericArguments()[0]).GetProperty("Count")!);
@@ -142,50 +148,52 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
             expressions.Add(Assign(convertedInput, Convert(input, convertedInput.Type)));
 
             // TODO: Check and properly throw for non-IList<T>, e.g. set
-            getInputLength = Property(convertedInput, typeof(ICollection<>).MakeGenericType(typeof(TInput).GetGenericArguments()[0]).GetProperty("Count")!);
+            getInputLength = Property(
+                convertedInput, typeof(ICollection<>).MakeGenericType(typeof(TInput).GetGenericArguments()[0]).GetProperty("Count")!);
             indexer = i => Property(convertedInput, iListType.FindIndexerProperty()!, i);
         }
 
-        expressions.AddRange(new[]
-        {
-            // Get the length of the input array or list
-            // var length = input.Length;
-            Assign(lengthVariable, getInputLength),
+        expressions.AddRange(
+            new[]
+            {
+                // Get the length of the input array or list
+                // var length = input.Length;
+                Assign(lengthVariable, getInputLength),
 
-            // Allocate an output array or list
-            // var result = new int[length];
-            Assign(output, typeof(TConcreteOutput).IsArray
-                ? NewArrayBounds(outputElementType, lengthVariable)
-                : typeof(TConcreteOutput).GetConstructor(new[] { typeof(int) }) is ConstructorInfo ctorWithLength
-                    ? New(ctorWithLength, lengthVariable)
-                    : New(typeof(TConcreteOutput).GetConstructor(Array.Empty<Type>())!)),
+                // Allocate an output array or list
+                // var result = new int[length];
+                Assign(
+                    output, typeof(TConcreteOutput).IsArray
+                        ? NewArrayBounds(outputElementType, lengthVariable)
+                        : typeof(TConcreteOutput).GetConstructor(new[] { typeof(int) }) is ConstructorInfo ctorWithLength
+                            ? New(ctorWithLength, lengthVariable)
+                            : New(typeof(TConcreteOutput).GetConstructor(Array.Empty<Type>())!)),
 
-            // Loop over the elements, applying the element converter on them one by one
-            // for (var i = 0; i < length; i++)
-            // {
-            //     result[i] = input[i];
-            // }
-            ForLoop(
-                loopVar: loopVariable,
-                initValue: Constant(0),
-                condition: LessThan(loopVariable, lengthVariable),
-                increment: AddAssign(loopVariable, Constant(1)),
-                loopContent:
-                typeof(TConcreteOutput).IsArray
-                    ? Assign(
-                        ArrayAccess(output, loopVariable),
-                        elementConversionExpression is null
-                            ? indexer(loopVariable)
-                            : Invoke(elementConversionExpression, indexer(loopVariable)))
-                    : Call(
-                        output,
-                        typeof(TConcreteOutput).GetMethod("Add", new [] { outputElementType })!,
-                        elementConversionExpression is null
-                            ? indexer(loopVariable)
-                            : Invoke(elementConversionExpression, indexer(loopVariable)))),
-
-            output
-        });
+                // Loop over the elements, applying the element converter on them one by one
+                // for (var i = 0; i < length; i++)
+                // {
+                //     result[i] = input[i];
+                // }
+                ForLoop(
+                    loopVar: loopVariable,
+                    initValue: Constant(0),
+                    condition: LessThan(loopVariable, lengthVariable),
+                    increment: AddAssign(loopVariable, Constant(1)),
+                    loopContent:
+                    typeof(TConcreteOutput).IsArray
+                        ? Assign(
+                            ArrayAccess(output, loopVariable),
+                            elementConversionExpression is null
+                                ? indexer(loopVariable)
+                                : Invoke(elementConversionExpression, indexer(loopVariable)))
+                        : Call(
+                            output,
+                            typeof(TConcreteOutput).GetMethod("Add", new[] { outputElementType })!,
+                            elementConversionExpression is null
+                                ? indexer(loopVariable)
+                                : Invoke(elementConversionExpression, indexer(loopVariable)))),
+                output
+            });
 
         return Lambda<Func<TInput, TOutput>>(
             // First, check if the given array value is null and return null immediately if so
@@ -196,11 +204,17 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
             input);
     }
 
-    private static Expression ForLoop(ParameterExpression loopVar, Expression initValue, Expression condition, Expression increment, Expression loopContent)
+    private static Expression ForLoop(
+        ParameterExpression loopVar,
+        Expression initValue,
+        Expression condition,
+        Expression increment,
+        Expression loopContent)
     {
         var initAssign = Assign(loopVar, initValue);
         var breakLabel = Label("LoopBreak");
-        var loop = Block(new[] { loopVar },
+        var loop = Block(
+            new[] { loopVar },
             initAssign,
             Loop(
                 IfThenElse(

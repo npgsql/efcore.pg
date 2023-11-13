@@ -1,15 +1,13 @@
 using System.Net.NetworkInformation;
-using System.Text.Json;
-using Microsoft.EntityFrameworkCore.Storage.Json;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// The type mapping for the PostgreSQL macaddr type.
+///     The type mapping for the PostgreSQL macaddr type.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-MACADDR
+///     See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-MACADDR
 /// </remarks>
 public class NpgsqlMacaddrTypeMapping : NpgsqlTypeMapping
 {
@@ -31,7 +29,9 @@ public class NpgsqlMacaddrTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlMacaddrTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.MacAddr) {}
+        : base(parameters, NpgsqlDbType.MacAddr)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

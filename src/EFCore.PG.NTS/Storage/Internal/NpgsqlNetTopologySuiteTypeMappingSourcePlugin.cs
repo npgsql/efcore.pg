@@ -21,15 +21,15 @@ public class NpgsqlNetTopologySuiteTypeMappingSourcePlugin : IRelationalTypeMapp
     {
         clrType = subtypeName switch
         {
-            "POINT"              => typeof(Point),
-            "LINESTRING"         => typeof(LineString),
-            "POLYGON"            => typeof(Polygon),
-            "MULTIPOINT"         => typeof(MultiPoint),
-            "MULTILINESTRING"    => typeof(MultiLineString),
-            "MULTIPOLYGON"       => typeof(MultiPolygon),
+            "POINT" => typeof(Point),
+            "LINESTRING" => typeof(LineString),
+            "POLYGON" => typeof(Polygon),
+            "MULTIPOINT" => typeof(MultiPoint),
+            "MULTILINESTRING" => typeof(MultiLineString),
+            "MULTIPOLYGON" => typeof(MultiPolygon),
             "GEOMETRYCOLLECTION" => typeof(GeometryCollection),
-            "GEOMETRY"           => typeof(Geometry),
-            _                    => null
+            "GEOMETRY" => typeof(Geometry),
+            _ => null
         };
 
         return clrType is not null;
@@ -42,7 +42,9 @@ public class NpgsqlNetTopologySuiteTypeMappingSourcePlugin : IRelationalTypeMapp
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlNetTopologySuiteTypeMappingSourcePlugin(INpgsqlNetTopologySuiteOptions options)
-        => _options = Check.NotNull(options, nameof(options));
+    {
+        _options = Check.NotNull(options, nameof(options));
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -109,8 +111,8 @@ public class NpgsqlNetTopologySuiteTypeMappingSourcePlugin : IRelationalTypeMapp
     }
 
     /// <summary>
-    /// Given a PostGIS store type name (e.g. GEOMETRY, GEOGRAPHY(Point, 4326), GEOMETRY(LineStringM, 4326)),
-    /// attempts to parse it and return its components.
+    ///     Given a PostGIS store type name (e.g. GEOMETRY, GEOGRAPHY(Point, 4326), GEOMETRY(LineStringM, 4326)),
+    ///     attempts to parse it and return its components.
     /// </summary>
     public static bool TryParseStoreTypeName(
         string storeTypeName,

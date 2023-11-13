@@ -1,6 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
 using System.Runtime.CompilerServices;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
@@ -15,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 public class PgRowValueExpression : SqlExpression, IEquatable<PgRowValueExpression>
 {
     /// <summary>
-    /// The values of this PostgreSQL row value expression.
+    ///     The values of this PostgreSQL row value expression.
     /// </summary>
     public virtual IReadOnlyList<SqlExpression> Values { get; }
 

@@ -1,36 +1,37 @@
 ﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 /// <summary>
-/// Represents a PostgreSQL array ANY expression.
+///     Represents a PostgreSQL array ANY expression.
 /// </summary>
 /// <example>
-/// 1 = ANY ('{0,1,2}'), 'cat' LIKE ANY ('{a%,b%,c%}')
+///     1 = ANY ('{0,1,2}'), 'cat' LIKE ANY ('{a%,b%,c%}')
 /// </example>
 /// <remarks>
-/// See https://www.postgresql.org/docs/current/static/functions-comparisons.html
+///     See https://www.postgresql.org/docs/current/static/functions-comparisons.html
 /// </remarks>
 public class PgAnyExpression : SqlExpression, IEquatable<PgAnyExpression>
 {
     /// <inheritdoc />
-    public override Type Type => typeof(bool);
+    public override Type Type
+        => typeof(bool);
 
     /// <summary>
-    /// The value to test against the <see cref="Array"/>.
+    ///     The value to test against the <see cref="Array" />.
     /// </summary>
     public virtual SqlExpression Item { get; }
 
     /// <summary>
-    /// The array of values or patterns to test for the <see cref="Item"/>.
+    ///     The array of values or patterns to test for the <see cref="Item" />.
     /// </summary>
     public virtual SqlExpression Array { get; }
 
     /// <summary>
-    /// The operator.
+    ///     The operator.
     /// </summary>
     public virtual PgAnyOperatorType OperatorType { get; }
 
     /// <summary>
-    /// Constructs a <see cref="PgAnyExpression"/>.
+    ///     Constructs a <see cref="PgAnyExpression" />.
     /// </summary>
     /// <param name="operatorType">The operator symbol to the array expression.</param>
     /// <param name="item">The value to find.</param>
@@ -78,16 +79,17 @@ public class PgAnyExpression : SqlExpression, IEquatable<PgAnyExpression>
         => Update((SqlExpression)visitor.Visit(Item), (SqlExpression)visitor.Visit(Array));
 
     /// <inheritdoc />
-    public override bool Equals(object? obj) => obj is PgAnyExpression e && Equals(e);
+    public override bool Equals(object? obj)
+        => obj is PgAnyExpression e && Equals(e);
 
     /// <inheritdoc />
     public virtual bool Equals(PgAnyExpression? other)
-        => ReferenceEquals(this, other) ||
-            other is not null &&
-            base.Equals(other) &&
-            Item.Equals(other.Item) &&
-            Array.Equals(other.Array) &&
-            OperatorType.Equals(other.OperatorType);
+        => ReferenceEquals(this, other)
+            || other is not null
+            && base.Equals(other)
+            && Item.Equals(other.Item)
+            && Array.Equals(other.Array)
+            && OperatorType.Equals(other.OperatorType);
 
     /// <inheritdoc />
     public override int GetHashCode()
@@ -99,25 +101,27 @@ public class PgAnyExpression : SqlExpression, IEquatable<PgAnyExpression>
         expressionPrinter.Visit(Item);
         expressionPrinter
             .Append(" ")
-            .Append(OperatorType switch
-            {
-                PgAnyOperatorType.Equal    => "=",
-                PgAnyOperatorType.Like     => "LIKE",
-                PgAnyOperatorType.ILike    => "ILIKE",
+            .Append(
+                OperatorType switch
+                {
+                    PgAnyOperatorType.Equal => "=",
+                    PgAnyOperatorType.Like => "LIKE",
+                    PgAnyOperatorType.ILike => "ILIKE",
 
-                _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
-            })
+                    _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
+                })
             .Append(" ANY(");
         expressionPrinter.Visit(Array);
         expressionPrinter.Append(")");
     }
 
     /// <inheritdoc />
-    public override string ToString() => $"{Item} {OperatorType} ANY({Array})";
+    public override string ToString()
+        => $"{Item} {OperatorType} ANY({Array})";
 }
 
 /// <summary>
-/// Determines the operator type for a <see cref="PgAnyExpression" />.
+///     Determines the operator type for a <see cref="PgAnyExpression" />.
 /// </summary>
 public enum PgAnyOperatorType
 {

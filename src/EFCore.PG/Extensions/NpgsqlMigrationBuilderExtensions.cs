@@ -1,4 +1,5 @@
 // ReSharper disable once CheckNamespace
+
 namespace Microsoft.EntityFrameworkCore;
 
 /// <summary>
@@ -10,10 +11,13 @@ namespace Microsoft.EntityFrameworkCore;
 public static class NpgsqlMigrationBuilderExtensions
 {
     /// <summary>
-    /// Returns true if the active provider in a migration is the Npgsql provider.
+    ///     Returns true if the active provider in a migration is the Npgsql provider.
     /// </summary>
-    /// The migrationBuilder from the parameters on <see cref="Migration.Up(MigrationBuilder)" /> or
-    /// <see cref="Migration.Down(MigrationBuilder)" />.
+    /// The migrationBuilder from the parameters on
+    /// <see cref="Migration.Up(MigrationBuilder)" />
+    /// or
+    /// <see cref="Migration.Down(MigrationBuilder)" />
+    /// .
     /// <returns>True if Npgsql is being used; false otherwise.</returns>
     public static bool IsNpgsql(this MigrationBuilder builder)
         => builder.ActiveProvider == typeof(NpgsqlMigrationBuilderExtensions).GetTypeInfo().Assembly.GetName().Name;

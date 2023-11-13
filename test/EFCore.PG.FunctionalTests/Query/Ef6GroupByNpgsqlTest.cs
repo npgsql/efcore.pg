@@ -1,6 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
@@ -19,7 +16,7 @@ public class Ef6GroupByNpgsqlTest : Ef6GroupByTestBase<Ef6GroupByNpgsqlTest.Ef6G
         await base.Whats_new_2021_sample_3(async);
 
         AssertSql(
-"""
+            """
 SELECT (
     SELECT p1."LastName"
     FROM "Person" AS p1
@@ -41,7 +38,7 @@ ORDER BY length((
         await base.Whats_new_2021_sample_5(async);
 
         AssertSql(
-"""
+            """
 SELECT (
     SELECT p1."LastName"
     FROM "Person" AS p1
@@ -62,7 +59,7 @@ ORDER BY (
         await base.Whats_new_2021_sample_6(async);
 
         AssertSql(
-"""
+            """
 SELECT (
     SELECT p1."MiddleInitial"
     FROM "Person" AS p1

@@ -17,7 +17,7 @@ public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFact
 
     private class TestRelationalCommandBuilder : IRelationalCommandBuilder
     {
-        private readonly List<IRelationalParameter> _parameters = new List<IRelationalParameter>();
+        private readonly List<IRelationalParameter> _parameters = new();
 
         public TestRelationalCommandBuilder(
             RelationalCommandBuilderDependencies dependencies)
@@ -25,11 +25,12 @@ public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFact
             Dependencies = dependencies;
         }
 
-        public IndentedStringBuilder Instance { get; } = new IndentedStringBuilder();
+        public IndentedStringBuilder Instance { get; } = new();
 
         public RelationalCommandBuilderDependencies Dependencies { get; }
 
-        public IReadOnlyList<IRelationalParameter> Parameters => _parameters;
+        public IReadOnlyList<IRelationalParameter> Parameters
+            => _parameters;
 
         public IRelationalCommandBuilder AddParameter(IRelationalParameter parameter)
         {
@@ -83,7 +84,8 @@ public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFact
             return this;
         }
 
-        public int CommandTextLength => Instance.Length;
+        public int CommandTextLength
+            => Instance.Length;
     }
 
     private class TestRelationalCommand : IRelationalCommand
@@ -98,9 +100,11 @@ public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFact
             _realRelationalCommand = new RelationalCommand(dependencies, commandText, parameters);
         }
 
-        public string CommandText => _realRelationalCommand.CommandText;
+        public string CommandText
+            => _realRelationalCommand.CommandText;
 
-        public IReadOnlyList<IRelationalParameter> Parameters => _realRelationalCommand.Parameters;
+        public IReadOnlyList<IRelationalParameter> Parameters
+            => _realRelationalCommand.Parameters;
 
         public int ExecuteNonQuery(RelationalCommandParameterObject parameterObject)
         {
@@ -118,7 +122,8 @@ public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFact
         }
 
         public Task<int> ExecuteNonQueryAsync(
-            RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken = default)
+            RelationalCommandParameterObject parameterObject,
+            CancellationToken cancellationToken = default)
         {
             var connection = parameterObject.Connection;
             var errorNumber = PreExecution(connection);
@@ -149,7 +154,8 @@ public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFact
         }
 
         public async Task<object> ExecuteScalarAsync(
-            RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken = default)
+            RelationalCommandParameterObject parameterObject,
+            CancellationToken cancellationToken = default)
         {
             var connection = parameterObject.Connection;
             var errorNumber = PreExecution(connection);
@@ -181,7 +187,8 @@ public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFact
         }
 
         public async Task<RelationalDataReader> ExecuteReaderAsync(
-            RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken = default)
+            RelationalCommandParameterObject parameterObject,
+            CancellationToken cancellationToken = default)
         {
             var connection = parameterObject.Connection;
             var errorNumber = PreExecution(connection);
@@ -216,9 +223,11 @@ public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFact
                         testConnection.DbConnection.Close();
                         throw new PostgresException("", "", "", testConnection.ErrorCode);
                     }
+
                     errorNumber = testConnection.ErrorCode;
                 }
             }
+
             return errorNumber;
         }
 

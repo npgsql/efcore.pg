@@ -1,6 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
 using Microsoft.EntityFrameworkCore.BulkUpdates;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
@@ -8,7 +5,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
 
 public class NonSharedModelBulkUpdatesNpgsqlTest : NonSharedModelBulkUpdatesTestBase
 {
-    protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+    protected override ITestStoreFactory TestStoreFactory
+        => NpgsqlTestStoreFactory.Instance;
 
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
@@ -19,7 +17,7 @@ public class NonSharedModelBulkUpdatesNpgsqlTest : NonSharedModelBulkUpdatesTest
         await base.Delete_aggregate_root_when_eager_loaded_owned_collection(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Owner" AS o
 """);
     }
@@ -29,7 +27,7 @@ DELETE FROM "Owner" AS o
         await base.Delete_aggregate_root_when_table_sharing_with_owned(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Owner" AS o
 """);
     }
@@ -46,7 +44,7 @@ DELETE FROM "Owner" AS o
         await base.Update_non_owned_property_on_entity_with_owned(async);
 
         AssertSql(
-"""
+            """
 UPDATE "Owner" AS o
 SET "Title" = 'SomeValue'
 """);
@@ -57,7 +55,7 @@ SET "Title" = 'SomeValue'
         await base.Delete_predicate_based_on_optional_navigation(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Posts" AS p
 WHERE p."Id" IN (
     SELECT p0."Id"
@@ -73,7 +71,7 @@ WHERE p."Id" IN (
         await base.Update_non_owned_property_on_entity_with_owned2(async);
 
         AssertSql(
-"""
+            """
 UPDATE "Owner" AS o
 SET "Title" = COALESCE(o."Title", '') || '_Suffix'
 """);
@@ -84,7 +82,7 @@ SET "Title" = COALESCE(o."Title", '') || '_Suffix'
         await base.Update_owned_and_non_owned_properties_with_table_sharing(async);
 
         AssertSql(
-"""
+            """
 UPDATE "Owner" AS o
 SET "OwnedReference_Number" = length(o."Title")::int,
     "Title" = o."OwnedReference_Number"::text
@@ -105,7 +103,7 @@ SET "OwnedReference_Number" = length(o."Title")::int,
                     }),
             seed: context =>
             {
-                context.Set<Blog>().Add(new() { Title = "SomeBlog" });
+                context.Set<Blog>().Add(new Blog { Title = "SomeBlog" });
                 context.SaveChanges();
             });
 
@@ -117,7 +115,7 @@ SET "OwnedReference_Number" = length(o."Title")::int,
             rowsAffectedCount: 1);
 
         AssertSql(
-"""
+            """
 UPDATE "Blogs" AS b
 SET "CreationTimestamp" = TIMESTAMPTZ '2020-01-01 00:00:00Z'
 """);
@@ -128,7 +126,7 @@ SET "CreationTimestamp" = TIMESTAMPTZ '2020-01-01 00:00:00Z'
         await base.Update_non_main_table_in_entity_with_entity_splitting(async);
 
         AssertSql(
-"""
+            """
 UPDATE "BlogsPart1" AS b0
 SET "Rating" = length(b0."Title")::int,
     "Title" = b0."Rating"::text
@@ -143,7 +141,7 @@ SET "Rating" = length(b0."Title")::int,
         await base.Update_with_alias_uniquification_in_setter_subquery(async);
 
         AssertSql(
-"""
+            """
 UPDATE "Orders" AS o
 SET "Total" = (
     SELECT COALESCE(sum(o0."Amount"), 0)::int

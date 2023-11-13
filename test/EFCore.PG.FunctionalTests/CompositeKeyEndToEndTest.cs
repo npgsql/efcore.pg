@@ -11,6 +11,7 @@ public class CompositeKeyEndToEndNpgsqlTest : CompositeKeyEndToEndTestBase<Compo
 
     public class CompositeKeyEndToEndNpgsqlFixture : CompositeKeyEndToEndFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
     }
 }

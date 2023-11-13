@@ -1,6 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
 using System.ComponentModel.DataAnnotations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
@@ -22,7 +19,7 @@ public class NpgsqlPostgresModelFinalizingConventionTest
         Assert.Equal("xid", property.GetColumnType());
     }
 
-    class Blog
+    private class Blog
     {
         public int Id { get; set; }
 

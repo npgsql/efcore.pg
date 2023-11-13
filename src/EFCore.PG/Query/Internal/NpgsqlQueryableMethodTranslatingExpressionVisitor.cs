@@ -187,8 +187,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 columnInfos.Add(
                     new PgTableValuedFunctionExpression.ColumnInfo
                     {
-                        Name = jsonPropertyName,
-                        TypeMapping = property.GetRelationalTypeMapping()
+                        Name = jsonPropertyName, TypeMapping = property.GetRelationalTypeMapping()
                     });
             }
         }
@@ -204,11 +203,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             Check.DebugAssert(jsonNavigationName is not null, $"No JSON property name for navigation {navigation.Name}");
 
             columnInfos.Add(
-                new PgTableValuedFunctionExpression.ColumnInfo
-                {
-                    Name = jsonNavigationName,
-                    TypeMapping = jsonTypeMapping
-                });
+                new PgTableValuedFunctionExpression.ColumnInfo { Name = jsonNavigationName, TypeMapping = jsonTypeMapping });
         }
 
         // json_to_recordset requires the nested JSON document - it does not accept a path within a containing JSON document (like SQL
@@ -418,10 +413,10 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 // Pattern match: e.SomeArray.Any(p => ints.Contains(p))
                 // Translation: @ints && s.SomeArray
                 case PgAnyExpression
-                {
-                    Item: ColumnExpression sourceColumn,
-                    Array: var otherArray
-                }
+                    {
+                        Item: ColumnExpression sourceColumn,
+                        Array: var otherArray
+                    }
                     when sourceColumn.Table == sourceTable:
                 {
                     return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.Overlaps(GetArray(sourceTable), otherArray));
@@ -538,27 +533,30 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         if (predicate is null
             && source.QueryExpression is SelectExpression
             {
-                Tables: [IntersectExpression
-                {
-                    Source1:
+                Tables:
+                [
+                    IntersectExpression
                     {
-                        Tables: [PgUnnestExpression { Array: var array1 }],
-                        GroupBy: [],
-                        Having: null,
-                        IsDistinct: false,
-                        Limit: null,
-                        Offset: null
-                    },
-                    Source2:
-                    {
-                        Tables: [PgUnnestExpression { Array: var array2 }],
-                        GroupBy: [],
-                        Having: null,
-                        IsDistinct: false,
-                        Limit: null,
-                        Offset: null
+                        Source1:
+                        {
+                            Tables: [PgUnnestExpression { Array: var array1 }],
+                            GroupBy: [],
+                            Having: null,
+                            IsDistinct: false,
+                            Limit: null,
+                            Offset: null
+                        },
+                        Source2:
+                        {
+                            Tables: [PgUnnestExpression { Array: var array2 }],
+                            GroupBy: [],
+                            Having: null,
+                            IsDistinct: false,
+                            Limit: null,
+                            Offset: null
+                        }
                     }
-                }],
+                ],
                 GroupBy: [],
                 Having: null,
                 IsDistinct: false,
@@ -669,7 +667,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     protected override ShapedQueryExpression? TranslateCount(ShapedQueryExpression source, LambdaExpression? predicate)
     {
         // Simplify x.Array.Count() => cardinality(x.Array) instead of SELECT COUNT(*) FROM unnest(x.Array)
-        if (predicate is null && source.QueryExpression is SelectExpression
+        if (predicate is null
+            && source.QueryExpression is SelectExpression
             {
                 Tables: [PgUnnestExpression { Array: var array }],
                 GroupBy: [],
@@ -730,7 +729,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             && TryGetProjectedColumn(source2, out var projectedColumn2))
         {
             Check.DebugAssert(projectedColumn1.Type == projectedColumn2.Type, "projectedColumn1.Type == projectedColumn2.Type");
-            Check.DebugAssert(projectedColumn1.TypeMapping is not null || projectedColumn2.TypeMapping is not null,
+            Check.DebugAssert(
+                projectedColumn1.TypeMapping is not null || projectedColumn2.TypeMapping is not null,
                 "Concat with no type mapping on either side (operation should be client-evaluated over parameters/constants");
 
             // TODO: Conflicting type mappings from both sides?
@@ -780,7 +780,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     {
         // Simplify x.Array[1] => x.Array[1] (using the PG array subscript operator) instead of a subquery with LIMIT/OFFSET
         // Note that we have unnest over multiranges, not just arrays - but multiranges don't support subscripting/slicing.
-        if (!returnDefault && source.QueryExpression is SelectExpression
+        if (!returnDefault
+            && source.QueryExpression is SelectExpression
             {
                 Tables: [PgUnnestExpression { Array: var array }],
                 GroupBy: [],
@@ -1141,7 +1142,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             else if (selectExpression.Tables.All(t => t is TableExpression or InnerJoinExpression))
             {
                 var projectionBindingExpression = (ProjectionBindingExpression)shaper.ValueBufferExpression;
-                var entityProjectionExpression = (StructuralTypeProjectionExpression)selectExpression.GetProjection(projectionBindingExpression);
+                var entityProjectionExpression =
+                    (StructuralTypeProjectionExpression)selectExpression.GetProjection(projectionBindingExpression);
                 var column = entityProjectionExpression.BindProperty(shaper.StructuralType.GetProperties().First());
                 table = column.Table;
                 if (table is JoinExpressionBase joinExpressionBase)
@@ -1170,7 +1172,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 [PgTableValuedFunctionExpression { Name: "unnest" or "jsonb_to_recordset" or "json_to_recordset" }];
 
     /// <summary>
-    /// Checks whether the given expression maps to a PostgreSQL array, as opposed to a multirange type.
+    ///     Checks whether the given expression maps to a PostgreSQL array, as opposed to a multirange type.
     /// </summary>
     private static bool IsPostgresArray(SqlExpression expression)
         => expression switch
@@ -1182,7 +1184,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         };
 
     private bool TryGetProjectedColumn(
-        ShapedQueryExpression shapedQueryExpression, [NotNullWhen(true)] out ColumnExpression? projectedColumn)
+        ShapedQueryExpression shapedQueryExpression,
+        [NotNullWhen(true)] out ColumnExpression? projectedColumn)
     {
         var shaperExpression = shapedQueryExpression.ShaperExpression;
         if (shaperExpression is UnaryExpression { NodeType: ExpressionType.Convert } unaryExpression
@@ -1261,7 +1264,9 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         private bool _containsReference;
 
         public OuterReferenceFindingExpressionVisitor(TableExpression mainTable)
-            => _mainTable = mainTable;
+        {
+            _mainTable = mainTable;
+        }
 
         public bool ContainsReferenceToMainTable(TableExpressionBase tableExpression)
         {

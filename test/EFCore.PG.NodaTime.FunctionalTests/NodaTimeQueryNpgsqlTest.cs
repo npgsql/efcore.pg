@@ -22,7 +22,7 @@ public class NodaTimeQueryNpgsqlTest : QueryTestBase<NodaTimeQueryNpgsqlTest.Nod
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE n."LocalDate" < DATE '2018-04-21'
@@ -42,7 +42,7 @@ WHERE n."LocalDate" < DATE '2018-04-21'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE n."LocalDate" + INTERVAL 'P1M' > n."LocalDate"
@@ -59,7 +59,7 @@ WHERE n."LocalDate" + INTERVAL 'P1M' > n."LocalDate"
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE (n."Instant" + INTERVAL '1 00:00:00') - n."Instant" = INTERVAL '1 00:00:00'
@@ -76,7 +76,7 @@ WHERE (n."Instant" + INTERVAL '1 00:00:00') - n."Instant" = INTERVAL '1 00:00:00
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE (n."LocalDateTime" + INTERVAL 'P1D') - n."LocalDateTime" = INTERVAL 'P1D'
@@ -93,7 +93,7 @@ WHERE (n."LocalDateTime" + INTERVAL 'P1D') - n."LocalDateTime" = INTERVAL 'P1D'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE (n."ZonedDateTime" + INTERVAL '1 00:00:00') - n."ZonedDateTime" = INTERVAL '1 00:00:00'
@@ -110,7 +110,7 @@ WHERE (n."ZonedDateTime" + INTERVAL '1 00:00:00') - n."ZonedDateTime" = INTERVAL
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE make_interval(days => n."LocalDate2" - n."LocalDate") = INTERVAL 'P1D'
@@ -128,7 +128,7 @@ WHERE make_interval(days => n."LocalDate2" - n."LocalDate") = INTERVAL 'P1D'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__date_0='Friday, 20 April 2018' (DbType = Date)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
@@ -147,7 +147,7 @@ WHERE make_interval(days => n."LocalDate2" - @__date_0) = INTERVAL 'P1D'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE make_interval(days => n."LocalDate2" - DATE '2018-04-20') = INTERVAL 'P1D'
@@ -164,7 +164,7 @@ WHERE make_interval(days => n."LocalDate2" - DATE '2018-04-20') = INTERVAL 'P1D'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE (n."LocalTime" + INTERVAL 'PT1H') - n."LocalTime" = INTERVAL 'PT1H'
@@ -185,7 +185,7 @@ WHERE (n."LocalTime" + INTERVAL 'PT1H') - n."LocalTime" = INTERVAL 'PT1H'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('year', n."LocalDateTime")::int = 2018
@@ -202,7 +202,7 @@ WHERE date_part('year', n."LocalDateTime")::int = 2018
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('month', n."LocalDateTime")::int = 4
@@ -219,7 +219,7 @@ WHERE date_part('month', n."LocalDateTime")::int = 4
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('doy', n."LocalDateTime")::int = 110
@@ -236,7 +236,7 @@ WHERE date_part('doy', n."LocalDateTime")::int = 110
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('day', n."LocalDateTime")::int = 20
@@ -253,7 +253,7 @@ WHERE date_part('day', n."LocalDateTime")::int = 20
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('hour', n."LocalDateTime")::int = 10
@@ -270,7 +270,7 @@ WHERE date_part('hour', n."LocalDateTime")::int = 10
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('minute', n."LocalDateTime")::int = 31
@@ -287,7 +287,7 @@ WHERE date_part('minute', n."LocalDateTime")::int = 31
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE floor(date_part('second', n."LocalDateTime"))::int = 33
@@ -304,7 +304,7 @@ WHERE floor(date_part('second', n."LocalDateTime"))::int = 33
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE n."LocalDateTime"::date = DATE '2018-04-20'
@@ -321,7 +321,7 @@ WHERE n."LocalDateTime"::date = DATE '2018-04-20'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE n."LocalDateTime"::time = TIME '10:31:33.666'
@@ -338,7 +338,7 @@ WHERE n."LocalDateTime"::time = TIME '10:31:33.666'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE CASE floor(date_part('dow', n."LocalDateTime"))::int
@@ -360,7 +360,7 @@ END = 5
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__ToInstant_0='2018-04-20T08:31:33Z' (DbType = DateTime)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
@@ -381,7 +381,7 @@ WHERE n."LocalDateTime" AT TIME ZONE 'Europe/Berlin' = @__ToInstant_0
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__ToInstant_0='2018-04-20T08:31:33Z' (DbType = DateTime)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
@@ -400,7 +400,7 @@ WHERE n."LocalDateTime" AT TIME ZONE n."TimeZoneId" = @__ToInstant_0
         Assert.Equal(1, closest.Id);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 ORDER BY n."LocalDateTime" <-> TIMESTAMP '2018-04-01T00:00:00' NULLS FIRST
@@ -422,7 +422,7 @@ LIMIT 1
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('year', n."LocalDate")::int = 2018
@@ -439,7 +439,7 @@ WHERE date_part('year', n."LocalDate")::int = 2018
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('month', n."LocalDate")::int = 4
@@ -456,7 +456,7 @@ WHERE date_part('month', n."LocalDate")::int = 4
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('doy', n."LocalDate")::int = 110
@@ -473,7 +473,7 @@ WHERE date_part('doy', n."LocalDate")::int = 110
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('day', n."LocalDate")::int = 20
@@ -489,7 +489,7 @@ WHERE date_part('day', n."LocalDate")::int = 20
         Assert.Equal(1, closest.Id);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 ORDER BY n."LocalDate" <-> DATE '2018-04-01' NULLS FIRST
@@ -511,7 +511,7 @@ LIMIT 1
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('hour', n."LocalTime")::int = 10
@@ -528,7 +528,7 @@ WHERE date_part('hour', n."LocalTime")::int = 10
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('minute', n."LocalTime")::int = 31
@@ -545,7 +545,7 @@ WHERE date_part('minute', n."LocalTime")::int = 31
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE floor(date_part('second', n."LocalTime"))::int = 33
@@ -566,7 +566,7 @@ WHERE floor(date_part('second', n."LocalTime"))::int = 33
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('year', n."Period")::int = 2018
@@ -583,7 +583,7 @@ WHERE date_part('year', n."Period")::int = 2018
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('month', n."Period")::int = 4
@@ -600,7 +600,7 @@ WHERE date_part('month', n."Period")::int = 4
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('day', n."Period")::int = 20
@@ -617,7 +617,7 @@ WHERE date_part('day', n."Period")::int = 20
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('hour', n."Period")::int = 10
@@ -634,7 +634,7 @@ WHERE date_part('hour', n."Period")::int = 10
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('minute', n."Period")::int = 31
@@ -651,7 +651,7 @@ WHERE date_part('minute', n."Period")::int = 31
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE floor(date_part('second', n."Period"))::int = 23
@@ -705,7 +705,7 @@ WHERE floor(date_part('second', n."Period"))::int = 23
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('year', make_interval(years => n."Id"))::int = 1
@@ -722,7 +722,7 @@ WHERE date_part('year', make_interval(years => n."Id"))::int = 1
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('month', make_interval(months => n."Id"))::int = 1
@@ -740,7 +740,7 @@ WHERE date_part('month', make_interval(months => n."Id"))::int = 1
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('day', make_interval(weeks => n."Id"))::int = 7
@@ -757,7 +757,7 @@ WHERE date_part('day', make_interval(weeks => n."Id"))::int = 7
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('day', make_interval(days => n."Id"))::int = 1
@@ -774,7 +774,7 @@ WHERE date_part('day', make_interval(days => n."Id"))::int = 1
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('hour', make_interval(hours => n."Id"))::int = 1
@@ -791,7 +791,7 @@ WHERE date_part('hour', make_interval(hours => n."Id"))::int = 1
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('hour', make_interval(hours => n."Long"::int))::int = 1
@@ -808,7 +808,7 @@ WHERE date_part('hour', make_interval(hours => n."Long"::int))::int = 1
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('minute', make_interval(mins => n."Id"))::int = 1
@@ -825,7 +825,7 @@ WHERE date_part('minute', make_interval(mins => n."Id"))::int = 1
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('minute', make_interval(mins => n."Long"::int))::int = 1
@@ -842,7 +842,7 @@ WHERE date_part('minute', make_interval(mins => n."Long"::int))::int = 1
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE floor(date_part('second', make_interval(secs => n."Id"::bigint::double precision)))::int = 1
@@ -859,7 +859,7 @@ WHERE floor(date_part('second', make_interval(secs => n."Id"::bigint::double pre
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE floor(date_part('second', make_interval(secs => n."Long"::double precision)))::int = 1
@@ -909,7 +909,7 @@ WHERE floor(date_part('second', make_interval(secs => n."Long"::double precision
             : query.ToList();
 
         AssertSql(
-"""
+            """
 SELECT sum(n."Period")
 FROM "NodaTimeTypes" AS n
 GROUP BY n."Id"
@@ -932,7 +932,7 @@ GROUP BY n."Id"
             : query.ToList();
 
         AssertSql(
-"""
+            """
 SELECT avg(n."Period")
 FROM "NodaTimeTypes" AS n
 GROUP BY n."Id"
@@ -953,7 +953,7 @@ GROUP BY n."Id"
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('epoch', n."Duration") / 86400.0 > 27.0
@@ -970,7 +970,7 @@ WHERE date_part('epoch', n."Duration") / 86400.0 > 27.0
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('epoch', n."Duration") / 3600.0 < 700.0
@@ -987,7 +987,7 @@ WHERE date_part('epoch', n."Duration") / 3600.0 < 700.0
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('epoch', n."Duration") / 60.0 < 40000.0
@@ -1004,7 +1004,7 @@ WHERE date_part('epoch', n."Duration") / 60.0 < 40000.0
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('epoch', n."Duration") = 2365448.02
@@ -1021,7 +1021,7 @@ WHERE date_part('epoch', n."Duration") = 2365448.02
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('epoch', n."Duration") / 0.001 = 2365448020.0
@@ -1038,7 +1038,7 @@ WHERE date_part('epoch', n."Duration") / 0.001 = 2365448020.0
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('day', n."Duration")::int = 27
@@ -1055,7 +1055,7 @@ WHERE date_part('day', n."Duration")::int = 27
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('hour', n."Duration")::int = 9
@@ -1072,7 +1072,7 @@ WHERE date_part('hour', n."Duration")::int = 9
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('minute', n."Duration")::int = 4
@@ -1089,7 +1089,7 @@ WHERE date_part('minute', n."Duration")::int = 4
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE floor(date_part('second', n."Duration"))::int = 8
@@ -1110,7 +1110,7 @@ WHERE floor(date_part('second', n."Duration"))::int = 8
                 .Select(g => (Duration?)Duration.FromTicks(g.Sum(o => o.Duration.TotalTicks))));
 
         AssertSql(
-"""
+            """
 SELECT sum(n."Duration")
 FROM "NodaTimeTypes" AS n
 GROUP BY n."Id"
@@ -1131,7 +1131,7 @@ GROUP BY n."Id"
                 .Select(g => (Duration?)Duration.FromTicks((long)g.Average(o => o.Duration.TotalTicks))));
 
         AssertSql(
-"""
+            """
 SELECT avg(n."Duration")
 FROM "NodaTimeTypes" AS n
 GROUP BY n."Id"
@@ -1148,11 +1148,12 @@ GROUP BY n."Id"
     {
         await AssertQuery(
             async,
-            ss => ss.Set<NodaTimeTypes>().Where(t => t.Interval.Start == new LocalDateTime(2018, 4, 20, 10, 31, 33, 666).InUtc().ToInstant()),
+            ss => ss.Set<NodaTimeTypes>()
+                .Where(t => t.Interval.Start == new LocalDateTime(2018, 4, 20, 10, 31, 33, 666).InUtc().ToInstant()),
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE lower(n."Interval") = TIMESTAMPTZ '2018-04-20T10:31:33.666Z'
@@ -1169,7 +1170,7 @@ WHERE lower(n."Interval") = TIMESTAMPTZ '2018-04-20T10:31:33.666Z'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE upper(n."Interval") = TIMESTAMPTZ '2018-04-25T10:31:33.666Z'
@@ -1186,7 +1187,7 @@ WHERE upper(n."Interval") = TIMESTAMPTZ '2018-04-25T10:31:33.666Z'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE NOT (lower_inf(n."Interval"))
@@ -1203,7 +1204,7 @@ WHERE NOT (lower_inf(n."Interval"))
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE NOT (upper_inf(n."Interval"))
@@ -1220,7 +1221,7 @@ WHERE NOT (upper_inf(n."Interval"))
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE upper(n."Interval") - lower(n."Interval") = INTERVAL '5 00:00:00'
@@ -1241,7 +1242,7 @@ WHERE upper(n."Interval") - lower(n."Interval") = INTERVAL '5 00:00:00'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__interval_0='2018-01-01T00:00:00Z/2020-12-25T00:00:00Z' (DbType = Object)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
@@ -1269,7 +1270,7 @@ WHERE @__interval_0 @> n."Instant"
         Assert.Equal(new Interval[] { new(start, start + Duration.FromDays(5)) }, union);
 
         AssertSql(
-"""
+            """
 SELECT range_agg(t."Interval")
 FROM (
     SELECT n."Interval", TRUE AS "Key"
@@ -1299,7 +1300,7 @@ LIMIT 2
         Assert.Equal(new Interval(start, start + Duration.FromDays(5)), intersection);
 
         AssertSql(
-"""
+            """
 SELECT range_intersect_agg(t."Interval")
 FROM (
     SELECT n."Interval", TRUE AS "Key"
@@ -1324,7 +1325,7 @@ LIMIT 2
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE upper(n."DateInterval") - lower(n."DateInterval") = 5
@@ -1341,7 +1342,7 @@ WHERE upper(n."DateInterval") - lower(n."DateInterval") = 5
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE lower(n."DateInterval") = DATE '2018-04-20'
@@ -1358,7 +1359,7 @@ WHERE lower(n."DateInterval") = DATE '2018-04-20'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE upper(n."DateInterval") - INTERVAL 'P1D' = DATE '2018-04-24'
@@ -1369,7 +1370,7 @@ WHERE upper(n."DateInterval") - INTERVAL 'P1D' = DATE '2018-04-24'
     [MemberData(nameof(IsAsyncData))]
     public async Task DateInterval_Contains_LocalDate(bool async)
     {
-        var dateInterval = new DateInterval(new(2018, 01, 01), new(2020, 12, 25));
+        var dateInterval = new DateInterval(new LocalDate(2018, 01, 01), new LocalDate(2020, 12, 25));
 
         await AssertQuery(
             async,
@@ -1377,7 +1378,7 @@ WHERE upper(n."DateInterval") - INTERVAL 'P1D' = DATE '2018-04-24'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__dateInterval_0='[2018-01-01, 2020-12-25]' (DbType = Object)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
@@ -1390,7 +1391,7 @@ WHERE @__dateInterval_0 @> n."LocalDate"
     [MemberData(nameof(IsAsyncData))]
     public async Task DateInterval_Contains_DateInterval(bool async)
     {
-        var dateInterval = new DateInterval(new(2018, 4, 22), new(2018, 4, 24));
+        var dateInterval = new DateInterval(new LocalDate(2018, 4, 22), new LocalDate(2018, 4, 24));
 
         await AssertQuery(
             async,
@@ -1398,7 +1399,7 @@ WHERE @__dateInterval_0 @> n."LocalDate"
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__dateInterval_0='[2018-04-22, 2018-04-24]' (DbType = Object)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
@@ -1411,15 +1412,16 @@ WHERE n."DateInterval" @> @__dateInterval_0
     [MemberData(nameof(IsAsyncData))]
     public async Task DateInterval_Intersection(bool async)
     {
-        var dateInterval = new DateInterval(new(2018, 4, 22), new(2018, 4, 26));
+        var dateInterval = new DateInterval(new LocalDate(2018, 4, 22), new LocalDate(2018, 4, 26));
 
         await AssertQuery(
             async,
-            ss => ss.Set<NodaTimeTypes>().Where(t => t.DateInterval.Intersection(dateInterval) == new DateInterval(new(2018, 4, 22), new(2018, 4, 24))),
+            ss => ss.Set<NodaTimeTypes>().Where(
+                t => t.DateInterval.Intersection(dateInterval) == new DateInterval(new LocalDate(2018, 4, 22), new LocalDate(2018, 4, 24))),
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__dateInterval_0='[2018-04-22, 2018-04-26]' (DbType = Object)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
@@ -1432,15 +1434,16 @@ WHERE n."DateInterval" * @__dateInterval_0 = '[2018-04-22,2018-04-24]'::daterang
     [MemberData(nameof(IsAsyncData))]
     public async Task DateInterval_Union(bool async)
     {
-        var dateInterval = new DateInterval(new(2018, 4, 22), new(2018, 4, 26));
+        var dateInterval = new DateInterval(new LocalDate(2018, 4, 22), new LocalDate(2018, 4, 26));
 
         await AssertQuery(
             async,
-            ss => ss.Set<NodaTimeTypes>().Where(t => t.DateInterval.Union(dateInterval) == new DateInterval(new(2018, 4, 20), new(2018, 4, 26))),
+            ss => ss.Set<NodaTimeTypes>().Where(
+                t => t.DateInterval.Union(dateInterval) == new DateInterval(new LocalDate(2018, 4, 20), new LocalDate(2018, 4, 26))),
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__dateInterval_0='[2018-04-22, 2018-04-26]' (DbType = Object)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
@@ -1464,10 +1467,10 @@ WHERE n."DateInterval" + @__dateInterval_0 = '[2018-04-20,2018-04-26]'::daterang
             ? await query.SingleAsync()
             : query.Single();
 
-        Assert.Equal(new DateInterval[] { new(new(2018, 4, 20), new(2018, 4, 24)) }, union);
+        Assert.Equal(new DateInterval[] { new(new LocalDate(2018, 4, 20), new LocalDate(2018, 4, 24)) }, union);
 
         AssertSql(
-"""
+            """
 SELECT range_agg(t."DateInterval")
 FROM (
     SELECT n."DateInterval", TRUE AS "Key"
@@ -1493,10 +1496,10 @@ LIMIT 2
             ? await query.SingleAsync()
             : query.Single();
 
-        Assert.Equal(new(new(2018, 4, 20), new(2018, 4, 24)), intersection);
+        Assert.Equal(new DateInterval(new LocalDate(2018, 4, 20), new LocalDate(2018, 4, 24)), intersection);
 
         AssertSql(
-"""
+            """
 SELECT range_intersect_agg(t."DateInterval")
 FROM (
     SELECT n."DateInterval", TRUE AS "Key"
@@ -1515,7 +1518,7 @@ LIMIT 2
     [MemberData(nameof(IsAsyncData))]
     public async Task DateRange_Contains(bool async)
     {
-        var dateRange = new DateInterval(new(2018, 01, 01), new(2020, 12, 26));
+        var dateRange = new DateInterval(new LocalDate(2018, 01, 01), new LocalDate(2020, 12, 26));
 
         await AssertQuery(
             async,
@@ -1523,7 +1526,7 @@ LIMIT 2
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__dateRange_0='[2018-01-01, 2020-12-26]' (DbType = Object)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
@@ -1542,11 +1545,13 @@ WHERE @__dateRange_0 @> n."LocalDate"
     {
         await AssertQuery(
             async,
-            ss => ss.Set<NodaTimeTypes>().Where(t => t.Instant.InUtc() == new ZonedDateTime(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), DateTimeZone.Utc, Offset.Zero)),
+            ss => ss.Set<NodaTimeTypes>().Where(
+                t => t.Instant.InUtc()
+                    == new ZonedDateTime(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), DateTimeZone.Utc, Offset.Zero)),
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__p_0='2018-04-20T10:31:33 UTC (+00)' (DbType = DateTime)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
@@ -1561,12 +1566,13 @@ WHERE n."Instant" = @__p_0
     {
         await AssertQuery(
             async,
-            ss => ss.Set<NodaTimeTypes>().Where(t => t.Instant.InZone(DateTimeZoneProviders.Tzdb["Europe/Berlin"]).LocalDateTime
-                == new LocalDateTime(2018, 4, 20, 12, 31, 33, 666)),
+            ss => ss.Set<NodaTimeTypes>().Where(
+                t => t.Instant.InZone(DateTimeZoneProviders.Tzdb["Europe/Berlin"]).LocalDateTime
+                    == new LocalDateTime(2018, 4, 20, 12, 31, 33, 666)),
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE n."Instant" AT TIME ZONE 'Europe/Berlin' = TIMESTAMP '2018-04-20T12:31:33.666'
@@ -1579,12 +1585,13 @@ WHERE n."Instant" AT TIME ZONE 'Europe/Berlin' = TIMESTAMP '2018-04-20T12:31:33.
     {
         await AssertQuery(
             async,
-            ss => ss.Set<NodaTimeTypes>().Where(t => t.Instant.InZone(DateTimeZoneProviders.Tzdb["Europe/Berlin"]).Date
-                == new LocalDate(2018, 4, 20)),
+            ss => ss.Set<NodaTimeTypes>().Where(
+                t => t.Instant.InZone(DateTimeZoneProviders.Tzdb["Europe/Berlin"]).Date
+                    == new LocalDate(2018, 4, 20)),
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE CAST(n."Instant" AT TIME ZONE 'Europe/Berlin' AS date) = DATE '2018-04-20'
@@ -1599,12 +1606,13 @@ WHERE CAST(n."Instant" AT TIME ZONE 'Europe/Berlin' AS date) = DATE '2018-04-20'
 
         await AssertQuery(
             async,
-            ss => ss.Set<NodaTimeTypes>().Where(t => t.Instant.InZone(timeZone).LocalDateTime
-                == new LocalDateTime(2018, 4, 20, 12, 31, 33, 666)),
+            ss => ss.Set<NodaTimeTypes>().Where(
+                t => t.Instant.InZone(timeZone).LocalDateTime
+                    == new LocalDateTime(2018, 4, 20, 12, 31, 33, 666)),
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__timeZone_0='Europe/Berlin'
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
@@ -1629,11 +1637,12 @@ WHERE n."Instant" AT TIME ZONE @__timeZone_0 = TIMESTAMP '2018-04-20T12:31:33.66
     {
         await AssertQuery(
             async,
-            ss => ss.Set<NodaTimeTypes>().Where(t => t.Instant.ToDateTimeUtc() == new DateTime(2018, 4, 20, 10, 31, 33, 666, DateTimeKind.Utc)),
+            ss => ss.Set<NodaTimeTypes>()
+                .Where(t => t.Instant.ToDateTimeUtc() == new DateTime(2018, 4, 20, 10, 31, 33, 666, DateTimeKind.Utc)),
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE n."Instant"::timestamptz = TIMESTAMPTZ '2018-04-20 10:31:33.666Z'
@@ -1650,7 +1659,7 @@ WHERE n."Instant"::timestamptz = TIMESTAMPTZ '2018-04-20 10:31:33.666Z'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE n."Instant" < NOW()
@@ -1661,12 +1670,13 @@ WHERE n."Instant" < NOW()
     public async Task Instant_Distance()
     {
         await using var context = CreateContext();
-        var closest = await context.NodaTimeTypes.OrderBy(t => EF.Functions.Distance(t.Instant, new LocalDateTime(2018, 4, 1, 0, 0, 0).InUtc().ToInstant())).FirstAsync();
+        var closest = await context.NodaTimeTypes
+            .OrderBy(t => EF.Functions.Distance(t.Instant, new LocalDateTime(2018, 4, 1, 0, 0, 0).InUtc().ToInstant())).FirstAsync();
 
         Assert.Equal(1, closest.Id);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 ORDER BY n."Instant" <-> TIMESTAMPTZ '2018-04-01T00:00:00Z' NULLS FIRST
@@ -1688,7 +1698,7 @@ LIMIT 1
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('year', n."ZonedDateTime" AT TIME ZONE 'UTC')::int = 2018
@@ -1705,7 +1715,7 @@ WHERE date_part('year', n."ZonedDateTime" AT TIME ZONE 'UTC')::int = 2018
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('month', n."ZonedDateTime" AT TIME ZONE 'UTC')::int = 4
@@ -1722,7 +1732,7 @@ WHERE date_part('month', n."ZonedDateTime" AT TIME ZONE 'UTC')::int = 4
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('doy', n."ZonedDateTime" AT TIME ZONE 'UTC')::int = 110
@@ -1739,12 +1749,11 @@ WHERE date_part('doy', n."ZonedDateTime" AT TIME ZONE 'UTC')::int = 110
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('day', n."ZonedDateTime" AT TIME ZONE 'UTC')::int = 20
 """);
-
     }
 
     [ConditionalTheory]
@@ -1757,12 +1766,11 @@ WHERE date_part('day', n."ZonedDateTime" AT TIME ZONE 'UTC')::int = 20
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('hour', n."ZonedDateTime" AT TIME ZONE 'UTC')::int = 10
 """);
-
     }
 
     [ConditionalTheory]
@@ -1775,7 +1783,7 @@ WHERE date_part('hour', n."ZonedDateTime" AT TIME ZONE 'UTC')::int = 10
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE date_part('minute', n."ZonedDateTime" AT TIME ZONE 'UTC')::int = 31
@@ -1792,7 +1800,7 @@ WHERE date_part('minute', n."ZonedDateTime" AT TIME ZONE 'UTC')::int = 31
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE floor(date_part('second', n."ZonedDateTime" AT TIME ZONE 'UTC'))::int = 33
@@ -1809,7 +1817,7 @@ WHERE floor(date_part('second', n."ZonedDateTime" AT TIME ZONE 'UTC'))::int = 33
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE CAST(n."ZonedDateTime" AT TIME ZONE 'UTC' AS date) = DATE '2018-04-20'
@@ -1826,7 +1834,7 @@ WHERE CAST(n."ZonedDateTime" AT TIME ZONE 'UTC' AS date) = DATE '2018-04-20'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE CASE floor(date_part('dow', n."ZonedDateTime" AT TIME ZONE 'UTC'))::int
@@ -1846,7 +1854,7 @@ END = 5
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE n."Instant" AT TIME ZONE 'UTC' = TIMESTAMP '2018-04-20T10:31:33.666'
@@ -1865,7 +1873,7 @@ WHERE n."Instant" AT TIME ZONE 'UTC' = TIMESTAMP '2018-04-20T10:31:33.666'
             entryCount: 1);
 
         AssertSql(
-"""
+            """
 @__ToInstant_0='2018-04-20T10:31:33Z' (DbType = DateTime)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
@@ -1879,12 +1887,15 @@ WHERE n."ZonedDateTime" = @__ToInstant_0
     {
         await using var context = CreateContext();
         var closest = await context.NodaTimeTypes
-            .OrderBy(t => EF.Functions.Distance(t.ZonedDateTime, new ZonedDateTime(new LocalDateTime(2018, 4, 1, 0, 0, 0), DateTimeZone.Utc, Offset.Zero))).FirstAsync();
+            .OrderBy(
+                t => EF.Functions.Distance(
+                    t.ZonedDateTime,
+                    new ZonedDateTime(new LocalDateTime(2018, 4, 1, 0, 0, 0), DateTimeZone.Utc, Offset.Zero))).FirstAsync();
 
         Assert.Equal(1, closest.Id);
 
         AssertSql(
-"""
+            """
 @__p_1='2018-04-01T00:00:00 UTC (+00)' (DbType = DateTime)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
@@ -1901,16 +1912,23 @@ LIMIT 1
     private NodaTimeContext CreateContext()
         => Fixture.CreateContext();
 
-    private static readonly Period _defaultPeriod = Period.FromYears(2018) + Period.FromMonths(4) + Period.FromDays(20) +
-        Period.FromHours(10) + Period.FromMinutes(31) + Period.FromSeconds(23) +
-        Period.FromMilliseconds(666);
+    private static readonly Period _defaultPeriod = Period.FromYears(2018)
+        + Period.FromMonths(4)
+        + Period.FromDays(20)
+        + Period.FromHours(10)
+        + Period.FromMinutes(31)
+        + Period.FromSeconds(23)
+        + Period.FromMilliseconds(666);
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
     public class NodaTimeContext : PoolableDbContext
     {
-        public NodaTimeContext(DbContextOptions<NodaTimeContext> options) : base(options) {}
+        public NodaTimeContext(DbContextOptions<NodaTimeContext> options)
+            : base(options)
+        {
+        }
 
         // ReSharper disable once MemberHidesStaticFromOuterClass
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
@@ -1948,13 +1966,15 @@ LIMIT 1
         public Interval Interval { get; set; }
         public NpgsqlRange<Instant> InstantRange { get; set; }
         public long Long { get; set; }
+
         public string TimeZoneId { get; set; }
         // ReSharper restore UnusedAutoPropertyAccessor.Global
     }
 
     public class NodaTimeQueryNpgsqlFixture : SharedStoreFixtureBase<NodaTimeContext>, IQueryFixtureBase
     {
-        protected override string StoreName => "NodaTimeTest";
+        protected override string StoreName
+            => "NodaTimeTest";
 
 #pragma warning disable CS0618 // GlobalTypeMapper is obsolete
         public NodaTimeQueryNpgsqlFixture()
@@ -1969,7 +1989,8 @@ LIMIT 1
         protected override ITestStoreFactory TestStoreFactory
             => NpgsqlTestStoreFactory.WithConnectionStringOptions("-c TimeZone=Europe/Berlin");
 
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
 
         private NodaTimeData _expectedData;
 
@@ -2034,7 +2055,9 @@ LIMIT 1
         private IReadOnlyList<NodaTimeTypes> NodaTimeTypes { get; }
 
         public NodaTimeData()
-            => NodaTimeTypes = CreateNodaTimeTypes();
+        {
+            NodaTimeTypes = CreateNodaTimeTypes();
+        }
 
         public IQueryable<TEntity> Set<TEntity>()
             where TEntity : class
@@ -2072,10 +2095,10 @@ LIMIT 1
                     OffsetTime = new OffsetTime(new LocalTime(10, 31, 33, 666), Offset.Zero),
                     Period = _defaultPeriod,
                     Duration = duration,
-                    DateInterval = new(localDateTime.Date, localDateTime.Date.PlusDays(4)), // inclusive
+                    DateInterval = new DateInterval(localDateTime.Date, localDateTime.Date.PlusDays(4)), // inclusive
                     LocalDateRange = new NpgsqlRange<LocalDate>(localDateTime.Date, localDateTime.Date.PlusDays(5)), // exclusive
-                    Interval = new(instant, instant + Duration.FromDays(5)),
-                    InstantRange = new(instant, true, instant + Duration.FromDays(5), false),
+                    Interval = new Interval(instant, instant + Duration.FromDays(5)),
+                    InstantRange = new NpgsqlRange<Instant>(instant, true, instant + Duration.FromDays(5), false),
                     Long = 1,
                     TimeZoneId = "Europe/Berlin"
                 }

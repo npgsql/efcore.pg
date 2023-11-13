@@ -4,11 +4,11 @@ using System.Text;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// The type mapping for the PostgreSQL hstore type. Supports both <see cref="Dictionary{TKey,TValue} "/>
-/// and <see cref="ImmutableDictionary{TKey,TValue}" /> over strings.
+///     The type mapping for the PostgreSQL hstore type. Supports both <see cref="Dictionary{TKey,TValue} " />
+///     and <see cref="ImmutableDictionary{TKey,TValue}" /> over strings.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/hstore.html
+///     See: https://www.postgresql.org/docs/current/static/hstore.html
 /// </remarks>
 public class NpgsqlHstoreTypeMapping : NpgsqlTypeMapping
 {
@@ -36,7 +36,9 @@ public class NpgsqlHstoreTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlHstoreTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Hstore) {}
+        : base(parameters, NpgsqlDbType.Hstore)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -59,7 +61,7 @@ public class NpgsqlHstoreTypeMapping : NpgsqlTypeMapping
         foreach (var kv in (IReadOnlyDictionary<string, string?>)value)
         {
             sb.Append('"');
-            sb.Append(kv.Key);   // TODO: Escape
+            sb.Append(kv.Key); // TODO: Escape
             sb.Append("\"=>");
             if (kv.Value is null)
             {
@@ -68,7 +70,7 @@ public class NpgsqlHstoreTypeMapping : NpgsqlTypeMapping
             else
             {
                 sb.Append('"');
-                sb.Append(kv.Value);   // TODO: Escape
+                sb.Append(kv.Value); // TODO: Escape
                 sb.Append("\",");
             }
         }
@@ -95,16 +97,19 @@ public class NpgsqlHstoreTypeMapping : NpgsqlTypeMapping
             return null;
         }
 
-        throw new ArgumentException($"CLR type must be {nameof(Dictionary<string,string>)} or {nameof(ImmutableDictionary<string,string>)}");
+        throw new ArgumentException(
+            $"CLR type must be {nameof(Dictionary<string, string>)} or {nameof(ImmutableDictionary<string, string>)}");
     }
 
     private sealed class HstoreMutableComparer : ValueComparer<Dictionary<string, string>>
     {
-        public HstoreMutableComparer() : base(
-            (a, b) => Compare(a,b),
-            o => o.GetHashCode(),
-            o => new Dictionary<string, string>(o))
-        {}
+        public HstoreMutableComparer()
+            : base(
+                (a, b) => Compare(a, b),
+                o => o.GetHashCode(),
+                o => new Dictionary<string, string>(o))
+        {
+        }
 
         private static bool Compare(Dictionary<string, string>? a, Dictionary<string, string>? b)
         {

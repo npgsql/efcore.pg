@@ -12,6 +12,7 @@ public class OverzealousInitializationNpgsqlTest
 
     public class OverzealousInitializationNpgsqlFixture : OverzealousInitializationFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
     }
 }

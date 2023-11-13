@@ -118,7 +118,8 @@ internal static class NonCapturingLazyInitializer
         valueFactory(param);
 
         var tmp2 = Volatile.Read(ref target);
-        Check.DebugAssert(target is not null && tmp2 is not null,
+        Check.DebugAssert(
+            target is not null && tmp2 is not null,
             $"{nameof(valueFactory)} did not initialize {nameof(target)} in {nameof(EnsureInitialized)}");
         return tmp2;
     }

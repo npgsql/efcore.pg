@@ -14,7 +14,8 @@ public class WithConstructorsNpgsqlTest : WithConstructorsTestBase<WithConstruct
 
     public class WithConstructorsNpgsqlFixture : WithConstructorsFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {

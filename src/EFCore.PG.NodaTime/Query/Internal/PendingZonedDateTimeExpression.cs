@@ -4,7 +4,9 @@ internal class PendingZonedDateTimeExpression : SqlExpression
 {
     internal PendingZonedDateTimeExpression(SqlExpression operand, SqlExpression timeZoneId)
         : base(typeof(ZonedDateTime), typeMapping: null)
-        => (Operand, TimeZoneId) = (operand, timeZoneId);
+    {
+        (Operand, TimeZoneId) = (operand, timeZoneId);
+    }
 
     internal SqlExpression Operand { get; }
 

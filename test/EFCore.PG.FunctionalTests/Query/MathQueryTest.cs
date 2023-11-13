@@ -3,12 +3,12 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 /// <summary>
-/// Provides unit tests for PostgreSQL-specific math functions.
+///     Provides unit tests for PostgreSQL-specific math functions.
 /// </summary>
 /// <remarks>
-/// See:
-///   - https://www.postgresql.org/docs/current/static/functions-math.html
-///   - https://www.postgresql.org/docs/current/static/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
+///     See:
+///     - https://www.postgresql.org/docs/current/static/functions-math.html
+///     - https://www.postgresql.org/docs/current/static/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
 /// </remarks>
 public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
 {
@@ -297,17 +297,22 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
     #region Fixtures
 
     /// <summary>
-    /// Represents a fixture suitable for testing GREATEST(...) and LEAST(...)/
+    ///     Represents a fixture suitable for testing GREATEST(...) and LEAST(...)/
     /// </summary>
     public class MathQueryNpgsqlFixture : SharedStoreFixtureBase<MathContext>
     {
-        protected override string StoreName => "MathQueryTest";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
+        protected override string StoreName
+            => "MathQueryTest";
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
     }
 
     /// <summary>
-    /// Represents an entity suitable for testing GREATEST(...) and LEAST(...) operators.
+    ///     Represents an entity suitable for testing GREATEST(...) and LEAST(...) operators.
     /// </summary>
     public class MathTestEntity
     {
@@ -326,31 +331,35 @@ public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
     }
 
     /// <summary>
-    /// Represents a database suitable for testing GREATEST(...) and LEAST(...).
+    ///     Represents a database suitable for testing GREATEST(...) and LEAST(...).
     /// </summary>
     public class MathContext : PoolableDbContext
     {
         /// <summary>
-        /// Represents a set of entities with numeric properties.
+        ///     Represents a set of entities with numeric properties.
         /// </summary>
         public DbSet<MathTestEntity> MathTestEntities { get; set; }
 
         /// <inheritdoc />
-        public MathContext(DbContextOptions options) : base(options) {}
+        public MathContext(DbContextOptions options)
+            : base(options)
+        {
+        }
     }
 
     #endregion
 
     #region Helpers
 
-    protected MathContext CreateContext() => Fixture.CreateContext();
+    protected MathContext CreateContext()
+        => Fixture.CreateContext();
 
     /// <summary>
-    /// Asserts that the SQL fragment appears in the logs.
+    ///     Asserts that the SQL fragment appears in the logs.
     /// </summary>
     /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-    public void AssertContainsSql(string sql) =>
-        Assert.Contains(
+    public void AssertContainsSql(string sql)
+        => Assert.Contains(
             sql.Replace(Environment.NewLine, " ").Remove('\r').Remove('\n'),
             Fixture.TestSqlLoggerFactory.Sql.Replace(Environment.NewLine, " ").Remove('\r').Remove('\n'));
 

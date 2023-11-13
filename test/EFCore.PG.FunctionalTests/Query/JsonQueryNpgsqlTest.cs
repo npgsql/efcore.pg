@@ -1,6 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
 using Microsoft.EntityFrameworkCore.TestModels.JsonQuery;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
@@ -86,7 +83,7 @@ FROM "JsonEntitiesBasic" AS j
         await base.Project_json_reference_in_tracking_query_fails(async);
 
         AssertSql(
-);
+        );
     }
 
     public override async Task Project_json_collection_in_tracking_query_fails(bool async)
@@ -94,7 +91,7 @@ FROM "JsonEntitiesBasic" AS j
         await base.Project_json_collection_in_tracking_query_fails(async);
 
         AssertSql(
-);
+        );
     }
 
     public override async Task Project_json_entity_in_tracking_query_fails_even_when_owner_is_present(bool async)
@@ -102,7 +99,7 @@ FROM "JsonEntitiesBasic" AS j
         await base.Project_json_entity_in_tracking_query_fails_even_when_owner_is_present(async);
 
         AssertSql(
-);
+        );
     }
 
     public override async Task Basic_json_projection_owned_reference_root(bool async)
@@ -3070,12 +3067,14 @@ ORDER BY m."Id" NULLS FIRST
                 foreach (var j in _expectedData.JsonEntitiesAllTypes)
                 {
                     j.Reference.TestDateTimeOffset = new DateTimeOffset(
-                        j.Reference.TestDateTimeOffset.Ticks - (j.Reference.TestDateTimeOffset.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
+                        j.Reference.TestDateTimeOffset.Ticks
+                        - (j.Reference.TestDateTimeOffset.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
 
                     foreach (var j2 in j.Collection)
                     {
                         j2.TestDateTimeOffset = new DateTimeOffset(
-                            j2.TestDateTimeOffset.Ticks - (j2.TestDateTimeOffset.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
+                            j2.TestDateTimeOffset.Ticks - (j2.TestDateTimeOffset.Ticks % (TimeSpan.TicksPerMillisecond / 1000)),
+                            TimeSpan.Zero);
                     }
 
                     j.TestDateTimeOffsetCollection = j.TestDateTimeOffsetCollection.Select(
@@ -3117,7 +3116,8 @@ ORDER BY m."Id" NULLS FIRST
             foreach (var j in jsonEntitiesAllTypes)
             {
                 j.Reference.TestDateTimeOffset = new DateTimeOffset(
-                    j.Reference.TestDateTimeOffset.Ticks - (j.Reference.TestDateTimeOffset.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
+                    j.Reference.TestDateTimeOffset.Ticks - (j.Reference.TestDateTimeOffset.Ticks % (TimeSpan.TicksPerMillisecond / 1000)),
+                    TimeSpan.Zero);
 
                 foreach (var j2 in j.Collection)
                 {

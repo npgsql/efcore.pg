@@ -7,26 +7,33 @@ public class LazyLoadProxyNpgsqlTest : LazyLoadProxyTestBase<LazyLoadProxyNpgsql
 {
     public LazyLoadProxyNpgsqlTest(LoadNpgsqlFixture fixture)
         : base(fixture)
-        => Fixture.TestSqlLoggerFactory.Clear();
+    {
+        Fixture.TestSqlLoggerFactory.Clear();
+    }
 
-    [ConditionalFact]  // Requires MARS
-    public override void Top_level_projection_track_entities_before_passing_to_client_method() {}
+    [ConditionalFact] // Requires MARS
+    public override void Top_level_projection_track_entities_before_passing_to_client_method() { }
 
     [ConditionalTheory(Skip = "Possibly requires MARS, investigate")]
     public override void Lazy_load_one_to_one_reference_with_recursive_property(EntityState state)
         => base.Lazy_load_one_to_one_reference_with_recursive_property(state);
 
-    protected override void ClearLog() => Fixture.TestSqlLoggerFactory.Clear();
+    protected override void ClearLog()
+        => Fixture.TestSqlLoggerFactory.Clear();
 
-    protected override void RecordLog() => Sql = Fixture.TestSqlLoggerFactory.Sql;
+    protected override void RecordLog()
+        => Sql = Fixture.TestSqlLoggerFactory.Sql;
 
     // ReSharper disable once UnusedAutoPropertyAccessor.Local
     private string Sql { get; set; }
 
     public class LoadNpgsqlFixture : LoadFixtureBase
     {
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {

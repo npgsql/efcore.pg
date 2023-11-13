@@ -82,7 +82,7 @@ public class NpgsqlNodaTimeTypeMappingTest
         Assert.Equal("tsrange", mapping.StoreType);
         Assert.Equal("timestamp without time zone", mapping.SubtypeMapping.StoreType);
 
-        var value = new NpgsqlRange<LocalDateTime>(new(2020, 1, 1, 12, 0, 0), new(2020, 1, 2, 12, 0, 0));
+        var value = new NpgsqlRange<LocalDateTime>(new LocalDateTime(2020, 1, 1, 12, 0, 0), new LocalDateTime(2020, 1, 2, 12, 0, 0));
         Assert.Equal(@"'[""2020-01-01T12:00:00"",""2020-01-02T12:00:00""]'::tsrange", mapping.GenerateSqlLiteral(value));
     }
 
@@ -95,9 +95,7 @@ public class NpgsqlNodaTimeTypeMappingTest
 
     [Fact]
     public void List_of_NpgsqlRange_of_LocalDateTime_is_properly_mapped()
-    {
-        Assert.Equal("tsmultirange", GetMapping(typeof(List<NpgsqlRange<LocalDateTime>>)).StoreType);
-    }
+        => Assert.Equal("tsmultirange", GetMapping(typeof(List<NpgsqlRange<LocalDateTime>>)).StoreType);
 
     #endregion Timestamp without time zone
 
@@ -149,7 +147,8 @@ public class NpgsqlNodaTimeTypeMappingTest
     {
         var zonedDateTime = (new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660))
             .InZone(DateTimeZone.ForOffset(Offset.FromHours(2)), Resolvers.LenientResolver);
-        Assert.Equal(@"new NodaTime.ZonedDateTime(NodaTime.Instant.FromUnixTimeTicks(15242130936666660L), NodaTime.TimeZones.TzdbDateTimeZoneSource.Default.ForId(""UTC+02""))",
+        Assert.Equal(
+            @"new NodaTime.ZonedDateTime(NodaTime.Instant.FromUnixTimeTicks(15242130936666660L), NodaTime.TimeZones.TzdbDateTimeZoneSource.Default.ForId(""UTC+02""))",
             CodeLiteral(zonedDateTime));
     }
 
@@ -167,19 +166,23 @@ public class NpgsqlNodaTimeTypeMappingTest
 
     [Fact]
     public void GenerateCodeLiteral_returns_Instant_literal()
-        => Assert.Equal("NodaTime.Instant.FromUnixTimeTicks(15832607590000000L)",
+        => Assert.Equal(
+            "NodaTime.Instant.FromUnixTimeTicks(15832607590000000L)",
             CodeLiteral(Instant.FromUtc(2020, 3, 3, 18, 39, 19)));
 
     [Fact]
     public void GenerateCodeLiteral_returns_OffsetDate_time_literal()
     {
-        Assert.Equal("new NodaTime.OffsetDateTime(new NodaTime.LocalDateTime(2018, 4, 20, 10, 31), NodaTime.Offset.FromHours(-2))",
+        Assert.Equal(
+            "new NodaTime.OffsetDateTime(new NodaTime.LocalDateTime(2018, 4, 20, 10, 31), NodaTime.Offset.FromHours(-2))",
             CodeLiteral(new OffsetDateTime(new LocalDateTime(2018, 4, 20, 10, 31), Offset.FromHours(-2))));
 
-        Assert.Equal("new NodaTime.OffsetDateTime(new NodaTime.LocalDateTime(2018, 4, 20, 10, 31, 33), NodaTime.Offset.FromSeconds(9000))",
+        Assert.Equal(
+            "new NodaTime.OffsetDateTime(new NodaTime.LocalDateTime(2018, 4, 20, 10, 31, 33), NodaTime.Offset.FromSeconds(9000))",
             CodeLiteral(new OffsetDateTime(new LocalDateTime(2018, 4, 20, 10, 31, 33), Offset.FromHoursAndMinutes(2, 30))));
 
-        Assert.Equal("new NodaTime.OffsetDateTime(new NodaTime.LocalDateTime(2018, 4, 20, 10, 31, 33), NodaTime.Offset.FromSeconds(-1))",
+        Assert.Equal(
+            "new NodaTime.OffsetDateTime(new NodaTime.LocalDateTime(2018, 4, 20, 10, 31, 33), NodaTime.Offset.FromSeconds(-1))",
             CodeLiteral(new OffsetDateTime(new LocalDateTime(2018, 4, 20, 10, 31, 33), Offset.FromSeconds(-1))));
     }
 
@@ -206,9 +209,10 @@ public class NpgsqlNodaTimeTypeMappingTest
     {
         Assert.Equal(
             "new NodaTime.Interval(NodaTime.Instant.FromUnixTimeTicks(15778800000000000L), NodaTime.Instant.FromUnixTimeTicks(15782256000000000L))",
-            CodeLiteral(new Interval(
-                new LocalDateTime(2020, 01, 01, 12, 0, 0).InUtc().ToInstant(),
-                new LocalDateTime(2020, 01, 05, 12, 0, 0).InUtc().ToInstant())));
+            CodeLiteral(
+                new Interval(
+                    new LocalDateTime(2020, 01, 01, 12, 0, 0).InUtc().ToInstant(),
+                    new LocalDateTime(2020, 01, 05, 12, 0, 0).InUtc().ToInstant())));
 
         Assert.Equal(
             "new NodaTime.Interval((NodaTime.Instant?)NodaTime.Instant.FromUnixTimeTicks(15778800000000000L), null)",
@@ -241,7 +245,9 @@ public class NpgsqlNodaTimeTypeMappingTest
                 new LocalDateTime(1998, 4, 13, 15, 26, 38).InUtc().ToInstant()),
         };
 
-        Assert.Equal("'{[1998-04-12T13:26:38Z,1998-04-12T15:26:38Z), [1998-04-13T13:26:38Z,1998-04-13T15:26:38Z)}'::tstzmultirange", mapping.GenerateSqlLiteral(interval));
+        Assert.Equal(
+            "'{[1998-04-12T13:26:38Z,1998-04-12T15:26:38Z), [1998-04-13T13:26:38Z,1998-04-13T15:26:38Z)}'::tstzmultirange",
+            mapping.GenerateSqlLiteral(interval));
     }
 
     [Fact]
@@ -259,36 +265,40 @@ public class NpgsqlNodaTimeTypeMappingTest
                 new LocalDateTime(1998, 4, 13, 15, 26, 38).InUtc().ToInstant()),
         };
 
-        Assert.Equal("'{[1998-04-12T13:26:38Z,1998-04-12T15:26:38Z), [1998-04-13T13:26:38Z,1998-04-13T15:26:38Z)}'::tstzmultirange", mapping.GenerateSqlLiteral(interval));
+        Assert.Equal(
+            "'{[1998-04-12T13:26:38Z,1998-04-12T15:26:38Z), [1998-04-13T13:26:38Z,1998-04-13T15:26:38Z)}'::tstzmultirange",
+            mapping.GenerateSqlLiteral(interval));
     }
 
     [Fact]
     public void GenerateCodeLiteral_returns_Interval_array_literal()
         => Assert.Equal(
             "new[] { new NodaTime.Interval(NodaTime.Instant.FromUnixTimeTicks(8923875980000000L), NodaTime.Instant.FromUnixTimeTicks(8923947980000000L)), new NodaTime.Interval(NodaTime.Instant.FromUnixTimeTicks(8924739980000000L), NodaTime.Instant.FromUnixTimeTicks(8924811980000000L)) }",
-            CodeLiteral(new Interval[]
-            {
-                new(
-                    new LocalDateTime(1998, 4, 12, 13, 26, 38).InUtc().ToInstant(),
-                    new LocalDateTime(1998, 4, 12, 15, 26, 38).InUtc().ToInstant()),
-                new(
-                    new LocalDateTime(1998, 4, 13, 13, 26, 38).InUtc().ToInstant(),
-                    new LocalDateTime(1998, 4, 13, 15, 26, 38).InUtc().ToInstant()),
-            }));
+            CodeLiteral(
+                new Interval[]
+                {
+                    new(
+                        new LocalDateTime(1998, 4, 12, 13, 26, 38).InUtc().ToInstant(),
+                        new LocalDateTime(1998, 4, 12, 15, 26, 38).InUtc().ToInstant()),
+                    new(
+                        new LocalDateTime(1998, 4, 13, 13, 26, 38).InUtc().ToInstant(),
+                        new LocalDateTime(1998, 4, 13, 15, 26, 38).InUtc().ToInstant()),
+                }));
 
     [Fact]
     public void GenerateCodeLiteral_returns_Interval_list_literal()
         => Assert.Equal(
             "new List<Interval> { new NodaTime.Interval(NodaTime.Instant.FromUnixTimeTicks(8923875980000000L), NodaTime.Instant.FromUnixTimeTicks(8923947980000000L)), new NodaTime.Interval(NodaTime.Instant.FromUnixTimeTicks(8924739980000000L), NodaTime.Instant.FromUnixTimeTicks(8924811980000000L)) }",
-            CodeLiteral(new List<Interval>
-            {
-                new(
-                    new LocalDateTime(1998, 4, 12, 13, 26, 38).InUtc().ToInstant(),
-                    new LocalDateTime(1998, 4, 12, 15, 26, 38).InUtc().ToInstant()),
-                new(
-                    new LocalDateTime(1998, 4, 13, 13, 26, 38).InUtc().ToInstant(),
-                    new LocalDateTime(1998, 4, 13, 15, 26, 38).InUtc().ToInstant()),
-            }));
+            CodeLiteral(
+                new List<Interval>
+                {
+                    new(
+                        new LocalDateTime(1998, 4, 12, 13, 26, 38).InUtc().ToInstant(),
+                        new LocalDateTime(1998, 4, 12, 15, 26, 38).InUtc().ToInstant()),
+                    new(
+                        new LocalDateTime(1998, 4, 13, 13, 26, 38).InUtc().ToInstant(),
+                        new LocalDateTime(1998, 4, 13, 15, 26, 38).InUtc().ToInstant()),
+                }));
 
     [Fact]
     public void GenerateSqlLiteral_returns_tstzrange_Instant_literal()
@@ -385,17 +395,15 @@ public class NpgsqlNodaTimeTypeMappingTest
         var mapping = GetMapping(typeof(DateInterval));
         Assert.Equal("daterange", mapping.StoreType);
 
-        var interval = new DateInterval(new(2020, 01, 01), new(2020, 12, 25));
+        var interval = new DateInterval(new LocalDate(2020, 01, 01), new LocalDate(2020, 12, 25));
         Assert.Equal("'[2020-01-01,2020-12-25]'::daterange", mapping.GenerateSqlLiteral(interval));
     }
 
     [Fact]
     public void GenerateCodeLiteral_returns_DateInterval_literal()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             "new NodaTime.DateInterval(new NodaTime.LocalDate(2020, 1, 1), new NodaTime.LocalDate(2020, 12, 25))",
-            CodeLiteral(new DateInterval(new(2020, 01, 01), new(2020, 12, 25))));
-    }
+            CodeLiteral(new DateInterval(new LocalDate(2020, 01, 01), new LocalDate(2020, 12, 25))));
 
     [Fact]
     public void DateInterval_array_is_properly_mapped()
@@ -415,8 +423,7 @@ public class NpgsqlNodaTimeTypeMappingTest
 
         var interval = new DateInterval[]
         {
-            new(new(2002, 3, 4), new(2002, 3, 5)),
-            new(new(2002, 3, 8), new(2002, 3, 10))
+            new(new LocalDate(2002, 3, 4), new LocalDate(2002, 3, 5)), new(new LocalDate(2002, 3, 8), new LocalDate(2002, 3, 10))
         };
 
         Assert.Equal("'{[2002-03-04,2002-03-05], [2002-03-08,2002-03-10]}'::datemultirange", mapping.GenerateSqlLiteral(interval));
@@ -429,8 +436,7 @@ public class NpgsqlNodaTimeTypeMappingTest
 
         var interval = new List<DateInterval>
         {
-            new(new(2002, 3, 4), new(2002, 3, 5)),
-            new(new(2002, 3, 8), new(2002, 3, 10))
+            new(new LocalDate(2002, 3, 4), new LocalDate(2002, 3, 5)), new(new LocalDate(2002, 3, 8), new LocalDate(2002, 3, 10))
         };
 
         Assert.Equal("'{[2002-03-04,2002-03-05], [2002-03-08,2002-03-10]}'::datemultirange", mapping.GenerateSqlLiteral(interval));
@@ -440,21 +446,23 @@ public class NpgsqlNodaTimeTypeMappingTest
     public void GenerateCodeLiteral_returns_DateInterval_array_literal()
         => Assert.Equal(
             "new[] { new NodaTime.DateInterval(new NodaTime.LocalDate(2002, 3, 4), new NodaTime.LocalDate(2002, 3, 5)), new NodaTime.DateInterval(new NodaTime.LocalDate(2002, 3, 8), new NodaTime.LocalDate(2002, 3, 10)) }",
-            CodeLiteral(new DateInterval[]
-            {
-                new(new(2002, 3, 4), new(2002, 3, 5)),
-                new(new(2002, 3, 8), new(2002, 3, 10))
-            }));
+            CodeLiteral(
+                new DateInterval[]
+                {
+                    new(new LocalDate(2002, 3, 4), new LocalDate(2002, 3, 5)),
+                    new(new LocalDate(2002, 3, 8), new LocalDate(2002, 3, 10))
+                }));
 
     [Fact]
     public void GenerateCodeLiteral_returns_DateInterval_list_literal()
         => Assert.Equal(
             "new List<DateInterval> { new NodaTime.DateInterval(new NodaTime.LocalDate(2002, 3, 4), new NodaTime.LocalDate(2002, 3, 5)), new NodaTime.DateInterval(new NodaTime.LocalDate(2002, 3, 8), new NodaTime.LocalDate(2002, 3, 10)) }",
-            CodeLiteral(new List<DateInterval>
-            {
-                new(new(2002, 3, 4), new(2002, 3, 5)),
-                new(new(2002, 3, 8), new(2002, 3, 10))
-            }));
+            CodeLiteral(
+                new List<DateInterval>
+                {
+                    new(new LocalDate(2002, 3, 4), new LocalDate(2002, 3, 5)),
+                    new(new LocalDate(2002, 3, 8), new LocalDate(2002, 3, 10))
+                }));
 
     [Fact]
     public void NpgsqlRange_of_LocalDate_is_properly_mapped()
@@ -464,7 +472,7 @@ public class NpgsqlNodaTimeTypeMappingTest
     public void GenerateSqlLiteral_returns_daterange_LocalDate_literal()
     {
         var mapping = (NpgsqlRangeTypeMapping)GetMapping(typeof(NpgsqlRange<LocalDate>));
-        var value = new NpgsqlRange<LocalDate>(new(2020, 1, 1), new(2020, 1, 2));
+        var value = new NpgsqlRange<LocalDate>(new LocalDate(2020, 1, 1), new LocalDate(2020, 1, 2));
         Assert.Equal(@"'[2020-01-01,2020-01-02]'::daterange", mapping.GenerateSqlLiteral(value));
     }
 
@@ -495,8 +503,11 @@ public class NpgsqlNodaTimeTypeMappingTest
     {
         Assert.Equal("new NodaTime.LocalTime(9, 30)", CodeLiteral(new LocalTime(9, 30)));
         Assert.Equal("new NodaTime.LocalTime(9, 30, 15)", CodeLiteral(new LocalTime(9, 30, 15)));
-        Assert.Equal("NodaTime.LocalTime.FromHourMinuteSecondNanosecond(9, 30, 15, 500000000L)", CodeLiteral(new LocalTime(9, 30, 15, 500)));
-        Assert.Equal("NodaTime.LocalTime.FromHourMinuteSecondNanosecond(9, 30, 15, 1L)", CodeLiteral(LocalTime.FromHourMinuteSecondNanosecond(9, 30, 15, 1)));
+        Assert.Equal(
+            "NodaTime.LocalTime.FromHourMinuteSecondNanosecond(9, 30, 15, 500000000L)", CodeLiteral(new LocalTime(9, 30, 15, 500)));
+        Assert.Equal(
+            "NodaTime.LocalTime.FromHourMinuteSecondNanosecond(9, 30, 15, 1L)",
+            CodeLiteral(LocalTime.FromHourMinuteSecondNanosecond(9, 30, 15, 1)));
     }
 
     [Fact]
@@ -519,17 +530,21 @@ public class NpgsqlNodaTimeTypeMappingTest
     {
         var mapping = GetMapping(typeof(OffsetTime));
 
-        Assert.Equal("TIMETZ '10:31:33+02'", mapping.GenerateSqlLiteral(
-            new OffsetTime(new LocalTime(10, 31, 33), Offset.FromHours(2))));
-        Assert.Equal("TIMETZ '10:31:33-02:30'", mapping.GenerateSqlLiteral(
-            new OffsetTime(new LocalTime(10, 31, 33), Offset.FromHoursAndMinutes(-2, -30))));
-        Assert.Equal("TIMETZ '10:31:33.666666Z'", mapping.GenerateSqlLiteral(
-            new OffsetTime(new LocalTime(10, 31, 33, 666) + Period.FromTicks(6660), Offset.Zero)));
+        Assert.Equal(
+            "TIMETZ '10:31:33+02'", mapping.GenerateSqlLiteral(
+                new OffsetTime(new LocalTime(10, 31, 33), Offset.FromHours(2))));
+        Assert.Equal(
+            "TIMETZ '10:31:33-02:30'", mapping.GenerateSqlLiteral(
+                new OffsetTime(new LocalTime(10, 31, 33), Offset.FromHoursAndMinutes(-2, -30))));
+        Assert.Equal(
+            "TIMETZ '10:31:33.666666Z'", mapping.GenerateSqlLiteral(
+                new OffsetTime(new LocalTime(10, 31, 33, 666) + Period.FromTicks(6660), Offset.Zero)));
     }
 
     [Fact]
     public void GenerateCodeLiteral_returns_OffsetTime_literal()
-        => Assert.Equal("new NodaTime.OffsetTime(new NodaTime.LocalTime(10, 31, 33), NodaTime.Offset.FromHours(2))",
+        => Assert.Equal(
+            "new NodaTime.OffsetTime(new NodaTime.LocalTime(10, 31, 33), NodaTime.Offset.FromHours(2))",
             CodeLiteral(new OffsetTime(new LocalTime(10, 31, 33), Offset.FromHours(2))));
 
     #endregion timetz
@@ -538,7 +553,8 @@ public class NpgsqlNodaTimeTypeMappingTest
 
     [Fact]
     public void Duration_is_properly_mapped()
-        => Assert.All(new[] { GetMapping(typeof(Duration)), GetMapping(typeof(Duration), "interval") },
+        => Assert.All(
+            new[] { GetMapping(typeof(Duration)), GetMapping(typeof(Duration), "interval") },
             m =>
             {
                 Assert.Equal("interval", m.StoreType);
@@ -547,7 +563,8 @@ public class NpgsqlNodaTimeTypeMappingTest
 
     [Fact]
     public void Period_is_properly_mapped()
-        => Assert.All(new[] { GetMapping(typeof(Period)), GetMapping(typeof(Period), "interval") },
+        => Assert.All(
+            new[] { GetMapping(typeof(Period)), GetMapping(typeof(Period), "interval") },
             m =>
             {
                 Assert.Equal("interval", m.StoreType);
@@ -577,11 +594,20 @@ public class NpgsqlNodaTimeTypeMappingTest
     {
         Assert.Equal("NodaTime.Period.FromHours(5L)", CodeLiteral(Period.FromHours(5)));
 
-        Assert.Equal("NodaTime.Period.FromYears(1) + NodaTime.Period.FromMonths(2) + NodaTime.Period.FromWeeks(3) + " +
-            "NodaTime.Period.FromDays(4) + NodaTime.Period.FromHours(5L) + NodaTime.Period.FromMinutes(6L) + " +
-            "NodaTime.Period.FromSeconds(7L) + NodaTime.Period.FromMilliseconds(8L) + NodaTime.Period.FromNanoseconds(9L)",
-            CodeLiteral(Period.FromYears(1) + Period.FromMonths(2) + Period.FromWeeks(3) + Period.FromDays(4) + Period.FromHours(5) +
-                Period.FromMinutes(6) + Period.FromSeconds(7) + Period.FromMilliseconds(8) + Period.FromNanoseconds(9)));
+        Assert.Equal(
+            "NodaTime.Period.FromYears(1) + NodaTime.Period.FromMonths(2) + NodaTime.Period.FromWeeks(3) + "
+            + "NodaTime.Period.FromDays(4) + NodaTime.Period.FromHours(5L) + NodaTime.Period.FromMinutes(6L) + "
+            + "NodaTime.Period.FromSeconds(7L) + NodaTime.Period.FromMilliseconds(8L) + NodaTime.Period.FromNanoseconds(9L)",
+            CodeLiteral(
+                Period.FromYears(1)
+                + Period.FromMonths(2)
+                + Period.FromWeeks(3)
+                + Period.FromDays(4)
+                + Period.FromHours(5)
+                + Period.FromMinutes(6)
+                + Period.FromSeconds(7)
+                + Period.FromMilliseconds(8)
+                + Period.FromNanoseconds(9)));
 
         Assert.Equal("NodaTime.Period.Zero", CodeLiteral(Period.Zero));
     }
@@ -591,10 +617,15 @@ public class NpgsqlNodaTimeTypeMappingTest
     {
         Assert.Equal("NodaTime.Duration.FromHours(5)", CodeLiteral(Duration.FromHours(5)));
 
-        Assert.Equal("NodaTime.Duration.FromDays(4) + NodaTime.Duration.FromHours(5) + NodaTime.Duration.FromMinutes(6L) + " +
-            "NodaTime.Duration.FromSeconds(7L) + NodaTime.Duration.FromMilliseconds(8L)",
-            CodeLiteral(Duration.FromDays(4) + Duration.FromHours(5) + Duration.FromMinutes(6) + Duration.FromSeconds(7) +
-                Duration.FromMilliseconds(8)));
+        Assert.Equal(
+            "NodaTime.Duration.FromDays(4) + NodaTime.Duration.FromHours(5) + NodaTime.Duration.FromMinutes(6L) + "
+            + "NodaTime.Duration.FromSeconds(7L) + NodaTime.Duration.FromMilliseconds(8L)",
+            CodeLiteral(
+                Duration.FromDays(4)
+                + Duration.FromHours(5)
+                + Duration.FromMinutes(6)
+                + Duration.FromSeconds(7)
+                + Duration.FromMilliseconds(8)));
 
         Assert.Equal("NodaTime.Duration.Zero", CodeLiteral(Duration.Zero));
     }
@@ -636,23 +667,28 @@ public class NpgsqlNodaTimeTypeMappingTest
             new JsonValueReaderWriterSource(new JsonValueReaderWriterSourceDependencies()),
             Array.Empty<ITypeMappingSourcePlugin>()),
         new RelationalTypeMappingSourceDependencies(
-            new IRelationalTypeMappingSourcePlugin[] {
-                new NpgsqlNodaTimeTypeMappingSourcePlugin(new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()))
+            new IRelationalTypeMappingSourcePlugin[]
+            {
+                new NpgsqlNodaTimeTypeMappingSourcePlugin(
+                    new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()))
             }),
         new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
         new NpgsqlSingletonOptions()
     );
 
-    private static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);
+    private static RelationalTypeMapping GetMapping(string storeType)
+        => Mapper.FindMapping(storeType);
 
-    private static RelationalTypeMapping GetMapping(Type clrType) => Mapper.FindMapping(clrType);
+    private static RelationalTypeMapping GetMapping(Type clrType)
+        => Mapper.FindMapping(clrType);
 
     private static RelationalTypeMapping GetMapping(Type clrType, string storeType)
         => Mapper.FindMapping(clrType, storeType);
 
     private static readonly CSharpHelper CsHelper = new(Mapper);
 
-    private static string CodeLiteral(object value) => CsHelper.UnknownLiteral(value);
+    private static string CodeLiteral(object value)
+        => CsHelper.UnknownLiteral(value);
 
     #endregion Support
 }

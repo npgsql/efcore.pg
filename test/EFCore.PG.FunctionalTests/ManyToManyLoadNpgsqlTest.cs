@@ -12,8 +12,11 @@ public class ManyToManyLoadNpgsqlTest : ManyToManyLoadTestBase<ManyToManyLoadNpg
 
     public class ManyToManyLoadNpgsqlFixture : ManyToManyLoadFixtureBase
     {
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {

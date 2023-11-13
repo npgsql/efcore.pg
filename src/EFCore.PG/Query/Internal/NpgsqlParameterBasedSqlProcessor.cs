@@ -41,11 +41,14 @@ public class NpgsqlParameterBasedSqlProcessor : RelationalParameterBasedSqlProce
 
     /// <inheritdoc />
     protected override Expression ProcessSqlNullability(
-        Expression selectExpression, IReadOnlyDictionary<string, object?> parametersValues, out bool canCache)
+        Expression selectExpression,
+        IReadOnlyDictionary<string, object?> parametersValues,
+        out bool canCache)
     {
         Check.NotNull(selectExpression, nameof(selectExpression));
         Check.NotNull(parametersValues, nameof(parametersValues));
 
-        return new NpgsqlSqlNullabilityProcessor(Dependencies, UseRelationalNulls).Process(selectExpression, parametersValues, out canCache);
+        return new NpgsqlSqlNullabilityProcessor(Dependencies, UseRelationalNulls).Process(
+            selectExpression, parametersValues, out canCache);
     }
 }

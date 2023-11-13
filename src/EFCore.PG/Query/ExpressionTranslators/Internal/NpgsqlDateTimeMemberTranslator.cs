@@ -6,10 +6,10 @@ using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 /// <summary>
-/// Provides translation services for <see cref="DateTime"/> members.
+///     Provides translation services for <see cref="DateTime" /> members.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/functions-datetime.html
+///     See: https://www.postgresql.org/docs/current/static/functions-datetime.html
 /// </remarks>
 public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
 {
@@ -172,11 +172,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
 
         var result = _sqlExpressionFactory.Function(
             "date_part",
-            new[]
-            {
-                _sqlExpressionFactory.Constant(partName),
-                instance
-            },
+            new[] { _sqlExpressionFactory.Constant(partName), instance },
             nullable: true,
             argumentsPropagateNullability: TrueArrays[2],
             typeof(double));

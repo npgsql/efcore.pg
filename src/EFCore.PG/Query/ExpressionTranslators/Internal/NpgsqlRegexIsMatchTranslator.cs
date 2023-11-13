@@ -4,10 +4,10 @@ using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExten
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 /// <summary>
-/// Translates Regex.IsMatch calls into PostgreSQL regex expressions for database-side processing.
+///     Translates Regex.IsMatch calls into PostgreSQL regex expressions for database-side processing.
 /// </summary>
 /// <remarks>
-/// http://www.postgresql.org/docs/current/static/functions-matching.html
+///     http://www.postgresql.org/docs/current/static/functions-matching.html
 /// </remarks>
 public class NpgsqlRegexIsMatchTranslator : IMethodCallTranslator
 {
@@ -28,7 +28,9 @@ public class NpgsqlRegexIsMatchTranslator : IMethodCallTranslator
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlRegexIsMatchTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
-        => _sqlExpressionFactory = sqlExpressionFactory;
+    {
+        _sqlExpressionFactory = sqlExpressionFactory;
+    }
 
     /// <inheritdoc />
     public virtual SqlExpression? Translate(
@@ -57,7 +59,7 @@ public class NpgsqlRegexIsMatchTranslator : IMethodCallTranslator
         }
         else
         {
-            return null;  // We don't support non-constant regex options
+            return null; // We don't support non-constant regex options
         }
 
         return (options & UnsupportedRegexOptions) == 0

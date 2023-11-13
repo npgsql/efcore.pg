@@ -13,7 +13,8 @@ public class NpgsqlApiConsistencyTest : ApiConsistencyTestBase<NpgsqlApiConsiste
     protected override void AddServices(ServiceCollection serviceCollection)
         => serviceCollection.AddEntityFrameworkNpgsql();
 
-    protected override Assembly TargetAssembly => typeof(NpgsqlRelationalConnection).Assembly;
+    protected override Assembly TargetAssembly
+        => typeof(NpgsqlRelationalConnection).Assembly;
 
     public class NpgsqlApiConsistencyFixture : ApiConsistencyFixtureBase
     {
@@ -46,8 +47,7 @@ public class NpgsqlApiConsistencyTest : ApiConsistencyTestBase<NpgsqlApiConsiste
             = new()
             {
                 {
-                    typeof(IReadOnlyModel),
-                    (
+                    typeof(IReadOnlyModel), (
                         typeof(NpgsqlModelExtensions),
                         typeof(NpgsqlModelExtensions),
                         typeof(NpgsqlModelExtensions),
@@ -56,8 +56,7 @@ public class NpgsqlApiConsistencyTest : ApiConsistencyTestBase<NpgsqlApiConsiste
                     )
                 },
                 {
-                    typeof(IReadOnlyEntityType),
-                    (
+                    typeof(IReadOnlyEntityType), (
                         typeof(NpgsqlEntityTypeExtensions),
                         typeof(NpgsqlEntityTypeExtensions),
                         typeof(NpgsqlEntityTypeExtensions),
@@ -66,8 +65,7 @@ public class NpgsqlApiConsistencyTest : ApiConsistencyTestBase<NpgsqlApiConsiste
                     )
                 },
                 {
-                    typeof(IReadOnlyProperty),
-                    (
+                    typeof(IReadOnlyProperty), (
                         typeof(NpgsqlPropertyExtensions),
                         typeof(NpgsqlPropertyExtensions),
                         typeof(NpgsqlPropertyExtensions),
@@ -76,8 +74,7 @@ public class NpgsqlApiConsistencyTest : ApiConsistencyTestBase<NpgsqlApiConsiste
                     )
                 },
                 {
-                    typeof(IReadOnlyIndex),
-                    (
+                    typeof(IReadOnlyIndex), (
                         typeof(NpgsqlIndexExtensions),
                         typeof(NpgsqlIndexExtensions),
                         typeof(NpgsqlIndexExtensions),
@@ -91,13 +88,7 @@ public class NpgsqlApiConsistencyTest : ApiConsistencyTestBase<NpgsqlApiConsiste
         {
             typeof(NpgsqlEntityTypeExtensions).GetRuntimeMethod(
                 nameof(NpgsqlEntityTypeExtensions.SetStorageParameter),
-                new[]
-                {
-                    typeof(IConventionEntityType),
-                    typeof(string),
-                    typeof(object),
-                    typeof(bool)
-                })
+                new[] { typeof(IConventionEntityType), typeof(string), typeof(object), typeof(bool) })
         };
     }
 }

@@ -24,7 +24,7 @@ public class PgArraySliceExpression : SqlExpression, IEquatable<PgArraySliceExpr
     public virtual SqlExpression? UpperBound { get; }
 
     /// <summary>
-    /// Whether the expression is nullable.
+    ///     Whether the expression is nullable.
     /// </summary>
     public virtual bool IsNullable { get; }
 
@@ -90,10 +90,12 @@ public class PgArraySliceExpression : SqlExpression, IEquatable<PgArraySliceExpr
             && IsNullable == other.IsNullable;
 
     /// <inheritdoc />
-    public override bool Equals(object? obj) => obj is PgArraySliceExpression e && Equals(e);
+    public override bool Equals(object? obj)
+        => obj is PgArraySliceExpression e && Equals(e);
 
     /// <inheritdoc />
-    public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Array, LowerBound, UpperBound);
+    public override int GetHashCode()
+        => HashCode.Combine(base.GetHashCode(), Array, LowerBound, UpperBound);
 
     /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)
@@ -107,5 +109,6 @@ public class PgArraySliceExpression : SqlExpression, IEquatable<PgArraySliceExpr
     }
 
     /// <inheritdoc />
-    public override string ToString() => $"{Array}[{LowerBound}:{UpperBound}]";
+    public override string ToString()
+        => $"{Array}[{LowerBound}:{UpperBound}]";
 }

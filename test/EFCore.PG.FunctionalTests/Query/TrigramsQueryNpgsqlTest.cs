@@ -4,10 +4,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 /// <summary>
-/// Provides unit tests for the pg_trgm module operator and function translations.
+///     Provides unit tests for the pg_trgm module operator and function translations.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/pgtrgm.html
+///     See: https://www.postgresql.org/docs/current/pgtrgm.html
 /// </remarks>
 public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.TrigramsQueryNpgsqlFixture>
 {
@@ -191,7 +191,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .ToArray();
 
         AssertSql(
-"""
+            """
 SELECT t."Id", t."Text"
 FROM "TrigramsTestEntities" AS t
 WHERE (COALESCE(t."Text", '') || ' ' || COALESCE(t."Text", '')) % 'query'
@@ -203,51 +203,61 @@ WHERE (COALESCE(t."Text", '') || ' ' || COALESCE(t."Text", '')) % 'query'
     #region Fixtures
 
     /// <summary>
-    /// Represents a fixture suitable for testing trigrams operators.
+    ///     Represents a fixture suitable for testing trigrams operators.
     /// </summary>
     public class TrigramsQueryNpgsqlFixture : SharedStoreFixtureBase<TrigramsContext>
     {
-        protected override string StoreName => "TrigramsQueryTest";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
-        protected override void Seed(TrigramsContext context) => TrigramsContext.Seed(context);
+        protected override string StoreName
+            => "TrigramsQueryTest";
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
+
+        protected override void Seed(TrigramsContext context)
+            => TrigramsContext.Seed(context);
     }
 
     /// <summary>
-    /// Represents an entity suitable for testing trigrams operators.
+    ///     Represents an entity suitable for testing trigrams operators.
     /// </summary>
     public class TrigramsTestEntity
     {
         // ReSharper disable once UnusedMember.Global
         /// <summary>
-        /// The primary key.
+        ///     The primary key.
         /// </summary>
         [Key]
         public int Id { get; set; }
 
         /// <summary>
-        /// Some text.
+        ///     Some text.
         /// </summary>
         public string Text { get; set; }
     }
 
     /// <summary>
-    /// Represents a database suitable for testing trigrams operators.
+    ///     Represents a database suitable for testing trigrams operators.
     /// </summary>
     public class TrigramsContext : PoolableDbContext
     {
         /// <summary>
-        /// Represents a set of entities with <see cref="System.String"/> properties.
+        ///     Represents a set of entities with <see cref="System.String" /> properties.
         /// </summary>
         public DbSet<TrigramsTestEntity> TrigramsTestEntities { get; set; }
 
         /// <summary>
-        /// Initializes a <see cref="TrigramsContext"/>.
+        ///     Initializes a <see cref="TrigramsContext" />.
         /// </summary>
         /// <param name="options">
-        /// The options to be used for configuration.
+        ///     The options to be used for configuration.
         /// </param>
-        public TrigramsContext(DbContextOptions options) : base(options) {}
+        public TrigramsContext(DbContextOptions options)
+            : base(options)
+        {
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -262,12 +272,9 @@ WHERE (COALESCE(t."Text", '') || ' ' || COALESCE(t."Text", '')) % 'query'
             {
                 var text = "Some text " + i;
                 context.TrigramsTestEntities.Add(
-                    new TrigramsTestEntity
-                    {
-                        Id = i,
-                        Text = text
-                    });
+                    new TrigramsTestEntity { Id = i, Text = text });
             }
+
             context.SaveChanges();
         }
     }
@@ -276,15 +283,18 @@ WHERE (COALESCE(t."Text", '') || ' ' || COALESCE(t."Text", '')) % 'query'
 
     #region Helpers
 
-    protected TrigramsContext CreateContext() => Fixture.CreateContext();
+    protected TrigramsContext CreateContext()
+        => Fixture.CreateContext();
 
-    private void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
+    private void AssertSql(params string[] expected)
+        => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
     /// <summary>
-    /// Asserts that the SQL fragment appears in the logs.
+    ///     Asserts that the SQL fragment appears in the logs.
     /// </summary>
     /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-    private void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
+    private void AssertContainsSql(string sql)
+        => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
 
     #endregion
 }

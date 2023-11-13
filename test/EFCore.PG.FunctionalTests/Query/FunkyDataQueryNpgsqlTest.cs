@@ -39,9 +39,11 @@ public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpg
     {
         private FunkyDataData _expectedData;
 
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         public override FunkyDataContext CreateContext()
         {
@@ -61,7 +63,7 @@ public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpg
                 var mutableCustomersOhYeah = (List<FunkyCustomer>)_expectedData.FunkyCustomers;
 
                 mutableCustomersOhYeah.Add(
-                    new()
+                    new FunkyCustomer
                     {
                         Id = maxId + 1,
                         FirstName = "Some\\Guy",

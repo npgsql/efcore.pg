@@ -282,14 +282,12 @@ public class SequenceEndToEndTest : IDisposable
                 .UseNpgsql(NpgsqlTestStore.CreateConnectionString(_databaseName), b => b.ApplyConfiguration());
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Pegasus>(
+            => modelBuilder.Entity<Pegasus>(
                 b =>
                 {
                     b.HasKey(e => e.Identifier);
                     b.Property(e => e.Identifier).UseHiLo();
                 });
-        }
     }
 
     private class Pegasus
@@ -389,8 +387,7 @@ public class SequenceEndToEndTest : IDisposable
                 .UseNpgsql(NpgsqlTestStore.CreateConnectionString(_databaseName), b => b.ApplyConfiguration());
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Unicon>(
+            => modelBuilder.Entity<Unicon>(
                 b =>
                 {
                     b.HasKey(e => e.Identifier);
@@ -403,7 +400,6 @@ public class SequenceEndToEndTest : IDisposable
                         b.Property(e => e.Identifier).UseIdentityColumn();
                     }
                 });
-        }
     }
 
     private class Unicon
@@ -419,5 +415,6 @@ public class SequenceEndToEndTest : IDisposable
 
     protected NpgsqlTestStore TestStore { get; }
 
-    public void Dispose() => TestStore.Dispose();
+    public void Dispose()
+        => TestStore.Dispose();
 }

@@ -18,7 +18,9 @@ public class NpgsqlParameterBasedSqlProcessorFactory : IRelationalParameterBased
     /// </summary>
     public NpgsqlParameterBasedSqlProcessorFactory(
         RelationalParameterBasedSqlProcessorDependencies dependencies)
-        => _dependencies = dependencies;
+    {
+        _dependencies = dependencies;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

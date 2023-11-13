@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Microsoft.EntityFrameworkCore;
 
 /// <summary>
-/// Extension methods for <see cref="AlterDatabaseOperation" /> for Npgsql-specific metadata.
+///     Extension methods for <see cref="AlterDatabaseOperation" /> for Npgsql-specific metadata.
 /// </summary>
 public static class NpgsqlAlterDatabaseOperationExtensions
 {

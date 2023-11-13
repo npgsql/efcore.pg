@@ -1950,32 +1950,47 @@ LIMIT 2
     // We do not yet support arbitrary list types outside of JSON.
     public override Task Edit_single_property_relational_collection_of_bool()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_bool());
+
     public override Task Edit_single_property_relational_collection_of_byte()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_byte());
+
     public override Task Edit_single_property_relational_collection_of_char()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_char());
+
     public override Task Edit_single_property_relational_collection_of_datetimeoffset()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_datetimeoffset());
+
     public override Task Edit_single_property_relational_collection_of_double()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_double());
+
     public override Task Edit_single_property_relational_collection_of_enum()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_enum());
+
     public override Task Edit_single_property_relational_collection_of_int16()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_int16());
+
     public override Task Edit_single_property_relational_collection_of_nullable_enum()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_nullable_enum());
+
     public override Task Edit_single_property_relational_collection_of_nullable_enum_set_to_null()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_nullable_enum_set_to_null());
+
     public override Task Edit_single_property_relational_collection_of_nullable_enum_with_int_converter()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_nullable_enum_with_int_converter());
+
     public override Task Edit_single_property_relational_collection_of_nullable_enum_with_int_converter_set_to_null()
-        => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_nullable_enum_with_int_converter_set_to_null());
+        => Assert.ThrowsAsync<EqualException>(
+            () => base.Edit_single_property_relational_collection_of_nullable_enum_with_int_converter_set_to_null());
+
     public override Task Edit_single_property_relational_collection_of_nullable_int32()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_nullable_int32());
+
     public override Task Edit_single_property_relational_collection_of_nullable_int32_set_to_null()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_nullable_int32_set_to_null());
+
     public override Task Edit_single_property_relational_collection_of_uint16()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_uint16());
+
     public override Task Edit_single_property_relational_collection_of_uint64()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_uint64());
 

@@ -185,7 +185,8 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
     }
 
     private async Task Test_commit_failure_async(
-        bool realFailure, Func<TestNpgsqlRetryingExecutionStrategy, ExecutionStrategyContext, Task> execute)
+        bool realFailure,
+        Func<TestNpgsqlRetryingExecutionStrategy, ExecutionStrategyContext, Task> execute)
     {
         CleanContext();
 
@@ -264,7 +265,10 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
     [ConditionalTheory]
     [MemberData(nameof(DataGenerator.GetBoolCombinations), 4, MemberType = typeof(DataGenerator))]
     public async Task Retries_SaveChanges_on_execution_failure(
-        bool realFailure, bool externalStrategy, bool openConnection, bool async)
+        bool realFailure,
+        bool externalStrategy,
+        bool openConnection,
+        bool async)
     {
         CleanContext();
 
@@ -634,11 +638,20 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
 
     public class ExecutionStrategyFixture : SharedStoreFixtureBase<DbContext>
     {
-        protected override bool UsePooling => false;
+        protected override bool UsePooling
+            => false;
+
         protected override string StoreName { get; } = nameof(ExecutionStrategyTest);
-        public new RelationalTestStore TestStore => (RelationalTestStore)base.TestStore;
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+        public new RelationalTestStore TestStore
+            => (RelationalTestStore)base.TestStore;
+
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
         protected override Type ContextType { get; } = typeof(ExecutionStrategyContext);
 
         protected override IServiceCollection AddServices(IServiceCollection serviceCollection)

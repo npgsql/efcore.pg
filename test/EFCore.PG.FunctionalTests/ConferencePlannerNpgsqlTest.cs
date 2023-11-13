@@ -13,8 +13,7 @@ public class ConferencePlannerNpgsqlTest : ConferencePlannerTestBase<ConferenceP
 
     // Overridden to use UTC DateTimeOffsets
     public override async Task SessionsController_Post()
-    {
-        await ExecuteWithStrategyInTransactionAsync(
+        => await ExecuteWithStrategyInTransactionAsync(
             async context =>
             {
                 var track = context.Tracks.AsNoTracking().OrderBy(e => e.Id).First();
@@ -39,14 +38,14 @@ public class ConferencePlannerNpgsqlTest : ConferencePlannerTestBase<ConferenceP
                 Assert.NotNull(result.Track);
                 Assert.Equal(track.Id, result.Track.Id);
             });
-    }
 
     protected override void UseTransaction(DatabaseFacade facade, IDbContextTransaction transaction)
         => facade.UseTransaction(transaction.GetDbTransaction());
 
     public class ConferencePlannerNpgsqlFixture : ConferencePlannerFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         // We don't support DateTimeOffset with non-zero offsets, so we unfortunately need to override the entire seeding method.
         // See https://github.com/dotnet/efcore/issues/26068
@@ -119,11 +118,7 @@ public class ConferencePlannerNpgsqlTest : ConferencePlannerTestBase<ConferenceP
                     var roomId = roomJson.GetProperty("id").GetInt32();
                     if (!tracks.TryGetValue(roomId, out var track))
                     {
-                        track = new Track
-                        {
-                            Name = roomJson.GetProperty("name").GetString(),
-                            Sessions = new List<Session>()
-                        };
+                        track = new Track { Name = roomJson.GetProperty("name").GetString(), Sessions = new List<Session>() };
 
                         tracks[roomId] = track;
                     }

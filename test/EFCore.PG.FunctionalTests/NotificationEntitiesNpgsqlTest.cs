@@ -14,6 +14,7 @@ public class NotificationEntitiesNpgsqlTest
     {
         protected override string StoreName { get; } = "NotificationEntities";
 
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
     }
 }

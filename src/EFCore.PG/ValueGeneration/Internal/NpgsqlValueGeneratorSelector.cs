@@ -40,7 +40,8 @@ public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
     ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
-    public new virtual INpgsqlValueGeneratorCache Cache => (INpgsqlValueGeneratorCache)base.Cache;
+    public new virtual INpgsqlValueGeneratorCache Cache
+        => (INpgsqlValueGeneratorCache)base.Cache;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

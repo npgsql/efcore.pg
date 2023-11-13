@@ -24,7 +24,7 @@ public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgs
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 SELECT t."Id", t."SomeInt"
 FROM "TestEntities" AS t
 WHERE t."SomeInt" IN (8, 9)
@@ -46,7 +46,9 @@ LIMIT 2
 
         private const string StoreName = "CompatibilityTest";
         private readonly ListLoggerFactory _listLoggerFactory = NpgsqlTestStoreFactory.Instance.CreateListLoggerFactory(_ => false);
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)_listLoggerFactory;
+
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)_listLoggerFactory;
 
         public virtual CompatibilityContext CreateContext()
             => CreateContext(null);
@@ -96,7 +98,11 @@ LIMIT 2
     public class CompatibilityContext : DbContext
     {
         public DbSet<CompatibilityTestEntity> TestEntities { get; set; }
-        public CompatibilityContext(DbContextOptions options) : base(options) {}
+
+        public CompatibilityContext(DbContextOptions options)
+            : base(options)
+        {
+        }
 
         public static void Seed(CompatibilityContext context)
         {

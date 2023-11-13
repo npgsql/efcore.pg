@@ -1,6 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
 using System.Data.Common;
 using System.Text;
 using System.Text.Json;
@@ -8,14 +5,14 @@ using System.Text.Json;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// Supports the standard EF JSON support, which relies on owned entity modeling.
-/// See <see cref="NpgsqlJsonTypeMapping" /> for the older Npgsql-specific support, which allows mapping json/jsonb to text, to e.g.
-/// <see cref="JsonElement" /> (weakly-typed mapping) or to arbitrary POCOs (but without them being modeled).
+///     Supports the standard EF JSON support, which relies on owned entity modeling.
+///     See <see cref="NpgsqlJsonTypeMapping" /> for the older Npgsql-specific support, which allows mapping json/jsonb to text, to e.g.
+///     <see cref="JsonElement" /> (weakly-typed mapping) or to arbitrary POCOs (but without them being modeled).
 /// </summary>
 public class NpgsqlOwnedJsonTypeMapping : JsonTypeMapping
 {
     /// <summary>
-    /// The database type used by Npgsql (<see cref="NpgsqlDbType.Json" /> or <see cref="NpgsqlDbType.Jsonb" />.
+    ///     The database type used by Npgsql (<see cref="NpgsqlDbType.Json" /> or <see cref="NpgsqlDbType.Jsonb" />.
     /// </summary>
     public virtual NpgsqlDbType NpgsqlDbType { get; }
 
@@ -93,7 +90,8 @@ public class NpgsqlOwnedJsonTypeMapping : JsonTypeMapping
     {
         if (parameter is not NpgsqlParameter npgsqlParameter)
         {
-            throw new InvalidOperationException($"Npgsql-specific type mapping {nameof(NpgsqlOwnedJsonTypeMapping)} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+            throw new InvalidOperationException(
+                $"Npgsql-specific type mapping {nameof(NpgsqlOwnedJsonTypeMapping)} being used with non-Npgsql parameter type {parameter.GetType().Name}");
         }
 
         base.ConfigureParameter(parameter);

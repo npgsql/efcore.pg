@@ -12,6 +12,8 @@ public class NullKeysNpgsqlTest : NullKeysTestBase<NullKeysNpgsqlTest.NullKeysNp
     public class NullKeysNpgsqlFixture : NullKeysFixtureBase
     {
         protected override string StoreName { get; } = "StringsContext";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
     }
 }

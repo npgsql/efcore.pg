@@ -19,7 +19,8 @@ public class DefaultValuesTest : IDisposable
             context.Database.EnsureCreated();
 
             var honeyDijon = context.Add(new KettleChips { Name = "Honey Dijon" }).Entity;
-            var buffaloBleu = context.Add(new KettleChips { Name = "Buffalo Bleu", BestBuyDate = new DateTime(2111, 1, 11, 0, 0, 0, DateTimeKind.Utc) }).Entity;
+            var buffaloBleu = context.Add(
+                new KettleChips { Name = "Buffalo Bleu", BestBuyDate = new DateTime(2111, 1, 11, 0, 0, 0, DateTimeKind.Utc) }).Entity;
 
             context.SaveChanges();
 
@@ -29,8 +30,10 @@ public class DefaultValuesTest : IDisposable
 
         using (var context = new ChipsContext(_serviceProvider, "DefaultKettleChips"))
         {
-            Assert.Equal(new DateTime(2035, 9, 25, 0, 0, 0, DateTimeKind.Utc), context.Chips.Single(c => c.Name == "Honey Dijon").BestBuyDate);
-            Assert.Equal(new DateTime(2111, 1, 11, 0, 0, 0, DateTimeKind.Utc), context.Chips.Single(c => c.Name == "Buffalo Bleu").BestBuyDate);
+            Assert.Equal(
+                new DateTime(2035, 9, 25, 0, 0, 0, DateTimeKind.Utc), context.Chips.Single(c => c.Name == "Honey Dijon").BestBuyDate);
+            Assert.Equal(
+                new DateTime(2111, 1, 11, 0, 0, 0, DateTimeKind.Utc), context.Chips.Single(c => c.Name == "Buffalo Bleu").BestBuyDate);
         }
     }
 

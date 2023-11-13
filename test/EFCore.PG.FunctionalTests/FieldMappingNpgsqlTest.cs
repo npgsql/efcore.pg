@@ -16,6 +16,8 @@ public class FieldMappingNpgsqlTest
     public class FieldMappingNpgsqlFixture : FieldMappingFixtureBase
     {
         protected override string StoreName { get; } = "FieldMapping";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
     }
 }

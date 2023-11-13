@@ -12,7 +12,7 @@ public class StoredProcedureUpdateNpgsqlTest : StoredProcedureUpdateTestBase
     {
         await base.Insert_with_output_parameter(
             async,
-"""
+            """
 CREATE PROCEDURE "Entity_Insert"(name text, OUT id int) LANGUAGE plpgsql AS $$
 BEGIN
     INSERT INTO "Entity" ("Name") VALUES (name) RETURNING "Id" INTO id;
@@ -20,7 +20,7 @@ END $$
 """);
 
         AssertSql(
-"""
+            """
 @p0='New'
 
 CALL "Entity_Insert"(@p0, NULL);
@@ -31,7 +31,7 @@ CALL "Entity_Insert"(@p0, NULL);
     {
         await base.Insert_twice_with_output_parameter(
             async,
-"""
+            """
 CREATE PROCEDURE "Entity_Insert"(name text, OUT id int) LANGUAGE plpgsql AS $$
 BEGIN
     INSERT INTO "Entity" ("Name") VALUES (name) RETURNING "Id" INTO id;
@@ -39,7 +39,7 @@ END $$
 """);
 
         AssertSql(
-"""
+            """
 @p0='New1'
 @p1='New2'
 
@@ -72,14 +72,16 @@ CALL "Entity_Insert"(@p1, NULL);
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => base.Insert_with_output_parameter_and_result_column(async, createSprocSql: ""));
 
-        Assert.Equal(NpgsqlStrings.StoredProcedureResultColumnsNotSupported(nameof(EntityWithAdditionalProperty), nameof(EntityWithAdditionalProperty) + "_Insert"), exception.Message);
+        Assert.Equal(
+            NpgsqlStrings.StoredProcedureResultColumnsNotSupported(
+                nameof(EntityWithAdditionalProperty), nameof(EntityWithAdditionalProperty) + "_Insert"), exception.Message);
     }
 
     public override async Task Update(bool async)
     {
         await base.Update(
             async,
-"""
+            """
 CREATE PROCEDURE "Entity_Update"(id int, name text) LANGUAGE plpgsql AS $$
 BEGIN
     UPDATE "Entity" SET "Name" = name WHERE "Id" = id;
@@ -87,7 +89,7 @@ END $$
 """);
 
         AssertSql(
-"""
+            """
 @p0='1'
 @p1='Updated'
 
@@ -99,7 +101,7 @@ CALL "Entity_Update"(@p0, @p1);
     {
         await base.Update_partial(
             async,
-"""
+            """
 CREATE PROCEDURE "EntityWithAdditionalProperty_Update"(id int, name text, additional_property int) LANGUAGE plpgsql AS $$
 BEGIN
     UPDATE "EntityWithAdditionalProperty" SET "Name" = name, "AdditionalProperty" = additional_property WHERE "Id" = id;
@@ -107,7 +109,7 @@ END $$
 """);
 
         AssertSql(
-"""
+            """
 @p0='1'
 @p1='Updated'
 @p2='8'
@@ -142,7 +144,7 @@ CALL "EntityWithAdditionalProperty_Update"(@p0, @p1, @p2);
     {
         await base.Delete(
             async,
-"""
+            """
 CREATE PROCEDURE "Entity_Delete"(id int) LANGUAGE plpgsql AS $$
 BEGIN
     DELETE FROM "Entity" WHERE "Id" = id;
@@ -150,7 +152,7 @@ END $$
 """);
 
         AssertSql(
-"""
+            """
 @p0='1'
 
 CALL "Entity_Delete"(@p0);
@@ -161,7 +163,7 @@ CALL "Entity_Delete"(@p0);
     {
         await base.Delete_and_insert(
             async,
-"""
+            """
 CREATE PROCEDURE "Entity_Insert"(name text, OUT id int) LANGUAGE plpgsql AS $$
 BEGIN
     INSERT INTO "Entity" ("Name") VALUES (name) RETURNING "Id" INTO id;
@@ -174,7 +176,7 @@ END $$;
 """);
 
         AssertSql(
-"""
+            """
 @p0='1'
 @p1='Entity2'
 
@@ -187,7 +189,7 @@ CALL "Entity_Insert"(@p1, NULL);
     {
         await base.Rows_affected_parameter(
             async,
-"""
+            """
 CREATE PROCEDURE "Entity_Update"(id int, name text, OUT rows_affected int) LANGUAGE plpgsql AS $$
 BEGIN
     UPDATE "Entity" SET "Name" = name WHERE "Id" = id;
@@ -196,7 +198,7 @@ END $$
 """);
 
         AssertSql(
-"""
+            """
 @p0='1'
 @p1='Updated'
 
@@ -208,7 +210,7 @@ CALL "Entity_Update"(@p0, @p1, NULL);
     {
         await base.Rows_affected_parameter_and_concurrency_failure(
             async,
-"""
+            """
 CREATE PROCEDURE "Entity_Update"(id int, name text, OUT rows_affected int) LANGUAGE plpgsql AS $$
 BEGIN
     UPDATE "Entity" SET "Name" = name WHERE "Id" = id;
@@ -217,7 +219,7 @@ END $$
 """);
 
         AssertSql(
-"""
+            """
 @p0='1'
 @p1='Updated'
 
@@ -231,7 +233,7 @@ CALL "Entity_Update"(@p0, @p1, NULL);
     {
         // PG doesn't supposed non-stored computed columns, so we need to duplicate the test code
         var createSprocSql =
-"""
+            """
 CREATE PROCEDURE "EntityWithAdditionalProperty_Update"(id int, OUT rows_affected int, OUT additional_property int, name text) LANGUAGE plpgsql AS $$
 BEGIN
     UPDATE "EntityWithAdditionalProperty" SET "Name" = name WHERE "Id" = id RETURNING "AdditionalProperty" INTO additional_property;
@@ -280,7 +282,7 @@ END $$
         }
 
         AssertSql(
-"""
+            """
 @p0='1'
 @p1='Updated'
 
@@ -328,7 +330,7 @@ CALL "EntityWithAdditionalProperty_Update"(@p0, NULL, NULL, @p1);
     {
         await base.Store_generated_concurrency_token_as_in_out_parameter(
             async,
-"""
+            """
 CREATE PROCEDURE "Entity_Update"(id int, INOUT concurrency_token xid, name text, OUT rows_affected int) LANGUAGE plpgsql AS $$
 BEGIN
     UPDATE "Entity" SET "Name" = name WHERE "Id" = id AND xmin = concurrency_token RETURNING xmin INTO concurrency_token;
@@ -337,7 +339,7 @@ END $$
 """);
 
         AssertSql(
-"""
+            """
 @p0='1'
 @p1=NULL (Direction = InputOutput) (DbType = Object)
 @p2='Updated'
@@ -350,7 +352,7 @@ CALL "Entity_Update"(@p0, @p1, @p2, NULL);
     {
         await base.Store_generated_concurrency_token_as_two_parameters(
             async,
-"""
+            """
 CREATE PROCEDURE "Entity_Update"(id int, concurrency_token_in xid, name text, OUT concurrency_token_out xid, OUT rows_affected int) LANGUAGE plpgsql AS $$
 BEGIN
     UPDATE "Entity" SET "Name" = name WHERE "Id" = id AND xmin = concurrency_token_in RETURNING xmin INTO concurrency_token_out;
@@ -360,7 +362,7 @@ END $$
 
         // Can't assert SQL baseline as usual because the concurrency token changes
         Assert.Equal(
-"""
+            """
 @p2='Updated'
 
 CALL "Entity_Update"(@p0, @p1, @p2, NULL, NULL);
@@ -373,7 +375,7 @@ CALL "Entity_Update"(@p0, @p1, @p2, NULL, NULL);
     {
         await base.User_managed_concurrency_token(
             async,
-"""
+            """
 CREATE PROCEDURE "EntityWithAdditionalProperty_Update"(id int, concurrency_token_original int, name text, concurrency_token_current int, OUT rows_affected int) LANGUAGE plpgsql AS $$
 BEGIN
     UPDATE "EntityWithAdditionalProperty" SET "Name" = name, "AdditionalProperty" = concurrency_token_current WHERE "Id" = id AND "AdditionalProperty" = concurrency_token_original;
@@ -382,7 +384,7 @@ END $$
 """);
 
         AssertSql(
-"""
+            """
 @p0='1'
 @p1='8'
 @p2='Updated'
@@ -396,7 +398,7 @@ CALL "EntityWithAdditionalProperty_Update"(@p0, @p1, @p2, @p3, NULL);
     {
         await base.Original_and_current_value_on_non_concurrency_token(
             async,
-"""
+            """
 CREATE PROCEDURE "Entity_Update"(id int, name_current text, name_original text) LANGUAGE plpgsql AS $$
 BEGIN
     IF name_current <> name_original THEN
@@ -406,7 +408,7 @@ END $$
 """);
 
         AssertSql(
-"""
+            """
 @p0='1'
 @p1='Updated'
 @p2='Initial'
@@ -419,7 +421,7 @@ CALL "Entity_Update"(@p0, @p1, @p2);
     {
         await base.Input_or_output_parameter_with_input(
             async,
-"""
+            """
 CREATE PROCEDURE "Entity_Insert"(OUT id int, INOUT name text) LANGUAGE plpgsql AS $$
 BEGIN
     IF name IS NULL THEN
@@ -432,7 +434,7 @@ END $$
 """);
 
         AssertSql(
-"""
+            """
 @p0='1' (Direction = InputOutput) (DbType = String)
 
 CALL "Entity_Insert"(NULL, @p0);
@@ -443,7 +445,7 @@ CALL "Entity_Insert"(NULL, @p0);
     {
         await base.Input_or_output_parameter_with_output(
             async,
-"""
+            """
 CREATE PROCEDURE "Entity_Insert"(OUT id int, INOUT name text) LANGUAGE plpgsql AS $$
 BEGIN
     IF name IS NULL THEN
@@ -456,7 +458,7 @@ END $$
 """);
 
         AssertSql(
-"""
+            """
 @p0='1' (Direction = InputOutput) (DbType = String)
 
 CALL "Entity_Insert"(NULL, @p0);
@@ -485,7 +487,7 @@ CALL "Entity_Insert"(NULL, @p0);
     {
         await base.Tpt_mixed_sproc_and_non_sproc(
             async,
-"""
+            """
 CREATE PROCEDURE "Parent_Insert"(OUT id int, name text) LANGUAGE plpgsql AS $$
 BEGIN
     INSERT INTO "Parent" ("Name") VALUES (name) RETURNING "Id" INTO id;
@@ -493,13 +495,13 @@ END $$
 """);
 
         AssertSql(
-"""
+            """
 @p0='Child'
 
 CALL "Parent_Insert"(NULL, @p0);
 """,
             //
-"""
+            """
 @p1='1'
 @p2='8'
 
@@ -512,7 +514,7 @@ VALUES (@p1, @p2);
     {
         await base.Tpc(
             async,
-"""
+            """
 CREATE PROCEDURE "Child1_Insert"(OUT id int, name text, child1_property int) LANGUAGE plpgsql AS $$
 BEGIN
     INSERT INTO "Child1" ("Name", "Child1Property") VALUES (name, child1_property) RETURNING "Id" INTO id;
@@ -520,7 +522,7 @@ END $$
 """);
 
         AssertSql(
-"""
+            """
 @p0='Child'
 @p1='8'
 
@@ -532,7 +534,7 @@ CALL "Child1_Insert"(NULL, @p0, @p1);
     {
         await base.Non_sproc_followed_by_sproc_commands_in_the_same_batch(
             async,
-"""
+            """
 CREATE PROCEDURE "EntityWithAdditionalProperty_Insert"(name text, OUT id int, additional_property int) LANGUAGE plpgsql AS $$
 BEGIN
     INSERT INTO "EntityWithAdditionalProperty" ("Name", "AdditionalProperty") VALUES (name, additional_property) RETURNING "Id" INTO id;
@@ -540,7 +542,7 @@ END $$
 """);
 
         AssertSql(
-"""
+            """
 @p2='1'
 @p0='2'
 @p3='1'

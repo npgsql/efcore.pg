@@ -1,7 +1,7 @@
+#nullable enable
+
 using System.Collections;
 using System.Numerics;
-
-#nullable enable
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
@@ -98,10 +98,11 @@ public class JsonTypesNpgsqlTest : JsonTypesRelationalTestBase
     [ConditionalFact]
     public virtual void Cannot_read_write_multidimensional_array_JSON_values()
         // EF currently throws NRE when the type mapping has no JsonValueReaderWriter (this has been improved for 9.0)
-        => Assert.Throws<NullReferenceException>(() => Can_read_and_write_JSON_value<MultidimensionalArrayType, int[,]>(
-            nameof(MultidimensionalArrayType.MultidimensionalArray),
-            new[,] { { 1, 2 }, { 3, 4 } },
-            ""));
+        => Assert.Throws<NullReferenceException>(
+            () => Can_read_and_write_JSON_value<MultidimensionalArrayType, int[,]>(
+                nameof(MultidimensionalArrayType.MultidimensionalArray),
+                new[,] { { 1, 2 }, { 3, 4 } },
+                ""));
 
     protected class MultidimensionalArrayType
     {

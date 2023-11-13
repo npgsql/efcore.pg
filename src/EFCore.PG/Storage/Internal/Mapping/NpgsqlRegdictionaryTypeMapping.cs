@@ -14,7 +14,10 @@ public class NpgsqlRegdictionaryTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlRegdictionaryTypeMapping() : base("regdictionary", typeof(uint), NpgsqlDbType.Oid) { }
+    public NpgsqlRegdictionaryTypeMapping()
+        : base("regdictionary", typeof(uint), NpgsqlDbType.Oid)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -23,7 +26,9 @@ public class NpgsqlRegdictionaryTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlRegdictionaryTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Oid) { }
+        : base(parameters, NpgsqlDbType.Oid)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

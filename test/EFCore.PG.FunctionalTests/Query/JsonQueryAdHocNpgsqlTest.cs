@@ -21,13 +21,14 @@ public class JsonQueryAdHocNpgsqlTest : JsonQueryAdHocTestBase
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task Json_predicate_on_bytea(bool async)
     {
-        var contextFactory = await InitializeAsync<ByteaDbContext>(seed: context =>
-        {
-            context.Entities.AddRange(
-                new() { JsonEntity = new() { Bytea = new byte[] { 1, 2, 3 } } },
-                new() { JsonEntity = new() { Bytea = new byte[] { 1, 2, 4 } } });
-            context.SaveChanges();
-        });
+        var contextFactory = await InitializeAsync<ByteaDbContext>(
+            seed: context =>
+            {
+                context.Entities.AddRange(
+                    new ByteaContainerEntity { JsonEntity = new ByteaJsonEntity { Bytea = new byte[] { 1, 2, 3 } } },
+                    new ByteaContainerEntity { JsonEntity = new ByteaJsonEntity { Bytea = new byte[] { 1, 2, 4 } } });
+                context.SaveChanges();
+            });
 
         using (var context = contextFactory.CreateContext())
         {
@@ -43,14 +44,15 @@ public class JsonQueryAdHocNpgsqlTest : JsonQueryAdHocTestBase
 
     protected class ByteaDbContext : DbContext
     {
-        public ByteaDbContext(DbContextOptions options) : base(options) {}
+        public ByteaDbContext(DbContextOptions options)
+            : base(options)
+        {
+        }
 
         public DbSet<ByteaContainerEntity> Entities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<ByteaContainerEntity>().OwnsOne(b => b.JsonEntity).ToJson();
-        }
+            => modelBuilder.Entity<ByteaContainerEntity>().OwnsOne(b => b.JsonEntity).ToJson();
     }
 
     public class ByteaContainerEntity
@@ -362,12 +364,16 @@ VALUES(
 
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public IntEnumLegacyValues IntEnum { get; set; }
+
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public ByteEnumLegacyValues ByteEnum { get; set; }
+
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public LongEnumLegacyValues LongEnum { get; set; }
+
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public ULongEnumLegacyValues ULongEnum { get; set; }
+
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public IntEnumLegacyValues? NullableEnum { get; set; }
     }

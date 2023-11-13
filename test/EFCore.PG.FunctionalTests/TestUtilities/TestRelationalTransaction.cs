@@ -83,5 +83,6 @@ public class TestRelationalTransaction : RelationalTransaction
         await base.CommitAsync(cancellationToken);
     }
 
-    public override bool SupportsSavepoints => true;
+    public override bool SupportsSavepoints
+        => true;
 }

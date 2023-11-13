@@ -45,7 +45,7 @@ SELECT "Region", "PostalCode", "PostalCode" AS "Foo", "Phone", "Fax", "CustomerI
         await base.SqlQueryRaw_queryable_composed(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
 FROM (
     SELECT * FROM "Customers"
@@ -59,7 +59,7 @@ WHERE m."ContactName" LIKE '%z%'
         await base.SqlQueryRaw_queryable_composed_after_removing_whitespaces(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
 FROM (
 
@@ -78,7 +78,7 @@ WHERE m."ContactName" LIKE '%z%'
         await base.SqlQueryRaw_queryable_composed_compiled(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
 FROM (
     SELECT * FROM "Customers"
@@ -92,7 +92,7 @@ WHERE m."ContactName" LIKE '%z%'
         await base.SqlQueryRaw_queryable_composed_compiled_with_DbParameter(async);
 
         AssertSql(
-"""
+            """
 customer='CONSH' (Nullable = false)
 
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
@@ -108,7 +108,7 @@ WHERE m."ContactName" LIKE '%z%'
         await base.SqlQueryRaw_queryable_composed_compiled_with_nameless_DbParameter(async);
 
         AssertSql(
-"""
+            """
 p0='CONSH' (Nullable = false)
 
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
@@ -124,7 +124,7 @@ WHERE m."ContactName" LIKE '%z%'
         await base.SqlQueryRaw_queryable_composed_compiled_with_parameter(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
 FROM (
     SELECT * FROM "Customers" WHERE "CustomerID" = 'CONSH'
@@ -138,7 +138,7 @@ WHERE m."ContactName" LIKE '%z%'
         await base.SqlQueryRaw_composed_contains(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
 FROM (
     SELECT * FROM "Customers"
@@ -157,7 +157,7 @@ WHERE m."CustomerID" IN (
         await base.SqlQueryRaw_queryable_multiple_composed(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode", m0."CustomerID", m0."EmployeeID", m0."Freight", m0."OrderDate", m0."OrderID", m0."RequiredDate", m0."ShipAddress", m0."ShipCity", m0."ShipCountry", m0."ShipName", m0."ShipPostalCode", m0."ShipRegion", m0."ShipVia", m0."ShippedDate"
 FROM (
     SELECT * FROM "Customers"
@@ -170,16 +170,12 @@ WHERE m."CustomerID" = m0."CustomerID"
     }
 
     public override Task SqlQueryRaw_queryable_multiple_composed_with_closure_parameters(bool async)
-    {
         // Base implementation sends DateTime with Kind=Unspecified in a SQL query, but Npgsql rejects it because timestamptz
-        return Task.CompletedTask;
-    }
+        => Task.CompletedTask;
 
     public override Task SqlQueryRaw_queryable_multiple_composed_with_parameters_and_closure_parameters(bool async)
-    {
         // Base implementation sends DateTime with Kind=Unspecified in a SQL query, but Npgsql rejects it because timestamptz
-        return Task.CompletedTask;
-    }
+        => Task.CompletedTask;
 
     public override async Task SqlQueryRaw_queryable_multiple_line_query(bool async)
     {
@@ -198,7 +194,7 @@ WHERE "City" = 'London'
         await base.SqlQueryRaw_queryable_composed_multiple_line_query(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
 FROM (
     SELECT *
@@ -213,7 +209,7 @@ WHERE m."City" = 'London'
         await base.SqlQueryRaw_queryable_with_parameters(async);
 
         AssertSql(
-"""
+            """
 p0='London'
 p1='Sales Representative'
 
@@ -226,7 +222,7 @@ SELECT * FROM "Customers" WHERE "City" = @p0 AND "ContactTitle" = @p1
         await base.SqlQueryRaw_queryable_with_parameters_inline(async);
 
         AssertSql(
-"""
+            """
 p0='London'
 p1='Sales Representative'
 
@@ -239,7 +235,7 @@ SELECT * FROM "Customers" WHERE "City" = @p0 AND "ContactTitle" = @p1
         await base.SqlQuery_queryable_with_parameters_interpolated(async);
 
         AssertSql(
-"""
+            """
 p0='London'
 p1='Sales Representative'
 
@@ -252,7 +248,7 @@ SELECT * FROM "Customers" WHERE "City" = @p0 AND "ContactTitle" = @p1
         await base.SqlQuery_queryable_with_parameters_inline_interpolated(async);
 
         AssertSql(
-"""
+            """
 p0='London'
 p1='Sales Representative'
 
@@ -261,17 +257,15 @@ SELECT * FROM "Customers" WHERE "City" = @p0 AND "ContactTitle" = @p1
     }
 
     public override Task SqlQuery_queryable_multiple_composed_with_parameters_and_closure_parameters_interpolated(bool async)
-    {
         // Base implementation sends DateTime with Kind=Unspecified in a SQL query, but Npgsql rejects it because timestamptz
-        return Task.CompletedTask;
-    }
+        => Task.CompletedTask;
 
     public override async Task SqlQueryRaw_queryable_with_null_parameter(bool async)
     {
         await base.SqlQueryRaw_queryable_with_null_parameter(async);
 
         AssertSql(
-"""
+            """
 p0=NULL (Nullable = false) (DbType = Object)
 
 SELECT * FROM "Employees" WHERE "ReportsTo" = @p0 OR ("ReportsTo" IS NULL AND @p0 IS NULL)
@@ -283,7 +277,7 @@ SELECT * FROM "Employees" WHERE "ReportsTo" = @p0 OR ("ReportsTo" IS NULL AND @p
         var queryString = await base.SqlQueryRaw_queryable_with_parameters_and_closure(async);
 
         AssertSql(
-"""
+            """
 p0='London'
 @__contactTitle_1='Sales Representative'
 
@@ -316,14 +310,14 @@ SELECT * FROM "Customers" WHERE "City" = 'Seattle'
         await base.SqlQueryRaw_queryable_with_parameters_cache_key_includes_parameters(async);
 
         AssertSql(
-"""
+            """
 p0='London'
 p1='Sales Representative'
 
 SELECT * FROM "Customers" WHERE "City" = @p0 AND "ContactTitle" = @p1
 """,
             //
-"""
+            """
 p0='Madrid'
 p1='Accounting Manager'
 
@@ -346,7 +340,7 @@ SELECT * FROM "Customers"
         await base.SqlQueryRaw_queryable_simple_projection_composed(async);
 
         AssertSql(
-"""
+            """
 SELECT m."ProductName"
 FROM (
     SELECT *
@@ -363,11 +357,11 @@ FROM (
         await base.SqlQueryRaw_annotations_do_not_affect_successive_calls(async);
 
         AssertSql(
-"""
+            """
 SELECT * FROM "Customers" WHERE "ContactName" LIKE '%z%'
 """,
             //
-"""
+            """
 SELECT * FROM "Customers"
 """);
     }
@@ -377,7 +371,7 @@ SELECT * FROM "Customers"
         await base.SqlQueryRaw_composed_with_nullable_predicate(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
 FROM (
     SELECT * FROM "Customers"
@@ -391,7 +385,7 @@ WHERE m."ContactName" = m."CompanyName"
         await base.SqlQueryRaw_with_dbParameter(async);
 
         AssertSql(
-"""
+            """
 @city='London' (Nullable = false)
 
 SELECT * FROM "Customers" WHERE "City" = @city
@@ -402,7 +396,7 @@ SELECT * FROM "Customers" WHERE "City" = @city
     {
         await base.SqlQueryRaw_with_dbParameter_without_name_prefix(async);
         AssertSql(
-"""
+            """
 city='London' (Nullable = false)
 
 SELECT * FROM "Customers" WHERE "City" = @city
@@ -414,14 +408,14 @@ SELECT * FROM "Customers" WHERE "City" = @city
         await base.SqlQueryRaw_with_dbParameter_mixed(async);
 
         AssertSql(
-"""
+            """
 p0='London'
 @title='Sales Representative' (Nullable = false)
 
 SELECT * FROM "Customers" WHERE "City" = @p0 AND "ContactTitle" = @title
 """,
             //
-"""
+            """
 @city='London' (Nullable = false)
 p1='Sales Representative'
 
@@ -434,13 +428,13 @@ SELECT * FROM "Customers" WHERE "City" = @city AND "ContactTitle" = @p1
         await base.SqlQueryRaw_with_db_parameters_called_multiple_times(async);
 
         AssertSql(
-"""
+            """
 @id='ALFKI' (Nullable = false)
 
 SELECT * FROM "Customers" WHERE "CustomerID" = @id
 """,
             //
-"""
+            """
 @id='ALFKI' (Nullable = false)
 
 SELECT * FROM "Customers" WHERE "CustomerID" = @id
@@ -452,7 +446,7 @@ SELECT * FROM "Customers" WHERE "CustomerID" = @id
         await base.SqlQuery_with_inlined_db_parameter(async);
 
         AssertSql(
-"""
+            """
 @somename='ALFKI' (Nullable = false)
 
 SELECT * FROM "Customers" WHERE "CustomerID" = @somename
@@ -464,7 +458,7 @@ SELECT * FROM "Customers" WHERE "CustomerID" = @somename
         await base.SqlQuery_with_inlined_db_parameter_without_name_prefix(async);
 
         AssertSql(
-"""
+            """
 somename='ALFKI' (Nullable = false)
 
 SELECT * FROM "Customers" WHERE "CustomerID" = @somename
@@ -477,7 +471,7 @@ SELECT * FROM "Customers" WHERE "CustomerID" = @somename
         await base.SqlQuery_parameterization_issue_12213(async);
 
         AssertSql(
-"""
+            """
 p0='10300'
 
 SELECT m."OrderID"
@@ -486,7 +480,7 @@ FROM (
 ) AS m
 """,
             //
-"""
+            """
 @__max_1='10400'
 p0='10300'
 
@@ -502,7 +496,7 @@ WHERE m."OrderID" <= @__max_1 AND EXISTS (
     WHERE m0."OrderID" = m."OrderID")
 """,
             //
-"""
+            """
 @__max_1='10400'
 p0='10300'
 
@@ -536,7 +530,7 @@ SELECT * FROM "Orders" WHERE "OrderID" < @p0
         await base.SqlQueryRaw_with_set_operation(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
 FROM (
     SELECT * FROM "Customers" WHERE "City" = 'London'
@@ -554,7 +548,7 @@ FROM (
         await base.Line_endings_after_Select(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
 FROM (
     SELECT
@@ -569,7 +563,7 @@ WHERE m."City" = 'Seattle'
         await base.SqlQueryRaw_in_subquery_with_dbParameter(async);
 
         AssertSql(
-"""
+            """
 @city='London' (Nullable = false)
 
 SELECT m."CustomerID", m."EmployeeID", m."Freight", m."OrderDate", m."OrderID", m."RequiredDate", m."ShipAddress", m."ShipCity", m."ShipCountry", m."ShipName", m."ShipPostalCode", m."ShipRegion", m."ShipVia", m."ShippedDate"
@@ -590,7 +584,7 @@ WHERE m."CustomerID" IN (
         await base.SqlQueryRaw_in_subquery_with_positional_dbParameter_without_name(async);
 
         AssertSql(
-"""
+            """
 p0='London' (Nullable = false)
 
 SELECT m."CustomerID", m."EmployeeID", m."Freight", m."OrderDate", m."OrderID", m."RequiredDate", m."ShipAddress", m."ShipCity", m."ShipCountry", m."ShipName", m."ShipPostalCode", m."ShipRegion", m."ShipVia", m."ShippedDate"
@@ -611,7 +605,7 @@ WHERE m."CustomerID" IN (
         await base.SqlQueryRaw_in_subquery_with_positional_dbParameter_with_name(async);
 
         AssertSql(
-"""
+            """
 @city='London' (Nullable = false)
 
 SELECT m."CustomerID", m."EmployeeID", m."Freight", m."OrderDate", m."OrderID", m."RequiredDate", m."ShipAddress", m."ShipCity", m."ShipCountry", m."ShipName", m."ShipPostalCode", m."ShipRegion", m."ShipVia", m."ShippedDate"
@@ -632,7 +626,7 @@ WHERE m."CustomerID" IN (
         await base.SqlQueryRaw_with_dbParameter_mixed_in_subquery(async);
 
         AssertSql(
-"""
+            """
 p0='London'
 @title='Sales Representative' (Nullable = false)
 
@@ -648,7 +642,7 @@ WHERE m."CustomerID" IN (
 )
 """,
             //
-"""
+            """
 @city='London' (Nullable = false)
 p1='Sales Representative'
 
@@ -670,7 +664,7 @@ WHERE m."CustomerID" IN (
         await base.Multiple_occurrences_of_SqlQuery_with_db_parameter_adds_parameter_only_once(async);
 
         AssertSql(
-"""
+            """
 city='Seattle' (Nullable = false)
 
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
@@ -690,7 +684,7 @@ FROM (
         await base.SqlQueryRaw_composed_with_common_table_expression(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
 FROM (
     WITH "Customers2" AS (

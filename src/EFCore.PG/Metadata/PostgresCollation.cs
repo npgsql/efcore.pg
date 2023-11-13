@@ -97,7 +97,8 @@ public class PostgresCollation
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual Annotatable Annotatable => (Annotatable)_annotatable;
+    public virtual Annotatable Annotatable
+        => (Annotatable)_annotatable;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -105,7 +106,8 @@ public class PostgresCollation
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual string? Schema => GetData().Schema;
+    public virtual string? Schema
+        => GetData().Schema;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -113,7 +115,8 @@ public class PostgresCollation
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual string Name => GetData().Name!;
+    public virtual string Name
+        => GetData().Name!;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

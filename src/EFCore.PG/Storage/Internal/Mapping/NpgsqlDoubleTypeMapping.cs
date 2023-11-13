@@ -14,7 +14,10 @@ public class NpgsqlDoubleTypeMapping : DoubleTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlDoubleTypeMapping() : base("double precision", System.Data.DbType.Double) {}
+    public NpgsqlDoubleTypeMapping()
+        : base("double precision", System.Data.DbType.Double)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -22,7 +25,10 @@ public class NpgsqlDoubleTypeMapping : DoubleTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected NpgsqlDoubleTypeMapping(RelationalTypeMappingParameters parameters) : base(parameters) {}
+    protected NpgsqlDoubleTypeMapping(RelationalTypeMappingParameters parameters)
+        : base(parameters)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

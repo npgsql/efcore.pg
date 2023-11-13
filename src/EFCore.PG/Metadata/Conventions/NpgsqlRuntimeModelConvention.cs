@@ -3,12 +3,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 
 /// <summary>
-/// A convention that creates an optimized copy of the mutable model.
+///     A convention that creates an optimized copy of the mutable model.
 /// </summary>
 public class NpgsqlRuntimeModelConvention : RelationalRuntimeModelConvention
 {
     /// <summary>
-    /// Creates a new instance of <see cref="NpgsqlRuntimeModelConvention"/>.
+    ///     Creates a new instance of <see cref="NpgsqlRuntimeModelConvention" />.
     /// </summary>
     /// <param name="dependencies">Parameter object containing dependencies for this convention.</param>
     /// <param name="relationalDependencies">Parameter object containing relational dependencies for this convention.</param>
@@ -72,7 +72,10 @@ public class NpgsqlRuntimeModelConvention : RelationalRuntimeModelConvention
 
     /// <inheritdoc />
     protected override void ProcessPropertyAnnotations(
-        Dictionary<string, object?> annotations, IProperty property, RuntimeProperty runtimeProperty, bool runtime)
+        Dictionary<string, object?> annotations,
+        IProperty property,
+        RuntimeProperty runtimeProperty,
+        bool runtime)
     {
         base.ProcessPropertyAnnotations(annotations, property, runtimeProperty, runtime);
 
@@ -89,7 +92,7 @@ public class NpgsqlRuntimeModelConvention : RelationalRuntimeModelConvention
         }
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     protected override void ProcessIndexAnnotations(
         Dictionary<string, object?> annotations,
         IIndex index,

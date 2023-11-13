@@ -226,7 +226,7 @@ public class ValueConvertersEndToEndNpgsqlTest
         public override bool Equals(object? obj)
             => obj is IntWrapper other && Equals(other);
 
-        public override int GetHashCode() => Value.GetHashCode();
+        public override int GetHashCode()
+            => Value.GetHashCode();
     }
-#nullable disable
 }

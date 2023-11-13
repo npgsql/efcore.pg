@@ -1,33 +1,33 @@
 ﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 /// <summary>
-/// Represents a PostgreSQL ILIKE expression.
+///     Represents a PostgreSQL ILIKE expression.
 /// </summary>
 // ReSharper disable once InconsistentNaming
 public class PgILikeExpression : SqlExpression, IEquatable<PgILikeExpression>
 {
     /// <summary>
-    /// The match expression.
+    ///     The match expression.
     /// </summary>
     public virtual SqlExpression Match { get; }
 
     /// <summary>
-    /// The pattern to match.
+    ///     The pattern to match.
     /// </summary>
     public virtual SqlExpression Pattern { get; }
 
     /// <summary>
-    /// The escape character to use in <see cref="Pattern"/>.
+    ///     The escape character to use in <see cref="Pattern" />.
     /// </summary>
     public virtual SqlExpression? EscapeChar { get; }
 
     /// <summary>
-    /// Constructs a <see cref="PgILikeExpression"/>.
+    ///     Constructs a <see cref="PgILikeExpression" />.
     /// </summary>
     /// <param name="match">The expression to match.</param>
     /// <param name="pattern">The pattern to match.</param>
-    /// <param name="escapeChar">The escape character to use in <paramref name="pattern"/>.</param>
-    /// <param name="typeMapping">The <see cref="RelationalTypeMapping"/> associated with the expression.</param>
+    /// <param name="escapeChar">The escape character to use in <paramref name="pattern" />.</param>
+    /// <param name="typeMapping">The <see cref="RelationalTypeMapping" /> associated with the expression.</param>
     /// <exception cref="ArgumentNullException" />
     public PgILikeExpression(
         SqlExpression match,
@@ -61,19 +61,21 @@ public class PgILikeExpression : SqlExpression, IEquatable<PgILikeExpression>
             : new PgILikeExpression(match, pattern, escapeChar, TypeMapping);
 
     /// <inheritdoc />
-    public override bool Equals(object? obj) => obj is PgILikeExpression other && Equals(other);
+    public override bool Equals(object? obj)
+        => obj is PgILikeExpression other && Equals(other);
 
     /// <inheritdoc />
     public virtual bool Equals(PgILikeExpression? other)
-        => ReferenceEquals(this, other) ||
-            other is not null &&
-            base.Equals(other) &&
-            Equals(Match, other.Match) &&
-            Equals(Pattern, other.Pattern) &&
-            Equals(EscapeChar, other.EscapeChar);
+        => ReferenceEquals(this, other)
+            || other is not null
+            && base.Equals(other)
+            && Equals(Match, other.Match)
+            && Equals(Pattern, other.Pattern)
+            && Equals(EscapeChar, other.EscapeChar);
 
     /// <inheritdoc />
-    public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Match, Pattern, EscapeChar);
+    public override int GetHashCode()
+        => HashCode.Combine(base.GetHashCode(), Match, Pattern, EscapeChar);
 
     /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)
@@ -90,5 +92,6 @@ public class PgILikeExpression : SqlExpression, IEquatable<PgILikeExpression>
     }
 
     /// <inheritdoc />
-    public override string ToString() => $"{Match} ILIKE {Pattern}{(EscapeChar is null ? "" : $" ESCAPE {EscapeChar}")}";
+    public override string ToString()
+        => $"{Match} ILIKE {Pattern}{(EscapeChar is null ? "" : $" ESCAPE {EscapeChar}")}";
 }

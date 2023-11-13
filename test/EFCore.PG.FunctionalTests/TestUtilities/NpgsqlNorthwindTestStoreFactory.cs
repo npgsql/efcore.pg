@@ -4,7 +4,7 @@ public class NpgsqlNorthwindTestStoreFactory : NpgsqlTestStoreFactory
 {
     public const string Name = "Northwind";
     public static readonly string NorthwindConnectionString = NpgsqlTestStore.CreateConnectionString(Name);
-    public new static NpgsqlNorthwindTestStoreFactory Instance { get; } = new();
+    public static new NpgsqlNorthwindTestStoreFactory Instance { get; } = new();
 
     static NpgsqlNorthwindTestStoreFactory()
     {
@@ -20,7 +20,8 @@ public class NpgsqlNorthwindTestStoreFactory : NpgsqlTestStoreFactory
     }
 
     public override TestStore GetOrCreate(string storeName)
-        => NpgsqlTestStore.GetOrCreate(Name, "Northwind.sql",
+        => NpgsqlTestStore.GetOrCreate(
+            Name, "Northwind.sql",
             TestEnvironment.PostgresVersion >= new Version(12, 0)
                 ? @"CREATE COLLATION IF NOT EXISTS ""some-case-insensitive-collation"" (LOCALE = 'en-u-ks-primary', PROVIDER = icu, DETERMINISTIC = False);"
                 : null);
