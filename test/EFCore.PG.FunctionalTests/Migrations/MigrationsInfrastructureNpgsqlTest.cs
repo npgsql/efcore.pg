@@ -150,11 +150,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         new DbContextOptionsBuilder()
                             .UseNpgsql(TestStore.ConnectionString, b => b.ApplyConfiguration()
                                 .CommandTimeout(NpgsqlTestStore.CommandTimeout)
+                                .SetPostgresVersion(TestEnvironment.PostgresVersion)
                                 .ReverseNullOrdering()))
-                    .UseInternalServiceProvider(ServiceProvider)
+                    .UseInternalServiceProvider(CreateServiceProvider())
                     .Options;
                 return new MigrationsContext(options);
             }
+
+            private static IServiceProvider CreateServiceProvider()
+                => new ServiceCollection()
+                    .AddEntityFrameworkNpgsql()
+                    .BuildServiceProvider();
         }
     }
 }

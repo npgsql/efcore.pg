@@ -56,7 +56,9 @@ public class DefaultValuesTest : IDisposable
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder
-                .UseNpgsql(NpgsqlTestStore.CreateConnectionString(_databaseName))
+                .UseNpgsql(
+                    NpgsqlTestStore.CreateConnectionString(_databaseName),
+                    o => o.SetPostgresVersion(TestEnvironment.PostgresVersion))
                 .UseInternalServiceProvider(_serviceProvider);
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

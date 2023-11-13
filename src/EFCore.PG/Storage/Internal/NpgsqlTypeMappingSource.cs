@@ -191,9 +191,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         INpgsqlSingletonOptions options)
         : base(dependencies, relationalDependencies)
     {
-        _supportsMultiranges = !options.IsPostgresVersionSet
-            || options.IsPostgresVersionSet && options.PostgresVersion.AtLeast(14);
-
+        _supportsMultiranges = options.PostgresVersion.AtLeast(14);
         _sqlGenerationHelper = Check.NotNull(sqlGenerationHelper, nameof(sqlGenerationHelper));
 
         // Initialize range mappings, which reference on other mappings
