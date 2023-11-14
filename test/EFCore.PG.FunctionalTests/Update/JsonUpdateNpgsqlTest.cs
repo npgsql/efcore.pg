@@ -120,12 +120,13 @@ LIMIT 2
         AssertSql(
             """
 @p0='{"Name":"RootName","Names":null,"Number":42,"Numbers":null,"OwnedCollectionBranch":[],"OwnedReferenceBranch":{"Date":"2010-10-10T00:00:00","Enum":2,"Enums":null,"Fraction":42.42,"NullableEnum":null,"NullableEnums":null,"OwnedCollectionLeaf":[{"SomethingSomething":"ss1"},{"SomethingSomething":"ss2"}],"OwnedReferenceLeaf":{"SomethingSomething":"ss3"}}}' (Nullable = false) (DbType = Object)
-@p1='2'
-@p2=NULL (DbType = Int32)
-@p3='NewEntity'
+@p1='[]' (Nullable = false) (DbType = Object)
+@p2='2'
+@p3=NULL (DbType = Int32)
+@p4='NewEntity'
 
-INSERT INTO "JsonEntitiesBasic" ("OwnedReferenceRoot", "Id", "EntityBasicId", "Name")
-VALUES (@p0, @p1, @p2, @p3);
+INSERT INTO "JsonEntitiesBasic" ("OwnedReferenceRoot", "OwnedCollectionRoot", "Id", "EntityBasicId", "Name")
+VALUES (@p0, @p1, @p2, @p3, @p4);
 """,
             //
             """
@@ -1942,6 +1943,18 @@ FROM "JsonEntitiesAllTypes" AS j
 WHERE j."Id" = 1
 LIMIT 2
 """);
+    }
+
+    // https://github.com/dotnet/efcore/pull/31831/files#r1393411950
+    public override Task Add_and_update_top_level_optional_owned_collection_to_JSON(bool? value)
+        => Assert.ThrowsAsync<PostgresException>(() => base.Add_and_update_top_level_optional_owned_collection_to_JSON(value));
+
+    public override async Task Add_and_update_nested_optional_primitive_collection(bool? value)
+    {
+        // PostgreSQL does not support the 0 char in text
+        var exception = await Assert.ThrowsAsync<DbUpdateException>(() => base.Edit_single_property_collection_of_char());
+        var pgException = Assert.IsType<PostgresException>(exception.InnerException);
+        Assert.Equal("22P05", pgException.SqlState); // untranslatable_character
     }
 
     #region Skipped tests because of unsupported list type outside of JSON

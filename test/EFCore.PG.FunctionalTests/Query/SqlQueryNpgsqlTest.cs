@@ -366,20 +366,6 @@ SELECT * FROM "Customers"
 """);
     }
 
-    public override async Task SqlQueryRaw_composed_with_nullable_predicate(bool async)
-    {
-        await base.SqlQueryRaw_composed_with_nullable_predicate(async);
-
-        AssertSql(
-            """
-SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
-FROM (
-    SELECT * FROM "Customers"
-) AS m
-WHERE m."ContactName" = m."CompanyName"
-""");
-    }
-
     public override async Task SqlQueryRaw_with_dbParameter(bool async)
     {
         await base.SqlQueryRaw_with_dbParameter(async);

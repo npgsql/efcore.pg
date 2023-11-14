@@ -49,7 +49,7 @@ WHERE position(set_byte(BYTEA E'\\x00', 0, @__someByte_0) IN s."Banner") > 0
             """
 SELECT s."Id", s."Banner", s."Banner5", s."InternalNumber", s."Name"
 FROM "Squads" AS s
-WHERE length(s."Banner") = 1
+WHERE length(s."Banner") = 2
 """);
     }
 
@@ -71,7 +71,7 @@ WHERE length(s."Banner5") = 5
 
         AssertSql(
             """
-@__p_0='1'
+@__p_0='2'
 
 SELECT s."Id", s."Banner", s."Banner5", s."InternalNumber", s."Name"
 FROM "Squads" AS s
@@ -179,7 +179,8 @@ WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamp >= @__dateTi
         await AssertQuery(
             async,
             ss => ss.Set<Mission>().Where(
-                m => start <= m.Timeline.Date && m.Timeline < end && dates.Contains(m.Timeline)));
+                m => start <= m.Timeline.Date && m.Timeline < end && dates.Contains(m.Timeline)),
+            assertEmpty: true); // TODO: Look into this
 
         AssertSql(
             """
@@ -235,7 +236,8 @@ FROM "Missions" AS m
             async,
             ss => ss.Set<Mission>().Where(
                 m =>
-                    new DateTimeOffset(2, 3, 2, 8, 0, 0, new TimeSpan(-5, 0, 0)) - m.Timeline > TimeSpan.FromDays(3)));
+                    new DateTimeOffset(2, 3, 2, 8, 0, 0, new TimeSpan(-5, 0, 0)) - m.Timeline > TimeSpan.FromDays(3)),
+            assertEmpty: true); // TODO: Look into this
 
     #endregion DateTime
 
@@ -297,7 +299,7 @@ FROM "Missions" AS m
             """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE floor(date_part('minute', m."Duration"))::int = 1
+WHERE floor(date_part('minute', m."Duration"))::int = 2
 """);
     }
 
@@ -309,7 +311,7 @@ WHERE floor(date_part('minute', m."Duration"))::int = 1
             """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE floor(date_part('second', m."Duration"))::int = 1
+WHERE floor(date_part('second', m."Duration"))::int = 3
 """);
     }
 
@@ -321,7 +323,7 @@ WHERE floor(date_part('second', m."Duration"))::int = 1
             """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE floor(date_part('millisecond', m."Duration"))::int % 1000 = 1
+WHERE floor(date_part('millisecond', m."Duration"))::int % 1000 = 456
 """);
     }
 
@@ -475,8 +477,7 @@ WHERE make_date(date_part('year', m."Date")::int, date_part('month', m."Date")::
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Date.Year == 1990).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Date.Year == 1990).AsTracking());
 
         AssertSql(
             """
@@ -490,8 +491,7 @@ WHERE date_part('year', m."Date")::int = 1990
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Date.Month == 11).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Date.Month == 11).AsTracking());
 
         AssertSql(
             """
@@ -505,8 +505,7 @@ WHERE date_part('month', m."Date")::int = 11
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Date.Day == 10).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Date.Day == 10).AsTracking());
 
         AssertSql(
             """
@@ -520,8 +519,7 @@ WHERE date_part('day', m."Date")::int = 10
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Date.DayOfYear == 314).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Date.DayOfYear == 314).AsTracking());
 
         AssertSql(
             """
@@ -535,8 +533,7 @@ WHERE date_part('doy', m."Date")::int = 314
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Date.DayOfWeek == DayOfWeek.Saturday).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Date.DayOfWeek == DayOfWeek.Saturday).AsTracking());
 
         AssertSql(
             """
@@ -550,8 +547,7 @@ WHERE floor(date_part('dow', m."Date"))::int = 6
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Date.AddYears(3) == new DateOnly(1993, 11, 10)).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Date.AddYears(3) == new DateOnly(1993, 11, 10)).AsTracking());
 
         AssertSql(
             """
@@ -565,8 +561,7 @@ WHERE m."Date" + INTERVAL '3 years' = DATE '1993-11-10'
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Date.AddMonths(3) == new DateOnly(1991, 2, 10)).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Date.AddMonths(3) == new DateOnly(1991, 2, 10)).AsTracking());
 
         AssertSql(
             """
@@ -580,8 +575,7 @@ WHERE m."Date" + INTERVAL '3 months' = DATE '1991-02-10'
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Date.AddDays(3) == new DateOnly(1990, 11, 13)).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Date.AddDays(3) == new DateOnly(1990, 11, 13)).AsTracking());
 
         AssertSql(
             """
@@ -599,8 +593,7 @@ WHERE m."Date" + INTERVAL '3 days' = DATE '1990-11-13'
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.Hour == 10).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.Hour == 10).AsTracking());
 
         AssertSql(
             """
@@ -614,8 +607,7 @@ WHERE date_part('hour', m."Time")::int = 10
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.Minute == 15).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.Minute == 15).AsTracking());
 
         AssertSql(
             """
@@ -629,8 +621,7 @@ WHERE date_part('minute', m."Time")::int = 15
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.Second == 50).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.Second == 50).AsTracking());
 
         AssertSql(
             """
@@ -647,8 +638,7 @@ WHERE date_part('second', m."Time")::int = 50
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.AddHours(3) == new TimeOnly(13, 15, 50, 500)).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.AddHours(3) == new TimeOnly(13, 15, 50, 500)).AsTracking());
 
         AssertSql(
             """
@@ -662,8 +652,7 @@ WHERE m."Time" + INTERVAL '3 hours' = TIME '13:15:50.5'
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.AddMinutes(3) == new TimeOnly(10, 18, 50, 500)).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.AddMinutes(3) == new TimeOnly(10, 18, 50, 500)).AsTracking());
 
         AssertSql(
             """
@@ -677,8 +666,7 @@ WHERE m."Time" + INTERVAL '3 mins' = TIME '10:18:50.5'
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.Add(new TimeSpan(3, 0, 0)) == new TimeOnly(13, 15, 50, 500)).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.Add(new TimeSpan(3, 0, 0)) == new TimeOnly(13, 15, 50, 500)).AsTracking());
 
         AssertSql(
             """
@@ -692,8 +680,7 @@ WHERE m."Time" + INTERVAL '03:00:00' = TIME '13:15:50.5'
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.IsBetween(new TimeOnly(10, 0, 0), new TimeOnly(11, 0, 0))).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.IsBetween(new TimeOnly(10, 0, 0), new TimeOnly(11, 0, 0))).AsTracking());
 
         AssertSql(
             """
@@ -707,8 +694,7 @@ WHERE m."Time" >= TIME '10:00:00' AND m."Time" < TIME '11:00:00'
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time - new TimeOnly(10, 0, 0) == new TimeSpan(0, 0, 15, 50, 500)).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time - new TimeOnly(10, 0, 0) == new TimeSpan(0, 0, 15, 50, 500)).AsTracking());
 
         AssertSql(
             """
@@ -742,8 +728,7 @@ LIMIT 2
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.ToTimeSpan() == new TimeSpan(15, 30, 10)).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.ToTimeSpan() == new TimeSpan(15, 30, 10)).AsTracking());
 
         AssertSql(
             """

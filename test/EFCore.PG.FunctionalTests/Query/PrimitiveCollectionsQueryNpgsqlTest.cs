@@ -759,8 +759,7 @@ WHERE (
 
         await AssertQuery(
             async,
-            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.Intersect(ints).Any()),
-            entryCount: 2);
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.Intersect(ints).Any()));
 
         AssertSql(
             """
@@ -802,8 +801,7 @@ WHERE (
 
         await AssertQuery(
             async,
-            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => ints1.Concat(c.Ints).Concat(ints2).Count() == 4),
-            entryCount: 1);
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => ints1.Concat(c.Ints).Concat(ints2).Count() == 4));
 
         AssertSql(
             """
@@ -856,8 +854,7 @@ WHERE p."Ints" = ARRAY[1,10]::integer[]
         await AssertQuery(
             async,
             ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints == new[] { i, j }),
-            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.SequenceEqual(new[] { i, j })),
-            entryCount: 1);
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.SequenceEqual(new[] { i, j })));
 
         AssertSql(
             """

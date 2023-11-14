@@ -19,8 +19,7 @@ public class BigIntegerQueryTest : QueryTestBase<BigIntegerQueryTest.BigIntegerQ
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => BigInteger.Abs(e.BigInteger) == 1),
-            entryCount: 2);
+            ss => ss.Set<Entity>().Where(e => BigInteger.Abs(e.BigInteger) == 1));
 
         AssertSql(
             """
@@ -36,8 +35,7 @@ WHERE abs(e."BigInteger") = 1
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => BigInteger.Pow(e.BigInteger, 2) == 4),
-            entryCount: 1);
+            ss => ss.Set<Entity>().Where(e => BigInteger.Pow(e.BigInteger, 2) == 4));
 
         AssertSql(
             """
@@ -53,8 +51,7 @@ WHERE power(e."BigInteger", 2) = 4
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => BigInteger.Max(e.BigInteger, 1) == 1),
-            entryCount: 3);
+            ss => ss.Set<Entity>().Where(e => BigInteger.Max(e.BigInteger, 1) == 1));
 
         AssertSql(
             """
@@ -70,8 +67,7 @@ WHERE GREATEST(e."BigInteger", 1) = 1
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => BigInteger.Min(e.BigInteger, 1) == 1),
-            entryCount: 3);
+            ss => ss.Set<Entity>().Where(e => BigInteger.Min(e.BigInteger, 1) == 1));
 
         AssertSql(
             """
@@ -87,8 +83,7 @@ WHERE LEAST(e."BigInteger", 1) = 1
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => e.BigInteger.IsZero),
-            entryCount: 1);
+            ss => ss.Set<Entity>().Where(e => e.BigInteger.IsZero));
 
         AssertSql(
             """
@@ -104,8 +99,7 @@ WHERE e."BigInteger" = 0
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => e.BigInteger.IsOne),
-            entryCount: 1);
+            ss => ss.Set<Entity>().Where(e => e.BigInteger.IsOne));
 
         AssertSql(
             """
@@ -121,8 +115,7 @@ WHERE e."BigInteger" = 1
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => e.BigInteger.IsEven),
-            entryCount: 2);
+            ss => ss.Set<Entity>().Where(e => e.BigInteger.IsEven));
 
         AssertSql(
             """

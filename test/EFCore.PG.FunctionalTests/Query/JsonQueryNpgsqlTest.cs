@@ -1042,7 +1042,7 @@ WHERE EXISTS (
         "OwnedCollectionLeaf" jsonb,
         "OwnedReferenceLeaf" jsonb
     )) WITH ORDINALITY AS o
-    WHERE (o."OwnedReferenceLeaf" ->> 'SomethingSomething') = 'e1_c2_c1_c1')
+    WHERE (o."OwnedReferenceLeaf" ->> 'SomethingSomething') = 'e1_r_c1_r')
 """);
     }
 
@@ -2020,7 +2020,7 @@ WHERE (CAST(j."OwnedReferenceRoot" ->> 'Number' AS integer)) <> length(j."OwnedR
             """
 SELECT j."Name"
 FROM "JsonEntitiesBasic" AS j
-WHERE (j."OwnedReferenceRoot" ->> 'Name') = (j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,OwnedReferenceLeaf,SomethingSomething}') OR ((j."OwnedReferenceRoot" ->> 'Name') IS NULL AND (j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,OwnedReferenceLeaf,SomethingSomething}') IS NULL)
+WHERE ((j."OwnedReferenceRoot" ->> 'Name') <> (j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,OwnedReferenceLeaf,SomethingSomething}') OR (j."OwnedReferenceRoot" ->> 'Name') IS NULL OR (j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,OwnedReferenceLeaf,SomethingSomething}') IS NULL) AND ((j."OwnedReferenceRoot" ->> 'Name') IS NOT NULL OR (j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,OwnedReferenceLeaf,SomethingSomething}') IS NOT NULL)
 """);
     }
 

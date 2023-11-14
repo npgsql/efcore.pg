@@ -126,7 +126,7 @@ WHERE date_part('day', o."OrderDate")::int = 4
             """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
-WHERE date_part('hour', o."OrderDate")::int = 14
+WHERE date_part('hour', o."OrderDate")::int = 0
 """);
     }
 
@@ -138,7 +138,7 @@ WHERE date_part('hour', o."OrderDate")::int = 14
             """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
-WHERE date_part('minute', o."OrderDate")::int = 23
+WHERE date_part('minute', o."OrderDate")::int = 0
 """);
     }
 
@@ -150,7 +150,7 @@ WHERE date_part('minute', o."OrderDate")::int = 23
             """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
-WHERE date_part('second', o."OrderDate")::int = 44
+WHERE date_part('second', o."OrderDate")::int = 0
 """);
     }
 
@@ -206,8 +206,7 @@ WHERE date_part('second', o."OrderDate")::int = 44
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(c => new Tuple<string>(c.City).Equals(new Tuple<string>("London"))),
-            entryCount: 6);
+            ss => ss.Set<Customer>().Where(c => new Tuple<string>(c.City).Equals(new Tuple<string>("London"))));
 
         AssertSql(
             """
@@ -222,8 +221,7 @@ WHERE (c."City") = ('London')
         await AssertQuery(
             async,
             ss => ss.Set<Customer>().Where(
-                c => new Tuple<string, string>(c.City, c.Country).Equals(new Tuple<string, string>("Sao Paulo", "Brazil"))),
-            entryCount: 4);
+                c => new Tuple<string, string>(c.City, c.Country).Equals(new Tuple<string, string>("Sao Paulo", "Brazil"))));
 
         AssertSql(
             """
@@ -238,8 +236,7 @@ WHERE (c."City", c."Country") = ('Sao Paulo', 'Brazil')
         await AssertQuery(
             async,
             ss => ss.Set<Customer>().Where(
-                c => !new Tuple<string, string>(c.City, c.Country).Equals(new Tuple<string, string>("Sao Paulo", "Brazil"))),
-            entryCount: 87);
+                c => !new Tuple<string, string>(c.City, c.Country).Equals(new Tuple<string, string>("Sao Paulo", "Brazil"))));
 
         AssertSql(
             """
