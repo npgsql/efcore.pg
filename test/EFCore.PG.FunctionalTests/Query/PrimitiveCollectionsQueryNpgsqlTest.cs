@@ -475,7 +475,7 @@ WHERE p."Strings"[2] = '10'
             """
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
 FROM "PrimitiveCollectionsEntity" AS p
-WHERE p."DateTimes"[2] = TIMESTAMPTZ '2020-01-10 12:30:00Z'
+WHERE p."DateTimes"[2] = TIMESTAMPTZ '2020-01-10T12:30:00Z'
 """);
     }
 
@@ -1166,7 +1166,7 @@ LEFT JOIN LATERAL (
 LEFT JOIN LATERAL (
     SELECT d0.value, d0.ordinality
     FROM unnest(p."DateTimes") WITH ORDINALITY AS d0(value)
-    WHERE d0.value > TIMESTAMPTZ '2000-01-01 00:00:00Z'
+    WHERE d0.value > TIMESTAMPTZ '2000-01-01T00:00:00Z'
 ) AS t0 ON TRUE
 ORDER BY p."Id" NULLS FIRST, i.ordinality NULLS FIRST, i0.value DESC NULLS LAST, i0.ordinality NULLS FIRST, t.ordinality NULLS FIRST
 """);

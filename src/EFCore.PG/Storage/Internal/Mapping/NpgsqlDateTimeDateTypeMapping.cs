@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -9,7 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlDateTypeMapping : NpgsqlTypeMapping
+public class NpgsqlDateTimeDateTypeMapping : NpgsqlTypeMapping
 {
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -17,16 +18,8 @@ public class NpgsqlDateTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlDateTypeMapping(Type clrType)
-        : base(
-            "date",
-            clrType,
-            NpgsqlDbType.Date,
-            jsonValueReaderWriter: clrType == typeof(DateTime)
-                ? JsonDateTimeReaderWriter.Instance
-                : clrType == typeof(DateOnly)
-                    ? JsonDateOnlyReaderWriter.Instance
-                    : throw new ArgumentException("clrType must be DateTime or DateOnly", nameof(clrType)))
+    public NpgsqlDateTimeDateTypeMapping()
+        : base("date", typeof(DateTime), NpgsqlDbType.Date, NpgsqlJsonDateTimeReaderWriter.Instance)
     {
     }
 
@@ -36,7 +29,7 @@ public class NpgsqlDateTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected NpgsqlDateTypeMapping(RelationalTypeMappingParameters parameters)
+    protected NpgsqlDateTimeDateTypeMapping(RelationalTypeMappingParameters parameters)
         : base(parameters, NpgsqlDbType.Date)
     {
     }
@@ -48,7 +41,7 @@ public class NpgsqlDateTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-        => new NpgsqlDateTypeMapping(parameters);
+        => new NpgsqlDateTimeDateTypeMapping(parameters);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -66,43 +59,49 @@ public class NpgsqlDateTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
+        => Format((DateTime)value);
+
+    private static string Format(DateTime date)
     {
-        switch (value)
+        if (!NpgsqlTypeMappingSource.DisableDateTimeInfinityConversions)
         {
-            case DateTime dateTime:
-                if (!NpgsqlTypeMappingSource.DisableDateTimeInfinityConversions)
-                {
-                    if (dateTime == DateTime.MinValue)
-                    {
-                        return "-infinity";
-                    }
+            if (date == DateTime.MinValue)
+            {
+                return "-infinity";
+            }
 
-                    if (dateTime == DateTime.MaxValue)
-                    {
-                        return "infinity";
-                    }
-                }
-
-                return dateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-
-            case DateOnly dateOnly:
-                if (!NpgsqlTypeMappingSource.DisableDateTimeInfinityConversions)
-                {
-                    if (dateOnly == DateOnly.MinValue)
-                    {
-                        return "-infinity";
-                    }
-
-                    if (dateOnly == DateOnly.MaxValue)
-                    {
-                        return "infinity";
-                    }
-                }
-
-                return dateOnly.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-
-            default:
-                throw new InvalidCastException($"Can't generate a date SQL literal for CLR type {value.GetType()}");
+            if (date == DateTime.MaxValue)
+            {
+                return "infinity";
+            }
         }
+
+        return date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    }
+
+    private sealed class NpgsqlJsonDateTimeReaderWriter : JsonValueReaderWriter<DateTime>
+    {
+        public static NpgsqlJsonDateTimeReaderWriter Instance { get; } = new();
+
+        public override DateTime FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+        {
+            var s = manager.CurrentReader.GetString()!;
+
+            if (!NpgsqlTypeMappingSource.DisableDateTimeInfinityConversions)
+            {
+                switch (s)
+                {
+                    case "-infinity":
+                        return DateTime.MinValue;
+                    case "infinity":
+                        return DateTime.MaxValue;
+                }
+            }
+
+            return DateTime.Parse(s, CultureInfo.InvariantCulture);
+        }
+
+        public override void ToJsonTyped(Utf8JsonWriter writer, DateTime value)
+            => writer.WriteStringValue(Format(value));
     }
 }

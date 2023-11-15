@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Utilties.Util;
@@ -43,7 +45,7 @@ public class TimeTzMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public TimeTzMapping()
-        : base("time with time zone", typeof(OffsetTime), NpgsqlDbType.TimeTz)
+        : base("time with time zone", typeof(OffsetTime), NpgsqlDbType.TimeTz, JsonOffsetTimeReaderWriter.Instance)
     {
     }
 
@@ -92,7 +94,7 @@ public class TimeTzMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
-        => $"TIMETZ '{GenerateLiteralCore(value)}'";
+        => $"TIMETZ '{Pattern.Format((OffsetTime)value)}'";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -101,10 +103,7 @@ public class TimeTzMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => $@"""{GenerateLiteralCore(value)}""";
-
-    private string GenerateLiteralCore(object value)
-        => Pattern.Format((OffsetTime)value);
+        => $@"""{Pattern.Format((OffsetTime)value)}""";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -139,5 +138,16 @@ public class TimeTzMapping : NpgsqlTypeMapping
             offsetSeconds % 3600 == 0
                 ? ConstantCall(OffsetFromHoursMethod, offsetSeconds / 3600)
                 : ConstantCall(OffsetFromSeconds, offsetSeconds));
+    }
+
+    private sealed class JsonOffsetTimeReaderWriter : JsonValueReaderWriter<OffsetTime>
+    {
+        public static JsonOffsetTimeReaderWriter Instance { get; } = new();
+
+        public override OffsetTime FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+            => Pattern.Parse(manager.CurrentReader.GetString()!).GetValueOrThrow();
+
+        public override void ToJsonTyped(Utf8JsonWriter writer, OffsetTime value)
+            => writer.WriteStringValue(Pattern.Format(value));
     }
 }

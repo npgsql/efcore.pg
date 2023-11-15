@@ -26,20 +26,20 @@ public class LegacyNpgsqlTypeMappingTest : IClassFixture<LegacyNpgsqlTypeMapping
     {
         var mapping = GetMapping("timestamptz");
         Assert.Equal(
-            "TIMESTAMPTZ '1997-12-17 07:37:16Z'",
+            "TIMESTAMPTZ '1997-12-17T07:37:16Z'",
             mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Utc)));
         Assert.Equal(
-            "TIMESTAMPTZ '1997-12-17 07:37:16Z'",
+            "TIMESTAMPTZ '1997-12-17T07:37:16Z'",
             mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Unspecified)));
 
         var offset = TimeZoneInfo.Local.BaseUtcOffset;
         var offsetStr = (offset < TimeSpan.Zero ? '-' : '+') + offset.ToString(@"hh\:mm");
         Assert.StartsWith(
-            $"TIMESTAMPTZ '1997-12-17 07:37:16{offsetStr}",
+            $"TIMESTAMPTZ '1997-12-17T07:37:16{offsetStr}",
             mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Local)));
 
         Assert.Equal(
-            "TIMESTAMPTZ '1997-12-17 07:37:16.345678Z'",
+            "TIMESTAMPTZ '1997-12-17T07:37:16.345678Z'",
             mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, 345, DateTimeKind.Utc).AddTicks(6780)));
     }
 

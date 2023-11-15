@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
@@ -35,7 +37,7 @@ public class PeriodIntervalMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public PeriodIntervalMapping()
-        : base("interval", typeof(Period), NpgsqlDbType.Interval)
+        : base("interval", typeof(Period), NpgsqlDbType.Interval, JsonPeriodReaderWriter.Instance)
     {
     }
 
@@ -149,5 +151,16 @@ public class PeriodIntervalMapping : NpgsqlTypeMapping
 
         void Compose(Expression toAdd)
             => e = e is null ? toAdd : Expression.Add(e, toAdd);
+    }
+
+    private sealed class JsonPeriodReaderWriter : JsonValueReaderWriter<Period>
+    {
+        public static JsonPeriodReaderWriter Instance { get; } = new();
+
+        public override Period FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+            => PeriodPattern.NormalizingIso.Parse(manager.CurrentReader.GetString()!).GetValueOrThrow();
+
+        public override void ToJsonTyped(Utf8JsonWriter writer, Period value)
+            => writer.WriteStringValue(PeriodPattern.NormalizingIso.Format(value));
     }
 }

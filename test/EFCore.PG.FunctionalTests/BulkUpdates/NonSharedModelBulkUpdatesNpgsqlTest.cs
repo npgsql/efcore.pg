@@ -117,7 +117,7 @@ SET "OwnedReference_Number" = length(o."Title")::int,
         AssertSql(
             """
 UPDATE "Blogs" AS b
-SET "CreationTimestamp" = TIMESTAMPTZ '2020-01-01 00:00:00Z'
+SET "CreationTimestamp" = TIMESTAMPTZ '2020-01-01T00:00:00Z'
 """);
     }
 

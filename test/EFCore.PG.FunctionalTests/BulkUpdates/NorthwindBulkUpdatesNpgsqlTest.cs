@@ -1443,7 +1443,7 @@ UPDATE "Order Details" AS o
 SET "Quantity" = 1::smallint
 FROM "Products" AS p,
     "Orders" AS o0
-WHERE o."OrderID" = o0."OrderID" AND o."ProductID" = p."ProductID" AND p."Discontinued" AND o0."OrderDate" > TIMESTAMP '1990-01-01 00:00:00'
+WHERE o."OrderID" = o0."OrderID" AND o."ProductID" = p."ProductID" AND p."Discontinued" AND o0."OrderDate" > TIMESTAMP '1990-01-01T00:00:00'
 """);
     }
 

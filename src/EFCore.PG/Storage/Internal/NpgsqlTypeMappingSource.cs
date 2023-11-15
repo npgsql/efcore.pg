@@ -98,7 +98,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     private readonly NpgsqlJsonTypeMapping _jsonElement = new("json", typeof(JsonElement));
 
     // Date/Time types
-    private readonly NpgsqlDateTypeMapping _dateDateTime = new(typeof(DateTime));
+    private readonly NpgsqlDateTimeDateTypeMapping _dateDateTime = new();
     private readonly NpgsqlTimestampTypeMapping _timestamp = new();
     private readonly NpgsqlTimestampTzTypeMapping _timestamptz = new(typeof(DateTime));
     private readonly NpgsqlTimestampTzTypeMapping _timestamptzDto = new(typeof(DateTimeOffset));
@@ -106,7 +106,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     private readonly NpgsqlTimeTypeMapping _timeTimeSpan = new(typeof(TimeSpan));
     private readonly NpgsqlTimeTzTypeMapping _timetz = new();
 
-    private readonly NpgsqlDateTypeMapping _dateDateOnly = new(typeof(DateOnly));
+    private readonly NpgsqlDateOnlyTypeMapping _dateDateOnly = new();
     private readonly NpgsqlTimeTypeMapping _timeTimeOnly = new(typeof(TimeOnly));
 
     // Network address types
