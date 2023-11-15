@@ -44,18 +44,18 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
 
     #region TypeMapping
 
-    private readonly TimestampLocalDateTimeMapping _timestampLocalDateTime = new();
-    private readonly LegacyTimestampInstantMapping _legacyTimestampInstant = new();
+    private readonly TimestampLocalDateTimeMapping _timestampLocalDateTime = TimestampLocalDateTimeMapping.Default;
+    private readonly LegacyTimestampInstantMapping _legacyTimestampInstant = LegacyTimestampInstantMapping.Default;
 
-    private readonly TimestampTzInstantMapping _timestamptzInstant = new();
-    private readonly TimestampTzZonedDateTimeMapping _timestamptzZonedDateTime = new();
-    private readonly TimestampTzOffsetDateTimeMapping _timestamptzOffsetDateTime = new();
+    private readonly TimestampTzInstantMapping _timestamptzInstant = TimestampTzInstantMapping.Default;
+    private readonly TimestampTzZonedDateTimeMapping _timestamptzZonedDateTime = TimestampTzZonedDateTimeMapping.Default;
+    private readonly TimestampTzOffsetDateTimeMapping _timestamptzOffsetDateTime = TimestampTzOffsetDateTimeMapping.Default;
 
-    private readonly DateMapping _date = new();
-    private readonly TimeMapping _time = new();
-    private readonly TimeTzMapping _timetz = new();
-    private readonly PeriodIntervalMapping _periodInterval = new();
-    private readonly DurationIntervalMapping _durationInterval = new();
+    private readonly DateMapping _date = DateMapping.Default;
+    private readonly TimeMapping _time = TimeMapping.Default;
+    private readonly TimeTzMapping _timetz = TimeTzMapping.Default;
+    private readonly PeriodIntervalMapping _periodInterval = PeriodIntervalMapping.Default;
+    private readonly DurationIntervalMapping _durationInterval = DurationIntervalMapping.Default;
 
     // PostgreSQL has no native type for representing time zones - it just uses the IANA ID as text.
     private readonly DateTimeZoneMapping _timeZone = new("text");
