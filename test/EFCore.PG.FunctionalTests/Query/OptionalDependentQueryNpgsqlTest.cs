@@ -85,27 +85,25 @@ WHERE (e."Json") IS NOT NULL
 
     public override async Task Filter_nested_optional_dependent_with_all_optional_compared_to_null(bool async)
     {
-        // #2942
-        await Assert.ThrowsAsync<EqualException>(() => base.Filter_nested_optional_dependent_with_all_optional_compared_to_not_null(async));
+        await base.Filter_nested_optional_dependent_with_all_optional_compared_to_null(async);
 
         AssertSql(
             """
 SELECT e."Id", e."Name", e."Json"
 FROM "EntitiesAllOptional" AS e
-WHERE (e."Json" -> 'OpNav2') IS NOT NULL
+WHERE (e."Json" ->> 'OpNav1') IS NULL
 """);
     }
 
     public override async Task Filter_nested_optional_dependent_with_all_optional_compared_to_not_null(bool async)
     {
-        // #2942
-        await Assert.ThrowsAsync<EqualException>(() => base.Filter_nested_optional_dependent_with_all_optional_compared_to_not_null(async));
+        await base.Filter_nested_optional_dependent_with_all_optional_compared_to_not_null(async);
 
         AssertSql(
             """
 SELECT e."Id", e."Name", e."Json"
 FROM "EntitiesAllOptional" AS e
-WHERE (e."Json" -> 'OpNav2') IS NOT NULL
+WHERE (e."Json" ->> 'OpNav2') IS NOT NULL
 """);
     }
 
@@ -117,7 +115,7 @@ WHERE (e."Json" -> 'OpNav2') IS NOT NULL
             """
 SELECT e."Id", e."Name", e."Json"
 FROM "EntitiesSomeRequired" AS e
-WHERE (e."Json" -> 'ReqNav1') IS NULL
+WHERE (e."Json" ->> 'ReqNav1') IS NULL
 """);
     }
 
@@ -129,7 +127,7 @@ WHERE (e."Json" -> 'ReqNav1') IS NULL
             """
 SELECT e."Id", e."Name", e."Json"
 FROM "EntitiesSomeRequired" AS e
-WHERE (e."Json" -> 'ReqNav2') IS NOT NULL
+WHERE (e."Json" ->> 'ReqNav2') IS NOT NULL
 """);
     }
 
