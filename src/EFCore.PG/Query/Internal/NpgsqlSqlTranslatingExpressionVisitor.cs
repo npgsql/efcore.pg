@@ -177,10 +177,11 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     /// </summary>
     protected override Expression VisitBinary(BinaryExpression binaryExpression)
     {
-        if (binaryExpression.NodeType == ExpressionType.Subtract)
+        switch (binaryExpression.NodeType)
         {
-            if (binaryExpression.Left.Type.UnwrapNullableType().FullName == "NodaTime.LocalDate"
-                && binaryExpression.Right.Type.UnwrapNullableType().FullName == "NodaTime.LocalDate")
+            case ExpressionType.Subtract
+                when binaryExpression.Left.Type.UnwrapNullableType().FullName == "NodaTime.LocalDate"
+                && binaryExpression.Right.Type.UnwrapNullableType().FullName == "NodaTime.LocalDate":
             {
                 if (TranslationFailed(binaryExpression.Left, Visit(TryRemoveImplicitConvert(binaryExpression.Left)), out var sqlLeft)
                     || TranslationFailed(binaryExpression.Right, Visit(TryRemoveImplicitConvert(binaryExpression.Right)), out var sqlRight))
@@ -200,20 +201,40 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                     builtIn: true,
                     _nodaTimePeriodType ??= binaryExpression.Left.Type.Assembly.GetType("NodaTime.Period")!,
                     typeMapping: null);
+
+                // Note: many other date/time arithmetic operators are fully supported as-is by PostgreSQL - see NpgsqlSqlExpressionFactory
             }
 
-            // Note: many other date/time arithmetic operators are fully supported as-is by PostgreSQL - see NpgsqlSqlExpressionFactory
+            case ExpressionType.ArrayIndex:
+            {
+                // During preprocessing, ArrayIndex and List[] get normalized to ElementAt; see NpgsqlArrayTranslator
+                Check.DebugFail(
+                    "During preprocessing, ArrayIndex and List[] get normalized to ElementAt; see NpgsqlArrayTranslator. "
+                    + "Should never see ArrayIndex.");
+                break;
+            }
         }
 
-        if (binaryExpression.NodeType == ExpressionType.ArrayIndex)
+        var translation = base.VisitBinary(binaryExpression);
+
+        // A somewhat hacky workaround for #2942.
+        // When an optional owned JSON entity is compared to null, we get WHERE (x -> y) IS NULL.
+        // The -> operator (returning jsonb) is used rather than ->> (returning text), since an entity type is being extracted, and further
+        // JSON operations may need to be composed. However, when the value extracted is a JSON null, a non-NULL jsonb value is returned,
+        // and comparing that to relational NULL returns false.
+        // Pattern-match this and force the use of ->> by changing the mapping to be a scalar rather than an entity type.
+        if (translation is SqlUnaryExpression
+            {
+                OperatorType: ExpressionType.Equal or ExpressionType.NotEqual,
+                Operand: JsonScalarExpression { TypeMapping: NpgsqlOwnedJsonTypeMapping } operand
+            } unary)
         {
-            // During preprocessing, ArrayIndex and List[] get normalized to ElementAt; see NpgsqlArrayTranslator
-            Check.DebugFail(
-                "During preprocessing, ArrayIndex and List[] get normalized to ElementAt; see NpgsqlArrayTranslator. "
-                + "Should never see ArrayIndex.");
+            return unary.Update(
+                new JsonScalarExpression(
+                    operand.Json, operand.Path, operand.Type, _typeMappingSource.FindMapping("text"), operand.IsNullable));
         }
 
-        return base.VisitBinary(binaryExpression);
+        return translation;
     }
 
     /// <summary>
