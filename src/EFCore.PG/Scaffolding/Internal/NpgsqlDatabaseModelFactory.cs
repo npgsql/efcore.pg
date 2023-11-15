@@ -17,14 +17,8 @@ public class NpgsqlDatabaseModelFactory : DatabaseModelFactory
 {
     #region Fields
 
-    /// <summary>
-    ///     The regular expression formatting string for schema and/or table names.
-    /// </summary>
     private const string NamePartRegex = @"(?:(?:""(?<part{0}>(?:(?:"""")|[^""])+)"")|(?<part{0}>[^\.\[""]+))";
 
-    /// <summary>
-    ///     The <see cref="Regex" /> to extract the schema and/or table names.
-    /// </summary>
     private static readonly Regex SchemaTableNameExtractor =
         new(
             string.Format(
@@ -35,14 +29,8 @@ public class NpgsqlDatabaseModelFactory : DatabaseModelFactory
             RegexOptions.Compiled,
             TimeSpan.FromMilliseconds(1000.0));
 
-    /// <summary>
-    ///     The types used for serial columns.
-    /// </summary>
     private static readonly string[] SerialTypes = { "int2", "int4", "int8" };
 
-    /// <summary>
-    ///     The diagnostic logger instance.
-    /// </summary>
     private readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> _logger;
 
     #endregion
@@ -401,14 +389,16 @@ ORDER BY attnum
                 }
 
                 // Default values and PostgreSQL 12 generated columns
+                var defaultValueSql = record.GetValueOrDefault<string>("default");
                 if (record.GetFieldValue<string>("attgenerated") == "s")
                 {
-                    column.ComputedColumnSql = record.GetValueOrDefault<string>("default");
+                    column.ComputedColumnSql = defaultValueSql;
                     column.IsStored = true;
                 }
                 else
                 {
-                    column.DefaultValueSql = record.GetValueOrDefault<string>("default");
+                    column.DefaultValueSql = defaultValueSql;
+                    column.DefaultValue = ParseClrDefault(storeType, defaultValueSql);
                     AdjustDefaults(column, systemTypeName);
                 }
 
@@ -509,6 +499,36 @@ ORDER BY attnum
                 table.Columns.Add(column);
             }
         }
+    }
+
+    private static object? ParseClrDefault(string dataTypeName, string? defaultValueSql)
+    {
+        defaultValueSql = defaultValueSql?.Trim();
+
+        if (string.IsNullOrEmpty(defaultValueSql))
+        {
+            return null;
+        }
+
+        while (defaultValueSql.StartsWith('(') && defaultValueSql.EndsWith(')'))
+        {
+            defaultValueSql = (defaultValueSql.Substring(1, defaultValueSql.Length - 2)).Trim();
+        }
+
+        return dataTypeName switch
+        {
+            "bool" or "boolean" => defaultValueSql switch
+            {
+                "true" or "yes" or "on" or "1" => true,
+                "false" or "no" or "off" or "0" => false,
+                _ => null
+            },
+            "smallint" or "int2" => short.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @short) ? @short : null,
+            "integer" or "int" or "int4" => int.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @int) ? @int : null,
+            "bigint" or "int8" => long.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @long) ? @long : null,
+
+            _ => null
+        };
     }
 
     /// <summary>
