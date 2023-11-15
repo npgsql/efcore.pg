@@ -1332,7 +1332,7 @@ LEFT JOIN LATERAL (
             "OwnedCollectionLeaf" jsonb,
             "OwnedReferenceLeaf" jsonb
         )) WITH ORDINALITY AS o0
-        WHERE o0."Date" <> TIMESTAMP '2000-01-01 00:00:00'
+        WHERE o0."Date" <> TIMESTAMP '2000-01-01T00:00:00'
     ) AS t ON TRUE
 ) AS t0 ON TRUE
 ORDER BY j."Id" NULLS FIRST, t0.ordinality NULLS FIRST
@@ -1540,7 +1540,7 @@ LEFT JOIN LATERAL (
             "OwnedCollectionLeaf" jsonb,
             "OwnedReferenceLeaf" jsonb
         )) WITH ORDINALITY AS o2
-        WHERE o2."Date" <> TIMESTAMP '2000-01-01 00:00:00'
+        WHERE o2."Date" <> TIMESTAMP '2000-01-01T00:00:00'
     ) AS t2 ON TRUE
 ) AS t1 ON TRUE
 LEFT JOIN "JsonEntitiesBasicForCollection" AS j0 ON j."Id" = j0."ParentId"
@@ -2487,7 +2487,7 @@ WHERE (CAST(j."Reference" ->> 'TestCharacter' AS character(1))) <> 'z' OR (CAST(
             """
 SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
-WHERE (CAST(j."Reference" ->> 'TestDateTime' AS timestamp without time zone)) <> TIMESTAMP '2000-01-03 00:00:00' OR (CAST(j."Reference" ->> 'TestDateTime' AS timestamp without time zone)) IS NULL
+WHERE (CAST(j."Reference" ->> 'TestDateTime' AS timestamp without time zone)) <> TIMESTAMP '2000-01-03T00:00:00' OR (CAST(j."Reference" ->> 'TestDateTime' AS timestamp without time zone)) IS NULL
 """);
     }
 
@@ -2499,7 +2499,7 @@ WHERE (CAST(j."Reference" ->> 'TestDateTime' AS timestamp without time zone)) <>
             """
 SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
-WHERE (CAST(j."Reference" ->> 'TestDateTimeOffset' AS timestamp with time zone)) <> TIMESTAMPTZ '2000-01-04 00:00:00+03:02' OR (CAST(j."Reference" ->> 'TestDateTimeOffset' AS timestamp with time zone)) IS NULL
+WHERE (CAST(j."Reference" ->> 'TestDateTimeOffset' AS timestamp with time zone)) <> TIMESTAMPTZ '2000-01-04T00:00:00+03:02' OR (CAST(j."Reference" ->> 'TestDateTimeOffset' AS timestamp with time zone)) IS NULL
 """);
     }
 

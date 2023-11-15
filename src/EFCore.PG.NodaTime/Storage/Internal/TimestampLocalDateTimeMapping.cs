@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Utilties.Util;
@@ -29,7 +31,7 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public TimestampLocalDateTimeMapping()
-        : base("timestamp without time zone", typeof(LocalDateTime), NpgsqlDbType.Timestamp)
+        : base("timestamp without time zone", typeof(LocalDateTime), NpgsqlDbType.Timestamp, JsonLocalDateTimeReaderWriter.Instance)
     {
     }
 
@@ -78,7 +80,7 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
-        => $"TIMESTAMP '{GenerateLiteralCore(value)}'";
+        => $"TIMESTAMP '{Format((LocalDateTime)value)}'";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -87,21 +89,18 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => $@"""{GenerateLiteralCore(value)}""";
+        => $@"""{Format((LocalDateTime)value)}""";
 
-    private string GenerateLiteralCore(object value)
+    private static string Format(LocalDateTime localDateTime)
     {
-        var localDateTime = (LocalDateTime)value;
-
-        // TODO: Switch to use LocalDateTime.MinMaxValue when available (#4061)
         if (!NpgsqlNodaTimeTypeMappingSourcePlugin.DisableDateTimeInfinityConversions)
         {
-            if (localDateTime == LocalDate.MinIsoValue + LocalTime.MinValue)
+            if (localDateTime == LocalDateTime.MinIsoValue)
             {
                 return "-infinity";
             }
 
-            if (localDateTime == LocalDate.MaxIsoValue + LocalTime.MaxValue)
+            if (localDateTime == LocalDateTime.MaxIsoValue)
             {
                 return "infinity";
             }
@@ -132,5 +131,31 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
         return dateTime.NanosecondOfSecond == 0
             ? newExpr
             : Expression.Call(newExpr, PlusNanosecondsMethod, Expression.Constant((long)dateTime.NanosecondOfSecond));
+    }
+
+    private sealed class JsonLocalDateTimeReaderWriter : JsonValueReaderWriter<LocalDateTime>
+    {
+        public static JsonLocalDateTimeReaderWriter Instance { get; } = new();
+
+        public override LocalDateTime FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+        {
+            var s = manager.CurrentReader.GetString()!;
+
+            if (!NpgsqlNodaTimeTypeMappingSourcePlugin.DisableDateTimeInfinityConversions)
+            {
+                switch (s)
+                {
+                    case "-infinity":
+                        return LocalDateTime.MinIsoValue;
+                    case "infinity":
+                        return LocalDateTime.MaxIsoValue;
+                }
+            }
+
+            return LocalDateTimePattern.ExtendedIso.Parse(s).GetValueOrThrow();
+        }
+
+        public override void ToJsonTyped(Utf8JsonWriter writer, LocalDateTime value)
+            => writer.WriteStringValue(Format(value));
     }
 }

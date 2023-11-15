@@ -86,7 +86,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
                         instance.TypeMapping);
 
                 // If DateTime.Date is invoked on a PostgreSQL date (or DateOnly, which can only be mapped to datE), simply no-op.
-                case { TypeMapping: NpgsqlDateTypeMapping }:
+                case { TypeMapping: NpgsqlDateTimeDateTypeMapping }:
                 case { Type: var type } when type == typeof(DateOnly):
                     return instance;
 
@@ -236,7 +236,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
         switch (timestamp)
         {
             // We're already dealing with a non-timestamptz mapping, no conversion needed.
-            case { TypeMapping: NpgsqlTimestampTypeMapping or NpgsqlDateTypeMapping or NpgsqlTimeTypeMapping }:
+            case { TypeMapping: NpgsqlTimestampTypeMapping or NpgsqlDateTimeDateTypeMapping or NpgsqlTimeTypeMapping }:
             case { Type: var type } when type == typeof(DateOnly) || type == typeof(TimeOnly):
                 result = timestamp;
                 return true;

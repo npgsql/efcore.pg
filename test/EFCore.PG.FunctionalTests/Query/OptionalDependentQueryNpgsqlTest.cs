@@ -1,5 +1,5 @@
+using Microsoft.EntityFrameworkCore.TestModels.OptionalDependent;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using Xunit.Sdk;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
@@ -138,5 +138,23 @@ WHERE (e."Json" ->> 'ReqNav2') IS NOT NULL
     {
         protected override ITestStoreFactory TestStoreFactory
             => NpgsqlTestStoreFactory.Instance;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
+        {
+            base.OnModelCreating(modelBuilder, context);
+
+            // The EF seed data has Unspecified DateTimes, but we map DateTime to timestamptz by default, which requires UTC DateTimes.
+            // Configure the properties to have timestamp, which allows Unspecified DateTimes.
+            modelBuilder.Entity<OptionalDependentEntityAllOptional>().OwnsOne(
+                x => x.Json,
+                b => b.OwnsOne(x => x.OpNav2, b2 => b2.Property(op => op.ReqNested2).HasColumnType("timestamp without time zone")));
+
+            modelBuilder.Entity<OptionalDependentEntitySomeRequired>().OwnsOne(
+                x => x.Json, b =>
+                {
+                    b.OwnsOne(x => x.OpNav2, b2 => b2.Property(op => op.ReqNested2).HasColumnType("timestamp without time zone"));
+                    b.OwnsOne(x => x.ReqNav2, b2 => b2.Property(op => op.ReqNested2).HasColumnType("timestamp without time zone"));
+                });
+        }
     }
 }

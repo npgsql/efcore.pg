@@ -615,7 +615,7 @@ CREATE TABLE public."People" (
             });
 
         AssertSql(
-            @"ALTER TABLE ""People"" ADD ""Birthday"" timestamp with time zone NOT NULL DEFAULT TIMESTAMPTZ '2015-04-12 17:05:00Z';");
+            @"ALTER TABLE ""People"" ADD ""Birthday"" timestamp with time zone NOT NULL DEFAULT TIMESTAMPTZ '2015-04-12T17:05:00Z';");
     }
 
     [Fact]

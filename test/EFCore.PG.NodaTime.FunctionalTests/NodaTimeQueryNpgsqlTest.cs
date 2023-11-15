@@ -1573,7 +1573,7 @@ WHERE n."Instant" AT TIME ZONE @__timeZone_0 = TIMESTAMP '2018-04-20T12:31:33.66
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE n."Instant"::timestamptz = TIMESTAMPTZ '2018-04-20 10:31:33.666Z'
+WHERE n."Instant"::timestamptz = TIMESTAMPTZ '2018-04-20T10:31:33.666Z'
 """);
     }
 

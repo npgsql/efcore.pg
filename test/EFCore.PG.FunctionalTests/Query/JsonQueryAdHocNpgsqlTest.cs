@@ -17,16 +17,15 @@ public class JsonQueryAdHocNpgsqlTest : JsonQueryAdHocTestBase
     public override Task Junk_in_json_basic_no_tracking(bool async)
         => base.Junk_in_json_basic_no_tracking(async);
 
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
+    [ConditionalTheory, MemberData(nameof(IsAsyncData))]
     public virtual async Task Json_predicate_on_bytea(bool async)
     {
-        var contextFactory = await InitializeAsync<ByteaDbContext>(
+        var contextFactory = await InitializeAsync<TypesDbContext>(
             seed: context =>
             {
                 context.Entities.AddRange(
-                    new ByteaContainerEntity { JsonEntity = new ByteaJsonEntity { Bytea = new byte[] { 1, 2, 3 } } },
-                    new ByteaContainerEntity { JsonEntity = new ByteaJsonEntity { Bytea = new byte[] { 1, 2, 4 } } });
+                    new TypesContainerEntity { JsonEntity = new TypesJsonEntity { Bytea = new byte[] { 1, 2, 3 } } },
+                    new TypesContainerEntity { JsonEntity = new TypesJsonEntity { Bytea = new byte[] { 1, 2, 4 } } });
                 context.SaveChanges();
             });
 
@@ -39,31 +38,72 @@ public class JsonQueryAdHocNpgsqlTest : JsonQueryAdHocTestBase
                 : query.Single();
 
             Assert.Equal(2, result.Id);
+
+            AssertSql(
+                """
+SELECT e."Id", e."JsonEntity"
+FROM "Entities" AS e
+WHERE (decode(e."JsonEntity" ->> 'Bytea', 'base64')) = BYTEA E'\\x010204'
+LIMIT 2
+""");
         }
     }
 
-    protected class ByteaDbContext : DbContext
+    [ConditionalTheory, MemberData(nameof(IsAsyncData))]
+    public virtual async Task Json_predicate_on_interval(bool async)
     {
-        public ByteaDbContext(DbContextOptions options)
+        var contextFactory = await InitializeAsync<TypesDbContext>(
+            seed: context =>
+            {
+                context.Entities.AddRange(
+                    new TypesContainerEntity { JsonEntity = new TypesJsonEntity { Interval = new TimeSpan(1, 2, 3, 4, 123, 456) } },
+                    new TypesContainerEntity { JsonEntity = new TypesJsonEntity { Interval = new TimeSpan(2, 2, 3, 4, 123, 456) } });
+                context.SaveChanges();
+            });
+
+        using (var context = contextFactory.CreateContext())
+        {
+            var query = context.Entities.Where(x => x.JsonEntity.Interval == new TimeSpan(2, 2, 3, 4, 123, 456));
+
+            var result = async
+                ? await query.SingleAsync()
+                : query.Single();
+
+            Assert.Equal(2, result.Id);
+
+            AssertSql(
+                """
+SELECT e."Id", e."JsonEntity"
+FROM "Entities" AS e
+WHERE (CAST(e."JsonEntity" ->> 'Interval' AS interval)) = INTERVAL '2 02:03:04.123456'
+LIMIT 2
+""");
+        }
+    }
+
+    protected class TypesDbContext : DbContext
+    {
+        public TypesDbContext(DbContextOptions options)
             : base(options)
         {
         }
 
-        public DbSet<ByteaContainerEntity> Entities { get; set; }
+        public DbSet<TypesContainerEntity> Entities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-            => modelBuilder.Entity<ByteaContainerEntity>().OwnsOne(b => b.JsonEntity).ToJson();
+            => modelBuilder.Entity<TypesContainerEntity>().OwnsOne(b => b.JsonEntity).ToJson();
     }
 
-    public class ByteaContainerEntity
+    public class TypesContainerEntity
     {
         public int Id { get; set; }
-        public ByteaJsonEntity JsonEntity { get; set; }
+        public TypesJsonEntity JsonEntity { get; set; }
     }
 
-    public class ByteaJsonEntity
+    public class TypesJsonEntity
     {
         public byte[] Bytea { get; set; }
+        public TimeSpan Interval { get; set; }
     }
 
     protected override void Seed29219(MyContext29219 ctx)
@@ -228,8 +268,7 @@ VALUES(
 
     #region EnumLegacyValues
 
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
+    [ConditionalTheory, MemberData(nameof(IsAsyncData))]
     public virtual async Task Read_enum_property_with_legacy_values(bool async)
     {
         var contextFactory = await InitializeAsync<MyContextEnumLegacyValues>(
@@ -255,8 +294,7 @@ VALUES(
         }
     }
 
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
+    [ConditionalTheory, MemberData(nameof(IsAsyncData))]
     public virtual async Task Read_json_entity_with_enum_properties_with_legacy_values(bool async)
     {
         var contextFactory = await InitializeAsync<MyContextEnumLegacyValues>(
@@ -294,8 +332,7 @@ VALUES(
                 l => l.Message == CoreResources.LogStringEnumValueInJson(testLogger).GenerateMessage(nameof(ULongEnumLegacyValues))));
     }
 
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
+    [ConditionalTheory, MemberData(nameof(IsAsyncData))]
     public virtual async Task Read_json_entity_collection_with_enum_properties_with_legacy_values(bool async)
     {
         var contextFactory = await InitializeAsync<MyContextEnumLegacyValues>(
@@ -426,4 +463,7 @@ VALUES(
     }
 
     #endregion
+
+    protected void AssertSql(params string[] expected)
+        => TestSqlLoggerFactory.AssertBaseline(expected);
 }

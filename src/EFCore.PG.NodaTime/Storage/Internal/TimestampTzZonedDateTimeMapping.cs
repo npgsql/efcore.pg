@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Text;
 using NodaTime.TimeZones;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -25,7 +27,7 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public TimestampTzZonedDateTimeMapping()
-        : base("timestamp with time zone", typeof(ZonedDateTime), NpgsqlDbType.TimestampTz)
+        : base("timestamp with time zone", typeof(ZonedDateTime), NpgsqlDbType.TimestampTz, JsonZonedDateTimeReaderWriter.Instance)
     {
     }
 
@@ -74,7 +76,7 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
-        => $"TIMESTAMPTZ '{GenerateLiteralCore(value)}'";
+        => $"TIMESTAMPTZ '{Pattern.Format((ZonedDateTime)value)}'";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -83,10 +85,7 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => $@"""{GenerateLiteralCore(value)}""";
-
-    private string GenerateLiteralCore(object value)
-        => Pattern.Format((ZonedDateTime)value);
+        => $@"""{Pattern.Format((ZonedDateTime)value)}""";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -119,4 +118,15 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
         typeof(TzdbDateTimeZoneSource).GetRuntimeMethod(
             nameof(TzdbDateTimeZoneSource.ForId),
             new[] { typeof(string) })!;
+
+    private sealed class JsonZonedDateTimeReaderWriter : JsonValueReaderWriter<ZonedDateTime>
+    {
+        public static JsonZonedDateTimeReaderWriter Instance { get; } = new();
+
+        public override ZonedDateTime FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+            => Pattern.Parse(manager.CurrentReader.GetString()!).GetValueOrThrow();
+
+        public override void ToJsonTyped(Utf8JsonWriter writer, ZonedDateTime value)
+            => writer.WriteStringValue(Pattern.Format(value));
+    }
 }

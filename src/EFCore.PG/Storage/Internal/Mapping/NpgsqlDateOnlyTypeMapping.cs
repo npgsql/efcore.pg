@@ -10,7 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlTimestampTypeMapping : NpgsqlTypeMapping
+public class NpgsqlDateOnlyTypeMapping : NpgsqlTypeMapping
 {
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -18,8 +18,8 @@ public class NpgsqlTimestampTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlTimestampTypeMapping()
-        : base("timestamp without time zone", typeof(DateTime), NpgsqlDbType.Timestamp, NpgsqlJsonTimestampReaderWriter.Instance)
+    public NpgsqlDateOnlyTypeMapping()
+        : base("date", typeof(DateOnly), NpgsqlDbType.Date, NpgsqlJsonDateOnlyReaderWriter.Instance)
     {
     }
 
@@ -29,8 +29,8 @@ public class NpgsqlTimestampTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected NpgsqlTimestampTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Timestamp)
+    protected NpgsqlDateOnlyTypeMapping(RelationalTypeMappingParameters parameters)
+        : base(parameters, NpgsqlDbType.Date)
     {
     }
 
@@ -41,16 +41,7 @@ public class NpgsqlTimestampTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-        => new NpgsqlTimestampTypeMapping(parameters);
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    protected override string ProcessStoreType(RelationalTypeMappingParameters parameters, string storeType, string _)
-        => parameters.Precision is null ? storeType : $"timestamp({parameters.Precision}) without time zone";
+        => new NpgsqlDateOnlyTypeMapping(parameters);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -59,7 +50,7 @@ public class NpgsqlTimestampTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
-        => $"TIMESTAMP '{GenerateLiteralCore(value)}'";
+        => $"DATE '{GenerateEmbeddedNonNullSqlLiteral(value)}'";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -68,36 +59,31 @@ public class NpgsqlTimestampTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => $@"""{GenerateLiteralCore(value)}""";
+        => Format((DateOnly)value);
 
-    private string GenerateLiteralCore(object value)
-        => FormatDateTime((DateTime)value);
-
-    private static string FormatDateTime(DateTime dateTime)
+    private static string Format(DateOnly date)
     {
         if (!NpgsqlTypeMappingSource.DisableDateTimeInfinityConversions)
         {
-            if (dateTime == DateTime.MinValue)
+            if (date == DateOnly.MinValue)
             {
                 return "-infinity";
             }
 
-            if (dateTime == DateTime.MaxValue)
+            if (date == DateOnly.MaxValue)
             {
                 return "infinity";
             }
         }
 
-        return NpgsqlTypeMappingSource.LegacyTimestampBehavior || dateTime.Kind != DateTimeKind.Utc
-            ? dateTime.ToString("yyyy-MM-ddTHH:mm:ss.FFFFFF", CultureInfo.InvariantCulture)
-            : throw new ArgumentException("'timestamp without time zone' literal cannot be generated for a UTC DateTime");
+        return date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     }
 
-    private sealed class NpgsqlJsonTimestampReaderWriter : JsonValueReaderWriter<DateTime>
+    private sealed class NpgsqlJsonDateOnlyReaderWriter : JsonValueReaderWriter<DateOnly>
     {
-        public static NpgsqlJsonTimestampReaderWriter Instance { get; } = new();
+        public static NpgsqlJsonDateOnlyReaderWriter Instance { get; } = new();
 
-        public override DateTime FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+        public override DateOnly FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
         {
             var s = manager.CurrentReader.GetString()!;
 
@@ -106,16 +92,16 @@ public class NpgsqlTimestampTypeMapping : NpgsqlTypeMapping
                 switch (s)
                 {
                     case "-infinity":
-                        return DateTime.MinValue;
+                        return DateOnly.MinValue;
                     case "infinity":
-                        return DateTime.MaxValue;
+                        return DateOnly.MaxValue;
                 }
             }
 
-            return DateTime.Parse(s, CultureInfo.InvariantCulture);
+            return DateOnly.Parse(s, CultureInfo.InvariantCulture);
         }
 
-        public override void ToJsonTyped(Utf8JsonWriter writer, DateTime value)
-            => writer.WriteStringValue(FormatDateTime(value));
+        public override void ToJsonTyped(Utf8JsonWriter writer, DateOnly value)
+            => writer.WriteStringValue(Format(value));
     }
 }

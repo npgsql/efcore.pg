@@ -60,7 +60,7 @@ public class NpgsqlTypeMappingTest
     {
         Assert.Equal(
             "DATE '2015-03-12'",
-            GetMapping("date").GenerateSqlLiteral(new DateTime(2015, 3, 12)));
+            GetMapping(typeof(DateTime), "date").GenerateSqlLiteral(new DateTime(2015, 3, 12)));
 
         Assert.Equal(
             "DATE '2015-03-12'",
@@ -72,11 +72,11 @@ public class NpgsqlTypeMappingTest
     {
         Assert.Equal(
             "DATE '-infinity'",
-            GetMapping("date").GenerateSqlLiteral(DateTime.MinValue));
+            GetMapping(typeof(DateTime), "date").GenerateSqlLiteral(DateTime.MinValue));
 
         Assert.Equal(
             "DATE 'infinity'",
-            GetMapping("date").GenerateSqlLiteral(DateTime.MaxValue));
+            GetMapping(typeof(DateTime), "date").GenerateSqlLiteral(DateTime.MaxValue));
 
         Assert.Equal(
             "DATE '-infinity'",
@@ -92,13 +92,13 @@ public class NpgsqlTypeMappingTest
     {
         var mapping = GetMapping("timestamp without time zone");
         Assert.Equal(
-            "TIMESTAMP '1997-12-17 07:37:16'",
+            "TIMESTAMP '1997-12-17T07:37:16'",
             mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Local)));
         Assert.Equal(
-            "TIMESTAMP '1997-12-17 07:37:16'",
+            "TIMESTAMP '1997-12-17T07:37:16'",
             mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Unspecified)));
         Assert.Equal(
-            "TIMESTAMP '1997-12-17 07:37:16.345'",
+            "TIMESTAMP '1997-12-17T07:37:16.345'",
             mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, 345)));
     }
 
@@ -146,10 +146,10 @@ public class NpgsqlTypeMappingTest
     {
         var mapping = GetMapping("timestamptz");
         Assert.Equal(
-            "TIMESTAMPTZ '1997-12-17 07:37:16Z'",
+            "TIMESTAMPTZ '1997-12-17T07:37:16Z'",
             mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Utc)));
         Assert.Equal(
-            "TIMESTAMPTZ '1997-12-17 07:37:16.345678Z'",
+            "TIMESTAMPTZ '1997-12-17T07:37:16.345678Z'",
             mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, 345, DateTimeKind.Utc).AddTicks(6780)));
     }
 
@@ -166,11 +166,11 @@ public class NpgsqlTypeMappingTest
 
         Assert.Equal(
             "TIMESTAMPTZ '-infinity'",
-            GetMapping("timestamptz").GenerateSqlLiteral(DateTimeOffset.MinValue));
+            GetMapping(typeof(DateTimeOffset), "timestamptz").GenerateSqlLiteral(DateTimeOffset.MinValue));
 
         Assert.Equal(
             "TIMESTAMPTZ 'infinity'",
-            GetMapping("timestamptz").GenerateSqlLiteral(DateTimeOffset.MaxValue));
+            GetMapping(typeof(DateTimeOffset), "timestamptz").GenerateSqlLiteral(DateTimeOffset.MaxValue));
     }
 
     [Fact]
@@ -188,10 +188,10 @@ public class NpgsqlTypeMappingTest
     {
         var mapping = GetMapping("timestamptz");
         Assert.Equal(
-            "TIMESTAMPTZ '1997-12-17 07:37:16+02:00'",
+            "TIMESTAMPTZ '1997-12-17T07:37:16+02:00'",
             mapping.GenerateSqlLiteral(new DateTimeOffset(1997, 12, 17, 7, 37, 16, TimeSpan.FromHours(2))));
         Assert.Equal(
-            "TIMESTAMPTZ '1997-12-17 07:37:16.345+02:00'",
+            "TIMESTAMPTZ '1997-12-17T07:37:16.345+02:00'",
             mapping.GenerateSqlLiteral(new DateTimeOffset(1997, 12, 17, 7, 37, 16, 345, TimeSpan.FromHours(2))));
     }
 
@@ -715,7 +715,7 @@ public class NpgsqlTypeMappingTest
         Assert.Equal("timestamp without time zone", mapping.SubtypeMapping.StoreType);
 
         var value = new NpgsqlRange<DateTime>(new DateTime(2020, 1, 1, 12, 0, 0), new DateTime(2020, 1, 2, 12, 0, 0));
-        Assert.Equal(@"'[""2020-01-01 12:00:00"",""2020-01-02 12:00:00""]'::tsrange", mapping.GenerateSqlLiteral(value));
+        Assert.Equal(@"'[""2020-01-01T12:00:00"",""2020-01-02T12:00:00""]'::tsrange", mapping.GenerateSqlLiteral(value));
     }
 
     [Fact]
@@ -726,7 +726,7 @@ public class NpgsqlTypeMappingTest
 
         var value = new NpgsqlRange<DateTime>(
             new DateTime(2020, 1, 1, 12, 0, 0, DateTimeKind.Utc), new DateTime(2020, 1, 2, 12, 0, 0, DateTimeKind.Utc));
-        Assert.Equal(@"'[""2020-01-01 12:00:00Z"",""2020-01-02 12:00:00Z""]'::tstzrange", mapping.GenerateSqlLiteral(value));
+        Assert.Equal(@"'[""2020-01-01T12:00:00Z"",""2020-01-02T12:00:00Z""]'::tstzrange", mapping.GenerateSqlLiteral(value));
     }
 
     [Fact]

@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Utilties.Util;
@@ -31,7 +33,7 @@ public class TimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public TimeMapping()
-        : base("time", typeof(LocalTime), NpgsqlDbType.Time)
+        : base("time", typeof(LocalTime), NpgsqlDbType.Time, JsonLocalTimeReaderWriter.Instance)
     {
     }
 
@@ -105,5 +107,16 @@ public class TimeMapping : NpgsqlTypeMapping
             : time.Second != 0
                 ? ConstantNew(ConstructorWithSeconds, time.Hour, time.Minute, time.Second)
                 : ConstantNew(ConstructorWithMinutes, time.Hour, time.Minute);
+    }
+
+    private sealed class JsonLocalTimeReaderWriter : JsonValueReaderWriter<LocalTime>
+    {
+        public static JsonLocalTimeReaderWriter Instance { get; } = new();
+
+        public override LocalTime FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+            => LocalTimePattern.ExtendedIso.Parse(manager.CurrentReader.GetString()!).GetValueOrThrow();
+
+        public override void ToJsonTyped(Utf8JsonWriter writer, LocalTime value)
+            => writer.WriteStringValue(LocalTimePattern.ExtendedIso.Format(value));
     }
 }

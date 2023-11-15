@@ -158,7 +158,7 @@ WHERE c."ContactName" COLLATE "POSIX" = 'maria anders'
             """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
-ORDER BY o."OrderDate" <-> TIMESTAMP '1997-06-28 00:00:00' NULLS FIRST
+ORDER BY o."OrderDate" <-> TIMESTAMP '1997-06-28T00:00:00' NULLS FIRST
 LIMIT 1
 """);
     }

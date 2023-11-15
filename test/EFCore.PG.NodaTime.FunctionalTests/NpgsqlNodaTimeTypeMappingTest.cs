@@ -1,6 +1,8 @@
+using System.Text;
 using Microsoft.EntityFrameworkCore.Design.Internal;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Calendars;
+using NodaTime.Text;
 using NodaTime.TimeZones;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -66,6 +68,25 @@ public class NpgsqlNodaTimeTypeMappingTest
         // TODO: Switch to use LocalDateTime.MinMaxValue when available (#4061)
         Assert.Equal("TIMESTAMP '-infinity'", mapping.GenerateSqlLiteral(LocalDate.MinIsoValue + LocalTime.MinValue));
         Assert.Equal("TIMESTAMP 'infinity'", mapping.GenerateSqlLiteral(LocalDate.MaxIsoValue + LocalTime.MaxValue));
+    }
+
+    [ConditionalTheory]
+    [InlineData("0001-01-01T00:00:00")]
+    [InlineData("9999-12-31T23:59:59.9999999")]
+    [InlineData("2023-05-29T10:52:47.2064353")]
+    public void LocalDateTime_json(string dateString)
+    {
+        var readerWriter = GetMapping(typeof(LocalDateTime)).JsonValueReaderWriter!;
+
+        var date = LocalDateTimePattern.ExtendedIso.Parse(dateString).GetValueOrThrow();
+        var actualJson = readerWriter.ToJsonString(date)[1..^1];
+        Assert.Equal(dateString, actualJson);
+
+        // TODO: The following should just do ToJsonString(), but see https://github.com/dotnet/efcore/issues/32269
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes($"\"{dateString}\"")), null);
+        readerManager.MoveNext();
+        var actualDate = readerWriter.FromJson(ref readerManager, existingObject: null);
+        Assert.Equal(date, actualDate);
     }
 
     [Fact]
@@ -184,6 +205,43 @@ public class NpgsqlNodaTimeTypeMappingTest
         Assert.Equal(
             "new NodaTime.OffsetDateTime(new NodaTime.LocalDateTime(2018, 4, 20, 10, 31, 33), NodaTime.Offset.FromSeconds(-1))",
             CodeLiteral(new OffsetDateTime(new LocalDateTime(2018, 4, 20, 10, 31, 33), Offset.FromSeconds(-1))));
+    }
+
+    [ConditionalTheory]
+    [InlineData("0001-01-01T00:00:00Z")]
+    [InlineData("2023-05-29T10:52:47.2064353Z")]
+    [InlineData("-0005-05-05T05:55:55.555Z")]
+    public void Instant_json(string instantString)
+    {
+        var readerWriter = GetMapping(typeof(Instant)).JsonValueReaderWriter!;
+
+        var date = InstantPattern.ExtendedIso.Parse(instantString).GetValueOrThrow();
+        var actualJson = readerWriter.ToJsonString(date)[1..^1];
+        Assert.Equal(instantString, actualJson);
+
+        // TODO: The following should just do ToJsonString(), but see https://github.com/dotnet/efcore/issues/32269
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes($"\"{instantString}\"")), null);
+        readerManager.MoveNext();
+        var actualInstant = readerWriter.FromJson(ref readerManager, existingObject: null);
+        Assert.Equal(date, actualInstant);
+    }
+
+    [ConditionalFact]
+    public void Instant_json_infinity()
+    {
+        var readerWriter = GetMapping(typeof(Instant)).JsonValueReaderWriter!;
+
+        Assert.Equal("infinity", readerWriter.ToJsonString(Instant.MaxValue)[1..^1]);
+        Assert.Equal("-infinity", readerWriter.ToJsonString(Instant.MinValue)[1..^1]);
+
+        // TODO: The following should just do ToJsonString(), but see https://github.com/dotnet/efcore/issues/32269
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData("\"infinity\""u8.ToArray()), null);
+        readerManager.MoveNext();
+        Assert.Equal(Instant.MaxValue, readerWriter.FromJson(ref readerManager, existingObject: null));
+
+        readerManager = new Utf8JsonReaderManager(new JsonReaderData("\"-infinity\""u8.ToArray()), null);
+        readerManager.MoveNext();
+        Assert.Equal(Instant.MinValue, readerWriter.FromJson(ref readerManager, existingObject: null));
     }
 
     [Fact]
@@ -382,6 +440,43 @@ public class NpgsqlNodaTimeTypeMappingTest
         Assert.Equal("new NodaTime.LocalDate(-2017, 4, 20)", CodeLiteral(new LocalDate(Era.BeforeCommon, 2018, 4, 20)));
     }
 
+    [ConditionalTheory]
+    [InlineData("0001-01-01")]
+    [InlineData("2023-05-29")]
+    [InlineData("-0005-05-05")]
+    public void LocalDate_json(string dateString)
+    {
+        var readerWriter = GetMapping(typeof(LocalDate)).JsonValueReaderWriter!;
+
+        var date = LocalDatePattern.Iso.Parse(dateString).GetValueOrThrow();
+        var actualJson = readerWriter.ToJsonString(date)[1..^1];
+        Assert.Equal(dateString, actualJson);
+
+        // TODO: The following should just do ToJsonString(), but see https://github.com/dotnet/efcore/issues/32269
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes($"\"{dateString}\"")), null);
+        readerManager.MoveNext();
+        var actualDate = readerWriter.FromJson(ref readerManager, existingObject: null);
+        Assert.Equal(date, actualDate);
+    }
+
+    [ConditionalFact]
+    public void LocalDate_json_infinity()
+    {
+        var readerWriter = GetMapping(typeof(LocalDate)).JsonValueReaderWriter!;
+
+        Assert.Equal("infinity", readerWriter.ToJsonString(LocalDate.MaxIsoValue)[1..^1]);
+        Assert.Equal("-infinity", readerWriter.ToJsonString(LocalDate.MinIsoValue)[1..^1]);
+
+        // TODO: The following should just do ToJsonString(), but see https://github.com/dotnet/efcore/issues/32269
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData("\"infinity\""u8.ToArray()), null);
+        readerManager.MoveNext();
+        Assert.Equal(LocalDate.MaxIsoValue, readerWriter.FromJson(ref readerManager, existingObject: null));
+
+        readerManager = new Utf8JsonReaderManager(new JsonReaderData("\"-infinity\""u8.ToArray()), null);
+        readerManager.MoveNext();
+        Assert.Equal(LocalDate.MinIsoValue, readerWriter.FromJson(ref readerManager, existingObject: null));
+    }
+
     [Fact]
     public void DateInterval_is_properly_mapped()
     {
@@ -521,6 +616,25 @@ public class NpgsqlNodaTimeTypeMappingTest
     public void LocalTime_list_is_properly_mapped()
         => Assert.Equal("time[]", GetMapping(typeof(List<LocalTime>)).StoreType);
 
+    [ConditionalTheory]
+    [InlineData("00:00:00.0000000", "00:00:00")]
+    [InlineData("23:59:59.9999999", "23:59:59.9999999")]
+    [InlineData("11:05:12.3456789", "11:05:12.3456789")]
+    public void LocalTime_json(string timeString, string json)
+    {
+        var readerWriter = GetMapping(typeof(LocalTime)).JsonValueReaderWriter!;
+
+        var time = LocalTimePattern.ExtendedIso.Parse(timeString).GetValueOrThrow();
+        var actualJson = readerWriter.ToJsonString(time)[1..^1];
+        Assert.Equal(json, actualJson);
+
+        // TODO: The following should just do ToJsonString(), but see https://github.com/dotnet/efcore/issues/32269
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes($"\"{json}\"")), null);
+        readerManager.MoveNext();
+        var actualTime = readerWriter.FromJson(ref readerManager, existingObject: null);
+        Assert.Equal(time, actualTime);
+    }
+
     #endregion time
 
     #region timetz
@@ -546,6 +660,25 @@ public class NpgsqlNodaTimeTypeMappingTest
         => Assert.Equal(
             "new NodaTime.OffsetTime(new NodaTime.LocalTime(10, 31, 33), NodaTime.Offset.FromHours(2))",
             CodeLiteral(new OffsetTime(new LocalTime(10, 31, 33), Offset.FromHours(2))));
+
+    [ConditionalTheory]
+    [InlineData("00:00:00.0000000Z", "00:00:00Z")]
+    [InlineData("23:59:59.999999Z", "23:59:59.999999Z")]
+    [InlineData("11:05:12-02", "11:05:12-02")]
+    public void OffsetTime_json(string timeString, string json)
+    {
+        var readerWriter = GetMapping(typeof(OffsetTime)).JsonValueReaderWriter!;
+
+        var timeOffset = OffsetTimePattern.ExtendedIso.Parse(timeString).GetValueOrThrow();
+        var actualJson = readerWriter.ToJsonString(timeOffset)[1..^1];
+        Assert.Equal(json, actualJson);
+
+        // TODO: The following should just do ToJsonString(), but see https://github.com/dotnet/efcore/issues/32269
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes($"\"{json}\"")), null);
+        readerManager.MoveNext();
+        var actualTimeOffset = readerWriter.FromJson(ref readerManager, existingObject: null);
+        Assert.Equal(timeOffset, actualTimeOffset);
+    }
 
     #endregion timetz
 
@@ -629,6 +762,46 @@ public class NpgsqlNodaTimeTypeMappingTest
 
         Assert.Equal("NodaTime.Duration.Zero", CodeLiteral(Duration.Zero));
     }
+
+    [ConditionalTheory]
+    [InlineData("-10675199:02:48:05.477580", "-10675199 02:48:05.47758")]
+    [InlineData("10675199:02:48:05.477580", "10675199 02:48:05.47758")]
+    [InlineData("00:00:00", "00:00:00")]
+    [InlineData("12:23:23.801885", "12:23:23.801885")]
+    public void Duration_json(string durationString, string json)
+    {
+        var readerWriter = GetMapping(typeof(Duration)).JsonValueReaderWriter!;
+
+        var duration = durationString.Count(c => c == ':') == 3 // there's a Days component
+            ? DurationPattern.Roundtrip.Parse(durationString).GetValueOrThrow()
+            : DurationPattern.JsonRoundtrip.Parse(durationString).GetValueOrThrow();
+        var actualJson = readerWriter.ToJsonString(duration)[1..^1];
+        Assert.Equal(json, actualJson);
+
+        // TODO: The following should just do ToJsonString(), but see https://github.com/dotnet/efcore/issues/32269
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes($"\"{json}\"")), null);
+        readerManager.MoveNext();
+        var actualDuration =  readerWriter.FromJson(ref readerManager, existingObject: null);
+        Assert.Equal(duration, actualDuration);
+    }
+
+    [ConditionalTheory]
+    [InlineData("P2018Y4M20DT4H3M2S")]
+    public void Period_json(string intervalString)
+    {
+        var readerWriter = GetMapping(typeof(Period)).JsonValueReaderWriter!;
+
+        var period = PeriodPattern.NormalizingIso.Parse(intervalString).GetValueOrThrow();
+        var actualJson = readerWriter.ToJsonString(period)[1..^1];
+        Assert.Equal(intervalString, actualJson);
+
+        // TODO: The following should just do ToJsonString(), but see https://github.com/dotnet/efcore/issues/32269
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes($"\"{intervalString}\"")), null);
+        readerManager.MoveNext();
+        var actualPeriod =  readerWriter.FromJson(ref readerManager, existingObject: null);
+        Assert.Equal(period, actualPeriod);
+    }
+
 
     #endregion interval
 
