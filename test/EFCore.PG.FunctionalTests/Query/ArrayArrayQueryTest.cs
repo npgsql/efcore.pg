@@ -103,8 +103,7 @@ WHERE FALSE
     {
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.Bytea[0] == 3),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => e.Bytea[0] == 3));
 
         AssertSql(
             """
@@ -272,8 +271,7 @@ WHERE s."NullableIntArray" @> ARRAY[3]::integer[]
     {
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => new[] { "foo", "xxx" }.Contains(e.NullableText)),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => new[] { "foo", "xxx" }.Contains(e.NullableText)));
 
         AssertSql(
             """
@@ -289,8 +287,7 @@ WHERE s."NullableText" IN ('foo', 'xxx')
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.NullableText)),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.NullableText)));
 
         AssertSql(
             """
@@ -308,8 +305,7 @@ WHERE s."NullableText" = ANY (@__array_0) OR (s."NullableText" IS NULL AND array
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.Id)),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.Id)));
 
         AssertSql(
             """
@@ -399,8 +395,7 @@ WHERE NOT (s."NullableText" = ANY (@__array_0) AND s."NullableText" = ANY (@__ar
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => values.Contains(e.Id.ToString())),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => values.Contains(e.Id.ToString())));
 
         AssertSql(
             """
@@ -418,8 +413,7 @@ WHERE s."Id"::text = ANY (@__values_0)
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => values.Contains(e.Byte)),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => values.Contains(e.Byte)));
 
         // Note: EF Core prints the parameter as a bytea, but it's actually a smallint[] (otherwise ANY would fail)
         AssertSql(
@@ -438,8 +432,7 @@ WHERE s."Byte" = ANY (@__values_0)
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.EnumConvertedToInt)),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.EnumConvertedToInt)));
 
         AssertSql(
             """
@@ -457,8 +450,7 @@ WHERE s."EnumConvertedToInt" = ANY (@__array_0)
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.EnumConvertedToString)),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.EnumConvertedToString)));
 
         AssertSql(
             """
@@ -476,8 +468,7 @@ WHERE s."EnumConvertedToString" = ANY (@__array_0)
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.NullableEnumConvertedToString)),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.NullableEnumConvertedToString)));
 
         AssertSql(
             """
@@ -495,8 +486,7 @@ WHERE s."NullableEnumConvertedToString" = ANY (@__array_0) OR (s."NullableEnumCo
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.NullableEnumConvertedToStringWithNonNullableLambda)),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.NullableEnumConvertedToStringWithNonNullableLambda)));
 
         AssertSql(
             """
@@ -514,8 +504,7 @@ WHERE s."NullableEnumConvertedToStringWithNonNullableLambda" = ANY (@__array_0) 
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.Contains(item)),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.Contains(item)));
 
         AssertSql(
             """
@@ -531,8 +520,7 @@ WHERE s."ValueConvertedArray" @> ARRAY[@__item_0]::text[]
     {
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.Contains(SomeEnum.Eight)),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.Contains(SomeEnum.Eight)));
 
         AssertSql(
             """
@@ -548,8 +536,7 @@ WHERE s."ValueConvertedArray" @> ARRAY['Eight']::text[]
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.All(x => p.Contains(x))),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.All(x => p.Contains(x))));
 
         AssertSql(
             """
@@ -598,8 +585,7 @@ WHERE s."IList" @> ARRAY[10]::integer[]
     {
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.IntArray.Length == 2),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => e.IntArray.Length == 2));
 
         AssertSql(
             """
@@ -613,8 +599,7 @@ WHERE cardinality(s."IntArray") = 2
     {
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.NullableIntArray.Length == 3),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => e.NullableIntArray.Length == 3));
 
         AssertSql(
             """
@@ -628,8 +613,7 @@ WHERE cardinality(s."NullableIntArray") = 3
     {
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => EF.Property<int[]>(e, nameof(ArrayEntity.IntArray)).Length == 2),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => EF.Property<int[]>(e, nameof(ArrayEntity.IntArray)).Length == 2));
 
         AssertSql(
             """
@@ -662,8 +646,7 @@ WHERE cardinality(s."IntArray") > 0
             ss => ss.Set<ArrayEntity>()
                 .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.Like(e.NullableText, p))),
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new[] { "a", "b", "c" }.Any(p => e.NullableText.StartsWith(p, StringComparison.Ordinal))),
-            entryCount: 1);
+                .Where(e => new[] { "a", "b", "c" }.Any(p => e.NullableText.StartsWith(p, StringComparison.Ordinal))));
 
         AssertSql(
             """
@@ -680,8 +663,7 @@ WHERE s."NullableText" LIKE ANY (ARRAY['a%','b%','c%']::text[])
             ss => ss.Set<ArrayEntity>()
                 .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.ILike(e.NullableText, p))),
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new[] { "a", "b", "c" }.Any(p => e.NullableText.StartsWith(p, StringComparison.OrdinalIgnoreCase))),
-            entryCount: 1);
+                .Where(e => new[] { "a", "b", "c" }.Any(p => e.NullableText.StartsWith(p, StringComparison.OrdinalIgnoreCase))));
 
         AssertSql(
             """
@@ -703,8 +685,7 @@ WHERE s."NullableText" ILIKE ANY (ARRAY['a%','b%','c%']::text[])
             ss => ss.Set<ArrayEntity>()
                 .Where(e => patternsActual.Any(p => EF.Functions.Like(e.NullableText, p))),
             ss => ss.Set<ArrayEntity>()
-                .Where(e => patternsExpected.Any(p => e.NullableText.StartsWith(p, StringComparison.Ordinal))),
-            entryCount: 1);
+                .Where(e => patternsExpected.Any(p => e.NullableText.StartsWith(p, StringComparison.Ordinal))));
 
         AssertSql(
             """
@@ -723,8 +704,7 @@ WHERE s."NullableText" LIKE ANY (@__patternsActual_0)
             ss => ss.Set<ArrayEntity>()
                 .Where(e => new[] { "b%", "ba%" }.All(p => EF.Functions.Like(e.NullableText, p))),
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new[] { "b", "ba" }.All(p => e.NullableText.StartsWith(p, StringComparison.Ordinal))),
-            entryCount: 1);
+                .Where(e => new[] { "b", "ba" }.All(p => e.NullableText.StartsWith(p, StringComparison.Ordinal))));
 
         AssertSql(
             """
@@ -741,8 +721,7 @@ WHERE s."NullableText" LIKE ALL (ARRAY['b%','ba%']::text[])
             ss => ss.Set<ArrayEntity>()
                 .Where(e => new[] { "B%", "ba%" }.All(p => EF.Functions.ILike(e.NullableText, p))),
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new[] { "B", "ba" }.All(p => e.NullableText.StartsWith(p, StringComparison.OrdinalIgnoreCase))),
-            entryCount: 1);
+                .Where(e => new[] { "B", "ba" }.All(p => e.NullableText.StartsWith(p, StringComparison.OrdinalIgnoreCase))));
 
         AssertSql(
             """
@@ -798,8 +777,7 @@ WHERE s."IntArray" && @__ints_0
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.Any(i => list.Contains(i))),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.Any(i => list.Contains(i))));
 
         AssertSql(
             """
@@ -855,8 +833,7 @@ WHERE array_cat(s."IntArray", ARRAY[5,6]::integer[]) = ARRAY[3,4,5,6]::integer[]
     {
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => Array.IndexOf(e.IntArray, 6) == 1),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => Array.IndexOf(e.IntArray, 6) == 1));
 
         AssertSql(
             """
@@ -870,8 +847,7 @@ WHERE COALESCE(array_position(s."IntArray", 6) - 1, -1) = 1
     {
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => Array.IndexOf(e.IntArray, 6, 1) == 1),
-            entryCount: 1);
+            ss => ss.Set<ArrayEntity>().Where(e => Array.IndexOf(e.IntArray, 6, 1) == 1));
 
         AssertSql(
             """

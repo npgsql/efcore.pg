@@ -34,8 +34,7 @@ public class EnumQueryTest : QueryTestBase<EnumQueryTest.EnumFixture>
 
         await AssertQuery(
             async,
-            ss => ss.Set<SomeEnumEntity>().Where(e => e.MappedEnum == MappedEnum.Sad),
-            entryCount: 1);
+            ss => ss.Set<SomeEnumEntity>().Where(e => e.MappedEnum == MappedEnum.Sad));
 
         AssertSql(
             """
@@ -53,8 +52,7 @@ WHERE s."MappedEnum" = 'sad'::test.mapped_enum
 
         await AssertQuery(
             async,
-            ss => ss.Set<SomeEnumEntity>().Where(e => e.SchemaQualifiedEnum == SchemaQualifiedEnum.Happy),
-            entryCount: 1);
+            ss => ss.Set<SomeEnumEntity>().Where(e => e.SchemaQualifiedEnum == SchemaQualifiedEnum.Happy));
 
         AssertSql(
             """
@@ -73,8 +71,7 @@ WHERE s."SchemaQualifiedEnum" = 'Happy (PgName)'::test.schema_qualified_enum
         var sad = MappedEnum.Sad;
         await AssertQuery(
             async,
-            ss => ss.Set<SomeEnumEntity>().Where(e => e.MappedEnum == sad),
-            entryCount: 1);
+            ss => ss.Set<SomeEnumEntity>().Where(e => e.MappedEnum == sad));
 
         AssertSql(
             """
@@ -95,8 +92,7 @@ WHERE s."MappedEnum" = @__sad_0
         var sad = UnmappedEnum.Sad;
         await AssertQuery(
             async,
-            ss => ss.Set<SomeEnumEntity>().Where(e => e.UnmappedEnum == sad),
-            entryCount: 1);
+            ss => ss.Set<SomeEnumEntity>().Where(e => e.UnmappedEnum == sad));
 
         AssertSql(
             """
@@ -117,8 +113,7 @@ WHERE s."UnmappedEnum" = @__sad_0
         var sad = UnmappedEnum.Sad;
         await AssertQuery(
             async,
-            ss => ss.Set<SomeEnumEntity>().Where(e => (int)e.UnmappedEnum == (int)sad),
-            entryCount: 1);
+            ss => ss.Set<SomeEnumEntity>().Where(e => (int)e.UnmappedEnum == (int)sad));
 
         AssertSql(
             """
@@ -139,8 +134,7 @@ WHERE s."UnmappedEnum" = @__sad_0
         var sad = MappedEnum.Sad;
         await AssertQuery(
             async,
-            ss => ss.Set<SomeEnumEntity>().Where(e => (int)e.MappedEnum == (int)sad),
-            entryCount: 1);
+            ss => ss.Set<SomeEnumEntity>().Where(e => (int)e.MappedEnum == (int)sad));
 
         AssertSql(
             """
@@ -161,8 +155,7 @@ WHERE s."MappedEnum" = @__sad_0
         await AssertQuery(
             async,
             ss => ss.Set<SomeEnumEntity>().Where(e => e.MappedEnum.ToString().Contains("sa")),
-            ss => ss.Set<SomeEnumEntity>().Where(e => e.MappedEnum.ToString().Contains("Sa")),
-            entryCount: 1);
+            ss => ss.Set<SomeEnumEntity>().Where(e => e.MappedEnum.ToString().Contains("Sa")));
 
         AssertSql(
             """
@@ -181,8 +174,7 @@ WHERE s."MappedEnum"::text LIKE '%sa%'
         var values = new[] { ByteEnum.Sad };
         await AssertQuery(
             async,
-            ss => ss.Set<SomeEnumEntity>().Where(e => values.Contains(e.ByteEnum)),
-            entryCount: 1);
+            ss => ss.Set<SomeEnumEntity>().Where(e => values.Contains(e.ByteEnum)));
 
         AssertSql(
             """
@@ -203,8 +195,7 @@ WHERE s."ByteEnum" = ANY (@__values_0)
         var values = new[] { UnmappedByteEnum.Sad };
         await AssertQuery(
             async,
-            ss => ss.Set<SomeEnumEntity>().Where(e => values.Contains(e.UnmappedByteEnum)),
-            entryCount: 1);
+            ss => ss.Set<SomeEnumEntity>().Where(e => values.Contains(e.UnmappedByteEnum)));
 
         AssertSql(
             """

@@ -94,8 +94,7 @@ public class TimestampQueryTest : QueryTestBase<TimestampQueryTest.TimestampQuer
         // Note that we're in the Europe/Berlin timezone (see NpgsqlTestStore below)
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => e.TimestampDateTime == new DateTime(1998, 4, 12, 15, 26, 38, DateTimeKind.Local)),
-            entryCount: 1);
+            ss => ss.Set<Entity>().Where(e => e.TimestampDateTime == new DateTime(1998, 4, 12, 15, 26, 38, DateTimeKind.Local)));
 
         AssertSql(
             """
@@ -113,8 +112,7 @@ WHERE e."TimestampDateTime" = TIMESTAMP '1998-04-12 15:26:38'
 
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => e.TimestampDateTime == dateTime),
-            entryCount: 1);
+            ss => ss.Set<Entity>().Where(e => e.TimestampDateTime == dateTime));
 
         // The string representation of our local DateTime is generated with the local time zone (by the EF Core test infra),
         // so we can't assert on it.
@@ -137,8 +135,7 @@ WHERE e."TimestampDateTime" = @__dateTime_0
 
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => e.TimestampDateTime == dateTime),
-            entryCount: 1);
+            ss => ss.Set<Entity>().Where(e => e.TimestampDateTime == dateTime));
 
         AssertSql(
             """
@@ -178,8 +175,7 @@ WHERE e."TimestampDateTime" = @__dateTime_0
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => e.TimestamptzDateTime == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc)),
-            entryCount: 1);
+            ss => ss.Set<Entity>().Where(e => e.TimestamptzDateTime == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc)));
 
         AssertSql(
             """
@@ -197,8 +193,7 @@ WHERE e."TimestamptzDateTime" = TIMESTAMPTZ '1998-04-12 13:26:38Z'
 
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => e.TimestamptzDateTime == dateTime),
-            entryCount: 1);
+            ss => ss.Set<Entity>().Where(e => e.TimestamptzDateTime == dateTime));
 
         AssertSql(
             """
@@ -318,8 +313,7 @@ WHERE e."TimestamptzDateTime"::timestamp = e."TimestampDateTime"
 
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(c => DateTime.Now != myDatetime),
-            entryCount: 2);
+            ss => ss.Set<Entity>().Where(c => DateTime.Now != myDatetime));
 
         AssertSql(
             """
@@ -339,8 +333,7 @@ WHERE now()::timestamp <> @__myDatetime_0
 
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(c => DateTime.UtcNow != myDatetime),
-            entryCount: 2);
+            ss => ss.Set<Entity>().Where(c => DateTime.UtcNow != myDatetime));
 
         AssertSql(
             """
@@ -363,8 +356,7 @@ WHERE now() <> @__myDatetime_0
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => e.TimestamptzDateTime.Date == new DateTime(1998, 4, 12, 0, 0, 0, DateTimeKind.Utc)),
-            entryCount: 1);
+            ss => ss.Set<Entity>().Where(e => e.TimestamptzDateTime.Date == new DateTime(1998, 4, 12, 0, 0, 0, DateTimeKind.Utc)));
 
         AssertSql(
             """
@@ -380,8 +372,7 @@ WHERE date_trunc('day', e."TimestamptzDateTime", 'UTC') = TIMESTAMPTZ '1998-04-1
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => e.TimestampDateTime.Date == new DateTime(1998, 4, 12, 0, 0, 0, DateTimeKind.Local)),
-            entryCount: 1);
+            ss => ss.Set<Entity>().Where(e => e.TimestampDateTime.Date == new DateTime(1998, 4, 12, 0, 0, 0, DateTimeKind.Local)));
 
         AssertSql(
             """
@@ -403,8 +394,7 @@ WHERE date_trunc('day', e."TimestampDateTime") = TIMESTAMP '1998-04-12 00:00:00'
         await AssertQuery(
             async,
             ss => ss.Set<Entity>().Where(
-                e => e.TimestampDateTimeOffset.DateTime == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Unspecified)),
-            entryCount: 1);
+                e => e.TimestampDateTimeOffset.DateTime == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Unspecified)));
 
         AssertSql(
             """
@@ -423,8 +413,7 @@ WHERE e."TimestampDateTimeOffset" AT TIME ZONE 'UTC' = TIMESTAMP '1998-04-12 13:
         await AssertQuery(
             async,
             ss => ss.Set<Entity>().Where(
-                e => e.TimestampDateTimeOffset.UtcDateTime == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc)),
-            entryCount: 1);
+                e => e.TimestampDateTimeOffset.UtcDateTime == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc)));
 
         AssertSql(
             """
@@ -493,7 +482,8 @@ FROM "Entities" AS e
             async,
             ss => ss.Set<Entity>().Where(
                 e =>
-                    new DateTime(e.TimestampDateTime.Year, e.TimestampDateTime.Month, 1) == new DateTime(1998, 4, 12)));
+                    new DateTime(e.TimestampDateTime.Year, e.TimestampDateTime.Month, 1) == new DateTime(1998, 4, 12)),
+            assertEmpty: true);
 
         AssertSql(
             """
@@ -511,7 +501,8 @@ WHERE make_date(date_part('year', e."TimestampDateTime")::int, date_part('month'
             async,
             ss => ss.Set<Entity>().Where(
                 e =>
-                    new DateTime(e.TimestampDateTime.Year, e.TimestampDateTime.Month, 1, 0, 0, 0) == new DateTime(1998, 4, 12)));
+                    new DateTime(e.TimestampDateTime.Year, e.TimestampDateTime.Month, 1, 0, 0, 0) == new DateTime(1998, 4, 12)),
+            assertEmpty: true);
 
         AssertSql(
             """
@@ -530,7 +521,8 @@ WHERE make_timestamp(date_part('year', e."TimestampDateTime")::int, date_part('m
             ss => ss.Set<Entity>().Where(
                 e =>
                     new DateTime(e.TimestampDateTime.Year, e.TimestampDateTime.Month, 1, 0, 0, 0, DateTimeKind.Local)
-                    == new DateTime(1996, 9, 11)));
+                    == new DateTime(1996, 9, 11)),
+            assertEmpty: true);
 
         AssertSql(
             """
@@ -549,8 +541,7 @@ WHERE make_timestamp(date_part('year', e."TimestampDateTime")::int, date_part('m
             ss => ss.Set<Entity>().Where(
                 o =>
                     new DateTime(o.TimestamptzDateTime.Year, o.TimestamptzDateTime.Month, 1, 0, 0, 0, DateTimeKind.Utc)
-                    == new DateTime(1998, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            entryCount: 1);
+                    == new DateTime(1998, 4, 1, 0, 0, 0, DateTimeKind.Utc)));
 
         AssertSql(
             """
@@ -572,8 +563,7 @@ WHERE make_timestamptz(date_part('year', e."TimestamptzDateTime" AT TIME ZONE 'U
             async,
             ss => ss.Set<Entity>().Where(
                 e => DateTime.SpecifyKind(e.TimestampDateTime, DateTimeKind.Utc)
-                    == new DateTime(1998, 4, 12, 15, 26, 38, DateTimeKind.Utc)),
-            entryCount: 1);
+                    == new DateTime(1998, 4, 12, 15, 26, 38, DateTimeKind.Utc)));
 
         AssertSql(
             """
@@ -591,8 +581,7 @@ WHERE e."TimestampDateTime" AT TIME ZONE 'UTC' = TIMESTAMPTZ '1998-04-12 15:26:3
             async,
             ss => ss.Set<Entity>().Where(
                 e => DateTime.SpecifyKind(e.TimestamptzDateTime, DateTimeKind.Unspecified)
-                    == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Unspecified)),
-            entryCount: 1);
+                    == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Unspecified)));
 
         AssertSql(
             """
@@ -610,8 +599,7 @@ WHERE e."TimestamptzDateTime" AT TIME ZONE 'UTC' = TIMESTAMP '1998-04-12 13:26:3
             async,
             ss => ss.Set<Entity>().Where(
                 e => DateTime.SpecifyKind(e.TimestamptzDateTime, DateTimeKind.Local)
-                    == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Unspecified)),
-            entryCount: 1);
+                    == new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Unspecified)));
 
         AssertSql(
             """
@@ -646,8 +634,7 @@ WHERE e."TimestamptzDateTime" AT TIME ZONE 'UTC' = TIMESTAMP '1998-04-12 13:26:3
             async,
             ss => ss.Set<Entity>().Where(
                 c => TimeZoneInfo.ConvertTimeBySystemTimeZoneId(c.TimestamptzDateTime, "Europe/Berlin")
-                    == new DateTime(1998, 4, 12, 15, 26, 38)),
-            entryCount: 1);
+                    == new DateTime(1998, 4, 12, 15, 26, 38)));
 
         AssertSql(
             """
@@ -712,8 +699,7 @@ WHERE e."TimestampDateTime"::timestamptz = TIMESTAMPTZ '1998-04-12 13:26:38Z'
         await AssertQuery(
             async,
             ss => ss.Set<Entity>().Where(
-                e => DateOnly.FromDateTime(e.TimestamptzDateTime) == new DateOnly(1998, 4, 12)),
-            entryCount: 1);
+                e => DateOnly.FromDateTime(e.TimestamptzDateTime) == new DateOnly(1998, 4, 12)));
 
         AssertSql(
             """
@@ -730,8 +716,7 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS date) = DATE '1998-04-1
         await AssertQuery(
             async,
             ss => ss.Set<Entity>().Where(
-                e => DateOnly.FromDateTime(e.TimestampDateTime) == new DateOnly(1998, 4, 12)),
-            entryCount: 1);
+                e => DateOnly.FromDateTime(e.TimestampDateTime) == new DateOnly(1998, 4, 12)));
 
         AssertSql(
             """
@@ -749,8 +734,7 @@ WHERE e."TimestampDateTime"::date = DATE '1998-04-12'
             async,
             ss => ss.Set<Entity>().Where(
                 e => DateOnly.FromDateTime(e.TimestamptzDateTime).ToDateTime(new TimeOnly(15, 26, 38))
-                    == new DateTime(1998, 4, 12, 15, 26, 38)),
-            entryCount: 1);
+                    == new DateTime(1998, 4, 12, 15, 26, 38)));
 
         AssertSql(
             """
@@ -771,8 +755,7 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS date) + TIME '15:26:38'
         await AssertQuery(
             async,
             ss => ss.Set<Entity>().Where(
-                e => TimeOnly.FromDateTime(e.TimestampDateTime) == new TimeOnly(15, 26, 38)),
-            entryCount: 1);
+                e => TimeOnly.FromDateTime(e.TimestampDateTime) == new TimeOnly(15, 26, 38)));
 
         AssertSql(
             """
@@ -789,8 +772,7 @@ WHERE e."TimestampDateTime"::time without time zone = TIME '15:26:38'
         await AssertQuery(
             async,
             ss => ss.Set<Entity>().Where(
-                e => TimeOnly.FromDateTime(e.TimestamptzDateTime) == new TimeOnly(13, 26, 38)),
-            entryCount: 1);
+                e => TimeOnly.FromDateTime(e.TimestamptzDateTime) == new TimeOnly(13, 26, 38)));
 
         AssertSql(
             """
@@ -807,8 +789,7 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
         await AssertQuery(
             async,
             ss => ss.Set<Entity>().Where(
-                e => TimeOnly.FromDateTime(e.TimestamptzDateTime) == new TimeOnly(13, 26, 38)),
-            entryCount: 1);
+                e => TimeOnly.FromDateTime(e.TimestamptzDateTime) == new TimeOnly(13, 26, 38)));
 
         AssertSql(
             """

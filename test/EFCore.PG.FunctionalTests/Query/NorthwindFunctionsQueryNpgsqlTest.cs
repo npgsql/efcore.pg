@@ -56,8 +56,7 @@ WHERE c."Region" IS NULL OR btrim(c."Region", E' \t\n\r') = ''
             async,
             ss => ss.Set<Customer>().Where(
                 c => string.Join("|", c.CustomerID, c.CompanyName, param, nullParam, "constant", null)
-                    == "ALFKI|Alfreds Futterkiste|param||constant|"),
-            entryCount: 1);
+                    == "ALFKI|Alfreds Futterkiste|param||constant|"));
 
         AssertSql(
             """
@@ -78,8 +77,7 @@ WHERE concat_ws('|', c."CustomerID", c."CompanyName", COALESCE(@__param_0, ''), 
             async,
             ss => ss.Set<Customer>()
                 .Where(x => x.Address == "Walserweg 21")
-                .Where(x => x.Address.Substring(x.Address.IndexOf("e")) == "erweg 21"),
-            entryCount: 1);
+                .Where(x => x.Address.Substring(x.Address.IndexOf("e")) == "erweg 21"));
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
@@ -87,8 +85,7 @@ WHERE concat_ws('|', c."CustomerID", c."CompanyName", COALESCE(@__param_0, ''), 
         => AssertQuery(
             async,
             //Walserweg 21
-            cs => cs.Set<Customer>().Where(x => x.Address.Substring(5) == "rweg 21"),
-            entryCount: 1);
+            cs => cs.Set<Customer>().Where(x => x.Address.Substring(5) == "rweg 21"));
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
@@ -98,8 +95,7 @@ WHERE concat_ws('|', c."CustomerID", c."CompanyName", COALESCE(@__param_0, ''), 
         return AssertQuery(
             async,
             //Walserweg 21
-            ss => ss.Set<Customer>().Where(x => x.Address.Substring(startIndex) == "rweg 21"),
-            entryCount: 1);
+            ss => ss.Set<Customer>().Where(x => x.Address.Substring(startIndex) == "rweg 21"));
     }
 
     #endregion
@@ -112,8 +108,7 @@ WHERE concat_ws('|', c."CustomerID", c."CompanyName", COALESCE(@__param_0, ''), 
     {
         await AssertQuery(
             async,
-            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A")),
-            entryCount: 4);
+            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A")));
 
         AssertSql(
             """
@@ -131,8 +126,7 @@ WHERE c."CompanyName" ~ '(?p)^A'
 
         await AssertQuery(
             async,
-            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, pattern)),
-            entryCount: 4);
+            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, pattern)));
 
         AssertSql(
             """
@@ -150,8 +144,7 @@ WHERE c."CompanyName" ~ ('(?p)' || @__pattern_0)
     {
         await AssertQuery(
             async,
-            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.None)),
-            entryCount: 4);
+            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.None)));
 
         AssertSql(
             """
@@ -167,8 +160,7 @@ WHERE c."CompanyName" ~ '(?p)^A'
     {
         await AssertQuery(
             async,
-            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^a", RegexOptions.IgnoreCase)),
-            entryCount: 4);
+            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^a", RegexOptions.IgnoreCase)));
 
         AssertSql(
             """
@@ -184,8 +176,7 @@ WHERE c."CompanyName" ~* '(?p)^a'
     {
         await AssertQuery(
             async,
-            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Multiline)),
-            entryCount: 4);
+            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Multiline)));
 
         AssertSql(
             """
@@ -201,8 +192,7 @@ WHERE c."CompanyName" ~ '(?n)^A'
     {
         await AssertQuery(
             async,
-            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Singleline)),
-            entryCount: 4);
+            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Singleline)));
 
         AssertSql(
             """
@@ -218,8 +208,7 @@ WHERE c."CompanyName" ~ '^A'
     {
         await AssertQuery(
             async,
-            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^a", RegexOptions.Singleline | RegexOptions.IgnoreCase)),
-            entryCount: 4);
+            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^a", RegexOptions.Singleline | RegexOptions.IgnoreCase)));
 
         AssertSql(
             """
@@ -235,8 +224,7 @@ WHERE c."CompanyName" ~* '^a'
     {
         await AssertQuery(
             async,
-            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^ A", RegexOptions.IgnorePatternWhitespace)),
-            entryCount: 4);
+            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^ A", RegexOptions.IgnorePatternWhitespace)));
 
         AssertSql(
             """
@@ -278,8 +266,7 @@ WHERE {UuidGenerationFunction}() <> '00000000-0000-0000-0000-000000000000'
     {
         await AssertQuery(
             async,
-            ods => ods.Set<OrderDetail>().OrderBy(od => Guid.NewGuid()).Select(x => x),
-            entryCount: 2155);
+            ods => ods.Set<OrderDetail>().OrderBy(od => Guid.NewGuid()).Select(x => x));
 
         AssertSql(
             $"""
@@ -298,16 +285,14 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST
     public Task PadLeft_with_constant(bool async)
         => AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(20).EndsWith("Walserweg 21")),
-            entryCount: 1);
+            ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(20).EndsWith("Walserweg 21")));
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public Task PadLeft_char_with_constant(bool async)
         => AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(20, 'a').EndsWith("Walserweg 21")),
-            entryCount: 1);
+            ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(20, 'a').EndsWith("Walserweg 21")));
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
@@ -317,8 +302,7 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST
 
         return AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(length).EndsWith("Walserweg 21")),
-            entryCount: 1);
+            ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(length).EndsWith("Walserweg 21")));
     }
 
     [ConditionalTheory]
@@ -329,8 +313,7 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST
 
         return AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(length, 'a').EndsWith("Walserweg 21")),
-            entryCount: 1);
+            ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(length, 'a').EndsWith("Walserweg 21")));
     }
 
     [ConditionalTheory]
@@ -338,16 +321,14 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST
     public Task PadRight_with_constant(bool async)
         => AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(x => x.Address.PadRight(20).StartsWith("Walserweg 21")),
-            entryCount: 1);
+            ss => ss.Set<Customer>().Where(x => x.Address.PadRight(20).StartsWith("Walserweg 21")));
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public Task PadRight_char_with_constant(bool async)
         => AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(x => x.Address.PadRight(20).StartsWith("Walserweg 21")),
-            entryCount: 1);
+            ss => ss.Set<Customer>().Where(x => x.Address.PadRight(20).StartsWith("Walserweg 21")));
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
@@ -357,8 +338,7 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST
 
         return AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(x => x.Address.PadRight(length).StartsWith("Walserweg 21")),
-            entryCount: 1);
+            ss => ss.Set<Customer>().Where(x => x.Address.PadRight(length).StartsWith("Walserweg 21")));
     }
 
     [ConditionalTheory]
@@ -369,8 +349,7 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST
 
         return AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(x => x.Address.PadRight(length, 'a').StartsWith("Walserweg 21")),
-            entryCount: 1);
+            ss => ss.Set<Customer>().Where(x => x.Address.PadRight(length, 'a').StartsWith("Walserweg 21")));
     }
 
     #endregion

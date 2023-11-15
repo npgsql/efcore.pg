@@ -24,7 +24,7 @@ public class NorthwindMiscellaneousQueryNpgsqlTest : NorthwindMiscellaneousQuery
             """
 SELECT o."CustomerID"
 FROM "Orders" AS o
-WHERE o."OrderDate" IS NOT NULL AND o."EmployeeID"::text LIKE '%10%'
+WHERE o."OrderDate" IS NOT NULL AND o."EmployeeID"::text LIKE '%7%'
 """);
     }
 
@@ -69,8 +69,7 @@ WHERE o."OrderDate" IS NOT NULL
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Order>().Where(o => o.OrderDate - TimeSpan.FromDays(1) == new DateTime(1997, 10, 8)),
-            entryCount: 2);
+            ss => ss.Set<Order>().Where(o => o.OrderDate - TimeSpan.FromDays(1) == new DateTime(1997, 10, 8)));
 
         AssertSql(
             """
@@ -211,8 +210,7 @@ ORDER BY t."CustomerID" NULLS FIRST
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(c => new[] { "ALFKI", "ANATR" }.Contains(c.CustomerID)),
-            entryCount: 2);
+            ss => ss.Set<Customer>().Where(c => new[] { "ALFKI", "ANATR" }.Contains(c.CustomerID)));
 
         // Note: for constant lists there's no advantage in using the PostgreSQL-specific x = ANY (a b, c), unlike
         // for parameterized lists.
@@ -233,8 +231,7 @@ WHERE c."CustomerID" IN ('ALFKI', 'ANATR')
 
         await AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(c => regions.Contains(c.Region)),
-            entryCount: 6);
+            ss => ss.Set<Customer>().Where(c => regions.Contains(c.Region)));
 
         // Instead of c."Region" IN ('UK', 'SP') we generate the PostgreSQL-specific x = ANY (a, b, c), which can
         // be parameterized.
@@ -258,8 +255,7 @@ WHERE c."Region" = ANY (@__regions_0) OR (c."Region" IS NULL AND array_position(
 
         await AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(c => regions.Contains(c.Region)),
-            entryCount: 66);
+            ss => ss.Set<Customer>().Where(c => regions.Contains(c.Region)));
 
         // Instead of c."Region" IN ('UK', 'SP') we generate the PostgreSQL-specific x = ANY (a, b, c), which can
         // be parameterized.
