@@ -69,11 +69,34 @@ public static class NpgsqlDbContextOptionsBuilderExtensions
     /// <summary>
     ///     Configures the context to connect to a PostgreSQL database with Npgsql.
     /// </summary>
+    /// <param name="optionsBuilder">The builder being used to configure the context.</param>
+    /// <param name="connection">
+    ///     An existing <see cref="DbConnection" /> to be used to connect to the database. If the connection is
+    ///     in the open state then EF will not open or close the connection. If the connection is in the closed
+    ///     state then EF will open and close the connection as needed. The caller owns the connection and is
+    ///     responsible for its disposal.
+    /// </param>
+    /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
+    /// <returns>The options builder so that further configuration can be chained.</returns>
+    public static DbContextOptionsBuilder UseNpgsql(
+        this DbContextOptionsBuilder optionsBuilder,
+        DbConnection connection,
+        Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
+        => UseNpgsql(optionsBuilder, connection, contextOwnsConnection: false, npgsqlOptionsAction);
+
+    /// <summary>
+    ///     Configures the context to connect to a PostgreSQL database with Npgsql.
+    /// </summary>
     /// <param name="optionsBuilder">A builder for setting options on the context.</param>
     /// <param name="connection">
     ///     An existing <see cref="DbConnection" /> to be used to connect to the database. If the connection is
     ///     in the open state then EF will not open or close the connection. If the connection is in the closed
     ///     state then EF will open and close the connection as needed.
+    /// </param>
+    /// <param name="contextOwnsConnection">
+    ///     If <see langword="true" />, then EF will take ownership of the connection and will
+    ///     dispose it in the same way it would dispose a connection created by EF. If <see langword="false" />, then the caller still
+    ///     owns the connection and is responsible for its disposal.
     /// </param>
     /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
     /// <returns>
@@ -82,12 +105,13 @@ public static class NpgsqlDbContextOptionsBuilderExtensions
     public static DbContextOptionsBuilder UseNpgsql(
         this DbContextOptionsBuilder optionsBuilder,
         DbConnection connection,
+        bool contextOwnsConnection,
         Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
     {
         Check.NotNull(optionsBuilder, nameof(optionsBuilder));
         Check.NotNull(connection, nameof(connection));
 
-        var extension = (NpgsqlOptionsExtension)GetOrCreateExtension(optionsBuilder).WithConnection(connection);
+        var extension = (NpgsqlOptionsExtension)GetOrCreateExtension(optionsBuilder).WithConnection(connection, contextOwnsConnection);
         ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);
 
         ConfigureWarnings(optionsBuilder);
@@ -169,9 +193,10 @@ public static class NpgsqlDbContextOptionsBuilderExtensions
     /// </summary>
     /// <param name="optionsBuilder">A builder for setting options on the context.</param>
     /// <param name="connection">
-    ///     An existing <see cref="DbConnection" />to be used to connect to the database. If the connection is
+    ///     An existing <see cref="DbConnection" /> to be used to connect to the database. If the connection is
     ///     in the open state then EF will not open or close the connection. If the connection is in the closed
-    ///     state then EF will open and close the connection as needed.
+    ///     state then EF will open and close the connection as needed. The caller owns the connection and is
+    ///     responsible for its disposal.
     /// </param>
     /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
     /// <returns>
@@ -184,6 +209,32 @@ public static class NpgsqlDbContextOptionsBuilderExtensions
         where TContext : DbContext
         => (DbContextOptionsBuilder<TContext>)UseNpgsql(
             (DbContextOptionsBuilder)optionsBuilder, connection, npgsqlOptionsAction);
+
+    /// <summary>
+    ///     Configures the context to connect to a PostgreSQL database with Npgsql.
+    /// </summary>
+    /// <typeparam name="TContext">The type of context to be configured.</typeparam>
+    /// <param name="optionsBuilder">The builder being used to configure the context.</param>
+    /// <param name="connection">
+    ///     An existing <see cref="DbConnection" /> to be used to connect to the database. If the connection is
+    ///     in the open state then EF will not open or close the connection. If the connection is in the closed
+    ///     state then EF will open and close the connection as needed.
+    /// </param>
+    /// <param name="contextOwnsConnection">
+    ///     If <see langword="true" />, then EF will take ownership of the connection and will
+    ///     dispose it in the same way it would dispose a connection created by EF. If <see langword="false" />, then the caller still
+    ///     owns the connection and is responsible for its disposal.
+    /// </param>
+    /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
+    /// <returns>The options builder so that further configuration can be chained.</returns>
+    public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
+        this DbContextOptionsBuilder<TContext> optionsBuilder,
+        DbConnection connection,
+        bool contextOwnsConnection,
+        Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
+        where TContext : DbContext
+        => (DbContextOptionsBuilder<TContext>)UseNpgsql(
+            (DbContextOptionsBuilder)optionsBuilder, connection, contextOwnsConnection, npgsqlOptionsAction);
 
     /// <summary>
     ///     Configures the context to connect to a PostgreSQL database with Npgsql.
