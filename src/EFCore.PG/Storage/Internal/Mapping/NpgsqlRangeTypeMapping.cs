@@ -24,6 +24,14 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     private ConstructorInfo? _rangeConstructor2;
     private ConstructorInfo? _rangeConstructor3;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public static NpgsqlRangeTypeMapping Default { get; } = new();
+
     // ReSharper disable once MemberCanBePrivate.Global
     /// <summary>
     ///     The relational type mapping of the range's subtype.
@@ -93,6 +101,25 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     {
         SubtypeMapping = subtypeMapping;
     }
+
+    // This constructor exists only to support the static Default property above, which is necessary to allow code generation for compiled
+    // models. The constructor creates a completely blank type mapping, which will get cloned with all the correct details.
+    private NpgsqlRangeTypeMapping()
+        : this("int4range", typeof(NpgsqlRange<int>), NpgsqlDbType.IntegerRange, subtypeMapping: null!)
+    {
+    }
+
+    /// <summary>
+    ///     This method exists only to support the compiled model.
+    /// </summary>
+    /// <remarks>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </remarks>
+    public virtual NpgsqlRangeTypeMapping Clone(NpgsqlDbType npgsqlDbType, RelationalTypeMapping subtypeTypeMapping)
+        => new(Parameters, npgsqlDbType, subtypeTypeMapping);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

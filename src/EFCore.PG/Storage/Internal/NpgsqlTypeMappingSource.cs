@@ -399,7 +399,9 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
                 var name = components.Length > 1 ? string.Join(null, components.Skip(1)) : adoEnumMapping.PgTypeName;
 
                 var mapping = new NpgsqlEnumTypeMapping(
-                    name, schema, adoEnumMapping.EnumClrType, sqlGenerationHelper, adoEnumMapping.NameTranslator);
+                    sqlGenerationHelper.DelimitIdentifier(name, schema),
+                    adoEnumMapping.EnumClrType,
+                    adoEnumMapping.NameTranslator);
                 ClrTypeMappings[adoEnumMapping.EnumClrType] = mapping;
                 StoreTypeMappings[mapping.StoreType] = new RelationalTypeMapping[] { mapping };
             }

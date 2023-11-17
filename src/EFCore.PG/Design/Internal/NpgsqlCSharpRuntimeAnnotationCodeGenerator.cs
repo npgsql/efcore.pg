@@ -3,6 +3,7 @@
 
 using Microsoft.EntityFrameworkCore.Design.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal;
 
@@ -26,6 +27,109 @@ public class NpgsqlCSharpRuntimeAnnotationCodeGenerator : RelationalCSharpRuntim
         RelationalCSharpRuntimeAnnotationCodeGeneratorDependencies relationalDependencies)
         : base(dependencies, relationalDependencies)
     {
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public override bool Create(
+        CoreTypeMapping typeMapping,
+        CSharpRuntimeAnnotationCodeGeneratorParameters parameters,
+        ValueComparer? valueComparer = null,
+        ValueComparer? keyValueComparer = null,
+        ValueComparer? providerValueComparer = null)
+    {
+        var result = base.Create(typeMapping, parameters, valueComparer, keyValueComparer, providerValueComparer);
+
+        var mainBuilder = parameters.MainBuilder;
+
+        var npgsqlDbTypeBasedDefaultInstance = typeMapping switch
+        {
+            NpgsqlStringTypeMapping => NpgsqlStringTypeMapping.Default,
+            NpgsqlULongTypeMapping => NpgsqlULongTypeMapping.Default,
+            // NpgsqlMultirangeTypeMapping => NpgsqlMultirangeTypeMapping.Default,
+            _ => (INpgsqlTypeMapping?)null
+        };
+
+        if (npgsqlDbTypeBasedDefaultInstance is not null)
+        {
+            var npgsqlDbType = ((INpgsqlTypeMapping)typeMapping).NpgsqlDbType;
+
+            if (npgsqlDbType != npgsqlDbTypeBasedDefaultInstance.NpgsqlDbType)
+            {
+                mainBuilder.AppendLine(";");
+
+                mainBuilder.Append(
+                    $"{parameters.TargetName}.TypeMapping = (({typeMapping.GetType().Name}){parameters.TargetName}.TypeMapping).Clone(npgsqlDbType: ");
+
+                mainBuilder
+                    .Append(nameof(NpgsqlTypes))
+                    .Append(".")
+                    .Append(nameof(NpgsqlDbType))
+                    .Append(".")
+                    .Append(npgsqlDbType.ToString());
+
+                mainBuilder
+                    .Append(")")
+                    .DecrementIndent();
+            }
+
+        }
+
+        switch (typeMapping)
+        {
+#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
+            case NpgsqlEnumTypeMapping enumTypeMapping:
+                if (enumTypeMapping.NameTranslator != NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator)
+                {
+                    throw new NotSupportedException(
+                        "Mapped enums are only supported in the compiled model if they use the default name translator");
+                }
+                break;
+#pragma warning restore CS0618
+
+            case NpgsqlRangeTypeMapping rangeTypeMapping:
+            {
+                var defaultInstance = NpgsqlRangeTypeMapping.Default;
+
+                var npgsqlDbTypeDifferent = rangeTypeMapping.NpgsqlDbType != defaultInstance.NpgsqlDbType;
+                var subtypeTypeMappingIsDifferent = rangeTypeMapping.SubtypeMapping != defaultInstance.SubtypeMapping;
+
+                if (npgsqlDbTypeDifferent || subtypeTypeMappingIsDifferent)
+                {
+                    mainBuilder.AppendLine(";");
+
+                    mainBuilder.AppendLine(
+                        $"{parameters.TargetName}.TypeMapping = ((NpgsqlRangeTypeMapping){parameters.TargetName}.TypeMapping).Clone(")
+                        .IncrementIndent();
+
+                    mainBuilder
+                        .Append("npgsqlDbType: ")
+                        .Append(nameof(NpgsqlTypes))
+                        .Append(".")
+                        .Append(nameof(NpgsqlDbType))
+                        .Append(".")
+                        .Append(rangeTypeMapping.NpgsqlDbType.ToString())
+                        .AppendLine(",");
+
+                    mainBuilder.Append("subtypeTypeMapping: ");
+
+                    Create(rangeTypeMapping.SubtypeMapping, parameters);
+
+                    mainBuilder
+                        .Append(")")
+                        .DecrementIndent();
+                }
+
+                break;
+            }
+
+        }
+
+        return result;
     }
 
     /// <inheritdoc />
