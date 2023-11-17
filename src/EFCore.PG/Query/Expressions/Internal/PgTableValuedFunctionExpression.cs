@@ -63,6 +63,12 @@ public class PgTableValuedFunctionExpression : TableValuedFunctionExpression, IE
         WithOrdinality = withOrdinality;
     }
 
+    /// <inheritdoc />
+    protected override Expression VisitChildren(ExpressionVisitor visitor)
+        => visitor.VisitAndConvert(Arguments) is var visitedArguments && visitedArguments == Arguments
+            ? this
+            : new PgTableValuedFunctionExpression(Alias, Name, visitedArguments, ColumnInfos, WithOrdinality);
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
