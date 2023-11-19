@@ -475,9 +475,7 @@ WHERE make_date(date_part('year', m."Date")::int, date_part('month', m."Date")::
     [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/2039")]
     public override async Task Where_DateOnly_Year(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.Year == 1990).AsTracking());
+        await base.Where_DateOnly_Year(async);
 
         AssertSql(
             """
@@ -489,9 +487,7 @@ WHERE date_part('year', m."Date")::int = 1990
 
     public override async Task Where_DateOnly_Month(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.Month == 11).AsTracking());
+        await base.Where_DateOnly_Month(async);
 
         AssertSql(
             """
@@ -503,9 +499,7 @@ WHERE date_part('month', m."Date")::int = 11
 
     public override async Task Where_DateOnly_Day(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.Day == 10).AsTracking());
+        await base.Where_DateOnly_Day(async);
 
         AssertSql(
             """
@@ -517,9 +511,7 @@ WHERE date_part('day', m."Date")::int = 10
 
     public override async Task Where_DateOnly_DayOfYear(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.DayOfYear == 314).AsTracking());
+        await base.Where_DateOnly_DayOfYear(async);
 
         AssertSql(
             """
@@ -531,9 +523,7 @@ WHERE date_part('doy', m."Date")::int = 314
 
     public override async Task Where_DateOnly_DayOfWeek(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.DayOfWeek == DayOfWeek.Saturday).AsTracking());
+        await base.Where_DateOnly_DayOfWeek(async);
 
         AssertSql(
             """
@@ -545,43 +535,100 @@ WHERE floor(date_part('dow', m."Date"))::int = 6
 
     public override async Task Where_DateOnly_AddYears(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.AddYears(3) == new DateOnly(1993, 11, 10)).AsTracking());
+        await base.Where_DateOnly_AddYears(async);
 
         AssertSql(
             """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE m."Date" + INTERVAL '3 years' = DATE '1993-11-10'
+WHERE CAST(m."Date" + INTERVAL '3 years' AS date) = DATE '1993-11-10'
 """);
     }
 
     public override async Task Where_DateOnly_AddMonths(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.AddMonths(3) == new DateOnly(1991, 2, 10)).AsTracking());
+        await base.Where_DateOnly_AddMonths(async);
 
         AssertSql(
             """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE m."Date" + INTERVAL '3 months' = DATE '1991-02-10'
+WHERE CAST(m."Date" + INTERVAL '3 months' AS date) = DATE '1991-02-10'
 """);
     }
 
     public override async Task Where_DateOnly_AddDays(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.AddDays(3) == new DateOnly(1990, 11, 13)).AsTracking());
+        await base.Where_DateOnly_AddDays(async);
 
         AssertSql(
             """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE m."Date" + INTERVAL '3 days' = DATE '1990-11-13'
+WHERE m."Date" + 3 = DATE '1990-11-13'
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Select_DateOnly_AddDays(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Mission>()
+                // We filter out DateOnly.MinValue which maps to -infinity
+                .Where(m => m.Date != DateOnly.MinValue)
+                .Select(m => m.Date.AddDays(3)));
+
+        AssertSql(
+            """
+@__MinValue_0='01/01/0001' (DbType = Date)
+
+SELECT m."Date" + 3
+FROM "Missions" AS m
+WHERE m."Date" <> @__MinValue_0
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Select_DateOnly_AddMonths(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Mission>()
+                // We filter out DateOnly.MinValue which maps to -infinity
+                .Where(m => m.Date != DateOnly.MinValue)
+                .Select(m => m.Date.AddMonths(3)));
+
+        AssertSql(
+            """
+@__MinValue_0='01/01/0001' (DbType = Date)
+
+SELECT CAST(m."Date" + INTERVAL '3 months' AS date)
+FROM "Missions" AS m
+WHERE m."Date" <> @__MinValue_0
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Select_DateOnly_AddYears(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Mission>()
+                // We filter out DateOnly.MinValue which maps to -infinity
+                .Where(m => m.Date != DateOnly.MinValue)
+                .Select(m => m.Date.AddYears(3)));
+
+        AssertSql(
+            """
+@__MinValue_0='01/01/0001' (DbType = Date)
+
+SELECT CAST(m."Date" + INTERVAL '3 years' AS date)
+FROM "Missions" AS m
+WHERE m."Date" <> @__MinValue_0
 """);
     }
 

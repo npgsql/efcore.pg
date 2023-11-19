@@ -438,6 +438,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case ExpressionType.Add or ExpressionType.Subtract
                 when right.Type == typeof(TimeSpan)
                 && (left.Type == typeof(DateTime) || left.Type == typeof(DateTimeOffset) || left.Type == typeof(TimeOnly))
+                || right.Type == typeof(int) && left.Type == typeof(DateOnly)
                 || right.Type.FullName == "NodaTime.Period"
                 && left.Type.FullName is "NodaTime.LocalDateTime" or "NodaTime.LocalDate" or "NodaTime.LocalTime"
                 || right.Type.FullName == "NodaTime.Duration"
