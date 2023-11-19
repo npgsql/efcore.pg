@@ -1,15 +1,16 @@
 # JSON Mapping
 
 > [!NOTE]
-> EF Core 7.0 introduced support for [JSON columns](https://learn.microsoft.com/ef/core/what-is-new/ef-core-7.0/whatsnew#json-columns). Npgsql's JSON support - detailed below - is different, and has been available since version 3.0. We plan to adopt EF's JSON support in version 8.0.
+> Version 8.0 of the Npgsql provider introduced support for EF's [JSON columns](https://learn.microsoft.com/ef/core/what-is-new/ef-core-7.0/whatsnew#json-columns), using `ToJson()`. That is the recommended way to map POCOs going forward.
 
 PostgreSQL has rich, built-in support for storing JSON columns and efficiently performing complex queries operations on them. Newcomers can read more about the PostgreSQL support on [the JSON types page](https://www.postgresql.org/docs/current/datatype-json.html), and on the [functions and operators page](https://www.postgresql.org/docs/current/functions-json.html). Note that the below mapping mechanisms support both the `jsonb` and `json` types, although the former is almost always preferred for efficiency reasons.
 
 The Npgsql EF Core provider allows you to map PostgreSQL JSON columns in three different ways:
 
 1. As simple strings
-2. As strongly-typed user-defined types (POCOs)
-3. As [System.Text.Json](https://devblogs.microsoft.com/dotnet/try-the-new-system-text-json-apis/) DOM types (JsonDocument or JsonElement)
+2. As EF owned entities
+3. As System.Text.Json DOM types (JsonDocument or JsonElement, [see docs](https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/use-dom#use-jsondocument))
+4. As strongly-typed user-defined types (POCOs) (deprecated)
 
 ## String mapping
 
@@ -54,21 +55,72 @@ With string mapping, the EF Core provider will save and load properties to datab
 
 ## POCO mapping
 
-If your column's JSON documents have a stable schema, you can map them to your own .NET types (or POCOs). The provider will use [the new System.Text.Json APIs](https://devblogs.microsoft.com/dotnet/try-the-new-system-text-json-apis/) under the hood to serialize instances to JSON documents before sending them to the database, and to deserialize documents coming from the database back. Just like EF Core can map a .NET type to rows in the table, this capability allows you to map a .NET type to a single JSON column.
+If your column JSON contains documents with a stable schema, you can map them to your own .NET types (or POCOs); EF will use System.Text.Json APIs under the hood to serialize instances of your types to JSON documents before sending them to the database, and to deserialize documents coming back from the database. This effectively allows mapping an arbitrary .NET type - or object graph - to a single column in the database.
 
-Mapping POCOs is extremely easy: simply add a property with your custom POCO type and instruct the provider to map it to JSON:
+EF 7.0 introduced the "JSON Columns" feature, which maps a database JSON column via EF's "owned entity" mapping concept, using `ToJson()`. In this approach, EF fully models the types within the JSON document - just like it models regular tables and columns - and uses that information to perform better queries and updates. Full support for ToJson has been added to version 8.0 of the Npgsql EF provider.
+
+As an alternative, prior to version 8.0, the Npgsql EF provider has supported JSON POCO mapping by simply delegating serialization/deserialization to System.Text.Json; in this model, EF itself model the contents of the JSON document, and cannot take that structure into account for queries and updates. This approach can now be considered deprecated as it allows for less powerful mapping and supports less query types; using ToJson() is now the recommended way to map POCOs to JSON.
+
+### ToJson (owned entity mapping)
+
+Npgsql's support for `ToJson()` is fully aligned with the general EF support; see the [EF documentation for more information](https://learn.microsoft.com/ef/core/what-is-new/ef-core-7.0/whatsnew#json-columns).
+
+To get you started quickly, assume that we have the following Custmoer type, with a Details property that we want to map to a single JSON column in the database:
+
+```c#
+public class Customer
+{
+    public int Id { get; set; }
+    public CustomerDetails Details { get; set; }
+}
+
+public class CustomerDetails    // Map to a JSON column in the table
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public List<Order> Orders { get; set; }
+}
+
+public class Order       // Part of the JSON column
+{
+    public decimal Price { get; set; }
+    public string ShippingAddress { get; set; }
+}
+```
+
+To instruct EF to map CustomerDetails - and within it, Order - to a JSON column, configure it as follows:
+
+```c#
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Customer>()
+        .OwnsOne(c => c.Details, d =>
+        {
+            d.ToJson();
+            d.OwnsMany(d => d.Orders);
+        });
+}
+```
+
+At this point you can interact with the Customer just like you would normally, and EF will seamlessly serialize and deserialize it to a JSON column in the database. You can also perform LINQ queries which reference properties inside the JSON document, and these will get translated to SQL.
+
+## Traditional POCO mapping (deprecated)
+
+Before version 8.0 introduced support for EF's ToJson (owned entity mapping), the provider had its own support for JSON POCO mapping, by simply delegating serialization/deserialization to System.Text.Json; in this model, EF itself model the contents of the JSON document, and cannot take that structure into account for queries and updates. This approach can now be considered deprecated as it allows for less powerful mapping and supports less query types; using ToJson() is now the recommended way to map POCOs to JSON.
+
+To use traditional POCO mapping, configure a property a mapping to map to a `jsonb` column as follows:
 
 ### [Data Annotations](#tab/data-annotations)
 
 ```c#
-public class SomeEntity
+public class Customer
 {
     public int Id { get; set; }
     [Column(TypeName = "jsonb")]
-    public Customer Customer { get; set; }
+    public CustomerDetails Details { get; set; }
 }
 
-public class Customer    // Mapped to a JSON column in the table
+public class CustomerDetails    // Mapped to a JSON column in the table
 {
     public string Name { get; set; }
     public int Age { get; set; }
@@ -118,29 +170,9 @@ public class Order       // Part of the JSON column
 }
 ```
 
+Note that when using this mapping, only limited forms of LINQ querying is supported; it's recommended to switch to ToJson() for full LINQ querying capabilities. The querying supported by traditional POCO mapping is documented [below](#querying-traditional-and-dom).
+
 ***
-
-You can now assign a regular `Customer` instance to the property, and once you call `SaveChanges()` it will be serialized to database, producing a  document such as the following:
-
-```json
-{
-    "Age": 25,
-    "Name": "Joe",
-    "Orders": [
-        { "OrderPrice": 9, "ShippingAddress": "Some address 1" },
-        { "OrderPrice": 23, "ShippingAddress": "Some address 2" }
-    ]
-}
-```
-
-Reading is just as simple:
-
-```c#
-var someEntity = context.Entities.First();
-Console.WriteLine(someEntity.Customer.Orders[0].Price)
-```
-
-This provides a seamless mapping approach, and supports embedding nested types and arrays, resulting in complex JSON document schemas as shown above. This approach also allows you to traverse loaded JSON documents in a type-safe way, using regular C# syntax, and to use LINQ to query inside database JSON documents (see [Querying JSON columns](#querying-json-columns) below).
 
 ## JsonDocument DOM mapping
 
@@ -165,11 +197,16 @@ var someEntity = context.Entities.First();
 Console.WriteLine(someEntity.Customer.RootElement.GetProperty("Orders")[0].GetProperty("Price").GetInt32());
 ```
 
-## Querying JSON columns
+Note that when using this mapping, only limited forms of LINQ querying is supported; [see below](#querying-traditional-and-dom) for more details.
+
+## <a name="querying-traditional-and-dom">Querying JSON columns (traditional JSON and DOM)
+
+> [!NOTE]
+> The below does not apply if you are using ToJson (owned entity mapping). ToJson supports
 
 Saving and loading documents these documents wouldn't be much use without the ability to query them. You can express your queries via the same LINQ constructs you are already using in EF Core:
 
-### [POCO Mapping](#tab/poco)
+### [Classic POCO Mapping](#tab/poco)
 
 ```c#
 var joes = context.CustomerEntries
@@ -235,5 +272,3 @@ EF.Functions.JsonTypeof(customer.GetProperty("Age")) == "number"                
 
 > [!NOTE]
 > A section on indices will be added. In the meantime consult the PostgreSQL documentation and other guides on the Internet.
-
-These are early days for EF Core JSON support, and you'll likely run into some limitations. Please let us know how the current features are working for you and what you'd like to see.
