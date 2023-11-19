@@ -29,9 +29,7 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
         { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddSeconds), new[] { typeof(double) })!, "secs" },
         //{ typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddMilliseconds), new[] { typeof(double) })!, "milliseconds" }
 
-        { typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddYears), new[] { typeof(int) })!, "years" },
-        { typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddMonths), new[] { typeof(int) })!, "months" },
-        { typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddDays), new[] { typeof(int) })!, "days" },
+        // DateOnly.AddDays, AddMonths and AddYears have a specialized translation, see below
         { typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.AddHours), new[] { typeof(int) })!, "hours" },
         { typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.AddMinutes), new[] { typeof(int) })!, "mins" },
     };
@@ -59,6 +57,15 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
     private static readonly MethodInfo DateOnly_Distance
         = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
             nameof(NpgsqlDbFunctionsExtensions.Distance), new[] { typeof(DbFunctions), typeof(DateOnly), typeof(DateOnly) })!;
+
+    private static readonly MethodInfo DateOnly_AddDays
+        = typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddDays), new[] { typeof(int) })!;
+
+    private static readonly MethodInfo DateOnly_AddMonths
+        = typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddMonths), new[] { typeof(int) })!;
+
+    private static readonly MethodInfo DateOnly_AddYears
+        = typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddYears), new[] { typeof(int) })!;
 
     private static readonly MethodInfo TimeOnly_FromDateTime
         = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.FromDateTime), new[] { typeof(DateTime) })!;
@@ -118,60 +125,21 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
-        => TranslateDatePart(instance, method, arguments)
-            ?? TranslateDateTime(instance, method, arguments)
-            ?? TranslateDateOnly(instance, method, arguments)
-            ?? TranslateTimeOnly(instance, method, arguments)
-            ?? TranslateTimeZoneInfo(method, arguments);
+        => TranslateDateTime(instance, method, arguments)
+           ?? TranslateDateOnly(instance, method, arguments)
+           ?? TranslateTimeOnly(instance, method, arguments)
+           ?? TranslateTimeZoneInfo(method, arguments)
+           ?? TranslateDatePart(instance, method, arguments);
 
     private SqlExpression? TranslateDatePart(
         SqlExpression? instance,
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments)
-    {
-        if (instance is null || !MethodInfoDatePartMapping.TryGetValue(method, out var datePart))
-        {
-            return null;
-        }
-
-        if (arguments[0] is not { } interval)
-        {
-            return null;
-        }
-
-        // Note: ideally we'd simply generate a PostgreSQL interval expression, but the .NET mapping of that is TimeSpan,
-        // which does not work for months, years, etc. So we generate special fragments instead.
-        if (interval is SqlConstantExpression constantExpression)
-        {
-            // We generate constant intervals as INTERVAL '1 days'
-            if (constantExpression.Type == typeof(double)
-                && ((double)constantExpression.Value! >= int.MaxValue || (double)constantExpression.Value <= int.MinValue))
-            {
-                return null;
-            }
-
-            interval = _sqlExpressionFactory.Fragment(FormattableString.Invariant($"INTERVAL '{constantExpression.Value} {datePart}'"));
-        }
-        else
-        {
-            // For non-constants, we can't parameterize INTERVAL '1 days'. Instead, we use CAST($1 || ' days' AS interval).
-            // Note that a make_interval() function also exists, but accepts only int (for all fields except for
-            // seconds), so we don't use it.
-            // Note: we instantiate SqlBinaryExpression manually rather than via sqlExpressionFactory because
-            // of the non-standard Add expression (concatenate int with text)
-            interval = _sqlExpressionFactory.Convert(
-                new SqlBinaryExpression(
-                    ExpressionType.Add,
-                    _sqlExpressionFactory.Convert(interval, typeof(string), _textMapping),
-                    _sqlExpressionFactory.Constant(' ' + datePart, _textMapping),
-                    typeof(string),
-                    _textMapping),
-                typeof(TimeSpan),
-                _intervalMapping);
-        }
-
-        return _sqlExpressionFactory.Add(instance, interval, instance.TypeMapping);
-    }
+        => instance is not null
+            && MethodInfoDatePartMapping.TryGetValue(method, out var datePart)
+            && CreateIntervalExpression(arguments[0], datePart) is SqlExpression interval
+                ? _sqlExpressionFactory.Add(instance, interval, instance.TypeMapping)
+                : null;
 
     private SqlExpression? TranslateDateTime(
         SqlExpression? instance,
@@ -270,6 +238,28 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
                     typeof(DateTime),
                     _timestampMapping);
             }
+
+            // In PG, date + int = date (int interpreted as days)
+            if (method == DateOnly_AddDays)
+            {
+                return _sqlExpressionFactory.Add(instance, arguments[0]);
+            }
+
+            // For months and years, date + interval yields a timestamp (since interval could have a time component), so we need to cast
+            // the results back to date
+            if (method == DateOnly_AddMonths
+                && CreateIntervalExpression(arguments[0], "months") is SqlExpression interval1)
+            {
+                return _sqlExpressionFactory.Convert(
+                    _sqlExpressionFactory.Add(instance, interval1, instance.TypeMapping), typeof(DateOnly));
+            }
+
+            if (method == DateOnly_AddYears
+                && CreateIntervalExpression(arguments[0], "years") is SqlExpression interval2)
+            {
+                return _sqlExpressionFactory.Convert(
+                    _sqlExpressionFactory.Add(instance, interval2, instance.TypeMapping), typeof(DateOnly));
+            }
         }
 
         return null;
@@ -359,5 +349,37 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
         }
 
         return null;
+    }
+
+    private SqlExpression? CreateIntervalExpression(SqlExpression intervalNum, string datePart)
+    {
+        // Note: ideally we'd simply generate a PostgreSQL interval expression, but the .NET mapping of that is TimeSpan,
+        // which does not work for months, years, etc. So we generate special fragments instead.
+        if (intervalNum is SqlConstantExpression constantExpression)
+        {
+            // We generate constant intervals as INTERVAL '1 days'
+            if (constantExpression.Type == typeof(double)
+                && ((double)constantExpression.Value! >= int.MaxValue || (double)constantExpression.Value <= int.MinValue))
+            {
+                return null;
+            }
+
+            return _sqlExpressionFactory.Fragment(FormattableString.Invariant($"INTERVAL '{constantExpression.Value} {datePart}'"));
+        }
+
+        // For non-constants, we can't parameterize INTERVAL '1 days'. Instead, we use CAST($1 || ' days' AS interval).
+        // Note that a make_interval() function also exists, but accepts only int (for all fields except for
+        // seconds), so we don't use it.
+        // Note: we instantiate SqlBinaryExpression manually rather than via sqlExpressionFactory because
+        // of the non-standard Add expression (concatenate int with text)
+        return _sqlExpressionFactory.Convert(
+            new SqlBinaryExpression(
+                ExpressionType.Add,
+                _sqlExpressionFactory.Convert(intervalNum, typeof(string), _textMapping),
+                _sqlExpressionFactory.Constant(' ' + datePart, _textMapping),
+                typeof(string),
+                _textMapping),
+            typeof(TimeSpan),
+            _intervalMapping);
     }
 }
