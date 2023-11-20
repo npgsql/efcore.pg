@@ -853,7 +853,7 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
         {
             // TODO: Switch to using NpgsqlDataSource
 #pragma warning disable CS0618 // Type or member is obsolete
-            NpgsqlConnection.GlobalTypeMapper.EnableDynamicJsonMappings();
+            NpgsqlConnection.GlobalTypeMapper.EnableDynamicJson();
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 

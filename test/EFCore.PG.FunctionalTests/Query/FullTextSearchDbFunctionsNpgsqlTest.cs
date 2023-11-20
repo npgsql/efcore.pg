@@ -3,6 +3,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
+#pragma warning disable CS0618 // NpgsqlTsVector.Parse is obsolete
+
 public class FullTextSearchDbFunctionsNpgsqlTest : IClassFixture<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
 {
     protected NorthwindQueryNpgsqlFixture<NoopModelCustomizer> Fixture { get; }

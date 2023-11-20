@@ -813,6 +813,7 @@ public class NpgsqlTypeMappingTest
 
     #region Full text search
 
+#pragma warning disable CS0618 // Full-text search client-parsing is obsolete
     [Fact]
     public void GenerateSqlLiteral_returns_tsquery_literal()
         => Assert.Equal(
@@ -824,6 +825,7 @@ public class NpgsqlTypeMappingTest
         => Assert.Equal(
             @"TSVECTOR '''a'' ''b'''",
             GetMapping("tsvector").GenerateSqlLiteral(NpgsqlTsVector.Parse("a b")));
+#pragma warning restore CS0618
 
     [Fact]
     public void GenerateSqlLiteral_returns_ranking_normalization_literal()

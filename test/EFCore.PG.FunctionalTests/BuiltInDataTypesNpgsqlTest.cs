@@ -110,8 +110,11 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
                     PhysicalAddressArrayAsMacaddrArray =
                         new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
                     UintAsXid = (uint)int.MaxValue + 1,
+
+#pragma warning disable CS0618 // Full-text search client-parsing is obsolete
                     SearchQuery = NpgsqlTsQuery.Parse("a & b"),
                     SearchVector = NpgsqlTsVector.Parse("a b"),
+#pragma warning restore CS0618
                     RankingNormalization = NpgsqlTsRankingNormalization.DivideByLength,
                     Regconfig = 12724,
                     Mood = Mood.Sad
@@ -264,11 +267,13 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
             var param37 = (uint)int.MaxValue + 1;
             Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.UintAsXid == param37));
 
+#pragma warning disable CS0618 // Full-text search client-parsing is obsolete
             var param38 = NpgsqlTsQuery.Parse("a & b");
             Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.SearchQuery == param38));
 
             var param39 = NpgsqlTsVector.Parse("a b");
             Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.SearchVector == param39));
+#pragma warning restore CS0618
 
             // ReSharper disable once ConvertToConstant.Local
             var param40 = NpgsqlTsRankingNormalization.DivideByLength;
@@ -571,8 +576,10 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
 
         Assert.Equal((uint)int.MaxValue + 1, entity.UintAsXid);
 
+#pragma warning disable CS0618 // Full-text search client-parsing is obsolete
         Assert.Equal(NpgsqlTsQuery.Parse("a & b").ToString(), entity.SearchQuery.ToString());
         Assert.Equal(NpgsqlTsVector.Parse("a b").ToString(), entity.SearchVector.ToString());
+#pragma warning restore CS0618
         Assert.Equal(NpgsqlTsRankingNormalization.DivideByLength, entity.RankingNormalization);
     }
 
@@ -620,8 +627,10 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
             PhysicalAddressArrayAsMacaddrArray =
                 new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
             UintAsXid = (uint)int.MaxValue + 1,
+#pragma warning disable CS0618 // Full-text search client-parsing is obsolete
             SearchQuery = NpgsqlTsQuery.Parse("a & b"),
             SearchVector = NpgsqlTsVector.Parse("a b"),
+#pragma warning restore CS0618
             RankingNormalization = NpgsqlTsRankingNormalization.DivideByLength,
             Regconfig = 12724,
             Mood = Mood.Sad
