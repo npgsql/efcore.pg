@@ -1601,6 +1601,21 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
+    /// <inheritdoc />
+    protected override void DefaultValue(
+        object? defaultValue,
+        string? defaultValueSql,
+        string? columnType,
+        MigrationCommandListBuilder builder)
+    {
+        if (columnType is "jsonb" or "json" && defaultValue is "")
+        {
+            defaultValue = "{}";
+        }
+
+        base.DefaultValue(defaultValue, defaultValueSql, columnType, builder);
+    }
+
     /// <summary>
     ///     Checks for a <see cref="NpgsqlAnnotationNames.TsVectorConfig" /> annotation on the given column, and if found, assigns
     ///     the appropriate SQL to <see cref="ColumnOperation.ComputedColumnSql" />.
