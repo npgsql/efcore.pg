@@ -1608,6 +1608,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         string? columnType,
         MigrationCommandListBuilder builder)
     {
+        // This is a hacky workaround for https://github.com/dotnet/efcore/issues/32353 - the EF MigrationsModelDiffer generates an empty
+        // string as the default value for JSON columns, but that's not valid as a JSON document and rejected by PG's jsonb type. So we
+        // replace the empty string with an empty JSON document {}.
+        // Note that even after the EF-side issue is fixed, removing this hack is a breaking change as migrations have already been
+        // scaffolded with an empty string.
         if (columnType is "jsonb" or "json" && defaultValue is "")
         {
             defaultValue = "{}";
