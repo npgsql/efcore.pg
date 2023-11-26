@@ -1485,7 +1485,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             PgBinaryExpression => (1000, false),
 
             CollateExpression => (1000, false),
-            AtTimeZoneExpression => (1000, false),
+            AtTimeZoneExpression => (1100, false),
             InExpression => (900, false),
             PgJsonTraversalExpression => (1000, false),
             PgArrayIndexExpression => (1500, false),
