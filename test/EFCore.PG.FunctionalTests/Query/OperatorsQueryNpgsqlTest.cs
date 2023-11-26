@@ -125,6 +125,41 @@ LIMIT 2
 """);
     }
 
+    [ConditionalFact]
+    public virtual async Task AtTimeZone_and_addition()
+    {
+        var contextFactory = await InitializeAsync<OperatorsContext>(
+            seed: context =>
+            {
+                context.Set<OperatorEntityDateTime>().AddRange(
+                    new OperatorEntityDateTime { Id = 1, Value = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+                    new OperatorEntityDateTime { Id = 2, Value = new DateTime(2020, 2, 1, 0, 0, 0, DateTimeKind.Utc) });
+                context.SaveChanges();
+            },
+            onModelCreating: modelBuilder => modelBuilder.Entity<OperatorEntityDateTime>().Property(x => x.Id).ValueGeneratedNever());
+
+        await using var context = contextFactory.CreateContext();
+
+        var result = await context.Set<OperatorEntityDateTime>()
+            .Where(b => new DateOnly(2020, 1, 15) > DateOnly.FromDateTime(b.Value.AddDays(1)))
+            .SingleAsync();
+
+        Assert.Equal(1, result.Id);
+
+        AssertSql(
+            """
+SELECT o."Id", o."Value"
+FROM "OperatorEntityDateTime" AS o
+WHERE DATE '2020-01-15' > CAST((o."Value" + INTERVAL '1 days') AT TIME ZONE 'UTC' AS date)
+LIMIT 2
+""");
+    }
+
+    public class OperatorEntityDateTime : OperatorEntityBase
+    {
+        public DateTime Value { get; set; }
+    }
+
     protected override void Seed(OperatorsContext ctx)
     {
         ctx.Set<OperatorEntityString>().AddRange(ExpectedData.OperatorEntitiesString);
