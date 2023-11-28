@@ -44,11 +44,11 @@ LIMIT 2
         Assert.Equal(1, result.Id);
         AssertSql(
             """
-@__param_0_rewritten='some%'
+@__param_0_startswith='some%'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" LIKE @__param_0_rewritten ESCAPE '\'
+WHERE s."CaseInsensitiveText" LIKE @__param_0_startswith ESCAPE '\'
 LIMIT 2
 """);
     }
@@ -98,11 +98,11 @@ LIMIT 2
         Assert.Equal(1, result.Id);
         AssertSql(
             """
-@__param_0_rewritten='%sometext'
+@__param_0_endswith='%sometext'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" LIKE @__param_0_rewritten ESCAPE '\'
+WHERE s."CaseInsensitiveText" LIKE @__param_0_endswith ESCAPE '\'
 LIMIT 2
 """);
     }
@@ -152,11 +152,11 @@ LIMIT 2
         Assert.Equal(1, result.Id);
         AssertSql(
             """
-@__param_0_rewritten='%ometex%'
+@__param_0_contains='%ometex%'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" LIKE @__param_0_rewritten ESCAPE '\'
+WHERE s."CaseInsensitiveText" LIKE @__param_0_contains ESCAPE '\'
 LIMIT 2
 """);
     }
