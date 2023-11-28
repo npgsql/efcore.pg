@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -450,7 +451,8 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                     QueryCompilationContext.QueryContextParameter);
 
                 var escapedPatternParameter =
-                    _queryCompilationContext.RegisterRuntimeParameter(patternParameter.Name + "_rewritten", lambda);
+                    _queryCompilationContext.RegisterRuntimeParameter(
+                        $"{patternParameter.Name}_{methodType.ToString().ToLower(CultureInfo.InvariantCulture)}", lambda);
 
                 translation = _sqlExpressionFactory.Like(
                     translatedInstance,
