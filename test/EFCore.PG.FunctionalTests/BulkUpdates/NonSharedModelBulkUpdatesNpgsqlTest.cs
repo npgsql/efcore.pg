@@ -151,6 +151,41 @@ WHERE o."Id" = 1
 """);
     }
 
+    [ConditionalTheory] // #3001
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Update_with_primitive_collection_in_value_selector(bool async)
+    {
+        var contextFactory = await InitializeAsync<Context3001>(
+            seed: ctx =>
+            {
+                ctx.AddRange(new EntityWithPrimitiveCollection { Tags = new List<string> { "tag1", "tag2" }});
+                ctx.SaveChanges();
+            });
+
+        await AssertUpdate(
+            async,
+            contextFactory.CreateContext,
+            ss => ss.EntitiesWithPrimitiveCollection,
+            s => s.SetProperty(x => x.Tags, x => x.Tags.Append("another_tag")),
+            rowsAffectedCount: 1);
+    }
+
+    protected class Context3001 : DbContext
+    {
+        public Context3001(DbContextOptions options)
+            : base(options)
+        {
+        }
+
+        public DbSet<EntityWithPrimitiveCollection> EntitiesWithPrimitiveCollection { get; set; }
+    }
+
+    protected class EntityWithPrimitiveCollection
+    {
+        public int Id { get; set; }
+        public List<string> Tags { get; set; }
+    }
+
     private void AssertSql(params string[] expected)
         => TestSqlLoggerFactory.AssertBaseline(expected);
 

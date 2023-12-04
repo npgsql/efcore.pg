@@ -1,6 +1,7 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
+using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
@@ -33,6 +34,17 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
     private static readonly MethodInfo Enumerable_SequenceEqual =
         typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .Single(m => m.Name == nameof(Enumerable.SequenceEqual) && m.GetParameters().Length == 2);
+
+    // TODO: Enumerable Append and Concat are only here because primitive collections aren't handled in ExecuteUpdate,
+    // https://github.com/dotnet/efcore/issues/32494
+    private static readonly MethodInfo Enumerable_Append =
+        typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Single(m => m.Name == nameof(Enumerable.Append) && m.GetParameters().Length == 2);
+
+    private static readonly MethodInfo Enumerable_Concat =
+        typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Single(m => m.Name == nameof(Enumerable.Concat) && m.GetParameters().Length == 2);
+
     // ReSharper restore InconsistentNaming
 
     #endregion Methods
@@ -153,6 +165,38 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
                             arrayOrList.Type),
                         _sqlExpressionFactory.Constant(1)),
                     _sqlExpressionFactory.Constant(-1));
+            }
+
+            // TODO: Enumerable Append and Concat are only here because primitive collections aren't handled in ExecuteUpdate,
+            // https://github.com/dotnet/efcore/issues/32494
+            if (method.IsClosedFormOf(Enumerable_Append))
+            {
+                var (item, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(arguments[0], arrayOrList);
+
+                return _sqlExpressionFactory.Function(
+                    "array_append",
+                    new[] { array, item },
+                    nullable: true,
+                    TrueArrays[2],
+                    arrayOrList.Type,
+                    arrayOrList.TypeMapping);
+            }
+
+            if (method.IsClosedFormOf(Enumerable_Concat))
+            {
+                var inferredMapping = ExpressionExtensions.InferTypeMapping(arrayOrList, arguments[0]);
+
+                return _sqlExpressionFactory.Function(
+                    "array_cat",
+                    new[]
+                    {
+                        _sqlExpressionFactory.ApplyTypeMapping(arrayOrList, inferredMapping),
+                        _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping)
+                    },
+                    nullable: true,
+                    TrueArrays[2],
+                    arrayOrList.Type,
+                    inferredMapping);
             }
 
             return null;
