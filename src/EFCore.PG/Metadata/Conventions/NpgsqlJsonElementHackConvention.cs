@@ -14,16 +14,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 /// </summary>
 public class NpgsqlJsonElementHackConvention : IPropertyAddedConvention
 {
-    private NpgsqlJsonTypeMapping? _jsonTypeMapping;
+    private NpgsqlJsonTypeMapping? _jsonElementJsonTypeMapping;
+    private NpgsqlJsonTypeMapping? _nullableJsonElementJsonTypeMapping;
 
     /// <inheritdoc />
     public void ProcessPropertyAdded(IConventionPropertyBuilder propertyBuilder, IConventionContext<IConventionPropertyBuilder> context)
     {
         var property = propertyBuilder.Metadata;
+        var clrType = property.ClrType;
 
-        if (property.ClrType == typeof(JsonElement) && property.GetColumnType() is null)
+        if (property.GetColumnType() is not null)
         {
-            property.SetTypeMapping(_jsonTypeMapping ??= new NpgsqlJsonTypeMapping("jsonb", typeof(JsonElement)));
+            return;
+        }
+
+        if (clrType == typeof(JsonElement))
+        {
+            property.SetTypeMapping(_jsonElementJsonTypeMapping ??= new NpgsqlJsonTypeMapping("jsonb", clrType));
+        }
+        else if (clrType == typeof(JsonElement?))
+        {
+            property.SetTypeMapping(_nullableJsonElementJsonTypeMapping ??= new NpgsqlJsonTypeMapping("jsonb", clrType));
         }
     }
 }
