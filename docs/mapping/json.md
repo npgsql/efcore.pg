@@ -65,7 +65,7 @@ As an alternative, prior to version 8.0, the Npgsql EF provider has supported JS
 
 Npgsql's support for `ToJson()` is fully aligned with the general EF support; see the [EF documentation for more information](https://learn.microsoft.com/ef/core/what-is-new/ef-core-7.0/whatsnew#json-columns).
 
-To get you started quickly, assume that we have the following Custmoer type, with a Details property that we want to map to a single JSON column in the database:
+To get you started quickly, assume that we have the following Customer type, with a Details property that we want to map to a single JSON column in the database:
 
 ```c#
 public class Customer
