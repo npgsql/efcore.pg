@@ -45,8 +45,8 @@ Regex.IsMatch(stringValue, "^A+", regexOptions)               | [stringValue ~ '
 string.Join(", ", a, b)                                       | [concat_ws(', ', a, b)](https://www.postgresql.org/docs/current/functions-string.html#FUNCTIONS-STRING-OTHER) | Added in 7.0 (previously array_to_string)
 string.Join(", ", array)                                      | [array_to_string(array, ', ', '')](https://www.postgresql.org/docs/current/functions-array.html#ARRAY-FUNCTIONS-TABLE)
 string.Join(", ", agg_strings)                                | [string_agg(agg_strings, ', ')](https://www.postgresql.org/docs/current/functions-aggregate.html#FUNCTIONS-AGGREGATE-TABLE) | Added in 7.0, see [Aggregate functions](#aggregate-functions).
-EF.Functions.StringToArray(s, "|")                            | [string_agg(s, '\|')](https://www.postgresql.org/docs/current/functions-string.html#FUNCTION-STRING-TO-ARRAY) | Added in 8.0
-EF.Functions.StringToArray(s, "|", "FOO")                     | [string_agg(s, '\|', 'FOO')](https://www.postgresql.org/docs/current/functions-string.html#FUNCTION-STRING-TO-ARRAY) | Added in 8.0
+EF.Functions.StringToArray(s, "\|")                           | [string_agg(s, '\|')](https://www.postgresql.org/docs/current/functions-string.html#FUNCTION-STRING-TO-ARRAY) | Added in 8.0
+EF.Functions.StringToArray(s, "\|", "FOO")                    | [string_agg(s, '\|', 'FOO')](https://www.postgresql.org/docs/current/functions-string.html#FUNCTION-STRING-TO-ARRAY) | Added in 8.0
 
 ## Date and time functions
 
