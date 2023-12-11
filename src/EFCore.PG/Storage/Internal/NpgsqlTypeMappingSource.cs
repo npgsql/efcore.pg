@@ -915,6 +915,26 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             return rangeStoreType is null ? null : FindMapping(containerClrType, rangeStoreType);
         }
 
+        // If this containment of a range within a multirange, just flow down to the general collection mapping logic; multiranges are
+        // handled just like normal collections over ranges (since they can be unnested).
+        // However, we also support containment of the base type (e.g. int) directly in its multirange (e.g. int4range). A multirange
+        // is *not* a collection over the base type, so handle that specific case here.
+        if (containerClrType.IsMultirange() && !containeeTypeMapping.ClrType.IsRange())
+        {
+            var multirangeStoreType = containeeTypeMapping.StoreType switch
+            {
+                "int" or "integer" => "int4multirange",
+                "bigint" => "int8multirange",
+                "decimal" or "numeric" => "nummultirange",
+                "date" => "datemultirange",
+                "timestamp" or "timestamp without time zone" => "tsmultirange",
+                "timestamptz" or "timestamp with time zone" => "tstzmultirange",
+                _ => null
+            };
+
+            return !_supportsMultiranges || multirangeStoreType is null ? null : FindMapping(containerClrType, multirangeStoreType);
+        }
+
         // Then, try to find the mapping with the containee mapping as the element type mapping.
         // This is the standard EF lookup mechanism, and takes care of regular arrays and multiranges, which are supported as full primitive
         // collections.

@@ -144,7 +144,7 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
         if (elementJsonReaderWriter is not null && elementJsonReaderWriter.ValueType != typeof(TElement).UnwrapNullableType())
         {
             throw new InvalidOperationException(
-                $"When '{elementJsonReaderWriter.ValueType}', '{typeof(TElement).UnwrapNullableType()}' building an array mapping, the JsonValueReaderWriter for element mapping '{elementMapping.GetType().Name}' is incorrect ('{elementMapping.JsonValueReaderWriter?.GetType().Name ?? "<null>"}').");
+                $"When building an array mapping over '{typeof(TElement).Name}', the JsonValueReaderWriter for element mapping '{elementMapping.GetType().Name}' is incorrect ('{elementMapping.JsonValueReaderWriter?.GetType().Name ?? "<null>"}' instead of '{typeof(TElement).UnwrapNullableType()}').");
         }
 
         // If there's no JsonValueReaderWriter on the element, we also don't set one on its array (this is for rare edge cases such as

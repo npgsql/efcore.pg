@@ -871,8 +871,6 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 // (e.g. IP address containment)
                 containerMapping = _typeMappingSource.FindContainerMapping(container.Type, containeeMapping, Dependencies.Model);
 
-                // containerMapping = _typeMappingSource.FindContainerMapping(container.Type, containeeMapping);
-
                 // Apply the inferred mapping to the container, or fall back to the default type mapping
                 if (containerMapping is not null)
                 {
