@@ -139,11 +139,13 @@ WHERE
             return;
         }
 
-        const string getUserCollations = @"SELECT nspname, collname
+        const string getUserCollations =
+            """
+SELECT nspname, collname
 FROM pg_collation coll
     JOIN pg_namespace ns ON ns.oid=coll.collnamespace
-    JOIN pg_authid auth ON auth.oid = coll.collowner WHERE rolname <> 'postgres';
-";
+    JOIN pg_authid auth ON auth.oid = coll.collowner WHERE nspname <> 'pg_catalog';
+""";
 
         (string Schema, string Name)[] userDefinedTypes;
         using (var cmd = new NpgsqlCommand(getUserCollations, conn))

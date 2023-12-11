@@ -347,6 +347,32 @@ WHERE p."Int" = ANY (NULL)
 """);
     }
 
+    [ConditionalTheory] // #3012
+    [MinimumPostgresVersion(14, 0)] // Multiranges were introduced in PostgreSQL 14
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Parameter_collection_of_ranges_Contains(bool async)
+    {
+        var ranges = new NpgsqlRange<int>[]
+        {
+            new(5, 15),
+            new(40, 50)
+        };
+
+        await AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(e => ranges.Contains(e.Int)),
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => ranges.Any(p => p.LowerBound <= c.Int && p.UpperBound >= c.Int)));
+
+        AssertSql(
+            """
+@__ranges_0={ '[5,15]', '[40,50]' } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE @__ranges_0 @> p."Int"
+""");
+    }
+
     public override async Task Column_collection_of_ints_Contains(bool async)
     {
         await base.Column_collection_of_ints_Contains(async);
