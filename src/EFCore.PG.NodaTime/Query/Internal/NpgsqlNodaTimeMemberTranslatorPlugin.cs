@@ -251,10 +251,13 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
 
         if (member == DateInterval_End)
         {
-            return
-                _sqlExpressionFactory.Subtract(
+            var upperBound = _sqlExpressionFactory.Subtract(
                     Upper(),
                     _sqlExpressionFactory.Constant(Period.FromDays(1), _periodTypeMapping));
+
+            // PostgreSQL creates a result of type 'timestamp without time zone' when subtracting periods from dates.
+            // So we need to cast it to date explicitly.
+            return _sqlExpressionFactory.Convert(upperBound, typeof(LocalDate), _typeMappingSource.FindMapping(typeof(LocalDate)));
         }
 
         if (member == DateInterval_Length)
