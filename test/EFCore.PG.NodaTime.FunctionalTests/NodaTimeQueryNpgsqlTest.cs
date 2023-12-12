@@ -1300,7 +1300,22 @@ WHERE lower(n."DateInterval") = DATE '2018-04-20'
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE upper(n."DateInterval") - INTERVAL 'P1D' = DATE '2018-04-24'
+WHERE CAST(upper(n."DateInterval") - INTERVAL 'P1D' AS date) = DATE '2018-04-24'
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task DateInterval_End_Select(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<NodaTimeTypes>().Select(t => t.DateInterval.End));
+
+        AssertSql(
+            """
+SELECT CAST(upper(n."DateInterval") - INTERVAL 'P1D' AS date)
+FROM "NodaTimeTypes" AS n
 """);
     }
 
