@@ -1306,6 +1306,21 @@ WHERE CAST(upper(n."DateInterval") - INTERVAL 'P1D' AS date) = DATE '2018-04-24'
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
+    public async Task DateInterval_End_Select(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<NodaTimeTypes>().Select(t => t.DateInterval.End));
+
+        AssertSql(
+            """
+SELECT CAST(upper(n."DateInterval") - INTERVAL 'P1D' AS date)
+FROM "NodaTimeTypes" AS n
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
     public async Task DateInterval_Contains_LocalDate(bool async)
     {
         var dateInterval = new DateInterval(new LocalDate(2018, 01, 01), new LocalDate(2020, 12, 25));
