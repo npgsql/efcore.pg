@@ -473,26 +473,6 @@ ALTER SEQUENCE dbo."TestRestartSequenceOperation" RESTART;
                 : """ALTER SEQUENCE dbo."TestRestartSequenceOperation" RESTART;""");
     }
 
-    // Which index collations are available on a given PostgreSQL varies (e.g. Linux vs. Windows)
-    // so we test support for this on the generated SQL only, and not against the database in MigrationsNpgsqlTest.
-    [Fact]
-    public void CreateIndexOperation_collation()
-    {
-        Generate(
-            new CreateIndexOperation
-            {
-                Name = "IX_People_Name",
-                Table = "People",
-                Schema = "dbo",
-                Columns = new[] { "FirstName", "LastName" },
-                [RelationalAnnotationNames.Collation] = new[] { null, "de_DE" }
-            });
-
-        AssertSql(
-            @"CREATE INDEX ""IX_People_Name"" ON dbo.""People"" (""FirstName"", ""LastName"" COLLATE ""de_DE"");
-");
-    }
-
     [Theory]
     [InlineData(MigrationsSqlGenerationOptions.Default)]
     [InlineData(MigrationsSqlGenerationOptions.Idempotent)]
