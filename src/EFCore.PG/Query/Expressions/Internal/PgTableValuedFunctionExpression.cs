@@ -21,7 +21,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 ///         doing so can result in application failures when updating to a new Entity Framework Core release.
 ///     </para>
 /// </remarks>
-public class PgTableValuedFunctionExpression : TableValuedFunctionExpression, IEquatable<PgTableValuedFunctionExpression>
+public class PgTableValuedFunctionExpression : TableValuedFunctionExpression,
+    IEquatable<PgTableValuedFunctionExpression>, IClonableTableExpressionBase
 {
     /// <summary>
     ///     The name of the column to be projected out from the <c>unnest</c> call.
@@ -79,6 +80,12 @@ public class PgTableValuedFunctionExpression : TableValuedFunctionExpression, IE
         => !arguments.SequenceEqual(Arguments)
             ? new PgTableValuedFunctionExpression(Alias, Name, arguments, ColumnInfos, WithOrdinality)
             : this;
+
+    // TODO: This is a hack for https://github.com/npgsql/efcore.pg/issues/3023; we notably don't visit the arguments, which we should
+    // (but can't, since the Clone() API doesn't accept the cloning visitor).
+    /// <inheritdoc />
+    public TableExpressionBase Clone()
+        => new PgTableValuedFunctionExpression(Alias, Name, Arguments, ColumnInfos, WithOrdinality);
 
     /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)
