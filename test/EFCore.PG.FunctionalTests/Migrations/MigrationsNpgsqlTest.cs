@@ -2235,9 +2235,56 @@ DROP SEQUENCE "People_Id_old_seq";
             @"CREATE INDEX ""IX_People_FirstName_LastName"" ON ""People"" (""FirstName"" text_pattern_ops, ""LastName"");");
     }
 
-    // Index collation: which collations are available on a given PostgreSQL varies (e.g. Linux vs. Windows),
-    // so we test support for this on the generated SQL only, in NpgsqlMigrationSqlGeneratorTest, and not against
-    // the database here.
+    [Fact]
+    public virtual async Task Create_index_with_collation()
+    {
+        await Test(
+            builder =>
+            {
+                builder.Entity("People", e => e.Property<string>("Name"));
+                builder.HasCollation("some_collation", locale: "POSIX", provider: "libc");
+            },
+            _ => { },
+            builder => builder.Entity("People").HasIndex("Name").UseCollation("some_collation"),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var index = Assert.Single(table.Indexes);
+                Assert.Equal("some_collation", Assert.Single((IReadOnlyList<string>)index[RelationalAnnotationNames.Collation]!));
+            });
+
+        AssertSql(
+            """
+CREATE INDEX "IX_People_Name" ON "People" ("Name" COLLATE some_collation);
+""");
+    }
+
+    [Fact] // #3027
+    public virtual async Task Create_index_with_collation_and_operators()
+    {
+        await Test(
+            builder =>
+            {
+                builder.Entity("People", e => e.Property<string>("Name"));
+                builder.HasCollation("some_collation", locale: "POSIX", provider: "libc");
+            },
+            _ => { },
+            builder => builder.Entity("People").HasIndex("Name")
+                .UseCollation("some_collation")
+                .HasOperators("text_pattern_ops"),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var index = Assert.Single(table.Indexes);
+                Assert.Equal("text_pattern_ops", Assert.Single((IReadOnlyList<string>)index[NpgsqlAnnotationNames.IndexOperators]!));
+                Assert.Equal("some_collation", Assert.Single((IReadOnlyList<string>)index[RelationalAnnotationNames.Collation]!));
+            });
+
+        AssertSql(
+            """
+CREATE INDEX "IX_People_Name" ON "People" ("Name" COLLATE some_collation text_pattern_ops);
+""");
+    }
 
     [Fact]
     public virtual async Task Create_index_with_null_sort_order()

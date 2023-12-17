@@ -2051,19 +2051,23 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
     private string IndexColumnList(IndexColumn[] columns, string? method)
     {
-        var isFirst = true;
         var builder = new StringBuilder();
 
         for (var i = 0; i < columns.Length; i++)
         {
-            if (!isFirst)
+            var column = columns[i];
+
+            if (i > 0)
             {
                 builder.Append(", ");
             }
 
-            var column = columns[i];
-
             builder.Append(DelimitIdentifier(column.Name));
+
+            if (!string.IsNullOrEmpty(column.Collation))
+            {
+                builder.Append(" COLLATE ").Append(DelimitIdentifier(column.Collation));
+            }
 
             if (!string.IsNullOrEmpty(column.Operator))
             {
@@ -2072,11 +2076,6 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                     : DelimitIdentifier(column.Operator);
 
                 builder.Append(" ").Append(delimitedOperator);
-            }
-
-            if (!string.IsNullOrEmpty(column.Collation))
-            {
-                builder.Append(" COLLATE ").Append(DelimitIdentifier(column.Collation));
             }
 
             // Of the built-in access methods, only btree (the default) supports
@@ -2105,8 +2104,6 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                     }
                 }
             }
-
-            isFirst = false;
         }
 
         return builder.ToString();
