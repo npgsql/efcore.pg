@@ -49,6 +49,7 @@ public class NpgsqlCSharpRuntimeAnnotationCodeGenerator : RelationalCSharpRuntim
         var npgsqlDbTypeBasedDefaultInstance = typeMapping switch
         {
             NpgsqlStringTypeMapping => NpgsqlStringTypeMapping.Default,
+            NpgsqlUIntTypeMapping => NpgsqlUIntTypeMapping.Default,
             NpgsqlULongTypeMapping => NpgsqlULongTypeMapping.Default,
             // NpgsqlMultirangeTypeMapping => NpgsqlMultirangeTypeMapping.Default,
             _ => (INpgsqlTypeMapping?)null
