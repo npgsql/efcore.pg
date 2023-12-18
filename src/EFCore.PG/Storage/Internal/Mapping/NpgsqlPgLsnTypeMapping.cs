@@ -83,17 +83,41 @@ public class NpgsqlPgLsnTypeMapping : NpgsqlTypeMapping
     private static readonly ConstructorInfo Constructor =
         typeof(NpgsqlLogSequenceNumber).GetConstructor(new[] { typeof(ulong) })!;
 
-    private sealed class JsonLogSequenceNumberReaderWriter : JsonValueReaderWriter<NpgsqlLogSequenceNumber>
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public sealed class JsonLogSequenceNumberReaderWriter : JsonValueReaderWriter<NpgsqlLogSequenceNumber>
     {
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         public static JsonLogSequenceNumberReaderWriter Instance { get; } = new();
 
         private JsonLogSequenceNumberReaderWriter()
         {
         }
 
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         public override NpgsqlLogSequenceNumber FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
             => NpgsqlLogSequenceNumber.Parse(manager.CurrentReader.GetString()!);
 
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         public override void ToJsonTyped(Utf8JsonWriter writer, NpgsqlLogSequenceNumber value)
             => writer.WriteStringValue(value.ToString());
     }
