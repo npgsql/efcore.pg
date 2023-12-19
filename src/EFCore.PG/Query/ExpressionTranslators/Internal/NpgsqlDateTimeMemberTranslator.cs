@@ -66,7 +66,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
             switch (instance?.TypeMapping)
             {
                 case NpgsqlTimestampTypeMapping:
-                case NpgsqlTimestampTzTypeMapping when NpgsqlTypeMappingSource.LegacyTimestampBehavior:
+                case { } when NpgsqlTypeMappingSource.LegacyTimestampBehavior:
                     return _sqlExpressionFactory.Function(
                         "date_trunc",
                         new[] { _sqlExpressionFactory.Constant("day"), instance! },
