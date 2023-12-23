@@ -106,6 +106,21 @@ WHERE c."ContactName" ILIKE '!%' ESCAPE '!'
 """);
     }
 
+    [Fact]
+    public void String_ILike_negated()
+    {
+        using var context = CreateContext();
+        var count = context.Customers.Count(c => !EF.Functions.ILike(c.ContactName, "%M%"));
+
+        Assert.Equal(57, count);
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "Customers" AS c
+WHERE NOT (c."ContactName" ILIKE '%M%') OR c."ContactName" IS NULL
+""");
+    }
+
     #endregion
 
     #region Collation

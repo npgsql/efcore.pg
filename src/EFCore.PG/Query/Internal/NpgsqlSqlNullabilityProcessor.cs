@@ -457,21 +457,73 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     /// </summary>
     protected virtual SqlExpression VisitILike(PgILikeExpression iLikeExpression, bool allowOptimizedExpansion, out bool nullable)
     {
-        Check.NotNull(iLikeExpression, nameof(iLikeExpression));
+        // Note: this is largely duplicated from relational SqlNullabilityProcessor.VisitLike.
+        // We unfortunately can't reuse that since it may return arbitrary expression tree structures with LikeExpression embedded, but
+        // we need ILikeExpression (see #3034).
+        var match = Visit(iLikeExpression.Match, out var matchNullable);
+        var pattern = Visit(iLikeExpression.Pattern, out var patternNullable);
+        var escapeChar = Visit(iLikeExpression.EscapeChar, out var escapeCharNullable);
 
-        var like = new LikeExpression(
-            iLikeExpression.Match,
-            iLikeExpression.Pattern,
-            iLikeExpression.EscapeChar,
-            iLikeExpression.TypeMapping);
+        SqlExpression result = iLikeExpression.Update(match, pattern, escapeChar);
 
-        var visited = base.VisitLike(like, allowOptimizedExpansion, out nullable);
+        if (UseRelationalNulls)
+        {
+            nullable = matchNullable || patternNullable || escapeCharNullable;
 
-        return visited == like
-            ? iLikeExpression
-            : visited is LikeExpression visitedLike
-                ? iLikeExpression.Update(visitedLike.Match, visitedLike.Pattern, visitedLike.EscapeChar)
-                : visited;
+            return result;
+        }
+
+        nullable = false;
+
+        // The null semantics behavior we implement for LIKE is that it only returns true when both sides are non-null and match; any other
+        // input returns false:
+        // foo LIKE f% -> true
+        // foo LIKE null -> false
+        // null LIKE f% -> false
+        // null LIKE null -> false
+
+        if (IsNull(match) || IsNull(pattern) || IsNull(escapeChar))
+        {
+            return _sqlExpressionFactory.Constant(false, iLikeExpression.TypeMapping);
+        }
+
+        // A constant match-all pattern (%) returns true for all cases, except where the match string is null:
+        // nullable_foo LIKE % -> foo IS NOT NULL
+        // non_nullable_foo LIKE % -> true
+        if (pattern is SqlConstantExpression { Value: "%" })
+        {
+            return matchNullable
+                ? _sqlExpressionFactory.IsNotNull(match)
+                : _sqlExpressionFactory.Constant(true, iLikeExpression.TypeMapping);
+        }
+
+        if (!allowOptimizedExpansion)
+        {
+            if (matchNullable)
+            {
+                result = _sqlExpressionFactory.AndAlso(result, GenerateNotNullCheck(match));
+            }
+
+            if (patternNullable)
+            {
+                result = _sqlExpressionFactory.AndAlso(result, GenerateNotNullCheck(pattern));
+            }
+
+            if (escapeChar is not null && escapeCharNullable)
+            {
+                result = _sqlExpressionFactory.AndAlso(result, GenerateNotNullCheck(escapeChar));
+            }
+
+            SqlExpression GenerateNotNullCheck(SqlExpression operand)
+                => OptimizeNonNullableNotExpression(
+                    _sqlExpressionFactory.Not(
+                        VisitSqlUnary(
+                            _sqlExpressionFactory.IsNull(operand),
+                            allowOptimizedExpansion: false,
+                            out _)));
+        }
+
+        return result;
     }
 
     /// <summary>
@@ -657,4 +709,9 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
 
         return true;
     }
+
+    // Note that we can check parameter values for null since we cache by the parameter nullability; but we cannot do the same for bool.
+    private bool IsNull(SqlExpression? expression)
+        => expression is SqlConstantExpression { Value: null }
+            || expression is SqlParameterExpression { Name: string parameterName } && ParameterValues[parameterName] is null;
 }
