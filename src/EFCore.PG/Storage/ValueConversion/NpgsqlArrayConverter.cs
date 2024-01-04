@@ -115,7 +115,6 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
         {
             output,
             lengthVariable,
-            loopVariable
         };
 
         Expression getInputLength;
