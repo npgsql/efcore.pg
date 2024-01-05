@@ -294,14 +294,9 @@ LIMIT 2
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-    public class CitextQueryContext : PoolableDbContext
+    public class CitextQueryContext(DbContextOptions options) : PoolableDbContext(options)
     {
         public DbSet<SomeArrayEntity> SomeEntities { get; set; }
-
-        public CitextQueryContext(DbContextOptions options)
-            : base(options)
-        {
-        }
 
         public static void Seed(CitextQueryContext context)
         {

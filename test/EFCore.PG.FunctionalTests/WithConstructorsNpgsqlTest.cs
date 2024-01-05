@@ -2,13 +2,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class WithConstructorsNpgsqlTest : WithConstructorsTestBase<WithConstructorsNpgsqlTest.WithConstructorsNpgsqlFixture>
+public class WithConstructorsNpgsqlTest(WithConstructorsNpgsqlTest.WithConstructorsNpgsqlFixture fixture)
+    : WithConstructorsTestBase<WithConstructorsNpgsqlTest.WithConstructorsNpgsqlFixture>(fixture)
 {
-    public WithConstructorsNpgsqlTest(WithConstructorsNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     protected override void UseTransaction(DatabaseFacade facade, IDbContextTransaction transaction)
         => facade.UseTransaction(transaction.GetDbTransaction());
 

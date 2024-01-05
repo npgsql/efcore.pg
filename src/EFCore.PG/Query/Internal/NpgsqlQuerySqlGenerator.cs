@@ -1516,15 +1516,9 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         }
     }
 
-    private sealed class OuterReferenceFindingExpressionVisitor : ExpressionVisitor
+    private sealed class OuterReferenceFindingExpressionVisitor(TableExpression mainTable) : ExpressionVisitor
     {
-        private readonly TableExpression _mainTable;
         private bool _containsReference;
-
-        public OuterReferenceFindingExpressionVisitor(TableExpression mainTable)
-        {
-            _mainTable = mainTable;
-        }
 
         public bool ContainsReferenceToMainTable(SqlExpression sqlExpression)
         {
@@ -1544,7 +1538,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             }
 
             if (expression is ColumnExpression columnExpression
-                && columnExpression.Table == _mainTable)
+                && columnExpression.Table == mainTable)
             {
                 _containsReference = true;
 

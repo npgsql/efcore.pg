@@ -170,13 +170,8 @@ WHERE o."Id" = 1
             rowsAffectedCount: 1);
     }
 
-    protected class Context3001 : DbContext
+    protected class Context3001(DbContextOptions options) : DbContext(options)
     {
-        public Context3001(DbContextOptions options)
-            : base(options)
-        {
-        }
-
         public DbSet<EntityWithPrimitiveCollection> EntitiesWithPrimitiveCollection { get; set; }
     }
 

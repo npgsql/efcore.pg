@@ -141,13 +141,8 @@ public class NpgsqlDatabaseFacadeTest
         }
     }
 
-    private class ProviderOnModelContext : ProviderContext
+    private class ProviderOnModelContext(DbContextOptions options) : ProviderContext(options)
     {
-        public ProviderOnModelContext(DbContextOptions options)
-            : base(options)
-        {
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
             => IsNpgsqlSet = Database.IsNpgsql();
     }
@@ -162,13 +157,8 @@ public class NpgsqlDatabaseFacadeTest
         }
     }
 
-    private class ProviderUseInOnConfiguringContext : ProviderContext
+    private class ProviderUseInOnConfiguringContext(DbContextOptions options) : ProviderContext(options)
     {
-        public ProviderUseInOnConfiguringContext(DbContextOptions options)
-            : base(options)
-        {
-        }
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => IsNpgsqlSet = Database.IsNpgsql();
     }

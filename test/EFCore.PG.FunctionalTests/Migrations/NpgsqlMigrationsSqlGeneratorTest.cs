@@ -7,7 +7,13 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
 
-public class NpgsqlMigrationsSqlGeneratorTest : MigrationsSqlGeneratorTestBase
+public class NpgsqlMigrationsSqlGeneratorTest() : MigrationsSqlGeneratorTestBase(
+    NpgsqlTestHelpers.Instance,
+    new ServiceCollection().AddEntityFrameworkNpgsqlNetTopologySuite(),
+    NpgsqlTestHelpers.Instance.AddProviderOptions(
+        ((IRelationalDbContextOptionsBuilderInfrastructure)
+            new NpgsqlDbContextOptionsBuilder(new DbContextOptionsBuilder()).UseNetTopologySuite())
+        .OptionsBuilder).Options)
 {
     #region Database
 
@@ -612,17 +618,6 @@ INTERLEAVE IN PARENT my_schema.my_parent (col_a, col_b);
                         })).Message);
 
 #pragma warning restore 618
-
-    public NpgsqlMigrationsSqlGeneratorTest()
-        : base(
-            NpgsqlTestHelpers.Instance,
-            new ServiceCollection().AddEntityFrameworkNpgsqlNetTopologySuite(),
-            NpgsqlTestHelpers.Instance.AddProviderOptions(
-                ((IRelationalDbContextOptionsBuilderInfrastructure)
-                    new NpgsqlDbContextOptionsBuilder(new DbContextOptionsBuilder()).UseNetTopologySuite())
-                .OptionsBuilder).Options)
-    {
-    }
 
     protected override string GetGeometryCollectionStoreType()
         => "GEOMETRY(GEOMETRYCOLLECTION)";

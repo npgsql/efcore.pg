@@ -2,14 +2,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class StoreGeneratedFixupNpgsqlTest : StoreGeneratedFixupRelationalTestBase<
-    StoreGeneratedFixupNpgsqlTest.StoreGeneratedFixupNpgsqlFixture>
+public class StoreGeneratedFixupNpgsqlTest(StoreGeneratedFixupNpgsqlTest.StoreGeneratedFixupNpgsqlFixture fixture)
+    : StoreGeneratedFixupRelationalTestBase<StoreGeneratedFixupNpgsqlTest.StoreGeneratedFixupNpgsqlFixture>(fixture)
 {
-    public StoreGeneratedFixupNpgsqlTest(StoreGeneratedFixupNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     [Fact]
     public void Temp_values_are_replaced_on_save()
         => ExecuteWithStrategyInTransaction(

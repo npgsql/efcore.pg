@@ -2,13 +2,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class ArrayArrayQueryTest : ArrayQueryTest<ArrayArrayQueryTest.ArrayArrayQueryFixture>
+public class ArrayArrayQueryTest(ArrayArrayQueryTest.ArrayArrayQueryFixture fixture, ITestOutputHelper testOutputHelper)
+    : ArrayQueryTest<ArrayArrayQueryTest.ArrayArrayQueryFixture>(fixture, testOutputHelper)
 {
-    public ArrayArrayQueryTest(ArrayArrayQueryFixture fixture, ITestOutputHelper testOutputHelper)
-        : base(fixture, testOutputHelper)
-    {
-    }
-
     #region Indexers
 
     public override async Task Index_with_constant(bool async)

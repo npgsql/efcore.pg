@@ -588,13 +588,8 @@ LIMIT 2
     public override void Scalar_Function_with_nullable_value_return_type_throws() {}
 #endif
 
-    protected class NpgsqlUDFSqlContext : UDFSqlContext
+    protected class NpgsqlUDFSqlContext(DbContextOptions options) : UDFSqlContext(options)
     {
-        public NpgsqlUDFSqlContext(DbContextOptions options)
-            : base(options)
-        {
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

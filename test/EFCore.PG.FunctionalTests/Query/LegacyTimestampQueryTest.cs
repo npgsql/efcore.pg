@@ -79,14 +79,9 @@ WHERE now() AT TIME ZONE 'UTC' <> @__myDatetime_0
         private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-        public class TimestampQueryContext : PoolableDbContext
+        public class TimestampQueryContext(DbContextOptions options) : PoolableDbContext(options)
         {
             public DbSet<Entity> Entities { get; set; }
-
-            public TimestampQueryContext(DbContextOptions options)
-                : base(options)
-            {
-            }
         }
 
         public class Entity
@@ -149,9 +144,7 @@ WHERE now() AT TIME ZONE 'UTC' <> @__myDatetime_0
     }
 
     [CollectionDefinition("LegacyTimestampQueryTest", DisableParallelization = true)]
-    public class EventSourceTestCollection
-    {
-    }
+    public class EventSourceTestCollection;
 }
 
 #endif

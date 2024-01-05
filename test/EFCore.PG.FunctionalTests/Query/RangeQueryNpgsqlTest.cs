@@ -654,14 +654,9 @@ LIMIT 2
         public NpgsqlRange<float> UserDefinedRangeWithSchema { get; set; }
     }
 
-    public class RangeContext : PoolableDbContext
+    public class RangeContext(DbContextOptions options) : PoolableDbContext(options)
     {
         public DbSet<RangeTestEntity> RangeTestEntities { get; set; }
-
-        public RangeContext(DbContextOptions options)
-            : base(options)
-        {
-        }
 
         protected override void OnModelCreating(ModelBuilder builder)
             => builder.HasPostgresRange("doublerange", "double precision")

@@ -2217,22 +2217,13 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         return columns;
     }
 
-    private readonly struct IndexColumn
+    private readonly struct IndexColumn(string name, string? @operator, string? collation, bool isDescending, NullSortOrder nullSortOrder)
     {
-        public IndexColumn(string name, string? @operator, string? collation, bool isDescending, NullSortOrder nullSortOrder)
-        {
-            Name = name;
-            Operator = @operator;
-            Collation = collation;
-            IsDescending = isDescending;
-            NullSortOrder = nullSortOrder;
-        }
-
-        public string Name { get; }
-        public string? Operator { get; }
-        public string? Collation { get; }
-        public bool IsDescending { get; }
-        public NullSortOrder NullSortOrder { get; }
+        public string Name { get; } = name;
+        public string? Operator { get; } = @operator;
+        public string? Collation { get; } = collation;
+        public bool IsDescending { get; } = isDescending;
+        public NullSortOrder NullSortOrder { get; } = nullSortOrder;
     }
 
     #endregion

@@ -1854,13 +1854,8 @@ LIMIT 1
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-    public class NodaTimeContext : PoolableDbContext
+    public class NodaTimeContext(DbContextOptions<NodaTimeContext> options) : PoolableDbContext(options)
     {
-        public NodaTimeContext(DbContextOptions<NodaTimeContext> options)
-            : base(options)
-        {
-        }
-
         // ReSharper disable once MemberHidesStaticFromOuterClass
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<NodaTimeTypes> NodaTimeTypes { get; set; }
@@ -1983,12 +1978,7 @@ LIMIT 1
 
     private class NodaTimeData : ISetSource
     {
-        private IReadOnlyList<NodaTimeTypes> NodaTimeTypes { get; }
-
-        public NodaTimeData()
-        {
-            NodaTimeTypes = CreateNodaTimeTypes();
-        }
+        private IReadOnlyList<NodaTimeTypes> NodaTimeTypes { get; } = CreateNodaTimeTypes();
 
         public IQueryable<TEntity> Set<TEntity>()
             where TEntity : class

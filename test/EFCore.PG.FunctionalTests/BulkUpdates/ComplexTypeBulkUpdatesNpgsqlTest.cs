@@ -3,14 +3,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
 
-public class ComplexTypeBulkUpdatesNpgsqlTest : ComplexTypeBulkUpdatesTestBase<
-    ComplexTypeBulkUpdatesNpgsqlTest.ComplexTypeBulkUpdatesNpgsqlFixture>
+public class ComplexTypeBulkUpdatesNpgsqlTest(
+    ComplexTypeBulkUpdatesNpgsqlTest.ComplexTypeBulkUpdatesNpgsqlFixture fixture,
+    ITestOutputHelper testOutputHelper)
+    : ComplexTypeBulkUpdatesTestBase<ComplexTypeBulkUpdatesNpgsqlTest.ComplexTypeBulkUpdatesNpgsqlFixture>(fixture, testOutputHelper)
 {
-    public ComplexTypeBulkUpdatesNpgsqlTest(ComplexTypeBulkUpdatesNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
-        : base(fixture, testOutputHelper)
-    {
-    }
-
     public override async Task Delete_entity_type_with_complex_type(bool async)
     {
         await base.Delete_entity_type_with_complex_type(async);

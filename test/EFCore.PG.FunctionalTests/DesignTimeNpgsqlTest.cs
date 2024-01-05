@@ -3,13 +3,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class DesignTimeNpgsqlTest : DesignTimeTestBase<DesignTimeNpgsqlTest.DesignTimeNpgsqlFixture>
+public class DesignTimeNpgsqlTest(DesignTimeNpgsqlTest.DesignTimeNpgsqlFixture fixture)
+    : DesignTimeTestBase<DesignTimeNpgsqlTest.DesignTimeNpgsqlFixture>(fixture)
 {
-    public DesignTimeNpgsqlTest(DesignTimeNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     protected override Assembly ProviderAssembly
         => typeof(NpgsqlDesignTimeServices).Assembly;
 

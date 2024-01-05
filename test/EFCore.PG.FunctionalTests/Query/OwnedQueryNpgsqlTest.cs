@@ -2,13 +2,9 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class OwnedQueryNpgsqlTest : OwnedQueryRelationalTestBase<OwnedQueryNpgsqlTest.OwnedQueryNpgsqlFixture>
+public class OwnedQueryNpgsqlTest(OwnedQueryNpgsqlTest.OwnedQueryNpgsqlFixture fixture)
+    : OwnedQueryRelationalTestBase<OwnedQueryNpgsqlTest.OwnedQueryNpgsqlFixture>(fixture)
 {
-    public OwnedQueryNpgsqlTest(OwnedQueryNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     public class OwnedQueryNpgsqlFixture : RelationalOwnedQueryFixture
     {
         protected override ITestStoreFactory TestStoreFactory

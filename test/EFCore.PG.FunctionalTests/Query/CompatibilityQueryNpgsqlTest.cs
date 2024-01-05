@@ -95,14 +95,9 @@ LIMIT 2
         public int SomeInt { get; set; }
     }
 
-    public class CompatibilityContext : DbContext
+    public class CompatibilityContext(DbContextOptions options) : DbContext(options)
     {
         public DbSet<CompatibilityTestEntity> TestEntities { get; set; }
-
-        public CompatibilityContext(DbContextOptions options)
-            : base(options)
-        {
-        }
 
         public static void Seed(CompatibilityContext context)
         {

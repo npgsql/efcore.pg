@@ -56,21 +56,14 @@ public class ConnectionSpecificationTest
         Assert.True(context.Customers.Any());
     }
 
-    private class ConnectionInOnConfiguringContext : NorthwindContextBase
+    private class ConnectionInOnConfiguringContext(NpgsqlConnection connection) : NorthwindContextBase
     {
-        private readonly NpgsqlConnection _connection;
-
-        public ConnectionInOnConfiguringContext(NpgsqlConnection connection)
-        {
-            _connection = connection;
-        }
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            => optionsBuilder.UseNpgsql(_connection, b => b.ApplyConfiguration());
+            => optionsBuilder.UseNpgsql(connection, b => b.ApplyConfiguration());
 
         public override void Dispose()
         {
-            _connection.Dispose();
+            connection.Dispose();
             base.Dispose();
         }
     }
@@ -108,9 +101,7 @@ public class ConnectionSpecificationTest
     }
 
     // ReSharper disable once ClassNeverInstantiated.Local
-    private class NoUseNpgsqlContext : NorthwindContextBase
-    {
-    }
+    private class NoUseNpgsqlContext : NorthwindContextBase;
 
     [Fact]
     public void Can_depend_on_DbContextOptions()
@@ -137,30 +128,21 @@ public class ConnectionSpecificationTest
         Assert.True(context.Customers.Any());
     }
 
-    private class OptionsContext : NorthwindContextBase
+    private class OptionsContext(DbContextOptions<OptionsContext> options, NpgsqlConnection connection)
+        : NorthwindContextBase(options)
     {
-        private readonly NpgsqlConnection _connection;
-        private readonly DbContextOptions<OptionsContext> _options;
-
-        public OptionsContext(DbContextOptions<OptionsContext> options, NpgsqlConnection connection)
-            : base(options)
-        {
-            _options = options;
-            _connection = connection;
-        }
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            Assert.Same(_options, optionsBuilder.Options);
+            Assert.Same(options, optionsBuilder.Options);
 
-            optionsBuilder.UseNpgsql(_connection, b => b.ApplyConfiguration());
+            optionsBuilder.UseNpgsql(connection, b => b.ApplyConfiguration());
 
-            Assert.NotSame(_options, optionsBuilder.Options);
+            Assert.NotSame(options, optionsBuilder.Options);
         }
 
         public override void Dispose()
         {
-            _connection.Dispose();
+            connection.Dispose();
             base.Dispose();
         }
     }
@@ -187,15 +169,9 @@ public class ConnectionSpecificationTest
         Assert.True(context.Customers.Any());
     }
 
-    private class NonGenericOptionsContext : NorthwindContextBase
+    private class NonGenericOptionsContext(DbContextOptions options) : NorthwindContextBase(options)
     {
-        private readonly DbContextOptions _options;
-
-        public NonGenericOptionsContext(DbContextOptions options)
-            : base(options)
-        {
-            _options = options;
-        }
+        private readonly DbContextOptions _options = options;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -301,13 +277,7 @@ public class ConnectionSpecificationTest
         adminConnection.Open();
     }
 
-    private class GeneralOptionsContext : NorthwindContextBase
-    {
-        public GeneralOptionsContext(DbContextOptions<GeneralOptionsContext> options)
-            : base(options)
-        {
-        }
-    }
+    private class GeneralOptionsContext(DbContextOptions<GeneralOptionsContext> options) : NorthwindContextBase(options);
 
     #endregion
 }

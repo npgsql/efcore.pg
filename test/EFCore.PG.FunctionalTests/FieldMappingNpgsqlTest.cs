@@ -2,14 +2,9 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class FieldMappingNpgsqlTest
-    : FieldMappingTestBase<FieldMappingNpgsqlTest.FieldMappingNpgsqlFixture>
+public class FieldMappingNpgsqlTest(FieldMappingNpgsqlTest.FieldMappingNpgsqlFixture fixture)
+    : FieldMappingTestBase<FieldMappingNpgsqlTest.FieldMappingNpgsqlFixture>(fixture)
 {
-    public FieldMappingNpgsqlTest(FieldMappingNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     protected override void UseTransaction(DatabaseFacade facade, IDbContextTransaction transaction)
         => facade.UseTransaction(transaction.GetDbTransaction());
 

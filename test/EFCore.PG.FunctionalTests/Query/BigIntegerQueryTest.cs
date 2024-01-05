@@ -128,14 +128,9 @@ WHERE e."BigInteger" % 2 = 0
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-    public class BigIntegerQueryContext : PoolableDbContext
+    public class BigIntegerQueryContext(DbContextOptions options) : PoolableDbContext(options)
     {
         public DbSet<Entity> Entities { get; set; }
-
-        public BigIntegerQueryContext(DbContextOptions options)
-            : base(options)
-        {
-        }
 
         public static void Seed(BigIntegerQueryContext context)
         {
@@ -198,12 +193,7 @@ WHERE e."BigInteger" % 2 = 0
 
     protected class BigIntegerData : ISetSource
     {
-        public IReadOnlyList<Entity> Entities { get; }
-
-        public BigIntegerData()
-        {
-            Entities = CreateEntities();
-        }
+        public IReadOnlyList<Entity> Entities { get; } = CreateEntities();
 
         public IQueryable<TEntity> Set<TEntity>()
             where TEntity : class

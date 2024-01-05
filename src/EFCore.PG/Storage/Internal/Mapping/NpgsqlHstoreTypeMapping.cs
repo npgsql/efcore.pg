@@ -109,16 +109,11 @@ public class NpgsqlHstoreTypeMapping : NpgsqlTypeMapping
             $"CLR type must be {nameof(Dictionary<string, string>)} or {nameof(ImmutableDictionary<string, string>)}");
     }
 
-    private sealed class HstoreMutableComparer : ValueComparer<Dictionary<string, string>>
+    private sealed class HstoreMutableComparer() : ValueComparer<Dictionary<string, string>>(
+        (a, b) => Compare(a, b),
+        o => o.GetHashCode(),
+        o => new Dictionary<string, string>(o))
     {
-        public HstoreMutableComparer()
-            : base(
-                (a, b) => Compare(a, b),
-                o => o.GetHashCode(),
-                o => new Dictionary<string, string>(o))
-        {
-        }
-
         private static bool Compare(Dictionary<string, string>? a, Dictionary<string, string>? b)
         {
             if (a is null)

@@ -109,14 +109,9 @@ public class NpgsqlNetTopologySuiteOptionsExtension : IDbContextOptionsExtension
         }
     }
 
-    private sealed class ExtensionInfo : DbContextOptionsExtensionInfo
+    private sealed class ExtensionInfo(IDbContextOptionsExtension extension) : DbContextOptionsExtensionInfo(extension)
     {
         private string? _logFragment;
-
-        public ExtensionInfo(IDbContextOptionsExtension extension)
-            : base(extension)
-        {
-        }
 
         private new NpgsqlNetTopologySuiteOptionsExtension Extension
             => (NpgsqlNetTopologySuiteOptionsExtension)base.Extension;

@@ -2,14 +2,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class ValueConvertersEndToEndNpgsqlTest
-    : ValueConvertersEndToEndTestBase<ValueConvertersEndToEndNpgsqlTest.ValueConvertersEndToEndNpgsqlFixture>
+public class ValueConvertersEndToEndNpgsqlTest(ValueConvertersEndToEndNpgsqlTest.ValueConvertersEndToEndNpgsqlFixture fixture)
+    : ValueConvertersEndToEndTestBase<ValueConvertersEndToEndNpgsqlTest.ValueConvertersEndToEndNpgsqlFixture>(fixture)
 {
-    public ValueConvertersEndToEndNpgsqlTest(ValueConvertersEndToEndNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     [ConditionalTheory(Skip = "DateTime and DateTimeOffset, https://github.com/dotnet/efcore/issues/26068")]
     public override void Can_insert_and_read_back_with_conversions(int[] valueOrder)
         => base.Can_insert_and_read_back_with_conversions(valueOrder);
@@ -211,14 +206,9 @@ public class ValueConvertersEndToEndNpgsqlTest
         public IntWrapper[] Values { get; set; } = null!;
     }
 
-    public class IntWrapper : IEquatable<IntWrapper>
+    public class IntWrapper(int value) : IEquatable<IntWrapper>
     {
-        public int Value { get; }
-
-        public IntWrapper(int value)
-        {
-            Value = value;
-        }
+        public int Value { get; } = value;
 
         public bool Equals(IntWrapper? other)
             => other is not null && Value == other.Value;

@@ -1,13 +1,9 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class NpgsqlNetTopologySuiteApiConsistencyTest : ApiConsistencyTestBase<
-    NpgsqlNetTopologySuiteApiConsistencyTest.NpgsqlNetTopologySuiteApiConsistencyFixture>
+public class NpgsqlNetTopologySuiteApiConsistencyTest(
+    NpgsqlNetTopologySuiteApiConsistencyTest.NpgsqlNetTopologySuiteApiConsistencyFixture fixture)
+    : ApiConsistencyTestBase<NpgsqlNetTopologySuiteApiConsistencyTest.NpgsqlNetTopologySuiteApiConsistencyFixture>(fixture)
 {
-    public NpgsqlNetTopologySuiteApiConsistencyTest(NpgsqlNetTopologySuiteApiConsistencyFixture fixture)
-        : base(fixture)
-    {
-    }
-
     protected override void AddServices(ServiceCollection serviceCollection)
         => serviceCollection.AddEntityFrameworkNpgsqlNetTopologySuite();
 

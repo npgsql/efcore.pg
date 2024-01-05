@@ -3,13 +3,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class ManyToManyLoadNpgsqlTest : ManyToManyLoadTestBase<ManyToManyLoadNpgsqlTest.ManyToManyLoadNpgsqlFixture>
+public class ManyToManyLoadNpgsqlTest(ManyToManyLoadNpgsqlTest.ManyToManyLoadNpgsqlFixture fixture)
+    : ManyToManyLoadTestBase<ManyToManyLoadNpgsqlTest.ManyToManyLoadNpgsqlFixture>(fixture)
 {
-    public ManyToManyLoadNpgsqlTest(ManyToManyLoadNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     public class ManyToManyLoadNpgsqlFixture : ManyToManyLoadFixtureBase
     {
         public TestSqlLoggerFactory TestSqlLoggerFactory

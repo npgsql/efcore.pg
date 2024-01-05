@@ -825,14 +825,9 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-    public class TimestampQueryContext : PoolableDbContext
+    public class TimestampQueryContext(DbContextOptions options) : PoolableDbContext(options)
     {
         public DbSet<Entity> Entities { get; set; }
-
-        public TimestampQueryContext(DbContextOptions options)
-            : base(options)
-        {
-        }
 
         public static void Seed(TimestampQueryContext context)
         {
@@ -926,12 +921,7 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
 
     protected class TimestampData : ISetSource
     {
-        public IReadOnlyList<Entity> Entities { get; }
-
-        public TimestampData()
-        {
-            Entities = CreateEntities();
-        }
+        public IReadOnlyList<Entity> Entities { get; } = CreateEntities();
 
         public IQueryable<TEntity> Set<TEntity>()
             where TEntity : class

@@ -55,13 +55,8 @@ public class NpgsqlNodaTimeOptionsExtension : IDbContextOptionsExtension
         }
     }
 
-    private sealed class ExtensionInfo : DbContextOptionsExtensionInfo
+    private sealed class ExtensionInfo(IDbContextOptionsExtension extension) : DbContextOptionsExtensionInfo(extension)
     {
-        public ExtensionInfo(IDbContextOptionsExtension extension)
-            : base(extension)
-        {
-        }
-
         private new NpgsqlNodaTimeOptionsExtension Extension
             => (NpgsqlNodaTimeOptionsExtension)base.Extension;
 

@@ -98,9 +98,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
     }
 
     [CollectionDefinition("LegacyNodaTimeTest", DisableParallelization = true)]
-    public class EventSourceTestCollection
-    {
-    }
+    public class EventSourceTestCollection;
 }
 
 #endif

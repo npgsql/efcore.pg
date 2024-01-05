@@ -571,13 +571,9 @@ public class NpgsqlDatabaseCreatorTest
         => new BloggingContext(testStore).GetService<IExecutionStrategyFactory>().Create();
 
     // ReSharper disable once ClassNeverInstantiated.Local
-    private class TestNpgsqlExecutionStrategyFactory : NpgsqlExecutionStrategyFactory
+    private class TestNpgsqlExecutionStrategyFactory(ExecutionStrategyDependencies dependencies)
+        : NpgsqlExecutionStrategyFactory(dependencies)
     {
-        public TestNpgsqlExecutionStrategyFactory(ExecutionStrategyDependencies dependencies)
-            : base(dependencies)
-        {
-        }
-
         protected override IExecutionStrategy CreateDefaultStrategy(ExecutionStrategyDependencies dependencies)
             => new NonRetryingExecutionStrategy(dependencies);
     }
@@ -589,24 +585,17 @@ public class NpgsqlDatabaseCreatorTest
             .AddScoped<IRelationalDatabaseCreator, TestDatabaseCreator>()
             .BuildServiceProvider();
 
-    protected class BloggingContext : DbContext
+    protected class BloggingContext(string connectionString) : DbContext
     {
-        private readonly string _connectionString;
-
         public BloggingContext(NpgsqlTestStore testStore)
             : this(testStore.ConnectionString)
         {
         }
 
-        public BloggingContext(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder
                 .UseNpgsql(
-                    _connectionString, b => b
+                    connectionString, b => b
                         .ApplyConfiguration()
                         .SetPostgresVersion(TestEnvironment.PostgresVersion))
                 .UseInternalServiceProvider(CreateServiceProvider());
@@ -641,16 +630,12 @@ public class NpgsqlDatabaseCreatorTest
         public byte[] AndRow { get; set; }
     }
 
-    public class TestDatabaseCreator : NpgsqlDatabaseCreator
+    public class TestDatabaseCreator(
+        RelationalDatabaseCreatorDependencies dependencies,
+        INpgsqlRelationalConnection connection,
+        IRawSqlCommandBuilder rawSqlCommandBuilder)
+        : NpgsqlDatabaseCreator(dependencies, connection, rawSqlCommandBuilder)
     {
-        public TestDatabaseCreator(
-            RelationalDatabaseCreatorDependencies dependencies,
-            INpgsqlRelationalConnection connection,
-            IRawSqlCommandBuilder rawSqlCommandBuilder)
-            : base(dependencies, connection, rawSqlCommandBuilder)
-        {
-        }
-
         public bool HasTablesBase()
             => HasTables();
 

@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <VersionPrefix>9.0.0-preview.1</VersionPrefix>
-    <LangVersion>preview</LangVersion>
+    <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest</AnalysisLevel>
     <NoWarn>NU5105</NoWarn>

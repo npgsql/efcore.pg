@@ -157,13 +157,8 @@ END $EF$;
                     .Options)
             .GetService<IHistoryRepository>();
 
-    private class TestDbContext : DbContext
+    private class TestDbContext(DbContextOptions options) : DbContext(options)
     {
-        public TestDbContext(DbContextOptions options)
-            : base(options)
-        {
-        }
-
         public DbSet<Blog> Blogs { get; set; }
 
         [DbFunction("TableFunction")]
