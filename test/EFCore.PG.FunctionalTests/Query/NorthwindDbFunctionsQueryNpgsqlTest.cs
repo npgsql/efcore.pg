@@ -221,6 +221,20 @@ WHERE to_date(o."OrderDate"::text, 'YYYY-MM-DD') < DATE '2000-01-01'
 """);
     }
 
+    [Fact]
+    public void StringToTimestamp()
+    {
+        using var context = CreateContext();
+        var count = context.Orders.Count(c => EF.Functions.ToTimestamp(c.OrderDate.ToString(), "YYYY-MM-DD") < new DateTime(2000, 01, 01, 0,0,0, DateTimeKind.Utc));
+        Assert.Equal(830, count);
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "Orders" AS o
+WHERE to_timestamp(o."OrderDate"::text, 'YYYY-MM-DD') < TIMESTAMPTZ '2000-01-01 00:00:00Z'
+""");
+    }
+
     #endregion
 
     private void AssertSql(params string[] expected)

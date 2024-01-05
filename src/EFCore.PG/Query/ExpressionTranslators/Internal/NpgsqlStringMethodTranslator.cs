@@ -47,6 +47,8 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
 
     private static readonly MethodInfo ToDate                  = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ToDate), new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
 
+    private static readonly MethodInfo ToTimestamp             = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ToTimestamp), new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
+
     private static readonly MethodInfo FirstOrDefaultMethodInfoWithoutArgs
         = typeof(Enumerable).GetRuntimeMethods().Single(
             m => m.Name == nameof(Enumerable.FirstOrDefault)
@@ -388,6 +390,18 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                 argumentsPropagateNullability: new[] { true, false },
                 typeof(DateOnly?),
                 _typeMappingSource.FindMapping(typeof(DateOnly?))
+            );
+        }
+
+        if (method == ToTimestamp)
+        {
+            return _sqlExpressionFactory.Function(
+                "to_timestamp",
+                new[] { arguments[1], arguments[2] },
+                nullable: true,
+                argumentsPropagateNullability: new[] { true, false },
+                typeof(DateTime?),
+                _typeMappingSource.FindMapping(typeof(DateTime?))
             );
         }
 
