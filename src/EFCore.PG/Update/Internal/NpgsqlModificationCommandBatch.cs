@@ -189,6 +189,16 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
         }
         catch (Exception ex) when (ex is not DbUpdateException and not OperationCanceledException)
         {
+            // If the commandIndex points after the last command, attribute the error to the last command.
+            // This can happen when an AFTER INSERT trigger raises an exception - the insertion itself is successful, and the error comes
+            // afterwards, as if belonging to the next command. When there's indeed a next command, there's no way to know whether the
+            // error indeed belongs to it or comes from a trigger on the previous (we assume the former), but when we're the last command,
+            // at least avoid indexing beyond the end of the array. See #3007.
+            if (commandIndex == ModificationCommands.Count)
+            {
+                commandIndex--;
+            }
+
             throw new DbUpdateException(
                 RelationalStrings.UpdateStoreException,
                 ex,
