@@ -2,13 +2,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
 
 public class ArrayQueryData : ISetSource
 {
-    public IReadOnlyList<ArrayEntity> ArrayEntities { get; }
-    public IReadOnlyList<ArrayContainerEntity> ContainerEntities { get; }
-
-    public ArrayQueryData()
-    {
-        (ArrayEntities, ContainerEntities) = (CreateArrayEntities(), CreateContainerEntities());
-    }
+    public IReadOnlyList<ArrayEntity> ArrayEntities { get; } = CreateArrayEntities();
+    public IReadOnlyList<ArrayContainerEntity> ContainerEntities { get; } = CreateContainerEntities();
 
     public IQueryable<TEntity> Set<TEntity>()
         where TEntity : class

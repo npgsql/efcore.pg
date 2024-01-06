@@ -333,15 +333,10 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     public override DbContextOptionsExtensionInfo Info
         => _info ??= new ExtensionInfo(this);
 
-    private sealed class ExtensionInfo : RelationalExtensionInfo
+    private sealed class ExtensionInfo(IDbContextOptionsExtension extension) : RelationalExtensionInfo(extension)
     {
         private int? _serviceProviderHash;
         private string? _logFragment;
-
-        public ExtensionInfo(IDbContextOptionsExtension extension)
-            : base(extension)
-        {
-        }
 
         private new NpgsqlOptionsExtension Extension
             => (NpgsqlOptionsExtension)base.Extension;

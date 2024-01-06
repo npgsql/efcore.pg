@@ -76,8 +76,6 @@ public class LegacyNpgsqlTypeMappingTest : IClassFixture<LegacyNpgsqlTypeMapping
 }
 
 [CollectionDefinition("LegacyDateTimeTest", DisableParallelization = true)]
-public class EventSourceTestCollection
-{
-}
+public class EventSourceTestCollection;
 
 #endif

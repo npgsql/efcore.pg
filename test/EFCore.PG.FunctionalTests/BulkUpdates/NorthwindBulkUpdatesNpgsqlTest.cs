@@ -3,15 +3,11 @@ using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.BulkUpdates;
 
-public class NorthwindBulkUpdatesNpgsqlTest : NorthwindBulkUpdatesTestBase<NorthwindBulkUpdatesNpgsqlFixture<NoopModelCustomizer>>
+public class NorthwindBulkUpdatesNpgsqlTest(
+    NorthwindBulkUpdatesNpgsqlFixture<NoopModelCustomizer> fixture,
+    ITestOutputHelper testOutputHelper)
+    : NorthwindBulkUpdatesTestBase<NorthwindBulkUpdatesNpgsqlFixture<NoopModelCustomizer>>(fixture, testOutputHelper)
 {
-    public NorthwindBulkUpdatesNpgsqlTest(
-        NorthwindBulkUpdatesNpgsqlFixture<NoopModelCustomizer> fixture,
-        ITestOutputHelper testOutputHelper)
-        : base(fixture, testOutputHelper)
-    {
-    }
-
     public override async Task Delete_Where_TagWith(bool async)
     {
         await base.Delete_Where_TagWith(async);

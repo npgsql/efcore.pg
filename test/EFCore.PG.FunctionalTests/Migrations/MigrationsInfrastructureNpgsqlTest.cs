@@ -4,14 +4,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 {
-    public class MigrationsInfrastructureNpgsqlTest
-        : MigrationsInfrastructureTestBase<MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture>
+    public class MigrationsInfrastructureNpgsqlTest(MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture fixture)
+        : MigrationsInfrastructureTestBase<MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture>(fixture)
     {
-        public MigrationsInfrastructureNpgsqlTest(MigrationsInfrastructureNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         public override void Can_get_active_provider()
         {
             base.Can_get_active_provider();
@@ -34,13 +29,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Assert.True(creator.Exists());
         }
 
-        private class BloggingContext : DbContext
+        private class BloggingContext(DbContextOptions options) : DbContext(options)
         {
-            public BloggingContext(DbContextOptions options)
-                : base(options)
-            {
-            }
-
             // ReSharper disable once UnusedMember.Local
             public DbSet<Blog> Blogs { get; set; }
 

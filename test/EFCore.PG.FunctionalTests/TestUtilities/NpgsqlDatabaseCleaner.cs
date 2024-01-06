@@ -9,12 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 public class NpgsqlDatabaseCleaner : RelationalDatabaseCleaner
 {
-    private readonly NpgsqlSqlGenerationHelper _sqlGenerationHelper;
-
-    public NpgsqlDatabaseCleaner()
-    {
-        _sqlGenerationHelper = new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies());
-    }
+    private readonly NpgsqlSqlGenerationHelper _sqlGenerationHelper = new(new RelationalSqlGenerationHelperDependencies());
 
     protected override IDatabaseModelFactory CreateDatabaseModelFactory(ILoggerFactory loggerFactory)
         => new NpgsqlDatabaseModelFactory(

@@ -67,16 +67,10 @@ public class ExistingConnectionTest
         }
     }
 
-    private class NorthwindContext : DbContext
+    private class NorthwindContext(IServiceProvider serviceProvider, NpgsqlConnection connection) : DbContext
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly NpgsqlConnection _connection;
-
-        public NorthwindContext(IServiceProvider serviceProvider, NpgsqlConnection connection)
-        {
-            _serviceProvider = serviceProvider;
-            _connection = connection;
-        }
+        private readonly IServiceProvider _serviceProvider = serviceProvider;
+        private readonly NpgsqlConnection _connection = connection;
 
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public DbSet<Customer> Customers { get; set; }

@@ -82,9 +82,7 @@ public class NpgsqlModificationCommandBatchFactoryTest
         Assert.True(batch.TryAddCommand(CreateModificationCommand("T1", null, false)));
     }
 
-    private class FakeDbContext : DbContext
-    {
-    }
+    private class FakeDbContext : DbContext;
 
     private static INonTrackedModificationCommand CreateModificationCommand(
         string name,

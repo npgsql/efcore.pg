@@ -46,9 +46,7 @@ public class NpgsqlModificationCommandBatchTest
                 CreateModificationCommand("T1", null, false)));
     }
 
-    private class FakeDbContext : DbContext
-    {
-    }
+    private class FakeDbContext : DbContext;
 
     private static INonTrackedModificationCommand CreateModificationCommand(
         string name,

@@ -2,32 +2,16 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class OptimisticConcurrencyBytesNpgsqlTest : OptimisticConcurrencyNpgsqlTestBase<F1BytesNpgsqlFixture, byte[]>
-{
-    public OptimisticConcurrencyBytesNpgsqlTest(F1BytesNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-}
+public class OptimisticConcurrencyBytesNpgsqlTest(F1BytesNpgsqlFixture fixture)
+    : OptimisticConcurrencyNpgsqlTestBase<F1BytesNpgsqlFixture, byte[]>(fixture);
 
 // uint maps directly to xid, which is the PG type of the xmin column that we use as a row version.
-public class OptimisticConcurrencyNpgsqlTest : OptimisticConcurrencyNpgsqlTestBase<F1NpgsqlFixture, uint>
-{
-    public OptimisticConcurrencyNpgsqlTest(F1NpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-}
+public class OptimisticConcurrencyNpgsqlTest(F1NpgsqlFixture fixture) : OptimisticConcurrencyNpgsqlTestBase<F1NpgsqlFixture, uint>(fixture);
 
-public abstract class OptimisticConcurrencyNpgsqlTestBase<TFixture, TRowVersion>
-    : OptimisticConcurrencyRelationalTestBase<TFixture, TRowVersion>
+public abstract class OptimisticConcurrencyNpgsqlTestBase<TFixture, TRowVersion>(TFixture fixture)
+    : OptimisticConcurrencyRelationalTestBase<TFixture, TRowVersion>(fixture)
     where TFixture : F1RelationalFixture<TRowVersion>, new()
 {
-    protected OptimisticConcurrencyNpgsqlTestBase(TFixture fixture)
-        : base(fixture)
-    {
-    }
-
     [ConditionalFact]
     public async Task Modifying_concurrency_token_only_is_noop()
     {

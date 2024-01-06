@@ -1,14 +1,9 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
 
-public class ArrayQueryContext : PoolableDbContext
+public class ArrayQueryContext(DbContextOptions options) : PoolableDbContext(options)
 {
     public DbSet<ArrayEntity> SomeEntities { get; set; }
     public DbSet<ArrayContainerEntity> SomeEntityContainers { get; set; }
-
-    public ArrayQueryContext(DbContextOptions options)
-        : base(options)
-    {
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
         => modelBuilder.Entity<ArrayEntity>(

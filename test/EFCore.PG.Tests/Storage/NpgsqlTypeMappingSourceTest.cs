@@ -353,13 +353,9 @@ public class NpgsqlTypeMappingSourceTest
         }
     }
 
-    private class DummyType
-    {
-    }
+    private class DummyType;
 
-    private class UnknownType
-    {
-    }
+    private class UnknownType;
 
     protected IModel CreateEmptyModel()
         => CreateModelBuilder().Model.FinalizeModel();

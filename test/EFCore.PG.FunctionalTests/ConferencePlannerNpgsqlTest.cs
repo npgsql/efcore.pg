@@ -4,13 +4,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class ConferencePlannerNpgsqlTest : ConferencePlannerTestBase<ConferencePlannerNpgsqlTest.ConferencePlannerNpgsqlFixture>
+public class ConferencePlannerNpgsqlTest(ConferencePlannerNpgsqlTest.ConferencePlannerNpgsqlFixture fixture)
+    : ConferencePlannerTestBase<ConferencePlannerNpgsqlTest.ConferencePlannerNpgsqlFixture>(fixture)
 {
-    public ConferencePlannerNpgsqlTest(ConferencePlannerNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     // Overridden to use UTC DateTimeOffsets
     public override async Task SessionsController_Post()
         => await ExecuteWithStrategyInTransactionAsync(

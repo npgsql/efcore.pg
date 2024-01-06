@@ -81,13 +81,8 @@ LIMIT 2
         }
     }
 
-    protected class TypesDbContext : DbContext
+    protected class TypesDbContext(DbContextOptions options) : DbContext(options)
     {
-        public TypesDbContext(DbContextOptions options)
-            : base(options)
-        {
-        }
-
         public DbSet<TypesContainerEntity> Entities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -387,13 +382,9 @@ VALUES(
 'e1')
 """);
 
-    private class MyContextEnumLegacyValues : DbContext
+    private class MyContextEnumLegacyValues(DbContextOptions options) : DbContext(
+        (new DbContextOptionsBuilder(options)).ConfigureWarnings(b => b.Log(CoreEventId.StringEnumValueInJson)).Options)
     {
-        public MyContextEnumLegacyValues(DbContextOptions options)
-            : base((new DbContextOptionsBuilder(options)).ConfigureWarnings(b => b.Log(CoreEventId.StringEnumValueInJson)).Options)
-        {
-        }
-
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public DbSet<MyEntityEnumLegacyValues> Entities { get; set; }
 

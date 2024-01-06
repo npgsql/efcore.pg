@@ -6,22 +6,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class MaterializationInterceptionNpgsqlTest :
-    MaterializationInterceptionTestBase<MaterializationInterceptionNpgsqlTest.SqlServerLibraryContext>,
-    IClassFixture<MaterializationInterceptionNpgsqlTest.MaterializationInterceptionNpgsqlFixture>
+public class MaterializationInterceptionNpgsqlTest(MaterializationInterceptionNpgsqlTest.MaterializationInterceptionNpgsqlFixture fixture)
+    : MaterializationInterceptionTestBase<MaterializationInterceptionNpgsqlTest.SqlServerLibraryContext>(fixture),
+        IClassFixture<MaterializationInterceptionNpgsqlTest.MaterializationInterceptionNpgsqlFixture>
 {
-    public MaterializationInterceptionNpgsqlTest(MaterializationInterceptionNpgsqlFixture fixture)
-        : base(fixture)
+    public class SqlServerLibraryContext(DbContextOptions options) : LibraryContext(options)
     {
-    }
-
-    public class SqlServerLibraryContext : LibraryContext
-    {
-        public SqlServerLibraryContext(DbContextOptions options)
-            : base(options)
-        {
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

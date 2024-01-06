@@ -2,14 +2,9 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class MonsterFixupChangedChangingNpgsqlTest :
-    MonsterFixupTestBase<MonsterFixupChangedChangingNpgsqlTest.MonsterFixupChangedChangingNpgsqlFixture>
+public class MonsterFixupChangedChangingNpgsqlTest(MonsterFixupChangedChangingNpgsqlTest.MonsterFixupChangedChangingNpgsqlFixture fixture)
+    : MonsterFixupTestBase<MonsterFixupChangedChangingNpgsqlTest.MonsterFixupChangedChangingNpgsqlFixture>(fixture)
 {
-    public MonsterFixupChangedChangingNpgsqlTest(MonsterFixupChangedChangingNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     public class MonsterFixupChangedChangingNpgsqlFixture : MonsterFixupChangedChangingFixtureBase
     {
         protected override ITestStoreFactory TestStoreFactory

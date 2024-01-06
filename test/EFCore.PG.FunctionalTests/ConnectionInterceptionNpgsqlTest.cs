@@ -4,13 +4,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public abstract class ConnectionInterceptionNpgsqlTestBase : ConnectionInterceptionTestBase
+public abstract class ConnectionInterceptionNpgsqlTestBase(ConnectionInterceptionNpgsqlTestBase.InterceptionNpgsqlFixtureBase fixture)
+    : ConnectionInterceptionTestBase(fixture)
 {
-    protected ConnectionInterceptionNpgsqlTestBase(InterceptionNpgsqlFixtureBase fixture)
-        : base(fixture)
-    {
-    }
-
     [ConditionalTheory(Skip = "#2368")]
     public override Task Intercept_connection_creation_passively(bool async)
         => base.Intercept_connection_creation_passively(async);
@@ -79,14 +75,9 @@ public abstract class ConnectionInterceptionNpgsqlTestBase : ConnectionIntercept
             => throw new NotImplementedException();
     }
 
-    public class ConnectionInterceptionNpgsqlTest
-        : ConnectionInterceptionNpgsqlTestBase, IClassFixture<ConnectionInterceptionNpgsqlTest.InterceptionNpgsqlFixture>
+    public class ConnectionInterceptionNpgsqlTest(ConnectionInterceptionNpgsqlTest.InterceptionNpgsqlFixture fixture)
+        : ConnectionInterceptionNpgsqlTestBase(fixture), IClassFixture<ConnectionInterceptionNpgsqlTest.InterceptionNpgsqlFixture>
     {
-        public ConnectionInterceptionNpgsqlTest(InterceptionNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
             protected override bool ShouldSubscribeToDiagnosticListener
@@ -94,14 +85,11 @@ public abstract class ConnectionInterceptionNpgsqlTestBase : ConnectionIntercept
         }
     }
 
-    public class ConnectionInterceptionWithDiagnosticsNpgsqlTest
-        : ConnectionInterceptionNpgsqlTestBase, IClassFixture<ConnectionInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture>
+    public class ConnectionInterceptionWithDiagnosticsNpgsqlTest(
+        ConnectionInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture fixture)
+        : ConnectionInterceptionNpgsqlTestBase(fixture),
+            IClassFixture<ConnectionInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture>
     {
-        public ConnectionInterceptionWithDiagnosticsNpgsqlTest(InterceptionNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
             protected override bool ShouldSubscribeToDiagnosticListener

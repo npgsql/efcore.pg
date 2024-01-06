@@ -2,32 +2,20 @@ using System.Data.Common;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFactory
+public class TestRelationalCommandBuilderFactory(RelationalCommandBuilderDependencies dependencies) : IRelationalCommandBuilderFactory
 {
-    public TestRelationalCommandBuilderFactory(
-        RelationalCommandBuilderDependencies dependencies)
-    {
-        Dependencies = dependencies;
-    }
-
-    public RelationalCommandBuilderDependencies Dependencies { get; }
+    public RelationalCommandBuilderDependencies Dependencies { get; } = dependencies;
 
     public virtual IRelationalCommandBuilder Create()
         => new TestRelationalCommandBuilder(Dependencies);
 
-    private class TestRelationalCommandBuilder : IRelationalCommandBuilder
+    private class TestRelationalCommandBuilder(RelationalCommandBuilderDependencies dependencies) : IRelationalCommandBuilder
     {
         private readonly List<IRelationalParameter> _parameters = new();
 
-        public TestRelationalCommandBuilder(
-            RelationalCommandBuilderDependencies dependencies)
-        {
-            Dependencies = dependencies;
-        }
-
         public IndentedStringBuilder Instance { get; } = new();
 
-        public RelationalCommandBuilderDependencies Dependencies { get; }
+        public RelationalCommandBuilderDependencies Dependencies { get; } = dependencies;
 
         public IReadOnlyList<IRelationalParameter> Parameters
             => _parameters;
@@ -88,17 +76,13 @@ public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFact
             => Instance.Length;
     }
 
-    private class TestRelationalCommand : IRelationalCommand
+    private class TestRelationalCommand(
+        RelationalCommandBuilderDependencies dependencies,
+        string commandText,
+        IReadOnlyList<IRelationalParameter> parameters)
+        : IRelationalCommand
     {
-        private readonly RelationalCommand _realRelationalCommand;
-
-        public TestRelationalCommand(
-            RelationalCommandBuilderDependencies dependencies,
-            string commandText,
-            IReadOnlyList<IRelationalParameter> parameters)
-        {
-            _realRelationalCommand = new RelationalCommand(dependencies, commandText, parameters);
-        }
+        private readonly RelationalCommand _realRelationalCommand = new(dependencies, commandText, parameters);
 
         public string CommandText
             => _realRelationalCommand.CommandText;

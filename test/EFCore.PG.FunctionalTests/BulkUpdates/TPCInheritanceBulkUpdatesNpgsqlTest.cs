@@ -2,16 +2,11 @@ using Microsoft.EntityFrameworkCore.BulkUpdates;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.BulkUpdates;
 
-public class TPCInheritanceBulkUpdatesNpgsqlTest
-    : TPCInheritanceBulkUpdatesTestBase<TPCInheritanceBulkUpdatesNpgsqlFixture>
+public class TPCInheritanceBulkUpdatesNpgsqlTest(
+    TPCInheritanceBulkUpdatesNpgsqlFixture fixture,
+    ITestOutputHelper testOutputHelper)
+    : TPCInheritanceBulkUpdatesTestBase<TPCInheritanceBulkUpdatesNpgsqlFixture>(fixture, testOutputHelper)
 {
-    public TPCInheritanceBulkUpdatesNpgsqlTest(
-        TPCInheritanceBulkUpdatesNpgsqlFixture fixture,
-        ITestOutputHelper testOutputHelper)
-        : base(fixture, testOutputHelper)
-    {
-    }
-
     public override async Task Delete_where_hierarchy(bool async)
     {
         await base.Delete_where_hierarchy(async);

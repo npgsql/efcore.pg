@@ -704,15 +704,10 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-    public class JsonPocoQueryContext : PoolableDbContext
+    public class JsonPocoQueryContext(DbContextOptions options) : PoolableDbContext(options)
     {
         public DbSet<JsonbEntity> JsonbEntities { get; set; }
         public DbSet<JsonEntity> JsonEntities { get; set; }
-
-        public JsonPocoQueryContext(DbContextOptions options)
-            : base(options)
-        {
-        }
 
         public static void Seed(JsonPocoQueryContext context)
         {

@@ -247,14 +247,9 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-    public class JsonStringQueryContext : PoolableDbContext
+    public class JsonStringQueryContext(DbContextOptions options) : PoolableDbContext(options)
     {
         public DbSet<JsonEntity> JsonEntities { get; set; }
-
-        public JsonStringQueryContext(DbContextOptions options)
-            : base(options)
-        {
-        }
 
         public static void Seed(JsonStringQueryContext context)
         {

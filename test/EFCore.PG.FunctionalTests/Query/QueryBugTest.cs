@@ -41,13 +41,8 @@ public class QueryBugsTest : IClassFixture<NpgsqlFixture>
         public Bug920Enum Enum { get; set; }
     }
 
-    private class Bug920Context : DbContext
+    private class Bug920Context(DbContextOptions options) : DbContext(options)
     {
-        public Bug920Context(DbContextOptions options)
-            : base(options)
-        {
-        }
-
         public DbSet<Bug920Entity> Entities { get; set; }
     }
 

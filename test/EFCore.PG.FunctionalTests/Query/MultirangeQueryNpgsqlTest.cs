@@ -749,14 +749,9 @@ LIMIT 2
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-    public class MultirangeContext : PoolableDbContext
+    public class MultirangeContext(DbContextOptions options) : PoolableDbContext(options)
     {
         public DbSet<MultirangeTestEntity> TestEntities { get; set; }
-
-        public MultirangeContext(DbContextOptions options)
-            : base(options)
-        {
-        }
 
         public static void Seed(MultirangeContext context)
         {

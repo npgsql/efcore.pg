@@ -4,13 +4,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public abstract class QueryExpressionInterceptionNpgsqlTestBase : QueryExpressionInterceptionTestBase
+public abstract class QueryExpressionInterceptionNpgsqlTestBase(
+    QueryExpressionInterceptionNpgsqlTestBase.InterceptionNpgsqlFixtureBase fixture)
+    : QueryExpressionInterceptionTestBase(fixture)
 {
-    protected QueryExpressionInterceptionNpgsqlTestBase(InterceptionNpgsqlFixtureBase fixture)
-        : base(fixture)
-    {
-    }
-
     public abstract class InterceptionNpgsqlFixtureBase : InterceptionFixtureBase
     {
         protected override ITestStoreFactory TestStoreFactory
@@ -29,14 +26,9 @@ public abstract class QueryExpressionInterceptionNpgsqlTestBase : QueryExpressio
         }
     }
 
-    public class QueryExpressionInterceptionNpgsqlTest
-        : QueryExpressionInterceptionNpgsqlTestBase, IClassFixture<QueryExpressionInterceptionNpgsqlTest.InterceptionNpgsqlFixture>
+    public class QueryExpressionInterceptionNpgsqlTest(QueryExpressionInterceptionNpgsqlTest.InterceptionNpgsqlFixture fixture)
+        : QueryExpressionInterceptionNpgsqlTestBase(fixture), IClassFixture<QueryExpressionInterceptionNpgsqlTest.InterceptionNpgsqlFixture>
     {
-        public QueryExpressionInterceptionNpgsqlTest(InterceptionNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
             protected override string StoreName
@@ -47,15 +39,11 @@ public abstract class QueryExpressionInterceptionNpgsqlTestBase : QueryExpressio
         }
     }
 
-    public class QueryExpressionInterceptionWithDiagnosticsNpgsqlTest
-        : QueryExpressionInterceptionNpgsqlTestBase,
+    public class QueryExpressionInterceptionWithDiagnosticsNpgsqlTest(
+        QueryExpressionInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture fixture)
+        : QueryExpressionInterceptionNpgsqlTestBase(fixture),
             IClassFixture<QueryExpressionInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture>
     {
-        public QueryExpressionInterceptionWithDiagnosticsNpgsqlTest(InterceptionNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
             protected override string StoreName

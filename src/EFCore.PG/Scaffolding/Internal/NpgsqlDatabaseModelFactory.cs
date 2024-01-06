@@ -1297,14 +1297,9 @@ WHERE
         };
     }
 
-    private sealed class SequenceInfo
+    private sealed class SequenceInfo(string storeType)
     {
-        public SequenceInfo(string storeType)
-        {
-            StoreType = storeType;
-        }
-
-        public string StoreType { get; }
+        public string StoreType { get; } = storeType;
         public long? StartValue { get; set; }
         public long? MinValue { get; set; }
         public long? MaxValue { get; set; }

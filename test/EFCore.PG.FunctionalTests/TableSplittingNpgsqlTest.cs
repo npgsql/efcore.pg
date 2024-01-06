@@ -4,13 +4,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
 [MinimumPostgresVersion(12, 0)] // Test suite uses computed columns
-public class TableSplittingNpgsqlTest : TableSplittingTestBase
+public class TableSplittingNpgsqlTest(ITestOutputHelper testOutputHelper) : TableSplittingTestBase(testOutputHelper)
 {
-    public TableSplittingNpgsqlTest(ITestOutputHelper testOutputHelper)
-        : base(testOutputHelper)
-    {
-    }
-
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 

@@ -2,13 +2,9 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class CustomConvertersNpgsqlTest : CustomConvertersTestBase<CustomConvertersNpgsqlTest.CustomConvertersNpgsqlFixture>
+public class CustomConvertersNpgsqlTest(CustomConvertersNpgsqlTest.CustomConvertersNpgsqlFixture fixture)
+    : CustomConvertersTestBase<CustomConvertersNpgsqlTest.CustomConvertersNpgsqlFixture>(fixture)
 {
-    public CustomConvertersNpgsqlTest(CustomConvertersNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     // Disabled: PostgreSQL is case-sensitive
     public override void Can_insert_and_read_back_with_case_insensitive_string_key() { }
 

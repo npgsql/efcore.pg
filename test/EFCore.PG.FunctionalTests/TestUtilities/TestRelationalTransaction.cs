@@ -2,14 +2,9 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-public class TestRelationalTransactionFactory : IRelationalTransactionFactory
+public class TestRelationalTransactionFactory(RelationalTransactionFactoryDependencies dependencies) : IRelationalTransactionFactory
 {
-    public TestRelationalTransactionFactory(RelationalTransactionFactoryDependencies dependencies)
-    {
-        Dependencies = dependencies;
-    }
-
-    protected virtual RelationalTransactionFactoryDependencies Dependencies { get; }
+    protected virtual RelationalTransactionFactoryDependencies Dependencies { get; } = dependencies;
 
     public RelationalTransaction Create(
         IRelationalConnection connection,
@@ -20,20 +15,15 @@ public class TestRelationalTransactionFactory : IRelationalTransactionFactory
         => new TestRelationalTransaction(connection, transaction, logger, transactionOwned, Dependencies.SqlGenerationHelper);
 }
 
-public class TestRelationalTransaction : RelationalTransaction
+public class TestRelationalTransaction(
+    IRelationalConnection connection,
+    DbTransaction transaction,
+    IDiagnosticsLogger<DbLoggerCategory.Database.Transaction> logger,
+    bool transactionOwned,
+    ISqlGenerationHelper sqlGenerationHelper)
+    : RelationalTransaction(connection, transaction, new Guid(), logger, transactionOwned, sqlGenerationHelper)
 {
-    private readonly TestNpgsqlConnection _testConnection;
-
-    public TestRelationalTransaction(
-        IRelationalConnection connection,
-        DbTransaction transaction,
-        IDiagnosticsLogger<DbLoggerCategory.Database.Transaction> logger,
-        bool transactionOwned,
-        ISqlGenerationHelper sqlGenerationHelper)
-        : base(connection, transaction, new Guid(), logger, transactionOwned, sqlGenerationHelper)
-    {
-        _testConnection = (TestNpgsqlConnection)connection;
-    }
+    private readonly TestNpgsqlConnection _testConnection = (TestNpgsqlConnection)connection;
 
     public override void Commit()
     {

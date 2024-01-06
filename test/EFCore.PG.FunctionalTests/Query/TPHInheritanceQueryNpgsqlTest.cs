@@ -1,9 +1,4 @@
 ﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class TPHInheritanceQueryNpgsqlTest : TPHInheritanceQueryTestBase<TPHInheritanceQueryNpgsqlFixture>
-{
-    public TPHInheritanceQueryNpgsqlTest(TPHInheritanceQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
-        : base(fixture, testOutputHelper)
-    {
-    }
-}
+public class TPHInheritanceQueryNpgsqlTest(TPHInheritanceQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
+    : TPHInheritanceQueryTestBase<TPHInheritanceQueryNpgsqlFixture>(fixture, testOutputHelper);

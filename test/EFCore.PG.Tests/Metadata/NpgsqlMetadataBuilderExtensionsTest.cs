@@ -138,7 +138,5 @@ public class NpgsqlInternalMetadataBuilderExtensionsTest
                 a => a.Name.StartsWith(RelationalAnnotationNames.Prefix, StringComparison.Ordinal)));
     }
 
-    private class Splot
-    {
-    }
+    private class Splot;
 }

@@ -30,13 +30,8 @@ public class SystemColumnTest : IClassFixture<SystemColumnTest.SystemColumnFixtu
         Assert.NotEqual(firstVersion, secondVersion);
     }
 
-    public class SystemColumnContext : PoolableDbContext
+    public class SystemColumnContext(DbContextOptions options) : PoolableDbContext(options)
     {
-        public SystemColumnContext(DbContextOptions options)
-            : base(options)
-        {
-        }
-
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public DbSet<SomeEntity> Entities { get; set; }
 

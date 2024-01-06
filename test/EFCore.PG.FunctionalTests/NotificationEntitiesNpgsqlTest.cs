@@ -2,14 +2,9 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class NotificationEntitiesNpgsqlTest
-    : NotificationEntitiesTestBase<NotificationEntitiesNpgsqlTest.NotificationEntitiesNpgsqlFixture>
+public class NotificationEntitiesNpgsqlTest(NotificationEntitiesNpgsqlTest.NotificationEntitiesNpgsqlFixture fixture)
+    : NotificationEntitiesTestBase<NotificationEntitiesNpgsqlTest.NotificationEntitiesNpgsqlFixture>(fixture)
 {
-    public NotificationEntitiesNpgsqlTest(NotificationEntitiesNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     public class NotificationEntitiesNpgsqlFixture : NotificationEntitiesFixtureBase
     {
         protected override string StoreName { get; } = "NotificationEntities";

@@ -2,13 +2,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class TwoDatabasesNpgsqlTest : TwoDatabasesTestBase, IClassFixture<NpgsqlFixture>
+public class TwoDatabasesNpgsqlTest(NpgsqlFixture fixture) : TwoDatabasesTestBase(fixture), IClassFixture<NpgsqlFixture>
 {
-    public TwoDatabasesNpgsqlTest(NpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     protected new NpgsqlFixture Fixture
         => (NpgsqlFixture)base.Fixture;
 
