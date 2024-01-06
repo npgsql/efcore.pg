@@ -34,14 +34,13 @@ public class JsonTypesNpgsqlTest : JsonTypesRelationalTestBase
     public override void Can_read_write_collection_of_ulong_enum_JSON_values()
         => Can_read_and_write_JSON_value<EnumU64CollectionType, List<EnumU64>>(
             nameof(EnumU64CollectionType.EnumU64),
-            new List<EnumU64>
-            {
+            [
                 EnumU64.Min,
                 EnumU64.Max,
                 EnumU64.Default,
                 EnumU64.One,
                 (EnumU64)8
-            },
+            ],
             // Relational databases don't support unsigned numeric types, so ulong is value-converted to long
             """{"Prop":[0,-1,0,1,8]}""",
             mappedCollection: true);
@@ -49,15 +48,14 @@ public class JsonTypesNpgsqlTest : JsonTypesRelationalTestBase
     public override void Can_read_write_collection_of_nullable_ulong_enum_JSON_values()
         => Can_read_and_write_JSON_value<NullableEnumU64CollectionType, List<EnumU64?>>(
             nameof(NullableEnumU64CollectionType.EnumU64),
-            new List<EnumU64?>
-            {
+            [
                 EnumU64.Min,
                 null,
                 EnumU64.Max,
                 EnumU64.Default,
                 EnumU64.One,
                 (EnumU64?)8
-            },
+            ],
             // Relational databases don't support unsigned numeric types, so ulong is value-converted to long
             """{"Prop":[0,null,-1,0,1,8]}""",
             mappedCollection: true);
@@ -103,14 +101,11 @@ public class JsonTypesNpgsqlTest : JsonTypesRelationalTestBase
     {
         Can_read_and_write_JSON_value<TimeSpanCollectionType, List<TimeSpan>>(
             nameof(TimeSpanCollectionType.TimeSpan),
-            new List<TimeSpan>
-            {
-                // We cannot roundtrip MinValue and MaxValue since these contain sub-microsecond components, which PG does not support.
-                // TimeSpan.MinValue,
+            [
                 new(1, 2, 3, 4),
-                new(0, 2, 3, 4, 5, 678),
+                new(0, 2, 3, 4, 5, 678)
                 // TimeSpan.MaxValue
-            },
+            ],
             """{"Prop":["1 02:03:04","02:03:04.005678"]}""",
             mappedCollection: true);
     }
@@ -119,15 +114,12 @@ public class JsonTypesNpgsqlTest : JsonTypesRelationalTestBase
     public override void Can_read_write_collection_of_nullable_TimeSpan_JSON_values()
         => Can_read_and_write_JSON_value<NullableTimeSpanCollectionType, List<TimeSpan?>>(
             nameof(NullableTimeSpanCollectionType.TimeSpan),
-            new List<TimeSpan?>
-            {
-                // We cannot roundtrip MinValue and MaxValue since these contain sub-microsecond components, which PG does not support.
-                // TimeSpan.MinValue,
+            [
                 new(1, 2, 3, 4),
                 new(0, 2, 3, 4, 5, 678),
                 // TimeSpan.MaxValue
                 null
-            },
+            ],
             """{"Prop":["1 02:03:04","02:03:04.005678",null]}""",
             mappedCollection: true);
 
@@ -177,12 +169,11 @@ public class JsonTypesNpgsqlTest : JsonTypesRelationalTestBase
     public override void Can_read_write_collection_of_DateOnly_JSON_values()
         => Can_read_and_write_JSON_value<DateOnlyCollectionType, List<DateOnly>>(
             nameof(DateOnlyCollectionType.DateOnly),
-            new List<DateOnly>
-            {
+            [
                 DateOnly.MinValue,
                 new(2023, 5, 29),
                 DateOnly.MaxValue
-            },
+            ],
             """{"Prop":["-infinity","2023-05-29","infinity"]}""",
             mappedCollection: true);
 
@@ -190,13 +181,12 @@ public class JsonTypesNpgsqlTest : JsonTypesRelationalTestBase
     public override void Can_read_write_collection_of_nullable_DateOnly_JSON_values()
         => Can_read_and_write_JSON_value<NullableDateOnlyCollectionType, List<DateOnly?>>(
             nameof(NullableDateOnlyCollectionType.DateOnly),
-            new List<DateOnly?>
-            {
+            [
                 DateOnly.MinValue,
                 new(2023, 5, 29),
                 DateOnly.MaxValue,
                 null
-            },
+            ],
             """{"Prop":["-infinity","2023-05-29","infinity",null]}""",
             mappedCollection: true);
 
@@ -251,12 +241,11 @@ public class JsonTypesNpgsqlTest : JsonTypesRelationalTestBase
     public override void Can_read_write_collection_of_DateTime_JSON_values()
         => Can_read_and_write_JSON_value<DateTimeCollectionType, List<DateTime>>(
             nameof(DateTimeCollectionType.DateTime),
-            new List<DateTime>
-            {
+            [
                 DateTime.MinValue,
                 new(2023, 5, 29, 10, 52, 47, DateTimeKind.Utc),
                 DateTime.MaxValue
-            },
+            ],
             """{"Prop":["-infinity","2023-05-29T10:52:47Z","infinity"]}""",
             mappedCollection: true);
 
@@ -264,13 +253,12 @@ public class JsonTypesNpgsqlTest : JsonTypesRelationalTestBase
     public override void Can_read_write_collection_of_nullable_DateTime_JSON_values()
         => Can_read_and_write_JSON_value<NullableDateTimeCollectionType, List<DateTime?>>(
             nameof(NullableDateTimeCollectionType.DateTime),
-            new List<DateTime?>
-            {
+            [
                 DateTime.MinValue,
                 null,
                 new(2023, 5, 29, 10, 52, 47, DateTimeKind.Utc),
                 DateTime.MaxValue
-            },
+            ],
             """{"Prop":["-infinity",null,"2023-05-29T10:52:47Z","infinity"]}""",
             mappedCollection: true);
 
@@ -338,14 +326,13 @@ public class JsonTypesNpgsqlTest : JsonTypesRelationalTestBase
     public override void Can_read_write_collection_of_DateTimeOffset_JSON_values()
         => Can_read_and_write_JSON_value<DateTimeOffsetCollectionType, List<DateTimeOffset>>(
             nameof(DateTimeOffsetCollectionType.DateTimeOffset),
-            new List<DateTimeOffset>
-            {
+            [
                 DateTimeOffset.MinValue,
                 new(new DateTime(2023, 5, 29, 10, 52, 47), new TimeSpan(-2, 0, 0)),
                 new(new DateTime(2023, 5, 29, 10, 52, 47), new TimeSpan(0, 0, 0)),
                 new(new DateTime(2023, 5, 29, 10, 52, 47), new TimeSpan(2, 0, 0)),
                 DateTimeOffset.MaxValue
-            },
+            ],
             """{"Prop":["-infinity","2023-05-29T10:52:47-02:00","2023-05-29T10:52:47\u002B00:00","2023-05-29T10:52:47\u002B02:00","infinity"]}""",
             mappedCollection: true);
 
@@ -353,15 +340,14 @@ public class JsonTypesNpgsqlTest : JsonTypesRelationalTestBase
     public override void Can_read_write_collection_of_nullable_DateTimeOffset_JSON_values()
         => Can_read_and_write_JSON_value<NullableDateTimeOffsetCollectionType, List<DateTimeOffset?>>(
             nameof(NullableDateTimeOffsetCollectionType.DateTimeOffset),
-            new List<DateTimeOffset?>
-            {
+            [
                 DateTimeOffset.MinValue,
                 new(new DateTime(2023, 5, 29, 10, 52, 47), new TimeSpan(-2, 0, 0)),
                 new(new DateTime(2023, 5, 29, 10, 52, 47), new TimeSpan(0, 0, 0)),
                 null,
                 new(new DateTime(2023, 5, 29, 10, 52, 47), new TimeSpan(2, 0, 0)),
                 DateTimeOffset.MaxValue
-            },
+            ],
             """{"Prop":["-infinity","2023-05-29T10:52:47-02:00","2023-05-29T10:52:47\u002B00:00",null,"2023-05-29T10:52:47\u002B02:00","infinity"]}""",
             mappedCollection: true);
 

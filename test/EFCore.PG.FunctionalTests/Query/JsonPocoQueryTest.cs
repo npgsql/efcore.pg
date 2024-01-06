@@ -716,7 +716,7 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
                 {
                     Id = 1,
                     Customer = CreateCustomer1(),
-                    ToplevelArray = new[] { "one", "two", "three" }
+                    ToplevelArray = ["one", "two", "three"]
                 },
                 new JsonbEntity { Id = 2, Customer = CreateCustomer2() });
             context.JsonEntities.AddRange(
@@ -724,7 +724,7 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
                 {
                     Id = 1,
                     Customer = CreateCustomer1(),
-                    ToplevelArray = new[] { "one", "two", "three" }
+                    ToplevelArray = ["one", "two", "three"]
                 },
                 new JsonEntity { Id = 2, Customer = CreateCustomer2() });
             context.SaveChanges();
@@ -745,12 +745,12 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
                             SomeProperty = 10,
                             SomeNullableInt = 20,
                             SomeNullableGuid = Guid.Parse("d5f2685d-e5c4-47e5-97aa-d0266154eb2d"),
-                            IntArray = new[] { 3, 4 },
-                            IntList = new List<int> { 3, 4 }
+                            IntArray = [3, 4],
+                            IntList = [3, 4]
                         }
                     },
-                    Orders = new[]
-                    {
+                    Orders =
+                    [
                         new Order
                         {
                             Price = 99.5m, ShippingAddress = "Some address 1",
@@ -759,7 +759,7 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
                         {
                             Price = 23, ShippingAddress = "Some address 2",
                         }
-                    },
+                    ],
                     VariousTypes = new VariousTypes
                     {
                         String = "foo",
@@ -789,22 +789,22 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
                             SomeProperty = 20,
                             SomeNullableInt = null,
                             SomeNullableGuid = null,
-                            IntArray = new[] { 5, 6, 7 },
-                            IntList = new List<int>
-                            {
+                            IntArray = [5, 6, 7],
+                            IntList =
+                            [
                                 5,
                                 6,
                                 7
-                            }
+                            ]
                         }
                     },
-                    Orders = new[]
-                    {
+                    Orders =
+                    [
                         new Order
                         {
                             Price = 5, ShippingAddress = "Moe's address",
                         }
-                    },
+                    ],
                     VariousTypes = new VariousTypes
                     {
                         String = "bar",

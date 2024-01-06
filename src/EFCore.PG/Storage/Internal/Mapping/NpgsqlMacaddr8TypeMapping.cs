@@ -72,5 +72,5 @@ public class NpgsqlMacaddr8TypeMapping : NpgsqlTypeMapping
     public override Expression GenerateCodeLiteral(object value)
         => Expression.Call(ParseMethod, Expression.Constant(((PhysicalAddress)value).ToString()));
 
-    private static readonly MethodInfo ParseMethod = typeof(PhysicalAddress).GetMethod("Parse", new[] { typeof(string) })!;
+    private static readonly MethodInfo ParseMethod = typeof(PhysicalAddress).GetMethod("Parse", [typeof(string)])!;
 }

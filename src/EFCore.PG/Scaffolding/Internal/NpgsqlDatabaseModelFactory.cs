@@ -29,7 +29,7 @@ public class NpgsqlDatabaseModelFactory : DatabaseModelFactory
             RegexOptions.Compiled,
             TimeSpan.FromMilliseconds(1000.0));
 
-    private static readonly string[] SerialTypes = { "int2", "int4", "int8" };
+    private static readonly string[] SerialTypes = ["int2", "int4", "int8"];
 
     private readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> _logger;
 
@@ -228,7 +228,7 @@ WHERE
                 var name = reader.GetString("relname");
                 var type = reader.GetChar("relkind");
                 var comment = reader.GetValueOrDefault<string>("description");
-                var storageParameters = reader.GetValueOrDefault<string[]>("reloptions") ?? Array.Empty<string>();
+                var storageParameters = reader.GetValueOrDefault<string[]>("reloptions") ?? [];
 
                 var table = type switch
                 {
@@ -772,7 +772,7 @@ WHERE
                         index[NpgsqlAnnotationNames.NullsDistinct] = false;
                     }
 
-                    foreach (var storageParameter in record.GetValueOrDefault<string[]>("idx_reloptions") ?? Array.Empty<string>())
+                    foreach (var storageParameter in record.GetValueOrDefault<string[]>("idx_reloptions") ?? [])
                     {
                         if (storageParameter.Split("=") is [var paramName, var paramValue])
                         {
@@ -839,7 +839,7 @@ WHERE
         using var command = new NpgsqlCommand(commandText, connection);
         using var reader = command.ExecuteReader();
 
-        constraintIndexes = new List<uint>();
+        constraintIndexes = [];
         var tableGroups = reader.Cast<DbDataRecord>().GroupBy(
             ddr => (
                 tableSchema: ddr.GetFieldValue<string>("nspname"),

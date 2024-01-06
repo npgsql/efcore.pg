@@ -11,7 +11,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 /// </summary>
 public class NpgsqlLTreeTypeMapping : NpgsqlStringTypeMapping
 {
-    private static readonly ConstructorInfo Constructor = typeof(LTree).GetConstructor(new[] { typeof(string) })!;
+    private static readonly ConstructorInfo Constructor = typeof(LTree).GetConstructor([typeof(string)])!;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

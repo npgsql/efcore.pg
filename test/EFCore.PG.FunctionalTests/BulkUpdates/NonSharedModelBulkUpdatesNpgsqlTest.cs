@@ -158,7 +158,7 @@ WHERE o."Id" = 1
         var contextFactory = await InitializeAsync<Context3001>(
             seed: ctx =>
             {
-                ctx.AddRange(new EntityWithPrimitiveCollection { Tags = new List<string> { "tag1", "tag2" }});
+                ctx.AddRange(new EntityWithPrimitiveCollection { Tags = ["tag1", "tag2"] });
                 ctx.SaveChanges();
             });
 

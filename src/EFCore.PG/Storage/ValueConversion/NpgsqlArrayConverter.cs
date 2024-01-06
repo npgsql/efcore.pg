@@ -164,9 +164,9 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
                 Assign(
                     output, typeof(TConcreteOutput).IsArray
                         ? NewArrayBounds(outputElementType, lengthVariable)
-                        : typeof(TConcreteOutput).GetConstructor(new[] { typeof(int) }) is ConstructorInfo ctorWithLength
+                        : typeof(TConcreteOutput).GetConstructor([typeof(int)]) is ConstructorInfo ctorWithLength
                             ? New(ctorWithLength, lengthVariable)
-                            : New(typeof(TConcreteOutput).GetConstructor(Array.Empty<Type>())!)),
+                            : New(typeof(TConcreteOutput).GetConstructor([])!)),
 
                 // Loop over the elements, applying the element converter on them one by one
                 // for (var i = 0; i < length; i++)
@@ -187,7 +187,7 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
                                 : Invoke(elementConversionExpression, indexer(loopVariable)))
                         : Call(
                             output,
-                            typeof(TConcreteOutput).GetMethod("Add", new[] { outputElementType })!,
+                            typeof(TConcreteOutput).GetMethod("Add", [outputElementType])!,
                             elementConversionExpression is null
                                 ? indexer(loopVariable)
                                 : Invoke(elementConversionExpression, indexer(loopVariable)))),

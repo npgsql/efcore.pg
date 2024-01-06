@@ -838,7 +838,7 @@ public class NpgsqlNodaTimeTypeMappingTest
         new TypeMappingSourceDependencies(
             new ValueConverterSelector(new ValueConverterSelectorDependencies()),
             new JsonValueReaderWriterSource(new JsonValueReaderWriterSourceDependencies()),
-            Array.Empty<ITypeMappingSourcePlugin>()),
+            []),
         new RelationalTypeMappingSourceDependencies(
             new IRelationalTypeMappingSourcePlugin[]
             {

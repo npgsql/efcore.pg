@@ -121,7 +121,7 @@ public class TimestampTzInstantMapping : NpgsqlTypeMapping
         => GenerateCodeLiteral((Instant)value);
 
     private static readonly MethodInfo _fromUnixTimeTicks
-        = typeof(Instant).GetRuntimeMethod(nameof(Instant.FromUnixTimeTicks), new[] { typeof(long) })!;
+        = typeof(Instant).GetRuntimeMethod(nameof(Instant.FromUnixTimeTicks), [typeof(long)])!;
 
     private sealed class JsonInstantReaderWriter : JsonValueReaderWriter<Instant>
     {

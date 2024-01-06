@@ -97,30 +97,27 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
                 // migrations, model snapshots still contain old mappings (Instant mapped to timestamp), and EF Core's model differ
                 // expects type mappings to be found for these. See https://github.com/dotnet/efcore/issues/26168.
                 "timestamp without time zone", LegacyTimestampBehavior
-                    ? new RelationalTypeMapping[] { _legacyTimestampInstant, _timestampLocalDateTime }
-                    : new RelationalTypeMapping[] { _timestampLocalDateTime, _legacyTimestampInstant }
+                    ? [_legacyTimestampInstant, _timestampLocalDateTime]
+                    : [_timestampLocalDateTime, _legacyTimestampInstant]
             },
             {
-                "timestamp with time zone",
-                new RelationalTypeMapping[] { _timestamptzInstant, _timestamptzZonedDateTime, _timestamptzOffsetDateTime }
+                "timestamp with time zone", [_timestamptzInstant, _timestamptzZonedDateTime, _timestamptzOffsetDateTime]
             },
-            { "date", new RelationalTypeMapping[] { _date } },
-            { "time without time zone", new RelationalTypeMapping[] { _time } },
-            { "time with time zone", new RelationalTypeMapping[] { _timetz } },
-            { "interval", new RelationalTypeMapping[] { _periodInterval, _durationInterval } },
+            { "date", [_date] },
+            { "time without time zone", [_time] },
+            { "time with time zone", [_timetz] },
+            { "interval", [_periodInterval, _durationInterval] },
             {
                 "tsrange", LegacyTimestampBehavior
-                    ? new RelationalTypeMapping[] { _legacyTimestampInstantRange, _timestampLocalDateTimeRange }
-                    : new RelationalTypeMapping[] { _timestampLocalDateTimeRange, _legacyTimestampInstantRange }
+                    ? [_legacyTimestampInstantRange, _timestampLocalDateTimeRange]
+                    : [_timestampLocalDateTimeRange, _legacyTimestampInstantRange]
             },
             {
-                "tstzrange",
-                new RelationalTypeMapping[]
-                {
+                "tstzrange", [
                     _intervalRange, _timestamptzInstantRange, _timestamptzZonedDateTimeRange, _timestamptzOffsetDateTimeRange
-                }
+                ]
             },
-            { "daterange", new RelationalTypeMapping[] { _dateIntervalRange, _dateRange } }
+            { "daterange", [_dateIntervalRange, _dateRange] }
         };
 
         // Set up aliases

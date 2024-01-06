@@ -22,15 +22,15 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
 
     private static readonly MethodInfo Like2MethodInfo =
         typeof(DbFunctionsExtensions).GetRuntimeMethod(
-            nameof(DbFunctionsExtensions.Like), new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
+            nameof(DbFunctionsExtensions.Like), [typeof(DbFunctions), typeof(string), typeof(string)])!;
 
     // ReSharper disable once InconsistentNaming
     private static readonly MethodInfo ILike2MethodInfo
         = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
-            nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
+            nameof(NpgsqlDbFunctionsExtensions.ILike), [typeof(DbFunctions), typeof(string), typeof(string)])!;
 
     private static readonly MethodInfo MatchesLQuery =
-        typeof(LTree).GetRuntimeMethod(nameof(LTree.MatchesLQuery), new[] { typeof(string) })!;
+        typeof(LTree).GetRuntimeMethod(nameof(LTree.MatchesLQuery), [typeof(string)])!;
 
     #endregion
 

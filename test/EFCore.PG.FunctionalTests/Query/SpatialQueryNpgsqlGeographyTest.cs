@@ -24,7 +24,7 @@ public class SpatialQueryNpgsqlGeographyTest
 
     public static IEnumerable<object[]> IsAsyncDataAndUseSpheroid = new[]
     {
-        new object[] { false, false }, new object[] { false, true }, new object[] { true, false }, new object[] { true, true }
+        [false, false], [false, true], [true, false], new object[] { true, true }
     };
 
     public override async Task Area(bool async)

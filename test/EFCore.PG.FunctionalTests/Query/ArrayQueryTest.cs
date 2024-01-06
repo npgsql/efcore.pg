@@ -24,16 +24,15 @@ public abstract class ArrayQueryTest<TFixture> : QueryTestBase<TFixture>
         using var ctx = CreateContext();
         var x = ctx.SomeEntities.Single(e => e.Id == 1);
 
-        Assert.Equal(new[] { 3, 4 }, x.IntArray);
-        Assert.Equal(new List<int> { 3, 4 }, x.IntList);
-        Assert.Equal(new int?[] { 3, 4, null }, x.NullableIntArray);
+        Assert.Equal([3, 4], x.IntArray);
+        Assert.Equal([3, 4], x.IntList);
+        Assert.Equal([3, 4, null], x.NullableIntArray);
         Assert.Equal(
-            new List<int?>
-            {
-                3,
-                4,
-                null
-            }, x.NullableIntList);
+        [
+            3,
+            4,
+            null
+        ], x.NullableIntList);
     }
 
     #endregion

@@ -11,7 +11,7 @@ public class NpgsqlBuilderExtensionsTest
 
         modelBuilder.Entity<Customer>()
             .ToTable("customers", "my_schema")
-            .UseCockroachDbInterleaveInParent(typeof(Customer), new List<string> { "col_a", "col_b" });
+            .UseCockroachDbInterleaveInParent(typeof(Customer), ["col_a", "col_b"]);
 
         var entityType = modelBuilder.Model.FindEntityType(typeof(Customer));
         var interleaveInParent = entityType.GetCockroachDbInterleaveInParent();

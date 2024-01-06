@@ -16,10 +16,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 public class IntervalRangeMapping : NpgsqlTypeMapping
 {
     private static readonly ConstructorInfo _constructor =
-        typeof(Interval).GetConstructor(new[] { typeof(Instant), typeof(Instant) })!;
+        typeof(Interval).GetConstructor([typeof(Instant), typeof(Instant)])!;
 
     private static readonly ConstructorInfo _constructorWithNulls =
-        typeof(Interval).GetConstructor(new[] { typeof(Instant?), typeof(Instant?) })!;
+        typeof(Interval).GetConstructor([typeof(Instant?), typeof(Instant?)])!;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

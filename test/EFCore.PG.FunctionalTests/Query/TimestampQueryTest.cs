@@ -978,7 +978,7 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
                     TimestampDateTimeOffset = new DateTimeOffset(utcDateTime1),
                     TimestamptzDateTimeArray = utcDateTimeArray1,
                     TimestampDateTimeArray = localDateTimeArray1,
-                    TimestampDateTimeOffsetArray = new DateTimeOffset[] { new(utcDateTimeArray1[0]), new(utcDateTimeArray1[1]) },
+                    TimestampDateTimeOffsetArray = [new(utcDateTimeArray1[0]), new(utcDateTimeArray1[1])],
                     TimestamptzDateTimeRange = utcDateTimeRange1,
                     TimestampDateTimeRange = localDateTimeRange1,
                 },
@@ -990,7 +990,7 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
                     TimestampDateTimeOffset = new DateTimeOffset(utcDateTime2),
                     TimestamptzDateTimeArray = utcDateTimeArray2,
                     TimestampDateTimeArray = localDateTimeArray2,
-                    TimestampDateTimeOffsetArray = new DateTimeOffset[] { new(utcDateTimeArray2[0]), new(utcDateTimeArray2[1]) },
+                    TimestampDateTimeOffsetArray = [new(utcDateTimeArray2[0]), new(utcDateTimeArray2[1])],
                     TimestamptzDateTimeRange = utcDateTimeRange2,
                     TimestampDateTimeRange = localDateTimeRange2,
                 }

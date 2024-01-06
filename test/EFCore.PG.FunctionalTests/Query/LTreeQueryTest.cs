@@ -523,7 +523,7 @@ WHERE lca(ARRAY[l."LTree",'Top.Hobbies']::ltree[]) = 'Top'
             {
                 ltreeEntity.LTreeAsString = ltreeEntity.LTree;
                 ltreeEntity.SomeString = "*.Astrophysics";
-                ltreeEntity.LTrees = new LTree[] { ltreeEntity.LTree, "Foo" };
+                ltreeEntity.LTrees = [ltreeEntity.LTree, "Foo"];
             }
 
             context.LTreeEntities.AddRange(ltreeEntities);

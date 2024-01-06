@@ -95,7 +95,7 @@ public class NpgsqlCodeGeneratorTest
     }
 
     private static readonly MethodInfo _setProviderOptionMethodInfo
-        = typeof(NpgsqlCodeGeneratorTest).GetRuntimeMethod(nameof(SetProviderOption), new[] { typeof(DbContextOptionsBuilder) });
+        = typeof(NpgsqlCodeGeneratorTest).GetRuntimeMethod(nameof(SetProviderOption), [typeof(DbContextOptionsBuilder)]);
 
     public static NpgsqlDbContextOptionsBuilder SetProviderOption(DbContextOptionsBuilder optionsBuilder)
         => throw new NotSupportedException();

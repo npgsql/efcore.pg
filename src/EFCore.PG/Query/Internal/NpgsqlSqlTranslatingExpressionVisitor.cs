@@ -30,26 +30,26 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     private static Type? _nodaTimePeriodType;
 
     private static readonly ConstructorInfo DateTimeCtor1 =
-        typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
+        typeof(DateTime).GetConstructor([typeof(int), typeof(int), typeof(int)])!;
 
     private static readonly ConstructorInfo DateTimeCtor2 =
-        typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) })!;
+        typeof(DateTime).GetConstructor([typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int)])!;
 
     private static readonly ConstructorInfo DateTimeCtor3 =
         typeof(DateTime).GetConstructor(
-            new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(DateTimeKind) })!;
+            [typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(DateTimeKind)])!;
 
     private static readonly ConstructorInfo DateOnlyCtor =
-        typeof(DateOnly).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
+        typeof(DateOnly).GetConstructor([typeof(int), typeof(int), typeof(int)])!;
 
     private static readonly MethodInfo StringStartsWithMethod
-        = typeof(string).GetRuntimeMethod(nameof(string.StartsWith), new[] { typeof(string) })!;
+        = typeof(string).GetRuntimeMethod(nameof(string.StartsWith), [typeof(string)])!;
 
     private static readonly MethodInfo StringEndsWithMethod
-        = typeof(string).GetRuntimeMethod(nameof(string.EndsWith), new[] { typeof(string) })!;
+        = typeof(string).GetRuntimeMethod(nameof(string.EndsWith), [typeof(string)])!;
 
     private static readonly MethodInfo StringContainsMethod
-        = typeof(string).GetRuntimeMethod(nameof(string.Contains), new[] { typeof(string) })!;
+        = typeof(string).GetRuntimeMethod(nameof(string.Contains), [typeof(string)])!;
 
     private static readonly MethodInfo EscapeLikePatternParameterMethod =
         typeof(NpgsqlSqlTranslatingExpressionVisitor).GetTypeInfo().GetDeclaredMethod(nameof(ConstructLikePatternParameter))!;

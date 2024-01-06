@@ -224,7 +224,7 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
 
         protected override void OnModelCreating(ModelBuilder builder)
             => builder
-                .HasPostgresEnum("mapped_enum", new[] { "happy", "sad" })
+                .HasPostgresEnum("mapped_enum", ["happy", "sad"])
                 .HasPostgresEnum<InferredEnum>()
                 .HasPostgresEnum<ByteEnum>()
                 .HasDefaultSchema("test")

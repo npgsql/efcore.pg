@@ -14,8 +14,8 @@ public class NpgsqlApiConsistencyTest(NpgsqlApiConsistencyTest.NpgsqlApiConsiste
 
     public class NpgsqlApiConsistencyFixture : ApiConsistencyFixtureBase
     {
-        public override HashSet<Type> FluentApiTypes { get; } = new()
-        {
+        public override HashSet<Type> FluentApiTypes { get; } =
+        [
             typeof(NpgsqlDbContextOptionsBuilder),
             typeof(NpgsqlDbContextOptionsBuilderExtensions),
             typeof(NpgsqlMigrationBuilderExtensions),
@@ -24,14 +24,14 @@ public class NpgsqlApiConsistencyTest(NpgsqlApiConsistencyTest.NpgsqlApiConsiste
             typeof(NpgsqlPropertyBuilderExtensions),
             typeof(NpgsqlEntityTypeBuilderExtensions),
             typeof(NpgsqlServiceCollectionExtensions)
-        };
+        ];
 
-        public override HashSet<MethodInfo> UnmatchedMetadataMethods { get; } = new()
-        {
+        public override HashSet<MethodInfo> UnmatchedMetadataMethods { get; } =
+        [
             typeof(NpgsqlPropertyBuilderExtensions).GetMethod(
                 nameof(NpgsqlPropertyBuilderExtensions.IsGeneratedTsVectorColumn),
-                new[] { typeof(PropertyBuilder), typeof(string), typeof(string[]) })
-        };
+                [typeof(PropertyBuilder), typeof(string), typeof(string[])])
+        ];
 
         public override
             Dictionary<Type,
@@ -80,11 +80,11 @@ public class NpgsqlApiConsistencyTest(NpgsqlApiConsistencyTest.NpgsqlApiConsiste
                 }
             };
 
-        public override HashSet<MethodInfo> MetadataMethodExceptions { get; } = new()
-        {
+        public override HashSet<MethodInfo> MetadataMethodExceptions { get; } =
+        [
             typeof(NpgsqlEntityTypeExtensions).GetRuntimeMethod(
                 nameof(NpgsqlEntityTypeExtensions.SetStorageParameter),
-                new[] { typeof(IConventionEntityType), typeof(string), typeof(object), typeof(bool) })
-        };
+                [typeof(IConventionEntityType), typeof(string), typeof(object), typeof(bool)])
+        ];
     }
 }

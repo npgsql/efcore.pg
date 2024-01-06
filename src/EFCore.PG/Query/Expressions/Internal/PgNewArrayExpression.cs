@@ -44,7 +44,7 @@ public class PgNewArrayExpression : SqlExpression
             var visitedExpression = (SqlExpression)visitor.Visit(expression);
             if (visitedExpression != expression && newExpressions is null)
             {
-                newExpressions = new List<SqlExpression>();
+                newExpressions = [];
                 for (var j = 0; j < i; j++)
                 {
                     newExpressions.Add(Expressions[j]);

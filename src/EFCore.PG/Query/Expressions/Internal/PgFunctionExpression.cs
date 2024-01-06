@@ -63,7 +63,7 @@ public class PgFunctionExpression : SqlFunctionExpression, IEquatable<PgFunction
 
         return new PgFunctionExpression(
             name, arguments, argumentNames, argumentSeparators: null,
-            aggregateDistinct: false, aggregatePredicate: null, aggregateOrderings: Array.Empty<OrderingExpression>(),
+            aggregateDistinct: false, aggregatePredicate: null, aggregateOrderings: [],
             nullable: nullable, argumentsPropagateNullability: argumentsPropagateNullability, type: type, typeMapping: typeMapping);
     }
 
@@ -85,7 +85,7 @@ public class PgFunctionExpression : SqlFunctionExpression, IEquatable<PgFunction
 
         return new PgFunctionExpression(
             name, arguments, argumentNames: null, argumentSeparators: argumentSeparators,
-            aggregateDistinct: false, aggregatePredicate: null, aggregateOrderings: Array.Empty<OrderingExpression>(),
+            aggregateDistinct: false, aggregatePredicate: null, aggregateOrderings: [],
             nullable: nullable, argumentsPropagateNullability: argumentsPropagateNullability, type: type, typeMapping: typeMapping);
     }
 
@@ -109,8 +109,8 @@ public class PgFunctionExpression : SqlFunctionExpression, IEquatable<PgFunction
         Check.NotEmpty(name, nameof(name));
         Check.NotNull(type, nameof(type));
 
-        ArgumentNames = (argumentNames ?? Array.Empty<string>()).ToList();
-        ArgumentSeparators = (argumentSeparators ?? Array.Empty<string>()).ToList();
+        ArgumentNames = (argumentNames ?? []).ToList();
+        ArgumentSeparators = (argumentSeparators ?? []).ToList();
 
         if (ArgumentNames.SkipWhile(a => a is null).Contains(null))
         {

@@ -53,9 +53,9 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
     private readonly IRelationalTypeMappingSource _typeMappingSource;
 
     private static readonly bool[][] TrueArrays =
-    {
-        Array.Empty<bool>(), new[] { true }, new[] { true, true }, new[] { true, true, true }, new[] { true, true, true, true }
-    };
+    [
+        [], [true], [true, true], [true, true, true], [true, true, true, true]
+    ];
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -157,65 +157,65 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
         return method.Name switch
         {
             nameof(Geometry.AsBinary)
-                => Function("ST_AsBinary", new[] { instance }, typeof(byte[])),
+                => Function("ST_AsBinary", [instance], typeof(byte[])),
             nameof(Geometry.AsText)
-                => Function("ST_AsText", new[] { instance }, typeof(string)),
+                => Function("ST_AsText", [instance], typeof(string)),
             nameof(Geometry.Buffer)
                 => Function("ST_Buffer", new[] { instance }.Concat(arguments).ToArray(), typeof(Geometry), ResultGeometryMapping()),
             nameof(Geometry.Contains)
-                => Function("ST_Contains", new[] { instance, arguments[0] }, typeof(bool)),
+                => Function("ST_Contains", [instance, arguments[0]], typeof(bool)),
             nameof(Geometry.ConvexHull)
-                => Function("ST_ConvexHull", new[] { instance }, typeof(Geometry), ResultGeometryMapping()),
+                => Function("ST_ConvexHull", [instance], typeof(Geometry), ResultGeometryMapping()),
             nameof(Geometry.CoveredBy)
-                => Function("ST_CoveredBy", new[] { instance, arguments[0] }, typeof(bool)),
+                => Function("ST_CoveredBy", [instance, arguments[0]], typeof(bool)),
             nameof(Geometry.Covers)
-                => Function("ST_Covers", new[] { instance, arguments[0] }, typeof(bool)),
+                => Function("ST_Covers", [instance, arguments[0]], typeof(bool)),
             nameof(Geometry.Crosses)
-                => Function("ST_Crosses", new[] { instance, arguments[0] }, typeof(bool)),
+                => Function("ST_Crosses", [instance, arguments[0]], typeof(bool)),
             nameof(Geometry.Disjoint)
-                => Function("ST_Disjoint", new[] { instance, arguments[0] }, typeof(bool)),
+                => Function("ST_Disjoint", [instance, arguments[0]], typeof(bool)),
             nameof(Geometry.Difference)
-                => Function("ST_Difference", new[] { instance, arguments[0] }, typeof(Geometry), ResultGeometryMapping()),
+                => Function("ST_Difference", [instance, arguments[0]], typeof(Geometry), ResultGeometryMapping()),
             nameof(Geometry.Distance)
                 => Function("ST_Distance", new[] { instance }.Concat(arguments).ToArray(), typeof(double)),
             nameof(Geometry.EqualsExact)
-                => Function("ST_OrderingEquals", new[] { instance, arguments[0] }, typeof(bool)),
+                => Function("ST_OrderingEquals", [instance, arguments[0]], typeof(bool)),
             nameof(Geometry.EqualsTopologically)
-                => Function("ST_Equals", new[] { instance, arguments[0] }, typeof(bool)),
+                => Function("ST_Equals", [instance, arguments[0]], typeof(bool)),
             nameof(Geometry.GetGeometryN)
-                => Function("ST_GeometryN", new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), ResultGeometryMapping()),
+                => Function("ST_GeometryN", [instance, OneBased(arguments[0])], typeof(Geometry), ResultGeometryMapping()),
             nameof(Polygon.GetInteriorRingN)
-                => Function("ST_InteriorRingN", new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), ResultGeometryMapping()),
+                => Function("ST_InteriorRingN", [instance, OneBased(arguments[0])], typeof(Geometry), ResultGeometryMapping()),
             nameof(LineString.GetPointN)
-                => Function("ST_PointN", new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), ResultGeometryMapping()),
+                => Function("ST_PointN", [instance, OneBased(arguments[0])], typeof(Geometry), ResultGeometryMapping()),
             nameof(Geometry.Intersection)
-                => Function("ST_Intersection", new[] { instance, arguments[0] }, typeof(Geometry), ResultGeometryMapping()),
+                => Function("ST_Intersection", [instance, arguments[0]], typeof(Geometry), ResultGeometryMapping()),
             nameof(Geometry.Intersects)
-                => Function("ST_Intersects", new[] { instance, arguments[0] }, typeof(bool)),
+                => Function("ST_Intersects", [instance, arguments[0]], typeof(bool)),
             nameof(Geometry.IsWithinDistance)
                 => Function("ST_DWithin", new[] { instance }.Concat(arguments).ToArray(), typeof(bool)),
             nameof(Geometry.Normalized)
-                => Function("ST_Normalize", new[] { instance }, typeof(Geometry), ResultGeometryMapping()),
+                => Function("ST_Normalize", [instance], typeof(Geometry), ResultGeometryMapping()),
             nameof(Geometry.Overlaps)
-                => Function("ST_Overlaps", new[] { instance, arguments[0] }, typeof(bool)),
+                => Function("ST_Overlaps", [instance, arguments[0]], typeof(bool)),
             nameof(Geometry.Relate)
-                => Function("ST_Relate", new[] { instance, arguments[0], arguments[1] }, typeof(bool)),
+                => Function("ST_Relate", [instance, arguments[0], arguments[1]], typeof(bool)),
             nameof(Geometry.Reverse)
-                => Function("ST_Reverse", new[] { instance }, typeof(Geometry), ResultGeometryMapping()),
+                => Function("ST_Reverse", [instance], typeof(Geometry), ResultGeometryMapping()),
             nameof(Geometry.SymmetricDifference)
-                => Function("ST_SymDifference", new[] { instance, arguments[0] }, typeof(Geometry), ResultGeometryMapping()),
+                => Function("ST_SymDifference", [instance, arguments[0]], typeof(Geometry), ResultGeometryMapping()),
             nameof(Geometry.ToBinary)
-                => Function("ST_AsBinary", new[] { instance }, typeof(byte[])),
+                => Function("ST_AsBinary", [instance], typeof(byte[])),
             nameof(Geometry.ToText)
-                => Function("ST_AsText", new[] { instance }, typeof(string)),
+                => Function("ST_AsText", [instance], typeof(string)),
             nameof(Geometry.Touches)
-                => Function("ST_Touches", new[] { instance, arguments[0] }, typeof(bool)),
+                => Function("ST_Touches", [instance, arguments[0]], typeof(bool)),
             nameof(Geometry.Within)
-                => Function("ST_Within", new[] { instance, arguments[0] }, typeof(bool)),
+                => Function("ST_Within", [instance, arguments[0]], typeof(bool)),
             nameof(Geometry.Union) when arguments.Count == 0
-                => Function("ST_UnaryUnion", new[] { instance }, typeof(Geometry), ResultGeometryMapping()),
+                => Function("ST_UnaryUnion", [instance], typeof(Geometry), ResultGeometryMapping()),
             nameof(Geometry.Union) when arguments.Count == 1
-                => Function("ST_Union", new[] { instance, arguments[0] }, typeof(Geometry), ResultGeometryMapping()),
+                => Function("ST_Union", [instance, arguments[0]], typeof(Geometry), ResultGeometryMapping()),
 
             _ => null
         };

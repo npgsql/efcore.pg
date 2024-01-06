@@ -82,8 +82,8 @@ public class NpgsqlInetTypeMapping : NpgsqlTypeMapping
             _ => throw new UnreachableException()
         };
 
-    private static readonly MethodInfo IPAddressParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) })!;
-    private static readonly ConstructorInfo NpgsqlInetConstructor = typeof(NpgsqlInet).GetConstructor(new[] { typeof(string) })!;
+    private static readonly MethodInfo IPAddressParseMethod = typeof(IPAddress).GetMethod("Parse", [typeof(string)])!;
+    private static readonly ConstructorInfo NpgsqlInetConstructor = typeof(NpgsqlInet).GetConstructor([typeof(string)])!;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

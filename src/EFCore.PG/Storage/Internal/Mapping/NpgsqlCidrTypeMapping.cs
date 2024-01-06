@@ -78,10 +78,10 @@ public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
             Expression.Constant(cidr.Netmask));
     }
 
-    private static readonly MethodInfo ParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) })!;
+    private static readonly MethodInfo ParseMethod = typeof(IPAddress).GetMethod("Parse", [typeof(string)])!;
 
     private static readonly ConstructorInfo NpgsqlCidrConstructor =
-        typeof(NpgsqlCidr).GetConstructor(new[] { typeof(IPAddress), typeof(byte) })!;
+        typeof(NpgsqlCidr).GetConstructor([typeof(IPAddress), typeof(byte)])!;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

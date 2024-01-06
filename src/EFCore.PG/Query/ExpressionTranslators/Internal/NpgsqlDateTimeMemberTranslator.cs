@@ -148,7 +148,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
         SqlExpression UtcNow()
             => _sqlExpressionFactory.Function(
                 "now",
-                Array.Empty<SqlExpression>(),
+                [],
                 nullable: false,
                 argumentsPropagateNullability: TrueArrays[0],
                 returnType,

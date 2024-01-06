@@ -1951,7 +1951,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     /// <remarks>
     ///     https://www.postgresql.org/docs/current/static/ddl-system-columns.html
     /// </remarks>
-    private static readonly string[] SystemColumnNames = { "tableoid", "xmin", "cmin", "xmax", "cmax", "ctid" };
+    private static readonly string[] SystemColumnNames = ["tableoid", "xmin", "cmin", "xmax", "cmax", "ctid"];
 
     #endregion System column utilities
 

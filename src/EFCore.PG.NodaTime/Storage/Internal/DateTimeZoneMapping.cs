@@ -52,7 +52,7 @@ public class DateTimeZoneMapping : RelationalTypeMapping
     public override Expression GenerateCodeLiteral(object value)
         => Expression.Call(
             Expression.Property(null, typeof(DateTimeZoneProviders).GetProperty(nameof(DateTimeZoneProviders.Tzdb))!),
-            typeof(IDateTimeZoneProvider).GetMethod(nameof(IDateTimeZoneProvider.GetZoneOrNull), new[] { typeof(string) })!,
+            typeof(IDateTimeZoneProvider).GetMethod(nameof(IDateTimeZoneProvider.GetZoneOrNull), [typeof(string)])!,
             Expression.Constant(((DateTimeZone)value).Id));
 
     private sealed class DateTimeZoneConverter() : ValueConverter<DateTimeZone, string>(

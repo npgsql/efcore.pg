@@ -36,15 +36,15 @@ public class NpgsqlFuzzyStringMatchMethodTranslator : IMethodCallTranslator
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
     private static readonly bool[][] TrueArrays =
-    {
-        Array.Empty<bool>(),
-        new[] { true },
-        new[] { true, true },
-        new[] { true, true, true },
-        new[] { true, true, true, true },
-        new[] { true, true, true, true, true },
-        new[] { true, true, true, true, true, true }
-    };
+    [
+        [],
+        [true],
+        [true, true],
+        [true, true, true],
+        [true, true, true, true],
+        [true, true, true, true, true],
+        [true, true, true, true, true, true]
+    ];
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

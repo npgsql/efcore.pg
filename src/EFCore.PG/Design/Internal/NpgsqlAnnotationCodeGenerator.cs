@@ -62,7 +62,7 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
 
     private static readonly MethodInfo ModelUseKeySequencesMethodInfo
         = typeof(NpgsqlModelBuilderExtensions).GetRuntimeMethod(
-            nameof(NpgsqlModelBuilderExtensions.UseKeySequences), new[] { typeof(ModelBuilder), typeof(string), typeof(string) })!;
+            nameof(NpgsqlModelBuilderExtensions.UseKeySequences), [typeof(ModelBuilder), typeof(string), typeof(string)])!;
 
     private static readonly MethodInfo EntityTypeIsUnloggedMethodInfo
         = typeof(NpgsqlEntityTypeBuilderExtensions).GetRequiredRuntimeMethod(
@@ -91,7 +91,7 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
 
     private static readonly MethodInfo PropertyUseSequenceMethodInfo
         = typeof(NpgsqlPropertyBuilderExtensions).GetRuntimeMethod(
-            nameof(NpgsqlPropertyBuilderExtensions.UseSequence), new[] { typeof(PropertyBuilder), typeof(string), typeof(string) })!;
+            nameof(NpgsqlPropertyBuilderExtensions.UseSequence), [typeof(PropertyBuilder), typeof(string), typeof(string)])!;
 
     private static readonly MethodInfo IndexUseCollationMethodInfo
         = typeof(NpgsqlIndexBuilderExtensions).GetRequiredRuntimeMethod(
@@ -352,9 +352,9 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
                     onModel ? ModelUseHiLoMethodInfo : PropertyUseHiLoMethodInfo,
                     (name, schema) switch
                     {
-                        (null, null) => Array.Empty<object>(),
-                        (_, null) => new object[] { name },
-                        _ => new object?[] { name!, schema }
+                        (null, null) => [],
+                        (_, null) => [name],
+                        _ => [name!, schema]
                     });
             }
 
@@ -368,9 +368,9 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
                     onModel ? ModelUseKeySequencesMethodInfo : PropertyUseSequenceMethodInfo,
                     (name: nameOrSuffix, schema) switch
                     {
-                        (null, null) => Array.Empty<object>(),
-                        (_, null) => new object[] { nameOrSuffix },
-                        _ => new object[] { nameOrSuffix!, schema }
+                        (null, null) => [],
+                        (_, null) => [nameOrSuffix],
+                        _ => [nameOrSuffix!, schema]
                     });
             }
             case NpgsqlValueGenerationStrategy.None:

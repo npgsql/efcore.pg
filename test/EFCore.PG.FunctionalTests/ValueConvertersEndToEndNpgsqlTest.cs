@@ -158,7 +158,7 @@ public class ValueConvertersEndToEndNpgsqlTest(ValueConvertersEndToEndNpgsqlTest
     {
         await using var ctx = CreateContext();
 
-        var entity = new ValueConvertedArrayEntity { Values = new IntWrapper[] { new(8), new(9) } };
+        var entity = new ValueConvertedArrayEntity { Values = [new(8), new(9)] };
         ctx.Add(entity);
         await ctx.SaveChangesAsync();
 

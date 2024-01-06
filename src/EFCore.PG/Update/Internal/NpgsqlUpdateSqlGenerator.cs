@@ -225,7 +225,7 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
 
         requiresTransaction = false;
 
-        AppendDeleteCommand(commandStringBuilder, name, schema, Array.Empty<IColumnModification>(), conditionOperations);
+        AppendDeleteCommand(commandStringBuilder, name, schema, [], conditionOperations);
 
         return ResultSetMapping.NoResults;
     }

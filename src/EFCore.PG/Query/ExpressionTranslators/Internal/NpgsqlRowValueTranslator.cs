@@ -18,7 +18,7 @@ public class NpgsqlRowValueTranslator : IMethodCallTranslator
     private static readonly MethodInfo GreaterThan =
         typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
             nameof(NpgsqlDbFunctionsExtensions.GreaterThan),
-            new[] { typeof(DbFunctions), typeof(ITuple), typeof(ITuple) })!;
+            [typeof(DbFunctions), typeof(ITuple), typeof(ITuple)])!;
 
     private static readonly MethodInfo LessThan =
         typeof(NpgsqlDbFunctionsExtensions).GetMethods()

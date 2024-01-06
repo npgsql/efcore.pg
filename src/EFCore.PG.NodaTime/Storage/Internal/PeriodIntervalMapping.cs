@@ -14,19 +14,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 /// </summary>
 public class PeriodIntervalMapping : NpgsqlTypeMapping
 {
-    private static readonly MethodInfo FromYears = typeof(Period).GetRuntimeMethod(nameof(Period.FromYears), new[] { typeof(int) })!;
-    private static readonly MethodInfo FromMonths = typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths), new[] { typeof(int) })!;
-    private static readonly MethodInfo FromWeeks = typeof(Period).GetRuntimeMethod(nameof(Period.FromWeeks), new[] { typeof(int) })!;
-    private static readonly MethodInfo FromDays = typeof(Period).GetRuntimeMethod(nameof(Period.FromDays), new[] { typeof(int) })!;
-    private static readonly MethodInfo FromHours = typeof(Period).GetRuntimeMethod(nameof(Period.FromHours), new[] { typeof(long) })!;
-    private static readonly MethodInfo FromMinutes = typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes), new[] { typeof(long) })!;
-    private static readonly MethodInfo FromSeconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds), new[] { typeof(long) })!;
+    private static readonly MethodInfo FromYears = typeof(Period).GetRuntimeMethod(nameof(Period.FromYears), [typeof(int)])!;
+    private static readonly MethodInfo FromMonths = typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths), [typeof(int)])!;
+    private static readonly MethodInfo FromWeeks = typeof(Period).GetRuntimeMethod(nameof(Period.FromWeeks), [typeof(int)])!;
+    private static readonly MethodInfo FromDays = typeof(Period).GetRuntimeMethod(nameof(Period.FromDays), [typeof(int)])!;
+    private static readonly MethodInfo FromHours = typeof(Period).GetRuntimeMethod(nameof(Period.FromHours), [typeof(long)])!;
+    private static readonly MethodInfo FromMinutes = typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes), [typeof(long)])!;
+    private static readonly MethodInfo FromSeconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds), [typeof(long)])!;
 
     private static readonly MethodInfo FromMilliseconds = typeof(Period).GetRuntimeMethod(
-        nameof(Period.FromMilliseconds), new[] { typeof(long) })!;
+        nameof(Period.FromMilliseconds), [typeof(long)])!;
 
     private static readonly MethodInfo FromNanoseconds = typeof(Period).GetRuntimeMethod(
-        nameof(Period.FromNanoseconds), new[] { typeof(long) })!;
+        nameof(Period.FromNanoseconds), [typeof(long)])!;
 
     private static readonly PropertyInfo Zero = typeof(Period).GetProperty(nameof(Period.Zero))!;
 

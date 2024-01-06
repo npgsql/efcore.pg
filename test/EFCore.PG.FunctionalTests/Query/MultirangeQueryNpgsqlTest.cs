@@ -488,7 +488,7 @@ LIMIT 2
             .Select(g => g.Select(x => x.IntMultirange).RangeIntersectAgg())
             .Single();
 
-        Assert.Equal(new NpgsqlRange<int>[] { new(4, true, 6, false), new(7, true, 9, false) }, intersection);
+        Assert.Equal([new(4, true, 6, false), new(7, true, 9, false)], intersection);
 
         AssertSql(
             """
@@ -759,36 +759,34 @@ LIMIT 2
                 new MultirangeTestEntity
                 {
                     Id = 1,
-                    IntMultirange = new NpgsqlRange<int>[] { new(0, 5), new(7, 10) },
-                    LongMultirange = new NpgsqlRange<long>[] { new(0, 5), new(7, 10) },
-                    DecimalMultirange = new NpgsqlRange<decimal>[] { new(0, 5), new(7, 10) },
+                    IntMultirange = [new(0, 5), new(7, 10)],
+                    LongMultirange = [new(0, 5), new(7, 10)],
+                    DecimalMultirange = [new(0, 5), new(7, 10)],
                     DateOnlyDateMultirange =
-                        new NpgsqlRange<DateOnly>[]
-                        {
-                            new(new DateOnly(2020, 1, 1), new DateOnly(2020, 1, 5)),
+                    [
+                        new(new DateOnly(2020, 1, 1), new DateOnly(2020, 1, 5)),
                             new(new DateOnly(2020, 1, 7), new DateOnly(2020, 1, 10))
-                        },
-                    DateTimeDateMultirange = new NpgsqlRange<DateTime>[]
-                    {
+                    ],
+                    DateTimeDateMultirange =
+                    [
                         new(new DateTime(2020, 1, 1), new DateTime(2020, 1, 5)), new(new DateTime(2020, 1, 7), new DateTime(2020, 1, 10))
-                    }
+                    ]
                 },
                 new MultirangeTestEntity
                 {
                     Id = 2,
-                    IntMultirange = new NpgsqlRange<int>[] { new(4, 8), new(13, 20) },
-                    LongMultirange = new NpgsqlRange<long>[] { new(4, 8), new(13, 20) },
-                    DecimalMultirange = new NpgsqlRange<decimal>[] { new(4, 8), new(13, 20) },
+                    IntMultirange = [new(4, 8), new(13, 20)],
+                    LongMultirange = [new(4, 8), new(13, 20)],
+                    DecimalMultirange = [new(4, 8), new(13, 20)],
                     DateOnlyDateMultirange =
-                        new NpgsqlRange<DateOnly>[]
-                        {
-                            new(new DateOnly(2020, 1, 4), new DateOnly(2020, 1, 8)),
+                    [
+                        new(new DateOnly(2020, 1, 4), new DateOnly(2020, 1, 8)),
                             new(new DateOnly(2020, 1, 13), new DateOnly(2020, 1, 20))
-                        },
-                    DateTimeDateMultirange = new NpgsqlRange<DateTime>[]
-                    {
+                    ],
+                    DateTimeDateMultirange =
+                    [
                         new(new DateTime(2020, 1, 4), new DateTime(2020, 1, 8)), new(new DateTime(2020, 1, 13), new DateTime(2020, 1, 20))
-                    }
+                    ]
                 });
 
             context.SaveChanges();

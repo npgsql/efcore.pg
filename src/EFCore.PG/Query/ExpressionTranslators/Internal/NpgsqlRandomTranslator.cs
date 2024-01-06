@@ -9,7 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 public class NpgsqlRandomTranslator : IMethodCallTranslator
 {
     private static readonly MethodInfo _methodInfo
-        = typeof(DbFunctionsExtensions).GetRuntimeMethod(nameof(DbFunctionsExtensions.Random), new[] { typeof(DbFunctions) })!;
+        = typeof(DbFunctionsExtensions).GetRuntimeMethod(nameof(DbFunctionsExtensions.Random), [typeof(DbFunctions)])!;
 
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
@@ -43,9 +43,9 @@ public class NpgsqlRandomTranslator : IMethodCallTranslator
         return _methodInfo.Equals(method)
             ? _sqlExpressionFactory.Function(
                 "random",
-                Array.Empty<SqlExpression>(),
+                [],
                 nullable: false,
-                argumentsPropagateNullability: Array.Empty<bool>(),
+                argumentsPropagateNullability: [],
                 method.ReturnType)
             : null;
     }

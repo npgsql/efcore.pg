@@ -260,10 +260,10 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
         _upperInfiniteProperty = rangeClrType.GetProperty(nameof(NpgsqlRange<int>.UpperBoundInfinite))!;
 
         _rangeConstructor1 = rangeClrType.GetConstructor(
-            new[] { subtypeClrType, subtypeClrType })!;
+            [subtypeClrType, subtypeClrType])!;
         _rangeConstructor2 = rangeClrType.GetConstructor(
-            new[] { subtypeClrType, typeof(bool), subtypeClrType, typeof(bool) })!;
+            [subtypeClrType, typeof(bool), subtypeClrType, typeof(bool)])!;
         _rangeConstructor3 = rangeClrType.GetConstructor(
-            new[] { subtypeClrType, typeof(bool), typeof(bool), subtypeClrType, typeof(bool), typeof(bool) })!;
+            [subtypeClrType, typeof(bool), typeof(bool), subtypeClrType, typeof(bool), typeof(bool)])!;
     }
 }

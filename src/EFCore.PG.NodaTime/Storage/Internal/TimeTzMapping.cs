@@ -16,24 +16,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 public class TimeTzMapping : NpgsqlTypeMapping
 {
     private static readonly ConstructorInfo OffsetTimeConstructor =
-        typeof(OffsetTime).GetConstructor(new[] { typeof(LocalTime), typeof(Offset) })!;
+        typeof(OffsetTime).GetConstructor([typeof(LocalTime), typeof(Offset)])!;
 
     private static readonly ConstructorInfo LocalTimeConstructorWithMinutes =
-        typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int) })!;
+        typeof(LocalTime).GetConstructor([typeof(int), typeof(int)])!;
 
     private static readonly ConstructorInfo LocalTimeConstructorWithSeconds =
-        typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
+        typeof(LocalTime).GetConstructor([typeof(int), typeof(int), typeof(int)])!;
 
     private static readonly MethodInfo LocalTimeFromHourMinuteSecondNanosecondMethod =
         typeof(LocalTime).GetMethod(
             nameof(LocalTime.FromHourMinuteSecondNanosecond),
-            new[] { typeof(int), typeof(int), typeof(int), typeof(long) })!;
+            [typeof(int), typeof(int), typeof(int), typeof(long)])!;
 
     private static readonly MethodInfo OffsetFromHoursMethod =
-        typeof(Offset).GetMethod(nameof(Offset.FromHours), new[] { typeof(int) })!;
+        typeof(Offset).GetMethod(nameof(Offset.FromHours), [typeof(int)])!;
 
     private static readonly MethodInfo OffsetFromSeconds =
-        typeof(Offset).GetMethod(nameof(Offset.FromSeconds), new[] { typeof(int) })!;
+        typeof(Offset).GetMethod(nameof(Offset.FromSeconds), [typeof(int)])!;
 
     private static readonly OffsetTimePattern Pattern =
         OffsetTimePattern.CreateWithInvariantCulture("HH':'mm':'ss;FFFFFFo<G>");

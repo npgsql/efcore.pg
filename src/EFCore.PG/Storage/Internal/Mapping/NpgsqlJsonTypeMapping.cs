@@ -126,5 +126,5 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
     private static readonly Expression DefaultJsonDocumentOptions = Expression.New(typeof(JsonDocumentOptions));
 
     private static readonly MethodInfo ParseMethod =
-        typeof(JsonDocument).GetMethod(nameof(JsonDocument.Parse), new[] { typeof(string), typeof(JsonDocumentOptions) })!;
+        typeof(JsonDocument).GetMethod(nameof(JsonDocument.Parse), [typeof(string), typeof(JsonDocumentOptions)])!;
 }

@@ -939,8 +939,8 @@ public class NpgsqlTypeMappingTest
         Name = "Joe",
         Age = 25,
         IsVip = false,
-        Orders = new[]
-        {
+        Orders =
+        [
             new Order
             {
                 Price = 99.5m,
@@ -953,7 +953,7 @@ public class NpgsqlTypeMappingTest
                 ShippingAddress = "Some address 2",
                 ShippingDate = new DateTime(2019, 10, 10)
             }
-        }
+        ]
     };
 
     public class Customer
@@ -979,9 +979,9 @@ public class NpgsqlTypeMappingTest
         new TypeMappingSourceDependencies(
             new ValueConverterSelector(new ValueConverterSelectorDependencies()),
             new JsonValueReaderWriterSource(new JsonValueReaderWriterSourceDependencies()),
-            Array.Empty<ITypeMappingSourcePlugin>()
+            []
         ),
-        new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
+        new RelationalTypeMappingSourceDependencies([]),
         new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
         new NpgsqlSingletonOptions()
     );

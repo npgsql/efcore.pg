@@ -308,7 +308,7 @@ public class NpgsqlTypeMappingSourceTest
             new TypeMappingSourceDependencies(
                 new ValueConverterSelector(new ValueConverterSelectorDependencies()),
                 new JsonValueReaderWriterSource(new JsonValueReaderWriterSourceDependencies()),
-                Array.Empty<ITypeMappingSourcePlugin>()),
+                []),
             new RelationalTypeMappingSourceDependencies(
                 new IRelationalTypeMappingSourcePlugin[]
                 {
