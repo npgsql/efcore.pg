@@ -57,7 +57,7 @@ public class NpgsqlTrigramsMethodTranslator : IMethodCallTranslator
     private readonly RelationalTypeMapping _boolMapping;
     private readonly RelationalTypeMapping _floatMapping;
 
-    private static readonly bool[][] TrueArrays = { Array.Empty<bool>(), new[] { true }, new[] { true, true } };
+    private static readonly bool[][] TrueArrays = [[], [true], [true, true]];
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

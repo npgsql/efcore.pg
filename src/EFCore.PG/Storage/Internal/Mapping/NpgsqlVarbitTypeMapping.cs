@@ -92,5 +92,5 @@ public class NpgsqlVarbitTypeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(BitArray).GetConstructor(new[] { typeof(bool[]) })!;
+        typeof(BitArray).GetConstructor([typeof(bool[])])!;
 }

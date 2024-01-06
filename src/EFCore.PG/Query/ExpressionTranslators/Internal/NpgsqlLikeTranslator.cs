@@ -8,24 +8,24 @@ public class NpgsqlLikeTranslator : IMethodCallTranslator
     private static readonly MethodInfo Like =
         typeof(DbFunctionsExtensions).GetRuntimeMethod(
             nameof(DbFunctionsExtensions.Like),
-            new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
+            [typeof(DbFunctions), typeof(string), typeof(string)])!;
 
     private static readonly MethodInfo LikeWithEscape =
         typeof(DbFunctionsExtensions).GetRuntimeMethod(
             nameof(DbFunctionsExtensions.Like),
-            new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) })!;
+            [typeof(DbFunctions), typeof(string), typeof(string), typeof(string)])!;
 
     // ReSharper disable once InconsistentNaming
     private static readonly MethodInfo ILike =
         typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
             nameof(NpgsqlDbFunctionsExtensions.ILike),
-            new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
+            [typeof(DbFunctions), typeof(string), typeof(string)])!;
 
     // ReSharper disable once InconsistentNaming
     private static readonly MethodInfo ILikeWithEscape =
         typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
             nameof(NpgsqlDbFunctionsExtensions.ILike),
-            new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) })!;
+            [typeof(DbFunctions), typeof(string), typeof(string), typeof(string)])!;
 
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 

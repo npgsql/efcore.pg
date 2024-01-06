@@ -16,13 +16,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
 {
     private static readonly ConstructorInfo Constructor =
-        typeof(OffsetDateTime).GetConstructor(new[] { typeof(LocalDateTime), typeof(Offset) })!;
+        typeof(OffsetDateTime).GetConstructor([typeof(LocalDateTime), typeof(Offset)])!;
 
     private static readonly MethodInfo OffsetFromHoursMethod =
-        typeof(Offset).GetMethod(nameof(Offset.FromHours), new[] { typeof(int) })!;
+        typeof(Offset).GetMethod(nameof(Offset.FromHours), [typeof(int)])!;
 
     private static readonly MethodInfo OffsetFromSecondsMethod =
-        typeof(Offset).GetMethod(nameof(Offset.FromSeconds), new[] { typeof(int) })!;
+        typeof(Offset).GetMethod(nameof(Offset.FromSeconds), [typeof(int)])!;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

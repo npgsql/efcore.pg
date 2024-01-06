@@ -17,8 +17,8 @@ public class NpgsqlConvertTranslator : IMethodCallTranslator
         [nameof(Convert.ToString)] = "text"
     };
 
-    private static readonly List<Type> SupportedTypes = new()
-    {
+    private static readonly List<Type> SupportedTypes =
+    [
         typeof(bool),
         typeof(byte),
         typeof(decimal),
@@ -28,7 +28,7 @@ public class NpgsqlConvertTranslator : IMethodCallTranslator
         typeof(long),
         typeof(short),
         typeof(string)
-    };
+    ];
 
     private static readonly List<MethodInfo> SupportedMethods
         = TypeMapping.Keys

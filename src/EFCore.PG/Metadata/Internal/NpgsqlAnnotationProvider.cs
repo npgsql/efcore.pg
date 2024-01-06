@@ -224,7 +224,7 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
     {
         if (!designTime)
         {
-            return Array.Empty<IAnnotation>();
+            return [];
         }
 
         return model.Model.GetAnnotations().Where(

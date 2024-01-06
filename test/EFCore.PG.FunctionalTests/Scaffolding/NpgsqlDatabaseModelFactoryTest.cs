@@ -541,7 +541,7 @@ CREATE TABLE "PrimaryKeyTable" ("Id" int PRIMARY KEY);
                 Assert.Equal("public", pk.Table.Schema);
                 Assert.Equal("PrimaryKeyTable", pk.Table.Name);
                 Assert.StartsWith("PrimaryKeyTable_pkey", pk.Name);
-                Assert.Equal(new List<string> { "Id" }, pk.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id"], pk.Columns.Select(ic => ic.Name).ToList());
             },
             @"DROP TABLE ""PrimaryKeyTable""");
 
@@ -571,12 +571,12 @@ CREATE INDEX "IX_INDEX" on "UniqueConstraint" ("IndexProperty");
                 Assert.Equal("public", firstConstraint.Table.Schema);
                 Assert.Equal("UniqueConstraint", firstConstraint.Table.Name);
                 //Assert.StartsWith("UQ__UniqueCo", uniqueConstraint.Name);
-                Assert.Equal(new List<string> { "Name" }, firstConstraint.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Name"], firstConstraint.Columns.Select(ic => ic.Name).ToList());
 
                 var secondConstraint = table.UniqueConstraints.Single(c => c.Columns.Count == 2);
                 Assert.Equal("public", secondConstraint.Table.Schema);
                 Assert.Equal("UniqueConstraint", secondConstraint.Table.Name);
-                Assert.Equal(new List<string> { "Unq1", "Unq2" }, secondConstraint.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Unq1", "Unq2"], secondConstraint.Columns.Select(ic => ic.Name).ToList());
             },
             @"DROP TABLE ""UniqueConstraint""");
 
@@ -645,8 +645,8 @@ CREATE TABLE "SecondDependent" (
                 Assert.Equal("FirstDependent", firstFk.Table.Name);
                 Assert.Equal("public", firstFk.PrincipalTable.Schema);
                 Assert.Equal("PrincipalTable", firstFk.PrincipalTable.Name);
-                Assert.Equal(new List<string> { "ForeignKeyId" }, firstFk.Columns.Select(ic => ic.Name).ToList());
-                Assert.Equal(new List<string> { "Id" }, firstFk.PrincipalColumns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["ForeignKeyId"], firstFk.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id"], firstFk.PrincipalColumns.Select(ic => ic.Name).ToList());
                 Assert.Equal(ReferentialAction.Cascade, firstFk.OnDelete);
 
                 var secondFk = Assert.Single(dbModel.Tables.Single(t => t.Name == "SecondDependent").ForeignKeys);
@@ -656,8 +656,8 @@ CREATE TABLE "SecondDependent" (
                 Assert.Equal("SecondDependent", secondFk.Table.Name);
                 Assert.Equal("public", secondFk.PrincipalTable.Schema);
                 Assert.Equal("PrincipalTable", secondFk.PrincipalTable.Name);
-                Assert.Equal(new List<string> { "Id" }, secondFk.Columns.Select(ic => ic.Name).ToList());
-                Assert.Equal(new List<string> { "Id" }, secondFk.PrincipalColumns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id"], secondFk.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id"], secondFk.PrincipalColumns.Select(ic => ic.Name).ToList());
                 Assert.Equal(ReferentialAction.NoAction, secondFk.OnDelete);
             },
             """
@@ -1090,7 +1090,7 @@ CREATE TABLE "CompositePrimaryKeyTable" (
 
                 Assert.Equal("public", pk.Table.Schema);
                 Assert.Equal("CompositePrimaryKeyTable", pk.Table.Name);
-                Assert.Equal(new List<string> { "Id2", "Id1" }, pk.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id2", "Id1"], pk.Columns.Select(ic => ic.Name).ToList());
             },
             @"DROP TABLE ""CompositePrimaryKeyTable""");
 
@@ -1113,7 +1113,7 @@ CREATE TABLE "PrimaryKeyName" (
                 Assert.Equal("public", pk.Table.Schema);
                 Assert.Equal("PrimaryKeyName", pk.Table.Name);
                 Assert.StartsWith("MyPK", pk.Name);
-                Assert.Equal(new List<string> { "Id2" }, pk.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id2"], pk.Columns.Select(ic => ic.Name).ToList());
             },
             @"DROP TABLE ""PrimaryKeyName""");
 
@@ -1141,7 +1141,7 @@ CREATE TABLE "CompositeUniqueConstraintTable" (
                 Assert.Equal("public", uniqueConstraint.Table.Schema);
                 Assert.Equal("CompositeUniqueConstraintTable", uniqueConstraint.Table.Name);
                 Assert.Equal("UX", uniqueConstraint.Name);
-                Assert.Equal(new List<string> { "Id2", "Id1" }, uniqueConstraint.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id2", "Id1"], uniqueConstraint.Columns.Select(ic => ic.Name).ToList());
             },
             @"DROP TABLE ""CompositeUniqueConstraintTable""");
 
@@ -1166,7 +1166,7 @@ CREATE TABLE "UniqueConstraintName" (
                 Assert.Equal("public", uniqueConstraint.Table.Schema);
                 Assert.Equal("UniqueConstraintName", uniqueConstraint.Table.Name);
                 Assert.Equal("MyUC", uniqueConstraint.Name);
-                Assert.Equal(new List<string> { "Id2" }, uniqueConstraint.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id2"], uniqueConstraint.Columns.Select(ic => ic.Name).ToList());
                 Assert.Empty(table.Indexes);
             },
             @"DROP TABLE ""UniqueConstraintName""");
@@ -1196,7 +1196,7 @@ CREATE INDEX "IX_COMPOSITE" ON "CompositeIndexTable" ( "Id2", "Id1" );
                 Assert.Equal("public", index.Table.Schema);
                 Assert.Equal("CompositeIndexTable", index.Table.Name);
                 Assert.Equal("IX_COMPOSITE", index.Name);
-                Assert.Equal(new List<string> { "Id2", "Id1" }, index.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id2", "Id1"], index.Columns.Select(ic => ic.Name).ToList());
             },
             @"DROP TABLE ""CompositeIndexTable""");
 
@@ -1223,7 +1223,7 @@ CREATE UNIQUE INDEX "IX_UNIQUE" ON "UniqueIndexTable" ( "Id2" );
                 Assert.Equal("IX_UNIQUE", index.Name);
                 Assert.True(index.IsUnique);
                 Assert.Null(index.Filter);
-                Assert.Equal(new List<string> { "Id2" }, index.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id2"], index.Columns.Select(ic => ic.Name).ToList());
             },
             @"DROP TABLE ""UniqueIndexTable""");
 
@@ -1249,7 +1249,7 @@ CREATE UNIQUE INDEX "IX_UNIQUE" ON "FilteredIndexTable" ( "Id2" ) WHERE "Id2" > 
                 Assert.Equal("FilteredIndexTable", index.Table.Name);
                 Assert.Equal("IX_UNIQUE", index.Name);
                 Assert.Equal(@"(""Id2"" > 10)", index.Filter);
-                Assert.Equal(new List<string> { "Id2" }, index.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id2"], index.Columns.Select(ic => ic.Name).ToList());
             },
             @"DROP TABLE ""FilteredIndexTable""");
 
@@ -1285,8 +1285,8 @@ CREATE TABLE "DependentTable" (
                 Assert.Equal("DependentTable", fk.Table.Name);
                 Assert.Equal("public", fk.PrincipalTable.Schema);
                 Assert.Equal("PrincipalTable", fk.PrincipalTable.Name);
-                Assert.Equal(new List<string> { "ForeignKeyId1", "ForeignKeyId2" }, fk.Columns.Select(ic => ic.Name).ToList());
-                Assert.Equal(new List<string> { "Id1", "Id2" }, fk.PrincipalColumns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["ForeignKeyId1", "ForeignKeyId2"], fk.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id1", "Id2"], fk.PrincipalColumns.Select(ic => ic.Name).ToList());
                 Assert.Equal(ReferentialAction.Cascade, fk.OnDelete);
             },
             """
@@ -1329,8 +1329,8 @@ CREATE TABLE "DependentTable" (
                 Assert.Equal("DependentTable", principalFk.Table.Name);
                 Assert.Equal("public", principalFk.PrincipalTable.Schema);
                 Assert.Equal("PrincipalTable", principalFk.PrincipalTable.Name);
-                Assert.Equal(new List<string> { "ForeignKeyId1" }, principalFk.Columns.Select(ic => ic.Name).ToList());
-                Assert.Equal(new List<string> { "Id" }, principalFk.PrincipalColumns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["ForeignKeyId1"], principalFk.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id"], principalFk.PrincipalColumns.Select(ic => ic.Name).ToList());
                 Assert.Equal(ReferentialAction.Cascade, principalFk.OnDelete);
 
                 var anotherPrincipalFk = Assert.Single(foreignKeys.Where(f => f.PrincipalTable.Name == "AnotherPrincipalTable"));
@@ -1340,8 +1340,8 @@ CREATE TABLE "DependentTable" (
                 Assert.Equal("DependentTable", anotherPrincipalFk.Table.Name);
                 Assert.Equal("public", anotherPrincipalFk.PrincipalTable.Schema);
                 Assert.Equal("AnotherPrincipalTable", anotherPrincipalFk.PrincipalTable.Name);
-                Assert.Equal(new List<string> { "ForeignKeyId2" }, anotherPrincipalFk.Columns.Select(ic => ic.Name).ToList());
-                Assert.Equal(new List<string> { "Id" }, anotherPrincipalFk.PrincipalColumns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["ForeignKeyId2"], anotherPrincipalFk.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id"], anotherPrincipalFk.PrincipalColumns.Select(ic => ic.Name).ToList());
                 Assert.Equal(ReferentialAction.Cascade, anotherPrincipalFk.OnDelete);
             },
             """
@@ -1376,8 +1376,8 @@ CREATE TABLE "DependentTable" (
                 Assert.Equal("DependentTable", fk.Table.Name);
                 Assert.Equal("public", fk.PrincipalTable.Schema);
                 Assert.Equal("PrincipalTable", fk.PrincipalTable.Name);
-                Assert.Equal(new List<string> { "ForeignKeyId" }, fk.Columns.Select(ic => ic.Name).ToList());
-                Assert.Equal(new List<string> { "Id2" }, fk.PrincipalColumns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["ForeignKeyId"], fk.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id2"], fk.PrincipalColumns.Select(ic => ic.Name).ToList());
                 Assert.Equal(ReferentialAction.Cascade, fk.OnDelete);
             },
             """
@@ -1410,8 +1410,8 @@ CREATE TABLE "DependentTable" (
                 Assert.Equal("DependentTable", fk.Table.Name);
                 Assert.Equal("public", fk.PrincipalTable.Schema);
                 Assert.Equal("PrincipalTable", fk.PrincipalTable.Name);
-                Assert.Equal(new List<string> { "ForeignKeyId" }, fk.Columns.Select(ic => ic.Name).ToList());
-                Assert.Equal(new List<string> { "Id" }, fk.PrincipalColumns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["ForeignKeyId"], fk.Columns.Select(ic => ic.Name).ToList());
+                Assert.Equal(["Id"], fk.PrincipalColumns.Select(ic => ic.Name).ToList());
                 Assert.Equal(ReferentialAction.Cascade, fk.OnDelete);
                 // ReSharper disable once StringLiteralTypo
                 Assert.Equal("MYFK", fk.Name);
@@ -1455,7 +1455,7 @@ CREATE TABLE "DependentTable" (
                     Assert.Equal("DependentTable", fk.Table.Name);
                     Assert.Equal("public", fk.PrincipalTable.Schema);
                     Assert.Equal("PrincipalTable", fk.PrincipalTable.Name);
-                    Assert.Equal(new List<string> { "Id" }, fk.PrincipalColumns.Select(ic => ic.Name).ToList());
+                    Assert.Equal(["Id"], fk.PrincipalColumns.Select(ic => ic.Name).ToList());
                 }
 
                 Assert.Equal(
@@ -1886,7 +1886,7 @@ CREATE INDEX ix_without ON "IndexCovering" (a, b, c);
                 // Assert.Equal(new[] { "b", "c" }, indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexInclude).Value);
 
                 var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
-                Assert.Equal(new[] { "a", "b", "c" }, indexWithout.Columns.Select(i => i.Name).ToArray());
+                Assert.Equal(["a", "b", "c"], indexWithout.Columns.Select(i => i.Name).ToArray());
                 Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.IndexInclude));
             },
             @"DROP TABLE ""IndexCovering""");
@@ -2103,9 +2103,9 @@ CREATE TABLE column_types (
                     new TypeMappingSourceDependencies(
                         new ValueConverterSelector(new ValueConverterSelectorDependencies()),
                         new JsonValueReaderWriterSource(new JsonValueReaderWriterSourceDependencies()),
-                        Array.Empty<ITypeMappingSourcePlugin>()
+                        []
                     ),
-                    new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
+                    new RelationalTypeMappingSourceDependencies([]),
                     new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                     options);
 

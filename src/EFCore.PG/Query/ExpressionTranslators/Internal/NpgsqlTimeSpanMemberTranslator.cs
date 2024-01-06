@@ -23,7 +23,7 @@ public class NpgsqlTimeSpanMemberTranslator : IMemberTranslator
         _sqlExpressionFactory = sqlExpressionFactory;
     }
 
-    private static readonly bool[] FalseTrueArray = { false, true };
+    private static readonly bool[] FalseTrueArray = [false, true];
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

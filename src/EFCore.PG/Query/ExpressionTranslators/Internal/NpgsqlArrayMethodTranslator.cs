@@ -139,7 +139,7 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
                     _sqlExpressionFactory.Subtract(
                         _sqlExpressionFactory.Function(
                             "array_position",
-                            new[] { array, item },
+                            [array, item],
                             nullable: true,
                             TrueArrays[2],
                             arrayOrList.Type),

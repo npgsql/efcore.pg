@@ -13,10 +13,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 public class DateIntervalRangeMapping : NpgsqlTypeMapping
 {
     private static readonly ConstructorInfo _constructorWithDates =
-        typeof(DateInterval).GetConstructor(new[] { typeof(LocalDate), typeof(LocalDate) })!;
+        typeof(DateInterval).GetConstructor([typeof(LocalDate), typeof(LocalDate)])!;
 
     private static readonly ConstructorInfo _localDateConstructor =
-        typeof(LocalDate).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
+        typeof(LocalDate).GetConstructor([typeof(int), typeof(int), typeof(int)])!;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

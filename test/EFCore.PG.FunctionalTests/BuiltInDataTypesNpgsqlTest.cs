@@ -95,7 +95,7 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
                     // CharAsChar1 = 'f',
                     CharAsText = 'g',
                     CharAsVarchar = 'h',
-                    BytesAsBytea = new byte[] { 86 },
+                    BytesAsBytea = [86],
                     GuidAsUuid = new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),
                     EnumAsText = StringEnum16.Value4,
                     EnumAsVarchar = StringEnumU16.Value4,
@@ -106,9 +106,9 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
                     DictionaryAsHstore = new Dictionary<string, string> { { "a", "b" } },
                     ImmutableDictionaryAsHstore = ImmutableDictionary<string, string>.Empty.Add("c", "d"),
                     NpgsqlRangeAsRange = new NpgsqlRange<int>(4, true, 8, false),
-                    IntArrayAsIntArray = new[] { 2, 3 },
+                    IntArrayAsIntArray = [2, 3],
                     PhysicalAddressArrayAsMacaddrArray =
-                        new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
+                        [PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04")],
                     UintAsXid = (uint)int.MaxValue + 1,
 
 #pragma warning disable CS0618 // Full-text search client-parsing is obsolete
@@ -555,7 +555,7 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
         // Assert.Equal('f', entity.CharAsChar1);
         Assert.Equal('g', entity.CharAsText);
         Assert.Equal('h', entity.CharAsVarchar);
-        Assert.Equal(new byte[] { 86 }, entity.BytesAsBytea);
+        Assert.Equal([86], entity.BytesAsBytea);
 
         Assert.Equal(new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"), entity.GuidAsUuid);
 
@@ -569,9 +569,9 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
         Assert.Equal(new Dictionary<string, string> { { "a", "b" } }, entity.DictionaryAsHstore);
         Assert.Equal(new NpgsqlRange<int>(4, true, 8, false), entity.NpgsqlRangeAsRange);
 
-        Assert.Equal(new[] { 2, 3 }, entity.IntArrayAsIntArray);
+        Assert.Equal([2, 3], entity.IntArrayAsIntArray);
         Assert.Equal(
-            new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
+            [PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04")],
             entity.PhysicalAddressArrayAsMacaddrArray);
 
         Assert.Equal((uint)int.MaxValue + 1, entity.UintAsXid);
@@ -613,7 +613,7 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
             // CharAsChar1 = 'f',
             CharAsText = 'g',
             CharAsVarchar = 'h',
-            BytesAsBytea = new byte[] { 86 },
+            BytesAsBytea = [86],
             GuidAsUuid = new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),
             EnumAsText = StringEnum16.Value4,
             EnumAsVarchar = StringEnumU16.Value4,
@@ -623,9 +623,9 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
             StringAsJson = @"{""a"": ""b""}",
             DictionaryAsHstore = new Dictionary<string, string> { { "a", "b" } },
             NpgsqlRangeAsRange = new NpgsqlRange<int>(4, true, 8, false),
-            IntArrayAsIntArray = new[] { 2, 3 },
+            IntArrayAsIntArray = [2, 3],
             PhysicalAddressArrayAsMacaddrArray =
-                new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
+                [PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04")],
             UintAsXid = (uint)int.MaxValue + 1,
 #pragma warning disable CS0618 // Full-text search client-parsing is obsolete
             SearchQuery = NpgsqlTsQuery.Parse("a & b"),
@@ -986,7 +986,7 @@ FROM "MappedDataTypes" AS m
             ((NpgsqlTypeMappingSource)context.GetService<ITypeMappingSource>()).LoadUserDefinedTypeMappings(
                 context.GetService<ISqlGenerationHelper>(), dataSource: null);
 
-            modelBuilder.HasPostgresEnum("mood", new[] { "happy", "sad" });
+            modelBuilder.HasPostgresEnum("mood", ["happy", "sad"]);
 
             MakeRequired<MappedDataTypes>(modelBuilder);
 

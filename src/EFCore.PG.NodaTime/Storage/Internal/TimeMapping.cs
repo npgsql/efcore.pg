@@ -16,15 +16,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 public class TimeMapping : NpgsqlTypeMapping
 {
     private static readonly ConstructorInfo ConstructorWithMinutes =
-        typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int) })!;
+        typeof(LocalTime).GetConstructor([typeof(int), typeof(int)])!;
 
     private static readonly ConstructorInfo ConstructorWithSeconds =
-        typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
+        typeof(LocalTime).GetConstructor([typeof(int), typeof(int), typeof(int)])!;
 
     private static readonly MethodInfo FromHourMinuteSecondNanosecondMethod =
         typeof(LocalTime).GetMethod(
             nameof(LocalTime.FromHourMinuteSecondNanosecond),
-            new[] { typeof(int), typeof(int), typeof(int), typeof(long) })!;
+            [typeof(int), typeof(int), typeof(int), typeof(long)])!;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

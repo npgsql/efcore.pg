@@ -44,7 +44,7 @@ public class NpgsqlGeometryMemberTranslator : IMemberTranslator
     private readonly IRelationalTypeMappingSource _typeMappingSource;
     private readonly CaseWhenClause[] _ogcGeometryTypeWhenThenList;
 
-    private static readonly bool[][] TrueArrays = { Array.Empty<bool>(), new[] { true }, new[] { true, true }, new[] { true, true, true } };
+    private static readonly bool[][] TrueArrays = [[], [true], [true, true], [true, true, true]];
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -59,8 +59,8 @@ public class NpgsqlGeometryMemberTranslator : IMemberTranslator
         _sqlExpressionFactory = sqlExpressionFactory;
         _typeMappingSource = typeMappingSource;
 
-        _ogcGeometryTypeWhenThenList = new[]
-        {
+        _ogcGeometryTypeWhenThenList =
+        [
             new CaseWhenClause(
                 _sqlExpressionFactory.Constant("ST_CircularString"), _sqlExpressionFactory.Constant(OgcGeometryType.CircularString)),
             new CaseWhenClause(
@@ -88,7 +88,7 @@ public class NpgsqlGeometryMemberTranslator : IMemberTranslator
                 _sqlExpressionFactory.Constant("ST_PolyhedralSurface"),
                 _sqlExpressionFactory.Constant(OgcGeometryType.PolyhedralSurface)),
             new CaseWhenClause(_sqlExpressionFactory.Constant("ST_Tin"), _sqlExpressionFactory.Constant(OgcGeometryType.TIN))
-        };
+        ];
     }
 
     /// <summary>
@@ -127,7 +127,7 @@ public class NpgsqlGeometryMemberTranslator : IMemberTranslator
 
             if (function is not null)
             {
-                return Function(function, new[] { instance }, typeof(double));
+                return Function(function, [instance], typeof(double));
             }
         }
 
@@ -135,37 +135,37 @@ public class NpgsqlGeometryMemberTranslator : IMemberTranslator
         {
             if (member.Name == "Count")
             {
-                return Function("ST_NumPoints", new[] { instance }, typeof(int));
+                return Function("ST_NumPoints", [instance], typeof(int));
             }
         }
 
         return member.Name switch
         {
-            nameof(Geometry.Area) => Function("ST_Area", new[] { instance }, typeof(double)),
-            nameof(Geometry.Boundary) => Function("ST_Boundary", new[] { instance }, typeof(Geometry), ResultGeometryMapping()),
-            nameof(Geometry.Centroid) => Function("ST_Centroid", new[] { instance }, typeof(Point), ResultGeometryMapping()),
-            nameof(GeometryCollection.Count) => Function("ST_NumGeometries", new[] { instance }, typeof(int)),
-            nameof(Geometry.Dimension) => Function("ST_Dimension", new[] { instance }, typeof(Dimension)),
-            nameof(LineString.EndPoint) => Function("ST_EndPoint", new[] { instance }, typeof(Point), ResultGeometryMapping()),
-            nameof(Geometry.Envelope) => Function("ST_Envelope", new[] { instance }, typeof(Geometry), ResultGeometryMapping()),
-            nameof(Polygon.ExteriorRing) => Function("ST_ExteriorRing", new[] { instance }, typeof(LineString), ResultGeometryMapping()),
-            nameof(Geometry.GeometryType) => Function("GeometryType", new[] { instance }, typeof(string)),
-            nameof(LineString.IsClosed) => Function("ST_IsClosed", new[] { instance }, typeof(bool)),
-            nameof(Geometry.IsEmpty) => Function("ST_IsEmpty", new[] { instance }, typeof(bool)),
-            nameof(LineString.IsRing) => Function("ST_IsRing", new[] { instance }, typeof(bool)),
-            nameof(Geometry.IsSimple) => Function("ST_IsSimple", new[] { instance }, typeof(bool)),
-            nameof(Geometry.IsValid) => Function("ST_IsValid", new[] { instance }, typeof(bool)),
-            nameof(Geometry.Length) => Function("ST_Length", new[] { instance }, typeof(double)),
-            nameof(Geometry.NumGeometries) => Function("ST_NumGeometries", new[] { instance }, typeof(int)),
-            nameof(Polygon.NumInteriorRings) => Function("ST_NumInteriorRings", new[] { instance }, typeof(int)),
-            nameof(Geometry.NumPoints) => Function("ST_NumPoints", new[] { instance }, typeof(int)),
-            nameof(Geometry.PointOnSurface) => Function("ST_PointOnSurface", new[] { instance }, typeof(Geometry), ResultGeometryMapping()),
-            nameof(Geometry.InteriorPoint) => Function("ST_PointOnSurface", new[] { instance }, typeof(Geometry), ResultGeometryMapping()),
-            nameof(Geometry.SRID) => Function("ST_SRID", new[] { instance }, typeof(int)),
-            nameof(LineString.StartPoint) => Function("ST_StartPoint", new[] { instance }, typeof(Point), ResultGeometryMapping()),
+            nameof(Geometry.Area) => Function("ST_Area", [instance], typeof(double)),
+            nameof(Geometry.Boundary) => Function("ST_Boundary", [instance], typeof(Geometry), ResultGeometryMapping()),
+            nameof(Geometry.Centroid) => Function("ST_Centroid", [instance], typeof(Point), ResultGeometryMapping()),
+            nameof(GeometryCollection.Count) => Function("ST_NumGeometries", [instance], typeof(int)),
+            nameof(Geometry.Dimension) => Function("ST_Dimension", [instance], typeof(Dimension)),
+            nameof(LineString.EndPoint) => Function("ST_EndPoint", [instance], typeof(Point), ResultGeometryMapping()),
+            nameof(Geometry.Envelope) => Function("ST_Envelope", [instance], typeof(Geometry), ResultGeometryMapping()),
+            nameof(Polygon.ExteriorRing) => Function("ST_ExteriorRing", [instance], typeof(LineString), ResultGeometryMapping()),
+            nameof(Geometry.GeometryType) => Function("GeometryType", [instance], typeof(string)),
+            nameof(LineString.IsClosed) => Function("ST_IsClosed", [instance], typeof(bool)),
+            nameof(Geometry.IsEmpty) => Function("ST_IsEmpty", [instance], typeof(bool)),
+            nameof(LineString.IsRing) => Function("ST_IsRing", [instance], typeof(bool)),
+            nameof(Geometry.IsSimple) => Function("ST_IsSimple", [instance], typeof(bool)),
+            nameof(Geometry.IsValid) => Function("ST_IsValid", [instance], typeof(bool)),
+            nameof(Geometry.Length) => Function("ST_Length", [instance], typeof(double)),
+            nameof(Geometry.NumGeometries) => Function("ST_NumGeometries", [instance], typeof(int)),
+            nameof(Polygon.NumInteriorRings) => Function("ST_NumInteriorRings", [instance], typeof(int)),
+            nameof(Geometry.NumPoints) => Function("ST_NumPoints", [instance], typeof(int)),
+            nameof(Geometry.PointOnSurface) => Function("ST_PointOnSurface", [instance], typeof(Geometry), ResultGeometryMapping()),
+            nameof(Geometry.InteriorPoint) => Function("ST_PointOnSurface", [instance], typeof(Geometry), ResultGeometryMapping()),
+            nameof(Geometry.SRID) => Function("ST_SRID", [instance], typeof(int)),
+            nameof(LineString.StartPoint) => Function("ST_StartPoint", [instance], typeof(Point), ResultGeometryMapping()),
 
             nameof(Geometry.OgcGeometryType) => _sqlExpressionFactory.Case(
-                Function("ST_GeometryType", new[] { instance }, typeof(string)),
+                Function("ST_GeometryType", [instance], typeof(string)),
                 _ogcGeometryTypeWhenThenList,
                 elseResult: null),
 

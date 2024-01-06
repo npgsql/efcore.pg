@@ -16,7 +16,7 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
     private static readonly MemberInfo RootElement = typeof(JsonDocument).GetProperty(nameof(JsonDocument.RootElement))!;
 
     private static readonly MethodInfo GetProperty = typeof(JsonElement).GetRuntimeMethod(
-        nameof(JsonElement.GetProperty), new[] { typeof(string) })!;
+        nameof(JsonElement.GetProperty), [typeof(string)])!;
 
     private static readonly MethodInfo GetArrayLength = typeof(JsonElement).GetRuntimeMethod(
         nameof(JsonElement.GetArrayLength), Type.EmptyTypes)!;
@@ -26,7 +26,7 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
         .GetMethod!;
 
     private static readonly string[] GetMethods =
-    {
+    [
         nameof(JsonElement.GetBoolean),
         nameof(JsonElement.GetDateTime),
         nameof(JsonElement.GetDateTimeOffset),
@@ -38,7 +38,7 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
         nameof(JsonElement.GetInt64),
         nameof(JsonElement.GetSingle),
         nameof(JsonElement.GetString)
-    };
+    ];
 
     private readonly IRelationalTypeMappingSource _typeMappingSource;
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;

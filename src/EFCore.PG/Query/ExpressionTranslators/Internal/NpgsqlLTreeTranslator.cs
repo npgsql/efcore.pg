@@ -92,7 +92,7 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
                     => _sqlExpressionFactory.Function(
                         "subpath",
                         arguments.Count == 2
-                            ? new[] { instance!, arguments[0], arguments[1] }
+                            ? [instance!, arguments[0], arguments[1]]
                             : new[] { instance!, arguments[0] },
                         nullable: true,
                         arguments.Count == 2 ? TrueArrays[3] : TrueArrays[2],
@@ -103,7 +103,7 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
                     => _sqlExpressionFactory.Function(
                         "index",
                         arguments.Count == 2
-                            ? new[] { instance!, arguments[0], arguments[1] }
+                            ? [instance!, arguments[0], arguments[1]]
                             : new[] { instance!, arguments[0] },
                         nullable: true,
                         arguments.Count == 2 ? TrueArrays[3] : TrueArrays[2],

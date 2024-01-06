@@ -100,7 +100,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
         _localDateTimeTypeMapping = typeMappingSource.FindMapping(typeof(LocalDateTime))!;
     }
 
-    private static readonly bool[][] TrueArrays = { Array.Empty<bool>(), new[] { true }, new[] { true, true } };
+    private static readonly bool[][] TrueArrays = [[], [true], [true, true]];
 
     /// <inheritdoc />
     public virtual SqlExpression? Translate(

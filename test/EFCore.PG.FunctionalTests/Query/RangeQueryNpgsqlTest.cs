@@ -259,7 +259,7 @@ LIMIT 2
             .Select(g => g.Select(x => x.IntRange).RangeAgg())
             .Single();
 
-        Assert.Equal(new NpgsqlRange<int>[] { new(1, true, 16, false) }, union);
+        Assert.Equal([new(1, true, 16, false)], union);
 
         AssertSql(
             """

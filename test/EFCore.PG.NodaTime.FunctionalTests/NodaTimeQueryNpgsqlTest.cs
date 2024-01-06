@@ -1208,7 +1208,7 @@ WHERE @__interval_0 @> n."Instant"
             : query.Single();
 
         var start = Instant.FromUtc(2018, 4, 20, 10, 31, 33).Plus(Duration.FromMilliseconds(666));
-        Assert.Equal(new Interval[] { new(start, start + Duration.FromDays(5)) }, union);
+        Assert.Equal([new(start, start + Duration.FromDays(5))], union);
 
         AssertSql(
             """
@@ -1416,7 +1416,7 @@ WHERE n."DateInterval" + @__dateInterval_0 = '[2018-04-20,2018-04-26]'::daterang
             ? await query.SingleAsync()
             : query.Single();
 
-        Assert.Equal(new DateInterval[] { new(new LocalDate(2018, 4, 20), new LocalDate(2018, 4, 24)) }, union);
+        Assert.Equal([new(new LocalDate(2018, 4, 20), new LocalDate(2018, 4, 24))], union);
 
         AssertSql(
             """

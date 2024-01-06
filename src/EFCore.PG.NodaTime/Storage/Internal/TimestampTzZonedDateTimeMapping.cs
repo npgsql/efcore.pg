@@ -117,7 +117,7 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(ZonedDateTime).GetConstructor(new[] { typeof(Instant), typeof(DateTimeZone) })!;
+        typeof(ZonedDateTime).GetConstructor([typeof(Instant), typeof(DateTimeZone)])!;
 
     private static readonly MemberInfo TzdbDateTimeZoneSourceDefaultMember =
         typeof(TzdbDateTimeZoneSource).GetMember(nameof(TzdbDateTimeZoneSource.Default))[0];
@@ -125,7 +125,7 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
     private static readonly MethodInfo ForIdMethod =
         typeof(TzdbDateTimeZoneSource).GetRuntimeMethod(
             nameof(TzdbDateTimeZoneSource.ForId),
-            new[] { typeof(string) })!;
+            [typeof(string)])!;
 
     private sealed class JsonZonedDateTimeReaderWriter : JsonValueReaderWriter<ZonedDateTime>
     {

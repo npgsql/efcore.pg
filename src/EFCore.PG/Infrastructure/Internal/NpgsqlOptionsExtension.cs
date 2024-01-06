@@ -84,7 +84,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     /// </summary>
     public NpgsqlOptionsExtension()
     {
-        _userRangeDefinitions = new List<UserRangeDefinition>();
+        _userRangeDefinitions = [];
     }
 
     // NB: When adding new options, make sure to update the copy ctor below.
@@ -99,7 +99,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         AdminDatabase = copyFrom.AdminDatabase;
         _postgresVersion = copyFrom._postgresVersion;
         UseRedshift = copyFrom.UseRedshift;
-        _userRangeDefinitions = new List<UserRangeDefinition>(copyFrom._userRangeDefinitions);
+        _userRangeDefinitions = [..copyFrom._userRangeDefinitions];
         ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
         RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
         ProvidePasswordCallback = copyFrom.ProvidePasswordCallback;

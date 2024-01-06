@@ -10,8 +10,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 /// </summary>
 public class NpgsqlObjectToStringTranslator : IMethodCallTranslator
 {
-    private static readonly HashSet<Type> _typeMapping = new()
-    {
+    private static readonly HashSet<Type> _typeMapping =
+    [
         typeof(int),
         typeof(long),
         typeof(DateTime),
@@ -29,8 +29,8 @@ public class NpgsqlObjectToStringTranslator : IMethodCallTranslator
         typeof(uint),
         typeof(ushort),
         typeof(ulong),
-        typeof(sbyte),
-    };
+        typeof(sbyte)
+    ];
 
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
     private readonly RelationalTypeMapping _textTypeMapping;

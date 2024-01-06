@@ -56,14 +56,14 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
         typeof(Instant).GetRuntimeMethod(nameof(Instant.InUtc), Type.EmptyTypes)!;
 
     private static readonly MethodInfo Instant_InZone =
-        typeof(Instant).GetRuntimeMethod(nameof(Instant.InZone), new[] { typeof(DateTimeZone) })!;
+        typeof(Instant).GetRuntimeMethod(nameof(Instant.InZone), [typeof(DateTimeZone)])!;
 
     private static readonly MethodInfo Instant_ToDateTimeUtc =
         typeof(Instant).GetRuntimeMethod(nameof(Instant.ToDateTimeUtc), Type.EmptyTypes)!;
 
     private static readonly MethodInfo Instant_Distance =
         typeof(NpgsqlNodaTimeDbFunctionsExtensions).GetRuntimeMethod(
-            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance), new[] { typeof(DbFunctions), typeof(Instant), typeof(Instant) })!;
+            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance), [typeof(DbFunctions), typeof(Instant), typeof(Instant)])!;
 
     private static readonly MethodInfo ZonedDateTime_ToInstant =
         typeof(ZonedDateTime).GetRuntimeMethod(nameof(ZonedDateTime.ToInstant), Type.EmptyTypes)!;
@@ -71,56 +71,56 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
     private static readonly MethodInfo ZonedDateTime_Distance =
         typeof(NpgsqlNodaTimeDbFunctionsExtensions).GetRuntimeMethod(
             nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance),
-            new[] { typeof(DbFunctions), typeof(ZonedDateTime), typeof(ZonedDateTime) })!;
+            [typeof(DbFunctions), typeof(ZonedDateTime), typeof(ZonedDateTime)])!;
 
     private static readonly MethodInfo LocalDateTime_InZoneLeniently =
-        typeof(LocalDateTime).GetRuntimeMethod(nameof(LocalDateTime.InZoneLeniently), new[] { typeof(DateTimeZone) })!;
+        typeof(LocalDateTime).GetRuntimeMethod(nameof(LocalDateTime.InZoneLeniently), [typeof(DateTimeZone)])!;
 
     private static readonly MethodInfo LocalDateTime_Distance =
         typeof(NpgsqlNodaTimeDbFunctionsExtensions).GetRuntimeMethod(
             nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance),
-            new[] { typeof(DbFunctions), typeof(LocalDateTime), typeof(LocalDateTime) })!;
+            [typeof(DbFunctions), typeof(LocalDateTime), typeof(LocalDateTime)])!;
 
     private static readonly MethodInfo LocalDate_Distance =
         typeof(NpgsqlNodaTimeDbFunctionsExtensions).GetRuntimeMethod(
-            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance), new[] { typeof(DbFunctions), typeof(LocalDate), typeof(LocalDate) })!;
+            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance), [typeof(DbFunctions), typeof(LocalDate), typeof(LocalDate)])!;
 
-    private static readonly MethodInfo Period_FromYears = typeof(Period).GetRuntimeMethod(nameof(Period.FromYears), new[] { typeof(int) })!;
+    private static readonly MethodInfo Period_FromYears = typeof(Period).GetRuntimeMethod(nameof(Period.FromYears), [typeof(int)])!;
 
     private static readonly MethodInfo Period_FromMonths =
-        typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths), new[] { typeof(int) })!;
+        typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths), [typeof(int)])!;
 
-    private static readonly MethodInfo Period_FromWeeks = typeof(Period).GetRuntimeMethod(nameof(Period.FromWeeks), new[] { typeof(int) })!;
-    private static readonly MethodInfo Period_FromDays = typeof(Period).GetRuntimeMethod(nameof(Period.FromDays), new[] { typeof(int) })!;
+    private static readonly MethodInfo Period_FromWeeks = typeof(Period).GetRuntimeMethod(nameof(Period.FromWeeks), [typeof(int)])!;
+    private static readonly MethodInfo Period_FromDays = typeof(Period).GetRuntimeMethod(nameof(Period.FromDays), [typeof(int)])!;
 
     private static readonly MethodInfo Period_FromHours = typeof(Period).GetRuntimeMethod(
-        nameof(Period.FromHours), new[] { typeof(long) })!;
+        nameof(Period.FromHours), [typeof(long)])!;
 
     private static readonly MethodInfo Period_FromMinutes =
-        typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes), new[] { typeof(long) })!;
+        typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes), [typeof(long)])!;
 
     private static readonly MethodInfo Period_FromSeconds =
-        typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds), new[] { typeof(long) })!;
+        typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds), [typeof(long)])!;
 
     private static readonly MethodInfo Interval_Contains
-        = typeof(Interval).GetRuntimeMethod(nameof(Interval.Contains), new[] { typeof(Instant) })!;
+        = typeof(Interval).GetRuntimeMethod(nameof(Interval.Contains), [typeof(Instant)])!;
 
     private static readonly MethodInfo DateInterval_Contains_LocalDate
-        = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Contains), new[] { typeof(LocalDate) })!;
+        = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Contains), [typeof(LocalDate)])!;
 
     private static readonly MethodInfo DateInterval_Contains_DateInterval
-        = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Contains), new[] { typeof(DateInterval) })!;
+        = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Contains), [typeof(DateInterval)])!;
 
     private static readonly MethodInfo DateInterval_Intersection
-        = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Intersection), new[] { typeof(DateInterval) })!;
+        = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Intersection), [typeof(DateInterval)])!;
 
     private static readonly MethodInfo DateInterval_Union
-        = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Union), new[] { typeof(DateInterval) })!;
+        = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Union), [typeof(DateInterval)])!;
 
     private static readonly MethodInfo IDateTimeZoneProvider_get_Item
-        = typeof(IDateTimeZoneProvider).GetRuntimeMethod("get_Item", new[] { typeof(string) })!;
+        = typeof(IDateTimeZoneProvider).GetRuntimeMethod("get_Item", [typeof(string)])!;
 
-    private static readonly bool[][] TrueArrays = { Array.Empty<bool>(), new[] { true }, new[] { true, true }, };
+    private static readonly bool[][] TrueArrays = [[], [true], [true, true]];
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -179,17 +179,17 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
                 ? _sqlExpressionFactory.AtTimeZone(
                     _sqlExpressionFactory.Function(
                         "NOW",
-                        Array.Empty<SqlExpression>(),
+                        [],
                         nullable: false,
-                        argumentsPropagateNullability: Array.Empty<bool>(),
+                        argumentsPropagateNullability: [],
                         method.ReturnType),
                     _sqlExpressionFactory.Constant("UTC"),
                     method.ReturnType)
                 : _sqlExpressionFactory.Function(
                     "NOW",
-                    Array.Empty<SqlExpression>(),
+                    [],
                     nullable: false,
-                    argumentsPropagateNullability: Array.Empty<bool>(),
+                    argumentsPropagateNullability: [],
                     method.ReturnType,
                     _typeMappingSource.FindMapping(typeof(Instant), "timestamp with time zone"));
         }

@@ -75,7 +75,7 @@ public class NpgsqlPointTypeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) })!;
+        typeof(NpgsqlPoint).GetConstructor([typeof(double), typeof(double)])!;
 }
 
 /// <summary>
@@ -155,7 +155,7 @@ public class NpgsqlLineTypeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlLine).GetConstructor(new[] { typeof(double), typeof(double), typeof(double) })!;
+        typeof(NpgsqlLine).GetConstructor([typeof(double), typeof(double), typeof(double)])!;
 }
 
 /// <summary>
@@ -233,7 +233,7 @@ public class NpgsqlLineSegmentTypeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlLSeg).GetConstructor(new[] { typeof(double), typeof(double), typeof(double), typeof(double) })!;
+        typeof(NpgsqlLSeg).GetConstructor([typeof(double), typeof(double), typeof(double), typeof(double)])!;
 }
 
 /// <summary>
@@ -311,7 +311,7 @@ public class NpgsqlBoxTypeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlBox).GetConstructor(new[] { typeof(double), typeof(double), typeof(double), typeof(double) })!;
+        typeof(NpgsqlBox).GetConstructor([typeof(double), typeof(double), typeof(double), typeof(double)])!;
 }
 
 /// <summary>
@@ -412,10 +412,10 @@ public class NpgsqlPathTypeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlPath).GetConstructor(new[] { typeof(IEnumerable<NpgsqlPoint>), typeof(bool) })!;
+        typeof(NpgsqlPath).GetConstructor([typeof(IEnumerable<NpgsqlPoint>), typeof(bool)])!;
 
     private static readonly ConstructorInfo PointConstructor =
-        typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) })!;
+        typeof(NpgsqlPoint).GetConstructor([typeof(double), typeof(double)])!;
 }
 
 /// <summary>
@@ -513,10 +513,10 @@ public class NpgsqlPolygonTypeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlPolygon).GetConstructor(new[] { typeof(NpgsqlPoint[]) })!;
+        typeof(NpgsqlPolygon).GetConstructor([typeof(NpgsqlPoint[])])!;
 
     private static readonly ConstructorInfo PointConstructor =
-        typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) })!;
+        typeof(NpgsqlPoint).GetConstructor([typeof(double), typeof(double)])!;
 }
 
 /// <summary>
@@ -593,5 +593,5 @@ public class NpgsqlCircleTypeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlCircle).GetConstructor(new[] { typeof(double), typeof(double), typeof(double) })!;
+        typeof(NpgsqlCircle).GetConstructor([typeof(double), typeof(double), typeof(double)])!;
 }

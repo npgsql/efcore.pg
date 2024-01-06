@@ -71,7 +71,7 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
     /// </summary>
     public NpgsqlSingletonOptions()
     {
-        UserRangeDefinitions = Array.Empty<UserRangeDefinition>();
+        UserRangeDefinitions = [];
     }
 
     /// <inheritdoc />

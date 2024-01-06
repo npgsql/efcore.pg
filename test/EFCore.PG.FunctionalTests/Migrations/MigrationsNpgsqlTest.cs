@@ -2370,10 +2370,10 @@ CREATE INDEX "IX_People_Name" ON "People" ("Name" COLLATE some_collation text_pa
             builder => builder.Entity(
                 "People", b =>
                 {
-                    b.HasIndex(new[] { "Age" }, "IX_NullsDistinct")
+                    b.HasIndex(["Age"], "IX_NullsDistinct")
                         .IsUnique();
 
-                    b.HasIndex(new[] { "Age" }, "IX_NullsNotDistinct")
+                    b.HasIndex(["Age"], "IX_NullsNotDistinct")
                         .IsUnique()
                         .AreNullsDistinct(false);
                 }),
@@ -2918,7 +2918,7 @@ END $EF$;",
     {
         await Test(
             _ => { },
-            builder => builder.HasPostgresEnum("Mood", new[] { "Happy", "Sad" }),
+            builder => builder.HasPostgresEnum("Mood", ["Happy", "Sad"]),
             model =>
             {
                 var moodEnum = Assert.Single(model.GetPostgresEnums());
@@ -2939,7 +2939,7 @@ END $EF$;",
     {
         await Test(
             _ => { },
-            builder => builder.HasPostgresEnum("some_schema", "Mood", new[] { "Happy", "Sad" }),
+            builder => builder.HasPostgresEnum("some_schema", "Mood", ["Happy", "Sad"]),
             model =>
             {
                 var moodEnum = Assert.Single(model.GetPostgresEnums());
@@ -2968,7 +2968,7 @@ END $EF$;
     public virtual async Task Drop_enum()
     {
         await Test(
-            builder => builder.HasPostgresEnum("Mood", new[] { "Happy", "Sad" }),
+            builder => builder.HasPostgresEnum("Mood", ["Happy", "Sad"]),
             _ => { },
             model => Assert.Empty(model.GetPostgresEnums()));
 
@@ -2980,9 +2980,9 @@ END $EF$;
     public virtual async Task Do_not_alter_existing_enum_when_creating_new_one()
     {
         await Test(
-            builder => builder.HasPostgresEnum("Enum1", new[] { "A", "B" }),
+            builder => builder.HasPostgresEnum("Enum1", ["A", "B"]),
             _ => { },
-            builder => builder.HasPostgresEnum("Enum2", new[] { "X", "Y" }),
+            builder => builder.HasPostgresEnum("Enum2", ["X", "Y"]),
             model => Assert.Equal(2, model.GetPostgresEnums().Count()));
 
         AssertSql(
@@ -2993,8 +2993,8 @@ END $EF$;
     public virtual async Task Alter_enum_add_label_at_end()
     {
         await Test(
-            builder => builder.HasPostgresEnum("Mood", new[] { "Happy", "Sad" }),
-            builder => builder.HasPostgresEnum("Mood", new[] { "Happy", "Sad", "Angry" }),
+            builder => builder.HasPostgresEnum("Mood", ["Happy", "Sad"]),
+            builder => builder.HasPostgresEnum("Mood", ["Happy", "Sad", "Angry"]),
             model =>
             {
                 var moodEnum = Assert.Single(model.GetPostgresEnums());
@@ -3013,8 +3013,8 @@ END $EF$;
     public virtual async Task Alter_enum_add_label_in_middle()
     {
         await Test(
-            builder => builder.HasPostgresEnum("Mood", new[] { "Happy", "Sad" }),
-            builder => builder.HasPostgresEnum("Mood", new[] { "Happy", "Angry", "Sad" }),
+            builder => builder.HasPostgresEnum("Mood", ["Happy", "Sad"]),
+            builder => builder.HasPostgresEnum("Mood", ["Happy", "Angry", "Sad"]),
             model =>
             {
                 var moodEnum = Assert.Single(model.GetPostgresEnums());
@@ -3032,14 +3032,14 @@ END $EF$;
     [Fact]
     public virtual Task Alter_enum_drop_label_not_supported()
         => TestThrows<NotSupportedException>(
-            builder => builder.HasPostgresEnum("Mood", new[] { "Happy", "Sad" }),
-            builder => builder.HasPostgresEnum("Mood", new[] { "Happy" }));
+            builder => builder.HasPostgresEnum("Mood", ["Happy", "Sad"]),
+            builder => builder.HasPostgresEnum("Mood", ["Happy"]));
 
     [Fact]
     public virtual Task Alter_enum_change_label_not_supported()
         => TestThrows<NotSupportedException>(
-            builder => builder.HasPostgresEnum("Mood", new[] { "Happy", "Sad" }),
-            builder => builder.HasPostgresEnum("Mood", new[] { "Happy", "Angry" }));
+            builder => builder.HasPostgresEnum("Mood", ["Happy", "Sad"]),
+            builder => builder.HasPostgresEnum("Mood", ["Happy", "Angry"]));
 
     #endregion
 
@@ -3270,5 +3270,5 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
     protected override ICollection<BuildReference> GetAdditionalReferences()
         => AdditionalReferences;
 
-    private static readonly BuildReference[] AdditionalReferences = { BuildReference.ByName("Npgsql") };
+    private static readonly BuildReference[] AdditionalReferences = [BuildReference.ByName("Npgsql")];
 }

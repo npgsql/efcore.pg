@@ -35,6 +35,6 @@ public class NpgsqlCodeGenerator : ProviderCodeGenerator
         => new(
             _useNpgsqlMethodInfo,
             providerOptions is null
-                ? new object[] { connectionString }
-                : new object[] { connectionString, new NestedClosureCodeFragment("x", providerOptions) });
+                ? [connectionString]
+                : [connectionString, new NestedClosureCodeFragment("x", providerOptions)]);
 }

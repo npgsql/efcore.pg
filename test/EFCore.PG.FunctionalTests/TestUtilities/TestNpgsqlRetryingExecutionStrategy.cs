@@ -4,7 +4,7 @@ public class TestNpgsqlRetryingExecutionStrategy : NpgsqlRetryingExecutionStrate
 {
     private const bool ErrorNumberDebugMode = false;
 
-    private static readonly string[] AdditionalSqlStates = { "XX000" };
+    private static readonly string[] AdditionalSqlStates = ["XX000"];
 
     public TestNpgsqlRetryingExecutionStrategy()
         : base(

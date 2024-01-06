@@ -81,7 +81,7 @@ public class NpgsqlPgLsnTypeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlLogSequenceNumber).GetConstructor(new[] { typeof(ulong) })!;
+        typeof(NpgsqlLogSequenceNumber).GetConstructor([typeof(ulong)])!;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

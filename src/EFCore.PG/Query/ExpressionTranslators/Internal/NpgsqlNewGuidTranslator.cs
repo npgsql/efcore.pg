@@ -10,7 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 /// </remarks>
 public class NpgsqlNewGuidTranslator : IMethodCallTranslator
 {
-    private static readonly MethodInfo MethodInfo = typeof(Guid).GetRuntimeMethod(nameof(Guid.NewGuid), Array.Empty<Type>())!;
+    private static readonly MethodInfo MethodInfo = typeof(Guid).GetRuntimeMethod(nameof(Guid.NewGuid), [])!;
 
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
     private readonly string _uuidGenerationFunction;
@@ -41,7 +41,7 @@ public class NpgsqlNewGuidTranslator : IMethodCallTranslator
         => MethodInfo.Equals(method)
             ? _sqlExpressionFactory.Function(
                 _uuidGenerationFunction,
-                Array.Empty<SqlExpression>(),
+                [],
                 nullable: false,
                 argumentsPropagateNullability: FalseArrays[0],
                 method.ReturnType)

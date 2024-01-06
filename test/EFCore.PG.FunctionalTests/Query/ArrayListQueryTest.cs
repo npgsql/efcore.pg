@@ -968,7 +968,7 @@ WHERE array_to_string(s."IntList", ', ', '') = '3, 4'
                 var listExpression = Visit(node.Left);
                 if (listExpression.Type.IsGenericList())
                 {
-                    var getItemMethod = listExpression.Type.GetMethod("get_Item", new[] { typeof(int) })!;
+                    var getItemMethod = listExpression.Type.GetMethod("get_Item", [typeof(int)])!;
                     return Expression.Call(listExpression, getItemMethod, node.Right);
                 }
             }
