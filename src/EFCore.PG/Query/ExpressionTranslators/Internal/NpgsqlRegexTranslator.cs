@@ -5,7 +5,7 @@ using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExten
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 /// <summary>
-///     Translates Regex.IsMatch calls into PostgreSQL regex expressions for database-side processing.
+///     Translates Regex method calls into their corresponding PostgreSQL equivalent for database-side processing.
 /// </summary>
 /// <remarks>
 ///     http://www.postgresql.org/docs/current/static/functions-matching.html
@@ -62,8 +62,7 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
             ?? TranslateRegexReplace(method, arguments, logger)
             ?? TranslateCount(method, arguments, logger);
 
-    /// <inheritdoc />
-    public virtual SqlExpression? TranslateIsMatch(
+    private SqlExpression? TranslateIsMatch(
         SqlExpression? instance,
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments,
@@ -221,6 +220,7 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
             {
                 _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
                 _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping),
+                //starting position has to be set to use the options in postgres
                 _sqlExpressionFactory.Constant(1),
                 _sqlExpressionFactory.Constant(translatedOptions)
             },
