@@ -240,6 +240,146 @@ WHERE c."CompanyName" ~ '(?px)^ A'
             () =>
                 Fixture.CreateContext().Customers.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.RightToLeft)).ToList());
 
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_constant_pattern_and_replacement(bool async)
+    {
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^A", "B")));
+
+        AssertSql(
+            """
+            SELECT regexp_replace(c."CompanyName", '^A', 'B', 'p')
+            FROM "Customers" AS c
+            """
+            );
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_parameter_pattern_and_replacement(bool async)
+    {
+        var pattern = "^A";
+        var replacement = "B";
+
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, pattern, replacement)));
+
+        AssertSql(
+            """
+            @__pattern_0='^A'
+            @__replacement_1='B'
+
+            SELECT regexp_replace(c."CompanyName", @__pattern_0, @__replacement_1, 'p')
+            FROM "Customers" AS c
+            """
+            );
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_OptionsNone(bool async)
+    {
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^A", "B", RegexOptions.None)));
+
+        AssertSql(
+            """
+            SELECT regexp_replace(c."CompanyName", '^A', 'B', 'p')
+            FROM "Customers" AS c
+            """
+        );
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_IgnoreCase(bool async)
+    {
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^a", "B", RegexOptions.IgnoreCase)));
+
+        AssertSql(
+            """
+            SELECT regexp_replace(c."CompanyName", '^a', 'B', 'pi')
+            FROM "Customers" AS c
+            """
+        );
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_Multiline(bool async)
+    {
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^A", "B", RegexOptions.Multiline)));
+
+        AssertSql(
+            """
+            SELECT regexp_replace(c."CompanyName", '^A', 'B', 'pn')
+            FROM "Customers" AS c
+            """
+        );
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_Singleline(bool async)
+    {
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^A", "B", RegexOptions.Singleline)));
+
+        AssertSql(
+            """
+            SELECT regexp_replace(c."CompanyName", '^A', 'B')
+            FROM "Customers" AS c
+            """
+        );
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_Singleline_and_IgnoreCase(bool async)
+    {
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^a", "B", RegexOptions.Singleline | RegexOptions.IgnoreCase)));
+
+        AssertSql(
+            """
+            SELECT regexp_replace(c."CompanyName", '^a', 'B', 'i')
+            FROM "Customers" AS c
+            """
+        );
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_IgnorePatternWhitespace(bool async)
+    {
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^ A", "B", RegexOptions.IgnorePatternWhitespace)));
+
+        AssertSql(
+            """
+            SELECT regexp_replace(c."CompanyName", '^ A', 'B', 'px')
+            FROM "Customers" AS c
+            """
+        );
+    }
+
+    [Fact]
+    public void Regex_Replace_with_unsupported_option()
+        => Assert.Throws<InvalidOperationException>(
+            () => Fixture.CreateContext().Customers
+                .FirstOrDefault(x => Regex.Replace(x.CompanyName, "^A", "foo", RegexOptions.RightToLeft) != null));
+
     #endregion Regex
 
     #region Guid
