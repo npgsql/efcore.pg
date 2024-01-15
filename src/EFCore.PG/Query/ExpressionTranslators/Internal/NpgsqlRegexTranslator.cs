@@ -24,9 +24,16 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
     private static readonly MethodInfo ReplaceWithRegexOptions =
         typeof(Regex).GetRuntimeMethod(nameof(Regex.Replace), [typeof(string), typeof(string), typeof(string), typeof(RegexOptions)])!;
 
+    private static readonly MethodInfo Count =
+        typeof(Regex).GetRuntimeMethod(nameof(Regex.Count), [typeof(string), typeof(string)])!;
+
+    private static readonly MethodInfo CountWithRegexOptions =
+        typeof(Regex).GetRuntimeMethod(nameof(Regex.Count), [typeof(string), typeof(string), typeof(RegexOptions)])!;
+
     private const RegexOptions UnsupportedRegexOptions = RegexOptions.RightToLeft | RegexOptions.ECMAScript;
 
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+    private readonly bool _supportRegexCount;
     private readonly NpgsqlTypeMappingSource _typeMappingSource;
 
     /// <summary>
@@ -35,9 +42,13 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlRegexTranslator(NpgsqlTypeMappingSource typeMappingSource, NpgsqlSqlExpressionFactory sqlExpressionFactory)
+    public NpgsqlRegexTranslator(
+        NpgsqlTypeMappingSource typeMappingSource,
+        NpgsqlSqlExpressionFactory sqlExpressionFactory,
+        bool supportRegexCount)
     {
         _sqlExpressionFactory = sqlExpressionFactory;
+        _supportRegexCount = supportRegexCount;
         _typeMappingSource = typeMappingSource;
     }
 
@@ -48,7 +59,8 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         => TranslateIsMatch(instance, method, arguments, logger)
-            ?? TranslateIsRegexMatch(method, arguments, logger);
+            ?? TranslateRegexReplace(method, arguments, logger)
+            ?? TranslateCount(method, arguments, logger);
 
     /// <inheritdoc />
     public virtual SqlExpression? TranslateIsMatch(
@@ -88,7 +100,10 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
             : null;
     }
 
-    private SqlExpression? TranslateIsRegexMatch(MethodInfo method, IReadOnlyList<SqlExpression> arguments, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+    private SqlExpression? TranslateRegexReplace(
+        MethodInfo method,
+        IReadOnlyList<SqlExpression> arguments,
+        IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
         if (method != Replace && method != ReplaceWithRegexOptions)
         {
@@ -129,7 +144,7 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
                     _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
                     _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping),
                     _sqlExpressionFactory.ApplyTypeMapping(replacement, typeMapping),
-                    _sqlExpressionFactory.Constant(TranslateOptions(options))
+                    _sqlExpressionFactory.Constant(translatedOptions)
                 },
                 nullable: true,
                 new[] { true, false, false, false },
@@ -148,6 +163,71 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
             new[] { true, false, false},
             typeof(string),
             _typeMappingSource.FindMapping(typeof(string)));
+    }
+
+    private SqlExpression? TranslateCount(
+        MethodInfo method,
+        IReadOnlyList<SqlExpression> arguments,
+        IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+    {
+        if (!_supportRegexCount || (method != Count && method != CountWithRegexOptions))
+        {
+            return null;
+        }
+
+        var (input, pattern) = (arguments[0], arguments[1]);
+        var typeMapping = ExpressionExtensions.InferTypeMapping(input, pattern);
+
+        RegexOptions options;
+
+        if (method == Count)
+        {
+            options = RegexOptions.None;
+        }
+        else if (arguments[2] is SqlConstantExpression { Value: RegexOptions regexOptions })
+        {
+            options = regexOptions;
+        }
+        else
+        {
+            return null; // We don't support non-constant regex options
+        }
+
+        if ((options & UnsupportedRegexOptions) != 0)
+        {
+            return null;
+        }
+
+        var translatedOptions = TranslateOptions(options);
+
+        if (translatedOptions.Length is 0)
+        {
+            return _sqlExpressionFactory.Function(
+                "regexp_count",
+                new[]
+                {
+                    _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
+                    _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping)
+                },
+                nullable: true,
+                new[] { true, false },
+                typeof(int),
+                _typeMappingSource.FindMapping(typeof(int)));
+        }
+
+        return _sqlExpressionFactory.Function(
+            "regexp_count",
+            new[]
+            {
+                _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
+                _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping),
+                _sqlExpressionFactory.Constant(1),
+                _sqlExpressionFactory.Constant(translatedOptions)
+            },
+            nullable: true,
+            new[] { true, false, false, false },
+            typeof(int),
+            _typeMappingSource.FindMapping(typeof(int)));
     }
 
     private static string TranslateOptions(RegexOptions options)
