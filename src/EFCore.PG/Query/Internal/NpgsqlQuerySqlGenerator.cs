@@ -1401,7 +1401,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
                         // If both operators have the same precedence, add parentheses unless they're the same operator, and
                         // that operator is associative (e.g. a + b + c)
-                        0 => outerExpression is not PgBinaryExpression outerBinary
+                        _ => outerExpression is not PgBinaryExpression outerBinary
                             || outerBinary.OperatorType != innerBinary.OperatorType
                             || !isOuterAssociative
                             // Arithmetic operators on floating points aren't associative, because of rounding errors.
@@ -1415,6 +1415,9 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 // Otherwise always parenthesize for safety
                 return true;
             }
+
+            case PgUnknownBinaryExpression:
+                return true;
 
             default:
                 return base.RequiresParentheses(outerExpression, innerExpression);
