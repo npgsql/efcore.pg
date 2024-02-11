@@ -36,16 +36,16 @@ public class NpgsqlUnnestPostprocessor : ExpressionVisitor
                 for (var i = 0; i < selectExpression.Tables.Count; i++)
                 {
                     var table = selectExpression.Tables[i];
+                    var unwrappedTable = table.UnwrapJoin();
 
                     // Find any unnest table which does not have any references to its ordinality column in the projection or orderings
                     // (this is where they may appear when a column is an identifier).
-                    var unnest = table as PgUnnestExpression ?? (table as JoinExpressionBase)?.Table as PgUnnestExpression;
-                    if (unnest is not null
+                    if (unwrappedTable is PgUnnestExpression unnest
                         && !selectExpression.Orderings.Select(o => o.Expression)
                             .Concat(selectExpression.Projection.Select(p => p.Expression))
                             .Any(
-                                p => p is ColumnExpression { Name: "ordinality", } ordinalityColumn
-                                    && ordinalityColumn.TableAlias == table.Alias))
+                                p => p is ColumnExpression { Name: "ordinality" } ordinalityColumn
+                                    && ordinalityColumn.TableAlias == unwrappedTable.Alias))
                     {
                         if (newTables is null)
                         {

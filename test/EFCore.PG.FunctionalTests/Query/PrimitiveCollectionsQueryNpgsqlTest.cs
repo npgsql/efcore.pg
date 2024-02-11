@@ -1312,7 +1312,7 @@ SELECT p."Id", i0.value
 FROM "PrimitiveCollectionsEntity" AS p
 LEFT JOIN LATERAL (
     SELECT DISTINCT i.value
-    FROM unnest(p."Ints") WITH ORDINALITY AS i(value)
+    FROM unnest(p."Ints") AS i(value)
 ) AS i0 ON TRUE
 ORDER BY p."Id" NULLS FIRST
 """);
