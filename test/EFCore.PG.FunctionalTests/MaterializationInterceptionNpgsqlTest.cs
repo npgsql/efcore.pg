@@ -6,11 +6,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class MaterializationInterceptionNpgsqlTest(MaterializationInterceptionNpgsqlTest.MaterializationInterceptionNpgsqlFixture fixture)
-    : MaterializationInterceptionTestBase<MaterializationInterceptionNpgsqlTest.SqlServerLibraryContext>(fixture),
-        IClassFixture<MaterializationInterceptionNpgsqlTest.MaterializationInterceptionNpgsqlFixture>
+public class MaterializationInterceptionNpgsqlTest :
+    MaterializationInterceptionTestBase<MaterializationInterceptionNpgsqlTest.NpgsqlLibraryContext>
 {
-    public class SqlServerLibraryContext(DbContextOptions options) : LibraryContext(options)
+    public class NpgsqlLibraryContext(DbContextOptions options) : LibraryContext(options)
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,27 +22,6 @@ public class MaterializationInterceptionNpgsqlTest(MaterializationInterceptionNp
         }
     }
 
-    public override LibraryContext CreateContext(IEnumerable<ISingletonInterceptor> interceptors, bool inject)
-        => new SqlServerLibraryContext(Fixture.CreateOptions(interceptors, inject));
-
-    public class MaterializationInterceptionNpgsqlFixture : SingletonInterceptorsFixtureBase
-    {
-        protected override string StoreName
-            => "MaterializationInterception";
-
-        protected override ITestStoreFactory TestStoreFactory
-            => NpgsqlTestStoreFactory.Instance;
-
-        protected override IServiceCollection InjectInterceptors(
-            IServiceCollection serviceCollection,
-            IEnumerable<ISingletonInterceptor> injectedInterceptors)
-            => base.InjectInterceptors(serviceCollection.AddEntityFrameworkNpgsql(), injectedInterceptors);
-
-        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-        {
-            new NpgsqlDbContextOptionsBuilder(base.AddOptions(builder))
-                .ExecutionStrategy(d => new NpgsqlExecutionStrategy(d));
-            return builder;
-        }
-    }
+    protected override ITestStoreFactory TestStoreFactory
+        => NpgsqlTestStoreFactory.Instance;
 }

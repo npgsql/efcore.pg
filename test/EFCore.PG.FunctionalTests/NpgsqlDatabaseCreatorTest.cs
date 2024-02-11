@@ -208,7 +208,7 @@ public class NpgsqlDatabaseCreatorEnsureCreatedTest : NpgsqlDatabaseCreatorTest
         Assert.Equal(14, columns.Length);
 
         Assert.Equal(
-            [
+            new[] {
                 "Blogs.AndChew (bytea)",
                 "Blogs.AndRow (bytea)",
                 "Blogs.Cheese (text)",
@@ -223,7 +223,7 @@ public class NpgsqlDatabaseCreatorEnsureCreatedTest : NpgsqlDatabaseCreatorTest
                 "Blogs.TheGu (uuid)",
                 "Blogs.ToEat (smallint)",
                 "Blogs.WayRound (bigint)"
-            ],
+            },
             columns);
     }
 

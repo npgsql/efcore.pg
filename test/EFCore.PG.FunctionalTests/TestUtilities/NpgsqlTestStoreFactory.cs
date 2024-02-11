@@ -22,4 +22,5 @@ public class NpgsqlTestStoreFactory : RelationalTestStoreFactory
 
     public override IServiceCollection AddProviderServices(IServiceCollection serviceCollection)
         => serviceCollection.AddEntityFrameworkNpgsql();
+    // .AddEntityFrameworkNpgsqlNetTopologySuite();
 }

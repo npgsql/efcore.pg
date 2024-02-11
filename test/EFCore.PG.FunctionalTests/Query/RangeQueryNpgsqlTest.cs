@@ -263,13 +263,13 @@ LIMIT 2
 
         AssertSql(
             """
-SELECT range_agg(t."IntRange")
+SELECT range_agg(r0."IntRange")
 FROM (
     SELECT r."IntRange", TRUE AS "Key"
     FROM "RangeTestEntities" AS r
     WHERE r."Id" IN (1, 2)
-) AS t
-GROUP BY t."Key"
+) AS r0
+GROUP BY r0."Key"
 LIMIT 2
 """);
     }
@@ -309,13 +309,13 @@ LIMIT 2
 
         AssertSql(
             """
-SELECT range_intersect_agg(t."IntRange")
+SELECT range_intersect_agg(r0."IntRange")
 FROM (
     SELECT r."IntRange", TRUE AS "Key"
     FROM "RangeTestEntities" AS r
     WHERE r."Id" IN (1, 2)
-) AS t
-GROUP BY t."Key"
+) AS r0
+GROUP BY r0."Key"
 LIMIT 2
 """);
     }

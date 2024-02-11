@@ -1212,12 +1212,12 @@ WHERE @__interval_0 @> n."Instant"
 
         AssertSql(
             """
-SELECT range_agg(t."Interval")
+SELECT range_agg(n0."Interval")
 FROM (
     SELECT n."Interval", TRUE AS "Key"
     FROM "NodaTimeTypes" AS n
-) AS t
-GROUP BY t."Key"
+) AS n0
+GROUP BY n0."Key"
 LIMIT 2
 """);
     }
@@ -1242,12 +1242,12 @@ LIMIT 2
 
         AssertSql(
             """
-SELECT range_intersect_agg(t."Interval")
+SELECT range_intersect_agg(n0."Interval")
 FROM (
     SELECT n."Interval", TRUE AS "Key"
     FROM "NodaTimeTypes" AS n
-) AS t
-GROUP BY t."Key"
+) AS n0
+GROUP BY n0."Key"
 LIMIT 2
 """);
     }
@@ -1420,12 +1420,12 @@ WHERE n."DateInterval" + @__dateInterval_0 = '[2018-04-20,2018-04-26]'::daterang
 
         AssertSql(
             """
-SELECT range_agg(t."DateInterval")
+SELECT range_agg(n0."DateInterval")
 FROM (
     SELECT n."DateInterval", TRUE AS "Key"
     FROM "NodaTimeTypes" AS n
-) AS t
-GROUP BY t."Key"
+) AS n0
+GROUP BY n0."Key"
 LIMIT 2
 """);
     }
@@ -1449,12 +1449,12 @@ LIMIT 2
 
         AssertSql(
             """
-SELECT range_intersect_agg(t."DateInterval")
+SELECT range_intersect_agg(n0."DateInterval")
 FROM (
     SELECT n."DateInterval", TRUE AS "Key"
     FROM "NodaTimeTypes" AS n
-) AS t
-GROUP BY t."Key"
+) AS n0
+GROUP BY n0."Key"
 LIMIT 2
 """);
     }
