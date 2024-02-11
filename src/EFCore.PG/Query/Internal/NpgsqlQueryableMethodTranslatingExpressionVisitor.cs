@@ -15,8 +15,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 /// </summary>
 public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQueryableMethodTranslatingExpressionVisitor
 {
+    private readonly RelationalQueryCompilationContext _queryCompilationContext;
     private readonly NpgsqlTypeMappingSource _typeMappingSource;
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+    private RelationalTypeMapping? _ordinalityTypeMapping;
+
 
     #region MethodInfos
 
@@ -43,9 +46,10 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     public NpgsqlQueryableMethodTranslatingExpressionVisitor(
         QueryableMethodTranslatingExpressionVisitorDependencies dependencies,
         RelationalQueryableMethodTranslatingExpressionVisitorDependencies relationalDependencies,
-        QueryCompilationContext queryCompilationContext)
+        RelationalQueryCompilationContext queryCompilationContext)
         : base(dependencies, relationalDependencies, queryCompilationContext)
     {
+        _queryCompilationContext = queryCompilationContext;
         _typeMappingSource = (NpgsqlTypeMappingSource)relationalDependencies.TypeMappingSource;
         _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)relationalDependencies.SqlExpressionFactory;
     }
@@ -59,6 +63,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     protected NpgsqlQueryableMethodTranslatingExpressionVisitor(NpgsqlQueryableMethodTranslatingExpressionVisitor parentVisitor)
         : base(parentVisitor)
     {
+        _queryCompilationContext = parentVisitor._queryCompilationContext;
         _typeMappingSource = parentVisitor._typeMappingSource;
         _sqlExpressionFactory = parentVisitor._sqlExpressionFactory;
     }
@@ -99,7 +104,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         // a special case for geometry collections, where we use
         SelectExpression selectExpression;
 
-#pragma warning disable EF1001
+#pragma warning disable EF1001 // SelectExpression constructors are currently internal
         // TODO: Parameters have no type mapping. We can check whether the expression type is one of the NTS geometry collection types,
         // though in a perfect world we'd actually infer this. In other words, when the type mapping of the element is inferred further on,
         // we'd replace the unnest expression with ST_Dump. We could even have a special expression type which means "indeterminate, must be
@@ -108,8 +113,10 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         {
             // TODO: For geometry collection support (not yet supported), see #2850.
             selectExpression = new SelectExpression(
-                new TableValuedFunctionExpression(tableAlias, "ST_Dump", new[] { sqlExpression }),
-                "geom", elementClrType, elementTypeMapping, isElementNullable);
+                [new TableValuedFunctionExpression(tableAlias, "ST_Dump", new[] { sqlExpression })],
+                new ColumnExpression("geom", tableAlias, elementClrType.UnwrapNullableType(), elementTypeMapping, isElementNullable),
+                identifier: [], // TODO
+                _queryCompilationContext.SqlAliasManager);
         }
         else
         {
@@ -123,14 +130,15 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             // to add ordering like in most other providers (https://www.postgresql.org/docs/current/functions-array.html)
             // We also don't need to apply any casts or typing, since PG arrays are fully typed (unlike e.g. a JSON string).
             selectExpression = new SelectExpression(
-                new PgUnnestExpression(tableAlias, sqlExpression, "value"),
-                columnName: "value",
-                columnType: elementClrType,
-                columnTypeMapping: elementTypeMapping,
-                isColumnNullable: isElementNullable,
-                identifierColumnName: "ordinality",
-                identifierColumnType: typeof(int),
-                identifierColumnTypeMapping: _typeMappingSource.FindMapping(typeof(int)));
+                [new PgUnnestExpression(tableAlias, sqlExpression, "value")],
+                new ColumnExpression(
+                    "value",
+                    tableAlias,
+                    elementClrType.UnwrapNullableType(),
+                    elementTypeMapping,
+                    isElementNullable),
+                identifier: [GenerateOrdinalityIdentifier(tableAlias)],
+                _queryCompilationContext.SqlAliasManager);
         }
 #pragma warning restore EF1001
 
@@ -160,7 +168,9 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         // Calculate the table alias for the jsonb_to_recordset function based on the last named path segment
         // (or the JSON column name if there are none)
         var lastNamedPathSegment = jsonQueryExpression.Path.LastOrDefault(ps => ps.PropertyName is not null);
-        var tableAlias = char.ToLowerInvariant((lastNamedPathSegment.PropertyName ?? jsonQueryExpression.JsonColumn.Name)[0]).ToString();
+        var tableAlias =
+            _queryCompilationContext.SqlAliasManager.GenerateTableAlias(
+                lastNamedPathSegment.PropertyName ?? jsonQueryExpression.JsonColumn.Name);
 
         // TODO: This relies on nested JSON columns flowing across the type mapping of the top-most containing JSON column, check this.
         var functionName = jsonQueryExpression.JsonColumn switch
@@ -216,13 +226,13 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         var jsonToRecordSetExpression = new PgTableValuedFunctionExpression(
             tableAlias, functionName, new[] { jsonScalarExpression }, columnInfos, withOrdinality: true);
 
-#pragma warning disable EF1001 // Internal EF Core API usage.
-        var selectExpression = new SelectExpression(
+#pragma warning disable EF1001 // SelectExpression constructors are currently internal
+        var selectExpression = CreateSelect(
             jsonQueryExpression,
             jsonToRecordSetExpression,
-            identifierColumnName: "ordinality",
-            identifierColumnType: typeof(int),
-            identifierColumnTypeMapping: _typeMappingSource.FindMapping(typeof(int))!);
+            "ordinality",
+            typeof(int),
+            _typeMappingSource.FindMapping(typeof(int))!);
 #pragma warning restore EF1001 // Internal EF Core API usage.
 
         return new ShapedQueryExpression(
@@ -253,7 +263,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     /// </summary>
     protected override Expression ApplyInferredTypeMappings(
         Expression expression,
-        IReadOnlyDictionary<(TableExpressionBase, string), RelationalTypeMapping?> inferredTypeMappings)
+        IReadOnlyDictionary<(string, string), RelationalTypeMapping?> inferredTypeMappings)
         => new NpgsqlInferredTypeMappingApplier(
             RelationalDependencies.Model, _typeMappingSource, _sqlExpressionFactory, inferredTypeMappings).Visit(expression);
 
@@ -267,7 +277,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     {
         if (source.QueryExpression is SelectExpression
             {
-                Tables: [(PgUnnestExpression or ValuesExpression { ColumnNames: ["_ord", "Value"] }) and var sourceTable],
+                Tables: [var sourceTable],
                 Predicate: null,
                 GroupBy: [],
                 Having: null,
@@ -275,6 +285,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 Limit: null,
                 Offset: null
             }
+            && TryGetArray(sourceTable, out var array)
             && TranslateLambdaExpression(source, predicate) is { } translatedPredicate)
         {
             switch (translatedPredicate)
@@ -287,11 +298,11 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Pattern: ColumnExpression pattern,
                         EscapeChar: SqlConstantExpression { Value: "" }
                     }
-                    when pattern.Table == sourceTable:
+                    when pattern.TableAlias == sourceTable.Alias:
                 {
                     return BuildSimplifiedShapedQuery(
                         source,
-                        _sqlExpressionFactory.All(match, GetArray(sourceTable), PgAllOperatorType.Like));
+                        _sqlExpressionFactory.All(match, array, PgAllOperatorType.Like));
                 }
 
                 // Pattern match for: new[] { "a", "b", "c" }.All(p => EF.Functions.Like(e.SomeText, p)),
@@ -302,11 +313,11 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Pattern: ColumnExpression pattern,
                         EscapeChar: SqlConstantExpression { Value: "" }
                     }
-                    when pattern.Table == sourceTable:
+                    when pattern.TableAlias == sourceTable.Alias:
                 {
                     return BuildSimplifiedShapedQuery(
                         source,
-                        _sqlExpressionFactory.All(match, GetArray(sourceTable), PgAllOperatorType.ILike));
+                        _sqlExpressionFactory.All(match, array, PgAllOperatorType.ILike));
                 }
 
                 // Pattern match for: e.SomeArray.All(p => ints.Contains(p)) over non-column,
@@ -316,9 +327,9 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Item: ColumnExpression sourceColumn,
                         Array: var otherArray
                     }
-                    when sourceColumn.Table == sourceTable:
+                    when sourceColumn.TableAlias == sourceTable.Alias:
                 {
-                    return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.ContainedBy(GetArray(sourceTable), otherArray));
+                    return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.ContainedBy(array, otherArray));
                 }
 
                 // Pattern match for: new[] { 4, 5 }.All(p => e.SomeArray.Contains(p)) over column,
@@ -329,9 +340,9 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Left: var otherArray,
                         Right: PgNewArrayExpression { Expressions: [ColumnExpression sourceColumn] }
                     }
-                    when sourceColumn.Table == sourceTable:
+                    when sourceColumn.TableAlias == sourceTable.Alias:
                 {
-                    return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.ContainedBy(GetArray(sourceTable), otherArray));
+                    return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.ContainedBy(array, otherArray));
                 }
             }
         }
@@ -349,14 +360,15 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     {
         if (source.QueryExpression is SelectExpression
             {
-                Tables: [(PgUnnestExpression or ValuesExpression { ColumnNames: ["_ord", "Value"] }) and var sourceTable],
+                Tables: [var sourceTable],
                 Predicate: null,
                 GroupBy: [],
                 Having: null,
                 IsDistinct: false,
                 Limit: null,
                 Offset: null
-            })
+            }
+            && TryGetArray(sourceTable, out var array))
         {
             // Pattern match: x.Array.Any()
             // Translation: cardinality(x.array) > 0 instead of EXISTS (SELECT 1 FROM FROM unnest(x.Array))
@@ -367,7 +379,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                     _sqlExpressionFactory.GreaterThan(
                         _sqlExpressionFactory.Function(
                             "cardinality",
-                            new[] { GetArray(sourceTable) },
+                            new[] { array },
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[1],
                             typeof(int)),
@@ -389,10 +401,10 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Pattern: ColumnExpression pattern,
                         EscapeChar: SqlConstantExpression { Value: "" }
                     }
-                    when pattern.Table == sourceTable:
+                    when pattern.TableAlias == sourceTable.Alias:
                 {
                     return BuildSimplifiedShapedQuery(
-                        source, _sqlExpressionFactory.Any(match, GetArray(sourceTable), PgAnyOperatorType.Like));
+                        source, _sqlExpressionFactory.Any(match, array, PgAnyOperatorType.Like));
                 }
 
                 // Pattern match: new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p))
@@ -403,10 +415,10 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Pattern: ColumnExpression pattern,
                         EscapeChar: SqlConstantExpression { Value: "" }
                     }
-                    when pattern.Table == sourceTable:
+                    when pattern.TableAlias == sourceTable.Alias:
                 {
                     return BuildSimplifiedShapedQuery(
-                        source, _sqlExpressionFactory.Any(match, GetArray(sourceTable), PgAnyOperatorType.ILike));
+                        source, _sqlExpressionFactory.Any(match, array, PgAnyOperatorType.ILike));
                 }
 
                 // Array overlap over non-column
@@ -417,9 +429,9 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Item: ColumnExpression sourceColumn,
                         Array: var otherArray
                     }
-                    when sourceColumn.Table == sourceTable:
+                    when sourceColumn.TableAlias == sourceTable.Alias:
                 {
-                    return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.Overlaps(GetArray(sourceTable), otherArray));
+                    return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.Overlaps(array, otherArray));
                 }
 
                 // Array overlap over column
@@ -431,9 +443,9 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Left: var otherArray,
                         Right: PgNewArrayExpression { Expressions: [ColumnExpression sourceColumn] }
                     }
-                    when sourceColumn.Table == sourceTable:
+                    when sourceColumn.TableAlias == sourceTable.Alias:
                 {
-                    return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.Overlaps(GetArray(sourceTable), otherArray));
+                    return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.Overlaps(array, otherArray));
                 }
 
                 #region LTree translations
@@ -446,14 +458,14 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Left: var ltree,
                         Right: SqlUnaryExpression { OperatorType: ExpressionType.Convert, Operand: ColumnExpression lqueryColumn }
                     }
-                    when lqueryColumn.Table == sourceTable:
+                    when lqueryColumn.TableAlias == sourceTable.Alias:
                 {
                     return BuildSimplifiedShapedQuery(
                         source,
                         new PgBinaryExpression(
                             PgExpressionType.LTreeMatchesAny,
                             ltree,
-                            _sqlExpressionFactory.ApplyTypeMapping(GetArray(sourceTable), _typeMappingSource.FindMapping("lquery[]")),
+                            _sqlExpressionFactory.ApplyTypeMapping(array, _typeMappingSource.FindMapping("lquery[]")),
                             typeof(bool),
                             typeMapping: _typeMappingSource.FindMapping(typeof(bool))));
                 }
@@ -469,13 +481,13 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         // Contains/ContainedBy can happen for non-LTree types too, so check that
                         Right: { TypeMapping: NpgsqlLTreeTypeMapping } ltree
                     }
-                    when ltreeColumn.Table == sourceTable:
+                    when ltreeColumn.TableAlias == sourceTable.Alias:
                 {
                     return BuildSimplifiedShapedQuery(
                         source,
                         new PgBinaryExpression(
                             operatorType,
-                            _sqlExpressionFactory.ApplyDefaultTypeMapping(GetArray(sourceTable)),
+                            _sqlExpressionFactory.ApplyDefaultTypeMapping(array),
                             ltree,
                             typeof(bool),
                             typeMapping: _typeMappingSource.FindMapping(typeof(bool))));
@@ -491,13 +503,13 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Left: ColumnExpression ltreeColumn,
                         Right: var lquery
                     }
-                    when ltreeColumn.Table == sourceTable:
+                    when ltreeColumn.TableAlias == sourceTable.Alias:
                 {
                     return BuildSimplifiedShapedQuery(
                         source,
                         new PgBinaryExpression(
                             PgExpressionType.LTreeMatches,
-                            _sqlExpressionFactory.ApplyDefaultTypeMapping(GetArray(sourceTable)),
+                            _sqlExpressionFactory.ApplyDefaultTypeMapping(array),
                             lquery,
                             typeof(bool),
                             typeMapping: _typeMappingSource.FindMapping(typeof(bool))));
@@ -512,13 +524,13 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Left: ColumnExpression ltreeColumn,
                         Right: var lqueries
                     }
-                    when ltreeColumn.Table == sourceTable:
+                    when ltreeColumn.TableAlias == sourceTable.Alias:
                 {
                     return BuildSimplifiedShapedQuery(
                         source,
                         new PgBinaryExpression(
                             PgExpressionType.LTreeMatchesAny,
-                            _sqlExpressionFactory.ApplyDefaultTypeMapping(GetArray(sourceTable)),
+                            _sqlExpressionFactory.ApplyDefaultTypeMapping(array),
                             lqueries,
                             typeof(bool),
                             typeMapping: _typeMappingSource.FindMapping(typeof(bool))));
@@ -578,26 +590,20 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     /// </summary>
     protected override ShapedQueryExpression? TranslateContains(ShapedQueryExpression source, Expression item)
     {
+        // Note that most other simplifications convert ValuesExpression to unnest over array constructor, but we avoid doing that
+        // here for Contains, since the relational translation for ValuesExpression is better.
         if (source.QueryExpression is SelectExpression
             {
-                Tables: [(PgUnnestExpression or ValuesExpression { ColumnNames: ["_ord", "Value"] }) and var sourceTable],
+                Tables: [PgUnnestExpression { Array: var array }],
                 Predicate: null,
                 GroupBy: [],
                 Having: null,
                 IsDistinct: false,
                 Limit: null,
                 Offset: null
-            })
-        {
-            if (TranslateExpression(item, applyDefaultTypeMapping: false) is not SqlExpression translatedItem)
-            {
-                return null;
             }
-
-            // Note that most other simplifications here convert ValuesExpression to unnest over array constructor, but we avoid doing that
-            // here, since the relational translation for ValuesExpression is better.
-            var array = GetArray(sourceTable);
-
+            && TranslateExpression(item, applyDefaultTypeMapping: false) is SqlExpression translatedItem)
+        {
             (translatedItem, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(translatedItem, array);
 
             // When the array is a column, we translate Contains to array @> ARRAY[item]. GIN indexes on array are used, but null
@@ -685,11 +691,13 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(int));
 
+#pragma warning disable EF1001 // SelectExpression constructors are currently internal
             return source.Update(
-                _sqlExpressionFactory.Select(translation),
+                new SelectExpression(translation, _queryCompilationContext.SqlAliasManager),
                 Expression.Convert(
                     new ProjectionBindingExpression(source.QueryExpression, new ProjectionMember(), typeof(int?)),
                     typeof(int)));
+#pragma warning restore EF1001
         }
 
         return base.TranslateCount(source, predicate);
@@ -736,16 +744,13 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             // TODO: Conflicting type mappings from both sides?
             var inferredTypeMapping = projectedColumn1.TypeMapping ?? projectedColumn2.TypeMapping;
 
-#pragma warning disable EF1001 // Internal EF Core API usage.
+#pragma warning disable EF1001 // SelectExpression constructors are currently internal
+            var tableAlias = unnestExpression1.Alias;
             var selectExpression = new SelectExpression(
-                new PgUnnestExpression(unnestExpression1.Alias, _sqlExpressionFactory.Add(array1, array2), "value"),
-                columnName: "value",
-                columnType: projectedColumn1.Type,
-                columnTypeMapping: inferredTypeMapping,
-                isColumnNullable: projectedColumn1.IsNullable || projectedColumn2.IsNullable,
-                identifierColumnName: "ordinality",
-                identifierColumnType: typeof(int),
-                identifierColumnTypeMapping: _typeMappingSource.FindMapping(typeof(int)));
+                [new PgUnnestExpression(tableAlias, _sqlExpressionFactory.Add(array1, array2), "value")],
+                new ColumnExpression("value", tableAlias, projectedColumn1.Type, inferredTypeMapping, projectedColumn1.IsNullable || projectedColumn2.IsNullable),
+                identifier: [GenerateOrdinalityIdentifier(tableAlias)],
+                _queryCompilationContext.SqlAliasManager);
 #pragma warning restore EF1001 // Internal EF Core API usage.
 
             // TODO: Simplify by using UpdateQueryExpression after https://github.com/dotnet/efcore/issues/31511
@@ -796,11 +801,14 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             && TranslateExpression(index) is { } translatedIndex)
         {
             // Note that PostgreSQL arrays are 1-based, so adjust the index.
+#pragma warning disable EF1001 // SelectExpression constructors are currently internal
             return source.UpdateQueryExpression(
-                _sqlExpressionFactory.Select(
+                new SelectExpression(
                     _sqlExpressionFactory.ArrayIndex(
                         array,
-                        GenerateOneBasedIndexExpression(translatedIndex), projectedColumn.IsNullable)));
+                        GenerateOneBasedIndexExpression(translatedIndex), projectedColumn.IsNullable),
+                _queryCompilationContext.SqlAliasManager));
+#pragma warning restore EF1001
         }
 
         return base.TranslateElementAtOrDefault(source, index, returnDefault);
@@ -823,7 +831,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         // select expression should already contain our predicate.
         if (source.QueryExpression is SelectExpression
             {
-                Tables: [(PgUnnestExpression or ValuesExpression { ColumnNames: ["_ord", "Value"] }) and var sourceTable],
+                Tables: [var sourceTable],
                 Predicate: var translatedPredicate,
                 GroupBy: [],
                 Having: null,
@@ -832,6 +840,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 Offset: null,
                 Orderings: []
             }
+            && TryGetArray(sourceTable, out var array)
             && translatedPredicate is null ^ predicate is null)
         {
             if (translatedPredicate is null)
@@ -856,7 +865,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         // Contains/ContainedBy can happen for non-LTree types too, so check that
                         Right: { TypeMapping: NpgsqlLTreeTypeMapping } ltree
                     }
-                    when ltreeColumn.Table == sourceTable:
+                    when ltreeColumn.TableAlias == sourceTable.Alias:
                 {
                     return BuildSimplifiedShapedQuery(
                         source,
@@ -864,7 +873,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                             operatorType == PgExpressionType.Contains
                                 ? PgExpressionType.LTreeFirstAncestor
                                 : PgExpressionType.LTreeFirstDescendent,
-                            _sqlExpressionFactory.ApplyDefaultTypeMapping(GetArray(sourceTable)),
+                            _sqlExpressionFactory.ApplyDefaultTypeMapping(array),
                             ltree,
                             typeof(LTree),
                             _typeMappingSource.FindMapping(typeof(LTree))));
@@ -880,13 +889,13 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Left: ColumnExpression ltreeColumn,
                         Right: var lquery
                     }
-                    when ltreeColumn.Table == sourceTable:
+                    when ltreeColumn.TableAlias == sourceTable.Alias:
                 {
                     return BuildSimplifiedShapedQuery(
                         source,
                         new PgBinaryExpression(
                             PgExpressionType.LTreeFirstMatches,
-                            _sqlExpressionFactory.ApplyDefaultTypeMapping(GetArray(sourceTable)),
+                            _sqlExpressionFactory.ApplyDefaultTypeMapping(array),
                             lquery,
                             typeof(LTree),
                             _typeMappingSource.FindMapping(typeof(LTree))));
@@ -921,25 +930,24 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             && TryGetProjectedColumn(source, out var projectedColumn)
             && TranslateExpression(count) is { } translatedCount)
         {
-#pragma warning disable EF1001 // Internal EF Core API usage.
+#pragma warning disable EF1001 // SelectExpression constructors are currently internal
+            var tableAlias = unnestExpression.Alias;
             var selectExpression = new SelectExpression(
-                new PgUnnestExpression(
-                    unnestExpression.Alias,
-                    _sqlExpressionFactory.ArraySlice(
-                        array,
-                        lowerBound: GenerateOneBasedIndexExpression(translatedCount),
-                        upperBound: null,
-                        projectedColumn.IsNullable),
-                    "value"),
-                "value",
-                projectedColumn.Type,
-                projectedColumn.TypeMapping,
-                isColumnNullable: projectedColumn.IsNullable,
-                // isColumnNullable: /*projectedColumn.IsNullable*/ true, // TODO: This fails because of a shaper check
-                identifierColumnName: "ordinality",
-                identifierColumnType: typeof(int),
-                identifierColumnTypeMapping: _typeMappingSource.FindMapping(typeof(int)));
-#pragma warning restore EF1001 // Internal EF Core API usage.
+                [
+                    new PgUnnestExpression(
+                        tableAlias,
+                        _sqlExpressionFactory.ArraySlice(
+                            array,
+                            lowerBound: GenerateOneBasedIndexExpression(translatedCount),
+                            upperBound: null,
+                            // isColumnNullable: /*projectedColumn.IsNullable*/ true, // TODO: This fails because of a shaper check
+                            projectedColumn.IsNullable),
+                        "value"),
+                ],
+                new ColumnExpression("value", tableAlias, projectedColumn.Type, projectedColumn.TypeMapping, projectedColumn.IsNullable),
+                identifier: [GenerateOrdinalityIdentifier(tableAlias)],
+                _queryCompilationContext.SqlAliasManager);
+#pragma warning restore EF1001
 
             // TODO: Simplify by using UpdateQueryExpression after https://github.com/dotnet/efcore/issues/31511
             Expression shaperExpression = new ProjectionBindingExpression(
@@ -1027,16 +1035,12 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                     projectedColumn.IsNullable);
             }
 
-#pragma warning disable EF1001 // Internal EF Core API usage.
+#pragma warning disable EF1001 // SelectExpression constructors are currently internal
             var selectExpression = new SelectExpression(
-                new PgUnnestExpression(unnestExpression.Alias, sliceExpression, "value"),
-                "value",
-                projectedColumn.Type,
-                projectedColumn.TypeMapping,
-                isColumnNullable: projectedColumn.IsNullable,
-                identifierColumnName: "ordinality",
-                identifierColumnType: typeof(int),
-                identifierColumnTypeMapping: _typeMappingSource.FindMapping(typeof(int)));
+                [new PgUnnestExpression(unnestExpression.Alias, sliceExpression, "value")],
+                new ColumnExpression("value", unnestExpression.Alias, projectedColumn.Type, projectedColumn.TypeMapping, projectedColumn.IsNullable),
+                [GenerateOrdinalityIdentifier(unnestExpression.Alias)],
+                _queryCompilationContext.SqlAliasManager);
 #pragma warning restore EF1001 // Internal EF Core API usage.
 
             // TODO: Simplify by using UpdateQueryExpression after https://github.com/dotnet/efcore/issues/31511
@@ -1145,11 +1149,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 var entityProjectionExpression =
                     (StructuralTypeProjectionExpression)selectExpression.GetProjection(projectionBindingExpression);
                 var column = entityProjectionExpression.BindProperty(shaper.StructuralType.GetProperties().First());
-                table = column.Table;
-                if (table is JoinExpressionBase joinExpressionBase)
-                {
-                    table = joinExpressionBase.Table;
-                }
+                table = selectExpression.Tables.Select(t => t.UnwrapJoin()).Single(t => t.Alias == column.TableAlias);
             }
 
             if (table is TableExpression te)
@@ -1207,6 +1207,13 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         return false;
     }
 
+    private (ColumnExpression, ValueComparer) GenerateOrdinalityIdentifier(string tableAlias)
+    {
+        _ordinalityTypeMapping ??= _typeMappingSource.FindMapping("int")!;
+        return (new ColumnExpression("ordinality", tableAlias, typeof(int), _ordinalityTypeMapping, nullable: false),
+            _ordinalityTypeMapping.Comparer);
+    }
+
     /// <summary>
     ///     PostgreSQL array indexing is 1-based. If the index happens to be a constant, just increment it. Otherwise, append a +1 in the
     ///     SQL.
@@ -1216,28 +1223,29 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             ? _sqlExpressionFactory.Constant(Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
             : _sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));
 
+#pragma warning disable EF1001 // SelectExpression constructors are currently internal
     private ShapedQueryExpression BuildSimplifiedShapedQuery(ShapedQueryExpression source, SqlExpression translation)
         => source.Update(
-            _sqlExpressionFactory.Select(translation),
+            new SelectExpression(translation, _queryCompilationContext.SqlAliasManager),
             Expression.Convert(
                 new ProjectionBindingExpression(translation, new ProjectionMember(), typeof(bool?)), typeof(bool)));
+#pragma warning restore EF1001
 
     /// <summary>
     ///     Extracts the <see cref="PgUnnestExpression.Array" /> out of <see cref="PgUnnestExpression" />.
     ///     If a <see cref="ValuesExpression" /> is given, converts its literal values into a <see cref="PgNewArrayExpression" />.
     /// </summary>
-    private SqlExpression GetArray(TableExpressionBase tableExpression)
+    private bool TryGetArray(TableExpressionBase tableExpression, [NotNullWhen(true)] out SqlExpression? array)
     {
-        Check.DebugAssert(
-            tableExpression is PgUnnestExpression or ValuesExpression { ColumnNames: ["_ord", "Value"] },
-            "Bad tableExpression");
-
         switch (tableExpression)
         {
             case PgUnnestExpression unnest:
-                return unnest.Array;
+                array = unnest.Array;
+                return true;
 
-            case ValuesExpression valuesExpression:
+            // TODO: We currently don't have information type information on empty ValuesExpression, so we can't transform that into an
+            // array.
+            case ValuesExpression { ColumnNames: ["_ord", "Value"], RowValues.Count: > 0 } valuesExpression:
             {
                 // The source table was a constant collection, so translated by default to ValuesExpression. Convert it to an unnest over
                 // an array constructor.
@@ -1249,12 +1257,14 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                     elements[i] = valuesExpression.RowValues[i].Values[1];
                 }
 
-                return new PgNewArrayExpression(
+                array = new PgNewArrayExpression(
                     elements, valuesExpression.RowValues[0].Values[1].Type.MakeArrayType(), typeMapping: null);
+                return true;
             }
 
             default:
-                throw new ArgumentException(nameof(tableExpression));
+                array = null;
+                return false;
         }
     }
 
@@ -1279,8 +1289,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 return expression;
             }
 
-            if (expression is ColumnExpression columnExpression
-                && columnExpression.Table == mainTable)
+            if (expression is ColumnExpression { TableAlias: var tableAlias} && tableAlias == mainTable.Alias)
             {
                 _containsReference = true;
 
@@ -1312,7 +1321,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             IModel model,
             NpgsqlTypeMappingSource typeMappingSource,
             NpgsqlSqlExpressionFactory sqlExpressionFactory,
-            IReadOnlyDictionary<(TableExpressionBase, string), RelationalTypeMapping?> inferredTypeMappings)
+            IReadOnlyDictionary<(string, string), RelationalTypeMapping?> inferredTypeMappings)
             : base(model, sqlExpressionFactory, inferredTypeMappings)
         {
             _typeMappingSource = typeMappingSource;
@@ -1330,7 +1339,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             switch (expression)
             {
                 case PgUnnestExpression unnestExpression
-                    when TryGetInferredTypeMapping(unnestExpression, unnestExpression.ColumnName, out var elementTypeMapping):
+                    when TryGetInferredTypeMapping(unnestExpression.Alias, unnestExpression.ColumnName, out var elementTypeMapping):
                 {
                     var collectionTypeMapping = _typeMappingSource.FindMapping(unnestExpression.Array.Type, Model, elementTypeMapping);
 

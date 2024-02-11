@@ -17,7 +17,7 @@ public class NpgsqlQueryTranslationPostprocessor : RelationalQueryTranslationPos
     public NpgsqlQueryTranslationPostprocessor(
         QueryTranslationPostprocessorDependencies dependencies,
         RelationalQueryTranslationPostprocessorDependencies relationalDependencies,
-        QueryCompilationContext queryCompilationContext)
+        RelationalQueryCompilationContext queryCompilationContext)
         : base(dependencies, relationalDependencies, queryCompilationContext)
     {
     }

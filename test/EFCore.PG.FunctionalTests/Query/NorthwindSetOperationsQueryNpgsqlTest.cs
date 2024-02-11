@@ -135,7 +135,7 @@ FROM "Orders" AS o3
 
         AssertSql(
             """
-SELECT t0."OrderID", t0."CustomerID"
+SELECT u0."OrderID", u0."CustomerID"
 FROM (
     SELECT NULL::int AS "OrderID", o."CustomerID"
     FROM "Orders" AS o
@@ -145,9 +145,9 @@ FROM (
     UNION
     SELECT o1."OrderID", o1."CustomerID"
     FROM "Orders" AS o1
-) AS t0
-WHERE t0."CustomerID" = (
-    SELECT t1."CustomerID"
+) AS u0
+WHERE u0."CustomerID" = (
+    SELECT u2."CustomerID"
     FROM (
         SELECT NULL::int AS "OrderID", o2."CustomerID"
         FROM "Orders" AS o2
@@ -157,10 +157,10 @@ WHERE t0."CustomerID" = (
         UNION
         SELECT o4."OrderID", o4."CustomerID"
         FROM "Orders" AS o4
-    ) AS t1
-    ORDER BY t1."CustomerID" NULLS FIRST
-    LIMIT 1) OR (t0."CustomerID" IS NULL AND (
-    SELECT t1."CustomerID"
+    ) AS u2
+    ORDER BY u2."CustomerID" NULLS FIRST
+    LIMIT 1) OR (u0."CustomerID" IS NULL AND (
+    SELECT u2."CustomerID"
     FROM (
         SELECT NULL::int AS "OrderID", o2."CustomerID"
         FROM "Orders" AS o2
@@ -170,8 +170,8 @@ WHERE t0."CustomerID" = (
         UNION
         SELECT o4."OrderID", o4."CustomerID"
         FROM "Orders" AS o4
-    ) AS t1
-    ORDER BY t1."CustomerID" NULLS FIRST
+    ) AS u2
+    ORDER BY u2."CustomerID" NULLS FIRST
     LIMIT 1) IS NULL)
 """);
     }

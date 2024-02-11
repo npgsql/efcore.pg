@@ -35,30 +35,6 @@ public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpg
             ss => ss.Set<FunkyCustomer>().Where(c => c.FirstName != null && c.FirstName.StartsWith(param)));
     }
 
-    [ConditionalTheory] // TODO: Remove, test was introduced upstream
-    [MemberData(nameof(IsAsyncData))]
-    public virtual async Task String_Contains_and_StartsWith_with_same_parameter(bool async)
-    {
-        var s = "B";
-
-        await AssertQuery(
-            async,
-            ss => ss.Set<FunkyCustomer>().Where(
-                c => c.FirstName.Contains(s) || c.LastName.StartsWith(s)),
-            ss => ss.Set<FunkyCustomer>().Where(
-                c => c.FirstName.MaybeScalar(f => f.Contains(s)) == true || c.LastName.MaybeScalar(l => l.StartsWith(s)) == true));
-
-        AssertSql(
-            """
-@__s_0_contains='%B%'
-@__s_0_startswith='B%'
-
-SELECT f."Id", f."FirstName", f."LastName", f."NullableBool"
-FROM "FunkyCustomers" AS f
-WHERE f."FirstName" LIKE @__s_0_contains ESCAPE '\' OR f."LastName" LIKE @__s_0_startswith ESCAPE '\'
-""");
-    }
-
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 

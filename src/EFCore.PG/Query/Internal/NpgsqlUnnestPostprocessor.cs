@@ -44,8 +44,8 @@ public class NpgsqlUnnestPostprocessor : ExpressionVisitor
                         && !selectExpression.Orderings.Select(o => o.Expression)
                             .Concat(selectExpression.Projection.Select(p => p.Expression))
                             .Any(
-                                p => p is ColumnExpression { Name: "ordinality", Table: var ordinalityTable }
-                                    && ordinalityTable == table))
+                                p => p is ColumnExpression { Name: "ordinality", } ordinalityColumn
+                                    && ordinalityColumn.TableAlias == table.Alias))
                     {
                         if (newTables is null)
                         {

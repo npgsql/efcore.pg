@@ -188,14 +188,14 @@ FROM "Customers" AS c
 
         AssertSql(
             """
-SELECT t."CustomerID", o0."OrderID", o0."CustomerID", o0."EmployeeID", o0."OrderDate"
+SELECT o0."CustomerID", o1."OrderID", o1."CustomerID", o1."EmployeeID", o1."OrderDate"
 FROM (
     SELECT DISTINCT o."CustomerID"
     FROM "Orders" AS o
     WHERE o."OrderID" < 10300
-) AS t
-LEFT JOIN "Orders" AS o0 ON t."CustomerID" = o0."CustomerID"
-ORDER BY t."CustomerID" NULLS FIRST
+) AS o0
+LEFT JOIN "Orders" AS o1 ON o0."CustomerID" = o1."CustomerID"
+ORDER BY o0."CustomerID" NULLS FIRST
 """);
     }
 

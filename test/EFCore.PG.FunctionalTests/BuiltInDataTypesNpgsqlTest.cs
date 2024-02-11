@@ -569,7 +569,7 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
         Assert.Equal(new Dictionary<string, string> { { "a", "b" } }, entity.DictionaryAsHstore);
         Assert.Equal(new NpgsqlRange<int>(4, true, 8, false), entity.NpgsqlRangeAsRange);
 
-        Assert.Equal([2, 3], entity.IntArrayAsIntArray);
+        Assert.Equal(new[] { 2, 3 }, entity.IntArrayAsIntArray);
         Assert.Equal(
             [PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04")],
             entity.PhysicalAddressArrayAsMacaddrArray);

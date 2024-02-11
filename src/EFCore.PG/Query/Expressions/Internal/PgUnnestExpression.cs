@@ -85,4 +85,12 @@ public class PgUnnestExpression : PgTableValuedFunctionExpression
         => array == Array
             ? this
             : new PgUnnestExpression(Alias, array, ColumnName, WithOrdinality);
+
+    /// <inheritdoc />
+    public override TableExpressionBase Clone(string? alias, ExpressionVisitor cloningExpressionVisitor)
+        => new PgUnnestExpression(alias!, (SqlExpression)cloningExpressionVisitor.Visit(Array), ColumnName, WithOrdinality);
+
+    /// <inheritdoc />
+    public override PgTableValuedFunctionExpression WithAlias(string newAlias)
+        => new(newAlias, Name, Arguments, ColumnInfos, WithOrdinality);
 }

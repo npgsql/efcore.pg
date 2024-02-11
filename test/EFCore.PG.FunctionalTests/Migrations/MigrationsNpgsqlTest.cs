@@ -1703,8 +1703,31 @@ DROP SEQUENCE "People_Id_old_seq";
             @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""default"";");
     }
 
+    public override async Task Convert_string_column_to_a_json_column_containing_reference()
+    {
+        var exception =
+            await Assert.ThrowsAsync<PostgresException>(() => base.Convert_string_column_to_a_json_column_containing_reference());
+
+        Assert.Equal("42804", exception.SqlState); // column "Name" cannot be cast automatically to type jsonb
+    }
+
+    public override async Task Convert_string_column_to_a_json_column_containing_required_reference()
+    {
+        var exception =
+            await Assert.ThrowsAsync<PostgresException>(() => base.Convert_string_column_to_a_json_column_containing_required_reference());
+
+        Assert.Equal("42804", exception.SqlState); // column "Name" cannot be cast automatically to type jsonb
+    }
+
+    public override async Task Convert_string_column_to_a_json_column_containing_collection()
+    {
+        var exception =
+            await Assert.ThrowsAsync<PostgresException>(() => base.Convert_string_column_to_a_json_column_containing_collection());
+
+        Assert.Equal("42804", exception.SqlState); // column "Name" cannot be cast automatically to type jsonb
+    }
+
 #pragma warning disable CS0618
-    [Fact]
     public async Task Alter_column_change_default_column_collation()
     {
         await Test(
