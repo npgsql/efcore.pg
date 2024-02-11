@@ -23,6 +23,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../../efcore/src/EFCore/EFCore.csproj" />
+    <ProjectReference Include="../../../efcore/src/EFCore.Relational/EFCore.Relational.csproj" />
+    <ProjectReference Include="../../../efcore/src/EFCore.Abstractions/EFCore.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="..\Shared\*.cs" />
 
     <None Update="Properties\NpgsqlStrings.Designer.tt">

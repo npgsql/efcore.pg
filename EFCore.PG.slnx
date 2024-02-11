@@ -22,4 +22,16 @@
     <Project Path="test/EFCore.PG.FunctionalTests/EFCore.PG.FunctionalTests.csproj" />
     <Project Path="test/EFCore.PG.Tests/EFCore.PG.Tests.csproj" />
   </Folder>
+  <Folder Name="/EF/">
+    <Project Path="../efcore/src/EFCore/EFCore.csproj" />
+    <Project Path="../efcore/src/EFCore.Abstractions/EFCore.Abstractions.csproj" />
+    <Project Path="../efcore/src/EFCore.Analyzers/EFCore.Analyzers.csproj" />
+    <Project Path="../efcore/src/EFCore.Relational/EFCore.Relational.csproj" />
+    <Project Path="../efcore/src/EFCore.SqlServer/EFCore.SqlServer.csproj" />
+    <Project Path="../efcore/src/EFCore.Design/EFCore.Design.csproj" />
+    <Project Path="../efcore/src/EFCore.Proxies/EFCore.Proxies.csproj" />
+    <Project Path="../efcore/test/EFCore.Relational.Specification.Tests/EFCore.Relational.Specification.Tests.csproj" />
+    <Project Path="../efcore/test/EFCore.Specification.Tests/EFCore.Specification.Tests.csproj" />
+    <Project Path="../efcore/test/EFCore.SqlServer.FunctionalTests/EFCore.SqlServer.FunctionalTests.csproj" />
+  </Folder>
 </Solution>
