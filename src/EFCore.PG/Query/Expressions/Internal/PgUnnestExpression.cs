@@ -54,7 +54,12 @@ public class PgUnnestExpression : PgTableValuedFunctionExpression
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public PgUnnestExpression(string alias, SqlExpression array, string columnName, bool withOrdinality = true)
-        : base(alias, "unnest", new[] { array }, new[] { new ColumnInfo(columnName) }, withOrdinality)
+        : this(alias, array, new ColumnInfo(columnName), withOrdinality)
+    {
+    }
+
+    private PgUnnestExpression(string alias, SqlExpression array, ColumnInfo? columnInfo, bool withOrdinality = true)
+        : base(alias, "unnest", new[] { array }, columnInfo is null ? null : [columnInfo.Value], withOrdinality)
     {
     }
 
@@ -91,6 +96,19 @@ public class PgUnnestExpression : PgTableValuedFunctionExpression
         => new PgUnnestExpression(alias!, (SqlExpression)cloningExpressionVisitor.Visit(Array), ColumnName, WithOrdinality);
 
     /// <inheritdoc />
-    public override PgTableValuedFunctionExpression WithAlias(string newAlias)
-        => new(newAlias, Name, Arguments, ColumnInfos, WithOrdinality);
+    public override PgUnnestExpression WithAlias(string newAlias)
+        => new(newAlias, Array, ColumnName, WithOrdinality);
+
+    /// <inheritdoc />
+    public override PgUnnestExpression WithColumnInfos(IReadOnlyList<ColumnInfo> columnInfos)
+        => new(
+            Alias,
+            Array,
+            columnInfos switch
+            {
+                [] => null,
+                [var columnInfo] => columnInfo,
+                _ => throw new ArgumentException()
+            },
+            WithOrdinality);
 }
