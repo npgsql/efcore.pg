@@ -48,7 +48,7 @@ LIMIT 2
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" LIKE @__param_0_startswith ESCAPE '\'
+WHERE s."CaseInsensitiveText" LIKE @__param_0_startswith
 LIMIT 2
 """);
     }
@@ -102,7 +102,7 @@ LIMIT 2
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" LIKE @__param_0_endswith ESCAPE '\'
+WHERE s."CaseInsensitiveText" LIKE @__param_0_endswith
 LIMIT 2
 """);
     }
@@ -156,7 +156,7 @@ LIMIT 2
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" LIKE @__param_0_contains ESCAPE '\'
+WHERE s."CaseInsensitiveText" LIKE @__param_0_contains
 LIMIT 2
 """);
     }
