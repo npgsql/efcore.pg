@@ -234,6 +234,14 @@ VALUES(
 1)
 """);
 
+    protected override void SeedTrickyBuffering(MyContextTrickyBuffering ctx)
+        => ctx.Database.ExecuteSqlRaw(
+            """
+INSERT INTO "Entities" ("Reference", "Id")
+VALUES(
+'{{"Name": "r1", "Number": 7, "JunkReference":{{"Something": "SomeValue" }}, "JunkCollection": [{{"Foo": "junk value"}}], "NestedReference": {{"DoB": "2000-01-01T00:00:00Z"}}, "NestedCollection": [{{"DoB": "2000-02-01T00:00:00Z", "JunkReference": {{"Something": "SomeValue"}}}}, {{"DoB": "2000-02-02T00:00:00Z"}}]}}',1)
+""");
+
     protected override void SeedShadowProperties(MyContextShadowProperties ctx)
         => ctx.Database.ExecuteSqlRaw(
             """

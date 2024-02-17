@@ -760,6 +760,11 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// </summary>
     protected override void GenerateValues(ValuesExpression valuesExpression)
     {
+        if (valuesExpression.RowValues.Count == 0)
+        {
+            throw new InvalidOperationException(RelationalStrings.EmptyCollectionNotSupportedAsInlineQueryRoot);
+        }
+
         // PostgreSQL supports providing the names of columns projected out of VALUES: (VALUES (1, 3), (2, 4)) AS x(a, b).
         // But since other databases sometimes don't, the default relational implementation is complex, involving a SELECT for the first row
         // and a UNION All on the rest. Override to do the nice simple thing.

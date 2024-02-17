@@ -1066,7 +1066,7 @@ WHERE (
         "OwnedCollectionLeaf" jsonb,
         "OwnedReferenceLeaf" jsonb
     )) WITH ORDINALITY AS o
-    WHERE o."Enum" = 2
+    WHERE o."Enum" = -3
     LIMIT 1 OFFSET 0) = 'e1_r_c2_r'
 """);
     }
@@ -2535,7 +2535,7 @@ WHERE (CAST(j."Reference" ->> 'TestDouble' AS double precision)) <> 33.25 OR (CA
             """
 SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
-WHERE (CAST(j."Reference" ->> 'TestEnum' AS integer)) <> 1 OR (CAST(j."Reference" ->> 'TestEnum' AS integer)) IS NULL
+WHERE (CAST(j."Reference" ->> 'TestEnum' AS integer)) <> 2 OR (CAST(j."Reference" ->> 'TestEnum' AS integer)) IS NULL
 """);
     }
 
@@ -2547,7 +2547,7 @@ WHERE (CAST(j."Reference" ->> 'TestEnum' AS integer)) <> 1 OR (CAST(j."Reference
             """
 SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
-WHERE (CAST(j."Reference" ->> 'TestEnumWithIntConverter' AS integer)) <> 2 OR (CAST(j."Reference" ->> 'TestEnumWithIntConverter' AS integer)) IS NULL
+WHERE (CAST(j."Reference" ->> 'TestEnumWithIntConverter' AS integer)) <> -3 OR (CAST(j."Reference" ->> 'TestEnumWithIntConverter' AS integer)) IS NULL
 """);
     }
 
@@ -2607,7 +2607,7 @@ WHERE (CAST(j."Reference" ->> 'TestInt64' AS bigint)) <> 333 OR (CAST(j."Referen
             """
 SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
-WHERE (CAST(j."Reference" ->> 'TestNullableEnum' AS integer)) <> 0 OR (CAST(j."Reference" ->> 'TestNullableEnum' AS integer)) IS NULL
+WHERE (CAST(j."Reference" ->> 'TestNullableEnum' AS integer)) <> -1 OR (CAST(j."Reference" ->> 'TestNullableEnum' AS integer)) IS NULL
 """);
     }
 
@@ -2631,7 +2631,7 @@ WHERE (CAST(j."Reference" ->> 'TestNullableEnum' AS integer)) IS NOT NULL
             """
 SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
-WHERE (CAST(j."Reference" ->> 'TestNullableEnumWithIntConverter' AS integer)) <> 1 OR (CAST(j."Reference" ->> 'TestNullableEnumWithIntConverter' AS integer)) IS NULL
+WHERE (CAST(j."Reference" ->> 'TestNullableEnumWithIntConverter' AS integer)) <> 2 OR (CAST(j."Reference" ->> 'TestNullableEnumWithIntConverter' AS integer)) IS NULL
 """);
     }
 
