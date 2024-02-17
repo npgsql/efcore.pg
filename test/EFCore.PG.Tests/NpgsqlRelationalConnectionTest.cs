@@ -51,7 +51,7 @@ public class NpgsqlRelationalConnectionTest
         Assert.Equal("Host=FakeHost", connection2.ConnectionString);
     }
 
-    [Fact]
+    [Fact(Skip = "Passes in isolation, but fails when the entire test suite is run because of #2891")]
     public void Uses_DbDataSource_from_application_service_provider()
     {
         var serviceCollection = new ServiceCollection();
@@ -79,6 +79,26 @@ public class NpgsqlRelationalConnectionTest
 
         var connection2 = context2.GetService<FakeDbContext>().Database.GetDbConnection();
         Assert.Equal("Host=FakeHost", connection2.ConnectionString);
+    }
+
+    [Fact] // #3060
+    public void DbDataSource_from_application_service_provider_does_not_used_if_connection_string_is_specified()
+    {
+        var serviceCollection = new ServiceCollection();
+
+        serviceCollection
+            .AddNpgsqlDataSource("Host=FakeHost1")
+            .AddDbContext<FakeDbContext>(o => o.UseNpgsql("Host=FakeHost2"));
+
+        using var serviceProvider = serviceCollection.BuildServiceProvider();
+
+        using var scope1 = serviceProvider.CreateScope();
+        var context1 = scope1.ServiceProvider.GetRequiredService<FakeDbContext>();
+        var relationalConnection1 = (NpgsqlRelationalConnection)context1.GetService<IRelationalConnection>()!;
+        Assert.Null(relationalConnection1.DbDataSource);
+
+        var connection1 = context1.GetService<FakeDbContext>().Database.GetDbConnection();
+        Assert.Equal("Host=FakeHost2", connection1.ConnectionString);
     }
 
     [Fact]
