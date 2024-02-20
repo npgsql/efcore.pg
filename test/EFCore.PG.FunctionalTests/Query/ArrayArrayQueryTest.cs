@@ -854,15 +854,34 @@ WHERE COALESCE(array_position(s."IntArray", 6, 2) - 1, -1) = 1
     }
 
     // Note: see NorthwindFunctionsQueryNpgsqlTest.String_Join_non_aggregate for regular use without an array column/parameter
-    public override async Task String_Join_with_array_parameter(bool async)
+    public override async Task String_Join_with_array_of_int_parameter(bool async)
     {
-        await base.String_Join_with_array_parameter(async);
+        await base.String_Join_with_array_of_int_parameter(async);
 
         AssertSql(
             """
 SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
 WHERE array_to_string(s."IntArray", ', ', '') = '3, 4'
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task String_Join_with_array_of_string_parameter(bool async)
+    {
+        // This is not in ArrayQueryTest because string.Join uses another overload for string[] than for List<string> and thus
+        // ArrayToListReplacingExpressionVisitor won't work.
+        await AssertQuery(
+            async,
+            ss => ss.Set<ArrayEntity>()
+                .Where(e => string.Join(", ", e.StringArray) == "3, 4"));
+
+        AssertSql(
+            """
+SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE array_to_string(s."StringArray", ', ', '') = '3, 4'
 """);
     }
 
