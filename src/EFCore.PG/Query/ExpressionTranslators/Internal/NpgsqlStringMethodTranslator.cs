@@ -100,6 +100,9 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
     private static readonly MethodInfo String_Join4 =
         typeof(string).GetMethod(nameof(string.Join), [typeof(char), typeof(string[])])!;
 
+    private static readonly MethodInfo String_Join5 =
+        typeof(string).GetMethod(nameof(string.Join), [typeof(string), typeof(IEnumerable<string>)])!;
+
     private static readonly MethodInfo String_Join_generic1 =
         typeof(string).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .Single(
@@ -334,6 +337,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                 || method == String_Join2
                 || method == String_Join3
                 || method == String_Join4
+                || method == String_Join5
                 || method.IsClosedFormOf(String_Join_generic1)
                 || method.IsClosedFormOf(String_Join_generic2)))
         {
