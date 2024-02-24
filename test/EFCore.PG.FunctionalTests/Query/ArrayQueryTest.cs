@@ -513,6 +513,10 @@ FROM "SomeEntities" AS s
     [MemberData(nameof(IsAsyncData))]
     public abstract Task String_Join_with_array_of_string_column(bool async);
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public abstract Task String_Join_disallow_non_array_type_mapped_parameter(bool async);
+
     #endregion Other translations
 
     #region Support

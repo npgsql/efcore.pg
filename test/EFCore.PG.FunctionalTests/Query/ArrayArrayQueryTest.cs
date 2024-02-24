@@ -500,7 +500,7 @@ WHERE s."NullableEnumConvertedToStringWithNonNullableLambda" = ANY (@__array_0) 
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.Contains(item)));
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArrayOfEnum.Contains(item)));
 
         AssertSql(
             """
@@ -516,7 +516,7 @@ WHERE s."ValueConvertedArray" @> ARRAY[@__item_0]::text[]
     {
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.Contains(SomeEnum.Eight)));
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArrayOfEnum.Contains(SomeEnum.Eight)));
 
         AssertSql(
             """
@@ -532,7 +532,7 @@ WHERE s."ValueConvertedArray" @> ARRAY['Eight']::text[]
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.All(x => p.Contains(x))));
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArrayOfEnum.All(x => p.Contains(x))));
 
         AssertSql(
             """
@@ -773,7 +773,7 @@ WHERE s."IntArray" && @__ints_0
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.Any(i => list.Contains(i))));
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArrayOfEnum.Any(i => list.Contains(i))));
 
         AssertSql(
             """
@@ -881,6 +881,18 @@ SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s
 FROM "SomeEntities" AS s
 WHERE array_to_string(s."StringArray", ', ', '') = '3, 4'
 """);
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public override async Task String_Join_disallow_non_array_type_mapped_parameter(bool async)
+    {
+        // This is not in ArrayQueryTest because string.Join uses another overload for string[] than for List<string> and thus
+        // ArrayToListReplacingExpressionVisitor won't work.
+        await AssertTranslationFailed(() => AssertQuery(
+            async,
+            ss => ss.Set<ArrayEntity>()
+                .Where(e => string.Join(", ", e.ArrayOfStringConvertedToDelimitedString) == "3, 4")));
     }
 
     #endregion Other translations

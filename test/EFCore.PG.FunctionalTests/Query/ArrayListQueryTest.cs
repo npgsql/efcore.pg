@@ -508,7 +508,7 @@ WHERE s."NullableEnumConvertedToStringWithNonNullableLambda" = ANY (@__array_0) 
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedList.Contains(item)));
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedListOfEnum.Contains(item)));
 
         AssertSql(
             """
@@ -524,7 +524,7 @@ WHERE s."ValueConvertedList" @> ARRAY[@__item_0]::text[]
     {
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedList.Contains(SomeEnum.Eight)));
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedListOfEnum.Contains(SomeEnum.Eight)));
 
         AssertSql(
             """
@@ -540,7 +540,7 @@ WHERE s."ValueConvertedList" @> ARRAY['Eight']::text[]
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArray.All(x => p.Contains(x))));
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArrayOfEnum.All(x => p.Contains(x))));
 
         AssertSql(
             """
@@ -791,7 +791,7 @@ WHERE s."IntList" && @__ints_0
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedList.Any(i => array.Contains(i))));
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedListOfEnum.Any(i => array.Contains(i))));
 
         AssertSql(
             """
@@ -905,6 +905,18 @@ WHERE array_to_string(s."StringList", ', ', '') = '3, 4'
 """);
     }
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public override async Task String_Join_disallow_non_array_type_mapped_parameter(bool async)
+    {
+        // This is not in ArrayQueryTest because string.Join uses another overload for string[] than for List<string> and thus
+        // ArrayToListReplacingExpressionVisitor won't work.
+        await AssertTranslationFailed(() => AssertQuery(
+            async,
+            ss => ss.Set<ArrayEntity>()
+                .Where(e => string.Join(", ", e.ListOfStringConvertedToDelimitedString) == "3, 4")));
+    }
+
     #endregion Other translations
 
     public class ArrayListQueryFixture : ArrayQueryFixture
@@ -942,11 +954,11 @@ WHERE array_to_string(s."StringList", ', ', '') = '3, 4'
         private static readonly PropertyInfo NullableStringList
             = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.NullableStringList));
 
-        private static readonly PropertyInfo ValueConvertedArray
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.ValueConvertedArray));
+        private static readonly PropertyInfo ValueConvertedArrayOfEnum
+            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.ValueConvertedArrayOfEnum));
 
-        private static readonly PropertyInfo ValueConvertedList
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.ValueConvertedList));
+        private static readonly PropertyInfo ValueConvertedListOfEnum
+            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.ValueConvertedListOfEnum));
 
         protected override Expression VisitMember(MemberExpression node)
         {
@@ -970,9 +982,9 @@ WHERE array_to_string(s."StringList", ', ', '') = '3, 4'
                 return Expression.MakeMemberAccess(node.Expression, NullableStringList);
             }
 
-            if (node.Member == ValueConvertedArray)
+            if (node.Member == ValueConvertedArrayOfEnum)
             {
-                return Expression.MakeMemberAccess(node.Expression, ValueConvertedList);
+                return Expression.MakeMemberAccess(node.Expression, ValueConvertedListOfEnum);
             }
 
             return node;

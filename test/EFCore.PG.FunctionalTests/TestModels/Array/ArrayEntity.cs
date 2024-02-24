@@ -23,8 +23,10 @@ public class ArrayEntity
     public SomeEnum EnumConvertedToString { get; set; }
     public SomeEnum? NullableEnumConvertedToString { get; set; }
     public SomeEnum? NullableEnumConvertedToStringWithNonNullableLambda { get; set; }
-    public SomeEnum[] ValueConvertedArray { get; set; } = null!;
-    public List<SomeEnum> ValueConvertedList { get; set; } = null!;
+    public SomeEnum[] ValueConvertedArrayOfEnum { get; set; } = null!;
+    public List<SomeEnum> ValueConvertedListOfEnum { get; set; } = null!;
+    public string[] ArrayOfStringConvertedToDelimitedString { get; set; } = null!;
+    public List<string> ListOfStringConvertedToDelimitedString { get; set; } = null!;
     public IList<int> IList { get; set; } = null!;
     public byte Byte { get; set; }
 }
