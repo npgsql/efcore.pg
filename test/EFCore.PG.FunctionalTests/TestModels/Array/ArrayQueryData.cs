@@ -60,8 +60,10 @@ public class ArrayQueryData : ISetSource
                 EnumConvertedToString = SomeEnum.One,
                 NullableEnumConvertedToString = SomeEnum.One,
                 NullableEnumConvertedToStringWithNonNullableLambda = SomeEnum.One,
-                ValueConvertedArray = new[] { SomeEnum.Eight, SomeEnum.Nine },
-                ValueConvertedList = new List<SomeEnum> { SomeEnum.Eight, SomeEnum.Nine },
+                ValueConvertedArrayOfEnum = new[] { SomeEnum.Eight, SomeEnum.Nine },
+                ValueConvertedListOfEnum = new List<SomeEnum> { SomeEnum.Eight, SomeEnum.Nine },
+                ArrayOfStringConvertedToDelimitedString = ["3", "4"],
+                ListOfStringConvertedToDelimitedString = ["3", "4"],
                 IList = new[] { 8, 9 },
                 Byte = 10
             },
@@ -110,8 +112,10 @@ public class ArrayQueryData : ISetSource
                 EnumConvertedToString = SomeEnum.Two,
                 NullableEnumConvertedToString = SomeEnum.Two,
                 NullableEnumConvertedToStringWithNonNullableLambda = SomeEnum.Two,
-                ValueConvertedArray = new[] { SomeEnum.Nine, SomeEnum.Ten },
-                ValueConvertedList = new List<SomeEnum> { SomeEnum.Nine, SomeEnum.Ten },
+                ValueConvertedArrayOfEnum = new[] { SomeEnum.Nine, SomeEnum.Ten },
+                ValueConvertedListOfEnum = new List<SomeEnum> { SomeEnum.Nine, SomeEnum.Ten },
+                ArrayOfStringConvertedToDelimitedString = ["5", "6", "7", "8"],
+                ListOfStringConvertedToDelimitedString = ["5", "6", "7", "8"],
                 IList = new[] { 9, 10 },
                 Byte = 20
             }
