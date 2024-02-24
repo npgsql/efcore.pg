@@ -854,9 +854,9 @@ WHERE COALESCE(array_position(s."IntArray", 6, 2) - 1, -1) = 1
     }
 
     // Note: see NorthwindFunctionsQueryNpgsqlTest.String_Join_non_aggregate for regular use without an array column/parameter
-    public override async Task String_Join_with_array_of_int_parameter(bool async)
+    public override async Task String_Join_with_array_of_int_column(bool async)
     {
-        await base.String_Join_with_array_of_int_parameter(async);
+        await base.String_Join_with_array_of_int_column(async);
 
         AssertSql(
             """
@@ -866,9 +866,7 @@ WHERE array_to_string(s."IntArray", ', ', '') = '3, 4'
 """);
     }
 
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
-    public async Task String_Join_with_array_of_string_parameter(bool async)
+    public override async Task String_Join_with_array_of_string_column(bool async)
     {
         // This is not in ArrayQueryTest because string.Join uses another overload for string[] than for List<string> and thus
         // ArrayToListReplacingExpressionVisitor won't work.
