@@ -27,10 +27,28 @@ public class ArrayQueryContext(DbContextOptions options) : PoolableDbContext(opt
                 e.Property(ae => ae.NullableEnumConvertedToStringWithNonNullableLambda)
                     .HasConversion(new ValueConverter<SomeEnum, string>(w => w.ToString(), v => Enum.Parse<SomeEnum>(v)));
 
-                e.PrimitiveCollection(ae => ae.ValueConvertedArray)
+                e.Property(ae => ae.ListOfStringConvertedToDelimitedString)
+                    .HasConversion(
+                        v => string.Join(",", v),
+                        v => v.Split(',', StringSplitOptions.None).ToList(),
+                        new ValueComparer<List<string>>(
+                            (c1, c2) => c1.SequenceEqual(c2),
+                            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                            c => c.ToList()));
+
+                e.Property(ae => ae.ArrayOfStringConvertedToDelimitedString)
+                    .HasConversion(
+                        v => string.Join(",", v),
+                        v => v.Split(',', StringSplitOptions.None).ToArray(),
+                        new ValueComparer<string[]>(
+                            (c1, c2) => c1.SequenceEqual(c2),
+                            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                            c => c.ToArray()));
+
+                e.PrimitiveCollection(ae => ae.ValueConvertedArrayOfEnum)
                     .ElementType(eb => eb.HasConversion(typeof(EnumToStringConverter<SomeEnum>)));
 
-                e.PrimitiveCollection(ae => ae.ValueConvertedList)
+                e.PrimitiveCollection(ae => ae.ValueConvertedListOfEnum)
                     .ElementType(eb => eb.HasConversion(typeof(EnumToStringConverter<SomeEnum>)));
 
                 e.HasIndex(ae => ae.NonNullableText);

@@ -1,5 +1,6 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
 
@@ -99,6 +100,9 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
 
     private static readonly MethodInfo String_Join4 =
         typeof(string).GetMethod(nameof(string.Join), [typeof(char), typeof(string[])])!;
+
+    private static readonly MethodInfo String_Join5 =
+        typeof(string).GetMethod(nameof(string.Join), [typeof(string), typeof(IEnumerable<string>)])!;
 
     private static readonly MethodInfo String_Join_generic1 =
         typeof(string).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
@@ -334,8 +338,10 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                 || method == String_Join2
                 || method == String_Join3
                 || method == String_Join4
+                || method == String_Join5
                 || method.IsClosedFormOf(String_Join_generic1)
-                || method.IsClosedFormOf(String_Join_generic2)))
+                || method.IsClosedFormOf(String_Join_generic2))
+            && arguments[1].TypeMapping is NpgsqlArrayTypeMapping)
         {
             // If the array of strings to be joined is a constant (NewArrayExpression), we translate to concat_ws.
             // Otherwise we translate to array_to_string, which also supports array columns and parameters.
