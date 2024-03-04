@@ -26,15 +26,14 @@ public class NpgsqlSequenceValueGeneratorFactory : INpgsqlSequenceValueGenerator
     ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
-    public virtual ValueGenerator Create(
+    public virtual ValueGenerator? TryCreate(
         IProperty property,
+        Type type,
         NpgsqlSequenceValueGeneratorState generatorState,
         INpgsqlRelationalConnection connection,
         IRawSqlCommandBuilder rawSqlCommandBuilder,
         IRelationalCommandDiagnosticsLogger commandLogger)
     {
-        var type = property.ClrType.UnwrapNullableType().UnwrapEnumType();
-
         if (type == typeof(long))
         {
             return new NpgsqlSequenceHiLoValueGenerator<long>(
@@ -89,8 +88,6 @@ public class NpgsqlSequenceValueGeneratorFactory : INpgsqlSequenceValueGenerator
                 rawSqlCommandBuilder, _sqlGenerator, generatorState, connection, commandLogger);
         }
 
-        throw new ArgumentException(
-            CoreStrings.InvalidValueGeneratorFactoryProperty(
-                nameof(NpgsqlSequenceValueGeneratorFactory), property.Name, property.DeclaringType.DisplayName()));
+        return null;
     }
 }

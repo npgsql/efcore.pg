@@ -14,16 +14,6 @@ CREATE TABLE "ZeroKey" ("Id" int);
 INSERT INTO "ZeroKey" VALUES (NULL)
 """);
 
-    // https://github.com/dotnet/efcore/pull/32542/files#r1485633978
-    public override Task Nested_queries_does_not_cause_concurrency_exception_sync(bool tracking)
-        => Assert.ThrowsAsync<NpgsqlOperationInProgressException>(
-            () => base.Nested_queries_does_not_cause_concurrency_exception_sync(tracking));
-
-    // https://github.com/dotnet/efcore/pull/32542/files#r1485633978
-    public override Task Select_nested_projection()
-        => Assert.ThrowsAsync<NpgsqlOperationInProgressException>(
-            () => base.Select_nested_projection());
-
     // Writes DateTime with Kind=Unspecified to timestamptz
     public override Task SelectMany_where_Select(bool async)
         => Task.CompletedTask;

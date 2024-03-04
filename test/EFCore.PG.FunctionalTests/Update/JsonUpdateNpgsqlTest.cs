@@ -1986,20 +1986,20 @@ LIMIT 2
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_nullable_enum());
 
     public override Task Edit_single_property_relational_collection_of_nullable_enum_set_to_null()
-        => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_nullable_enum_set_to_null());
+        => Assert.ThrowsAsync<NullException>(() => base.Edit_single_property_relational_collection_of_nullable_enum_set_to_null());
 
     public override Task Edit_single_property_relational_collection_of_nullable_enum_with_int_converter()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_nullable_enum_with_int_converter());
 
     public override Task Edit_single_property_relational_collection_of_nullable_enum_with_int_converter_set_to_null()
-        => Assert.ThrowsAsync<EqualException>(
+        => Assert.ThrowsAsync<NullException>(
             () => base.Edit_single_property_relational_collection_of_nullable_enum_with_int_converter_set_to_null());
 
     public override Task Edit_single_property_relational_collection_of_nullable_int32()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_nullable_int32());
 
     public override Task Edit_single_property_relational_collection_of_nullable_int32_set_to_null()
-        => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_nullable_int32_set_to_null());
+        => Assert.ThrowsAsync<NullException>(() => base.Edit_single_property_relational_collection_of_nullable_int32_set_to_null());
 
     public override Task Edit_single_property_relational_collection_of_uint16()
         => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_relational_collection_of_uint16());

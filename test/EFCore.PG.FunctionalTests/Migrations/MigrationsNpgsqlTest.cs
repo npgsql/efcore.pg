@@ -1519,10 +1519,14 @@ ALTER TABLE "People" ALTER COLUMN "Id" SET CACHE 1;
             });
 
         AssertSql(
-            @"CREATE SEQUENCE ""People_Id_seq"" AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;",
+            """
+CREATE SEQUENCE "People_Id_seq" AS integer START WITH 1 INCREMENT BY 1 NO CYCLE;
+""",
             //
-            @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET DEFAULT (nextval('""People_Id_seq""'));
-ALTER SEQUENCE ""People_Id_seq"" OWNED BY ""People"".""Id"";");
+            """
+ALTER TABLE "People" ALTER COLUMN "Id" SET DEFAULT (nextval('"People_Id_seq"'));
+ALTER SEQUENCE "People_Id_seq" OWNED BY "People"."Id";
+""");
     }
 
     [Fact]
@@ -1545,10 +1549,14 @@ ALTER SEQUENCE ""People_Id_seq"" OWNED BY ""People"".""Id"";");
             });
 
         AssertSql(
-            @"CREATE SEQUENCE some_schema.""People_Id_seq"" AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;",
+            """
+CREATE SEQUENCE some_schema."People_Id_seq" AS integer START WITH 1 INCREMENT BY 1 NO CYCLE;
+""",
             //
-            @"ALTER TABLE some_schema.""People"" ALTER COLUMN ""Id"" SET DEFAULT (nextval('some_schema.""People_Id_seq""'));
-ALTER SEQUENCE some_schema.""People_Id_seq"" OWNED BY some_schema.""People"".""Id"";");
+            """
+ALTER TABLE some_schema."People" ALTER COLUMN "Id" SET DEFAULT (nextval('some_schema."People_Id_seq"'));
+ALTER SEQUENCE some_schema."People_Id_seq" OWNED BY some_schema."People"."Id";
+""");
     }
 
     [Fact]
@@ -1571,10 +1579,14 @@ ALTER SEQUENCE some_schema.""People_Id_seq"" OWNED BY some_schema.""People"".""I
             });
 
         AssertSql(
-            @"CREATE SEQUENCE ""People_Id_seq"" START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;",
+            """
+CREATE SEQUENCE "People_Id_seq" START WITH 1 INCREMENT BY 1 NO CYCLE;
+""",
             //
-            @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET DEFAULT (nextval('""People_Id_seq""'));
-ALTER SEQUENCE ""People_Id_seq"" OWNED BY ""People"".""Id"";");
+            """
+ALTER TABLE "People" ALTER COLUMN "Id" SET DEFAULT (nextval('"People_Id_seq"'));
+ALTER SEQUENCE "People_Id_seq" OWNED BY "People"."Id";
+""");
     }
 
     [Fact]
@@ -2614,7 +2626,9 @@ ALTER TABLE "People" ALTER COLUMN "SomeField" SET DEFAULT '';
         await base.Create_sequence();
 
         AssertSql(
-            @"CREATE SEQUENCE ""TestSequence"" AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;");
+            """
+CREATE SEQUENCE "TestSequence" AS integer START WITH 1 INCREMENT BY 1 NO CYCLE;
+""");
     }
 
     public override async Task Create_sequence_all_settings()
@@ -2631,7 +2645,39 @@ BEGIN
 END $EF$;
 """,
             //
-            @"CREATE SEQUENCE dbo2.""TestSequence"" START WITH 3 INCREMENT BY 2 MINVALUE 2 MAXVALUE 916 CYCLE;");
+            @"CREATE SEQUENCE dbo2.""TestSequence"" START WITH 3 INCREMENT BY 2 MINVALUE 2 MAXVALUE 916 CYCLE CACHE 20;");
+    }
+
+    public override async Task Create_sequence_nocache()
+    {
+        await base.Create_sequence_nocache();
+
+        AssertSql("""CREATE SEQUENCE "Alpha" START WITH 1 INCREMENT BY 1 NO CYCLE CACHE 1;""");
+    }
+
+    public override async Task Create_sequence_cache()
+    {
+        await base.Create_sequence_cache();
+
+        AssertSql("""CREATE SEQUENCE "Beta" START WITH 1 INCREMENT BY 1 NO CYCLE CACHE 20;""");
+    }
+
+    public override async Task Create_sequence_default_cache()
+    {
+        // PG has no distinction between "no cached" and "CACHE 1" (which is the default), so setting to the default is the same as
+        // disabling caching.
+        await Test(
+            builder => { },
+            builder => builder.HasSequence("Gamma").UseCache(),
+            model =>
+            {
+                var sequence = Assert.Single(model.Sequences);
+                Assert.Equal("Gamma", sequence.Name);
+                Assert.False(sequence.IsCached);
+                Assert.Null(sequence.CacheSize);
+            });
+
+        AssertSql("""CREATE SEQUENCE "Gamma" START WITH 1 INCREMENT BY 1 NO CYCLE;""");
     }
 
     [Fact]
@@ -2648,34 +2694,19 @@ END $EF$;
             });
 
         AssertSql(
-            @"CREATE SEQUENCE ""TestSequence"" AS smallint START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;");
+            """
+CREATE SEQUENCE "TestSequence" AS smallint START WITH 1 INCREMENT BY 1 NO CYCLE;
+""");
     }
 
     [Fact]
     public override async Task Alter_sequence_all_settings()
     {
-        await Test(
-            builder => builder.HasSequence<int>("foo"),
-            _ => { },
-            builder => builder.HasSequence<int>("foo")
-                .StartsAt(-3)
-                .IncrementsBy(2)
-                .HasMin(-5)
-                .HasMax(10)
-                .IsCyclic(),
-            model =>
-            {
-                var sequence = Assert.Single(model.Sequences);
-                Assert.Equal(-3, sequence.StartValue);
-                Assert.Equal(2, sequence.IncrementBy);
-                Assert.Equal(-5, sequence.MinValue);
-                Assert.Equal(10, sequence.MaxValue);
-                Assert.True(sequence.IsCyclic);
-            });
+        await base.Alter_sequence_all_settings();
 
         AssertSql(
             """
-ALTER SEQUENCE foo INCREMENT BY 2 MINVALUE -5 MAXVALUE 10 CYCLE;
+ALTER SEQUENCE foo INCREMENT BY 2 MINVALUE -5 MAXVALUE 10 CYCLE CACHE 20;
 """,
             //
             """
@@ -2689,7 +2720,79 @@ ALTER SEQUENCE foo RESTART;
         await base.Alter_sequence_increment_by();
 
         AssertSql(
-            @"ALTER SEQUENCE foo INCREMENT BY 2 NO MINVALUE NO MAXVALUE NO CYCLE;");
+            @"ALTER SEQUENCE foo INCREMENT BY 2 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;");
+    }
+
+    public override async Task Alter_sequence_default_cache_to_cache()
+    {
+        await base.Alter_sequence_default_cache_to_cache();
+
+        AssertSql(
+            """ALTER SEQUENCE "Delta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 20;""");
+    }
+
+    public override async Task Alter_sequence_default_cache_to_nocache()
+    {
+        await base.Alter_sequence_default_cache_to_nocache();
+
+        AssertSql(
+            """ALTER SEQUENCE "Epsilon" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
+    }
+
+    public override async Task Alter_sequence_cache_to_nocache()
+    {
+        await base.Alter_sequence_cache_to_nocache();
+
+        AssertSql(
+            """ALTER SEQUENCE "Zeta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
+    }
+
+    public override async Task Alter_sequence_cache_to_default_cache()
+    {
+        // PG has no distinction between "no cached" and "CACHE 1" (which is the default), so setting to the default is the same as
+        // disabling caching.
+        await Test(
+            builder => builder.HasSequence<int>("Eta").UseCache(20),
+            builder => { },
+            builder => builder.HasSequence<int>("Eta").UseCache(),
+            model =>
+            {
+                var sequence = Assert.Single(model.Sequences);
+                Assert.False(sequence.IsCached);
+                Assert.Null(sequence.CacheSize);
+            });
+
+        AssertSql(
+            """ALTER SEQUENCE "Eta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
+    }
+
+    public override async Task Alter_sequence_nocache_to_cache()
+    {
+        await base.Alter_sequence_nocache_to_cache();
+
+        AssertSql(
+            """
+ALTER SEQUENCE "Theta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 20;
+""");
+    }
+
+    public override async Task Alter_sequence_nocache_to_default_cache()
+    {
+        // PG has no distinction between "no cached" and "CACHE 1" (which is the default), so setting to the default is the same as
+        // disabling caching.
+        await Test(
+            builder => builder.HasSequence<int>("Iota").UseNoCache(),
+            builder => { },
+            builder => builder.HasSequence<int>("Iota").UseCache(),
+            model =>
+            {
+                var sequence = Assert.Single(model.Sequences);
+                Assert.False(sequence.IsCached);
+                Assert.Null(sequence.CacheSize);
+            });
+
+        AssertSql(
+            """ALTER SEQUENCE "Iota" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
     }
 
     public override async Task Alter_sequence_restart_with()
@@ -2887,7 +2990,16 @@ SELECT setval(
 """);
     }
 
-    #endregion
+
+    #endregion Data seeding
+
+    [ConditionalFact]
+    public override async Task Add_required_primitve_collection_with_custom_default_value_sql_to_existing_table()
+    {
+        await base.Add_required_primitve_collection_with_custom_default_value_sql_to_existing_table_core("ARRAY[3, 2, 1]");
+
+        AssertSql("""ALTER TABLE "Customers" ADD "Numbers" integer[] NOT NULL DEFAULT (ARRAY[3, 2, 1]);""");
+    }
 
     #region PostgreSQL extensions
 

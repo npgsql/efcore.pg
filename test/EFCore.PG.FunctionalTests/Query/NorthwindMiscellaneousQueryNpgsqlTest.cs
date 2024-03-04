@@ -314,11 +314,11 @@ WHERE c."Region" = ANY (@__regions_0) OR (c."Region" IS NULL AND array_position(
 
         AssertSql(
             """
-@__collection_0={ 'A%', 'B%', 'C%' } (DbType = Object)
+@__collection_1={ 'A%', 'B%', 'C%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" LIKE ANY (@__collection_0)
+WHERE c."Address" LIKE ANY (@__collection_1)
 """);
     }
 
@@ -336,11 +336,11 @@ WHERE c."Address" LIKE ANY (@__collection_0)
 
         AssertSql(
             """
-@__collection_0={ 'A%', 'B%', 'C%' } (DbType = Object)
+@__collection_1={ 'A%', 'B%', 'C%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" LIKE ALL (@__collection_0)
+WHERE c."Address" LIKE ALL (@__collection_1)
 """);
     }
 
@@ -383,11 +383,11 @@ WHERE c."Address" LIKE ALL (@__collection_0)
 
         AssertSql(
             """
-@__collection_0={ 'a%', 'b%', 'c%' } (DbType = Object)
+@__collection_1={ 'a%', 'b%', 'c%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" ILIKE ANY (@__collection_0)
+WHERE c."Address" ILIKE ANY (@__collection_1)
 """);
     }
 
@@ -405,11 +405,11 @@ WHERE c."Address" ILIKE ANY (@__collection_0)
 
         AssertSql(
             """
-@__collection_0={ 'a%', 'b%', 'c%' } (DbType = Object)
+@__collection_1={ 'a%', 'b%', 'c%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" ILIKE ALL (@__collection_0)
+WHERE c."Address" ILIKE ALL (@__collection_1)
 """);
     }
 

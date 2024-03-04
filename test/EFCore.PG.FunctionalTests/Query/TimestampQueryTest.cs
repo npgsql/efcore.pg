@@ -860,7 +860,7 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
         public NpgsqlRange<DateTime> TimestampDateTimeRange { get; set; }
     }
 
-    public class TimestampQueryFixture : SharedStoreFixtureBase<TimestampQueryContext>, IQueryFixtureBase
+    public class TimestampQueryFixture : SharedStoreFixtureBase<TimestampQueryContext>, IQueryFixtureBase, ITestSqlLoggerFactory
     {
         protected override string StoreName
             => "TimestampQueryTest";

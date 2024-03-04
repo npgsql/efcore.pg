@@ -38,7 +38,7 @@ public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpg
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-    public class FunkyDataQueryNpgsqlFixture : FunkyDataQueryFixtureBase
+    public class FunkyDataQueryNpgsqlFixture : FunkyDataQueryFixtureBase, ITestSqlLoggerFactory
     {
         private FunkyDataData _expectedData;
 

@@ -79,7 +79,7 @@ ORDER BY (
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-    public class Ef6GroupByNpgsqlFixture : Ef6GroupByFixtureBase
+    public class Ef6GroupByNpgsqlFixture : Ef6GroupByFixtureBase, ITestSqlLoggerFactory
     {
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
