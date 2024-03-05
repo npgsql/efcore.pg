@@ -328,11 +328,11 @@ WHERE (o."CustomerID", o."OrderID") > ('ALFKI', 10702)
 
         AssertSql(
             """
-@__city1_1='Buenos Aires'
+@__city1_0='Buenos Aires'
 
 SELECT count(*)::int
 FROM "Customers" AS c
-WHERE (c."City", c."CustomerID") > (@__city1_1, 'OCEAN')
+WHERE (c."City", c."CustomerID") > (@__city1_0, 'OCEAN')
 """);
     }
 
@@ -352,11 +352,11 @@ WHERE (c."City", c."CustomerID") > (@__city1_1, 'OCEAN')
 
         AssertSql(
             """
-@__city1_1='Buenos Aires'
+@__city1_0='Buenos Aires'
 
 SELECT count(*)::int
 FROM "Customers" AS c
-WHERE (c."City", c."CustomerID") > (@__city1_1, 'OCEAN')
+WHERE (c."City", c."CustomerID") > (@__city1_0, 'OCEAN')
 """);
     }
 

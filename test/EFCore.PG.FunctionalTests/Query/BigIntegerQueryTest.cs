@@ -145,7 +145,7 @@ WHERE e."BigInteger" % 2 = 0
         public BigInteger BigInteger { get; set; }
     }
 
-    public class BigIntegerQueryFixture : SharedStoreFixtureBase<BigIntegerQueryContext>, IQueryFixtureBase
+    public class BigIntegerQueryFixture : SharedStoreFixtureBase<BigIntegerQueryContext>, IQueryFixtureBase, ITestSqlLoggerFactory
     {
         private BigIntegerData _expectedData;
 

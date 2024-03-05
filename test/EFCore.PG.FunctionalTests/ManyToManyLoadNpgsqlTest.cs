@@ -6,7 +6,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 public class ManyToManyLoadNpgsqlTest(ManyToManyLoadNpgsqlTest.ManyToManyLoadNpgsqlFixture fixture)
     : ManyToManyLoadTestBase<ManyToManyLoadNpgsqlTest.ManyToManyLoadNpgsqlFixture>(fixture)
 {
-    public class ManyToManyLoadNpgsqlFixture : ManyToManyLoadFixtureBase
+    public class ManyToManyLoadNpgsqlFixture : ManyToManyLoadFixtureBase, ITestSqlLoggerFactory
     {
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;

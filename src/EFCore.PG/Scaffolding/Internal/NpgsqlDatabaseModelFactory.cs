@@ -10,6 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 
+// ReSharper disable StringLiteralTypo
+
 /// <summary>
 ///     The default database model factory for Npgsql.
 /// </summary>
@@ -458,7 +460,7 @@ ORDER BY attnum
                         MaxValue = seqInfo.MaxValue,
                         IncrementBy = (int)(seqInfo.IncrementBy ?? 1),
                         IsCyclic = seqInfo.IsCyclic ?? false,
-                        NumbersToCache = seqInfo.NumbersToCache ?? 1
+                        NumbersToCache = seqInfo.CacheSize ?? 1
                     };
 
                     if (!sequenceData.Equals(IdentitySequenceOptionsData.Empty))
@@ -976,11 +978,67 @@ WHERE
         Func<string, string>? schemaFilter,
         IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
     {
-        // Note: we consult information_schema.sequences instead of pg_sequence but the latter was only introduced in PG 10
-        var commandText = $"""
+        // pg_sequence was only introduced in PG 10; we prefer that (cleaner and also exposes sequence caching info), but retain the old
+        // code for backwards compat
+        return connection.PostgreSqlVersion >= new Version(10, 0)
+            ? GetSequencesNew(connection, databaseModel, schemaFilter, logger)
+            : GetSequencesOld(connection, databaseModel, schemaFilter, logger);
+
+        static IEnumerable<DatabaseSequence> GetSequencesNew(
+            NpgsqlConnection connection,
+            DatabaseModel databaseModel,
+            Func<string, string>? schemaFilter,
+            IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
+        {
+            var commandText = $"""
+SELECT nspname, relname, typname, seqstart, seqincrement, seqmax, seqmin, seqcache, seqcycle
+FROM pg_sequence
+JOIN pg_class AS cls ON cls.oid=seqrelid
+JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+JOIN pg_type AS typ ON typ.oid = seqtypid
+/* Filter out owned serial and identity sequences */
+WHERE NOT EXISTS (SELECT * FROM pg_depend AS dep WHERE dep.objid = cls.oid AND dep.deptype IN ('i', 'I', 'a'))
+    {(schemaFilter is not null ? $"AND {schemaFilter("nspname")}" : null)}
+""";
+
+            using var command = new NpgsqlCommand(commandText, connection);
+            using var reader = command.ExecuteReader();
+
+            foreach (var record in reader.Cast<DbDataRecord>())
+            {
+                var sequenceSchema = reader.GetFieldValue<string>("nspname");
+                var sequenceName = reader.GetFieldValue<string>("relname");
+
+                var seqInfo = ReadSequenceInfo(record, connection.PostgreSqlVersion);
+                var sequence = new DatabaseSequence
+                {
+                    Database = databaseModel,
+                    Name = sequenceName,
+                    Schema = sequenceSchema,
+                    StoreType = seqInfo.StoreType,
+                    StartValue = seqInfo.StartValue,
+                    MinValue = seqInfo.MinValue,
+                    MaxValue = seqInfo.MaxValue,
+                    IncrementBy = (int?)seqInfo.IncrementBy,
+                    IsCyclic = seqInfo.IsCyclic,
+                    IsCached = seqInfo.CacheSize is not null,
+                    CacheSize = seqInfo.CacheSize
+                };
+
+                yield return sequence;
+            }
+        }
+
+        static IEnumerable<DatabaseSequence> GetSequencesOld(
+            NpgsqlConnection connection,
+            DatabaseModel databaseModel,
+            Func<string, string>? schemaFilter,
+            IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
+        {
+            var commandText = $"""
 SELECT
   sequence_schema, sequence_name,
-  data_type AS seqtype,
+  data_type AS typname,
   {(connection.PostgreSqlVersion >= new Version(9, 1) ? "start_value" : "1")}::bigint AS seqstart,
   minimum_value::bigint AS seqmin,
   maximum_value::bigint AS seqmax,
@@ -1001,29 +1059,30 @@ WHERE
   {(schemaFilter is not null ? $"AND {schemaFilter("nspname")}" : null)}
 """;
 
-        using var command = new NpgsqlCommand(commandText, connection);
-        using var reader = command.ExecuteReader();
+            using var command = new NpgsqlCommand(commandText, connection);
+            using var reader = command.ExecuteReader();
 
-        foreach (var record in reader.Cast<DbDataRecord>())
-        {
-            var sequenceName = reader.GetFieldValue<string>("sequence_name");
-            var sequenceSchema = reader.GetFieldValue<string>("sequence_schema");
-
-            var seqInfo = ReadSequenceInfo(record, connection.PostgreSqlVersion);
-            var sequence = new DatabaseSequence
+            foreach (var record in reader.Cast<DbDataRecord>())
             {
-                Database = databaseModel,
-                Name = sequenceName,
-                Schema = sequenceSchema,
-                StoreType = seqInfo.StoreType,
-                StartValue = seqInfo.StartValue,
-                MinValue = seqInfo.MinValue,
-                MaxValue = seqInfo.MaxValue,
-                IncrementBy = (int?)seqInfo.IncrementBy,
-                IsCyclic = seqInfo.IsCyclic
-            };
+                var sequenceName = reader.GetFieldValue<string>("sequence_name");
+                var sequenceSchema = reader.GetFieldValue<string>("sequence_schema");
 
-            yield return sequence;
+                var seqInfo = ReadSequenceInfo(record, connection.PostgreSqlVersion);
+                var sequence = new DatabaseSequence
+                {
+                    Database = databaseModel,
+                    Name = sequenceName,
+                    Schema = sequenceSchema,
+                    StoreType = seqInfo.StoreType,
+                    StartValue = seqInfo.StartValue,
+                    MinValue = seqInfo.MinValue,
+                    MaxValue = seqInfo.MaxValue,
+                    IncrementBy = (int?)seqInfo.IncrementBy,
+                    IsCyclic = seqInfo.IsCyclic
+                };
+
+                yield return sequence;
+            }
         }
     }
 
@@ -1225,15 +1284,23 @@ WHERE
 
     private static SequenceInfo ReadSequenceInfo(DbDataRecord record, Version postgresVersion)
     {
-        var storeType = record.GetFieldValue<string>("seqtype");
+        var storeType = record.GetFieldValue<string>("typname");
         var startValue = record.GetValueOrDefault<long>("seqstart");
         var minValue = record.GetValueOrDefault<long>("seqmin");
         var maxValue = record.GetValueOrDefault<long>("seqmax");
         var incrementBy = record.GetValueOrDefault<long>("seqincrement");
         var isCyclic = record.GetValueOrDefault<bool>("seqcycle");
-        var numbersToCache = (int)record.GetValueOrDefault<long>("seqcache");
+        var cacheSize = (int?)record.GetValueOrDefault<long>("seqcache");
 
         long defaultStart, defaultMin, defaultMax;
+
+        storeType = storeType switch
+        {
+            "int2" => "smallint",
+            "int4" => "integer",
+            "int8" => "bigint",
+            _ => storeType
+        };
 
         switch (storeType)
         {
@@ -1293,7 +1360,7 @@ WHERE
             MaxValue = maxValue == defaultMax ? null : maxValue,
             IncrementBy = incrementBy == 1 ? null : incrementBy,
             IsCyclic = isCyclic == false ? null : true,
-            NumbersToCache = numbersToCache == 1 ? null : numbersToCache
+            CacheSize = cacheSize is 1 or null ? null : cacheSize
         };
     }
 
@@ -1305,7 +1372,7 @@ WHERE
         public long? MaxValue { get; set; }
         public long? IncrementBy { get; set; }
         public bool? IsCyclic { get; set; }
-        public long? NumbersToCache { get; set; }
+        public int? CacheSize { get; set; }
     }
 
     #endregion

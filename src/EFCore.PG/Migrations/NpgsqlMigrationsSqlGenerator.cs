@@ -787,6 +787,68 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     }
 
     /// <inheritdoc />
+    protected override void SequenceOptions(
+        string? schema,
+        string name,
+        SequenceOperation operation,
+        IModel? model,
+        MigrationCommandListBuilder builder,
+        bool forAlter)
+    {
+        var intTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(int));
+        var longTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(long));
+
+        builder
+            .Append(" INCREMENT BY ")
+            .Append(intTypeMapping.GenerateSqlLiteral(operation.IncrementBy));
+
+        if (operation.MinValue != null)
+        {
+            builder
+                .Append(" MINVALUE ")
+                .Append(longTypeMapping.GenerateSqlLiteral(operation.MinValue));
+        }
+        else if (forAlter)
+        {
+            builder
+                .Append(" NO MINVALUE");
+        }
+
+        if (operation.MaxValue != null)
+        {
+            builder
+                .Append(" MAXVALUE ")
+                .Append(longTypeMapping.GenerateSqlLiteral(operation.MaxValue));
+        }
+        else if (forAlter)
+        {
+            builder
+                .Append(" NO MAXVALUE");
+        }
+
+        builder.Append(operation.IsCyclic ? " CYCLE" : " NO CYCLE");
+
+        if (!operation.IsCached)
+        {
+            // The base implementation appends NO CACHE, which isn't supported by PG
+            builder
+                .Append(" CACHE 1");
+        }
+        else if (operation.CacheSize != null)
+        {
+            builder
+                .Append(" CACHE ")
+                .Append(intTypeMapping.GenerateSqlLiteral(operation.CacheSize.Value));
+        }
+        else if (forAlter)
+        {
+            // The base implementation just appends CACHE, which isn't supported by PG
+            builder
+                .Append(" CACHE 1");
+        }
+    }
+
+    /// <inheritdoc />
     protected override void Generate(RestartSequenceOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         // PostgreSQL has ALTER SEQUENCE ... RESTART WITH x, which resets the current sequence value but does not change its start value

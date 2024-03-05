@@ -10,10 +10,13 @@ public class ManyToManyTrackingNpgsqlTest(ManyToManyTrackingNpgsqlTest.ManyToMan
     protected override void UseTransaction(DatabaseFacade facade, IDbContextTransaction transaction)
         => facade.UseTransaction(transaction.GetDbTransaction());
 
-    public class ManyToManyTrackingNpgsqlFixture : ManyToManyTrackingRelationalFixture
+    public class ManyToManyTrackingNpgsqlFixture : ManyToManyTrackingRelationalFixture, ITestSqlLoggerFactory
     {
         protected override ITestStoreFactory TestStoreFactory
             => NpgsqlTestStoreFactory.Instance;
+
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {

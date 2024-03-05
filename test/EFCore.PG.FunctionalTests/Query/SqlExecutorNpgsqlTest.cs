@@ -2,9 +2,15 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class SqlExecutorNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture)
-    : SqlExecutorTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>(fixture)
+public class SqlExecutorNpgsqlTest : SqlExecutorTestBase<NorthwindQueryNpgsqlFixture<SqlExecutorModelCustomizer>>
 {
+    public SqlExecutorNpgsqlTest(NorthwindQueryNpgsqlFixture<SqlExecutorModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
+        : base(fixture)
+    {
+        Fixture.TestSqlLoggerFactory.Clear();
+        Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+    }
+
     protected override DbParameter CreateDbParameter(string name, object value)
         => new NpgsqlParameter { ParameterName = name, Value = value };
 

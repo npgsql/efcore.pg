@@ -1426,15 +1426,15 @@ ORDER BY p."Id" NULLS FIRST
 
         AssertSql(
             """
-@__ints_1={ '1', '2', '3' } (DbType = Object)
-@__strings_0={ 'one', 'two', 'three' } (DbType = Object)
+@__ints_0={ '1', '2', '3' } (DbType = Object)
+@__strings_1={ 'one', 'two', 'three' } (DbType = Object)
 
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
 FROM "PrimitiveCollectionsEntity" AS p
 WHERE CASE
-    WHEN p."Int" = ANY (@__ints_1) THEN 'one'
+    WHEN p."Int" = ANY (@__ints_0) THEN 'one'
     ELSE 'two'
-END = ANY (@__strings_0)
+END = ANY (@__strings_1)
 """);
     }
 
@@ -1444,15 +1444,15 @@ END = ANY (@__strings_0)
 
         AssertSql(
             """
-@__ints_1={ '1', '2', '3' } (DbType = Object)
-@__strings_0={ 'one', 'two', 'three' } (DbType = Object)
+@__ints_0={ '1', '2', '3' } (DbType = Object)
+@__strings_1={ 'one', 'two', 'three' } (DbType = Object)
 
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
 FROM "PrimitiveCollectionsEntity" AS p
 WHERE CASE
-    WHEN p."Int" = ANY (@__ints_1) THEN 'one'
+    WHEN p."Int" = ANY (@__ints_0) THEN 'one'
     ELSE 'two'
-END = ANY (@__strings_0)
+END = ANY (@__strings_1)
 """);
     }
 
@@ -1466,7 +1466,7 @@ END = ANY (@__strings_0)
     private PrimitiveCollectionsContext CreateContext()
         => Fixture.CreateContext();
 
-    public class PrimitiveCollectionsQueryNpgsqlFixture : PrimitiveCollectionsQueryFixtureBase
+    public class PrimitiveCollectionsQueryNpgsqlFixture : PrimitiveCollectionsQueryFixtureBase, ITestSqlLoggerFactory
     {
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
