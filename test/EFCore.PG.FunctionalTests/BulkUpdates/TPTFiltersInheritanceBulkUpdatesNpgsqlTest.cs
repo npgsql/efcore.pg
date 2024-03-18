@@ -31,9 +31,6 @@ DELETE FROM "Countries" AS c
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
-    LEFT JOIN "Birds" AS b ON a."Id" = b."Id"
-    LEFT JOIN "Eagle" AS e ON a."Id" = e."Id"
-    LEFT JOIN "Kiwi" AS k ON a."Id" = k."Id"
     WHERE a."CountryId" = 1 AND c."Id" = a."CountryId" AND a."CountryId" > 0) > 0
 """);
     }
@@ -48,8 +45,6 @@ DELETE FROM "Countries" AS c
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
-    LEFT JOIN "Birds" AS b ON a."Id" = b."Id"
-    LEFT JOIN "Eagle" AS e ON a."Id" = e."Id"
     LEFT JOIN "Kiwi" AS k ON a."Id" = k."Id"
     WHERE a."CountryId" = 1 AND c."Id" = a."CountryId" AND k."Id" IS NOT NULL AND a."CountryId" > 0) > 0
 """);
@@ -83,20 +78,14 @@ WHERE (
         // TODO: This over-complex SQL would get pruned after https://github.com/dotnet/efcore/issues/31083
         AssertExecuteUpdateSql(
             """
-UPDATE "Animals" AS a
+UPDATE "Animals" AS a0
 SET "Name" = 'Animal'
 FROM (
-    SELECT a0."Id", a0."CountryId", a0."Name", a0."Species", b0."EagleId", b0."IsFlightless", e0."Group", k0."FoundOn", CASE
-        WHEN k0."Id" IS NOT NULL THEN 'Kiwi'
-        WHEN e0."Id" IS NOT NULL THEN 'Eagle'
-    END AS "Discriminator"
-    FROM "Animals" AS a0
-    LEFT JOIN "Birds" AS b0 ON a0."Id" = b0."Id"
-    LEFT JOIN "Eagle" AS e0 ON a0."Id" = e0."Id"
-    LEFT JOIN "Kiwi" AS k0 ON a0."Id" = k0."Id"
-    WHERE a0."CountryId" = 1 AND a0."Name" = 'Great spotted kiwi'
-) AS t
-WHERE a."Id" = t."Id"
+    SELECT a."Id"
+    FROM "Animals" AS a
+    WHERE a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
+) AS s
+WHERE a0."Id" = s."Id"
 """);
     }
 
@@ -107,20 +96,17 @@ WHERE a."Id" = t."Id"
         // TODO: This over-complex SQL would get pruned after https://github.com/dotnet/efcore/issues/31083
         AssertExecuteUpdateSql(
             """
-UPDATE "Animals" AS a
+UPDATE "Animals" AS a0
 SET "Name" = 'NewBird'
 FROM "Birds" AS b,
-    "Kiwi" AS k,
+    "Kiwi" AS k0,
     (
-        SELECT a0."Id", a0."CountryId", a0."Name", a0."Species", b0."EagleId", b0."IsFlightless", k0."FoundOn", CASE
-            WHEN k0."Id" IS NOT NULL THEN 'Kiwi'
-        END AS "Discriminator"
-        FROM "Animals" AS a0
-        LEFT JOIN "Birds" AS b0 ON a0."Id" = b0."Id"
-        LEFT JOIN "Kiwi" AS k0 ON a0."Id" = k0."Id"
-        WHERE a0."CountryId" = 1 AND k0."Id" IS NOT NULL
-    ) AS t
-WHERE a."Id" = t."Id" AND a."Id" = k."Id" AND a."Id" = b."Id"
+        SELECT a."Id"
+        FROM "Animals" AS a
+        LEFT JOIN "Kiwi" AS k ON a."Id" = k."Id"
+        WHERE a."CountryId" = 1 AND k."Id" IS NOT NULL
+    ) AS s
+WHERE a0."Id" = s."Id" AND a0."Id" = k0."Id" AND a0."Id" = b."Id"
 """);
     }
 
@@ -191,9 +177,6 @@ SET "Name" = 'Monovia'
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
-    LEFT JOIN "Birds" AS b ON a."Id" = b."Id"
-    LEFT JOIN "Eagle" AS e ON a."Id" = e."Id"
-    LEFT JOIN "Kiwi" AS k ON a."Id" = k."Id"
     WHERE a."CountryId" = 1 AND c."Id" = a."CountryId" AND a."CountryId" > 0) > 0
 """);
     }
@@ -209,8 +192,6 @@ SET "Name" = 'Monovia'
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
-    LEFT JOIN "Birds" AS b ON a."Id" = b."Id"
-    LEFT JOIN "Eagle" AS e ON a."Id" = e."Id"
     LEFT JOIN "Kiwi" AS k ON a."Id" = k."Id"
     WHERE a."CountryId" = 1 AND c."Id" = a."CountryId" AND k."Id" IS NOT NULL AND a."CountryId" > 0) > 0
 """);

@@ -4,6 +4,8 @@ using System.Collections;
 
 using System.Globalization;
 using System.Numerics;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
@@ -452,8 +454,16 @@ public class JsonTypesNpgsqlTest : JsonTypesRelationalTestBase
         public NpgsqlLogSequenceNumber LogSequenceNumber { get; set; }
     }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => base.OnConfiguring(optionsBuilder.UseNpgsql(b => b.UseNetTopologySuite()));
+    protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+    protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
+        => serviceCollection.AddEntityFrameworkNpgsqlNetTopologySuite();
+
+    protected override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+    {
+        new NpgsqlDbContextOptionsBuilder(builder).UseNetTopologySuite();
+        return builder;
+    }
 
     static JsonTypesNpgsqlTest()
     {

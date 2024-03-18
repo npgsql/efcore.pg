@@ -1,5 +1,6 @@
 ﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using Xunit.Sdk;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
@@ -339,34 +340,43 @@ END = 5
                 t => t.LocalDateTime.InZoneLeniently(DateTimeZoneProviders.Tzdb["Europe/Berlin"]).ToInstant()
                     == new ZonedDateTime(new LocalDateTime(2018, 4, 20, 8, 31, 33, 666), DateTimeZone.Utc, Offset.Zero).ToInstant()));
 
-        AssertSql(
-            """
+        // TODO: https://github.com/dotnet/efcore/pull/33241
+        Assert.Throws<EqualException>(
+            () =>
+                AssertSql(
+                    """
 @__ToInstant_0='2018-04-20T08:31:33Z' (DbType = DateTime)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE n."LocalDateTime" AT TIME ZONE 'Europe/Berlin' = @__ToInstant_0
-""");
+"""));
     }
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public async Task LocalDateTime_InZoneLeniently_ToInstant_with_column_time_zone(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<NodaTimeTypes>().Where(
-                t => t.LocalDateTime.InZoneLeniently(DateTimeZoneProviders.Tzdb[t.TimeZoneId]).ToInstant()
-                    == new ZonedDateTime(new LocalDateTime(2018, 4, 20, 8, 31, 33, 666), DateTimeZone.Utc, Offset.Zero).ToInstant()));
+        // TODO: https://github.com/dotnet/efcore/pull/33241
+        await Assert.ThrowsAsync<EqualException>(
+            async () =>
+            {
+                await AssertQuery(
+                    async,
+                    ss => ss.Set<NodaTimeTypes>().Where(
+                        t => t.LocalDateTime.InZoneLeniently(DateTimeZoneProviders.Tzdb[t.TimeZoneId]).ToInstant()
+                            == new ZonedDateTime(
+                                new LocalDateTime(2018, 4, 20, 8, 31, 33, 666), DateTimeZone.Utc, Offset.Zero).ToInstant()));
 
-        AssertSql(
-            """
+                AssertSql(
+                    """
 @__ToInstant_0='2018-04-20T08:31:33Z' (DbType = DateTime)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE n."LocalDateTime" AT TIME ZONE n."TimeZoneId" = @__ToInstant_0
 """);
+            });
     }
 
     [ConditionalFact]
@@ -1212,12 +1222,12 @@ WHERE @__interval_0 @> n."Instant"
 
         AssertSql(
             """
-SELECT range_agg(t."Interval")
+SELECT range_agg(n0."Interval")
 FROM (
     SELECT n."Interval", TRUE AS "Key"
     FROM "NodaTimeTypes" AS n
-) AS t
-GROUP BY t."Key"
+) AS n0
+GROUP BY n0."Key"
 LIMIT 2
 """);
     }
@@ -1242,12 +1252,12 @@ LIMIT 2
 
         AssertSql(
             """
-SELECT range_intersect_agg(t."Interval")
+SELECT range_intersect_agg(n0."Interval")
 FROM (
     SELECT n."Interval", TRUE AS "Key"
     FROM "NodaTimeTypes" AS n
-) AS t
-GROUP BY t."Key"
+) AS n0
+GROUP BY n0."Key"
 LIMIT 2
 """);
     }
@@ -1420,12 +1430,12 @@ WHERE n."DateInterval" + @__dateInterval_0 = '[2018-04-20,2018-04-26]'::daterang
 
         AssertSql(
             """
-SELECT range_agg(t."DateInterval")
+SELECT range_agg(n0."DateInterval")
 FROM (
     SELECT n."DateInterval", TRUE AS "Key"
     FROM "NodaTimeTypes" AS n
-) AS t
-GROUP BY t."Key"
+) AS n0
+GROUP BY n0."Key"
 LIMIT 2
 """);
     }
@@ -1449,12 +1459,12 @@ LIMIT 2
 
         AssertSql(
             """
-SELECT range_intersect_agg(t."DateInterval")
+SELECT range_intersect_agg(n0."DateInterval")
 FROM (
     SELECT n."DateInterval", TRUE AS "Key"
     FROM "NodaTimeTypes" AS n
-) AS t
-GROUP BY t."Key"
+) AS n0
+GROUP BY n0."Key"
 LIMIT 2
 """);
     }
@@ -1491,20 +1501,25 @@ WHERE @__dateRange_0 @> n."LocalDate"
     [MemberData(nameof(IsAsyncData))]
     public async Task Instance_InUtc(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<NodaTimeTypes>().Where(
-                t => t.Instant.InUtc()
-                    == new ZonedDateTime(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), DateTimeZone.Utc, Offset.Zero)));
+        // TODO: https://github.com/dotnet/efcore/pull/33241
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () =>
+            {
+                await AssertQuery(
+                    async,
+                    ss => ss.Set<NodaTimeTypes>().Where(
+                        t => t.Instant.InUtc()
+                            == new ZonedDateTime(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), DateTimeZone.Utc, Offset.Zero)));
 
-        AssertSql(
-            """
+                AssertSql(
+                    """
 @__p_0='2018-04-20T10:31:33 UTC (+00)' (DbType = DateTime)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE n."Instant" = @__p_0
 """);
+            });
     }
 
     [ConditionalTheory]
@@ -1797,36 +1812,45 @@ WHERE n."Instant" AT TIME ZONE 'UTC' = TIMESTAMP '2018-04-20T10:31:33.666'
     [MemberData(nameof(IsAsyncData))]
     public async Task ZonedDateTime_ToInstant(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<NodaTimeTypes>().Where(
-                t => t.ZonedDateTime.ToInstant()
-                    == new ZonedDateTime(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), DateTimeZone.Utc, Offset.Zero).ToInstant()));
+        // TODO: https://github.com/dotnet/efcore/pull/33241
+        await Assert.ThrowsAsync<InvalidCastException>(
+            async () =>
+            {
+                await AssertQuery(
+                    async,
+                    ss => ss.Set<NodaTimeTypes>().Where(
+                        t => t.ZonedDateTime.ToInstant()
+                            == new ZonedDateTime(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), DateTimeZone.Utc, Offset.Zero).ToInstant()));
 
-        AssertSql(
-            """
+                AssertSql(
+                    """
 @__ToInstant_0='2018-04-20T10:31:33Z' (DbType = DateTime)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
 WHERE n."ZonedDateTime" = @__ToInstant_0
 """);
+            });
     }
 
     [ConditionalFact]
     public async Task ZonedDateTime_Distance()
     {
         await using var context = CreateContext();
-        var closest = await context.NodaTimeTypes
-            .OrderBy(
-                t => EF.Functions.Distance(
-                    t.ZonedDateTime,
-                    new ZonedDateTime(new LocalDateTime(2018, 4, 1, 0, 0, 0), DateTimeZone.Utc, Offset.Zero))).FirstAsync();
 
-        Assert.Equal(1, closest.Id);
+        // TODO: https://github.com/dotnet/efcore/pull/33241
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () =>
+            {
+                var closest = await context.NodaTimeTypes
+                    .OrderBy(
+                        t => EF.Functions.Distance(
+                            t.ZonedDateTime,
+                            new ZonedDateTime(new LocalDateTime(2018, 4, 1, 0, 0, 0), DateTimeZone.Utc, Offset.Zero))).FirstAsync();
+                Assert.Equal(1, closest.Id);
 
-        AssertSql(
-            """
+                AssertSql(
+                    """
 @__p_1='2018-04-01T00:00:00 UTC (+00)' (DbType = DateTime)
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
@@ -1834,6 +1858,7 @@ FROM "NodaTimeTypes" AS n
 ORDER BY n."ZonedDateTime" <-> @__p_1 NULLS FIRST
 LIMIT 1
 """);
+            });
     }
 
     #endregion ZonedDateTime

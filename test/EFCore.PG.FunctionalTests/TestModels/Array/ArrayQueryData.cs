@@ -45,8 +45,10 @@ public class ArrayQueryData : ISetSource
                 EnumConvertedToString = SomeEnum.One,
                 NullableEnumConvertedToString = SomeEnum.One,
                 NullableEnumConvertedToStringWithNonNullableLambda = SomeEnum.One,
-                ValueConvertedArray = [SomeEnum.Eight, SomeEnum.Nine],
-                ValueConvertedList = [SomeEnum.Eight, SomeEnum.Nine],
+                ValueConvertedArrayOfEnum = [SomeEnum.Eight, SomeEnum.Nine],
+                ValueConvertedListOfEnum = [SomeEnum.Eight, SomeEnum.Nine],
+                ArrayOfStringConvertedToDelimitedString = ["3", "4"],
+                ListOfStringConvertedToDelimitedString = ["3", "4"],
                 IList = new[] { 8, 9 },
                 Byte = 10
             },
@@ -71,8 +73,10 @@ public class ArrayQueryData : ISetSource
                 EnumConvertedToString = SomeEnum.Two,
                 NullableEnumConvertedToString = SomeEnum.Two,
                 NullableEnumConvertedToStringWithNonNullableLambda = SomeEnum.Two,
-                ValueConvertedArray = [SomeEnum.Nine, SomeEnum.Ten],
-                ValueConvertedList = [SomeEnum.Nine, SomeEnum.Ten],
+                ValueConvertedArrayOfEnum = [SomeEnum.Nine, SomeEnum.Ten],
+                ValueConvertedListOfEnum = [SomeEnum.Nine, SomeEnum.Ten],
+                ArrayOfStringConvertedToDelimitedString = ["5", "6", "7", "8"],
+                ListOfStringConvertedToDelimitedString = ["5", "6", "7", "8"],
                 IList = new[] { 9, 10 },
                 Byte = 20
             }

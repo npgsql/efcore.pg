@@ -232,12 +232,12 @@ LIMIT 2
 
         AssertSql(
             """
-@__starCount_0='3'
-@__customerId_1='1'
+@__starCount_1='3'
+@__customerId_0='1'
 
-SELECT c."LastName", "StarValue"(@__starCount_0, "CustomerOrderCount"(@__customerId_1)) AS "OrderCount"
+SELECT c."LastName", "StarValue"(@__starCount_1, "CustomerOrderCount"(@__customerId_0)) AS "OrderCount"
 FROM "Customers" AS c
-WHERE c."Id" = @__customerId_1
+WHERE c."Id" = @__customerId_0
 LIMIT 2
 """);
     }
@@ -530,12 +530,12 @@ LIMIT 2
 
         AssertSql(
             """
-@__starCount_1='3'
-@__customerId_2='1'
+@__starCount_2='3'
+@__customerId_1='1'
 
-SELECT c."LastName", "StarValue"(@__starCount_1, "CustomerOrderCount"(@__customerId_2)) AS "OrderCount"
+SELECT c."LastName", "StarValue"(@__starCount_2, "CustomerOrderCount"(@__customerId_1)) AS "OrderCount"
 FROM "Customers" AS c
-WHERE c."Id" = @__customerId_2
+WHERE c."Id" = @__customerId_1
 LIMIT 2
 """);
     }

@@ -456,8 +456,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
 
                 translation = _sqlExpressionFactory.Like(
                     translatedInstance,
-                    new SqlParameterExpression(escapedPatternParameter.Name!, escapedPatternParameter.Type, stringTypeMapping),
-                    _sqlExpressionFactory.Constant(LikeEscapeChar.ToString()));
+                    new SqlParameterExpression(escapedPatternParameter.Name!, escapedPatternParameter.Type, stringTypeMapping));
 
                 return true;
             }

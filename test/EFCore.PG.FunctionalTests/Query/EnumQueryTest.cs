@@ -287,7 +287,7 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
     }
 
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class EnumFixture : SharedStoreFixtureBase<EnumContext>, IQueryFixtureBase
+    public class EnumFixture : SharedStoreFixtureBase<EnumContext>, IQueryFixtureBase, ITestSqlLoggerFactory
     {
         protected override string StoreName
             => "EnumQueryTest";

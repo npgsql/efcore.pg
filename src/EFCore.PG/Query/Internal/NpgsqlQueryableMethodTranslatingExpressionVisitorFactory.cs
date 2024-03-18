@@ -45,5 +45,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitorFactory : IQueryab
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public virtual QueryableMethodTranslatingExpressionVisitor Create(QueryCompilationContext queryCompilationContext)
-        => new NpgsqlQueryableMethodTranslatingExpressionVisitor(Dependencies, RelationalDependencies, queryCompilationContext);
+        => new NpgsqlQueryableMethodTranslatingExpressionVisitor(
+            Dependencies,
+            RelationalDependencies,
+            (RelationalQueryCompilationContext)queryCompilationContext);
 }

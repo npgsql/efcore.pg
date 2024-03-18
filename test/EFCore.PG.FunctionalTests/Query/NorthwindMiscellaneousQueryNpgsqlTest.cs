@@ -188,14 +188,14 @@ FROM "Customers" AS c
 
         AssertSql(
             """
-SELECT t."CustomerID", o0."OrderID", o0."CustomerID", o0."EmployeeID", o0."OrderDate"
+SELECT o0."CustomerID", o1."OrderID", o1."CustomerID", o1."EmployeeID", o1."OrderDate"
 FROM (
     SELECT DISTINCT o."CustomerID"
     FROM "Orders" AS o
     WHERE o."OrderID" < 10300
-) AS t
-LEFT JOIN "Orders" AS o0 ON t."CustomerID" = o0."CustomerID"
-ORDER BY t."CustomerID" NULLS FIRST
+) AS o0
+LEFT JOIN "Orders" AS o1 ON o0."CustomerID" = o1."CustomerID"
+ORDER BY o0."CustomerID" NULLS FIRST
 """);
     }
 
@@ -314,11 +314,11 @@ WHERE c."Region" = ANY (@__regions_0) OR (c."Region" IS NULL AND array_position(
 
         AssertSql(
             """
-@__collection_0={ 'A%', 'B%', 'C%' } (DbType = Object)
+@__collection_1={ 'A%', 'B%', 'C%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" LIKE ANY (@__collection_0)
+WHERE c."Address" LIKE ANY (@__collection_1)
 """);
     }
 
@@ -336,11 +336,11 @@ WHERE c."Address" LIKE ANY (@__collection_0)
 
         AssertSql(
             """
-@__collection_0={ 'A%', 'B%', 'C%' } (DbType = Object)
+@__collection_1={ 'A%', 'B%', 'C%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" LIKE ALL (@__collection_0)
+WHERE c."Address" LIKE ALL (@__collection_1)
 """);
     }
 
@@ -383,11 +383,11 @@ WHERE c."Address" LIKE ALL (@__collection_0)
 
         AssertSql(
             """
-@__collection_0={ 'a%', 'b%', 'c%' } (DbType = Object)
+@__collection_1={ 'a%', 'b%', 'c%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" ILIKE ANY (@__collection_0)
+WHERE c."Address" ILIKE ANY (@__collection_1)
 """);
     }
 
@@ -405,11 +405,11 @@ WHERE c."Address" ILIKE ANY (@__collection_0)
 
         AssertSql(
             """
-@__collection_0={ 'a%', 'b%', 'c%' } (DbType = Object)
+@__collection_1={ 'a%', 'b%', 'c%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" ILIKE ALL (@__collection_0)
+WHERE c."Address" ILIKE ALL (@__collection_1)
 """);
     }
 

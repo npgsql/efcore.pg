@@ -1886,7 +1886,7 @@ CREATE INDEX ix_without ON "IndexCovering" (a, b, c);
                 // Assert.Equal(new[] { "b", "c" }, indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexInclude).Value);
 
                 var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
-                Assert.Equal(["a", "b", "c"], indexWithout.Columns.Select(i => i.Name).ToArray());
+                Assert.Equal(new[] { "a", "b", "c" }, indexWithout.Columns.Select(i => i.Name).ToArray());
                 Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.IndexInclude));
             },
             @"DROP TABLE ""IndexCovering""");
@@ -1979,6 +1979,7 @@ ALTER TABLE foo ADD COLUMN id2 int PRIMARY KEY;
     public void Postgres_extensions()
         => Test(
             """
+DROP EXTENSION IF EXISTS postgis;
 CREATE EXTENSION hstore;
 CREATE EXTENSION pgcrypto SCHEMA db2;
 """,
@@ -2124,13 +2125,13 @@ CREATE TABLE column_types (
     [RequiresPostgis]
     public void System_tables_are_ignored()
         => Test(
-            "CREATE EXTENSION postgis",
+            """
+DROP EXTENSION IF EXISTS postgis;
+CREATE EXTENSION postgis;
+""",
             Enumerable.Empty<string>(),
             Enumerable.Empty<string>(),
-            dbModel =>
-            {
-                Assert.Empty(dbModel.Tables);
-            },
+            dbModel => Assert.Empty(dbModel.Tables),
             "DROP EXTENSION postgis");
 
     #endregion
