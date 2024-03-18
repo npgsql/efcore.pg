@@ -4,17 +4,16 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public abstract class CommandInterceptionNpgsqlTestBase : CommandInterceptionTestBase
+public abstract class CommandInterceptionNpgsqlTestBase(CommandInterceptionNpgsqlTestBase.InterceptionNpgsqlFixtureBase fixture)
+    : CommandInterceptionTestBase(fixture)
 {
-    public CommandInterceptionNpgsqlTestBase(InterceptionNpgsqlFixtureBase fixture)
-        : base(fixture)
-    {
-    }
-
     public abstract class InterceptionNpgsqlFixtureBase : InterceptionFixtureBase
     {
-        protected override string StoreName => "CommandInterception";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override string StoreName
+            => "CommandInterception";
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override IServiceCollection InjectInterceptors(
             IServiceCollection serviceCollection,
@@ -22,17 +21,13 @@ public abstract class CommandInterceptionNpgsqlTestBase : CommandInterceptionTes
             => base.InjectInterceptors(serviceCollection.AddEntityFrameworkNpgsql(), injectedInterceptors);
     }
 
-    public class CommandInterceptionNpgsqlTest
-        : CommandInterceptionNpgsqlTestBase, IClassFixture<CommandInterceptionNpgsqlTest.InterceptionNpgsqlFixture>
+    public class CommandInterceptionNpgsqlTest(CommandInterceptionNpgsqlTest.InterceptionNpgsqlFixture fixture)
+        : CommandInterceptionNpgsqlTestBase(fixture), IClassFixture<CommandInterceptionNpgsqlTest.InterceptionNpgsqlFixture>
     {
-        public CommandInterceptionNpgsqlTest(InterceptionNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
-            protected override bool ShouldSubscribeToDiagnosticListener => false;
+            protected override bool ShouldSubscribeToDiagnosticListener
+                => false;
 
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             {
@@ -43,17 +38,14 @@ public abstract class CommandInterceptionNpgsqlTestBase : CommandInterceptionTes
         }
     }
 
-    public class CommandInterceptionWithDiagnosticsNpgsqlTest
-        : CommandInterceptionNpgsqlTestBase, IClassFixture<CommandInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture>
+    public class CommandInterceptionWithDiagnosticsNpgsqlTest(
+        CommandInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture fixture)
+        : CommandInterceptionNpgsqlTestBase(fixture), IClassFixture<CommandInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture>
     {
-        public CommandInterceptionWithDiagnosticsNpgsqlTest(InterceptionNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
-            protected override bool ShouldSubscribeToDiagnosticListener => true;
+            protected override bool ShouldSubscribeToDiagnosticListener
+                => true;
 
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             {

@@ -5,13 +5,21 @@ using Microsoft.EntityFrameworkCore.Storage.Json;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// The type mapping for the PostgreSQL inet type.
+///     The type mapping for the PostgreSQL inet type.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-INET
+///     See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-INET
 /// </remarks>
 public class NpgsqlInetTypeMapping : NpgsqlTypeMapping
 {
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public static NpgsqlInetTypeMapping Default { get; } = new(typeof(IPAddress));
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -38,7 +46,9 @@ public class NpgsqlInetTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlInetTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Inet) {}
+        : base(parameters, NpgsqlDbType.Inet)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -72,27 +82,75 @@ public class NpgsqlInetTypeMapping : NpgsqlTypeMapping
             _ => throw new UnreachableException()
         };
 
-    private static readonly MethodInfo IPAddressParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) })!;
-    private static readonly ConstructorInfo NpgsqlInetConstructor = typeof(NpgsqlInet).GetConstructor(new[] { typeof(string) })!;
+    private static readonly MethodInfo IPAddressParseMethod = typeof(IPAddress).GetMethod("Parse", [typeof(string)])!;
+    private static readonly ConstructorInfo NpgsqlInetConstructor = typeof(NpgsqlInet).GetConstructor([typeof(string)])!;
 
-    private sealed class JsonIPAddressReaderWriter : JsonValueReaderWriter<IPAddress>
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public sealed class JsonIPAddressReaderWriter : JsonValueReaderWriter<IPAddress>
     {
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         public static JsonIPAddressReaderWriter Instance { get; } = new();
 
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         public override IPAddress FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
             => IPAddress.Parse(manager.CurrentReader.GetString()!);
 
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         public override void ToJsonTyped(Utf8JsonWriter writer, IPAddress value)
             => writer.WriteStringValue(value.ToString());
     }
 
-    private sealed class JsonNpgsqlInetReaderWriter : JsonValueReaderWriter<NpgsqlInet>
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public sealed class JsonNpgsqlInetReaderWriter : JsonValueReaderWriter<NpgsqlInet>
     {
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         public static JsonNpgsqlInetReaderWriter Instance { get; } = new();
 
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         public override NpgsqlInet FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
             => new(manager.CurrentReader.GetString()!);
 
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         public override void ToJsonTyped(Utf8JsonWriter writer, NpgsqlInet value)
             => writer.WriteStringValue(value.ToString());
     }

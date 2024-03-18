@@ -1,14 +1,15 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
+using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 /// <summary>
-/// Translates method and property calls on arrays/lists into their corresponding PostgreSQL operations.
+///     Translates method and property calls on arrays/lists into their corresponding PostgreSQL operations.
 /// </summary>
 /// <remarks>
-/// https://www.postgresql.org/docs/current/static/functions-array.html
+///     https://www.postgresql.org/docs/current/static/functions-array.html
 /// </remarks>
 public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
 {
@@ -25,11 +26,25 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
 
     private static readonly MethodInfo Enumerable_ElementAt =
         typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(m => m.Name == nameof(Enumerable.ElementAt) && m.GetParameters().Length == 2 && m.GetParameters()[1].ParameterType == typeof(int));
+            .Single(
+                m => m.Name == nameof(Enumerable.ElementAt)
+                    && m.GetParameters().Length == 2
+                    && m.GetParameters()[1].ParameterType == typeof(int));
 
     private static readonly MethodInfo Enumerable_SequenceEqual =
         typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .Single(m => m.Name == nameof(Enumerable.SequenceEqual) && m.GetParameters().Length == 2);
+
+    // TODO: Enumerable Append and Concat are only here because primitive collections aren't handled in ExecuteUpdate,
+    // https://github.com/dotnet/efcore/issues/32494
+    private static readonly MethodInfo Enumerable_Append =
+        typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Single(m => m.Name == nameof(Enumerable.Append) && m.GetParameters().Length == 2);
+
+    private static readonly MethodInfo Enumerable_Concat =
+        typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Single(m => m.Name == nameof(Enumerable.Concat) && m.GetParameters().Length == 2);
+
     // ReSharper restore InconsistentNaming
 
     #endregion Methods
@@ -82,8 +97,10 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
         }
 
         if (method.IsClosedFormOf(Enumerable_SequenceEqual)
-            && arguments[0].Type.IsArrayOrGenericList() && !IsMappedToNonArray(arguments[0])
-            && arguments[1].Type.IsArrayOrGenericList() && !IsMappedToNonArray(arguments[1]))
+            && arguments[0].Type.IsArrayOrGenericList()
+            && !IsMappedToNonArray(arguments[0])
+            && arguments[1].Type.IsArrayOrGenericList()
+            && !IsMappedToNonArray(arguments[1]))
         {
             return _sqlExpressionFactory.Equal(arguments[0], arguments[1]);
         }
@@ -112,8 +129,7 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
 #pragma warning restore CS8321
         {
             if (method.IsClosedFormOf(Array_IndexOf1)
-                ||
-                method.Name == nameof(List<int>.IndexOf)
+                || method.Name == nameof(List<int>.IndexOf)
                 && method.DeclaringType.IsGenericList()
                 && method.GetParameters().Length == 1)
             {
@@ -123,7 +139,7 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
                     _sqlExpressionFactory.Subtract(
                         _sqlExpressionFactory.Function(
                             "array_position",
-                            new[] { array, item },
+                            [array, item],
                             nullable: true,
                             TrueArrays[2],
                             arrayOrList.Type),
@@ -132,8 +148,7 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
             }
 
             if (method.IsClosedFormOf(Array_IndexOf2)
-                ||
-                method.Name == nameof(List<int>.IndexOf)
+                || method.Name == nameof(List<int>.IndexOf)
                 && method.DeclaringType.IsGenericList()
                 && method.GetParameters().Length == 2)
             {
@@ -150,6 +165,38 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
                             arrayOrList.Type),
                         _sqlExpressionFactory.Constant(1)),
                     _sqlExpressionFactory.Constant(-1));
+            }
+
+            // TODO: Enumerable Append and Concat are only here because primitive collections aren't handled in ExecuteUpdate,
+            // https://github.com/dotnet/efcore/issues/32494
+            if (method.IsClosedFormOf(Enumerable_Append))
+            {
+                var (item, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(arguments[0], arrayOrList);
+
+                return _sqlExpressionFactory.Function(
+                    "array_append",
+                    new[] { array, item },
+                    nullable: true,
+                    TrueArrays[2],
+                    arrayOrList.Type,
+                    arrayOrList.TypeMapping);
+            }
+
+            if (method.IsClosedFormOf(Enumerable_Concat))
+            {
+                var inferredMapping = ExpressionExtensions.InferTypeMapping(arrayOrList, arguments[0]);
+
+                return _sqlExpressionFactory.Function(
+                    "array_cat",
+                    new[]
+                    {
+                        _sqlExpressionFactory.ApplyTypeMapping(arrayOrList, inferredMapping),
+                        _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping)
+                    },
+                    nullable: true,
+                    TrueArrays[2],
+                    arrayOrList.Type,
+                    inferredMapping);
             }
 
             return null;

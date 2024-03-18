@@ -12,31 +12,31 @@ public static class NpgsqlIndexExtensions
     #region Method
 
     /// <summary>
-    /// Returns the index method to be used, or <c>null</c> if it hasn't been specified.
-    /// <c>null</c> selects the default (currently <c>btree</c>).
+    ///     Returns the index method to be used, or <c>null</c> if it hasn't been specified.
+    ///     <c>null</c> selects the default (currently <c>btree</c>).
     /// </summary>
     /// <remarks>
-    /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+    ///     http://www.postgresql.org/docs/current/static/sql-createindex.html
     /// </remarks>
     public static string? GetMethod(this IReadOnlyIndex index)
         => (string?)index[NpgsqlAnnotationNames.IndexMethod];
 
     /// <summary>
-    /// Sets the index method to be used, or <c>null</c> if it hasn't been specified.
-    /// <c>null</c> selects the default (currently <c>btree</c>).
+    ///     Sets the index method to be used, or <c>null</c> if it hasn't been specified.
+    ///     <c>null</c> selects the default (currently <c>btree</c>).
     /// </summary>
     /// <remarks>
-    /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+    ///     http://www.postgresql.org/docs/current/static/sql-createindex.html
     /// </remarks>
     public static void SetMethod(this IMutableIndex index, string? method)
         => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexMethod, method);
 
     /// <summary>
-    /// Sets the index method to be used, or <c>null</c> if it hasn't been specified.
-    /// <c>null</c> selects the default (currently <c>btree</c>).
+    ///     Sets the index method to be used, or <c>null</c> if it hasn't been specified.
+    ///     <c>null</c> selects the default (currently <c>btree</c>).
     /// </summary>
     /// <remarks>
-    /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+    ///     http://www.postgresql.org/docs/current/static/sql-createindex.html
     /// </remarks>
     public static string? SetMethod(
         this IConventionIndex index,
@@ -51,7 +51,7 @@ public static class NpgsqlIndexExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the index method.
+    ///     Returns the <see cref="ConfigurationSource" /> for the index method.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the index method.</returns>
@@ -63,28 +63,28 @@ public static class NpgsqlIndexExtensions
     #region Operators
 
     /// <summary>
-    /// Returns the column operators to be used, or <c>null</c> if they have not been specified.
+    ///     Returns the column operators to be used, or <c>null</c> if they have not been specified.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-opclass.html
     /// </remarks>
     public static IReadOnlyList<string>? GetOperators(this IReadOnlyIndex index)
         => (IReadOnlyList<string>?)index[NpgsqlAnnotationNames.IndexOperators];
 
     /// <summary>
-    /// Sets the column operators to be used, or <c>null</c> if they have not been specified.
+    ///     Sets the column operators to be used, or <c>null</c> if they have not been specified.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-opclass.html
     /// </remarks>
     public static void SetOperators(this IMutableIndex index, IReadOnlyList<string>? operators)
         => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexOperators, operators);
 
     /// <summary>
-    /// Sets the column operators to be used, or <c>null</c> if they have not been specified.
+    ///     Sets the column operators to be used, or <c>null</c> if they have not been specified.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-opclass.html
     /// </remarks>
     public static IReadOnlyList<string>? SetOperators(
         this IConventionIndex index,
@@ -99,7 +99,7 @@ public static class NpgsqlIndexExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the index operators.
+    ///     Returns the <see cref="ConfigurationSource" /> for the index operators.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the index operators.</returns>
@@ -111,10 +111,10 @@ public static class NpgsqlIndexExtensions
     #region Collation
 
     /// <summary>
-    /// Returns the column collations to be used, or <c>null</c> if they have not been specified.
+    ///     Returns the column collations to be used, or <c>null</c> if they have not been specified.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-collations.html
     /// </remarks>
 #pragma warning disable 618
     public static IReadOnlyList<string>? GetCollation(this IReadOnlyIndex index)
@@ -123,19 +123,19 @@ public static class NpgsqlIndexExtensions
 #pragma warning restore 618
 
     /// <summary>
-    /// Sets the column collations to be used, or <c>null</c> if they have not been specified.
+    ///     Sets the column collations to be used, or <c>null</c> if they have not been specified.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-collations.html
     /// </remarks>
     public static void SetCollation(this IMutableIndex index, IReadOnlyList<string>? collations)
         => index.SetOrRemoveAnnotation(RelationalAnnotationNames.Collation, collations);
 
     /// <summary>
-    /// Sets the column collations to be used, or <c>null</c> if they have not been specified.
+    ///     Sets the column collations to be used, or <c>null</c> if they have not been specified.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-collations.html
     /// </remarks>
     public static IReadOnlyList<string>? SetCollation(
         this IConventionIndex index,
@@ -150,7 +150,7 @@ public static class NpgsqlIndexExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the index collations.
+    ///     Returns the <see cref="ConfigurationSource" /> for the index collations.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the index collations.</returns>
@@ -162,28 +162,28 @@ public static class NpgsqlIndexExtensions
     #region Null sort order
 
     /// <summary>
-    /// Returns the column NULL sort orders to be used, or <c>null</c> if they have not been specified.
+    ///     Returns the column NULL sort orders to be used, or <c>null</c> if they have not been specified.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     public static IReadOnlyList<NullSortOrder>? GetNullSortOrder(this IReadOnlyIndex index)
         => (IReadOnlyList<NullSortOrder>?)index[NpgsqlAnnotationNames.IndexNullSortOrder];
 
     /// <summary>
-    /// Sets the column NULL sort orders to be used, or <c>null</c> if they have not been specified.
+    ///     Sets the column NULL sort orders to be used, or <c>null</c> if they have not been specified.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     public static void SetNullSortOrder(this IMutableIndex index, IReadOnlyList<NullSortOrder>? nullSortOrder)
         => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
 
     /// <summary>
-    /// Sets the column NULL sort orders to be used, or <c>null</c> if they have not been specified.
+    ///     Sets the column NULL sort orders to be used, or <c>null</c> if they have not been specified.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     public static IReadOnlyList<NullSortOrder>? SetNullSortOrder(
         this IConventionIndex index,
@@ -198,7 +198,7 @@ public static class NpgsqlIndexExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the index null sort orders.
+    ///     Returns the <see cref="ConfigurationSource" /> for the index null sort orders.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the index null sort orders.</returns>
@@ -210,7 +210,7 @@ public static class NpgsqlIndexExtensions
     #region Included properties
 
     /// <summary>
-    /// Returns included property names, or <c>null</c> if they have not been specified.
+    ///     Returns included property names, or <c>null</c> if they have not been specified.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <returns>The included property names, or <c>null</c> if they have not been specified.</returns>
@@ -218,7 +218,7 @@ public static class NpgsqlIndexExtensions
         => (IReadOnlyList<string>?)index[NpgsqlAnnotationNames.IndexInclude];
 
     /// <summary>
-    /// Sets included property names.
+    ///     Sets included property names.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <param name="properties">The value to set.</param>
@@ -228,7 +228,7 @@ public static class NpgsqlIndexExtensions
             properties);
 
     /// <summary>
-    /// Sets included property names.
+    ///     Sets included property names.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
@@ -249,7 +249,7 @@ public static class NpgsqlIndexExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the included property names.
+    ///     Returns the <see cref="ConfigurationSource" /> for the included property names.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the included property names.</returns>
@@ -261,7 +261,7 @@ public static class NpgsqlIndexExtensions
     #region Created concurrently
 
     /// <summary>
-    /// Returns a value indicating whether the index is created concurrently.
+    ///     Returns a value indicating whether the index is created concurrently.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <returns><c>true</c> if the index is created concurrently.</returns>
@@ -269,7 +269,7 @@ public static class NpgsqlIndexExtensions
         => (bool?)index[NpgsqlAnnotationNames.CreatedConcurrently];
 
     /// <summary>
-    /// Sets a value indicating whether the index is created concurrently.
+    ///     Sets a value indicating whether the index is created concurrently.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <param name="createdConcurrently">The value to set.</param>
@@ -277,13 +277,15 @@ public static class NpgsqlIndexExtensions
         => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.CreatedConcurrently, createdConcurrently);
 
     /// <summary>
-    /// Sets a value indicating whether the index is created concurrently.
+    ///     Sets a value indicating whether the index is created concurrently.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <param name="createdConcurrently">The value to set.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     public static bool? SetIsCreatedConcurrently(
-        this IConventionIndex index, bool? createdConcurrently, bool fromDataAnnotation = false)
+        this IConventionIndex index,
+        bool? createdConcurrently,
+        bool fromDataAnnotation = false)
     {
         index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.CreatedConcurrently, createdConcurrently, fromDataAnnotation);
 
@@ -291,7 +293,7 @@ public static class NpgsqlIndexExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for whether the index is created concurrently.
+    ///     Returns the <see cref="ConfigurationSource" /> for whether the index is created concurrently.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for whether the index is created concurrently.</returns>
@@ -303,31 +305,31 @@ public static class NpgsqlIndexExtensions
     #region NULLS distinct
 
     /// <summary>
-    /// Returns whether for a unique index, null values should be considered distinct (not equal).
-    /// The default is that they are distinct, so that a unique index could contain multiple null values in a column.
+    ///     Returns whether for a unique index, null values should be considered distinct (not equal).
+    ///     The default is that they are distinct, so that a unique index could contain multiple null values in a column.
     /// </summary>
     /// <remarks>
-    /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+    ///     http://www.postgresql.org/docs/current/static/sql-createindex.html
     /// </remarks>
     public static bool? GetAreNullsDistinct(this IReadOnlyIndex index)
         => (bool?)index[NpgsqlAnnotationNames.NullsDistinct];
 
     /// <summary>
-    /// Sets whether for a unique index, null values should be considered distinct (not equal).
-    /// The default is that they are distinct, so that a unique index could contain multiple null values in a column.
+    ///     Sets whether for a unique index, null values should be considered distinct (not equal).
+    ///     The default is that they are distinct, so that a unique index could contain multiple null values in a column.
     /// </summary>
     /// <remarks>
-    /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+    ///     http://www.postgresql.org/docs/current/static/sql-createindex.html
     /// </remarks>
     public static void SetAreNullsDistinct(this IMutableIndex index, bool? nullsDistinct)
         => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.NullsDistinct, nullsDistinct);
 
     /// <summary>
-    /// Sets whether for a unique index, null values should be considered distinct (not equal).
-    /// The default is that they are distinct, so that a unique index could contain multiple null values in a column.
+    ///     Sets whether for a unique index, null values should be considered distinct (not equal).
+    ///     The default is that they are distinct, so that a unique index could contain multiple null values in a column.
     /// </summary>
     /// <remarks>
-    /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+    ///     http://www.postgresql.org/docs/current/static/sql-createindex.html
     /// </remarks>
     public static bool? SetAreNullsDistinct(this IConventionIndex index, bool? nullsDistinct, bool fromDataAnnotation = false)
     {
@@ -337,7 +339,7 @@ public static class NpgsqlIndexExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for whether nulls are considered distinct.
+    ///     Returns the <see cref="ConfigurationSource" /> for whether nulls are considered distinct.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <returns>The <see cref="ConfigurationSource" />.</returns>
@@ -349,52 +351,52 @@ public static class NpgsqlIndexExtensions
     #region ToTsVector
 
     /// <summary>
-    /// Returns the text search configuration for this tsvector expression index, or <c>null</c> if this is not a
-    /// tsvector expression index.
+    ///     Returns the text search configuration for this tsvector expression index, or <c>null</c> if this is not a
+    ///     tsvector expression index.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
+    ///     https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
     /// </remarks>
     public static string? GetTsVectorConfig(this IReadOnlyIndex index)
         => (string?)index[NpgsqlAnnotationNames.TsVectorConfig];
 
     /// <summary>
-    /// Sets the text search configuration for this tsvector expression index, or <c>null</c> if this is not a
-    /// tsvector expression index.
+    ///     Sets the text search configuration for this tsvector expression index, or <c>null</c> if this is not a
+    ///     tsvector expression index.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <param name="config">
-    /// <para>
-    /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
-    /// </para>
-    /// <para>
-    /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
-    /// </para>
+    ///     <para>
+    ///         The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///         generated tsvector property.
+    ///     </para>
+    ///     <para>
+    ///         See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+    ///     </para>
     /// </param>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
+    ///     https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
     /// </remarks>
     public static void SetTsVectorConfig(this IMutableIndex index, string? config)
         => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.TsVectorConfig, config);
 
     /// <summary>
-    /// Sets the index to tsvector config name to be used.
+    ///     Sets the index to tsvector config name to be used.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <param name="config">
-    /// <para>
-    /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
-    /// </para>
-    /// <para>
-    /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
-    /// </para>
+    ///     <para>
+    ///         The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///         generated tsvector property.
+    ///     </para>
+    ///     <para>
+    ///         See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+    ///     </para>
     /// </param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
+    ///     https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
     /// </remarks>
     public static string? SetTsVectorConfig(
         this IConventionIndex index,
@@ -409,7 +411,7 @@ public static class NpgsqlIndexExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the tsvector config.
+    ///     Returns the <see cref="ConfigurationSource" /> for the tsvector config.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the tsvector config.</returns>
@@ -481,30 +483,30 @@ public static class NpgsqlIndexExtensions
     #region Sort order (legacy)
 
     /// <summary>
-    /// Returns the column sort orders to be used, or <c>null</c> if they have not been specified.
+    ///     Returns the column sort orders to be used, or <c>null</c> if they have not been specified.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     [Obsolete("Use IsDescending instead")]
     public static IReadOnlyList<SortOrder>? GetSortOrder(this IReadOnlyIndex index)
         => (IReadOnlyList<SortOrder>?)index[NpgsqlAnnotationNames.IndexSortOrder];
 
     /// <summary>
-    /// Sets the column sort orders to be used, or <c>null</c> if they have not been specified.
+    ///     Sets the column sort orders to be used, or <c>null</c> if they have not been specified.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     [Obsolete("Use IsDescending instead")]
     public static void SetSortOrder(this IMutableIndex index, IReadOnlyList<SortOrder>? sortOrder)
         => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
 
     /// <summary>
-    /// Sets the column sort orders to be used, or <c>null</c> if they have not been specified.
+    ///     Sets the column sort orders to be used, or <c>null</c> if they have not been specified.
     /// </summary>
     /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+    ///     https://www.postgresql.org/docs/current/static/indexes-ordering.html
     /// </remarks>
     [Obsolete("Use IsDescending instead")]
     public static IReadOnlyList<SortOrder>? SetSortOrder(
@@ -520,7 +522,7 @@ public static class NpgsqlIndexExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the index sort orders.
+    ///     Returns the <see cref="ConfigurationSource" /> for the index sort orders.
     /// </summary>
     /// <param name="index">The index.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the index sort orders.</returns>

@@ -2,34 +2,23 @@ using System.Data.Common;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFactory
+public class TestRelationalCommandBuilderFactory(RelationalCommandBuilderDependencies dependencies) : IRelationalCommandBuilderFactory
 {
-    public TestRelationalCommandBuilderFactory(
-        RelationalCommandBuilderDependencies dependencies)
-    {
-        Dependencies = dependencies;
-    }
-
-    public RelationalCommandBuilderDependencies Dependencies { get; }
+    public RelationalCommandBuilderDependencies Dependencies { get; } = dependencies;
 
     public virtual IRelationalCommandBuilder Create()
         => new TestRelationalCommandBuilder(Dependencies);
 
-    private class TestRelationalCommandBuilder : IRelationalCommandBuilder
+    private class TestRelationalCommandBuilder(RelationalCommandBuilderDependencies dependencies) : IRelationalCommandBuilder
     {
-        private readonly List<IRelationalParameter> _parameters = new List<IRelationalParameter>();
+        private readonly List<IRelationalParameter> _parameters = [];
 
-        public TestRelationalCommandBuilder(
-            RelationalCommandBuilderDependencies dependencies)
-        {
-            Dependencies = dependencies;
-        }
+        public IndentedStringBuilder Instance { get; } = new();
 
-        public IndentedStringBuilder Instance { get; } = new IndentedStringBuilder();
+        public RelationalCommandBuilderDependencies Dependencies { get; } = dependencies;
 
-        public RelationalCommandBuilderDependencies Dependencies { get; }
-
-        public IReadOnlyList<IRelationalParameter> Parameters => _parameters;
+        public IReadOnlyList<IRelationalParameter> Parameters
+            => _parameters;
 
         public IRelationalCommandBuilder AddParameter(IRelationalParameter parameter)
         {
@@ -83,24 +72,23 @@ public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFact
             return this;
         }
 
-        public int CommandTextLength => Instance.Length;
+        public int CommandTextLength
+            => Instance.Length;
     }
 
-    private class TestRelationalCommand : IRelationalCommand
+    private class TestRelationalCommand(
+        RelationalCommandBuilderDependencies dependencies,
+        string commandText,
+        IReadOnlyList<IRelationalParameter> parameters)
+        : IRelationalCommand
     {
-        private readonly RelationalCommand _realRelationalCommand;
+        private readonly RelationalCommand _realRelationalCommand = new(dependencies, commandText, parameters);
 
-        public TestRelationalCommand(
-            RelationalCommandBuilderDependencies dependencies,
-            string commandText,
-            IReadOnlyList<IRelationalParameter> parameters)
-        {
-            _realRelationalCommand = new RelationalCommand(dependencies, commandText, parameters);
-        }
+        public string CommandText
+            => _realRelationalCommand.CommandText;
 
-        public string CommandText => _realRelationalCommand.CommandText;
-
-        public IReadOnlyList<IRelationalParameter> Parameters => _realRelationalCommand.Parameters;
+        public IReadOnlyList<IRelationalParameter> Parameters
+            => _realRelationalCommand.Parameters;
 
         public int ExecuteNonQuery(RelationalCommandParameterObject parameterObject)
         {
@@ -118,7 +106,8 @@ public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFact
         }
 
         public Task<int> ExecuteNonQueryAsync(
-            RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken = default)
+            RelationalCommandParameterObject parameterObject,
+            CancellationToken cancellationToken = default)
         {
             var connection = parameterObject.Connection;
             var errorNumber = PreExecution(connection);
@@ -149,7 +138,8 @@ public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFact
         }
 
         public async Task<object> ExecuteScalarAsync(
-            RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken = default)
+            RelationalCommandParameterObject parameterObject,
+            CancellationToken cancellationToken = default)
         {
             var connection = parameterObject.Connection;
             var errorNumber = PreExecution(connection);
@@ -181,7 +171,8 @@ public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFact
         }
 
         public async Task<RelationalDataReader> ExecuteReaderAsync(
-            RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken = default)
+            RelationalCommandParameterObject parameterObject,
+            CancellationToken cancellationToken = default)
         {
             var connection = parameterObject.Connection;
             var errorNumber = PreExecution(connection);
@@ -216,9 +207,11 @@ public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFact
                         testConnection.DbConnection.Close();
                         throw new PostgresException("", "", "", testConnection.ErrorCode);
                     }
+
                     errorNumber = testConnection.ErrorCode;
                 }
             }
+
             return errorNumber;
         }
 

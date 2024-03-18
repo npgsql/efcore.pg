@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
@@ -18,7 +21,18 @@ public class TimestampTzInstantMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public TimestampTzInstantMapping() : base("timestamp with time zone", typeof(Instant), NpgsqlDbType.TimestampTz) {}
+    public static TimestampTzInstantMapping Default { get; } = new();
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public TimestampTzInstantMapping()
+        : base("timestamp with time zone", typeof(Instant), NpgsqlDbType.TimestampTz, JsonInstantReaderWriter.Instance)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -27,7 +41,9 @@ public class TimestampTzInstantMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected TimestampTzInstantMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.TimestampTz) {}
+        : base(parameters, NpgsqlDbType.TimestampTz)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -63,7 +79,7 @@ public class TimestampTzInstantMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
-        => $"TIMESTAMPTZ '{GenerateLiteralCore(value)}'";
+        => $"TIMESTAMPTZ '{Format((Instant)value)}'";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -72,12 +88,10 @@ public class TimestampTzInstantMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => $@"""{GenerateLiteralCore(value)}""";
+        => $@"""{Format((Instant)value)}""";
 
-    private string GenerateLiteralCore(object value)
+    private static string Format(Instant instant)
     {
-        var instant = (Instant)value;
-
         if (!NpgsqlNodaTimeTypeMappingSourcePlugin.DisableDateTimeInfinityConversions)
         {
             if (instant == Instant.MinValue)
@@ -107,5 +121,31 @@ public class TimestampTzInstantMapping : NpgsqlTypeMapping
         => GenerateCodeLiteral((Instant)value);
 
     private static readonly MethodInfo _fromUnixTimeTicks
-        = typeof(Instant).GetRuntimeMethod(nameof(Instant.FromUnixTimeTicks), new[] { typeof(long) })!;
+        = typeof(Instant).GetRuntimeMethod(nameof(Instant.FromUnixTimeTicks), [typeof(long)])!;
+
+    private sealed class JsonInstantReaderWriter : JsonValueReaderWriter<Instant>
+    {
+        public static JsonInstantReaderWriter Instance { get; } = new();
+
+        public override Instant FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+        {
+            var s = manager.CurrentReader.GetString()!;
+
+            if (!NpgsqlNodaTimeTypeMappingSourcePlugin.DisableDateTimeInfinityConversions)
+            {
+                switch (s)
+                {
+                    case "-infinity":
+                        return Instant.MinValue;
+                    case "infinity":
+                        return Instant.MaxValue;
+                }
+            }
+
+            return InstantPattern.ExtendedIso.Parse(s).GetValueOrThrow();
+        }
+
+        public override void ToJsonTyped(Utf8JsonWriter writer, Instant value)
+            => writer.WriteStringValue(Format(value));
+    }
 }

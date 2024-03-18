@@ -56,7 +56,7 @@ public class NpgsqlSequenceHiLoValueGenerator<TValue> : HiLoValueGenerator<TValu
     ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
-    protected override async Task<long> GetNewLowValueAsync(CancellationToken cancellationToken = default(CancellationToken))
+    protected override async Task<long> GetNewLowValueAsync(CancellationToken cancellationToken = default)
         => (long)Convert.ChangeType(
             await _rawSqlCommandBuilder
                 .Build(_sqlGenerator.GenerateNextSequenceValueOperation(_sequence.Name, _sequence.Schema))
@@ -75,5 +75,6 @@ public class NpgsqlSequenceHiLoValueGenerator<TValue> : HiLoValueGenerator<TValu
     ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
-    public override bool GeneratesTemporaryValues => false;
+    public override bool GeneratesTemporaryValues
+        => false;
 }

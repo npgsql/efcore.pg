@@ -6,24 +6,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 public class NpgsqlInternalMetadataBuilderExtensionsTest
 {
-    private IConventionModelBuilder CreateBuilder() => new InternalModelBuilder(new Model());
+    private IConventionModelBuilder CreateBuilder()
+        => new InternalModelBuilder(new Model());
 
     [ConditionalFact]
     public void Can_access_model()
     {
         var builder = CreateBuilder();
 
-        Assert.NotNull(builder
-            .HasValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo));
+        Assert.NotNull(
+            builder
+                .HasValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo));
         Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, builder.Metadata.GetValueGenerationStrategy());
 
-        Assert.NotNull(builder
-            .HasValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, fromDataAnnotation: true));
+        Assert.NotNull(
+            builder
+                .HasValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, fromDataAnnotation: true));
         Assert.Equal(
             NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, builder.Metadata.GetValueGenerationStrategy());
 
-        Assert.Null(builder
-            .HasValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo));
+        Assert.Null(
+            builder
+                .HasValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo));
         Assert.Equal(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, builder.Metadata.GetValueGenerationStrategy());
 
         Assert.Equal(
@@ -134,7 +138,5 @@ public class NpgsqlInternalMetadataBuilderExtensionsTest
                 a => a.Name.StartsWith(RelationalAnnotationNames.Prefix, StringComparison.Ordinal)));
     }
 
-    private class Splot
-    {
-    }
+    private class Splot;
 }

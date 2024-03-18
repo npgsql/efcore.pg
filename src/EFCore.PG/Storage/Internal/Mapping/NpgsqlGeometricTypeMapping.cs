@@ -17,7 +17,18 @@ public class NpgsqlPointTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlPointTypeMapping() : base("point", typeof(NpgsqlPoint), NpgsqlDbType.Point) {}
+    public static NpgsqlPointTypeMapping Default { get; } = new();
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public NpgsqlPointTypeMapping()
+        : base("point", typeof(NpgsqlPoint), NpgsqlDbType.Point)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -26,7 +37,9 @@ public class NpgsqlPointTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlPointTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Point) {}
+        : base(parameters, NpgsqlDbType.Point)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -62,7 +75,7 @@ public class NpgsqlPointTypeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) })!;
+        typeof(NpgsqlPoint).GetConstructor([typeof(double), typeof(double)])!;
 }
 
 /// <summary>
@@ -79,7 +92,18 @@ public class NpgsqlLineTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlLineTypeMapping() : base("line", typeof(NpgsqlLine), NpgsqlDbType.Line) {}
+    public static NpgsqlLineTypeMapping Default { get; } = new();
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public NpgsqlLineTypeMapping()
+        : base("line", typeof(NpgsqlLine), NpgsqlDbType.Line)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -88,7 +112,9 @@ public class NpgsqlLineTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlLineTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Line) {}
+        : base(parameters, NpgsqlDbType.Line)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -129,7 +155,7 @@ public class NpgsqlLineTypeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlLine).GetConstructor(new[] { typeof(double), typeof(double), typeof(double) })!;
+        typeof(NpgsqlLine).GetConstructor([typeof(double), typeof(double), typeof(double)])!;
 }
 
 /// <summary>
@@ -146,7 +172,18 @@ public class NpgsqlLineSegmentTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlLineSegmentTypeMapping() : base("lseg", typeof(NpgsqlLSeg), NpgsqlDbType.LSeg) {}
+    public static NpgsqlLineSegmentTypeMapping Default { get; } = new();
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public NpgsqlLineSegmentTypeMapping()
+        : base("lseg", typeof(NpgsqlLSeg), NpgsqlDbType.LSeg)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -155,7 +192,9 @@ public class NpgsqlLineSegmentTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlLineSegmentTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.LSeg) {}
+        : base(parameters, NpgsqlDbType.LSeg)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -194,7 +233,7 @@ public class NpgsqlLineSegmentTypeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlLSeg).GetConstructor(new[] { typeof(double), typeof(double), typeof(double), typeof(double) })!;
+        typeof(NpgsqlLSeg).GetConstructor([typeof(double), typeof(double), typeof(double), typeof(double)])!;
 }
 
 /// <summary>
@@ -211,7 +250,18 @@ public class NpgsqlBoxTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlBoxTypeMapping() : base("box", typeof(NpgsqlBox), NpgsqlDbType.Box) {}
+    public static NpgsqlBoxTypeMapping Default { get; } = new();
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public NpgsqlBoxTypeMapping()
+        : base("box", typeof(NpgsqlBox), NpgsqlDbType.Box)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -220,7 +270,9 @@ public class NpgsqlBoxTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlBoxTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Box) {}
+        : base(parameters, NpgsqlDbType.Box)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -259,7 +311,7 @@ public class NpgsqlBoxTypeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlBox).GetConstructor(new[] { typeof(double), typeof(double), typeof(double), typeof(double) })!;
+        typeof(NpgsqlBox).GetConstructor([typeof(double), typeof(double), typeof(double), typeof(double)])!;
 }
 
 /// <summary>
@@ -276,7 +328,18 @@ public class NpgsqlPathTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlPathTypeMapping() : base("path", typeof(NpgsqlPath), NpgsqlDbType.Path) {}
+    public static NpgsqlPathTypeMapping Default { get; } = new();
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public NpgsqlPathTypeMapping()
+        : base("path", typeof(NpgsqlPath), NpgsqlDbType.Path)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -285,7 +348,9 @@ public class NpgsqlPathTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlPathTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Path) {}
+        : base(parameters, NpgsqlDbType.Path)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -320,6 +385,7 @@ public class NpgsqlPathTypeMapping : NpgsqlTypeMapping
                 sb.Append(',');
             }
         }
+
         sb.Append(path.Open ? ']' : ')');
         sb.Append('\'');
         return sb.ToString();
@@ -336,18 +402,20 @@ public class NpgsqlPathTypeMapping : NpgsqlTypeMapping
         var path = (NpgsqlPath)value;
         return Expression.New(
             Constructor,
-            Expression.NewArrayInit(typeof(NpgsqlPoint),
-                path.Select(p => Expression.New(
-                    PointConstructor,
-                    Expression.Constant(p.X), Expression.Constant(p.Y)))),
+            Expression.NewArrayInit(
+                typeof(NpgsqlPoint),
+                path.Select(
+                    p => Expression.New(
+                        PointConstructor,
+                        Expression.Constant(p.X), Expression.Constant(p.Y)))),
             Expression.Constant(path.Open));
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlPath).GetConstructor(new[] { typeof(IEnumerable<NpgsqlPoint>), typeof(bool) })!;
+        typeof(NpgsqlPath).GetConstructor([typeof(IEnumerable<NpgsqlPoint>), typeof(bool)])!;
 
     private static readonly ConstructorInfo PointConstructor =
-        typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) })!;
+        typeof(NpgsqlPoint).GetConstructor([typeof(double), typeof(double)])!;
 }
 
 /// <summary>
@@ -364,7 +432,18 @@ public class NpgsqlPolygonTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlPolygonTypeMapping() : base("polygon", typeof(NpgsqlPolygon), NpgsqlDbType.Polygon) {}
+    public static NpgsqlPolygonTypeMapping Default { get; } = new();
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public NpgsqlPolygonTypeMapping()
+        : base("polygon", typeof(NpgsqlPolygon), NpgsqlDbType.Polygon)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -373,7 +452,9 @@ public class NpgsqlPolygonTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlPolygonTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Polygon) {}
+        : base(parameters, NpgsqlDbType.Polygon)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -407,6 +488,7 @@ public class NpgsqlPolygonTypeMapping : NpgsqlTypeMapping
                 sb.Append(',');
             }
         }
+
         sb.Append(")'");
         return sb.ToString();
     }
@@ -422,17 +504,19 @@ public class NpgsqlPolygonTypeMapping : NpgsqlTypeMapping
         var polygon = (NpgsqlPolygon)value;
         return Expression.New(
             Constructor,
-            Expression.NewArrayInit(typeof(NpgsqlPoint),
-                polygon.Select(p => Expression.New(
-                    PointConstructor,
-                    Expression.Constant(p.X), Expression.Constant(p.Y)))));
+            Expression.NewArrayInit(
+                typeof(NpgsqlPoint),
+                polygon.Select(
+                    p => Expression.New(
+                        PointConstructor,
+                        Expression.Constant(p.X), Expression.Constant(p.Y)))));
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlPolygon).GetConstructor(new[] { typeof(NpgsqlPoint[]) })!;
+        typeof(NpgsqlPolygon).GetConstructor([typeof(NpgsqlPoint[])])!;
 
     private static readonly ConstructorInfo PointConstructor =
-        typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) })!;
+        typeof(NpgsqlPoint).GetConstructor([typeof(double), typeof(double)])!;
 }
 
 /// <summary>
@@ -449,7 +533,18 @@ public class NpgsqlCircleTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlCircleTypeMapping() : base("circle", typeof(NpgsqlCircle), NpgsqlDbType.Circle) {}
+    public static NpgsqlCircleTypeMapping Default { get; } = new();
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public NpgsqlCircleTypeMapping()
+        : base("circle", typeof(NpgsqlCircle), NpgsqlDbType.Circle)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -458,7 +553,9 @@ public class NpgsqlCircleTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlCircleTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Circle) {}
+        : base(parameters, NpgsqlDbType.Circle)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -496,5 +593,5 @@ public class NpgsqlCircleTypeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(NpgsqlCircle).GetConstructor(new[] { typeof(double), typeof(double), typeof(double) })!;
+        typeof(NpgsqlCircle).GetConstructor([typeof(double), typeof(double), typeof(double)])!;
 }

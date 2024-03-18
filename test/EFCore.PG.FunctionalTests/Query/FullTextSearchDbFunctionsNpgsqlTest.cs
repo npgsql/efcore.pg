@@ -3,6 +3,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
+#pragma warning disable CS0618 // NpgsqlTsVector.Parse is obsolete
+
 public class FullTextSearchDbFunctionsNpgsqlTest : IClassFixture<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
 {
     protected NorthwindQueryNpgsqlFixture<NoopModelCustomizer> Fixture { get; }
@@ -23,7 +25,7 @@ public class FullTextSearchDbFunctionsNpgsqlTest : IClassFixture<NorthwindQueryN
 
         Assert.NotNull(tsvector);
         AssertSql(
-"""
+            """
 SELECT 'a b'::tsvector
 FROM "Customers" AS c
 LIMIT 1
@@ -39,7 +41,7 @@ LIMIT 1
 
         Assert.Equal(NpgsqlTsVector.Parse("b c d").ToString(), tsvector.ToString());
         AssertSql(
-"""
+            """
 SELECT array_to_tsvector(ARRAY['b','c','d']::text[])
 FROM "Customers" AS c
 LIMIT 1
@@ -57,7 +59,7 @@ LIMIT 1
 
         Assert.Equal(NpgsqlTsVector.Parse("'Alfreds Futterkiste' 'Obere Str. 57'").ToString(), tsvector.ToString());
         AssertSql(
-"""
+            """
 SELECT array_to_tsvector(ARRAY[c."CompanyName",c."Address"]::character varying(60)[])
 FROM "Customers" AS c
 ORDER BY c."CustomerID" NULLS FIRST
@@ -73,7 +75,7 @@ LIMIT 1
 
         Assert.NotNull(tsvector);
         AssertSql(
-"""
+            """
 SELECT to_tsvector(c."CompanyName")
 FROM "Customers" AS c
 LIMIT 1
@@ -88,7 +90,7 @@ LIMIT 1
 
         Assert.NotNull(tsvector);
         AssertSql(
-"""
+            """
 SELECT to_tsvector('english', c."CompanyName")
 FROM "Customers" AS c
 LIMIT 1
@@ -104,7 +106,7 @@ LIMIT 1
 
         Assert.NotNull(tsvector);
         AssertSql(
-"""
+            """
 SELECT to_tsvector('english', c."CompanyName")
 FROM "Customers" AS c
 LIMIT 1
@@ -119,7 +121,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT 'a & b'::tsquery
 FROM "Customers" AS c
 LIMIT 1
@@ -134,7 +136,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT plainto_tsquery('a')
 FROM "Customers" AS c
 LIMIT 1
@@ -149,7 +151,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT plainto_tsquery('english', 'a')
 FROM "Customers" AS c
 LIMIT 1
@@ -165,7 +167,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT plainto_tsquery('english', 'a')
 FROM "Customers" AS c
 LIMIT 1
@@ -180,7 +182,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT phraseto_tsquery('a b')
 FROM "Customers" AS c
 LIMIT 1
@@ -195,7 +197,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT phraseto_tsquery('english', 'a b')
 FROM "Customers" AS c
 LIMIT 1
@@ -211,7 +213,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT phraseto_tsquery('english', 'a b')
 FROM "Customers" AS c
 LIMIT 1
@@ -226,7 +228,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT to_tsquery('a & b')
 FROM "Customers" AS c
 LIMIT 1
@@ -241,7 +243,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT to_tsquery('english', 'a & b')
 FROM "Customers" AS c
 LIMIT 1
@@ -257,7 +259,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT to_tsquery('english', 'a & b')
 FROM "Customers" AS c
 LIMIT 1
@@ -273,7 +275,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT websearch_to_tsquery('a OR b')
 FROM "Customers" AS c
 LIMIT 1
@@ -289,7 +291,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT websearch_to_tsquery('english', 'a OR b')
 FROM "Customers" AS c
 LIMIT 1
@@ -306,7 +308,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT websearch_to_tsquery('english', 'a OR b')
 FROM "Customers" AS c
 LIMIT 1
@@ -323,7 +325,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT to_tsquery('a & b') && to_tsquery('c & d')
 FROM "Customers" AS c
 LIMIT 1
@@ -340,7 +342,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT to_tsquery('a & b') || to_tsquery('c & d')
 FROM "Customers" AS c
 LIMIT 1
@@ -357,7 +359,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT !!to_tsquery('a & b')
 FROM "Customers" AS c
 LIMIT 1
@@ -374,7 +376,7 @@ LIMIT 1
 
         Assert.True(result);
         AssertSql(
-"""
+            """
 SELECT to_tsquery('a & b') @> to_tsquery('b')
 FROM "Customers" AS c
 LIMIT 1
@@ -391,7 +393,7 @@ LIMIT 1
 
         Assert.True(result);
         AssertSql(
-"""
+            """
 SELECT to_tsquery('b') <@ to_tsquery('a & b')
 FROM "Customers" AS c
 LIMIT 1
@@ -408,7 +410,7 @@ LIMIT 1
 
         Assert.Equal(1, nodeCount);
         AssertSql(
-"""
+            """
 SELECT numnode(to_tsquery('b'))
 FROM "Customers" AS c
 LIMIT 1
@@ -425,7 +427,7 @@ LIMIT 1
 
         Assert.NotEmpty(queryTree);
         AssertSql(
-"""
+            """
 SELECT querytree(to_tsquery('b'))
 FROM "Customers" AS c
 LIMIT 1
@@ -442,7 +444,7 @@ LIMIT 1
 
         Assert.NotEmpty(headline);
         AssertSql(
-"""
+            """
 SELECT ts_headline('a b c', to_tsquery('b'))
 FROM "Customers" AS c
 LIMIT 1
@@ -459,7 +461,7 @@ LIMIT 1
 
         Assert.NotEmpty(headline);
         AssertSql(
-"""
+            """
 SELECT ts_headline('a b c', to_tsquery('b'), 'MinWords=1, MaxWords=2')
 FROM "Customers" AS c
 LIMIT 1
@@ -480,7 +482,7 @@ LIMIT 1
 
         Assert.NotEmpty(headline);
         AssertSql(
-"""
+            """
 SELECT ts_headline('english', 'a b c', to_tsquery('b'), 'MinWords=1, MaxWords=2')
 FROM "Customers" AS c
 LIMIT 1
@@ -502,7 +504,7 @@ LIMIT 1
 
         Assert.NotEmpty(headline);
         AssertSql(
-"""
+            """
 @__config_1='english'
 
 SELECT ts_headline(@__config_1::regconfig, 'a b c', to_tsquery('b'), 'MinWords=1, MaxWords=2')
@@ -524,7 +526,7 @@ LIMIT 1
 
         Assert.NotNull(rewritten);
         AssertSql(
-"""
+            """
 SELECT ts_rewrite(to_tsquery('a & b'), to_tsquery('b'), to_tsquery('c'))
 FROM "Customers" AS c
 LIMIT 1
@@ -543,7 +545,7 @@ LIMIT 1
 
         Assert.NotNull(rewritten);
         AssertSql(
-"""
+            """
 SELECT ts_rewrite(to_tsquery('a & b'), 'SELECT ''a''::tsquery, ''c''::tsquery')
 FROM "Customers" AS c
 LIMIT 1
@@ -560,7 +562,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT tsquery_phrase(to_tsquery('a'), to_tsquery('b'))
 FROM "Customers" AS c
 LIMIT 1
@@ -577,7 +579,7 @@ LIMIT 1
 
         Assert.NotNull(tsquery);
         AssertSql(
-"""
+            """
 SELECT tsquery_phrase(to_tsquery('a'), to_tsquery('b'), 10)
 FROM "Customers" AS c
 LIMIT 1
@@ -595,7 +597,7 @@ LIMIT 1
 
         Assert.False(result);
         AssertSql(
-"""
+            """
 @__query_1='b'
 
 SELECT to_tsvector('a') @@ plainto_tsquery(@__query_1)
@@ -614,7 +616,7 @@ LIMIT 1
 
         Assert.False(result);
         AssertSql(
-"""
+            """
 SELECT to_tsvector('a') @@ to_tsquery('b')
 FROM "Customers" AS c
 LIMIT 1
@@ -631,7 +633,7 @@ LIMIT 1
 
         Assert.Equal(NpgsqlTsVector.Parse("b:1 c:2").ToString(), tsVector.ToString());
         AssertSql(
-"""
+            """
 SELECT to_tsvector('b') || to_tsvector('c')
 FROM "Customers" AS c
 LIMIT 1
@@ -648,7 +650,7 @@ LIMIT 1
 
         Assert.NotNull(weightedTsVector);
         AssertSql(
-"""
+            """
 SELECT setweight(to_tsvector('a'), 'A')
 FROM "Customers" AS c
 LIMIT 1
@@ -665,7 +667,7 @@ LIMIT 1
 
         Assert.NotNull(weightedTsVector);
         AssertSql(
-"""
+            """
 SELECT setweight(to_tsvector('a'), 'A', ARRAY['a']::text[])
 FROM "Customers" AS c
 LIMIT 1
@@ -682,7 +684,7 @@ LIMIT 1
 
         Assert.NotNull(weightedTsVector);
         AssertSql(
-"""
+            """
 SELECT setweight(to_tsvector('a'), 'A')
 FROM "Customers" AS c
 LIMIT 1
@@ -699,7 +701,7 @@ LIMIT 1
 
         Assert.NotNull(weightedTsVector);
         AssertSql(
-"""
+            """
 SELECT setweight(to_tsvector('a'), 'A', ARRAY['a']::text[])
 FROM "Customers" AS c
 LIMIT 1
@@ -716,7 +718,7 @@ LIMIT 1
 
         Assert.Equal(NpgsqlTsVector.Parse("b:1").ToString(), tsVector.ToString());
         AssertSql(
-"""
+            """
 SELECT ts_delete(to_tsvector('b c'), 'c')
 FROM "Customers" AS c
 LIMIT 1
@@ -733,7 +735,7 @@ LIMIT 1
 
         Assert.Equal(NpgsqlTsVector.Parse("b:1").ToString(), tsVector.ToString());
         AssertSql(
-"""
+            """
 SELECT ts_delete(to_tsvector('b c d'), ARRAY['c','d']::text[])
 FROM "Customers" AS c
 LIMIT 1
@@ -750,7 +752,7 @@ LIMIT 1
 
         Assert.Equal(NpgsqlTsVector.Parse("c:2B d:3C").ToString(), tsVector.ToString());
         AssertSql(
-"""
+            """
 SELECT ts_filter(CAST('b:1A c:2B d:3C' AS tsvector), CAST(ARRAY['B','C']::character(1)[] AS "char"[]))
 FROM "Customers" AS c
 LIMIT 1
@@ -767,7 +769,7 @@ LIMIT 1
 
         Assert.Equal(1, length);
         AssertSql(
-"""
+            """
 SELECT length(to_tsvector('c'))
 FROM "Customers" AS c
 LIMIT 1
@@ -784,7 +786,7 @@ LIMIT 1
 
         Assert.Equal(NpgsqlTsVector.Parse("c").ToString(), strippedTsVector.ToString());
         AssertSql(
-"""
+            """
 SELECT strip(to_tsvector('c:A'))
 FROM "Customers" AS c
 LIMIT 1
@@ -801,7 +803,7 @@ LIMIT 1
 
         Assert.True(rank > 0);
         AssertSql(
-"""
+            """
 SELECT ts_rank(to_tsvector('a b c'), to_tsquery('b'))
 FROM "Customers" AS c
 LIMIT 1
@@ -821,7 +823,7 @@ LIMIT 1
 
         Assert.True(rank > 0);
         AssertSql(
-"""
+            """
 SELECT ts_rank(to_tsvector('a b c'), to_tsquery('b'), 2)
 FROM "Customers" AS c
 LIMIT 1
@@ -841,7 +843,7 @@ LIMIT 1
 
         Assert.True(rank > 0);
         AssertSql(
-"""
+            """
 SELECT ts_rank(ARRAY[1,1,1,1]::real[], to_tsvector('a b c'), to_tsquery('b'))
 FROM "Customers" AS c
 LIMIT 1
@@ -862,7 +864,7 @@ LIMIT 1
 
         Assert.True(rank > 0);
         AssertSql(
-"""
+            """
 SELECT ts_rank(ARRAY[1,1,1,1]::real[], to_tsvector('a b c'), to_tsquery('b'), 2)
 FROM "Customers" AS c
 LIMIT 1
@@ -879,7 +881,7 @@ LIMIT 1
 
         Assert.True(rank > 0);
         AssertSql(
-"""
+            """
 SELECT ts_rank_cd(to_tsvector('a b c'), to_tsquery('b'))
 FROM "Customers" AS c
 LIMIT 1
@@ -899,7 +901,7 @@ LIMIT 1
 
         Assert.True(rank > 0);
         AssertSql(
-"""
+            """
 SELECT ts_rank_cd(to_tsvector('a b c'), to_tsquery('b'), 2)
 FROM "Customers" AS c
 LIMIT 1
@@ -919,7 +921,7 @@ LIMIT 1
 
         Assert.True(rank > 0);
         AssertSql(
-"""
+            """
 SELECT ts_rank_cd(ARRAY[1,1,1,1]::real[], to_tsvector('a b c'), to_tsquery('b'))
 FROM "Customers" AS c
 LIMIT 1
@@ -940,7 +942,7 @@ LIMIT 1
 
         Assert.True(rank > 0);
         AssertSql(
-"""
+            """
 SELECT ts_rank_cd(ARRAY[1,1,1,1]::real[], to_tsvector('a b c'), to_tsquery('b'), 2)
 FROM "Customers" AS c
 LIMIT 1
@@ -983,7 +985,7 @@ LIMIT 1
             .FirstOrDefault();
 
         AssertSql(
-"""
+            """
 SELECT unaccent(c."ContactName")
 FROM "Customers" AS c
 LIMIT 1
@@ -999,7 +1001,7 @@ LIMIT 1
             .FirstOrDefault();
 
         AssertSql(
-"""
+            """
 SELECT unaccent('unaccent', c."ContactName")
 FROM "Customers" AS c
 LIMIT 1
@@ -1016,7 +1018,7 @@ LIMIT 1
             .FirstOrDefault();
 
         AssertSql(
-"""
+            """
 @__regDictionary_1='unaccent'
 
 SELECT unaccent(@__regDictionary_1::regdictionary, c."ContactName")
@@ -1030,11 +1032,12 @@ LIMIT 1
     {
         using var context = CreateContext();
         _ = context.Customers
-            .Count(c => EF.Functions.ToTsVector(c.ContactTitle)
-                .Matches(EF.Functions.ToTsQuery("owner").Or(EF.Functions.ToTsQuery("foo"))));
+            .Count(
+                c => EF.Functions.ToTsVector(c.ContactTitle)
+                    .Matches(EF.Functions.ToTsQuery("owner").Or(EF.Functions.ToTsQuery("foo"))));
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE to_tsvector(c."ContactTitle") @@ (to_tsquery('owner') || to_tsquery('foo'))
@@ -1044,5 +1047,6 @@ WHERE to_tsvector(c."ContactTitle") @@ (to_tsquery('owner') || to_tsquery('foo')
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-    protected NorthwindContext CreateContext() => Fixture.CreateContext();
+    protected NorthwindContext CreateContext()
+        => Fixture.CreateContext();
 }

@@ -2,12 +2,12 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class NavigationTest : IClassFixture<NavigationTestFixture>
+public class NavigationTest(NavigationTestFixture fixture) : IClassFixture<NavigationTestFixture>
 {
     [Fact]
     public void Duplicate_entries_are_not_created_for_navigations_to_principal()
     {
-        using var context = _fixture.CreateContext();
+        using var context = fixture.CreateContext();
 
         context.ConfigAction = modelBuilder =>
         {
@@ -31,7 +31,7 @@ public class NavigationTest : IClassFixture<NavigationTestFixture>
     [Fact]
     public void Duplicate_entries_are_not_created_for_navigations_to_dependant()
     {
-        using var context = _fixture.CreateContext();
+        using var context = fixture.CreateContext();
 
         context.ConfigAction = modelBuilder =>
         {
@@ -51,10 +51,6 @@ public class NavigationTest : IClassFixture<NavigationTestFixture>
             "ForeignKey: GoTPerson {'SiblingReverseId'} -> GoTPerson {'Id'} ClientSetNull ToDependent: Siblings ToPrincipal: SiblingReverse",
             entityType.GetForeignKeys().Skip(1).First().ToString());
     }
-
-    private readonly NavigationTestFixture _fixture;
-
-    public NavigationTest(NavigationTestFixture fixture) => _fixture = fixture;
 }
 
 public class GoTPerson
@@ -68,17 +64,13 @@ public class GoTPerson
     public GoTPerson SiblingReverse { get; set; }
 }
 
-public class GoTContext : DbContext
+public class GoTContext(DbContextOptions options) : DbContext(options)
 {
-    public GoTContext(DbContextOptions options)
-        : base(options)
-    {
-    }
-
     public DbSet<GoTPerson> People { get; set; }
     public Func<ModelBuilder, int> ConfigAction { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder) => ConfigAction.Invoke(modelBuilder);
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+        => ConfigAction.Invoke(modelBuilder);
 }
 
 public class NavigationTestFixture
@@ -91,10 +83,7 @@ public class NavigationTestFixture
             .AddEntityFrameworkNpgsql()
             .BuildServiceProvider();
 
-        var connStrBuilder = new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection)
-        {
-            Database = "StateManagerBug"
-        };
+        var connStrBuilder = new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection) { Database = "StateManagerBug" };
 
         _options = new DbContextOptionsBuilder()
             .UseNpgsql(connStrBuilder.ConnectionString)
@@ -102,5 +91,6 @@ public class NavigationTestFixture
             .Options;
     }
 
-    public virtual GoTContext CreateContext() => new(_options);
+    public virtual GoTContext CreateContext()
+        => new(_options);
 }

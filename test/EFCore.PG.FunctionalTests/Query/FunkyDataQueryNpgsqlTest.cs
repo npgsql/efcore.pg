@@ -35,13 +35,18 @@ public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpg
             ss => ss.Set<FunkyCustomer>().Where(c => c.FirstName != null && c.FirstName.StartsWith(param)));
     }
 
-    public class FunkyDataQueryNpgsqlFixture : FunkyDataQueryFixtureBase
+    private void AssertSql(params string[] expected)
+        => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
+
+    public class FunkyDataQueryNpgsqlFixture : FunkyDataQueryFixtureBase, ITestSqlLoggerFactory
     {
         private FunkyDataData _expectedData;
 
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         public override FunkyDataContext CreateContext()
         {
@@ -61,7 +66,7 @@ public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpg
                 var mutableCustomersOhYeah = (List<FunkyCustomer>)_expectedData.FunkyCustomers;
 
                 mutableCustomersOhYeah.Add(
-                    new()
+                    new FunkyCustomer
                     {
                         Id = maxId + 1,
                         FirstName = "Some\\Guy",

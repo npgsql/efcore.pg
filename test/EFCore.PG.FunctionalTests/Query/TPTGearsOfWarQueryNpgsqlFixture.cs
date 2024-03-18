@@ -13,7 +13,8 @@ public class TPTGearsOfWarQueryNpgsqlFixture : TPTGearsOfWarQueryRelationalFixtu
 #pragma warning restore CS0618 // Type or member is obsolete
     }
 
-    protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+    protected override ITestStoreFactory TestStoreFactory
+        => NpgsqlTestStoreFactory.Instance;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
     {
@@ -46,11 +47,9 @@ public class TPTGearsOfWarQueryNpgsqlFixture : TPTGearsOfWarQueryRelationalFixtu
     }
 
     protected override void Seed(GearsOfWarContext context)
-    {
         // GearsOfWarData contains DateTimeOffsets with various offsets, which we don't support. Change these to UTC.
         // Also chop sub-microsecond precision which PostgreSQL does not support.
-        SeedForNpgsql(context);
-    }
+        => SeedForNpgsql(context);
 
     public static void SeedForNpgsql(GearsOfWarContext context)
     {

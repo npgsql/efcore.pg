@@ -26,7 +26,7 @@ public class IdentitySequenceOptionsData : IEquatable<IdentitySequenceOptionsDat
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public virtual long? StartValue { get; set; }
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -34,7 +34,7 @@ public class IdentitySequenceOptionsData : IEquatable<IdentitySequenceOptionsDat
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public virtual long IncrementBy { get; set; } = 1;
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -42,7 +42,7 @@ public class IdentitySequenceOptionsData : IEquatable<IdentitySequenceOptionsDat
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public virtual long? MinValue { get; set; }
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -50,7 +50,7 @@ public class IdentitySequenceOptionsData : IEquatable<IdentitySequenceOptionsDat
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public virtual long? MaxValue { get; set; }
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -58,7 +58,7 @@ public class IdentitySequenceOptionsData : IEquatable<IdentitySequenceOptionsDat
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public virtual bool IsCyclic { get; set; }
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -179,15 +179,16 @@ public class IdentitySequenceOptionsData : IEquatable<IdentitySequenceOptionsDat
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public virtual bool Equals(IdentitySequenceOptionsData? other)
-        => !(other is null) && (
-            ReferenceEquals(this, other) ||
-            StartValue == other.StartValue &&
-            IncrementBy == other.IncrementBy &&
-            MinValue == other.MinValue &&
-            MaxValue == other.MaxValue &&
-            IsCyclic == other.IsCyclic &&
-            NumbersToCache == other.NumbersToCache
-        );
+        => !(other is null)
+            && (
+                ReferenceEquals(this, other)
+                || StartValue == other.StartValue
+                && IncrementBy == other.IncrementBy
+                && MinValue == other.MinValue
+                && MaxValue == other.MaxValue
+                && IsCyclic == other.IsCyclic
+                && NumbersToCache == other.NumbersToCache
+            );
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

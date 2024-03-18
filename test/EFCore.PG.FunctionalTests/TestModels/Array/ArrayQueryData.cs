@@ -2,11 +2,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
 
 public class ArrayQueryData : ISetSource
 {
-    public IReadOnlyList<ArrayEntity> ArrayEntities { get; }
-    public IReadOnlyList<ArrayContainerEntity> ContainerEntities { get; }
-
-    public ArrayQueryData()
-        => (ArrayEntities, ContainerEntities) = (CreateArrayEntities(), CreateContainerEntities());
+    public IReadOnlyList<ArrayEntity> ArrayEntities { get; } = CreateArrayEntities();
+    public IReadOnlyList<ArrayContainerEntity> ContainerEntities { get; } = CreateContainerEntities();
 
     public IQueryable<TEntity> Set<TEntity>()
         where TEntity : class
@@ -30,16 +27,16 @@ public class ArrayQueryData : ISetSource
             new()
             {
                 Id = 1,
-                IntArray = new[] { 3, 4 },
-                IntList = new List<int> { 3, 4 },
-                NullableIntArray = new int?[] { 3, 4, null },
-                NullableIntList = new List<int?> { 3, 4, null },
-                Bytea = new byte[] { 3, 4 },
-                ByteArray = new byte[] { 3, 4 },
-                StringArray = new[] { "3", "4" },
-                NullableStringArray = new[] { "3", "4", null },
-                StringList = new List<string> { "3", "4" },
-                NullableStringList = new List<string> { "3", "4", null},
+                IntArray = [3, 4],
+                IntList = [3, 4],
+                NullableIntArray = [3, 4, null],
+                NullableIntList = [3, 4, null],
+                Bytea = [3, 4],
+                ByteArray = [3, 4],
+                StringArray = ["3", "4"],
+                NullableStringArray = ["3", "4", null],
+                StringList = ["3", "4"],
+                NullableStringList = ["3", "4", null],
                 NullableText = "foo",
                 NonNullableText = "foo",
                 Varchar10 = "foo",
@@ -48,24 +45,26 @@ public class ArrayQueryData : ISetSource
                 EnumConvertedToString = SomeEnum.One,
                 NullableEnumConvertedToString = SomeEnum.One,
                 NullableEnumConvertedToStringWithNonNullableLambda = SomeEnum.One,
-                ValueConvertedArray = new[] { SomeEnum.Eight, SomeEnum.Nine },
-                ValueConvertedList = new List<SomeEnum> { SomeEnum.Eight, SomeEnum.Nine },
+                ValueConvertedArrayOfEnum = [SomeEnum.Eight, SomeEnum.Nine],
+                ValueConvertedListOfEnum = [SomeEnum.Eight, SomeEnum.Nine],
+                ArrayOfStringConvertedToDelimitedString = ["3", "4"],
+                ListOfStringConvertedToDelimitedString = ["3", "4"],
                 IList = new[] { 8, 9 },
                 Byte = 10
             },
             new()
             {
                 Id = 2,
-                IntArray = new[] { 5, 6, 7, 8 },
-                IntList = new List<int> { 5, 6, 7, 8 },
-                NullableIntArray = new int?[] { 5, 6, 7, 8 },
-                NullableIntList = new List<int?> { 5, 6, 7, 8 },
-                Bytea = new byte[] { 5, 6, 7, 8 },
-                ByteArray = new byte[] { 5, 6, 7, 8 },
-                StringArray = new[] { "5", "6", "7", "8" },
-                NullableStringArray = new[] { "5", "6", "7", "8" },
-                StringList = new List<string> { "5", "6", "7", "8" },
-                NullableStringList = new List<string> { "5", "6", "7", "8" },
+                IntArray = [5, 6, 7, 8],
+                IntList = [5, 6, 7, 8],
+                NullableIntArray = [5, 6, 7, 8],
+                NullableIntList = [5, 6, 7, 8],
+                Bytea = [5, 6, 7, 8],
+                ByteArray = [5, 6, 7, 8],
+                StringArray = ["5", "6", "7", "8"],
+                NullableStringArray = ["5", "6", "7", "8"],
+                StringList = ["5", "6", "7", "8"],
+                NullableStringList = ["5", "6", "7", "8"],
                 NullableText = "bar",
                 NonNullableText = "bar",
                 Varchar10 = "bar",
@@ -74,20 +73,15 @@ public class ArrayQueryData : ISetSource
                 EnumConvertedToString = SomeEnum.Two,
                 NullableEnumConvertedToString = SomeEnum.Two,
                 NullableEnumConvertedToStringWithNonNullableLambda = SomeEnum.Two,
-                ValueConvertedArray = new[] { SomeEnum.Nine, SomeEnum.Ten },
-                ValueConvertedList = new List<SomeEnum> { SomeEnum.Nine, SomeEnum.Ten },
+                ValueConvertedArrayOfEnum = [SomeEnum.Nine, SomeEnum.Ten],
+                ValueConvertedListOfEnum = [SomeEnum.Nine, SomeEnum.Ten],
+                ArrayOfStringConvertedToDelimitedString = ["5", "6", "7", "8"],
+                ListOfStringConvertedToDelimitedString = ["5", "6", "7", "8"],
                 IList = new[] { 9, 10 },
                 Byte = 20
             }
         };
 
     public static IReadOnlyList<ArrayContainerEntity> CreateContainerEntities()
-        => new[]
-        {
-            new ArrayContainerEntity
-            {
-                Id = 1,
-                ArrayEntities = CreateArrayEntities().ToList()
-            }
-        };
+        => new[] { new ArrayContainerEntity { Id = 1, ArrayEntities = CreateArrayEntities().ToList() } };
 }

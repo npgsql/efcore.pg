@@ -36,13 +36,13 @@ public class QueryBugsTest : IClassFixture<NpgsqlFixture>
     public class Bug920Entity
     {
         public int Id { get; set; }
-        [Column(TypeName="char(3)")]
+
+        [Column(TypeName = "char(3)")]
         public Bug920Enum Enum { get; set; }
     }
 
-    private class Bug920Context : DbContext
+    private class Bug920Context(DbContextOptions options) : DbContext(options)
     {
-        public Bug920Context(DbContextOptions options) : base(options) {}
         public DbSet<Bug920Entity> Entities { get; set; }
     }
 
@@ -66,12 +66,8 @@ public class QueryBugsTest : IClassFixture<NpgsqlFixture>
     }
 
     protected void ClearLog()
-    {
-        Fixture.TestSqlLoggerFactory.Clear();
-    }
+        => Fixture.TestSqlLoggerFactory.Clear();
 
     private void AssertSql(params string[] expected)
-    {
-        Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
-    }
+        => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 }

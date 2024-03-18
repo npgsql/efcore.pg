@@ -5,7 +5,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class ManyToManyQueryNpgsqlFixture : ManyToManyQueryRelationalFixture
 {
-    protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+    protected override ITestStoreFactory TestStoreFactory
+        => NpgsqlTestStoreFactory.Instance;
 
     // We default to mapping DateTime to 'timestamp with time zone', but the seeding data has Unspecified DateTimes which aren't
     // supported. So we need to explicitly set some column types to 'timestamp without time zone', but this is difficult/problematic

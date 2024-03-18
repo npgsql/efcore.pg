@@ -1,26 +1,26 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 /// <summary>
-/// An SQL expression that represents an indexing into a PostgreSQL array.
+///     An SQL expression that represents an indexing into a PostgreSQL array.
 /// </summary>
 /// <remarks>
-/// <see cref="SqlBinaryExpression"/> specifically disallows having an <see cref="SqlBinaryExpression.OperatorType"/>
-/// of value <see cref="ExpressionType.ArrayIndex"/> as arrays are a PostgreSQL-only feature.
+///     <see cref="SqlBinaryExpression" /> specifically disallows having an <see cref="SqlBinaryExpression.OperatorType" />
+///     of value <see cref="ExpressionType.ArrayIndex" /> as arrays are a PostgreSQL-only feature.
 /// </remarks>
 public class PgArrayIndexExpression : SqlExpression, IEquatable<PgArrayIndexExpression>
 {
     /// <summary>
-    /// The array being indexed.
+    ///     The array being indexed.
     /// </summary>
     public virtual SqlExpression Array { get; }
 
     /// <summary>
-    /// The index in the array.
+    ///     The index in the array.
     /// </summary>
     public virtual SqlExpression Index { get; }
 
     /// <summary>
-    /// Whether the expression is nullable.
+    ///     Whether the expression is nullable.
     /// </summary>
     public virtual bool IsNullable { get; }
 
@@ -89,10 +89,12 @@ public class PgArrayIndexExpression : SqlExpression, IEquatable<PgArrayIndexExpr
             && IsNullable == other.IsNullable;
 
     /// <inheritdoc />
-    public override bool Equals(object? obj) => obj is PgArrayIndexExpression e && Equals(e);
+    public override bool Equals(object? obj)
+        => obj is PgArrayIndexExpression e && Equals(e);
 
     /// <inheritdoc />
-    public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Array, Index, IsNullable);
+    public override int GetHashCode()
+        => HashCode.Combine(base.GetHashCode(), Array, Index, IsNullable);
 
     /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)
@@ -104,5 +106,6 @@ public class PgArrayIndexExpression : SqlExpression, IEquatable<PgArrayIndexExpr
     }
 
     /// <inheritdoc />
-    public override string ToString() => $"{Array}[{Index}]";
+    public override string ToString()
+        => $"{Array}[{Index}]";
 }

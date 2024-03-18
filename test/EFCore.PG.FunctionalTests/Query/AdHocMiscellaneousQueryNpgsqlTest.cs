@@ -2,9 +2,17 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class SimpleQueryNpgsqlTest : SimpleQueryRelationalTestBase
+public class AdHocMiscellaneousQueryNpgsqlTest : AdHocMiscellaneousQueryRelationalTestBase
 {
-    protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+    protected override ITestStoreFactory TestStoreFactory
+        => NpgsqlTestStoreFactory.Instance;
+
+    protected override void Seed2951(Context2951 context)
+        => context.Database.ExecuteSqlRaw(
+            """
+CREATE TABLE "ZeroKey" ("Id" int);
+INSERT INTO "ZeroKey" VALUES (NULL)
+""");
 
     // Writes DateTime with Kind=Unspecified to timestamptz
     public override Task SelectMany_where_Select(bool async)

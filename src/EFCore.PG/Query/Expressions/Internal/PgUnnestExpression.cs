@@ -5,7 +5,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 /// </summary>
 /// <remarks>
 ///     <para>
-///         This expression is just a <see cref="TableValuedFunctionExpression" />, adding the ability to provide an explicit column name
+///         This expression is just a <see cref="PgTableValuedFunctionExpression" />, adding the ability to provide an explicit column name
 ///         for its output (<c>SELECT * FROM unnest(array) AS f(foo)</c>). This is necessary since when the column name isn't explicitly
 ///         specified, it is automatically identical to the table alias (<c>f</c> above); since the table alias may get uniquified by
 ///         EF, this would break queries.
@@ -54,9 +54,20 @@ public class PgUnnestExpression : PgTableValuedFunctionExpression
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public PgUnnestExpression(string alias, SqlExpression array, string columnName, bool withOrdinality = true)
-        : base(alias, "unnest", new[] { array }, new[] { new ColumnInfo(columnName) }, withOrdinality)
+        : this(alias, array, new ColumnInfo(columnName), withOrdinality)
     {
     }
+
+    private PgUnnestExpression(string alias, SqlExpression array, ColumnInfo? columnInfo, bool withOrdinality = true)
+        : base(alias, "unnest", new[] { array }, columnInfo is null ? null : [columnInfo.Value], withOrdinality)
+    {
+    }
+
+    /// <inheritdoc />
+    protected override Expression VisitChildren(ExpressionVisitor visitor)
+        => visitor.Visit(Array) is var visitedArray && visitedArray == Array
+            ? this
+            : new PgUnnestExpression(Alias, (SqlExpression)visitedArray, ColumnName, WithOrdinality);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -79,4 +90,25 @@ public class PgUnnestExpression : PgTableValuedFunctionExpression
         => array == Array
             ? this
             : new PgUnnestExpression(Alias, array, ColumnName, WithOrdinality);
+
+    /// <inheritdoc />
+    public override TableExpressionBase Clone(string? alias, ExpressionVisitor cloningExpressionVisitor)
+        => new PgUnnestExpression(alias!, (SqlExpression)cloningExpressionVisitor.Visit(Array), ColumnName, WithOrdinality);
+
+    /// <inheritdoc />
+    public override PgUnnestExpression WithAlias(string newAlias)
+        => new(newAlias, Array, ColumnName, WithOrdinality);
+
+    /// <inheritdoc />
+    public override PgUnnestExpression WithColumnInfos(IReadOnlyList<ColumnInfo> columnInfos)
+        => new(
+            Alias,
+            Array,
+            columnInfos switch
+            {
+                [] => null,
+                [var columnInfo] => columnInfo,
+                _ => throw new ArgumentException()
+            },
+            WithOrdinality);
 }

@@ -19,11 +19,10 @@ public class BigIntegerQueryTest : QueryTestBase<BigIntegerQueryTest.BigIntegerQ
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => BigInteger.Abs(e.BigInteger) == 1),
-            entryCount: 2);
+            ss => ss.Set<Entity>().Where(e => BigInteger.Abs(e.BigInteger) == 1));
 
         AssertSql(
-"""
+            """
 SELECT e."Id", e."BigInteger"
 FROM "Entities" AS e
 WHERE abs(e."BigInteger") = 1
@@ -36,11 +35,10 @@ WHERE abs(e."BigInteger") = 1
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => BigInteger.Pow(e.BigInteger, 2) == 4),
-            entryCount: 1);
+            ss => ss.Set<Entity>().Where(e => BigInteger.Pow(e.BigInteger, 2) == 4));
 
         AssertSql(
-"""
+            """
 SELECT e."Id", e."BigInteger"
 FROM "Entities" AS e
 WHERE power(e."BigInteger", 2) = 4
@@ -53,11 +51,10 @@ WHERE power(e."BigInteger", 2) = 4
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => BigInteger.Max(e.BigInteger, 1) == 1),
-            entryCount: 3);
+            ss => ss.Set<Entity>().Where(e => BigInteger.Max(e.BigInteger, 1) == 1));
 
         AssertSql(
-"""
+            """
 SELECT e."Id", e."BigInteger"
 FROM "Entities" AS e
 WHERE GREATEST(e."BigInteger", 1) = 1
@@ -70,11 +67,10 @@ WHERE GREATEST(e."BigInteger", 1) = 1
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => BigInteger.Min(e.BigInteger, 1) == 1),
-            entryCount: 3);
+            ss => ss.Set<Entity>().Where(e => BigInteger.Min(e.BigInteger, 1) == 1));
 
         AssertSql(
-"""
+            """
 SELECT e."Id", e."BigInteger"
 FROM "Entities" AS e
 WHERE LEAST(e."BigInteger", 1) = 1
@@ -87,11 +83,10 @@ WHERE LEAST(e."BigInteger", 1) = 1
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => e.BigInteger.IsZero),
-            entryCount: 1);
+            ss => ss.Set<Entity>().Where(e => e.BigInteger.IsZero));
 
         AssertSql(
-"""
+            """
 SELECT e."Id", e."BigInteger"
 FROM "Entities" AS e
 WHERE e."BigInteger" = 0
@@ -104,11 +99,10 @@ WHERE e."BigInteger" = 0
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => e.BigInteger.IsOne),
-            entryCount: 1);
+            ss => ss.Set<Entity>().Where(e => e.BigInteger.IsOne));
 
         AssertSql(
-"""
+            """
 SELECT e."Id", e."BigInteger"
 FROM "Entities" AS e
 WHERE e."BigInteger" = 1
@@ -121,11 +115,10 @@ WHERE e."BigInteger" = 1
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Entity>().Where(e => e.BigInteger.IsEven),
-            entryCount: 2);
+            ss => ss.Set<Entity>().Where(e => e.BigInteger.IsEven));
 
         AssertSql(
-"""
+            """
 SELECT e."Id", e."BigInteger"
 FROM "Entities" AS e
 WHERE e."BigInteger" % 2 = 0
@@ -135,11 +128,9 @@ WHERE e."BigInteger" % 2 = 0
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-    public class BigIntegerQueryContext : PoolableDbContext
+    public class BigIntegerQueryContext(DbContextOptions options) : PoolableDbContext(options)
     {
         public DbSet<Entity> Entities { get; set; }
-
-        public BigIntegerQueryContext(DbContextOptions options) : base(options) {}
 
         public static void Seed(BigIntegerQueryContext context)
         {
@@ -154,17 +145,21 @@ WHERE e."BigInteger" % 2 = 0
         public BigInteger BigInteger { get; set; }
     }
 
-    public class BigIntegerQueryFixture : SharedStoreFixtureBase<BigIntegerQueryContext>, IQueryFixtureBase
+    public class BigIntegerQueryFixture : SharedStoreFixtureBase<BigIntegerQueryContext>, IQueryFixtureBase, ITestSqlLoggerFactory
     {
         private BigIntegerData _expectedData;
 
-        protected override string StoreName => "BigIntegerQueryTest";
+        protected override string StoreName
+            => "BigIntegerQueryTest";
 
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        protected override void Seed(BigIntegerQueryContext context) => BigIntegerQueryContext.Seed(context);
+        protected override void Seed(BigIntegerQueryContext context)
+            => BigIntegerQueryContext.Seed(context);
 
         public Func<DbContext> GetContextCreator()
             => CreateContext;
@@ -198,10 +193,7 @@ WHERE e."BigInteger" % 2 = 0
 
     protected class BigIntegerData : ISetSource
     {
-        public IReadOnlyList<Entity> Entities { get; }
-
-        public BigIntegerData()
-            => Entities = CreateEntities();
+        public IReadOnlyList<Entity> Entities { get; } = CreateEntities();
 
         public IQueryable<TEntity> Set<TEntity>()
             where TEntity : class

@@ -56,7 +56,7 @@ public class NpgsqlDeleteConvertingExpressionVisitor : ExpressionVisitor
             switch (tableBase)
             {
                 case TableExpression tableExpression:
-                    if (tableExpression != deleteExpression.Table)
+                    if (tableExpression.Alias != deleteExpression.Table.Alias)
                     {
                         fromItems.Add(tableExpression);
                     }
@@ -64,7 +64,7 @@ public class NpgsqlDeleteConvertingExpressionVisitor : ExpressionVisitor
                     break;
 
                 case InnerJoinExpression { Table: { } tableExpression } innerJoinExpression:
-                    if (tableExpression != deleteExpression.Table)
+                    if (tableExpression.Alias != deleteExpression.Table.Alias)
                     {
                         fromItems.Add(tableExpression);
                     }

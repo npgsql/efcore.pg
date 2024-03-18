@@ -12,9 +12,10 @@ public class ConcurrencyDetectorEnabledNpgsqlTest : ConcurrencyDetectorEnabledRe
     }
 
     public override Task FromSql(bool async)
-        => ConcurrencyDetectorTest(async c => async
-            ? await c.Products.FromSqlRaw(@"select * from ""Products""").ToListAsync()
-            : c.Products.FromSqlRaw(@"select * from ""Products""").ToList());
+        => ConcurrencyDetectorTest(
+            async c => async
+                ? await c.Products.FromSqlRaw(@"select * from ""Products""").ToListAsync()
+                : c.Products.FromSqlRaw(@"select * from ""Products""").ToList());
 
     protected override async Task ConcurrencyDetectorTest(Func<ConcurrencyDetectorDbContext, Task<object>> test)
     {

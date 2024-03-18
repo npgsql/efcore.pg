@@ -44,7 +44,8 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
 
         if (entityType[CockroachDbAnnotationNames.InterleaveInParent] is not null)
         {
-            yield return new Annotation(CockroachDbAnnotationNames.InterleaveInParent, entityType[CockroachDbAnnotationNames.InterleaveInParent]);
+            yield return new Annotation(
+                CockroachDbAnnotationNames.InterleaveInParent, entityType[CockroachDbAnnotationNames.InterleaveInParent]);
         }
 
         foreach (var storageParamAnnotation in entityType.GetAnnotations()
@@ -76,9 +77,9 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
                 p => p.GetValueGenerationStrategy(table) switch
                 {
                     NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => true,
-                    NpgsqlValueGenerationStrategy.IdentityAlwaysColumn    => true,
-                    NpgsqlValueGenerationStrategy.SerialColumn            => true,
-                    _                                                     => false
+                    NpgsqlValueGenerationStrategy.IdentityAlwaysColumn => true,
+                    NpgsqlValueGenerationStrategy.SerialColumn => true,
+                    _ => false
                 });
 
         if (valueGeneratedProperty is not null)
@@ -86,7 +87,8 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
             var valueGenerationStrategy = valueGeneratedProperty.GetValueGenerationStrategy();
             yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy);
 
-            if (valueGenerationStrategy is NpgsqlValueGenerationStrategy.IdentityByDefaultColumn or NpgsqlValueGenerationStrategy.IdentityAlwaysColumn)
+            if (valueGenerationStrategy is NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
+                or NpgsqlValueGenerationStrategy.IdentityAlwaysColumn)
             {
                 if (valueGeneratedProperty[NpgsqlAnnotationNames.IdentityOptions] is string identityOptions)
                 {
@@ -101,8 +103,8 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
         // Note that this mechanism is obsolete, and EF Core's bulk model configuration can be used instead; but we continue to support
         // it for backwards compat.
 #pragma warning disable CS0618
-        if (column.PropertyMappings.All(m => m.Property.GetCollation() is null) &&
-            column.PropertyMappings.Select(m => m.Property.GetDefaultCollation())
+        if (column.PropertyMappings.All(m => m.Property.GetCollation() is null)
+            && column.PropertyMappings.Select(m => m.Property.GetDefaultCollation())
                 .FirstOrDefault(c => c is not null) is { } defaultColumnCollation)
         {
             yield return new Annotation(NpgsqlAnnotationNames.DefaultColumnCollation, defaultColumnCollation);
@@ -222,7 +224,7 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
     {
         if (!designTime)
         {
-            return Array.Empty<IAnnotation>();
+            return [];
         }
 
         return model.Model.GetAnnotations().Where(

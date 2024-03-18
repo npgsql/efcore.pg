@@ -1,27 +1,27 @@
 ﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 /// <summary>
-/// Represents a PostgreSQL JSON operator traversing a JSON document with a path (i.e. x#>y or x#>>y)
+///     Represents a PostgreSQL JSON operator traversing a JSON document with a path (i.e. x#>y or x#>>y)
 /// </summary>
 public class PgJsonTraversalExpression : SqlExpression, IEquatable<PgJsonTraversalExpression>
 {
     /// <summary>
-    /// The match expression.
+    ///     The match expression.
     /// </summary>
     public virtual SqlExpression Expression { get; }
 
     /// <summary>
-    /// The pattern to match.
+    ///     The pattern to match.
     /// </summary>
     public virtual IReadOnlyList<SqlExpression> Path { get; }
 
     /// <summary>
-    /// Whether the text-returning operator (x#>>y) or the object-returning operator (x#>y) is used.
+    ///     Whether the text-returning operator (x#>>y) or the object-returning operator (x#>y) is used.
     /// </summary>
     public virtual bool ReturnsText { get; }
 
     /// <summary>
-    /// Constructs a <see cref="PgJsonTraversalExpression"/>.
+    ///     Constructs a <see cref="PgJsonTraversalExpression" />.
     /// </summary>
     public PgJsonTraversalExpression(
         SqlExpression expression,
@@ -52,11 +52,9 @@ public class PgJsonTraversalExpression : SqlExpression, IEquatable<PgJsonTravers
     ///     return this expression.
     /// </summary>
     public virtual PgJsonTraversalExpression Update(SqlExpression expression, IReadOnlyList<SqlExpression> path)
-        => expression == Expression &&
-            path.Count == Path.Count &&
-            path.Zip(Path, (x, y) => (x, y)).All(tup => tup.x == tup.y)
-                ? this
-                : new PgJsonTraversalExpression(expression, path, ReturnsText, Type, TypeMapping);
+        => expression == Expression && path.Count == Path.Count && path.Zip(Path, (x, y) => (x, y)).All(tup => tup.x == tup.y)
+            ? this
+            : new PgJsonTraversalExpression(expression, path, ReturnsText, Type, TypeMapping);
 
     /// <summary>
     ///     Appends an additional path component to this <see cref="PgJsonTraversalExpression" /> and returns the result.
@@ -74,19 +72,21 @@ public class PgJsonTraversalExpression : SqlExpression, IEquatable<PgJsonTravers
     }
 
     /// <inheritdoc />
-    public override bool Equals(object? obj) => Equals(obj as PgJsonTraversalExpression);
+    public override bool Equals(object? obj)
+        => Equals(obj as PgJsonTraversalExpression);
 
     /// <inheritdoc />
     public virtual bool Equals(PgJsonTraversalExpression? other)
-        => ReferenceEquals(this, other) ||
-            other is not null &&
-            base.Equals(other) &&
-            Equals(Expression, other.Expression) &&
-            Path.Count == other.Path.Count &&
-            Path.Zip(other.Path, (x, y) => (x, y)).All(tup => tup.x == tup.y);
+        => ReferenceEquals(this, other)
+            || other is not null
+            && base.Equals(other)
+            && Equals(Expression, other.Expression)
+            && Path.Count == other.Path.Count
+            && Path.Zip(other.Path, (x, y) => (x, y)).All(tup => tup.x == tup.y);
 
     /// <inheritdoc />
-    public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Expression, Path);
+    public override int GetHashCode()
+        => HashCode.Combine(base.GetHashCode(), Expression, Path);
 
     /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)
@@ -102,9 +102,11 @@ public class PgJsonTraversalExpression : SqlExpression, IEquatable<PgJsonTravers
                 expressionPrinter.Append(",");
             }
         }
+
         expressionPrinter.Append("}");
     }
 
     /// <inheritdoc />
-    public override string ToString() => $"{Expression}{(ReturnsText ? "#>>" : "#>")}{Path}";
+    public override string ToString()
+        => $"{Expression}{(ReturnsText ? "#>>" : "#>")}{Path}";
 }

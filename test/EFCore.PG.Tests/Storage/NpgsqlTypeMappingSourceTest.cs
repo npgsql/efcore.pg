@@ -92,7 +92,8 @@ public class NpgsqlTypeMappingSourceTest
     [Fact]
     public void Timestamp_without_time_zone_Array_5()
     {
-        var arrayMapping = Assert.IsAssignableFrom<NpgsqlArrayTypeMapping>(CreateTypeMappingSource().FindMapping("timestamp(5) without time zone[]"));
+        var arrayMapping =
+            Assert.IsAssignableFrom<NpgsqlArrayTypeMapping>(CreateTypeMappingSource().FindMapping("timestamp(5) without time zone[]"));
         Assert.Same(typeof(List<DateTime>), arrayMapping.ClrType);
         Assert.Equal("timestamp(5) without time zone[]", arrayMapping.StoreType);
 
@@ -140,8 +141,9 @@ public class NpgsqlTypeMappingSourceTest
     public void By_ClrType_and_element_precision(Type clrType, string expectedStoreType)
     {
         var model = CreateEmptyModel();
-        var arrayMapping = CreateTypeMappingSource().FindMapping(clrType, model,
-                CreateTypeMappingSource().FindMapping(clrType.GetElementType()!, null, precision: 5)!);
+        var arrayMapping = CreateTypeMappingSource().FindMapping(
+            clrType, model,
+            CreateTypeMappingSource().FindMapping(clrType.GetElementType()!, null, precision: 5)!);
 
         Assert.Equal(expectedStoreType, arrayMapping.StoreType);
         Assert.Same(clrType, arrayMapping.ClrType);
@@ -243,7 +245,8 @@ public class NpgsqlTypeMappingSourceTest
         Assert.Same(expectedType, arrayConverter.ModelClrType);
         Assert.Same(typeof(string[]), arrayConverter.ProviderClrType);
 
-        Assert.Collection((ICollection<string>)arrayConverter.ConvertToProvider(
+        Assert.Collection(
+            (ICollection<string>)arrayConverter.ConvertToProvider(
                 expectedType.IsArray
                     ? new LTree[] { new("foo"), new("bar") }
                     : new List<LTree> { new("foo"), new("bar") }),
@@ -254,8 +257,8 @@ public class NpgsqlTypeMappingSourceTest
     [Fact]
     public void Multirange_by_clr_type_across_pg_versions()
     {
-        var mapping14 = CreateTypeMappingSource(postgresVersion: new(14, 0)).FindMapping(typeof(NpgsqlRange<int>[]))!;
-        var mapping13 = CreateTypeMappingSource(postgresVersion: new(13, 0)).FindMapping(typeof(NpgsqlRange<int>[]))!;
+        var mapping14 = CreateTypeMappingSource(postgresVersion: new Version(14, 0)).FindMapping(typeof(NpgsqlRange<int>[]))!;
+        var mapping13 = CreateTypeMappingSource(postgresVersion: new Version(13, 0)).FindMapping(typeof(NpgsqlRange<int>[]))!;
         var mappingDefault = CreateTypeMappingSource().FindMapping(typeof(NpgsqlRange<int>[]))!;
 
         Assert.Equal("int4multirange", mapping14.StoreType);
@@ -272,8 +275,8 @@ public class NpgsqlTypeMappingSourceTest
     [Fact]
     public void Multirange_by_store_type_across_pg_versions()
     {
-        var mapping14 = CreateTypeMappingSource(postgresVersion: new(14, 0)).FindMapping("int4multirange")!;
-        var mapping13 = CreateTypeMappingSource(postgresVersion: new(13, 0)).FindMapping("int4multirange");
+        var mapping14 = CreateTypeMappingSource(postgresVersion: new Version(14, 0)).FindMapping("int4multirange")!;
+        var mapping13 = CreateTypeMappingSource(postgresVersion: new Version(13, 0)).FindMapping("int4multirange");
         var mappingDefault = CreateTypeMappingSource().FindMapping("int4multirange")!;
 
         Assert.Same(typeof(List<NpgsqlRange<int>>), mapping14.ClrType);
@@ -305,9 +308,10 @@ public class NpgsqlTypeMappingSourceTest
             new TypeMappingSourceDependencies(
                 new ValueConverterSelector(new ValueConverterSelectorDependencies()),
                 new JsonValueReaderWriterSource(new JsonValueReaderWriterSourceDependencies()),
-                Array.Empty<ITypeMappingSourcePlugin>()),
+                []),
             new RelationalTypeMappingSourceDependencies(
-                new IRelationalTypeMappingSourcePlugin[] {
+                new IRelationalTypeMappingSourcePlugin[]
+                {
                     new NpgsqlNetTopologySuiteTypeMappingSourcePlugin(new NpgsqlNetTopologySuiteOptions()),
                     new DummyTypeMappingSourcePlugin()
                 }),
@@ -334,18 +338,24 @@ public class NpgsqlTypeMappingSourceTest
             // or a DbType (from which NpgsqlDbType is computed), since RangeTypeMapping sends an NpgsqlDbType.
             // This means we currently don't support ranges over types without NpgsqlDbType, which are accessible via
             // NpgsqlParameter.DataTypeName
-            public DummyMapping() : base("dummy", typeof(DummyType), System.Data.DbType.Guid) {}
+            public DummyMapping()
+                : base("dummy", typeof(DummyType), System.Data.DbType.Guid)
+            {
+            }
 
-            private DummyMapping(RelationalTypeMappingParameters parameters) : base(parameters) {}
+            private DummyMapping(RelationalTypeMappingParameters parameters)
+                : base(parameters)
+            {
+            }
 
             protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
                 => new DummyMapping(parameters);
         }
     }
 
-    private class DummyType {}
+    private class DummyType;
 
-    private class UnknownType {}
+    private class UnknownType;
 
     protected IModel CreateEmptyModel()
         => CreateModelBuilder().Model.FinalizeModel();

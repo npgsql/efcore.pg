@@ -33,7 +33,9 @@ public sealed class PgDeleteExpression : Expression, IPrintableExpression
         IReadOnlyList<TableExpressionBase> fromItems,
         SqlExpression? predicate,
         ISet<string> tags)
-        => (Table, FromItems, Predicate, Tags) = (table, fromItems, predicate, tags);
+    {
+        (Table, FromItems, Predicate, Tags) = (table, fromItems, predicate, tags);
+    }
 
     /// <inheritdoc />
     public override Type Type
@@ -103,5 +105,6 @@ public sealed class PgDeleteExpression : Expression, IPrintableExpression
             && (Predicate is null ? pgDeleteExpression.Predicate is null : Predicate.Equals(pgDeleteExpression.Predicate));
 
     /// <inheritdoc />
-    public override int GetHashCode() => Table.GetHashCode();
+    public override int GetHashCode()
+        => Table.GetHashCode();
 }

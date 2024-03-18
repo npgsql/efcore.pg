@@ -6,7 +6,9 @@ public class NorthwindStringIncludeQueryNpgsqlTest
     // ReSharper disable once UnusedParameter.Local
     public NorthwindStringIncludeQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture)
         : base(fixture)
-        => Fixture.TestSqlLoggerFactory.Clear();
+    {
+        Fixture.TestSqlLoggerFactory.Clear();
+    }
 
     public override async Task Include_collection_with_last_no_orderby(bool async)
         => Assert.Equal(

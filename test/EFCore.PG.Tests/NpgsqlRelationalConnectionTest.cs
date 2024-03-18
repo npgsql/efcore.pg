@@ -51,7 +51,7 @@ public class NpgsqlRelationalConnectionTest
         Assert.Equal("Host=FakeHost", connection2.ConnectionString);
     }
 
-    [Fact]
+    [Fact(Skip = "Passes in isolation, but fails when the entire test suite is run because of #2891")]
     public void Uses_DbDataSource_from_application_service_provider()
     {
         var serviceCollection = new ServiceCollection();
@@ -81,13 +81,35 @@ public class NpgsqlRelationalConnectionTest
         Assert.Equal("Host=FakeHost", connection2.ConnectionString);
     }
 
+    [Fact] // #3060
+    public void DbDataSource_from_application_service_provider_does_not_used_if_connection_string_is_specified()
+    {
+        var serviceCollection = new ServiceCollection();
+
+        serviceCollection
+            .AddNpgsqlDataSource("Host=FakeHost1")
+            .AddDbContext<FakeDbContext>(o => o.UseNpgsql("Host=FakeHost2"));
+
+        using var serviceProvider = serviceCollection.BuildServiceProvider();
+
+        using var scope1 = serviceProvider.CreateScope();
+        var context1 = scope1.ServiceProvider.GetRequiredService<FakeDbContext>();
+        var relationalConnection1 = (NpgsqlRelationalConnection)context1.GetService<IRelationalConnection>()!;
+        Assert.Null(relationalConnection1.DbDataSource);
+
+        var connection1 = context1.GetService<FakeDbContext>().Database.GetDbConnection();
+        Assert.Equal("Host=FakeHost2", connection1.ConnectionString);
+    }
+
     [Fact]
     public void Can_create_master_connection_with_connection_string()
     {
         using var connection = CreateConnection();
         using var master = connection.CreateAdminConnection();
 
-        Assert.Equal(@"Host=localhost;Database=postgres;Username=some_user;Password=some_password;Pooling=False;Multiplexing=False", master.ConnectionString);
+        Assert.Equal(
+            @"Host=localhost;Database=postgres;Username=some_user;Password=some_password;Pooling=False;Multiplexing=False",
+            master.ConnectionString);
     }
 
     [Fact]
@@ -102,7 +124,9 @@ public class NpgsqlRelationalConnectionTest
         using var connection = CreateConnection(options);
         using var master = connection.CreateAdminConnection();
 
-        Assert.Equal(@"Host=localhost;Database=template0;Username=some_user;Password=some_password;Pooling=False;Multiplexing=False", master.ConnectionString);
+        Assert.Equal(
+            @"Host=localhost;Database=template0;Username=some_user;Password=some_password;Pooling=False;Multiplexing=False",
+            master.ConnectionString);
     }
 
     [Theory]

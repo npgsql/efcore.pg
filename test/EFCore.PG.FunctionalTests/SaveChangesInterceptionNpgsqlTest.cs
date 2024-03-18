@@ -4,13 +4,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public abstract class SaveChangesInterceptionNpgsqlTestBase : SaveChangesInterceptionTestBase
+public abstract class SaveChangesInterceptionNpgsqlTestBase(SaveChangesInterceptionNpgsqlTestBase.InterceptionNpgsqlFixtureBase fixture)
+    : SaveChangesInterceptionTestBase(fixture)
 {
-    protected SaveChangesInterceptionNpgsqlTestBase(InterceptionNpgsqlFixtureBase fixture)
-        : base(fixture)
-    {
-    }
-
     public abstract class InterceptionNpgsqlFixtureBase : InterceptionFixtureBase
     {
         protected override ITestStoreFactory TestStoreFactory
@@ -29,19 +25,16 @@ public abstract class SaveChangesInterceptionNpgsqlTestBase : SaveChangesInterce
         }
     }
 
-    public class SaveChangesInterceptionNpgsqlTest
-        : SaveChangesInterceptionNpgsqlTestBase, IClassFixture<SaveChangesInterceptionNpgsqlTest.InterceptionNpgsqlFixture>
+    public class SaveChangesInterceptionNpgsqlTest(SaveChangesInterceptionNpgsqlTest.InterceptionNpgsqlFixture fixture)
+        : SaveChangesInterceptionNpgsqlTestBase(fixture), IClassFixture<SaveChangesInterceptionNpgsqlTest.InterceptionNpgsqlFixture>
     {
-        public SaveChangesInterceptionNpgsqlTest(InterceptionNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
-            protected override string StoreName => "SaveChangesInterception";
+            protected override string StoreName
+                => "SaveChangesInterception";
 
-            protected override bool ShouldSubscribeToDiagnosticListener => false;
+            protected override bool ShouldSubscribeToDiagnosticListener
+                => false;
 
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             {
@@ -52,20 +45,18 @@ public abstract class SaveChangesInterceptionNpgsqlTestBase : SaveChangesInterce
         }
     }
 
-    public class SaveChangesInterceptionWithDiagnosticsNpgsqlTest
-        : SaveChangesInterceptionNpgsqlTestBase,
+    public class SaveChangesInterceptionWithDiagnosticsNpgsqlTest(
+        SaveChangesInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture fixture)
+        : SaveChangesInterceptionNpgsqlTestBase(fixture),
             IClassFixture<SaveChangesInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture>
     {
-        public SaveChangesInterceptionWithDiagnosticsNpgsqlTest(InterceptionNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
-            protected override string StoreName => "SaveChangesInterceptionWithDiagnostics";
+            protected override string StoreName
+                => "SaveChangesInterceptionWithDiagnostics";
 
-            protected override bool ShouldSubscribeToDiagnosticListener => true;
+            protected override bool ShouldSubscribeToDiagnosticListener
+                => true;
 
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             {

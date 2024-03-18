@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Text;
 using NodaTime.TimeZones;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -14,7 +16,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
 {
     private static readonly ZonedDateTimePattern Pattern =
-        ZonedDateTimePattern.CreateWithInvariantCulture("uuuu'-'MM'-'dd'T'HH':'mm':'ss;FFFFFFo<G>",
+        ZonedDateTimePattern.CreateWithInvariantCulture(
+            "uuuu'-'MM'-'dd'T'HH':'mm':'ss;FFFFFFo<G>",
             DateTimeZoneProviders.Tzdb);
 
     /// <summary>
@@ -23,7 +26,18 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public TimestampTzZonedDateTimeMapping() : base("timestamp with time zone", typeof(ZonedDateTime), NpgsqlDbType.TimestampTz) {}
+    public static TimestampTzZonedDateTimeMapping Default { get; } = new();
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public TimestampTzZonedDateTimeMapping()
+        : base("timestamp with time zone", typeof(ZonedDateTime), NpgsqlDbType.TimestampTz, JsonZonedDateTimeReaderWriter.Instance)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -32,7 +46,9 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected TimestampTzZonedDateTimeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.TimestampTz) {}
+        : base(parameters, NpgsqlDbType.TimestampTz)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -68,7 +84,7 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
-        => $"TIMESTAMPTZ '{GenerateLiteralCore(value)}'";
+        => $"TIMESTAMPTZ '{Pattern.Format((ZonedDateTime)value)}'";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -77,10 +93,7 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => $@"""{GenerateLiteralCore(value)}""";
-
-    private string GenerateLiteralCore(object value)
-        => Pattern.Format((ZonedDateTime)value);
+        => $@"""{Pattern.Format((ZonedDateTime)value)}""";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -104,7 +117,7 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(ZonedDateTime).GetConstructor(new[] { typeof(Instant), typeof(DateTimeZone) })!;
+        typeof(ZonedDateTime).GetConstructor([typeof(Instant), typeof(DateTimeZone)])!;
 
     private static readonly MemberInfo TzdbDateTimeZoneSourceDefaultMember =
         typeof(TzdbDateTimeZoneSource).GetMember(nameof(TzdbDateTimeZoneSource.Default))[0];
@@ -112,5 +125,16 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
     private static readonly MethodInfo ForIdMethod =
         typeof(TzdbDateTimeZoneSource).GetRuntimeMethod(
             nameof(TzdbDateTimeZoneSource.ForId),
-            new[] { typeof(string) })!;
+            [typeof(string)])!;
+
+    private sealed class JsonZonedDateTimeReaderWriter : JsonValueReaderWriter<ZonedDateTime>
+    {
+        public static JsonZonedDateTimeReaderWriter Instance { get; } = new();
+
+        public override ZonedDateTime FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+            => Pattern.Parse(manager.CurrentReader.GetString()!).GetValueOrThrow();
+
+        public override void ToJsonTyped(Utf8JsonWriter writer, ZonedDateTime value)
+            => writer.WriteStringValue(Pattern.Format(value));
+    }
 }

@@ -2,18 +2,15 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class PropertyValuesNpgsqlTest : PropertyValuesTestBase<PropertyValuesNpgsqlTest.PropertyValuesNpgsqlFixture>
+public class PropertyValuesNpgsqlTest(PropertyValuesNpgsqlTest.PropertyValuesNpgsqlFixture fixture)
+    : PropertyValuesTestBase<PropertyValuesNpgsqlTest.PropertyValuesNpgsqlFixture>(fixture)
 {
-    public PropertyValuesNpgsqlTest(PropertyValuesNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     public class PropertyValuesNpgsqlFixture : PropertyValuesFixtureBase
     {
         protected override string StoreName { get; } = "PropertyValues";
 
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {

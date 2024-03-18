@@ -2,21 +2,18 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class StoreGeneratedNpgsqlTest
-    : StoreGeneratedTestBase<StoreGeneratedNpgsqlTest.StoreGeneratedNpgsqlFixture>
+public class StoreGeneratedNpgsqlTest(StoreGeneratedNpgsqlTest.StoreGeneratedNpgsqlFixture fixture)
+    : StoreGeneratedTestBase<StoreGeneratedNpgsqlTest.StoreGeneratedNpgsqlFixture>(fixture)
 {
-    public StoreGeneratedNpgsqlTest(StoreGeneratedNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     protected override void UseTransaction(DatabaseFacade facade, IDbContextTransaction transaction)
         => facade.UseTransaction(transaction.GetDbTransaction());
 
     public class StoreGeneratedNpgsqlFixture : StoreGeneratedFixtureBase
     {
         protected override string StoreName { get; } = "StoreGeneratedTest";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             => builder
@@ -85,11 +82,12 @@ public class StoreGeneratedNpgsqlTest
 
             // In StoreGeneratedSqlServerTest the following are defined with HasComputedValueSql, but that's
             // not supported by PostgreSQL
-            modelBuilder.Entity<WithBackingFields>(b =>
-            {
-                b.Property(e => e.NullableAsNonNullable).HasDefaultValueSql("1");
-                b.Property(e => e.NonNullableAsNullable).HasDefaultValueSql("1");
-            });
+            modelBuilder.Entity<WithBackingFields>(
+                b =>
+                {
+                    b.Property(e => e.NullableAsNonNullable).HasDefaultValueSql("1");
+                    b.Property(e => e.NonNullableAsNullable).HasDefaultValueSql("1");
+                });
 
             modelBuilder.Entity<WithNoBackingFields>(
                 b =>

@@ -4,13 +4,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-public class TestNpgsqlConnection : NpgsqlRelationalConnection
+public class TestNpgsqlConnection(RelationalConnectionDependencies dependencies, DbDataSource dataSource = null)
+    : NpgsqlRelationalConnection(dependencies, dataSource)
 {
-    public TestNpgsqlConnection(RelationalConnectionDependencies dependencies, DbDataSource dataSource = null)
-        : base(dependencies, dataSource)
-    {
-    }
-
     public string ErrorCode { get; set; } = "XX000";
     public Queue<bool?> OpenFailures { get; } = new();
     public int OpenCount { get; set; }

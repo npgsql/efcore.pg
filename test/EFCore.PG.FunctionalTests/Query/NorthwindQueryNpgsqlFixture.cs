@@ -6,10 +6,13 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class NorthwindQueryNpgsqlFixture<TModelCustomizer> : NorthwindQueryRelationalFixture<TModelCustomizer>
-    where TModelCustomizer : IModelCustomizer, new()
+    where TModelCustomizer : ITestModelCustomizer, new()
 {
-    protected override ITestStoreFactory TestStoreFactory => NpgsqlNorthwindTestStoreFactory.Instance;
-    protected override Type ContextType => typeof(NorthwindNpgsqlContext);
+    protected override ITestStoreFactory TestStoreFactory
+        => NpgsqlNorthwindTestStoreFactory.Instance;
+
+    protected override Type ContextType
+        => typeof(NorthwindNpgsqlContext);
 
     public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
     {

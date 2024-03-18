@@ -104,21 +104,17 @@ public class NpgsqlDbContextOptionsExtensionsTest
                    .GetRequiredService<IServiceScopeFactory>()
                    .CreateScope())
         {
-            var coreOptions = serviceScope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>().GetExtension<CoreOptionsExtension>();
+            var coreOptions = serviceScope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>()
+                .GetExtension<CoreOptionsExtension>();
             Assert.True(coreOptions.DetailedErrorsEnabled);
 
-            var npgsqlOptions = serviceScope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>().GetExtension<NpgsqlOptionsExtension>();
+            var npgsqlOptions = serviceScope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>()
+                .GetExtension<NpgsqlOptionsExtension>();
             Assert.Equal(123, npgsqlOptions.MaxBatchSize);
             Assert.Equal(30, npgsqlOptions.CommandTimeout);
             Assert.Equal(nullConnectionString ? null : "Database=Crunchie", npgsqlOptions.ConnectionString);
         }
     }
 
-    private class ApplicationDbContext : DbContext
-    {
-        public ApplicationDbContext(DbContextOptions options)
-            : base(options)
-        {
-        }
-    }
+    private class ApplicationDbContext(DbContextOptions options) : DbContext(options);
 }

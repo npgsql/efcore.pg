@@ -30,10 +30,7 @@ public class NpgsqlValueGenerationScenariosTest
         }
     }
 
-    public class BlogContextSequence : ContextBase
-    {
-        public BlogContextSequence(string databaseName) : base(databaseName) { }
-    }
+    public class BlogContextSequence(string databaseName) : ContextBase(databaseName);
 
     [Fact]
     public void Insert_with_sequence_HiLo()
@@ -58,13 +55,8 @@ public class NpgsqlValueGenerationScenariosTest
         }
     }
 
-    public class BlogContextHiLo : ContextBase
+    public class BlogContextHiLo(string databaseName) : ContextBase(databaseName)
     {
-        public BlogContextHiLo(string databaseName)
-            : base(databaseName)
-        {
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -114,13 +106,8 @@ public class NpgsqlValueGenerationScenariosTest
         }
     }
 
-    public class BlogContextDefaultValue : ContextBase
+    public class BlogContextDefaultValue(string databaseName) : ContextBase(databaseName)
     {
-        public BlogContextDefaultValue(string databaseName)
-            : base(databaseName)
-        {
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -137,13 +124,8 @@ public class NpgsqlValueGenerationScenariosTest
         }
     }
 
-    public class BlogContextDefaultValueNoMigrations : ContextBase
+    public class BlogContextDefaultValueNoMigrations(string databaseName) : ContextBase(databaseName)
     {
-        public BlogContextDefaultValueNoMigrations(string databaseName)
-            : base(databaseName)
-        {
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -184,13 +166,8 @@ public class NpgsqlValueGenerationScenariosTest
         }
     }
 
-    public class BlogContextKeyColumnWithDefaultValue : ContextBase
+    public class BlogContextKeyColumnWithDefaultValue(string databaseName) : ContextBase(databaseName)
     {
-        public BlogContextKeyColumnWithDefaultValue(string databaseName)
-            : base(databaseName)
-        {
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -230,13 +207,8 @@ public class NpgsqlValueGenerationScenariosTest
         }
     }
 
-    public class BlogContextUIntToIdentityUsingValueConverter : ContextBase
+    public class BlogContextUIntToIdentityUsingValueConverter(string databaseName) : ContextBase(databaseName)
     {
-        public BlogContextUIntToIdentityUsingValueConverter(string databaseName)
-            : base(databaseName)
-        {
-        }
-
         public DbSet<BlogWithUIntKey> UnsignedBlogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -279,13 +251,8 @@ public class NpgsqlValueGenerationScenariosTest
         }
     }
 
-    public class BlogContextStringToIdentityUsingValueConverter : ContextBase
+    public class BlogContextStringToIdentityUsingValueConverter(string databaseName) : ContextBase(databaseName)
     {
-        public BlogContextStringToIdentityUsingValueConverter(string databaseName)
-            : base(databaseName)
-        {
-        }
-
         public DbSet<BlogWithStringKey> StringyBlogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -329,10 +296,8 @@ public class NpgsqlValueGenerationScenariosTest
         }
     }
 
-    public class BlogContextNoKeyGeneration : ContextBase
+    public class BlogContextNoKeyGeneration(string databaseName) : ContextBase(databaseName)
     {
-        public BlogContextNoKeyGeneration(string databaseName) : base(databaseName) {}
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -367,13 +332,8 @@ public class NpgsqlValueGenerationScenariosTest
         }
     }
 
-    public class BlogContextNoKeyGenerationNullableKey : ContextBase
+    public class BlogContextNoKeyGenerationNullableKey(string databaseName) : ContextBase(databaseName)
     {
-        public BlogContextNoKeyGenerationNullableKey(string databaseName)
-            : base(databaseName)
-        {
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -395,8 +355,7 @@ public class NpgsqlValueGenerationScenariosTest
             context.Database.EnsureCreated();
             var blogs = new List<Blog>
             {
-                new() { Name = "One Unicorn" },
-                new() { Name = "Two Unicorns", CreatedOn = new DateTime(1969, 8, 3, 0, 10, 0) }
+                new() { Name = "One Unicorn" }, new() { Name = "Two Unicorns", CreatedOn = new DateTime(1969, 8, 3, 0, 10, 0) }
             };
             context.AddRange(blogs);
             context.SaveChanges();
@@ -426,13 +385,8 @@ public class NpgsqlValueGenerationScenariosTest
         }
     }
 
-    public class BlogContextNonKeyDefaultValue : ContextBase
+    public class BlogContextNonKeyDefaultValue(string databaseName) : ContextBase(databaseName)
     {
-        public BlogContextNonKeyDefaultValue(string databaseName)
-            : base(databaseName)
-        {
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -485,13 +439,8 @@ public class NpgsqlValueGenerationScenariosTest
         }
     }
 
-    public class BlogContextNonKeyReadOnlyDefaultValue : ContextBase
+    public class BlogContextNonKeyReadOnlyDefaultValue(string databaseName) : ContextBase(databaseName)
     {
-        public BlogContextNonKeyReadOnlyDefaultValue(string databaseName)
-            : base(databaseName)
-        {
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -528,10 +477,8 @@ public class NpgsqlValueGenerationScenariosTest
         }
     }
 
-    public class BlogContextSequenceNonId : ContextBase
+    public class BlogContextSequenceNonId(string databaseName) : ContextBase(databaseName)
     {
-        public BlogContextSequenceNonId(string databaseName) : base(databaseName) { }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -566,10 +513,7 @@ public class NpgsqlValueGenerationScenariosTest
         }
     }
 
-    public class BlogContext : ContextBase
-    {
-        public BlogContext(string databaseName) : base(databaseName) {}
-    }
+    public class BlogContext(string databaseName) : ContextBase(databaseName);
 
     [Fact]
     public void Insert_with_server_generated_GUID_key()
@@ -582,10 +526,7 @@ public class NpgsqlValueGenerationScenariosTest
             context.Database.EnsureCreated();
 
             var blog = context.Add(
-                new GuidBlog
-                {
-                    Name = "One Unicorn"
-                }).Entity;
+                new GuidBlog { Name = "One Unicorn" }).Entity;
             var beforeSave = blog.Id;
             var beforeSaveNotId = blog.NotId;
 
@@ -609,13 +550,8 @@ public class NpgsqlValueGenerationScenariosTest
         }
     }
 
-    public class BlogContextServerGuidKey : ContextBase
+    public class BlogContextServerGuidKey(string databaseName) : ContextBase(databaseName)
     {
-        public BlogContextServerGuidKey(string databaseName)
-            : base(databaseName)
-        {
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasPostgresExtension("uuid-ossp");
@@ -668,12 +604,8 @@ public class NpgsqlValueGenerationScenariosTest
         public byte[] Timestamp { get; set; }
     }
 
-    public abstract class ContextBase : DbContext
+    public abstract class ContextBase(string databaseName) : DbContext
     {
-        private readonly string _databaseName;
-
-        protected ContextBase(string databaseName) => _databaseName = databaseName;
-
         public DbSet<Blog> Blogs { get; set; }
         public DbSet<NullableKeyBlog> NullableKeyBlogs { get; set; }
         public DbSet<FullNameBlog> FullNameBlogs { get; set; }
@@ -684,7 +616,7 @@ public class NpgsqlValueGenerationScenariosTest
             => optionsBuilder
                 .EnableServiceProviderCaching(false)
                 .UseNpgsql(
-                    NpgsqlTestStore.CreateConnectionString(_databaseName),
+                    NpgsqlTestStore.CreateConnectionString(databaseName),
                     b => b.ApplyConfiguration());
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -1,4 +1,5 @@
 // ReSharper disable once CheckNamespace
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 /// <summary>
@@ -51,26 +52,14 @@ public class DateTimeZoneMapping : RelationalTypeMapping
     public override Expression GenerateCodeLiteral(object value)
         => Expression.Call(
             Expression.Property(null, typeof(DateTimeZoneProviders).GetProperty(nameof(DateTimeZoneProviders.Tzdb))!),
-            typeof(IDateTimeZoneProvider).GetMethod(nameof(IDateTimeZoneProvider.GetZoneOrNull), new[] { typeof(string) })!,
+            typeof(IDateTimeZoneProvider).GetMethod(nameof(IDateTimeZoneProvider.GetZoneOrNull), [typeof(string)])!,
             Expression.Constant(((DateTimeZone)value).Id));
 
-    private sealed class DateTimeZoneConverter : ValueConverter<DateTimeZone, string>
-    {
-        public DateTimeZoneConverter()
-            : base(
-                tz => tz.Id,
-                id => DateTimeZoneProviders.Tzdb[id])
-        {
-        }
-    }
+    private sealed class DateTimeZoneConverter() : ValueConverter<DateTimeZone, string>(
+        tz => tz.Id,
+        id => DateTimeZoneProviders.Tzdb[id]);
 
-    private sealed class DateTimeZoneComparer : ValueComparer<DateTimeZone>
-    {
-        public DateTimeZoneComparer()
-            : base(
-                (tz1, tz2) => tz1 == null ? tz2 == null : tz2 != null && tz1.Id == tz2.Id,
-                tz => tz.GetHashCode())
-        {
-        }
-    }
+    private sealed class DateTimeZoneComparer() : ValueComparer<DateTimeZone>(
+        (tz1, tz2) => tz1 == null ? tz2 == null : tz2 != null && tz1.Id == tz2.Id,
+        tz => tz.GetHashCode());
 }

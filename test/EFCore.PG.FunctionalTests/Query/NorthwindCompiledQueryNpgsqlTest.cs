@@ -4,7 +4,8 @@ public class NorthwindCompiledQueryNpgsqlTest : NorthwindCompiledQueryTestBase<N
 {
     // ReSharper disable once UnusedParameter.Local
     public NorthwindCompiledQueryNpgsqlTest(
-        NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
+        NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture,
+        ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();

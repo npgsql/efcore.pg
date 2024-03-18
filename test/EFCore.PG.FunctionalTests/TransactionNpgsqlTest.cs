@@ -4,27 +4,19 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class TransactionNpgsqlTest : TransactionTestBase<TransactionNpgsqlTest.TransactionNpgsqlFixture>
+public class TransactionNpgsqlTest(TransactionNpgsqlTest.TransactionNpgsqlFixture fixture)
+    : TransactionTestBase<TransactionNpgsqlTest.TransactionNpgsqlFixture>(fixture)
 {
-    public TransactionNpgsqlTest(TransactionNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     public override Task SaveChanges_can_be_used_with_AutoTransactionBehavior_Never(bool async)
-    {
         // Npgsql batches the inserts, creating an implicit transaction which fails the test
         // (see https://github.com/npgsql/npgsql/issues/1307)
-        return Task.CompletedTask;
-    }
+        => Task.CompletedTask;
 
 #pragma warning disable CS0618 // AutoTransactionsEnabled is obsolete
     public override Task SaveChanges_can_be_used_with_AutoTransactionsEnabled_false(bool async)
-    {
         // Npgsql batches the inserts, creating an implicit transaction which fails the test
         // (see https://github.com/npgsql/npgsql/issues/1307)
-        return Task.CompletedTask;
-    }
+        => Task.CompletedTask;
 #pragma warning restore CS0618
 
     protected override DbContext CreateContextWithConnectionString()
@@ -89,17 +81,22 @@ public class TransactionNpgsqlTest : TransactionTestBase<TransactionNpgsqlTest.T
 
     // Test generates an exception (by double-releasing the savepoint), which causes the transaction to enter
     // a failed state and roll back all changes.
-    public override Task Savepoint_can_be_released(bool async) => Task.CompletedTask;
+    public override Task Savepoint_can_be_released(bool async)
+        => Task.CompletedTask;
 
-    protected override bool AmbientTransactionsSupported => true;
+    protected override bool AmbientTransactionsSupported
+        => true;
 
-    protected override bool SnapshotSupported => true;
+    protected override bool SnapshotSupported
+        => true;
 
-    protected override bool DirtyReadsOccur => false;
+    protected override bool DirtyReadsOccur
+        => false;
 
     public class TransactionNpgsqlFixture : TransactionFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
         {

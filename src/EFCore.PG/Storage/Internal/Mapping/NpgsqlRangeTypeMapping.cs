@@ -5,10 +5,10 @@ using System.Text;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// The type mapping for PostgreSQL range types.
+///     The type mapping for PostgreSQL range types.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/rangetypes.html
+///     See: https://www.postgresql.org/docs/current/static/rangetypes.html
 /// </remarks>
 public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
 {
@@ -24,21 +24,29 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     private ConstructorInfo? _rangeConstructor2;
     private ConstructorInfo? _rangeConstructor3;
 
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public static NpgsqlRangeTypeMapping Default { get; } = new();
+
     // ReSharper disable once MemberCanBePrivate.Global
     /// <summary>
-    /// The relational type mapping of the range's subtype.
+    ///     The relational type mapping of the range's subtype.
     /// </summary>
     public virtual RelationalTypeMapping SubtypeMapping { get; }
 
     /// <summary>
-    /// For user-defined ranges, we have no <see cref="NpgsqlDbType" /> and so the PG type name is set on
-    /// <see cref="NpgsqlParameter.DataTypeName" /> instead.
+    ///     For user-defined ranges, we have no <see cref="NpgsqlDbType" /> and so the PG type name is set on
+    ///     <see cref="NpgsqlParameter.DataTypeName" /> instead.
     /// </summary>
     private string? PgDataTypeName { get; init; }
 
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping" /> class for a built-in range type which has a
-    /// <see cref="NpgsqlDbType" /> defined.
+    ///     Constructs an instance of the <see cref="NpgsqlRangeTypeMapping" /> class for a built-in range type which has a
+    ///     <see cref="NpgsqlDbType" /> defined.
     /// </summary>
     /// <param name="rangeStoreType">The database type to map</param>
     /// <param name="rangeClrType">The CLR type to map.</param>
@@ -52,8 +60,8 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
         => new(rangeStoreType, rangeClrType, rangeNpgsqlDbType, subtypeMapping);
 
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping" /> class for a user-defined range type which doesn't have a
-    /// <see cref="NpgsqlDbType" /> defined.
+    ///     Constructs an instance of the <see cref="NpgsqlRangeTypeMapping" /> class for a user-defined range type which doesn't have a
+    ///     <see cref="NpgsqlDbType" /> defined.
     /// </summary>
     /// <param name="quotedRangeStoreType">The database type to map, quoted.</param>
     /// <param name="unquotedRangeStoreType">The database type to map, unquoted.</param>
@@ -75,7 +83,9 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
         NpgsqlDbType rangeNpgsqlDbType,
         RelationalTypeMapping subtypeMapping)
         : base(rangeStoreType, rangeClrType, rangeNpgsqlDbType)
-        => SubtypeMapping = subtypeMapping;
+    {
+        SubtypeMapping = subtypeMapping;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -88,7 +98,28 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
         NpgsqlDbType npgsqlDbType,
         RelationalTypeMapping subtypeMapping)
         : base(parameters, npgsqlDbType)
-        => SubtypeMapping = subtypeMapping;
+    {
+        SubtypeMapping = subtypeMapping;
+    }
+
+    // This constructor exists only to support the static Default property above, which is necessary to allow code generation for compiled
+    // models. The constructor creates a completely blank type mapping, which will get cloned with all the correct details.
+    private NpgsqlRangeTypeMapping()
+        : this("int4range", typeof(NpgsqlRange<int>), NpgsqlDbType.IntegerRange, subtypeMapping: null!)
+    {
+    }
+
+    /// <summary>
+    ///     This method exists only to support the compiled model.
+    /// </summary>
+    /// <remarks>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </remarks>
+    public virtual NpgsqlRangeTypeMapping Clone(NpgsqlDbType npgsqlDbType, RelationalTypeMapping subtypeTypeMapping)
+        => new(Parameters, npgsqlDbType, subtypeTypeMapping);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -119,7 +150,8 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
 
         if (parameter is not NpgsqlParameter npgsqlParameter)
         {
-            throw new InvalidOperationException($"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+            throw new InvalidOperationException(
+                $"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
         }
 
         npgsqlParameter.DataTypeName = PgDataTypeName;
@@ -228,10 +260,10 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
         _upperInfiniteProperty = rangeClrType.GetProperty(nameof(NpgsqlRange<int>.UpperBoundInfinite))!;
 
         _rangeConstructor1 = rangeClrType.GetConstructor(
-            new[] { subtypeClrType, subtypeClrType })!;
+            [subtypeClrType, subtypeClrType])!;
         _rangeConstructor2 = rangeClrType.GetConstructor(
-            new[] { subtypeClrType, typeof(bool), subtypeClrType, typeof(bool) })!;
+            [subtypeClrType, typeof(bool), subtypeClrType, typeof(bool)])!;
         _rangeConstructor3 = rangeClrType.GetConstructor(
-            new[] { subtypeClrType, typeof(bool), typeof(bool), subtypeClrType, typeof(bool), typeof(bool) })!;
+            [subtypeClrType, typeof(bool), typeof(bool), subtypeClrType, typeof(bool), typeof(bool)])!;
     }
 }

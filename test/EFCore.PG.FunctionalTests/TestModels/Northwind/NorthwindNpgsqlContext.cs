@@ -2,10 +2,8 @@ using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Northwind;
 
-public class NorthwindNpgsqlContext : NorthwindRelationalContext
+public class NorthwindNpgsqlContext(DbContextOptions options) : NorthwindRelationalContext(options)
 {
-    public NorthwindNpgsqlContext(DbContextOptions options) : base(options) {}
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -45,7 +43,7 @@ public class NorthwindNpgsqlContext : NorthwindRelationalContext
             });
 
         modelBuilder.Entity<CustomerQuery>().ToSqlQuery(
-"""
+            """
 SELECT "c"."CustomerID", "c"."Address", "c"."City", "c"."CompanyName", "c"."ContactName", "c"."ContactTitle", "c"."Country", "c"."Fax", "c"."Phone", "c"."PostalCode", "c"."Region" FROM "Customers" AS "c"
 """);
     }

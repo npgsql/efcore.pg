@@ -18,7 +18,9 @@ public class NpgsqlSqlTranslatingExpressionVisitorFactory : IRelationalSqlTransl
     /// </summary>
     public NpgsqlSqlTranslatingExpressionVisitorFactory(
         RelationalSqlTranslatingExpressionVisitorDependencies dependencies)
-        => _dependencies = dependencies;
+    {
+        _dependencies = dependencies;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

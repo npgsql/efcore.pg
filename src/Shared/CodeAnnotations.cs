@@ -91,14 +91,9 @@ internal sealed class StringFormatMethodAttribute : Attribute
 [AttributeUsage(
     AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.Field,
     AllowMultiple = true)]
-internal sealed class ValueProviderAttribute : Attribute
+internal sealed class ValueProviderAttribute(string name) : Attribute
 {
-    public ValueProviderAttribute(string name)
-    {
-        Name = name;
-    }
-
-    public string Name { get; }
+    public string Name { get; } = name;
 }
 
 /// <summary>
@@ -164,9 +159,7 @@ internal sealed class ValueRangeAttribute : Attribute
     | AttributeTargets.Property
     | AttributeTargets.Method
     | AttributeTargets.Delegate)]
-internal sealed class NonNegativeValueAttribute : Attribute
-{
-}
+internal sealed class NonNegativeValueAttribute : Attribute;
 
 /// <summary>
 /// Indicates that the function argument should be a string literal and match one
@@ -180,9 +173,7 @@ internal sealed class NonNegativeValueAttribute : Attribute
 /// }
 /// </code></example>
 [AttributeUsage(AttributeTargets.Parameter)]
-internal sealed class InvokerParameterNameAttribute : Attribute
-{
-}
+internal sealed class InvokerParameterNameAttribute : Attribute;
 
 /// <summary>
 /// Describes dependency between method input and output.
@@ -229,22 +220,16 @@ internal sealed class InvokerParameterNameAttribute : Attribute
 /// </code></item>
 /// </list></examples>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-internal sealed class ContractAnnotationAttribute : Attribute
+internal sealed class ContractAnnotationAttribute(string contract, bool forceFullStates) : Attribute
 {
     public ContractAnnotationAttribute(string contract)
         : this(contract, false)
     {
     }
 
-    public ContractAnnotationAttribute(string contract, bool forceFullStates)
-    {
-        Contract = contract;
-        ForceFullStates = forceFullStates;
-    }
+    public string Contract { get; } = contract;
 
-    public string Contract { get; }
-
-    public bool ForceFullStates { get; }
+    public bool ForceFullStates { get; } = forceFullStates;
 }
 
 /// <summary>
@@ -257,19 +242,14 @@ internal sealed class ContractAnnotationAttribute : Attribute
 /// }
 /// </code></example>
 [AttributeUsage(AttributeTargets.All)]
-internal sealed class LocalizationRequiredAttribute : Attribute
+internal sealed class LocalizationRequiredAttribute(bool required) : Attribute
 {
     public LocalizationRequiredAttribute()
         : this(true)
     {
     }
 
-    public LocalizationRequiredAttribute(bool required)
-    {
-        Required = required;
-    }
-
-    public bool Required { get; }
+    public bool Required { get; } = required;
 }
 
 /// <summary>
@@ -293,9 +273,7 @@ internal sealed class LocalizationRequiredAttribute : Attribute
 /// }
 /// </code></example>
 [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class | AttributeTargets.Struct)]
-internal sealed class CannotApplyEqualityOperatorAttribute : Attribute
-{
-}
+internal sealed class CannotApplyEqualityOperatorAttribute : Attribute;
 
 /// <summary>
 /// When applied to a target attribute, specifies a requirement for any type marked
@@ -310,14 +288,9 @@ internal sealed class CannotApplyEqualityOperatorAttribute : Attribute
 /// </code></example>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 [BaseTypeRequired(typeof(Attribute))]
-internal sealed class BaseTypeRequiredAttribute : Attribute
+internal sealed class BaseTypeRequiredAttribute(Type baseType) : Attribute
 {
-    public BaseTypeRequiredAttribute(Type baseType)
-    {
-        BaseType = baseType;
-    }
-
-    public Type BaseType { get; }
+    public Type BaseType { get; } = baseType;
 }
 
 /// <summary>
@@ -325,7 +298,8 @@ internal sealed class BaseTypeRequiredAttribute : Attribute
 /// so this symbol will not be reported as unused (as well as by other usage inspections).
 /// </summary>
 [AttributeUsage(AttributeTargets.All)]
-internal sealed class UsedImplicitlyAttribute : Attribute
+internal sealed class UsedImplicitlyAttribute(ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags)
+    : Attribute
 {
     public UsedImplicitlyAttribute()
         : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default)
@@ -342,15 +316,9 @@ internal sealed class UsedImplicitlyAttribute : Attribute
     {
     }
 
-    public UsedImplicitlyAttribute(ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags)
-    {
-        UseKindFlags = useKindFlags;
-        TargetFlags = targetFlags;
-    }
+    public ImplicitUseKindFlags UseKindFlags { get; } = useKindFlags;
 
-    public ImplicitUseKindFlags UseKindFlags { get; }
-
-    public ImplicitUseTargetFlags TargetFlags { get; }
+    public ImplicitUseTargetFlags TargetFlags { get; } = targetFlags;
 }
 
 /// <summary>
@@ -360,7 +328,8 @@ internal sealed class UsedImplicitlyAttribute : Attribute
 /// is used implicitly.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.GenericParameter | AttributeTargets.Parameter)]
-internal sealed class MeansImplicitUseAttribute : Attribute
+internal sealed class MeansImplicitUseAttribute(ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags)
+    : Attribute
 {
     public MeansImplicitUseAttribute()
         : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default)
@@ -377,15 +346,9 @@ internal sealed class MeansImplicitUseAttribute : Attribute
     {
     }
 
-    public MeansImplicitUseAttribute(ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags)
-    {
-        UseKindFlags = useKindFlags;
-        TargetFlags = targetFlags;
-    }
+    [UsedImplicitly] public ImplicitUseKindFlags UseKindFlags { get; } = useKindFlags;
 
-    [UsedImplicitly] public ImplicitUseKindFlags UseKindFlags { get; }
-
-    [UsedImplicitly] public ImplicitUseTargetFlags TargetFlags { get; }
+    [UsedImplicitly] public ImplicitUseTargetFlags TargetFlags { get; } = targetFlags;
 }
 
 /// <summary>
@@ -450,14 +413,10 @@ internal enum ImplicitUseTargetFlags
 /// }
 /// </code></example>
 [AttributeUsage(AttributeTargets.Parameter)]
-internal sealed class NoEnumerationAttribute : Attribute
-{
-}
+internal sealed class NoEnumerationAttribute : Attribute;
 
 /// <summary>
 /// Indicates that the marked parameter is a regular expression pattern.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class RegexPatternAttribute : Attribute
-{
-}
+internal sealed class RegexPatternAttribute : Attribute;

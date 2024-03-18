@@ -10,39 +10,27 @@ public abstract class FindNpgsqlTest : FindTestBase<FindNpgsqlTest.FindNpgsqlFix
         fixture.TestSqlLoggerFactory.Clear();
     }
 
-    public class FindNpgsqlTestSet : FindNpgsqlTest
+    public class FindNpgsqlTestSet(FindNpgsqlFixture fixture) : FindNpgsqlTest(fixture)
     {
-        public FindNpgsqlTestSet(FindNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         protected override TestFinder Finder { get; } = new FindViaSetFinder();
     }
 
-    public class FindNpgsqlTestContext : FindNpgsqlTest
+    public class FindNpgsqlTestContext(FindNpgsqlFixture fixture) : FindNpgsqlTest(fixture)
     {
-        public FindNpgsqlTestContext(FindNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         protected override TestFinder Finder { get; } = new FindViaContextFinder();
     }
 
-    public class FindNpgsqlTestNonGeneric : FindNpgsqlTest
+    public class FindNpgsqlTestNonGeneric(FindNpgsqlFixture fixture) : FindNpgsqlTest(fixture)
     {
-        public FindNpgsqlTestNonGeneric(FindNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         protected override TestFinder Finder { get; } = new FindViaNonGenericContextFinder();
     }
 
     public class FindNpgsqlFixture : FindFixtureBase
     {
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
     }
 }

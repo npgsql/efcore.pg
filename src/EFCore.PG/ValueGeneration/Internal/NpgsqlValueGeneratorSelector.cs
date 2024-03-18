@@ -40,7 +40,8 @@ public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
     ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
-    public new virtual INpgsqlValueGeneratorCache Cache => (INpgsqlValueGeneratorCache)base.Cache;
+    public new virtual INpgsqlValueGeneratorCache Cache
+        => (INpgsqlValueGeneratorCache)base.Cache;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -48,16 +49,50 @@ public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override ValueGenerator Select(IProperty property, ITypeBase typeBase)
-        => property.GetValueGeneratorFactory() is null
-            && property.GetValueGenerationStrategy() == NpgsqlValueGenerationStrategy.SequenceHiLo
-                ? _sequenceFactory.Create(
-                    property,
-                    Cache.GetOrAddSequenceState(property, _connection),
-                    _connection,
-                    _rawSqlCommandBuilder,
-                    _commandLogger)
-                : base.Select(property, typeBase);
+    public override bool TrySelect(IProperty property, ITypeBase typeBase, out ValueGenerator? valueGenerator)
+    {
+        if (property.GetValueGeneratorFactory() != null
+            || property.GetValueGenerationStrategy() != NpgsqlValueGenerationStrategy.SequenceHiLo)
+        {
+            return base.TrySelect(property, typeBase, out valueGenerator);
+        }
+
+        var propertyType = property.ClrType.UnwrapNullableType().UnwrapEnumType();
+
+        valueGenerator = _sequenceFactory.TryCreate(
+            property,
+            propertyType,
+            Cache.GetOrAddSequenceState(property, _connection),
+            _connection,
+            _rawSqlCommandBuilder,
+            _commandLogger);
+
+        if (valueGenerator != null)
+        {
+            return true;
+        }
+
+        var converter = property.GetTypeMapping().Converter;
+        if (converter != null
+            && converter.ProviderClrType != propertyType)
+        {
+            valueGenerator = _sequenceFactory.TryCreate(
+                property,
+                converter.ProviderClrType,
+                Cache.GetOrAddSequenceState(property, _connection),
+                _connection,
+                _rawSqlCommandBuilder,
+                _commandLogger);
+
+            if (valueGenerator != null)
+            {
+                valueGenerator = valueGenerator.WithConverter(converter);
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

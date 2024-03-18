@@ -3,11 +3,13 @@ using Xunit.Sdk;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class NorthwindMiscellaneousQueryNpgsqlTest : NorthwindMiscellaneousQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
+public class NorthwindMiscellaneousQueryNpgsqlTest : NorthwindMiscellaneousQueryRelationalTestBase<
+    NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
 {
     // ReSharper disable once UnusedParameter.Local
     public NorthwindMiscellaneousQueryNpgsqlTest(
-        NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
+        NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture,
+        ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
         ClearLog();
@@ -22,7 +24,7 @@ public class NorthwindMiscellaneousQueryNpgsqlTest : NorthwindMiscellaneousQuery
             """
 SELECT o."CustomerID"
 FROM "Orders" AS o
-WHERE o."OrderDate" IS NOT NULL AND o."EmployeeID"::text LIKE '%10%'
+WHERE o."OrderDate" IS NOT NULL AND o."EmployeeID"::text LIKE '%7%'
 """);
     }
 
@@ -31,7 +33,7 @@ WHERE o."OrderDate" IS NOT NULL AND o."EmployeeID"::text LIKE '%10%'
         await base.Select_expression_date_add_year(async);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderDate" + INTERVAL '1 years' AS "OrderDate"
 FROM "Orders" AS o
 WHERE o."OrderDate" IS NOT NULL
@@ -48,14 +50,11 @@ WHERE o."OrderDate" IS NOT NULL
             async,
             ss => ss.Set<Order>().Where(o => o.OrderDate != null)
                 .Select(
-                    o => new Order
-                    {
-                        OrderDate = o.OrderDate.Value.AddYears(years)
-                    }),
+                    o => new Order { OrderDate = o.OrderDate.Value.AddYears(years) }),
             e => e.OrderDate);
 
         AssertSql(
-"""
+            """
 @__years_0='2'
 
 SELECT o."OrderDate" + CAST(@__years_0::text || ' years' AS interval) AS "OrderDate"
@@ -70,14 +69,13 @@ WHERE o."OrderDate" IS NOT NULL
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Order>().Where(o => o.OrderDate - TimeSpan.FromDays(1) == new DateTime(1997, 10, 8)),
-            entryCount: 2);
+            ss => ss.Set<Order>().Where(o => o.OrderDate - TimeSpan.FromDays(1) == new DateTime(1997, 10, 8)));
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
-WHERE o."OrderDate" - INTERVAL '1 00:00:00' = TIMESTAMP '1997-10-08 00:00:00'
+WHERE o."OrderDate" - INTERVAL '1 00:00:00' = TIMESTAMP '1997-10-08T00:00:00'
 """);
     }
 
@@ -91,7 +89,7 @@ WHERE o."OrderDate" - INTERVAL '1 00:00:00' = TIMESTAMP '1997-10-08 00:00:00'
                 .Select(o => new { Elapsed = (DateTime.Today - ((DateTime)o.OrderDate).Date).Days }));
 
         AssertSql(
-"""
+            """
 SELECT floor(date_part('day', date_trunc('day', now()::timestamp) - date_trunc('day', o."OrderDate")))::int AS "Elapsed"
 FROM "Orders" AS o
 WHERE o."OrderDate" IS NOT NULL
@@ -159,7 +157,7 @@ LIMIT 1
         await Assert.ThrowsAsync<InvalidOperationException>(() => base.Max_on_empty_sequence_throws(async));
 
         AssertSql(
-"""
+            """
 SELECT (
     SELECT max(o."OrderID")
     FROM "Orders" AS o
@@ -189,15 +187,15 @@ FROM "Customers" AS c
                 .Select_DTO_constructor_distinct_with_collection_projection_translated_to_server_with_binding_after_client_eval(async));
 
         AssertSql(
-"""
-SELECT t."CustomerID", o0."OrderID", o0."CustomerID", o0."EmployeeID", o0."OrderDate"
+            """
+SELECT o0."CustomerID", o1."OrderID", o1."CustomerID", o1."EmployeeID", o1."OrderDate"
 FROM (
     SELECT DISTINCT o."CustomerID"
     FROM "Orders" AS o
     WHERE o."OrderID" < 10300
-) AS t
-LEFT JOIN "Orders" AS o0 ON t."CustomerID" = o0."CustomerID"
-ORDER BY t."CustomerID" NULLS FIRST
+) AS o0
+LEFT JOIN "Orders" AS o1 ON o0."CustomerID" = o1."CustomerID"
+ORDER BY o0."CustomerID" NULLS FIRST
 """);
     }
 
@@ -212,14 +210,13 @@ ORDER BY t."CustomerID" NULLS FIRST
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(c => new[] { "ALFKI", "ANATR" }.Contains(c.CustomerID)),
-            entryCount: 2);
+            ss => ss.Set<Customer>().Where(c => new[] { "ALFKI", "ANATR" }.Contains(c.CustomerID)));
 
         // Note: for constant lists there's no advantage in using the PostgreSQL-specific x = ANY (a b, c), unlike
         // for parameterized lists.
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE c."CustomerID" IN ('ALFKI', 'ANATR')
@@ -234,15 +231,14 @@ WHERE c."CustomerID" IN ('ALFKI', 'ANATR')
 
         await AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(c => regions.Contains(c.Region)),
-            entryCount: 6);
+            ss => ss.Set<Customer>().Where(c => regions.Contains(c.Region)));
 
         // Instead of c."Region" IN ('UK', 'SP') we generate the PostgreSQL-specific x = ANY (a, b, c), which can
         // be parameterized.
         // Ideally parameter sniffing would allow us to produce SQL without the null check since the regions array doesn't contain one
         // (see https://github.com/aspnet/EntityFrameworkCore/issues/17598).
         AssertSql(
-"""
+            """
 @__regions_0={ 'UK', 'SP' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
@@ -259,15 +255,14 @@ WHERE c."Region" = ANY (@__regions_0) OR (c."Region" IS NULL AND array_position(
 
         await AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(c => regions.Contains(c.Region)),
-            entryCount: 66);
+            ss => ss.Set<Customer>().Where(c => regions.Contains(c.Region)));
 
         // Instead of c."Region" IN ('UK', 'SP') we generate the PostgreSQL-specific x = ANY (a, b, c), which can
         // be parameterized.
         // Ideally parameter sniffing would allow us to produce SQL with an optimized null check (no need to check the array server-side)
         // (see https://github.com/aspnet/EntityFrameworkCore/issues/17598).
         AssertSql(
-"""
+            """
 @__regions_0={ 'UK', 'SP', NULL } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
@@ -290,19 +285,40 @@ WHERE c."Region" = ANY (@__regions_0) OR (c."Region" IS NULL AND array_position(
         var query = context.Set<Customer>().Where(c => collection.Any(y => EF.Functions.Like(c.Address, y)));
         var result = async ? await query.ToListAsync() : query.ToList();
 
-        Assert.Equal(new[]
-        {
-            "ANATR", "BERGS", "BOLID", "CACTU", "COMMI", "CONSH", "FISSA", "FRANK", "GODOS", "GOURL", "HILAA",
-            "HUNGC", "LILAS", "LINOD", "PERIC", "QUEEN", "RANCH", "RICAR", "SUPRD", "TORTU", "TRADH", "WANDK"
-        }, result.Select(e => e.CustomerID));
+        Assert.Equal(
+            new[]
+            {
+                "ANATR",
+                "BERGS",
+                "BOLID",
+                "CACTU",
+                "COMMI",
+                "CONSH",
+                "FISSA",
+                "FRANK",
+                "GODOS",
+                "GOURL",
+                "HILAA",
+                "HUNGC",
+                "LILAS",
+                "LINOD",
+                "PERIC",
+                "QUEEN",
+                "RANCH",
+                "RICAR",
+                "SUPRD",
+                "TORTU",
+                "TRADH",
+                "WANDK"
+            }, result.Select(e => e.CustomerID));
 
         AssertSql(
-"""
-@__collection_0={ 'A%', 'B%', 'C%' } (DbType = Object)
+            """
+@__collection_1={ 'A%', 'B%', 'C%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" LIKE ANY (@__collection_0)
+WHERE c."Address" LIKE ANY (@__collection_1)
 """);
     }
 
@@ -319,12 +335,12 @@ WHERE c."Address" LIKE ANY (@__collection_0)
         Assert.Empty(result);
 
         AssertSql(
-"""
-@__collection_0={ 'A%', 'B%', 'C%' } (DbType = Object)
+            """
+@__collection_1={ 'A%', 'B%', 'C%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" LIKE ALL (@__collection_0)
+WHERE c."Address" LIKE ALL (@__collection_1)
 """);
     }
 
@@ -338,19 +354,40 @@ WHERE c."Address" LIKE ALL (@__collection_0)
         var query = context.Set<Customer>().Where(c => collection.Any(y => EF.Functions.ILike(c.Address, y)));
         var result = async ? await query.ToListAsync() : query.ToList();
 
-        Assert.Equal(new[]
-        {
-            "ANATR", "BERGS", "BOLID", "CACTU", "COMMI", "CONSH", "FISSA", "FRANK", "GODOS", "GOURL", "HILAA",
-            "HUNGC", "LILAS", "LINOD", "PERIC", "QUEEN", "RANCH", "RICAR", "SUPRD", "TORTU", "TRADH", "WANDK"
-        }, result.Select(e => e.CustomerID));
+        Assert.Equal(
+            new[]
+            {
+                "ANATR",
+                "BERGS",
+                "BOLID",
+                "CACTU",
+                "COMMI",
+                "CONSH",
+                "FISSA",
+                "FRANK",
+                "GODOS",
+                "GOURL",
+                "HILAA",
+                "HUNGC",
+                "LILAS",
+                "LINOD",
+                "PERIC",
+                "QUEEN",
+                "RANCH",
+                "RICAR",
+                "SUPRD",
+                "TORTU",
+                "TRADH",
+                "WANDK"
+            }, result.Select(e => e.CustomerID));
 
         AssertSql(
-"""
-@__collection_0={ 'a%', 'b%', 'c%' } (DbType = Object)
+            """
+@__collection_1={ 'a%', 'b%', 'c%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" ILIKE ANY (@__collection_0)
+WHERE c."Address" ILIKE ANY (@__collection_1)
 """);
     }
 
@@ -367,12 +404,12 @@ WHERE c."Address" ILIKE ANY (@__collection_0)
         Assert.Empty(result);
 
         AssertSql(
-"""
-@__collection_0={ 'a%', 'b%', 'c%' } (DbType = Object)
+            """
+@__collection_1={ 'a%', 'b%', 'c%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" ILIKE ALL (@__collection_0)
+WHERE c."Address" ILIKE ALL (@__collection_1)
 """);
     }
 
@@ -386,7 +423,7 @@ WHERE c."Address" ILIKE ALL (@__collection_0)
         _ = await ctx.Customers.Select(c1 => ctx.Customers.Select(c2 => c2.ContactName).ToList()).ToListAsync();
 
         AssertSql(
-"""
+            """
 SELECT c."CustomerID", c0."ContactName", c0."CustomerID"
 FROM "Customers" AS c
 LEFT JOIN LATERAL (SELECT * FROM "Customers") AS c0 ON TRUE

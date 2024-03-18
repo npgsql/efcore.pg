@@ -8,25 +8,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 public class PgRegexMatchExpression : SqlExpression, IEquatable<PgRegexMatchExpression>
 {
     /// <inheritdoc />
-    public override Type Type => typeof(bool);
+    public override Type Type
+        => typeof(bool);
 
     /// <summary>
-    /// The match expression.
+    ///     The match expression.
     /// </summary>
     public virtual SqlExpression Match { get; }
 
     /// <summary>
-    /// The pattern to match.
+    ///     The pattern to match.
     /// </summary>
     public virtual SqlExpression Pattern { get; }
 
     /// <summary>
-    /// The options for regular expression evaluation.
+    ///     The options for regular expression evaluation.
     /// </summary>
     public virtual RegexOptions Options { get; }
 
     /// <summary>
-    /// Constructs a <see cref="PgRegexMatchExpression"/>.
+    ///     Constructs a <see cref="PgRegexMatchExpression" />.
     /// </summary>
     /// <param name="match">The expression to match.</param>
     /// <param name="pattern">The pattern to match.</param>
@@ -59,12 +60,12 @@ public class PgRegexMatchExpression : SqlExpression, IEquatable<PgRegexMatchExpr
 
     /// <inheritdoc />
     public virtual bool Equals(PgRegexMatchExpression? other)
-        => ReferenceEquals(this, other) ||
-            other is not null &&
-            base.Equals(other) &&
-            Match.Equals(other.Match) &&
-            Pattern.Equals(other.Pattern) &&
-            Options.Equals(other.Options);
+        => ReferenceEquals(this, other)
+            || other is not null
+            && base.Equals(other)
+            && Match.Equals(other.Match)
+            && Pattern.Equals(other.Pattern)
+            && Options.Equals(other.Options);
 
     /// <inheritdoc />
     public override bool Equals(object? other)
@@ -83,5 +84,6 @@ public class PgRegexMatchExpression : SqlExpression, IEquatable<PgRegexMatchExpr
     }
 
     /// <inheritdoc />
-    public override string ToString() => $"{Match} ~ {Pattern}";
+    public override string ToString()
+        => $"{Match} ~ {Pattern}";
 }

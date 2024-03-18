@@ -3,16 +3,13 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class MusicStoreNpgsqlTest : MusicStoreTestBase<MusicStoreNpgsqlTest.MusicStoreNpgsqlFixture>
+public class MusicStoreNpgsqlTest(MusicStoreNpgsqlTest.MusicStoreNpgsqlFixture fixture)
+    : MusicStoreTestBase<MusicStoreNpgsqlTest.MusicStoreNpgsqlFixture>(fixture)
 {
-    public MusicStoreNpgsqlTest(MusicStoreNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     public class MusicStoreNpgsqlFixture : MusicStoreFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {

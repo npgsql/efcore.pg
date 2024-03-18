@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
@@ -38,7 +37,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     ///     Creates a new <see cref="PgRegexMatchExpression" />, corresponding to the PostgreSQL-specific <c>~</c> operator.
     /// </summary>
     public virtual PgRegexMatchExpression RegexMatch(
-        SqlExpression match, SqlExpression pattern, RegexOptions options)
+        SqlExpression match,
+        SqlExpression pattern,
+        RegexOptions options)
         => (PgRegexMatchExpression)ApplyDefaultTypeMapping(new PgRegexMatchExpression(match, pattern, options, null));
 
     /// <summary>
@@ -58,7 +59,6 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         SqlExpression array,
         PgAllOperatorType operatorType)
         => (PgAllExpression)ApplyDefaultTypeMapping(new PgAllExpression(item, array, operatorType, null));
-
 
     /// <summary>
     ///     Creates a new <see cref="PgArrayIndexExpression" />, corresponding to the PostgreSQL-specific array subscripting operator.
@@ -122,7 +122,8 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                     : storeType.StartsWith("timestamp without time zone", StringComparison.Ordinal)
                     || storeType.StartsWith("timestamp", StringComparison.Ordinal)
                         ? _typeMappingSource.FindMapping("timestamp with time zone")!
-                        : throw new ArgumentException($"timestamp argument to AtTimeZone had unknown store type {storeType}", nameof(timestamp));
+                        : throw new ArgumentException(
+                            $"timestamp argument to AtTimeZone had unknown store type {storeType}", nameof(timestamp));
         }
 
         return new AtTimeZoneExpression(
@@ -150,7 +151,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         bool returnsText,
         Type type,
         RelationalTypeMapping? typeMapping = null)
-        => JsonTraversal(expression, Array.Empty<SqlExpression>(), returnsText, type, typeMapping);
+        => JsonTraversal(expression, [], returnsText, type, typeMapping);
 
     /// <summary>
     ///     Creates a new <see cref="PgJsonTraversalExpression" />, for traversing inside a JSON document.
@@ -169,8 +170,8 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             typeMapping);
 
     /// <summary>
-    ///     Constructs either a <see cref="PgNewArrayExpression"/>, or, if all provided expressions are constants, a single
-    ///     <see cref="SqlConstantExpression"/> for the entire array.
+    ///     Constructs either a <see cref="PgNewArrayExpression" />, or, if all provided expressions are constants, a single
+    ///     <see cref="SqlConstantExpression" /> for the entire array.
     /// </summary>
     public virtual SqlExpression NewArrayOrConstant(
         IReadOnlyList<SqlExpression> elements,
@@ -197,7 +198,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             var addMethod = type.GetMethod("Add")!;
             for (var i = 0; i < elements.Count; i++)
             {
-                addMethod.Invoke(list, new[] { ((SqlConstantExpression)newArrayExpression.Expressions[i]).Value });
+                addMethod.Invoke(list, [((SqlConstantExpression)newArrayExpression.Expressions[i]).Value]);
             }
 
             return Constant(list, newArrayExpression.TypeMapping);
@@ -394,16 +395,16 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 SqlBinaryExpression e => ApplyTypeMappingOnSqlBinary(e, typeMapping),
 
                 // PostgreSQL-specific expression types
-                PgAnyExpression e        => ApplyTypeMappingOnAny(e),
-                PgAllExpression e        => ApplyTypeMappingOnAll(e),
+                PgAnyExpression e => ApplyTypeMappingOnAny(e),
+                PgAllExpression e => ApplyTypeMappingOnAll(e),
                 PgArrayIndexExpression e => ApplyTypeMappingOnArrayIndex(e, typeMapping),
                 PgArraySliceExpression e => ApplyTypeMappingOnArraySlice(e, typeMapping),
-                PgBinaryExpression e     => ApplyTypeMappingOnPostgresBinary(e, typeMapping),
-                PgFunctionExpression e   => e.ApplyTypeMapping(typeMapping),
-                PgILikeExpression e      => ApplyTypeMappingOnILike(e),
-                PgNewArrayExpression e   => ApplyTypeMappingOnNewArray(e, typeMapping),
+                PgBinaryExpression e => ApplyTypeMappingOnPostgresBinary(e, typeMapping),
+                PgFunctionExpression e => e.ApplyTypeMapping(typeMapping),
+                PgILikeExpression e => ApplyTypeMappingOnILike(e),
+                PgNewArrayExpression e => ApplyTypeMappingOnNewArray(e, typeMapping),
                 PgRegexMatchExpression e => ApplyTypeMappingOnRegexMatch(e),
-                PgRowValueExpression e   => ApplyTypeMappingOnRowValue(e, typeMapping),
+                PgRowValueExpression e => ApplyTypeMappingOnRowValue(e, typeMapping),
 
                 _ => base.ApplyTypeMapping(sqlExpression, typeMapping)
             };
@@ -437,6 +438,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case ExpressionType.Add or ExpressionType.Subtract
                 when right.Type == typeof(TimeSpan)
                 && (left.Type == typeof(DateTime) || left.Type == typeof(DateTimeOffset) || left.Type == typeof(TimeOnly))
+                || right.Type == typeof(int) && left.Type == typeof(DateOnly)
                 || right.Type.FullName == "NodaTime.Period"
                 && left.Type.FullName is "NodaTime.LocalDateTime" or "NodaTime.LocalDate" or "NodaTime.LocalTime"
                 || right.Type.FullName == "NodaTime.Duration"
@@ -702,7 +704,8 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     }
 
     private SqlExpression ApplyTypeMappingOnPostgresBinary(
-        PgBinaryExpression pgBinaryExpression, RelationalTypeMapping? typeMapping)
+        PgBinaryExpression pgBinaryExpression,
+        RelationalTypeMapping? typeMapping)
     {
         var (left, right) = (pgBinaryExpression.Left, pgBinaryExpression.Right);
 
@@ -868,8 +871,6 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 // (e.g. IP address containment)
                 containerMapping = _typeMappingSource.FindContainerMapping(container.Type, containeeMapping, Dependencies.Model);
 
-                // containerMapping = _typeMappingSource.FindContainerMapping(container.Type, containeeMapping);
-
                 // Apply the inferred mapping to the container, or fall back to the default type mapping
                 if (containerMapping is not null)
                 {
@@ -892,7 +893,8 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     }
 
     private SqlExpression ApplyTypeMappingOnNewArray(
-        PgNewArrayExpression pgNewArrayExpression, RelationalTypeMapping? typeMapping)
+        PgNewArrayExpression pgNewArrayExpression,
+        RelationalTypeMapping? typeMapping)
     {
         var arrayTypeMapping = typeMapping as NpgsqlArrayTypeMapping;
         if (arrayTypeMapping is null && typeMapping is not null)
@@ -1005,7 +1007,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             var newExpression = ApplyTypeMapping(expression, elementTypeMapping);
             if (newExpression != expression && newExpressions is null)
             {
-                newExpressions = new List<SqlExpression>();
+                newExpressions = [];
                 for (var j = 0; j < i; j++)
                 {
                     newExpressions.Add(pgNewArrayExpression.Expressions[j]);
@@ -1021,8 +1023,8 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     }
 
     /// <summary>
-    /// PostgreSQL array indexing is 1-based. If the index happens to be a constant,
-    /// just increment it. Otherwise, append a +1 in the SQL.
+    ///     PostgreSQL array indexing is 1-based. If the index happens to be a constant,
+    ///     just increment it. Otherwise, append a +1 in the SQL.
     /// </summary>
     public virtual SqlExpression GenerateOneBasedIndexExpression(SqlExpression expression)
         => expression is SqlConstantExpression constant

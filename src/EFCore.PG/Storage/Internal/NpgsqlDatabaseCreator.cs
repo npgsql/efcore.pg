@@ -143,7 +143,8 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
 
     private IRelationalCommand CreateHasTablesCommand()
         => _rawSqlCommandBuilder
-            .Build(@"
+            .Build(
+                """
 SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
@@ -161,7 +162,8 @@ WHERE
                 ) AND
                 objid=cls.oid AND
                 deptype IN ('e', 'x')
-        )");
+        )
+""");
 
     private IReadOnlyList<MigrationCommand> CreateCreateOperations()
     {
@@ -204,11 +206,7 @@ WHERE
         // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
         // If Pooling is off, but Multiplexing is on - NpgsqlConnectionStringBuilder.Validate will throw,
         // so we turn off Multiplexing as well.
-        var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString)
-        {
-            Pooling = false,
-            Multiplexing = false
-        };
+        var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString) { Pooling = false, Multiplexing = false };
 
         using var _ = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
         var unpooledRelationalConnection = _connection.CloneWith(unpooledCsb.ToString());
@@ -237,8 +235,7 @@ WHERE
         }
         catch (NpgsqlException e) when (
             // This can happen when Npgsql attempts to connect to multiple hosts
-            e.InnerException is AggregateException ae &&
-            ae.InnerExceptions.Any(ie => ie is PostgresException pe && IsDoesNotExist(pe)))
+            e.InnerException is AggregateException ae && ae.InnerExceptions.Any(ie => ie is PostgresException pe && IsDoesNotExist(pe)))
         {
             return false;
         }
@@ -264,7 +261,8 @@ WHERE
     }
 
     // Login failed is thrown when database does not exist (See Issue #776)
-    private static bool IsDoesNotExist(PostgresException exception) => exception.SqlState == "3D000";
+    private static bool IsDoesNotExist(PostgresException exception)
+        => exception.SqlState == "3D000";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -317,10 +315,9 @@ WHERE
         // If a PostgreSQL extension, enum or range was added, we want Npgsql to reload all types at the ADO.NET level.
         var reloadTypes =
             operations.OfType<AlterDatabaseOperation>()
-                .Any(o =>
-                    o.GetPostgresExtensions().Any() ||
-                    o.GetPostgresEnums().Any() ||
-                    o.GetPostgresRanges().Any());
+                .Any(
+                    o =>
+                        o.GetPostgresExtensions().Any() || o.GetPostgresEnums().Any() || o.GetPostgresRanges().Any());
 
         try
         {
@@ -332,16 +329,16 @@ WHERE
             // (happens in the tests). Simply ignore the error.
         }
 
-        if (reloadTypes)
+        if (reloadTypes && _connection.DbConnection is NpgsqlConnection npgsqlConnection)
         {
-            _connection.Open();
+            npgsqlConnection.Open();
             try
             {
-                ((NpgsqlConnection)_connection.DbConnection).ReloadTypes();
+                npgsqlConnection.ReloadTypes();
             }
             catch
             {
-                _connection.Close();
+                npgsqlConnection.Close();
             }
         }
     }
@@ -358,14 +355,6 @@ WHERE
         var operations = Dependencies.ModelDiffer.GetDifferences(null, designTimeModel.GetRelationalModel());
         var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, designTimeModel);
 
-        // If a PostgreSQL extension, enum or range was added, we want Npgsql to reload all types at the ADO.NET level.
-        var reloadTypes =
-            operations.OfType<AlterDatabaseOperation>()
-                .Any(o =>
-                    o.GetPostgresExtensions().Any() ||
-                    o.GetPostgresEnums().Any() ||
-                    o.GetPostgresRanges().Any());
-
         try
         {
             await Dependencies.MigrationCommandExecutor.ExecuteNonQueryAsync(commands, _connection, cancellationToken)
@@ -377,17 +366,21 @@ WHERE
             // (happens in the tests). Simply ignore the error.
         }
 
-        if (reloadTypes)
+        // If a PostgreSQL extension, enum or range was added, we want Npgsql to reload all types at the ADO.NET level.
+        var reloadTypes = operations
+            .OfType<AlterDatabaseOperation>()
+            .Any(o => o.GetPostgresExtensions().Any() || o.GetPostgresEnums().Any() || o.GetPostgresRanges().Any());
+
+        if (reloadTypes && _connection.DbConnection is NpgsqlConnection npgsqlConnection)
         {
-            await _connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await npgsqlConnection.OpenAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                // TODO: Not async
-                ((NpgsqlConnection)_connection.DbConnection).ReloadTypes();
+                await npgsqlConnection.ReloadTypesAsync().ConfigureAwait(false);
             }
             catch
             {
-                _connection.Close();
+                await npgsqlConnection.CloseAsync().ConfigureAwait(false);
             }
         }
     }
@@ -405,9 +398,11 @@ WHERE
     }
 
     // Clear connection pools in case there are active connections that are pooled
-    private static void ClearAllPools() => NpgsqlConnection.ClearAllPools();
+    private static void ClearAllPools()
+        => NpgsqlConnection.ClearAllPools();
 
     // Clear connection pool for the database connection since after the 'create database' call, a previously
     // invalid connection may now be valid.
-    private void ClearPool() => NpgsqlConnection.ClearPool((NpgsqlConnection)_connection.DbConnection);
+    private void ClearPool()
+        => NpgsqlConnection.ClearPool((NpgsqlConnection)_connection.DbConnection);
 }

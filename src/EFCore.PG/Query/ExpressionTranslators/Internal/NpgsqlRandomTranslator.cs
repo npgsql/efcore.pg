@@ -9,7 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 public class NpgsqlRandomTranslator : IMethodCallTranslator
 {
     private static readonly MethodInfo _methodInfo
-        = typeof(DbFunctionsExtensions).GetRuntimeMethod(nameof(DbFunctionsExtensions.Random), new[] { typeof(DbFunctions) })!;
+        = typeof(DbFunctionsExtensions).GetRuntimeMethod(nameof(DbFunctionsExtensions.Random), [typeof(DbFunctions)])!;
 
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
@@ -20,7 +20,9 @@ public class NpgsqlRandomTranslator : IMethodCallTranslator
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlRandomTranslator(ISqlExpressionFactory sqlExpressionFactory)
-        => _sqlExpressionFactory = sqlExpressionFactory;
+    {
+        _sqlExpressionFactory = sqlExpressionFactory;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -41,9 +43,9 @@ public class NpgsqlRandomTranslator : IMethodCallTranslator
         return _methodInfo.Equals(method)
             ? _sqlExpressionFactory.Function(
                 "random",
-                Array.Empty<SqlExpression>(),
+                [],
                 nullable: false,
-                argumentsPropagateNullability: Array.Empty<bool>(),
+                argumentsPropagateNullability: [],
                 method.ReturnType)
             : null;
     }

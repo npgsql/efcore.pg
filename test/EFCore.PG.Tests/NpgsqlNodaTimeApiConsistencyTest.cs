@@ -1,12 +1,8 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class NpgsqlNodaTimeApiConsistencyTest : ApiConsistencyTestBase<NpgsqlNodaTimeApiConsistencyTest.NpgsqlNodaTimeApiConsistencyFixture>
+public class NpgsqlNodaTimeApiConsistencyTest(NpgsqlNodaTimeApiConsistencyTest.NpgsqlNodaTimeApiConsistencyFixture fixture)
+    : ApiConsistencyTestBase<NpgsqlNodaTimeApiConsistencyTest.NpgsqlNodaTimeApiConsistencyFixture>(fixture)
 {
-    public NpgsqlNodaTimeApiConsistencyTest(NpgsqlNodaTimeApiConsistencyFixture fixture)
-        : base(fixture)
-    {
-    }
-
     protected override void AddServices(ServiceCollection serviceCollection)
         => serviceCollection.AddEntityFrameworkNpgsqlNodaTime();
 
@@ -15,10 +11,7 @@ public class NpgsqlNodaTimeApiConsistencyTest : ApiConsistencyTestBase<NpgsqlNod
 
     public class NpgsqlNodaTimeApiConsistencyFixture : ApiConsistencyFixtureBase
     {
-        public override HashSet<Type> FluentApiTypes { get; } = new()
-        {
-            typeof(NpgsqlNodaTimeDbContextOptionsBuilderExtensions),
-            typeof(NpgsqlNodaTimeServiceCollectionExtensions)
-        };
+        public override HashSet<Type> FluentApiTypes { get; } =
+            [typeof(NpgsqlNodaTimeDbContextOptionsBuilderExtensions), typeof(NpgsqlNodaTimeServiceCollectionExtensions)];
     }
 }

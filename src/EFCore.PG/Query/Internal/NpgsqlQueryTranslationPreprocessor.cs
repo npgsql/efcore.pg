@@ -24,7 +24,9 @@ public class NpgsqlQueryTranslationPreprocessor : RelationalQueryTranslationPrep
         INpgsqlSingletonOptions npgsqlSingletonOptions,
         QueryCompilationContext queryCompilationContext)
         : base(dependencies, relationalDependencies, queryCompilationContext)
-        => _npgsqlSingletonOptions = npgsqlSingletonOptions;
+    {
+        _npgsqlSingletonOptions = npgsqlSingletonOptions;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

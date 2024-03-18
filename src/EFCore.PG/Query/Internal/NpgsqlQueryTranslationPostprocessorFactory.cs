@@ -34,5 +34,8 @@ public class NpgsqlQueryTranslationPostprocessorFactory : IQueryTranslationPostp
 
     /// <inheritdoc />
     public virtual QueryTranslationPostprocessor Create(QueryCompilationContext queryCompilationContext)
-        => new NpgsqlQueryTranslationPostprocessor(Dependencies, RelationalDependencies, queryCompilationContext);
+        => new NpgsqlQueryTranslationPostprocessor(
+            Dependencies,
+            RelationalDependencies,
+            (RelationalQueryCompilationContext)queryCompilationContext);
 }

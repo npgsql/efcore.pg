@@ -34,17 +34,12 @@ public class NpgsqlCompiledQueryCacheKeyGenerator : RelationalCompiledQueryCache
             GenerateCacheKeyCore(query, async),
             RelationalDependencies.ContextOptions.FindExtension<NpgsqlOptionsExtension>()?.ReverseNullOrdering ?? false);
 
-    private struct NpgsqlCompiledQueryCacheKey
+    private struct NpgsqlCompiledQueryCacheKey(
+        RelationalCompiledQueryCacheKey relationalCompiledQueryCacheKey,
+        bool reverseNullOrdering)
     {
-        private readonly RelationalCompiledQueryCacheKey _relationalCompiledQueryCacheKey;
-        private readonly bool _reverseNullOrdering;
-
-        public NpgsqlCompiledQueryCacheKey(
-            RelationalCompiledQueryCacheKey relationalCompiledQueryCacheKey, bool reverseNullOrdering)
-        {
-            _relationalCompiledQueryCacheKey = relationalCompiledQueryCacheKey;
-            _reverseNullOrdering = reverseNullOrdering;
-        }
+        private readonly RelationalCompiledQueryCacheKey _relationalCompiledQueryCacheKey = relationalCompiledQueryCacheKey;
+        private readonly bool _reverseNullOrdering = reverseNullOrdering;
 
         public override bool Equals(object? obj)
             => !(obj is null)
@@ -55,6 +50,7 @@ public class NpgsqlCompiledQueryCacheKeyGenerator : RelationalCompiledQueryCache
             => _relationalCompiledQueryCacheKey.Equals(other._relationalCompiledQueryCacheKey)
                 && _reverseNullOrdering == other._reverseNullOrdering;
 
-        public override int GetHashCode() => HashCode.Combine(_relationalCompiledQueryCacheKey, _reverseNullOrdering);
+        public override int GetHashCode()
+            => HashCode.Combine(_relationalCompiledQueryCacheKey, _reverseNullOrdering);
     }
 }

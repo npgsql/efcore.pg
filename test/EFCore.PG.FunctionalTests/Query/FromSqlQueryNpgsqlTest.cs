@@ -3,13 +3,9 @@ using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class FromSqlQueryNpgsqlTest : FromSqlQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
+public class FromSqlQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture)
+    : FromSqlQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>(fixture)
 {
-    public FromSqlQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture)
-        : base(fixture)
-    {
-    }
-
     [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFramework/issues/{6563,20364}")]
     public override Task Bad_data_error_handling_invalid_cast(bool async)
         => base.Bad_data_error_handling_invalid_cast(async);
@@ -20,7 +16,8 @@ public class FromSqlQueryNpgsqlTest : FromSqlQueryTestBase<NorthwindQueryNpgsqlF
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
-    public override async Task FromSqlInterpolated_queryable_multiple_composed_with_parameters_and_closure_parameters_interpolated(bool async)
+    public override async Task FromSqlInterpolated_queryable_multiple_composed_with_parameters_and_closure_parameters_interpolated(
+        bool async)
     {
         // We default to mapping DateTime to 'timestamp with time zone', but here we need to send `timestamp without time zone` to match
         // the database data.
@@ -178,9 +175,5 @@ public class FromSqlQueryNpgsqlTest : FromSqlQueryTestBase<NorthwindQueryNpgsqlF
     }
 
     protected override DbParameter CreateDbParameter(string name, object value)
-        => new NpgsqlParameter
-        {
-            ParameterName = name,
-            Value = value
-        };
+        => new NpgsqlParameter { ParameterName = name, Value = value };
 }

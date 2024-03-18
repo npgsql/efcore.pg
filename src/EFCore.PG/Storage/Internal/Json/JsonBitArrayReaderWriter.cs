@@ -1,6 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
 using System.Collections;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
@@ -45,8 +42,7 @@ public sealed class JsonBitArrayReaderWriter : JsonValueReaderWriter<BitArray>
 
     /// <inheritdoc />
     public override void ToJsonTyped(Utf8JsonWriter writer, BitArray value)
-    {
-        writer.WriteStringValue(
+        => writer.WriteStringValue(
             string.Create(
                 value.Length, value, (s, a) =>
                 {
@@ -55,5 +51,4 @@ public sealed class JsonBitArrayReaderWriter : JsonValueReaderWriter<BitArray>
                         s[i] = a[i] ? '1' : '0';
                     }
                 }));
-    }
 }

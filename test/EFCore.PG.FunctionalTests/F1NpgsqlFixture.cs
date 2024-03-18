@@ -21,16 +21,10 @@ public class F1BytesNpgsqlFixture : F1NpgsqlFixtureBase<byte[]>
                 });
     }
 
-    private class BytesToUIntConverter : ValueConverter<byte[], uint>
-    {
-        public BytesToUIntConverter()
-            : base(
-                bytes => BitConverter.ToUInt32(bytes),
-                num => BitConverter.GetBytes(num),
-                mappingHints: null)
-        {
-        }
-    }
+    private class BytesToUIntConverter() : ValueConverter<byte[], uint>(
+        bytes => BitConverter.ToUInt32(bytes),
+        num => BitConverter.GetBytes(num),
+        mappingHints: null);
 }
 
 public class F1NpgsqlFixture : F1NpgsqlFixtureBase<uint>
@@ -55,6 +49,9 @@ public class F1NpgsqlFixture : F1NpgsqlFixtureBase<uint>
 
 public abstract class F1NpgsqlFixtureBase<TRowVersion> : F1RelationalFixture<TRowVersion>
 {
-    protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-    public override TestHelpers TestHelpers => NpgsqlTestHelpers.Instance;
+    protected override ITestStoreFactory TestStoreFactory
+        => NpgsqlTestStoreFactory.Instance;
+
+    public override TestHelpers TestHelpers
+        => NpgsqlTestHelpers.Instance;
 }

@@ -1,33 +1,34 @@
 ﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 /// <summary>
-/// Represents a PostgreSQL array ALL expression.
+///     Represents a PostgreSQL array ALL expression.
 /// </summary>
 /// <remarks>
-/// See https://www.postgresql.org/docs/current/static/functions-comparisons.html
+///     See https://www.postgresql.org/docs/current/static/functions-comparisons.html
 /// </remarks>
 public class PgAllExpression : SqlExpression, IEquatable<PgAllExpression>
 {
     /// <inheritdoc />
-    public override Type Type => typeof(bool);
+    public override Type Type
+        => typeof(bool);
 
     /// <summary>
-    /// The value to test against the <see cref="Array"/>.
+    ///     The value to test against the <see cref="Array" />.
     /// </summary>
     public virtual SqlExpression Item { get; }
 
     /// <summary>
-    /// The array of values or patterns to test for the <see cref="Item"/>.
+    ///     The array of values or patterns to test for the <see cref="Item" />.
     /// </summary>
     public virtual SqlExpression Array { get; }
 
     /// <summary>
-    /// The operator.
+    ///     The operator.
     /// </summary>
     public virtual PgAllOperatorType OperatorType { get; }
 
     /// <summary>
-    /// Constructs a <see cref="PgAllExpression"/>.
+    ///     Constructs a <see cref="PgAllExpression" />.
     /// </summary>
     /// <param name="operatorType">The operator symbol to the array expression.</param>
     /// <param name="item">The value to find.</param>
@@ -67,16 +68,17 @@ public class PgAllExpression : SqlExpression, IEquatable<PgAllExpression>
         => Update((SqlExpression)visitor.Visit(Item), (SqlExpression)visitor.Visit(Array));
 
     /// <inheritdoc />
-    public override bool Equals(object? obj) => obj is PgAllExpression e && Equals(e);
+    public override bool Equals(object? obj)
+        => obj is PgAllExpression e && Equals(e);
 
     /// <inheritdoc />
     public virtual bool Equals(PgAllExpression? other)
-        => ReferenceEquals(this, other) ||
-            other is not null &&
-            base.Equals(other) &&
-            Item.Equals(other.Item) &&
-            Array.Equals(other.Array) &&
-            OperatorType.Equals(other.OperatorType);
+        => ReferenceEquals(this, other)
+            || other is not null
+            && base.Equals(other)
+            && Item.Equals(other.Item)
+            && Array.Equals(other.Array)
+            && OperatorType.Equals(other.OperatorType);
 
     /// <inheritdoc />
     public override int GetHashCode()
@@ -88,24 +90,26 @@ public class PgAllExpression : SqlExpression, IEquatable<PgAllExpression>
         expressionPrinter.Visit(Item);
         expressionPrinter
             .Append(" ")
-            .Append(OperatorType switch
-            {
-                PgAllOperatorType.Like     => "LIKE",
-                PgAllOperatorType.ILike    => "ILIKE",
+            .Append(
+                OperatorType switch
+                {
+                    PgAllOperatorType.Like => "LIKE",
+                    PgAllOperatorType.ILike => "ILIKE",
 
-                _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
-            })
+                    _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
+                })
             .Append(" ALL(");
         expressionPrinter.Visit(Array);
         expressionPrinter.Append(")");
     }
 
     /// <inheritdoc />
-    public override string ToString() => $"{Item} {OperatorType} ALL({Array})";
+    public override string ToString()
+        => $"{Item} {OperatorType} ALL({Array})";
 }
 
 /// <summary>
-/// Determines the operator type for a <see cref="PgAllExpression" />.
+///     Determines the operator type for a <see cref="PgAllExpression" />.
 /// </summary>
 public enum PgAllOperatorType
 {

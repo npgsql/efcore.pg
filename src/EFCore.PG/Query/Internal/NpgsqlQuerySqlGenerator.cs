@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 /// <summary>
-/// The default query SQL generator for Npgsql.
+///     The default query SQL generator for Npgsql.
 /// </summary>
 public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 {
@@ -18,13 +18,13 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     private RelationalTypeMapping? _textTypeMapping;
 
     /// <summary>
-    /// True if null ordering is reversed; otherwise false.
+    ///     True if null ordering is reversed; otherwise false.
     /// </summary>
     private readonly bool _reverseNullOrderingEnabled;
 
     /// <summary>
-    /// The backend version to target. If null, it means the user hasn't set a compatibility version, and the
-    /// latest should be targeted.
+    ///     The backend version to target. If null, it means the user hasn't set a compatibility version, and the
+    ///     latest should be targeted.
     /// </summary>
     private readonly Version _postgresVersion;
 
@@ -120,13 +120,17 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             // We switch to it if the expression itself has type string, or if one of the sides has a string type mapping.
             // Same for full-text search's TsVector, arrays.
             ExpressionType.Add when
-                e.Type == typeof(string) || e.Left.TypeMapping?.ClrType == typeof(string) || e.Right.TypeMapping?.ClrType == typeof(string) ||
-                e.Type == typeof(NpgsqlTsVector) || e.Left.TypeMapping?.ClrType == typeof(NpgsqlTsVector) || e.Right.TypeMapping?.ClrType == typeof(NpgsqlTsVector) ||
-                e.Left.TypeMapping is NpgsqlArrayTypeMapping && e.Right.TypeMapping is NpgsqlArrayTypeMapping
+                e.Type == typeof(string)
+                || e.Left.TypeMapping?.ClrType == typeof(string)
+                || e.Right.TypeMapping?.ClrType == typeof(string)
+                || e.Type == typeof(NpgsqlTsVector)
+                || e.Left.TypeMapping?.ClrType == typeof(NpgsqlTsVector)
+                || e.Right.TypeMapping?.ClrType == typeof(NpgsqlTsVector)
+                || e.Left.TypeMapping is NpgsqlArrayTypeMapping && e.Right.TypeMapping is NpgsqlArrayTypeMapping
                 => " || ",
 
-            ExpressionType.And when e.Type == typeof(bool)   => " AND ",
-            ExpressionType.Or  when e.Type == typeof(bool)   => " OR ",
+            ExpressionType.And when e.Type == typeof(bool) => " AND ",
+            ExpressionType.Or when e.Type == typeof(bool) => " OR ",
             _ => base.GetOperator(e)
         };
 
@@ -224,8 +228,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 // PostgreSQL 9.4 and below has some weird operator precedence fixed in 9.5 and described here:
                 // http://git.postgresql.org/gitweb/?p=postgresql.git&a=commitdiff&h=c6b3c939b7e0f1d35f4ed4996e71420a993810d2
                 // As a result we must surround string concatenation with parentheses
-                if (binary.Left.Type == typeof(string) &&
-                    binary.Right.Type == typeof(string))
+                if (binary.Left.Type == typeof(string) && binary.Right.Type == typeof(string))
                 {
                     Sql.Append("(");
                     var exp = base.VisitSqlBinary(binary);
@@ -466,59 +469,60 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
         Sql
             .Append(" ")
-            .Append(binaryExpression.OperatorType switch
-            {
-                PgExpressionType.Contains
-                    when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping or NpgsqlCidrTypeMapping
-                    => ">>",
+            .Append(
+                binaryExpression.OperatorType switch
+                {
+                    PgExpressionType.Contains
+                        when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping or NpgsqlCidrTypeMapping
+                        => ">>",
 
-                PgExpressionType.ContainedBy
-                    when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping or NpgsqlCidrTypeMapping
-                    => "<<",
+                    PgExpressionType.ContainedBy
+                        when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping or NpgsqlCidrTypeMapping
+                        => "<<",
 
-                PgExpressionType.Contains    => "@>",
-                PgExpressionType.ContainedBy => "<@",
-                PgExpressionType.Overlaps    => "&&",
+                    PgExpressionType.Contains => "@>",
+                    PgExpressionType.ContainedBy => "<@",
+                    PgExpressionType.Overlaps => "&&",
 
-                PgExpressionType.NetworkContainedByOrEqual    => "<<=",
-                PgExpressionType.NetworkContainsOrEqual       => ">>=",
-                PgExpressionType.NetworkContainsOrContainedBy => "&&",
+                    PgExpressionType.NetworkContainedByOrEqual => "<<=",
+                    PgExpressionType.NetworkContainsOrEqual => ">>=",
+                    PgExpressionType.NetworkContainsOrContainedBy => "&&",
 
-                PgExpressionType.RangeIsStrictlyLeftOf     => "<<",
-                PgExpressionType.RangeIsStrictlyRightOf    => ">>",
-                PgExpressionType.RangeDoesNotExtendRightOf => "&<",
-                PgExpressionType.RangeDoesNotExtendLeftOf  => "&>",
-                PgExpressionType.RangeIsAdjacentTo         => "-|-",
-                PgExpressionType.RangeUnion                => "+",
-                PgExpressionType.RangeIntersect            => "*",
-                PgExpressionType.RangeExcept               => "-",
+                    PgExpressionType.RangeIsStrictlyLeftOf => "<<",
+                    PgExpressionType.RangeIsStrictlyRightOf => ">>",
+                    PgExpressionType.RangeDoesNotExtendRightOf => "&<",
+                    PgExpressionType.RangeDoesNotExtendLeftOf => "&>",
+                    PgExpressionType.RangeIsAdjacentTo => "-|-",
+                    PgExpressionType.RangeUnion => "+",
+                    PgExpressionType.RangeIntersect => "*",
+                    PgExpressionType.RangeExcept => "-",
 
-                PgExpressionType.TextSearchMatch => "@@",
-                PgExpressionType.TextSearchAnd   => "&&",
-                PgExpressionType.TextSearchOr    => "||",
+                    PgExpressionType.TextSearchMatch => "@@",
+                    PgExpressionType.TextSearchAnd => "&&",
+                    PgExpressionType.TextSearchOr => "||",
 
-                PgExpressionType.JsonExists    => "?",
-                PgExpressionType.JsonExistsAny => "?|",
-                PgExpressionType.JsonExistsAll => "?&",
+                    PgExpressionType.JsonExists => "?",
+                    PgExpressionType.JsonExistsAny => "?|",
+                    PgExpressionType.JsonExistsAll => "?&",
 
-                PgExpressionType.LTreeMatches
-                    when binaryExpression.Right.TypeMapping.StoreType == "lquery" ||
-                    binaryExpression.Right.TypeMapping is NpgsqlArrayTypeMapping { ElementTypeMapping.StoreType: "lquery" } => "~",
-                PgExpressionType.LTreeMatches
-                    when binaryExpression.Right.TypeMapping.StoreType == "ltxtquery"
-                    => "@",
-                PgExpressionType.LTreeMatchesAny      => "?",
-                PgExpressionType.LTreeFirstAncestor   => "?@>",
-                PgExpressionType.LTreeFirstDescendent => "?<@",
-                PgExpressionType.LTreeFirstMatches
-                    when binaryExpression.Right.TypeMapping.StoreType == "lquery" => "?~",
-                PgExpressionType.LTreeFirstMatches
-                    when binaryExpression.Right.TypeMapping.StoreType == "ltxtquery" => "?@",
+                    PgExpressionType.LTreeMatches
+                        when binaryExpression.Right.TypeMapping.StoreType == "lquery"
+                        || binaryExpression.Right.TypeMapping is NpgsqlArrayTypeMapping { ElementTypeMapping.StoreType: "lquery" } => "~",
+                    PgExpressionType.LTreeMatches
+                        when binaryExpression.Right.TypeMapping.StoreType == "ltxtquery"
+                        => "@",
+                    PgExpressionType.LTreeMatchesAny => "?",
+                    PgExpressionType.LTreeFirstAncestor => "?@>",
+                    PgExpressionType.LTreeFirstDescendent => "?<@",
+                    PgExpressionType.LTreeFirstMatches
+                        when binaryExpression.Right.TypeMapping.StoreType == "lquery" => "?~",
+                    PgExpressionType.LTreeFirstMatches
+                        when binaryExpression.Right.TypeMapping.StoreType == "ltxtquery" => "?@",
 
-                PgExpressionType.Distance => "<->",
+                    PgExpressionType.Distance => "<->",
 
-                _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {binaryExpression.OperatorType}")
-            })
+                    _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {binaryExpression.OperatorType}")
+                })
             .Append(" ");
 
         requiresParentheses = RequiresParentheses(binaryExpression, binaryExpression.Right);
@@ -630,6 +634,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             {
                 Visit(operand);
             }
+
             Sql.AppendLine().Append(")");
             return;
         }
@@ -755,6 +760,11 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// </summary>
     protected override void GenerateValues(ValuesExpression valuesExpression)
     {
+        if (valuesExpression.RowValues.Count == 0)
+        {
+            throw new InvalidOperationException(RelationalStrings.EmptyCollectionNotSupportedAsInlineQueryRoot);
+        }
+
         // PostgreSQL supports providing the names of columns projected out of VALUES: (VALUES (1, 3), (2, 4)) AS x(a, b).
         // But since other databases sometimes don't, the default relational implementation is complex, involving a SELECT for the first row
         // and a UNION All on the rest. Override to do the nice simple thing.
@@ -788,12 +798,13 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
         Sql
             .Append(" ")
-            .Append(expression.OperatorType switch
-            {
-                PgAllOperatorType.Like => "LIKE",
-                PgAllOperatorType.ILike => "ILIKE",
-                _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {expression.OperatorType}")
-            })
+            .Append(
+                expression.OperatorType switch
+                {
+                    PgAllOperatorType.Like => "LIKE",
+                    PgAllOperatorType.ILike => "ILIKE",
+                    _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {expression.OperatorType}")
+                })
             .Append(" ALL (");
 
         Visit(expression.Array);
@@ -815,13 +826,14 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
         Sql
             .Append(" ")
-            .Append(expression.OperatorType switch
-            {
-                PgAnyOperatorType.Equal => "=",
-                PgAnyOperatorType.Like => "LIKE",
-                PgAnyOperatorType.ILike => "ILIKE",
-                _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {expression.OperatorType}")
-            })
+            .Append(
+                expression.OperatorType switch
+                {
+                    PgAnyOperatorType.Equal => "=",
+                    PgAnyOperatorType.Like => "LIKE",
+                    PgAnyOperatorType.ILike => "ILIKE",
+                    _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {expression.OperatorType}")
+                })
             .Append(" ANY (");
 
         Visit(expression.Array);
@@ -832,7 +844,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
     /// <summary>
-    /// Produces SQL array index expression (e.g. arr[1]).
+    ///     Produces SQL array index expression (e.g. arr[1]).
     /// </summary>
     protected virtual Expression VisitArrayIndex(PgArrayIndexExpression expression)
     {
@@ -857,7 +869,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
     /// <summary>
-    /// Produces SQL array slice expression (e.g. arr[1:2]).
+    ///     Produces SQL array slice expression (e.g. arr[1:2]).
     /// </summary>
     protected virtual Expression VisitArraySlice(PgArraySliceExpression expression)
     {
@@ -884,14 +896,14 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
     /// <summary>
-    /// Visits the children of a <see cref="PgRegexMatchExpression"/>.
+    ///     Visits the children of a <see cref="PgRegexMatchExpression" />.
     /// </summary>
     /// <param name="expression">The expression.</param>
     /// <returns>
-    /// An <see cref="Expression"/>.
+    ///     An <see cref="Expression" />.
     /// </returns>
     /// <remarks>
-    /// See: http://www.postgresql.org/docs/current/static/functions-matching.html
+    ///     See: http://www.postgresql.org/docs/current/static/functions-matching.html
     /// </remarks>
     protected virtual Expression VisitRegexMatch(PgRegexMatchExpression expression)
     {
@@ -989,11 +1001,11 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
     /// <summary>
-    /// Visits the children of an <see cref="PgILikeExpression"/>.
+    ///     Visits the children of an <see cref="PgILikeExpression" />.
     /// </summary>
     /// <param name="likeExpression">The expression.</param>
     /// <returns>
-    /// An <see cref="Expression"/>.
+    ///     An <see cref="Expression" />.
     /// </returns>
     protected virtual Expression VisitILike(PgILikeExpression likeExpression)
     {
@@ -1051,7 +1063,8 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             // representation). We use jsonb_array_elements_text to extract the array elements as a set, cast them to their PG element type
             // and then build an array from that.
             case NpgsqlArrayTypeMapping arrayMapping:
-                Sql.Append("(ARRAY(SELECT CAST(element AS ").Append(arrayMapping.ElementTypeMapping.StoreType).Append(") FROM jsonb_array_elements_text(");
+                Sql.Append("(ARRAY(SELECT CAST(element AS ").Append(arrayMapping.ElementTypeMapping.StoreType)
+                    .Append(") FROM jsonb_array_elements_text(");
                 GenerateJsonPath(returnsText: false);
                 Sql.Append(") WITH ORDINALITY AS t(element) ORDER BY ordinality))");
                 break;
@@ -1083,11 +1096,11 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
     /// <summary>
-    /// Visits the children of an <see cref="PgJsonTraversalExpression"/>.
+    ///     Visits the children of an <see cref="PgJsonTraversalExpression" />.
     /// </summary>
     /// <param name="expression">The expression.</param>
     /// <returns>
-    /// An <see cref="Expression"/>.
+    ///     An <see cref="Expression" />.
     /// </returns>
     protected virtual Expression VisitJsonPathTraversal(PgJsonTraversalExpression expression)
     {
@@ -1128,6 +1141,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                     Sql.Append(",");
                 }
             }
+
             Sql.Append("]::text[]");
         }
     }
@@ -1227,11 +1241,11 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
     /// <summary>
-    /// Visits the children of a <see cref="PgUnknownBinaryExpression"/>.
+    ///     Visits the children of a <see cref="PgUnknownBinaryExpression" />.
     /// </summary>
     /// <param name="unknownBinaryExpression">The expression.</param>
     /// <returns>
-    /// An <see cref="Expression"/>.
+    ///     An <see cref="Expression" />.
     /// </returns>
     protected virtual Expression VisitUnknownBinary(PgUnknownBinaryExpression unknownBinaryExpression)
     {
@@ -1273,13 +1287,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         return unknownBinaryExpression;
     }
 
-
     /// <summary>
-    /// Visits the children of a <see cref="PgFunctionExpression"/>.
+    ///     Visits the children of a <see cref="PgFunctionExpression" />.
     /// </summary>
     /// <param name="e">The expression.</param>
     /// <returns>
-    /// An <see cref="Expression"/>.
+    ///     An <see cref="Expression" />.
     /// </returns>
     protected virtual Expression VisitPgFunction(PgFunctionExpression e)
     {
@@ -1323,9 +1336,10 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
             if (i < e.Arguments.Count - 1)
             {
-                Sql.Append(i < e.ArgumentSeparators.Count && e.ArgumentSeparators[i] is not null
-                    ? $" {e.ArgumentSeparators[i]} "
-                    : ", ");
+                Sql.Append(
+                    i < e.ArgumentSeparators.Count && e.ArgumentSeparators[i] is not null
+                        ? $" {e.ArgumentSeparators[i]} "
+                        : ", ");
             }
         }
 
@@ -1372,8 +1386,10 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         {
             // PG doesn't support ~-, -~, ~~, -- so we add parentheses
             case SqlUnaryExpression innerUnary when outerExpression is SqlUnaryExpression outerUnary
-                && (innerUnary.OperatorType is ExpressionType.Negate || innerUnary.OperatorType is ExpressionType.Not && innerUnary.Type != typeof(bool))
-                && (outerUnary.OperatorType is ExpressionType.Negate || outerUnary.OperatorType is ExpressionType.Not && outerUnary.Type != typeof(bool)):
+                && (innerUnary.OperatorType is ExpressionType.Negate
+                    || innerUnary.OperatorType is ExpressionType.Not && innerUnary.Type != typeof(bool))
+                && (outerUnary.OperatorType is ExpressionType.Negate
+                    || outerUnary.OperatorType is ExpressionType.Not && outerUnary.Type != typeof(bool)):
                 return true;
 
             // Copy paste of QuerySqlGenerator.RequiresParentheses for SqlBinaryExpression
@@ -1390,7 +1406,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
                         // If both operators have the same precedence, add parentheses unless they're the same operator, and
                         // that operator is associative (e.g. a + b + c)
-                        0 => outerExpression is not PgBinaryExpression outerBinary
+                        _ => outerExpression is not PgBinaryExpression outerBinary
                             || outerBinary.OperatorType != innerBinary.OperatorType
                             || !isOuterAssociative
                             // Arithmetic operators on floating points aren't associative, because of rounding errors.
@@ -1404,6 +1420,9 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 // Otherwise always parenthesize for safety
                 return true;
             }
+
+            case PgUnknownBinaryExpression:
+                return true;
 
             default:
                 return base.RequiresParentheses(outerExpression, innerExpression);
@@ -1474,7 +1493,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             PgBinaryExpression => (1000, false),
 
             CollateExpression => (1000, false),
-            AtTimeZoneExpression => (1000, false),
+            AtTimeZoneExpression => (1100, false),
             InExpression => (900, false),
             PgJsonTraversalExpression => (1000, false),
             PgArrayIndexExpression => (1500, false),
@@ -1505,13 +1524,9 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         }
     }
 
-    private sealed class OuterReferenceFindingExpressionVisitor : ExpressionVisitor
+    private sealed class OuterReferenceFindingExpressionVisitor(TableExpression mainTable) : ExpressionVisitor
     {
-        private readonly TableExpression _mainTable;
         private bool _containsReference;
-
-        public OuterReferenceFindingExpressionVisitor(TableExpression mainTable)
-            => _mainTable = mainTable;
 
         public bool ContainsReferenceToMainTable(SqlExpression sqlExpression)
         {
@@ -1530,8 +1545,8 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 return expression;
             }
 
-            if (expression is ColumnExpression columnExpression
-                && columnExpression.Table == _mainTable)
+            if (expression is ColumnExpression { TableAlias: var tableAlias }
+                && tableAlias == mainTable.Alias)
             {
                 _containsReference = true;
 

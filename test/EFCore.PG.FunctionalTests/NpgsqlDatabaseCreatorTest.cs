@@ -197,7 +197,8 @@ public class NpgsqlDatabaseCreatorEnsureCreatedTest : NpgsqlDatabaseCreatorTest
         }
 
         var tables = testDatabase.Query<string>(
-            "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND NOT TABLE_NAME LIKE ANY ('{pg_%,sql_%}')").ToList();
+                "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND NOT TABLE_NAME LIKE ANY ('{pg_%,sql_%}')")
+            .ToList();
         Assert.Single(tables);
         Assert.Equal("Blogs", tables.Single());
 
@@ -207,8 +208,7 @@ public class NpgsqlDatabaseCreatorEnsureCreatedTest : NpgsqlDatabaseCreatorTest
         Assert.Equal(14, columns.Length);
 
         Assert.Equal(
-            new[]
-            {
+            new[] {
                 "Blogs.AndChew (bytea)",
                 "Blogs.AndRow (bytea)",
                 "Blogs.Cheese (text)",
@@ -406,7 +406,8 @@ public class NpgsqlDatabaseCreatorCreateTablesTest : NpgsqlDatabaseCreatorTest
         }
 
         var tables = (await testDatabase.QueryAsync<string>(
-            "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND NOT TABLE_NAME LIKE ANY ('{pg_%,sql_%}')")).ToList();
+                "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND NOT TABLE_NAME LIKE ANY ('{pg_%,sql_%}')"))
+            .ToList();
         Assert.Single(tables);
         Assert.Equal("Blogs", tables.Single());
 
@@ -569,13 +570,9 @@ public class NpgsqlDatabaseCreatorTest
         => new BloggingContext(testStore).GetService<IExecutionStrategyFactory>().Create();
 
     // ReSharper disable once ClassNeverInstantiated.Local
-    private class TestNpgsqlExecutionStrategyFactory : NpgsqlExecutionStrategyFactory
+    private class TestNpgsqlExecutionStrategyFactory(ExecutionStrategyDependencies dependencies)
+        : NpgsqlExecutionStrategyFactory(dependencies)
     {
-        public TestNpgsqlExecutionStrategyFactory(ExecutionStrategyDependencies dependencies)
-            : base(dependencies)
-        {
-        }
-
         protected override IExecutionStrategy CreateDefaultStrategy(ExecutionStrategyDependencies dependencies)
             => new NonRetryingExecutionStrategy(dependencies);
     }
@@ -587,23 +584,19 @@ public class NpgsqlDatabaseCreatorTest
             .AddScoped<IRelationalDatabaseCreator, TestDatabaseCreator>()
             .BuildServiceProvider();
 
-    protected class BloggingContext : DbContext
+    protected class BloggingContext(string connectionString) : DbContext
     {
-        private readonly string _connectionString;
-
         public BloggingContext(NpgsqlTestStore testStore)
             : this(testStore.ConnectionString)
         {
         }
 
-        public BloggingContext(string connectionString)
-            => _connectionString = connectionString;
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder
-                .UseNpgsql(_connectionString, b => b
-                    .ApplyConfiguration()
-                    .SetPostgresVersion(TestEnvironment.PostgresVersion))
+                .UseNpgsql(
+                    connectionString, b => b
+                        .ApplyConfiguration()
+                        .SetPostgresVersion(TestEnvironment.PostgresVersion))
                 .UseInternalServiceProvider(CreateServiceProvider());
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -636,16 +629,12 @@ public class NpgsqlDatabaseCreatorTest
         public byte[] AndRow { get; set; }
     }
 
-    public class TestDatabaseCreator : NpgsqlDatabaseCreator
+    public class TestDatabaseCreator(
+        RelationalDatabaseCreatorDependencies dependencies,
+        INpgsqlRelationalConnection connection,
+        IRawSqlCommandBuilder rawSqlCommandBuilder)
+        : NpgsqlDatabaseCreator(dependencies, connection, rawSqlCommandBuilder)
     {
-        public TestDatabaseCreator(
-            RelationalDatabaseCreatorDependencies dependencies,
-            INpgsqlRelationalConnection connection,
-            IRawSqlCommandBuilder rawSqlCommandBuilder)
-            : base(dependencies, connection, rawSqlCommandBuilder)
-        {
-        }
-
         public bool HasTablesBase()
             => HasTables();
 

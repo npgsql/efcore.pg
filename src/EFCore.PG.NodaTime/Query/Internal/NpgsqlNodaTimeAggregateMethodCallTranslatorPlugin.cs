@@ -48,7 +48,7 @@ public class NpgsqlNodaTimeAggregateMethodCallTranslatorPlugin : IAggregateMetho
 /// </summary>
 public class NpgsqlNodaTimeAggregateMethodTranslator : IAggregateMethodCallTranslator
 {
-    private static readonly bool[][] FalseArrays = { Array.Empty<bool>(), new[] { false } };
+    private static readonly bool[][] FalseArrays = [[], [false]];
 
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
     private readonly IRelationalTypeMappingSource _typeMappingSource;

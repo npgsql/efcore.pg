@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Update.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
@@ -47,9 +46,7 @@ public class NpgsqlModificationCommandBatchTest
                 CreateModificationCommand("T1", null, false)));
     }
 
-    private class FakeDbContext : DbContext
-    {
-    }
+    private class FakeDbContext : DbContext;
 
     private static INonTrackedModificationCommand CreateModificationCommand(
         string name,

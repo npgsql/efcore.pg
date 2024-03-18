@@ -2,15 +2,12 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class CompositeKeyEndToEndNpgsqlTest : CompositeKeyEndToEndTestBase<CompositeKeyEndToEndNpgsqlTest.CompositeKeyEndToEndNpgsqlFixture>
+public class CompositeKeyEndToEndNpgsqlTest(CompositeKeyEndToEndNpgsqlTest.CompositeKeyEndToEndNpgsqlFixture fixture)
+    : CompositeKeyEndToEndTestBase<CompositeKeyEndToEndNpgsqlTest.CompositeKeyEndToEndNpgsqlFixture>(fixture)
 {
-    public CompositeKeyEndToEndNpgsqlTest(CompositeKeyEndToEndNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     public class CompositeKeyEndToEndNpgsqlFixture : CompositeKeyEndToEndFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
     }
 }

@@ -44,18 +44,18 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
 
     #region TypeMapping
 
-    private readonly TimestampLocalDateTimeMapping _timestampLocalDateTime = new();
-    private readonly LegacyTimestampInstantMapping _legacyTimestampInstant = new();
+    private readonly TimestampLocalDateTimeMapping _timestampLocalDateTime = TimestampLocalDateTimeMapping.Default;
+    private readonly LegacyTimestampInstantMapping _legacyTimestampInstant = LegacyTimestampInstantMapping.Default;
 
-    private readonly TimestampTzInstantMapping _timestamptzInstant = new();
-    private readonly TimestampTzZonedDateTimeMapping _timestamptzZonedDateTime = new();
-    private readonly TimestampTzOffsetDateTimeMapping _timestamptzOffsetDateTime = new();
+    private readonly TimestampTzInstantMapping _timestamptzInstant = TimestampTzInstantMapping.Default;
+    private readonly TimestampTzZonedDateTimeMapping _timestamptzZonedDateTime = TimestampTzZonedDateTimeMapping.Default;
+    private readonly TimestampTzOffsetDateTimeMapping _timestamptzOffsetDateTime = TimestampTzOffsetDateTimeMapping.Default;
 
-    private readonly DateMapping _date = new();
-    private readonly TimeMapping _time = new();
-    private readonly TimeTzMapping _timetz = new();
-    private readonly PeriodIntervalMapping _periodInterval = new();
-    private readonly DurationIntervalMapping _durationInterval = new();
+    private readonly DateMapping _date = DateMapping.Default;
+    private readonly TimeMapping _time = TimeMapping.Default;
+    private readonly TimeTzMapping _timetz = TimeTzMapping.Default;
+    private readonly PeriodIntervalMapping _periodInterval = PeriodIntervalMapping.Default;
+    private readonly DurationIntervalMapping _durationInterval = DurationIntervalMapping.Default;
 
     // PostgreSQL has no native type for representing time zones - it just uses the IANA ID as text.
     private readonly DateTimeZoneMapping _timeZone = new("text");
@@ -73,7 +73,7 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
     #endregion
 
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlNodaTimeTypeMappingSourcePlugin"/> class.
+    ///     Constructs an instance of the <see cref="NpgsqlNodaTimeTypeMappingSourcePlugin" /> class.
     /// </summary>
     public NpgsqlNodaTimeTypeMappingSourcePlugin(ISqlGenerationHelper sqlGenerationHelper)
     {
@@ -97,21 +97,27 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
                 // migrations, model snapshots still contain old mappings (Instant mapped to timestamp), and EF Core's model differ
                 // expects type mappings to be found for these. See https://github.com/dotnet/efcore/issues/26168.
                 "timestamp without time zone", LegacyTimestampBehavior
-                    ? new RelationalTypeMapping[] { _legacyTimestampInstant, _timestampLocalDateTime }
-                    : new RelationalTypeMapping[] { _timestampLocalDateTime, _legacyTimestampInstant }
+                    ? [_legacyTimestampInstant, _timestampLocalDateTime]
+                    : [_timestampLocalDateTime, _legacyTimestampInstant]
             },
-            { "timestamp with time zone", new RelationalTypeMapping[] { _timestamptzInstant, _timestamptzZonedDateTime, _timestamptzOffsetDateTime } },
-            { "date", new RelationalTypeMapping[] { _date } },
-            { "time without time zone", new RelationalTypeMapping[] { _time } },
-            { "time with time zone", new RelationalTypeMapping[] { _timetz } },
-            { "interval", new RelationalTypeMapping[] { _periodInterval, _durationInterval } },
-
-            { "tsrange", LegacyTimestampBehavior
-                ? new RelationalTypeMapping[] { _legacyTimestampInstantRange, _timestampLocalDateTimeRange }
-                : new RelationalTypeMapping[] { _timestampLocalDateTimeRange, _legacyTimestampInstantRange }
+            {
+                "timestamp with time zone", [_timestamptzInstant, _timestamptzZonedDateTime, _timestamptzOffsetDateTime]
             },
-            { "tstzrange", new RelationalTypeMapping[] { _intervalRange, _timestamptzInstantRange, _timestamptzZonedDateTimeRange, _timestamptzOffsetDateTimeRange } },
-            { "daterange", new RelationalTypeMapping[] { _dateIntervalRange, _dateRange } }
+            { "date", [_date] },
+            { "time without time zone", [_time] },
+            { "time with time zone", [_timetz] },
+            { "interval", [_periodInterval, _durationInterval] },
+            {
+                "tsrange", LegacyTimestampBehavior
+                    ? [_legacyTimestampInstantRange, _timestampLocalDateTimeRange]
+                    : [_timestampLocalDateTimeRange, _legacyTimestampInstantRange]
+            },
+            {
+                "tstzrange", [
+                    _intervalRange, _timestamptzInstantRange, _timestamptzZonedDateTimeRange, _timestamptzOffsetDateTimeRange
+                ]
+            },
+            { "daterange", [_dateIntervalRange, _dateRange] }
         };
 
         // Set up aliases
@@ -123,7 +129,6 @@ public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourc
         var clrTypeMappings = new Dictionary<Type, RelationalTypeMapping>
         {
             { typeof(Instant), LegacyTimestampBehavior ? _legacyTimestampInstant : _timestamptzInstant },
-
             { typeof(LocalDateTime), _timestampLocalDateTime },
             { typeof(ZonedDateTime), _timestamptzZonedDateTime },
             { typeof(OffsetDateTime), _timestamptzOffsetDateTime },

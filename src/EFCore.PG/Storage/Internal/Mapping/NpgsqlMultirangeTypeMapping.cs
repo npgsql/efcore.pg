@@ -5,40 +5,41 @@ using System.Text;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-/// The type mapping for PostgreSQL multirange types.
+///     The type mapping for PostgreSQL multirange types.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/rangetypes.html
+///     See: https://www.postgresql.org/docs/current/static/rangetypes.html
 /// </remarks>
 public class NpgsqlMultirangeTypeMapping : RelationalTypeMapping
 {
     /// <summary>
-    /// The relational type mapping of the ranges contained in this multirange.
+    ///     The relational type mapping of the ranges contained in this multirange.
     /// </summary>
     public virtual NpgsqlRangeTypeMapping RangeMapping
         => (NpgsqlRangeTypeMapping)ElementTypeMapping!;
 
     /// <summary>
-    /// The relational type mapping of the values contained in this multirange.
+    ///     The relational type mapping of the values contained in this multirange.
     /// </summary>
     public virtual RelationalTypeMapping SubtypeMapping { get; }
 
     /// <summary>
-    /// The database type used by Npgsql.
+    ///     The database type used by Npgsql.
     /// </summary>
     public virtual NpgsqlDbType NpgsqlDbType { get; }
 
     /// <summary>
-    /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping"/> class.
+    ///     Constructs an instance of the <see cref="NpgsqlRangeTypeMapping" /> class.
     /// </summary>
     /// <param name="storeType">The database type to map</param>
     /// <param name="clrType">The CLR type to map.</param>
     /// <param name="rangeMapping">The type mapping of the ranges contained in this multirange.</param>
     public NpgsqlMultirangeTypeMapping(string storeType, Type clrType, NpgsqlRangeTypeMapping rangeMapping)
         // TODO: Need to do comparer, converter
-        : base(new RelationalTypeMappingParameters(
-            new CoreTypeMappingParameters(clrType, elementMapping: rangeMapping),
-            storeType))
+        : base(
+            new RelationalTypeMappingParameters(
+                new CoreTypeMappingParameters(clrType, elementMapping: rangeMapping),
+                storeType))
     {
         SubtypeMapping = rangeMapping.SubtypeMapping;
         NpgsqlDbType = GenerateNpgsqlDbType(rangeMapping.SubtypeMapping);
@@ -122,7 +123,7 @@ public class NpgsqlMultirangeTypeMapping : RelationalTypeMapping
             subtypeNpgsqlDbType = p.NpgsqlDbType;
         }
 
-        return NpgsqlTypes.NpgsqlDbType.Multirange | subtypeNpgsqlDbType;
+        return NpgsqlDbType.Multirange | subtypeNpgsqlDbType;
     }
 
     /// <summary>

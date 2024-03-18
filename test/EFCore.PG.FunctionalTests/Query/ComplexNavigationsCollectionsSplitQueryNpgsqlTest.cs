@@ -1,6 +1,7 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class ComplexNavigationsCollectionsSplitQueryNpgsqlTest : ComplexNavigationsCollectionsSplitQueryRelationalTestBase<ComplexNavigationsQueryNpgsqlFixture>
+public class ComplexNavigationsCollectionsSplitQueryNpgsqlTest : ComplexNavigationsCollectionsSplitQueryRelationalTestBase<
+    ComplexNavigationsQueryNpgsqlFixture>
 {
     public ComplexNavigationsCollectionsSplitQueryNpgsqlTest(
         ComplexNavigationsQueryNpgsqlFixture fixture,

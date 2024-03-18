@@ -1,11 +1,9 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
 
-public class ArrayQueryContext : PoolableDbContext
+public class ArrayQueryContext(DbContextOptions options) : PoolableDbContext(options)
 {
     public DbSet<ArrayEntity> SomeEntities { get; set; }
     public DbSet<ArrayContainerEntity> SomeEntityContainers { get; set; }
-
-    public ArrayQueryContext(DbContextOptions options) : base(options) {}
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
         => modelBuilder.Entity<ArrayEntity>(
@@ -29,10 +27,28 @@ public class ArrayQueryContext : PoolableDbContext
                 e.Property(ae => ae.NullableEnumConvertedToStringWithNonNullableLambda)
                     .HasConversion(new ValueConverter<SomeEnum, string>(w => w.ToString(), v => Enum.Parse<SomeEnum>(v)));
 
-                e.PrimitiveCollection(ae => ae.ValueConvertedArray)
+                e.Property(ae => ae.ListOfStringConvertedToDelimitedString)
+                    .HasConversion(
+                        v => string.Join(",", v),
+                        v => v.Split(',', StringSplitOptions.None).ToList(),
+                        new ValueComparer<List<string>>(
+                            (c1, c2) => c1.SequenceEqual(c2),
+                            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                            c => c.ToList()));
+
+                e.Property(ae => ae.ArrayOfStringConvertedToDelimitedString)
+                    .HasConversion(
+                        v => string.Join(",", v),
+                        v => v.Split(',', StringSplitOptions.None).ToArray(),
+                        new ValueComparer<string[]>(
+                            (c1, c2) => c1.SequenceEqual(c2),
+                            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                            c => c.ToArray()));
+
+                e.PrimitiveCollection(ae => ae.ValueConvertedArrayOfEnum)
                     .ElementType(eb => eb.HasConversion(typeof(EnumToStringConverter<SomeEnum>)));
 
-                e.PrimitiveCollection(ae => ae.ValueConvertedList)
+                e.PrimitiveCollection(ae => ae.ValueConvertedListOfEnum)
                     .ElementType(eb => eb.HasConversion(typeof(EnumToStringConverter<SomeEnum>)));
 
                 e.HasIndex(ae => ae.NonNullableText);
@@ -44,11 +60,7 @@ public class ArrayQueryContext : PoolableDbContext
 
         context.SomeEntities.AddRange(arrayEntities);
         context.SomeEntityContainers.Add(
-            new ArrayContainerEntity
-            {
-                Id = 1,
-                ArrayEntities = arrayEntities.ToList()
-            }
+            new ArrayContainerEntity { Id = 1, ArrayEntities = arrayEntities.ToList() }
         );
         context.SaveChanges();
     }

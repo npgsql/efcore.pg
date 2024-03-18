@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -29,21 +30,26 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     private static Type? _nodaTimePeriodType;
 
     private static readonly ConstructorInfo DateTimeCtor1 =
-        typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
+        typeof(DateTime).GetConstructor([typeof(int), typeof(int), typeof(int)])!;
+
     private static readonly ConstructorInfo DateTimeCtor2 =
-        typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) })!;
+        typeof(DateTime).GetConstructor([typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int)])!;
+
     private static readonly ConstructorInfo DateTimeCtor3 =
         typeof(DateTime).GetConstructor(
-            new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(DateTimeKind) })!;
+            [typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(DateTimeKind)])!;
+
     private static readonly ConstructorInfo DateOnlyCtor =
-        typeof(DateOnly).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
+        typeof(DateOnly).GetConstructor([typeof(int), typeof(int), typeof(int)])!;
 
     private static readonly MethodInfo StringStartsWithMethod
-        = typeof(string).GetRuntimeMethod(nameof(string.StartsWith), new[] { typeof(string) })!;
+        = typeof(string).GetRuntimeMethod(nameof(string.StartsWith), [typeof(string)])!;
+
     private static readonly MethodInfo StringEndsWithMethod
-        = typeof(string).GetRuntimeMethod(nameof(string.EndsWith), new[] { typeof(string) })!;
+        = typeof(string).GetRuntimeMethod(nameof(string.EndsWith), [typeof(string)])!;
+
     private static readonly MethodInfo StringContainsMethod
-        = typeof(string).GetRuntimeMethod(nameof(string.Contains), new[] { typeof(string) })!;
+        = typeof(string).GetRuntimeMethod(nameof(string.Contains), [typeof(string)])!;
 
     private static readonly MethodInfo EscapeLikePatternParameterMethod =
         typeof(NpgsqlSqlTranslatingExpressionVisitor).GetTypeInfo().GetDeclaredMethod(nameof(ConstructLikePatternParameter))!;
@@ -172,10 +178,11 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     /// </summary>
     protected override Expression VisitBinary(BinaryExpression binaryExpression)
     {
-        if (binaryExpression.NodeType == ExpressionType.Subtract)
+        switch (binaryExpression.NodeType)
         {
-            if (binaryExpression.Left.Type.UnwrapNullableType().FullName == "NodaTime.LocalDate" &&
-                binaryExpression.Right.Type.UnwrapNullableType().FullName == "NodaTime.LocalDate")
+            case ExpressionType.Subtract
+                when binaryExpression.Left.Type.UnwrapNullableType().FullName == "NodaTime.LocalDate"
+                && binaryExpression.Right.Type.UnwrapNullableType().FullName == "NodaTime.LocalDate":
             {
                 if (TranslationFailed(binaryExpression.Left, Visit(TryRemoveImplicitConvert(binaryExpression.Left)), out var sqlLeft)
                     || TranslationFailed(binaryExpression.Right, Visit(TryRemoveImplicitConvert(binaryExpression.Right)), out var sqlRight))
@@ -188,27 +195,47 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
 
                 return PgFunctionExpression.CreateWithNamedArguments(
                     "make_interval",
-                    new[] {  subtraction },
+                    new[] { subtraction },
                     new[] { "days" },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     builtIn: true,
                     _nodaTimePeriodType ??= binaryExpression.Left.Type.Assembly.GetType("NodaTime.Period")!,
                     typeMapping: null);
+
+                // Note: many other date/time arithmetic operators are fully supported as-is by PostgreSQL - see NpgsqlSqlExpressionFactory
             }
 
-            // Note: many other date/time arithmetic operators are fully supported as-is by PostgreSQL - see NpgsqlSqlExpressionFactory
+            case ExpressionType.ArrayIndex:
+            {
+                // During preprocessing, ArrayIndex and List[] get normalized to ElementAt; see NpgsqlArrayTranslator
+                Check.DebugFail(
+                    "During preprocessing, ArrayIndex and List[] get normalized to ElementAt; see NpgsqlArrayTranslator. "
+                    + "Should never see ArrayIndex.");
+                break;
+            }
         }
 
-        if (binaryExpression.NodeType == ExpressionType.ArrayIndex)
+        var translation = base.VisitBinary(binaryExpression);
+
+        // A somewhat hacky workaround for #2942.
+        // When an optional owned JSON entity is compared to null, we get WHERE (x -> y) IS NULL.
+        // The -> operator (returning jsonb) is used rather than ->> (returning text), since an entity type is being extracted, and further
+        // JSON operations may need to be composed. However, when the value extracted is a JSON null, a non-NULL jsonb value is returned,
+        // and comparing that to relational NULL returns false.
+        // Pattern-match this and force the use of ->> by changing the mapping to be a scalar rather than an entity type.
+        if (translation is SqlUnaryExpression
+            {
+                OperatorType: ExpressionType.Equal or ExpressionType.NotEqual,
+                Operand: JsonScalarExpression { TypeMapping: NpgsqlOwnedJsonTypeMapping } operand
+            } unary)
         {
-            // During preprocessing, ArrayIndex and List[] get normalized to ElementAt; see NpgsqlArrayTranslator
-            Check.DebugFail(
-                "During preprocessing, ArrayIndex and List[] get normalized to ElementAt; see NpgsqlArrayTranslator. " +
-                "Should never see ArrayIndex.");
+            return unary.Update(
+                new JsonScalarExpression(
+                    operand.Json, operand.Path, operand.Type, _typeMappingSource.FindMapping("text"), operand.IsNullable));
         }
 
-        return base.VisitBinary(binaryExpression);
+        return translation;
     }
 
     /// <summary>
@@ -294,7 +321,8 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                     "make_timestamp", sqlArguments, nullable: true, TrueArrays[6], typeof(DateTime), _timestampMapping);
             }
 
-            if (newExpression.Constructor == DateTimeCtor3 && newExpression.Arguments[6] is ConstantExpression { Value : DateTimeKind kind })
+            if (newExpression.Constructor == DateTimeCtor3
+                && newExpression.Arguments[6] is ConstantExpression { Value : DateTimeKind kind })
             {
                 if (!TryTranslateArguments(out var sqlArguments))
                 {
@@ -305,7 +333,11 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                 // Also chop off the last Kind argument which does not get sent to PostgreSQL
                 var rewrittenArguments = new List<SqlExpression>
                 {
-                    sqlArguments[0], sqlArguments[1], sqlArguments[2], sqlArguments[3], sqlArguments[4],
+                    sqlArguments[0],
+                    sqlArguments[1],
+                    sqlArguments[2],
+                    sqlArguments[3],
+                    sqlArguments[4],
                     _sqlExpressionFactory.Convert(sqlArguments[5], typeof(double))
                 };
 
@@ -353,7 +385,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
 
     #region StartsWith/EndsWith/Contains
 
-    bool TryTranslateStartsEndsWithContains(
+    private bool TryTranslateStartsEndsWithContains(
         Expression instance,
         Expression pattern,
         StartsEndsWithContains methodType,
@@ -419,12 +451,12 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                     QueryCompilationContext.QueryContextParameter);
 
                 var escapedPatternParameter =
-                    _queryCompilationContext.RegisterRuntimeParameter(patternParameter.Name + "_rewritten", lambda);
+                    _queryCompilationContext.RegisterRuntimeParameter(
+                        $"{patternParameter.Name}_{methodType.ToString().ToLower(CultureInfo.InvariantCulture)}", lambda);
 
                 translation = _sqlExpressionFactory.Like(
                     translatedInstance,
-                    new SqlParameterExpression(escapedPatternParameter.Name!, escapedPatternParameter.Type, stringTypeMapping),
-                    _sqlExpressionFactory.Constant(LikeEscapeChar.ToString()));
+                    new SqlParameterExpression(escapedPatternParameter.Name!, escapedPatternParameter.Type, stringTypeMapping));
 
                 return true;
             }
@@ -491,7 +523,9 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     }
 
     private static string? ConstructLikePatternParameter(
-        QueryContext queryContext, string baseParameterName, StartsEndsWithContains methodType)
+        QueryContext queryContext,
+        string baseParameterName,
+        StartsEndsWithContains methodType)
         => queryContext.ParameterValues[baseParameterName] switch
         {
             null => null,
@@ -518,7 +552,8 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         Contains
     }
 
-    private static bool IsLikeWildChar(char c) => c is '%' or '_';
+    private static bool IsLikeWildChar(char c)
+        => c is '%' or '_';
 
     private static string EscapeLikePattern(string pattern)
     {
@@ -550,6 +585,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
             {
                 innerType = Enum.GetUnderlyingType(innerType);
             }
+
             var convertedType = unaryExpression.Type.UnwrapNullableType();
 
             if (innerType == convertedType
@@ -566,7 +602,6 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
 
         return expression;
     }
-
 
     [DebuggerStepThrough]
     private static bool TranslationFailed(Expression? original, Expression? translation, out SqlExpression? castTranslation)

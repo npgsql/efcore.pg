@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -17,8 +18,16 @@ public class NpgsqlTimestampTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    public static NpgsqlTimestampTypeMapping Default { get; } = new();
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlTimestampTypeMapping()
-        : base("timestamp without time zone", typeof(DateTime), NpgsqlDbType.Timestamp, JsonDateTimeReaderWriter.Instance)
+        : base("timestamp without time zone", typeof(DateTime), NpgsqlDbType.Timestamp, NpgsqlJsonTimestampReaderWriter.Instance)
     {
     }
 
@@ -29,7 +38,9 @@ public class NpgsqlTimestampTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlTimestampTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Timestamp) {}
+        : base(parameters, NpgsqlDbType.Timestamp)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -68,9 +79,10 @@ public class NpgsqlTimestampTypeMapping : NpgsqlTypeMapping
         => $@"""{GenerateLiteralCore(value)}""";
 
     private string GenerateLiteralCore(object value)
-    {
-        var dateTime = (DateTime)value;
+        => FormatDateTime((DateTime)value);
 
+    private static string FormatDateTime(DateTime dateTime)
+    {
         if (!NpgsqlTypeMappingSource.DisableDateTimeInfinityConversions)
         {
             if (dateTime == DateTime.MinValue)
@@ -85,7 +97,57 @@ public class NpgsqlTimestampTypeMapping : NpgsqlTypeMapping
         }
 
         return NpgsqlTypeMappingSource.LegacyTimestampBehavior || dateTime.Kind != DateTimeKind.Utc
-            ? dateTime.ToString("yyyy-MM-dd HH:mm:ss.FFFFFF", CultureInfo.InvariantCulture)
+            ? dateTime.ToString("yyyy-MM-ddTHH:mm:ss.FFFFFF", CultureInfo.InvariantCulture)
             : throw new ArgumentException("'timestamp without time zone' literal cannot be generated for a UTC DateTime");
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public sealed class NpgsqlJsonTimestampReaderWriter : JsonValueReaderWriter<DateTime>
+    {
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
+        public static NpgsqlJsonTimestampReaderWriter Instance { get; } = new();
+
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
+        public override DateTime FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+        {
+            var s = manager.CurrentReader.GetString()!;
+
+            if (!NpgsqlTypeMappingSource.DisableDateTimeInfinityConversions)
+            {
+                switch (s)
+                {
+                    case "-infinity":
+                        return DateTime.MinValue;
+                    case "infinity":
+                        return DateTime.MaxValue;
+                }
+            }
+
+            return DateTime.Parse(s, CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
+        public override void ToJsonTyped(Utf8JsonWriter writer, DateTime value)
+            => writer.WriteStringValue(FormatDateTime(value));
     }
 }

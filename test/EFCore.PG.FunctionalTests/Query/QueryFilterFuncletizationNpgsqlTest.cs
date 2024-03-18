@@ -7,9 +7,12 @@ public class QueryFilterFuncletizationNpgsqlTest
 {
     // ReSharper disable once UnusedParameter.Local
     public QueryFilterFuncletizationNpgsqlTest(
-        QueryFilterFuncletizationNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
+        QueryFilterFuncletizationNpgsqlFixture fixture,
+        ITestOutputHelper testOutputHelper)
         : base(fixture)
-        => Fixture.TestSqlLoggerFactory.Clear();
+    {
+        Fixture.TestSqlLoggerFactory.Clear();
+    }
 
     public override void DbContext_list_is_parameterized()
     {
@@ -19,21 +22,22 @@ public class QueryFilterFuncletizationNpgsqlTest
         // when the list is null. We translate to server-side with PostgresAnyExpression, so no exception is thrown.
         // Assert.Throws<NullReferenceException>(() => context.Set<ListFilter>().ToList());
 
-        context.TenantIds = new List<int>();
+        context.TenantIds = [];
         var query = context.Set<ListFilter>().ToList();
         Assert.Empty(query);
 
-        context.TenantIds = new List<int> { 1 };
+        context.TenantIds = [1];
         query = context.Set<ListFilter>().ToList();
         Assert.Single(query);
 
-        context.TenantIds = new List<int> { 2, 3 };
+        context.TenantIds = [2, 3];
         query = context.Set<ListFilter>().ToList();
         Assert.Equal(2, query.Count);
     }
 
     public class QueryFilterFuncletizationNpgsqlFixture : QueryFilterFuncletizationRelationalFixture
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
     }
 }

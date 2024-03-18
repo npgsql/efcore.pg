@@ -10,10 +10,6 @@ public class ComplexNavigationsQueryNpgsqlTest : ComplexNavigationsQueryRelation
         Fixture.TestSqlLoggerFactory.Clear();
     }
 
-    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/26353")]
-    public override Task Subquery_with_Distinct_Skip_FirstOrDefault_without_OrderBy(bool async)
-        => base.Subquery_with_Distinct_Skip_FirstOrDefault_without_OrderBy(async);
-
     public override async Task Join_with_result_selector_returning_queryable_throws_validation_error(bool async)
         => await Assert.ThrowsAsync<ArgumentException>(
             () => base.Join_with_result_selector_returning_queryable_throws_validation_error(async));

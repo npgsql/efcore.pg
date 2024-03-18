@@ -18,6 +18,14 @@ public class NpgsqlVarbitTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    public static NpgsqlVarbitTypeMapping Default { get; } = new();
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlVarbitTypeMapping()
         : base("bit varying", typeof(BitArray), NpgsqlDbType.Varbit, jsonValueReaderWriter: JsonBitArrayReaderWriter.Instance)
     {
@@ -30,7 +38,9 @@ public class NpgsqlVarbitTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlVarbitTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Varbit) {}
+        : base(parameters, NpgsqlDbType.Varbit)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -76,10 +86,11 @@ public class NpgsqlVarbitTypeMapping : NpgsqlTypeMapping
             exprs[i] = Expression.Constant(bits[i]);
         }
 
-        return Expression.New(Constructor,
+        return Expression.New(
+            Constructor,
             Expression.NewArrayInit(typeof(bool), exprs));
     }
 
     private static readonly ConstructorInfo Constructor =
-        typeof(BitArray).GetConstructor(new[] { typeof(bool[]) })!;
+        typeof(BitArray).GetConstructor([typeof(bool[])])!;
 }

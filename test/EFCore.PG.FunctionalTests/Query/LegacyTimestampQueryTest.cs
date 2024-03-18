@@ -43,7 +43,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             _ = await ctx.Entities.Where(c => DateTime.Now != myDatetime).ToListAsync();
 
             AssertSql(
-"""
+                """
 @__myDatetime_0='2015-04-10T00:00:00.0000000Z' (DbType = DateTime)
 
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeOffset", e."TimestamptzDateTime"
@@ -62,7 +62,7 @@ WHERE now() <> @__myDatetime_0
             _ = await ctx.Entities.Where(c => DateTime.UtcNow != myDatetime).ToListAsync();
 
             AssertSql(
-"""
+                """
 @__myDatetime_0='2015-04-10T00:00:00.0000000'
 
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeOffset", e."TimestamptzDateTime"
@@ -79,30 +79,37 @@ WHERE now() AT TIME ZONE 'UTC' <> @__myDatetime_0
         private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-        public class TimestampQueryContext : PoolableDbContext
+        public class TimestampQueryContext(DbContextOptions options) : PoolableDbContext(options)
         {
             public DbSet<Entity> Entities { get; set; }
-
-            public TimestampQueryContext(DbContextOptions options) : base(options) {}
         }
 
         public class Entity
         {
             public int Id { get; set; }
+
             [Column(TypeName = "timestamp with time zone")]
             public DateTime TimestamptzDateTime { get; set; }
+
             public DateTime TimestampDateTime { get; set; }
             public DateTimeOffset TimestampDateTimeOffset { get; set; }
         }
 
         public class LegacyTimestampQueryFixture : SharedStoreFixtureBase<TimestampQueryContext>
         {
-            protected override string StoreName => "TimestampQueryTest";
-            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
+            protected override string StoreName
+                => "TimestampQueryTest";
+
+            protected override ITestStoreFactory TestStoreFactory
+                => NpgsqlTestStoreFactory.Instance;
+
+            public TestSqlLoggerFactory TestSqlLoggerFactory
+                => (TestSqlLoggerFactory)ListLoggerFactory;
 
             public LegacyTimestampQueryFixture()
-                => NpgsqlTypeMappingSource.LegacyTimestampBehavior = true;
+            {
+                NpgsqlTypeMappingSource.LegacyTimestampBehavior = true;
+            }
 
             public override void Dispose()
                 => NpgsqlTypeMappingSource.LegacyTimestampBehavior = false;
@@ -137,7 +144,7 @@ WHERE now() AT TIME ZONE 'UTC' <> @__myDatetime_0
     }
 
     [CollectionDefinition("LegacyTimestampQueryTest", DisableParallelization = true)]
-    public class EventSourceTestCollection {}
+    public class EventSourceTestCollection;
 }
 
 #endif

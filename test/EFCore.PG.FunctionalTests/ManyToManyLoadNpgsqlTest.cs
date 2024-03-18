@@ -3,17 +3,16 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class ManyToManyLoadNpgsqlTest : ManyToManyLoadTestBase<ManyToManyLoadNpgsqlTest.ManyToManyLoadNpgsqlFixture>
+public class ManyToManyLoadNpgsqlTest(ManyToManyLoadNpgsqlTest.ManyToManyLoadNpgsqlFixture fixture)
+    : ManyToManyLoadTestBase<ManyToManyLoadNpgsqlTest.ManyToManyLoadNpgsqlFixture>(fixture)
 {
-    public ManyToManyLoadNpgsqlTest(ManyToManyLoadNpgsqlFixture fixture)
-        : base(fixture)
+    public class ManyToManyLoadNpgsqlFixture : ManyToManyLoadFixtureBase, ITestSqlLoggerFactory
     {
-    }
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
 
-    public class ManyToManyLoadNpgsqlFixture : ManyToManyLoadFixtureBase
-    {
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {

@@ -1,13 +1,13 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-public sealed class MinimumPostgresVersionAttribute : Attribute, ITestCondition
+public sealed class MinimumPostgresVersionAttribute(int major, int minor) : Attribute, ITestCondition
 {
-    private readonly Version _version;
+    private readonly Version _version = new(major, minor);
 
-    public MinimumPostgresVersionAttribute(int major, int minor) => _version = new Version(major, minor);
+    public ValueTask<bool> IsMetAsync()
+        => new(TestEnvironment.PostgresVersion >= _version);
 
-    public ValueTask<bool> IsMetAsync() => new(TestEnvironment.PostgresVersion >= _version);
-
-    public string SkipReason => $"Requires PostgreSQL version {_version} or later.";
+    public string SkipReason
+        => $"Requires PostgreSQL version {_version} or later.";
 }

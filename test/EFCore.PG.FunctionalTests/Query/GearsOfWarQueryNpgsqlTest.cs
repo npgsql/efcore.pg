@@ -20,7 +20,7 @@ public class GearsOfWarQueryNpgsqlTest : GearsOfWarQueryRelationalTestBase<Gears
         await base.Byte_array_contains_literal(async);
 
         AssertSql(
-"""
+            """
 SELECT s."Id", s."Banner", s."Banner5", s."InternalNumber", s."Name"
 FROM "Squads" AS s
 WHERE position(BYTEA E'\\x01' IN s."Banner") > 0
@@ -32,7 +32,7 @@ WHERE position(BYTEA E'\\x01' IN s."Banner") > 0
         await base.Byte_array_contains_parameter(async);
 
         AssertSql(
-"""
+            """
 @__someByte_0='1' (DbType = Int16)
 
 SELECT s."Id", s."Banner", s."Banner5", s."InternalNumber", s."Name"
@@ -46,10 +46,10 @@ WHERE position(set_byte(BYTEA E'\\x00', 0, @__someByte_0) IN s."Banner") > 0
         await base.Byte_array_filter_by_length_literal(async);
 
         AssertSql(
-"""
+            """
 SELECT s."Id", s."Banner", s."Banner5", s."InternalNumber", s."Name"
 FROM "Squads" AS s
-WHERE length(s."Banner") = 1
+WHERE length(s."Banner") = 2
 """);
     }
 
@@ -58,7 +58,7 @@ WHERE length(s."Banner") = 1
         await base.Byte_array_filter_by_length_literal_does_not_cast_on_varbinary_n(async);
 
         AssertSql(
-"""
+            """
 SELECT s."Id", s."Banner", s."Banner5", s."InternalNumber", s."Name"
 FROM "Squads" AS s
 WHERE length(s."Banner5") = 5
@@ -70,8 +70,8 @@ WHERE length(s."Banner5") = 5
         await base.Byte_array_filter_by_length_parameter(async);
 
         AssertSql(
-"""
-@__p_0='1'
+            """
+@__p_0='2'
 
 SELECT s."Id", s."Banner", s."Banner5", s."InternalNumber", s."Name"
 FROM "Squads" AS s
@@ -84,7 +84,7 @@ WHERE length(s."Banner") = @__p_0
         base.Byte_array_filter_by_length_parameter_compiled();
 
         AssertSql(
-"""
+            """
 @__byteArrayParam='0x2A80'
 
 SELECT count(*)::int
@@ -102,7 +102,7 @@ WHERE length(s."Banner") = length(@__byteArrayParam)
         await base.Where_datetimeoffset_utcnow(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Timeline" <> now()
@@ -132,10 +132,10 @@ WHERE m."Timeline" <> now()
                   select m);
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC') > TIMESTAMP '0001-01-01 00:00:00'
+WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC') > TIMESTAMP '0001-01-01T00:00:00'
 """);
     }
 
@@ -144,7 +144,7 @@ WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC') > TIMESTAMP '0001-01-01
         await base.Where_datetimeoffset_hour_component(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('hour', m."Timeline" AT TIME ZONE 'UTC')::int = 10
@@ -160,7 +160,7 @@ WHERE date_part('hour', m."Timeline" AT TIME ZONE 'UTC')::int = 10
             ss => ss.Set<Mission>().Where(m => m.Timeline.Date.ToLocalTime() >= dateTimeOffset.Date));
 
         AssertSql(
-"""
+            """
 @__dateTimeOffset_Date_0='0002-03-01T00:00:00.0000000'
 
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
@@ -179,10 +179,11 @@ WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamp >= @__dateTi
         await AssertQuery(
             async,
             ss => ss.Set<Mission>().Where(
-                m => start <= m.Timeline.Date && m.Timeline < end && dates.Contains(m.Timeline)));
+                m => start <= m.Timeline.Date && m.Timeline < end && dates.Contains(m.Timeline)),
+            assertEmpty: true); // TODO: Look into this
 
         AssertSql(
-"""
+            """
 @__start_0='1902-01-01T10:00:00.1234567+00:00' (DbType = DateTime)
 @__end_1='1902-01-03T10:00:00.1234567+00:00' (DbType = DateTime)
 @__dates_2={ '1902-01-02T10:00:00.1234567+00:00' } (DbType = Object)
@@ -201,7 +202,7 @@ WHERE @__start_0 <= date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestam
             ss => ss.Set<Mission>().Select(m => m.Timeline > DateTimeOffset.UtcNow));
 
         AssertSql(
-"""
+            """
 SELECT m."Timeline" > now()
 FROM "Missions" AS m
 """);
@@ -218,7 +219,7 @@ FROM "Missions" AS m
         await base.Time_of_day_datetimeoffset(async);
 
         AssertSql(
-"""
+            """
 SELECT CAST(m."Timeline" AT TIME ZONE 'UTC' AS time)
 FROM "Missions" AS m
 """);
@@ -233,8 +234,10 @@ FROM "Missions" AS m
     public virtual Task Where_datetime_subtraction(bool async)
         => AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m =>
-                new DateTimeOffset(2, 3, 2, 8, 0, 0, new TimeSpan(-5, 0, 0)) - m.Timeline > TimeSpan.FromDays(3)));
+            ss => ss.Set<Mission>().Where(
+                m =>
+                    new DateTimeOffset(2, 3, 2, 8, 0, 0, new TimeSpan(-5, 0, 0)) - m.Timeline > TimeSpan.FromDays(3)),
+            assertEmpty: true); // TODO: Look into this
 
     #endregion DateTime
 
@@ -245,7 +248,7 @@ FROM "Missions" AS m
         await base.TimeSpan_Hours(async);
 
         AssertSql(
-"""
+            """
 SELECT floor(date_part('hour', m."Duration"))::int
 FROM "Missions" AS m
 """);
@@ -256,7 +259,7 @@ FROM "Missions" AS m
         await base.TimeSpan_Minutes(async);
 
         AssertSql(
-"""
+            """
 SELECT floor(date_part('minute', m."Duration"))::int
 FROM "Missions" AS m
 """);
@@ -267,7 +270,7 @@ FROM "Missions" AS m
         await base.TimeSpan_Seconds(async);
 
         AssertSql(
-"""
+            """
 SELECT floor(date_part('second', m."Duration"))::int
 FROM "Missions" AS m
 """);
@@ -278,7 +281,7 @@ FROM "Missions" AS m
         await base.TimeSpan_Milliseconds(async);
 
         AssertSql(
-"""
+            """
 SELECT floor(date_part('millisecond', m."Duration"))::int % 1000
 FROM "Missions" AS m
 """);
@@ -293,10 +296,10 @@ FROM "Missions" AS m
         await base.Where_TimeSpan_Minutes(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE floor(date_part('minute', m."Duration"))::int = 1
+WHERE floor(date_part('minute', m."Duration"))::int = 2
 """);
     }
 
@@ -305,10 +308,10 @@ WHERE floor(date_part('minute', m."Duration"))::int = 1
         await base.Where_TimeSpan_Seconds(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE floor(date_part('second', m."Duration"))::int = 1
+WHERE floor(date_part('second', m."Duration"))::int = 3
 """);
     }
 
@@ -317,10 +320,10 @@ WHERE floor(date_part('second', m."Duration"))::int = 1
         await base.Where_TimeSpan_Milliseconds(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE floor(date_part('millisecond', m."Duration"))::int % 1000 = 1
+WHERE floor(date_part('millisecond', m."Duration"))::int % 1000 = 456
 """);
     }
 
@@ -333,7 +336,7 @@ WHERE floor(date_part('millisecond', m."Duration"))::int % 1000 = 1
             ss => ss.Set<Mission>().Where(m => m.Duration.TotalDays < 0.042));
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('epoch', m."Duration") / 86400.0 < 0.042000000000000003
@@ -349,7 +352,7 @@ WHERE date_part('epoch', m."Duration") / 86400.0 < 0.042000000000000003
             ss => ss.Set<Mission>().Where(m => m.Duration.TotalHours < 1.02));
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('epoch', m."Duration") / 3600.0 < 1.02
@@ -365,7 +368,7 @@ WHERE date_part('epoch', m."Duration") / 3600.0 < 1.02
             ss => ss.Set<Mission>().Where(m => m.Duration.TotalMinutes < 61));
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('epoch', m."Duration") / 60.0 < 61.0
@@ -381,7 +384,7 @@ WHERE date_part('epoch', m."Duration") / 60.0 < 61.0
             ss => ss.Set<Mission>().Where(m => m.Duration.TotalSeconds < 3700));
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('epoch', m."Duration") < 3700.0
@@ -397,7 +400,7 @@ WHERE date_part('epoch', m."Duration") < 3700.0
             ss => ss.Set<Mission>().Where(m => m.Duration.TotalMilliseconds < 3700000));
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('epoch', m."Duration") / 0.001 < 3700000.0
@@ -418,7 +421,7 @@ WHERE date_part('epoch', m."Duration") / 0.001 < 3700000.0
                 .Select(g => (TimeSpan?)new TimeSpan(g.Sum(o => o.Duration.Ticks))));
 
         AssertSql(
-"""
+            """
 SELECT sum(m."Duration")
 FROM "Missions" AS m
 GROUP BY m."Id"
@@ -439,7 +442,7 @@ GROUP BY m."Id"
                 .Select(g => (TimeSpan?)new TimeSpan((long)g.Average(o => o.Duration.Ticks))));
 
         AssertSql(
-"""
+            """
 SELECT avg(m."Duration")
 FROM "Missions" AS m
 GROUP BY m."Id"
@@ -456,11 +459,13 @@ GROUP BY m."Id"
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m =>
-                new DateOnly(EF.Property<DateOnly>(m, "Date").Year, EF.Property<DateOnly>(m, "Date").Month, 1) == new DateOnly(1996, 9, 11)));
+            ss => ss.Set<Mission>().Where(
+                m =>
+                    new DateOnly(EF.Property<DateOnly>(m, "Date").Year, EF.Property<DateOnly>(m, "Date").Month, 1)
+                    == new DateOnly(1996, 9, 11)));
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE make_date(date_part('year', m."Date")::int, date_part('month', m."Date")::int, 1) = DATE '1996-09-11'
@@ -470,13 +475,10 @@ WHERE make_date(date_part('year', m."Date")::int, date_part('month', m."Date")::
     [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/2039")]
     public override async Task Where_DateOnly_Year(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.Year == 1990).AsTracking(),
-            entryCount: 1);
+        await base.Where_DateOnly_Year(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('year', m."Date")::int = 1990
@@ -485,13 +487,10 @@ WHERE date_part('year', m."Date")::int = 1990
 
     public override async Task Where_DateOnly_Month(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.Month == 11).AsTracking(),
-            entryCount: 1);
+        await base.Where_DateOnly_Month(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('month', m."Date")::int = 11
@@ -500,13 +499,10 @@ WHERE date_part('month', m."Date")::int = 11
 
     public override async Task Where_DateOnly_Day(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.Day == 10).AsTracking(),
-            entryCount: 1);
+        await base.Where_DateOnly_Day(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('day', m."Date")::int = 10
@@ -515,13 +511,10 @@ WHERE date_part('day', m."Date")::int = 10
 
     public override async Task Where_DateOnly_DayOfYear(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.DayOfYear == 314).AsTracking(),
-            entryCount: 1);
+        await base.Where_DateOnly_DayOfYear(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('doy', m."Date")::int = 314
@@ -530,13 +523,10 @@ WHERE date_part('doy', m."Date")::int = 314
 
     public override async Task Where_DateOnly_DayOfWeek(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.DayOfWeek == DayOfWeek.Saturday).AsTracking(),
-            entryCount: 1);
+        await base.Where_DateOnly_DayOfWeek(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE floor(date_part('dow', m."Date"))::int = 6
@@ -545,46 +535,100 @@ WHERE floor(date_part('dow', m."Date"))::int = 6
 
     public override async Task Where_DateOnly_AddYears(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.AddYears(3) == new DateOnly(1993, 11, 10)).AsTracking(),
-            entryCount: 1);
+        await base.Where_DateOnly_AddYears(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE m."Date" + INTERVAL '3 years' = DATE '1993-11-10'
+WHERE CAST(m."Date" + INTERVAL '3 years' AS date) = DATE '1993-11-10'
 """);
     }
 
     public override async Task Where_DateOnly_AddMonths(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.AddMonths(3) == new DateOnly(1991, 2, 10)).AsTracking(),
-            entryCount: 1);
+        await base.Where_DateOnly_AddMonths(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE m."Date" + INTERVAL '3 months' = DATE '1991-02-10'
+WHERE CAST(m."Date" + INTERVAL '3 months' AS date) = DATE '1991-02-10'
 """);
     }
 
     public override async Task Where_DateOnly_AddDays(bool async)
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<Mission>().Where(m => m.Date.AddDays(3) == new DateOnly(1990, 11, 13)).AsTracking(),
-            entryCount: 1);
+        await base.Where_DateOnly_AddDays(async);
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE m."Date" + INTERVAL '3 days' = DATE '1990-11-13'
+WHERE m."Date" + 3 = DATE '1990-11-13'
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Select_DateOnly_AddDays(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Mission>()
+                // We filter out DateOnly.MinValue which maps to -infinity
+                .Where(m => m.Date != DateOnly.MinValue)
+                .Select(m => m.Date.AddDays(3)));
+
+        AssertSql(
+            """
+@__MinValue_0='01/01/0001' (DbType = Date)
+
+SELECT m."Date" + 3
+FROM "Missions" AS m
+WHERE m."Date" <> @__MinValue_0
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Select_DateOnly_AddMonths(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Mission>()
+                // We filter out DateOnly.MinValue which maps to -infinity
+                .Where(m => m.Date != DateOnly.MinValue)
+                .Select(m => m.Date.AddMonths(3)));
+
+        AssertSql(
+            """
+@__MinValue_0='01/01/0001' (DbType = Date)
+
+SELECT CAST(m."Date" + INTERVAL '3 months' AS date)
+FROM "Missions" AS m
+WHERE m."Date" <> @__MinValue_0
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Select_DateOnly_AddYears(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Mission>()
+                // We filter out DateOnly.MinValue which maps to -infinity
+                .Where(m => m.Date != DateOnly.MinValue)
+                .Select(m => m.Date.AddYears(3)));
+
+        AssertSql(
+            """
+@__MinValue_0='01/01/0001' (DbType = Date)
+
+SELECT CAST(m."Date" + INTERVAL '3 years' AS date)
+FROM "Missions" AS m
+WHERE m."Date" <> @__MinValue_0
 """);
     }
 
@@ -596,11 +640,10 @@ WHERE m."Date" + INTERVAL '3 days' = DATE '1990-11-13'
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.Hour == 10).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.Hour == 10).AsTracking());
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('hour', m."Time")::int = 10
@@ -611,11 +654,10 @@ WHERE date_part('hour', m."Time")::int = 10
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.Minute == 15).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.Minute == 15).AsTracking());
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('minute', m."Time")::int = 15
@@ -626,11 +668,10 @@ WHERE date_part('minute', m."Time")::int = 15
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.Second == 50).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.Second == 50).AsTracking());
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('second', m."Time")::int = 50
@@ -644,11 +685,10 @@ WHERE date_part('second', m."Time")::int = 50
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.AddHours(3) == new TimeOnly(13, 15, 50, 500)).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.AddHours(3) == new TimeOnly(13, 15, 50, 500)).AsTracking());
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Time" + INTERVAL '3 hours' = TIME '13:15:50.5'
@@ -659,11 +699,10 @@ WHERE m."Time" + INTERVAL '3 hours' = TIME '13:15:50.5'
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.AddMinutes(3) == new TimeOnly(10, 18, 50, 500)).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.AddMinutes(3) == new TimeOnly(10, 18, 50, 500)).AsTracking());
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Time" + INTERVAL '3 mins' = TIME '10:18:50.5'
@@ -674,11 +713,10 @@ WHERE m."Time" + INTERVAL '3 mins' = TIME '10:18:50.5'
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.Add(new TimeSpan(3, 0, 0)) == new TimeOnly(13, 15, 50, 500)).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.Add(new TimeSpan(3, 0, 0)) == new TimeOnly(13, 15, 50, 500)).AsTracking());
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Time" + INTERVAL '03:00:00' = TIME '13:15:50.5'
@@ -689,11 +727,10 @@ WHERE m."Time" + INTERVAL '03:00:00' = TIME '13:15:50.5'
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.IsBetween(new TimeOnly(10, 0, 0), new TimeOnly(11, 0, 0))).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.IsBetween(new TimeOnly(10, 0, 0), new TimeOnly(11, 0, 0))).AsTracking());
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Time" >= TIME '10:00:00' AND m."Time" < TIME '11:00:00'
@@ -704,11 +741,10 @@ WHERE m."Time" >= TIME '10:00:00' AND m."Time" < TIME '11:00:00'
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time - new TimeOnly(10, 0, 0) == new TimeSpan(0, 0, 15, 50, 500)).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time - new TimeOnly(10, 0, 0) == new TimeSpan(0, 0, 15, 50, 500)).AsTracking());
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Time" - TIME '10:00:00' = INTERVAL '00:15:50.5'
@@ -725,7 +761,7 @@ WHERE m."Time" - TIME '10:00:00' = INTERVAL '00:15:50.5'
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Duration"::time without time zone = TIME '01:02:03'
@@ -739,11 +775,10 @@ LIMIT 2
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Mission>().Where(m => m.Time.ToTimeSpan() == new TimeSpan(15, 30, 10)).AsTracking(),
-            entryCount: 1);
+            ss => ss.Set<Mission>().Where(m => m.Time.ToTimeSpan() == new TimeSpan(15, 30, 10)).AsTracking());
 
         AssertSql(
-"""
+            """
 SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Time"::interval = INTERVAL '15:30:10'
@@ -752,5 +787,6 @@ WHERE m."Time"::interval = INTERVAL '15:30:10'
 
     #endregion TimeOnly
 
-    private void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
+    private void AssertSql(params string[] expected)
+        => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 }

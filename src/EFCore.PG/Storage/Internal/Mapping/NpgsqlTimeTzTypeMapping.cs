@@ -17,6 +17,14 @@ public class NpgsqlTimeTzTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    public static NpgsqlTimeTzTypeMapping Default { get; } = new();
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public NpgsqlTimeTzTypeMapping()
         : base("time with time zone", typeof(DateTimeOffset), NpgsqlDbType.TimeTz, JsonTimeTzReaderWriter.Instance)
     {
@@ -29,7 +37,9 @@ public class NpgsqlTimeTzTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected NpgsqlTimeTzTypeMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.TimeTz) {}
+        : base(parameters, NpgsqlDbType.TimeTz)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -67,7 +77,13 @@ public class NpgsqlTimeTzTypeMapping : NpgsqlTypeMapping
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
         => FormattableString.Invariant(@$"{(DateTimeOffset)value:HH:mm:ss.FFFFFFz}");
 
-    private sealed class JsonTimeTzReaderWriter : JsonValueReaderWriter<DateTimeOffset>
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public sealed class JsonTimeTzReaderWriter : JsonValueReaderWriter<DateTimeOffset>
     {
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -81,11 +97,21 @@ public class NpgsqlTimeTzTypeMapping : NpgsqlTypeMapping
         {
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         public override DateTimeOffset FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
             => DateTimeOffset.Parse(manager.CurrentReader.GetString()!);
 
-        /// <inheritdoc />
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         public override void ToJsonTyped(Utf8JsonWriter writer, DateTimeOffset value)
             => writer.WriteStringValue(value.ToString("HH:mm:ss.FFFFFFz"));
     }

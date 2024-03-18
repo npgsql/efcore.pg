@@ -2,16 +2,14 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class NullKeysNpgsqlTest : NullKeysTestBase<NullKeysNpgsqlTest.NullKeysNpgsqlFixture>
+public class NullKeysNpgsqlTest(NullKeysNpgsqlTest.NullKeysNpgsqlFixture fixture)
+    : NullKeysTestBase<NullKeysNpgsqlTest.NullKeysNpgsqlFixture>(fixture)
 {
-    public NullKeysNpgsqlTest(NullKeysNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     public class NullKeysNpgsqlFixture : NullKeysFixtureBase
     {
         protected override string StoreName { get; } = "StringsContext";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
     }
 }

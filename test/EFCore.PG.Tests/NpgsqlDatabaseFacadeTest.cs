@@ -126,7 +126,9 @@ public class NpgsqlDatabaseFacadeTest
     {
         // ReSharper disable once VirtualMemberCallInConstructor
         public NpgsqlConstructorContext()
-            => IsNpgsqlSet = Database.IsNpgsql();
+        {
+            IsNpgsqlSet = Database.IsNpgsql();
+        }
     }
 
     private class NpgsqlUseInOnConfiguringContext : NpgsqlOnConfiguringContext
@@ -139,13 +141,8 @@ public class NpgsqlDatabaseFacadeTest
         }
     }
 
-    private class ProviderOnModelContext : ProviderContext
+    private class ProviderOnModelContext(DbContextOptions options) : ProviderContext(options)
     {
-        public ProviderOnModelContext(DbContextOptions options)
-            : base(options)
-        {
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
             => IsNpgsqlSet = Database.IsNpgsql();
     }
@@ -155,16 +152,13 @@ public class NpgsqlDatabaseFacadeTest
         // ReSharper disable once VirtualMemberCallInConstructor
         public ProviderConstructorContext(DbContextOptions options)
             : base(options)
-            => IsNpgsqlSet = Database.IsNpgsql();
+        {
+            IsNpgsqlSet = Database.IsNpgsql();
+        }
     }
 
-    private class ProviderUseInOnConfiguringContext : ProviderContext
+    private class ProviderUseInOnConfiguringContext(DbContextOptions options) : ProviderContext(options)
     {
-        public ProviderUseInOnConfiguringContext(DbContextOptions options)
-            : base(options)
-        {
-        }
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => IsNpgsqlSet = Database.IsNpgsql();
     }

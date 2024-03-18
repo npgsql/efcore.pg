@@ -30,7 +30,7 @@ public class MultirangeQueryNpgsqlTest : IClassFixture<MultirangeQueryNpgsqlTest
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__value_0='3'
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -53,7 +53,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__multirange_0={ '[1,2]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -76,7 +76,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__range_0='[1,2]' (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -85,7 +85,6 @@ WHERE t."IntMultirange" @> @__range_0
 LIMIT 2
 """);
     }
-
 
     [ConditionalFact]
     public void ContainedBy_multirange()
@@ -100,7 +99,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__multirange_0={ '[1,2]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -123,7 +122,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__multirange_0={ '[0,5]', '[7,10]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -146,7 +145,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__multirange_0={ '[0,5]', '[7,10]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -169,7 +168,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__multirange_0={ '[-3,0]', '[100,101]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -192,7 +191,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__range_0='[-3,0]' (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -215,7 +214,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__multirange_0={ '[11,13]', '[15,16]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -238,7 +237,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__range_0='[11,13]' (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -261,7 +260,7 @@ LIMIT 2
         Assert.Equal(2, id);
 
         AssertSql(
-"""
+            """
 @__multirange_0={ '[-10,-7]', '[-5,3]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -284,7 +283,7 @@ LIMIT 2
         Assert.Equal(2, id);
 
         AssertSql(
-"""
+            """
 @__range_0='[-5,3]' (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -307,7 +306,7 @@ LIMIT 2
         Assert.Equal(2, id);
 
         AssertSql(
-"""
+            """
 @__multirange_0={ '[2,7]', '[13,18]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -330,7 +329,7 @@ LIMIT 2
         Assert.Equal(2, id);
 
         AssertSql(
-"""
+            """
 @__range_0='[2,7]' (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -353,7 +352,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__multirange_0={ '[-5,-3]', '[13,18]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -376,7 +375,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__range_0='[13,18]' (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -399,7 +398,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__multirange_0={ '[-5,-4]', '[-2,-1]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -422,7 +421,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__range_0='[-2,-1]' (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -445,7 +444,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__multirange_0={ '[-5,-1]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -468,7 +467,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__multirange_0={ '[-5,1]', '[9,13]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -489,14 +488,10 @@ LIMIT 2
             .Select(g => g.Select(x => x.IntMultirange).RangeIntersectAgg())
             .Single();
 
-        Assert.Equal(new NpgsqlRange<int>[]
-        {
-            new(4, true, 6, false),
-            new(7, true, 9, false)
-        }, intersection);
+        Assert.Equal([new(4, true, 6, false), new(7, true, 9, false)], intersection);
 
         AssertSql(
-"""
+            """
 SELECT range_intersect_agg(t0."IntMultirange")
 FROM (
     SELECT t."IntMultirange", TRUE AS "Key"
@@ -521,7 +516,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 @__multirange_0={ '[2,3]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -548,7 +543,7 @@ LIMIT 2
         Assert.Equal(2, id);
 
         AssertSql(
-"""
+            """
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
 FROM "TestEntities" AS t
 WHERE NOT (isempty(t."IntMultirange" * '{[18,19]}'::int4multirange))
@@ -567,7 +562,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
 FROM "TestEntities" AS t
 WHERE range_merge(t."IntMultirange") = '[0,10]'::int4range
@@ -588,7 +583,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__value_0='3'
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -607,7 +602,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__p_0='3'
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -626,7 +621,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__p_0='3'
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -645,7 +640,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__value_0='01/03/2020' (DbType = Date)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -664,7 +659,7 @@ LIMIT 2
         Assert.Equal(1, result.Id);
 
         AssertSql(
-"""
+            """
 @__value_0='2020-01-03T00:00:00.0000000' (DbType = Date)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
@@ -689,7 +684,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
 FROM "TestEntities" AS t
 WHERE t."IntMultirange" @> '[0,5]'::int4range
@@ -708,7 +703,7 @@ LIMIT 2
         Assert.Equal(1, id);
 
         AssertSql(
-"""
+            """
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
 FROM "TestEntities" AS t
 WHERE '[7,10]'::int4range IN (
@@ -726,10 +721,17 @@ LIMIT 2
 
     public class MultirangeQueryNpgsqlFixture : SharedStoreFixtureBase<MultirangeContext>
     {
-        protected override string StoreName => "MultirangeQueryTest";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
-        protected override void Seed(MultirangeContext context) => MultirangeContext.Seed(context);
+        protected override string StoreName
+            => "MultirangeQueryTest";
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
+
+        protected override void Seed(MultirangeContext context)
+            => MultirangeContext.Seed(context);
     }
 
     public class MultirangeTestEntity
@@ -739,6 +741,7 @@ LIMIT 2
         public NpgsqlRange<long>[] LongMultirange { get; set; }
         public NpgsqlRange<decimal>[] DecimalMultirange { get; set; }
         public NpgsqlRange<DateOnly>[] DateOnlyDateMultirange { get; set; }
+
         [Column(TypeName = "datemultirange")]
         public NpgsqlRange<DateTime>[] DateTimeDateMultirange { get; set; }
     }
@@ -746,11 +749,9 @@ LIMIT 2
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-    public class MultirangeContext : PoolableDbContext
+    public class MultirangeContext(DbContextOptions options) : PoolableDbContext(options)
     {
         public DbSet<MultirangeTestEntity> TestEntities { get; set; }
-
-        public MultirangeContext(DbContextOptions options) : base(options) {}
 
         public static void Seed(MultirangeContext context)
         {
@@ -758,20 +759,34 @@ LIMIT 2
                 new MultirangeTestEntity
                 {
                     Id = 1,
-                    IntMultirange = new NpgsqlRange<int>[] { new(0, 5), new(7, 10) },
-                    LongMultirange = new NpgsqlRange<long>[] { new(0, 5), new(7, 10) },
-                    DecimalMultirange = new NpgsqlRange<decimal>[] { new(0, 5), new(7, 10) },
-                    DateOnlyDateMultirange = new NpgsqlRange<DateOnly>[] { new(new(2020, 1, 1), new(2020, 1, 5)), new(new(2020, 1, 7), new(2020, 1, 10)) },
-                    DateTimeDateMultirange = new NpgsqlRange<DateTime>[] { new(new(2020, 1, 1), new(2020, 1, 5)), new(new(2020, 1, 7), new(2020, 1, 10)) }
+                    IntMultirange = [new(0, 5), new(7, 10)],
+                    LongMultirange = [new(0, 5), new(7, 10)],
+                    DecimalMultirange = [new(0, 5), new(7, 10)],
+                    DateOnlyDateMultirange =
+                    [
+                        new(new DateOnly(2020, 1, 1), new DateOnly(2020, 1, 5)),
+                            new(new DateOnly(2020, 1, 7), new DateOnly(2020, 1, 10))
+                    ],
+                    DateTimeDateMultirange =
+                    [
+                        new(new DateTime(2020, 1, 1), new DateTime(2020, 1, 5)), new(new DateTime(2020, 1, 7), new DateTime(2020, 1, 10))
+                    ]
                 },
                 new MultirangeTestEntity
                 {
                     Id = 2,
-                    IntMultirange = new NpgsqlRange<int>[] { new(4, 8), new(13, 20) },
-                    LongMultirange = new NpgsqlRange<long>[] { new(4, 8), new(13, 20) },
-                    DecimalMultirange = new NpgsqlRange<decimal>[] { new(4, 8), new(13, 20) },
-                    DateOnlyDateMultirange = new NpgsqlRange<DateOnly>[] { new(new(2020, 1, 4), new(2020, 1, 8)), new(new(2020, 1, 13), new(2020, 1, 20)) },
-                    DateTimeDateMultirange = new NpgsqlRange<DateTime>[] { new(new(2020, 1, 4), new(2020, 1, 8)), new(new(2020, 1, 13), new(2020, 1, 20)) }
+                    IntMultirange = [new(4, 8), new(13, 20)],
+                    LongMultirange = [new(4, 8), new(13, 20)],
+                    DecimalMultirange = [new(4, 8), new(13, 20)],
+                    DateOnlyDateMultirange =
+                    [
+                        new(new DateOnly(2020, 1, 4), new DateOnly(2020, 1, 8)),
+                            new(new DateOnly(2020, 1, 13), new DateOnly(2020, 1, 20))
+                    ],
+                    DateTimeDateMultirange =
+                    [
+                        new(new DateTime(2020, 1, 4), new DateTime(2020, 1, 8)), new(new DateTime(2020, 1, 13), new DateTime(2020, 1, 20))
+                    ]
                 });
 
             context.SaveChanges();
@@ -782,7 +797,8 @@ LIMIT 2
 
     #region Helpers
 
-    protected MultirangeContext CreateContext() => Fixture.CreateContext();
+    protected MultirangeContext CreateContext()
+        => Fixture.CreateContext();
 
     #endregion
 }

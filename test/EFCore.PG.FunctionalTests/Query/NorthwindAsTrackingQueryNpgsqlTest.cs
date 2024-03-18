@@ -4,7 +4,8 @@ public class NorthwindAsTrackingQueryNpgsqlTest : NorthwindAsTrackingQueryTestBa
 {
     // ReSharper disable once UnusedParameter.Local
     public NorthwindAsTrackingQueryNpgsqlTest(
-        NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
+        NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture,
+        ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
     }

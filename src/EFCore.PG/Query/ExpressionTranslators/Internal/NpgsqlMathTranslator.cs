@@ -5,96 +5,82 @@ using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExten
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 /// <summary>
-/// Provides translation services for static <see cref="Math"/> methods..
+///     Provides translation services for static <see cref="Math" /> methods..
 /// </summary>
 /// <remarks>
-/// See:
-///   - https://www.postgresql.org/docs/current/static/functions-math.html
-///   - https://www.postgresql.org/docs/current/static/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
+///     See:
+///     - https://www.postgresql.org/docs/current/static/functions-math.html
+///     - https://www.postgresql.org/docs/current/static/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
 /// </remarks>
 public class NpgsqlMathTranslator : IMethodCallTranslator
 {
     private static readonly Dictionary<MethodInfo, string> SupportedMethodTranslations = new()
     {
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(decimal) })!, "abs" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(double) })!, "abs" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(float) })!, "abs" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(int) })!, "abs" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(long) })!, "abs" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(short) })!, "abs" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Abs), new[] { typeof(float) })!, "abs" },
-        { typeof(BigInteger).GetRuntimeMethod(nameof(BigInteger.Abs), new[] { typeof(BigInteger) })!, "abs" },
-
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Ceiling), new[] { typeof(decimal) })!, "ceiling" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Ceiling), new[] { typeof(double) })!, "ceiling" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Ceiling), new[] { typeof(float) })!, "ceiling" },
-
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Floor), new[] { typeof(decimal) })!, "floor" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Floor), new[] { typeof(double) })!, "floor" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Floor), new[] { typeof(float) })!, "floor" },
-
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Pow), new[] { typeof(double), typeof(double) })!, "power" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Pow), new[] { typeof(float), typeof(float) })!, "power" },
-        { typeof(BigInteger).GetRuntimeMethod(nameof(BigInteger.Pow), new[] { typeof(BigInteger), typeof(int) })!, "power" },
-
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Exp), new[] { typeof(double) })!, "exp" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Exp), new[] { typeof(float) })!, "exp" },
-
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Log10), new[] { typeof(double) })!, "log" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Log10), new[] { typeof(float) })!, "log" },
-
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Log), new[] { typeof(double) })!, "ln" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Log), new[] { typeof(float) })!, "ln" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), [typeof(decimal)])!, "abs" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), [typeof(double)])!, "abs" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), [typeof(float)])!, "abs" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), [typeof(int)])!, "abs" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), [typeof(long)])!, "abs" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), [typeof(short)])!, "abs" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Abs), [typeof(float)])!, "abs" },
+        { typeof(BigInteger).GetRuntimeMethod(nameof(BigInteger.Abs), [typeof(BigInteger)])!, "abs" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Ceiling), [typeof(decimal)])!, "ceiling" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Ceiling), [typeof(double)])!, "ceiling" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Ceiling), [typeof(float)])!, "ceiling" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Floor), [typeof(decimal)])!, "floor" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Floor), [typeof(double)])!, "floor" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Floor), [typeof(float)])!, "floor" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Pow), [typeof(double), typeof(double)])!, "power" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Pow), [typeof(float), typeof(float)])!, "power" },
+        { typeof(BigInteger).GetRuntimeMethod(nameof(BigInteger.Pow), [typeof(BigInteger), typeof(int)])!, "power" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Exp), [typeof(double)])!, "exp" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Exp), [typeof(float)])!, "exp" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Log10), [typeof(double)])!, "log" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Log10), [typeof(float)])!, "log" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Log), [typeof(double)])!, "ln" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Log), [typeof(float)])!, "ln" },
         // Note: PostgreSQL has log(x,y) but only for decimal, whereas .NET has it only for double/float
 
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Sqrt), new[] { typeof(double) })!, "sqrt" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Sqrt), new[] { typeof(float) })!, "sqrt" },
-
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Acos), new[] { typeof(double) })!, "acos" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Acos), new[] { typeof(float) })!, "acos" },
-
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Asin), new[] { typeof(double) })!, "asin" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Asin), new[] { typeof(float) })!, "asin" },
-
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Atan), new[] { typeof(double) })!, "atan" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Atan), new[] { typeof(float) })!, "atan" },
-
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Atan2), new[] { typeof(double), typeof(double) })!, "atan2" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Atan2), new[] { typeof(float), typeof(float) })!, "atan2" },
-
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Cos), new[] { typeof(double) })!, "cos" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Cos), new[] { typeof(float) })!, "cos" },
-
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Sin), new[] { typeof(double) })!, "sin" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Sin), new[] { typeof(float) })!, "sin" },
-
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Tan), new[] { typeof(double) })!, "tan" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Tan), new[] { typeof(float) })!, "tan" },
-
-        { typeof(double).GetRuntimeMethod(nameof(double.DegreesToRadians), new[] { typeof(double) })!, "radians" },
-        { typeof(float).GetRuntimeMethod(nameof(float.DegreesToRadians), new[] { typeof(float) })!, "radians" },
-        { typeof(double).GetRuntimeMethod(nameof(double.RadiansToDegrees), new[] { typeof(double) })!, "degrees" },
-        { typeof(float).GetRuntimeMethod(nameof(float.RadiansToDegrees), new[] { typeof(float) })!, "degrees" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Sqrt), [typeof(double)])!, "sqrt" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Sqrt), [typeof(float)])!, "sqrt" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Acos), [typeof(double)])!, "acos" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Acos), [typeof(float)])!, "acos" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Asin), [typeof(double)])!, "asin" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Asin), [typeof(float)])!, "asin" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Atan), [typeof(double)])!, "atan" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Atan), [typeof(float)])!, "atan" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Atan2), [typeof(double), typeof(double)])!, "atan2" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Atan2), [typeof(float), typeof(float)])!, "atan2" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Cos), [typeof(double)])!, "cos" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Cos), [typeof(float)])!, "cos" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Sin), [typeof(double)])!, "sin" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Sin), [typeof(float)])!, "sin" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Tan), [typeof(double)])!, "tan" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Tan), [typeof(float)])!, "tan" },
+        { typeof(double).GetRuntimeMethod(nameof(double.DegreesToRadians), [typeof(double)])!, "radians" },
+        { typeof(float).GetRuntimeMethod(nameof(float.DegreesToRadians), [typeof(float)])!, "radians" },
+        { typeof(double).GetRuntimeMethod(nameof(double.RadiansToDegrees), [typeof(double)])!, "degrees" },
+        { typeof(float).GetRuntimeMethod(nameof(float.RadiansToDegrees), [typeof(float)])!, "degrees" },
 
         // https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(decimal), typeof(decimal) })!, "GREATEST" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(double), typeof(double) })!, "GREATEST" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(float), typeof(float) })!, "GREATEST" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(int), typeof(int) })!, "GREATEST" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(long), typeof(long) })!, "GREATEST" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(short), typeof(short) })!, "GREATEST" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Max), new[] { typeof(float), typeof(float) })!, "GREATEST" },
-        { typeof(BigInteger).GetRuntimeMethod(nameof(BigInteger.Max), new[] { typeof(BigInteger), typeof(BigInteger) })!, "GREATEST" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Max), [typeof(decimal), typeof(decimal)])!, "GREATEST" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Max), [typeof(double), typeof(double)])!, "GREATEST" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Max), [typeof(float), typeof(float)])!, "GREATEST" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Max), [typeof(int), typeof(int)])!, "GREATEST" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Max), [typeof(long), typeof(long)])!, "GREATEST" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Max), [typeof(short), typeof(short)])!, "GREATEST" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Max), [typeof(float), typeof(float)])!, "GREATEST" },
+        { typeof(BigInteger).GetRuntimeMethod(nameof(BigInteger.Max), [typeof(BigInteger), typeof(BigInteger)])!, "GREATEST" },
 
         // https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(decimal), typeof(decimal) })!, "LEAST" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(double), typeof(double) })!, "LEAST" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(float), typeof(float) })!, "LEAST" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(int), typeof(int) })!, "LEAST" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(long), typeof(long) })!, "LEAST" },
-        { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(short), typeof(short) })!, "LEAST" },
-        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Min), new[] { typeof(float), typeof(float) })!, "LEAST" },
-        { typeof(BigInteger).GetRuntimeMethod(nameof(BigInteger.Min), new[] { typeof(BigInteger), typeof(BigInteger) })!, "LEAST" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Min), [typeof(decimal), typeof(decimal)])!, "LEAST" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Min), [typeof(double), typeof(double)])!, "LEAST" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Min), [typeof(float), typeof(float)])!, "LEAST" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Min), [typeof(int), typeof(int)])!, "LEAST" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Min), [typeof(long), typeof(long)])!, "LEAST" },
+        { typeof(Math).GetRuntimeMethod(nameof(Math.Min), [typeof(short), typeof(short)])!, "LEAST" },
+        { typeof(MathF).GetRuntimeMethod(nameof(MathF.Min), [typeof(float), typeof(float)])!, "LEAST" },
+        { typeof(BigInteger).GetRuntimeMethod(nameof(BigInteger.Min), [typeof(BigInteger), typeof(BigInteger)])!, "LEAST" },
     };
 
     private static readonly IEnumerable<MethodInfo> TruncateMethodInfos = new[]
@@ -113,32 +99,36 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
 
     private static readonly IEnumerable<MethodInfo> SignMethodInfos = new[]
     {
-        typeof(Math).GetRuntimeMethod(nameof(Math.Sign), new[] { typeof(decimal) })!,
-        typeof(Math).GetRuntimeMethod(nameof(Math.Sign), new[] { typeof(double) })!,
-        typeof(Math).GetRuntimeMethod(nameof(Math.Sign), new[] { typeof(float) })!,
-        typeof(Math).GetRuntimeMethod(nameof(Math.Sign), new[] { typeof(int) })!,
-        typeof(Math).GetRuntimeMethod(nameof(Math.Sign), new[] { typeof(long) })!,
-        typeof(Math).GetRuntimeMethod(nameof(Math.Sign), new[] { typeof(sbyte) })!,
-        typeof(Math).GetRuntimeMethod(nameof(Math.Sign), new[] { typeof(short) })!,
-        typeof(MathF).GetRuntimeMethod(nameof(MathF.Sign), new[] { typeof(float) })!,
+        typeof(Math).GetRuntimeMethod(nameof(Math.Sign), [typeof(decimal)])!,
+        typeof(Math).GetRuntimeMethod(nameof(Math.Sign), [typeof(double)])!,
+        typeof(Math).GetRuntimeMethod(nameof(Math.Sign), [typeof(float)])!,
+        typeof(Math).GetRuntimeMethod(nameof(Math.Sign), [typeof(int)])!,
+        typeof(Math).GetRuntimeMethod(nameof(Math.Sign), [typeof(long)])!,
+        typeof(Math).GetRuntimeMethod(nameof(Math.Sign), [typeof(sbyte)])!,
+        typeof(Math).GetRuntimeMethod(nameof(Math.Sign), [typeof(short)])!,
+        typeof(MathF).GetRuntimeMethod(nameof(MathF.Sign), [typeof(float)])!,
     };
 
     private static readonly MethodInfo RoundDecimalTwoParams
-        = typeof(Math).GetRuntimeMethod(nameof(Math.Round), new[] { typeof(decimal), typeof(int) })!;
+        = typeof(Math).GetRuntimeMethod(nameof(Math.Round), [typeof(decimal), typeof(int)])!;
 
     private static readonly MethodInfo DoubleIsNanMethodInfo
-        = typeof(double).GetRuntimeMethod(nameof(double.IsNaN), new[] { typeof(double) })!;
+        = typeof(double).GetRuntimeMethod(nameof(double.IsNaN), [typeof(double)])!;
+
     private static readonly MethodInfo DoubleIsPositiveInfinityMethodInfo
-        = typeof(double).GetRuntimeMethod(nameof(double.IsPositiveInfinity), new[] { typeof(double) })!;
+        = typeof(double).GetRuntimeMethod(nameof(double.IsPositiveInfinity), [typeof(double)])!;
+
     private static readonly MethodInfo DoubleIsNegativeInfinityMethodInfo
-        = typeof(double).GetRuntimeMethod(nameof(double.IsNegativeInfinity), new[] { typeof(double) })!;
+        = typeof(double).GetRuntimeMethod(nameof(double.IsNegativeInfinity), [typeof(double)])!;
 
     private static readonly MethodInfo FloatIsNanMethodInfo
-        = typeof(float).GetRuntimeMethod(nameof(float.IsNaN), new[] { typeof(float) })!;
+        = typeof(float).GetRuntimeMethod(nameof(float.IsNaN), [typeof(float)])!;
+
     private static readonly MethodInfo FloatIsPositiveInfinityMethodInfo
-        = typeof(float).GetRuntimeMethod(nameof(float.IsPositiveInfinity), new[] { typeof(float) })!;
+        = typeof(float).GetRuntimeMethod(nameof(float.IsPositiveInfinity), [typeof(float)])!;
+
     private static readonly MethodInfo FloatIsNegativeInfinityMethodInfo
-        = typeof(float).GetRuntimeMethod(nameof(float.IsNegativeInfinity), new[] { typeof(float) })!;
+        = typeof(float).GetRuntimeMethod(nameof(float.IsNegativeInfinity), [typeof(float)])!;
 
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
     private readonly RelationalTypeMapping _intTypeMapping;
@@ -219,7 +209,7 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
 
             // C# has Round over decimal/double/float only so our argument will be one of those types (compiler puts convert node)
             // In database result will be same type except for float which returns double which we need to cast back to float.
-            var result = (SqlExpression) _sqlExpressionFactory.Function(
+            var result = (SqlExpression)_sqlExpressionFactory.Function(
                 "round",
                 new[] { argument },
                 nullable: true,
@@ -252,7 +242,9 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
 
         if (method == RoundDecimalTwoParams)
         {
-            return _sqlExpressionFactory.Function("round", new[]
+            return _sqlExpressionFactory.Function(
+                "round",
+                new[]
                 {
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]),
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1])

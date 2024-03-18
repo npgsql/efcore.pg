@@ -6,15 +6,15 @@ using Npgsql.NameTranslation;
 namespace Microsoft.EntityFrameworkCore;
 
 /// <summary>
-/// Npgsql-specific extension methods for <see cref="ModelBuilder"/>.
+///     Npgsql-specific extension methods for <see cref="ModelBuilder" />.
 /// </summary>
 public static class NpgsqlModelBuilderExtensions
 {
     #region HiLo
 
     /// <summary>
-    /// Configures the model to use a sequence-based hi-lo pattern to generate values for properties
-    /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL.
+    ///     Configures the model to use a sequence-based hi-lo pattern to generate values for properties
+    ///     marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL.
     /// </summary>
     /// <param name="modelBuilder">The model builder.</param>
     /// <param name="name">The name of the sequence.</param>
@@ -97,13 +97,13 @@ public static class NpgsqlModelBuilderExtensions
     #region Serial
 
     /// <summary>
-    /// <para>
-    /// Configures the model to use the PostgreSQL SERIAL feature to generate values for properties
-    /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL.
-    /// </para>
-    /// <para>
-    /// This option should be considered deprecated starting with PostgreSQL 10, consider using <see cref="UseIdentityColumns"/> instead.
-    /// </para>
+    ///     <para>
+    ///         Configures the model to use the PostgreSQL SERIAL feature to generate values for properties
+    ///         marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL.
+    ///     </para>
+    ///     <para>
+    ///         This option should be considered deprecated starting with PostgreSQL 10, consider using <see cref="UseIdentityColumns" /> instead.
+    ///     </para>
     /// </summary>
     /// <param name="modelBuilder">The model builder.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
@@ -126,13 +126,13 @@ public static class NpgsqlModelBuilderExtensions
     #region Identity
 
     /// <summary>
-    /// <para>
-    /// Configures the model to use the PostgreSQL IDENTITY feature to generate values for properties
-    /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. Values for these
-    /// columns will always be generated as identity, and the application will not be able to override
-    /// this behavior by providing a value.
-    /// </para>
-    /// <para>Available only starting PostgreSQL 10.</para>
+    ///     <para>
+    ///         Configures the model to use the PostgreSQL IDENTITY feature to generate values for properties
+    ///         marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. Values for these
+    ///         columns will always be generated as identity, and the application will not be able to override
+    ///         this behavior by providing a value.
+    ///     </para>
+    ///     <para>Available only starting PostgreSQL 10.</para>
     /// </summary>
     /// <param name="modelBuilder">The model builder.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
@@ -152,15 +152,15 @@ public static class NpgsqlModelBuilderExtensions
     }
 
     /// <summary>
-    /// <para>
-    /// Configures the model to use the PostgreSQL IDENTITY feature to generate values for properties
-    /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. Values for these
-    /// columns will be generated as identity by default, but the application will be able to override
-    /// this behavior by providing a value.
-    /// </para>
-    /// <para>
-    /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
-    /// </para>
+    ///     <para>
+    ///         Configures the model to use the PostgreSQL IDENTITY feature to generate values for properties
+    ///         marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. Values for these
+    ///         columns will be generated as identity by default, but the application will be able to override
+    ///         this behavior by providing a value.
+    ///     </para>
+    ///     <para>
+    ///         This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
+    ///     </para>
     /// </summary>
     /// <param name="modelBuilder">The model builder.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
@@ -180,15 +180,15 @@ public static class NpgsqlModelBuilderExtensions
     }
 
     /// <summary>
-    /// <para>
-    /// Configures the model to use the PostgreSQL IDENTITY feature to generate values for properties
-    /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. Values for these
-    /// columns will be generated as identity by default, but the application will be able to override
-    /// this behavior by providing a value.
-    /// </para>
-    /// <para>
-    /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
-    /// </para>
+    ///     <para>
+    ///         Configures the model to use the PostgreSQL IDENTITY feature to generate values for properties
+    ///         marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. Values for these
+    ///         columns will be generated as identity by default, but the application will be able to override
+    ///         this behavior by providing a value.
+    ///     </para>
+    ///     <para>
+    ///         This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
+    ///     </para>
     /// </summary>
     /// <param name="modelBuilder">The model builder.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
@@ -196,13 +196,13 @@ public static class NpgsqlModelBuilderExtensions
         => modelBuilder.UseIdentityByDefaultColumns();
 
     /// <summary>
-    /// Configures the value generation strategy for the key property, when targeting PostgreSQL.
+    ///     Configures the value generation strategy for the key property, when targeting PostgreSQL.
     /// </summary>
     /// <param name="modelBuilder">The builder for the property being configured.</param>
     /// <param name="valueGenerationStrategy">The value generation strategy.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     /// <returns>
-    /// The same builder instance if the configuration was applied, <c>null</c> otherwise.
+    ///     The same builder instance if the configuration was applied, <c>null</c> otherwise.
     /// </returns>
     public static IConventionModelBuilder? HasValueGenerationStrategy(
         this IConventionModelBuilder modelBuilder,
@@ -290,7 +290,7 @@ public static class NpgsqlModelBuilderExtensions
     #region Extensions
 
     /// <summary>
-    /// Registers a PostgreSQL extension in the model.
+    ///     Registers a PostgreSQL extension in the model.
     /// </summary>
     /// <param name="modelBuilder">The model builder in which to define the extension.</param>
     /// <param name="schema">The schema in which to create the extension.</param>
@@ -298,9 +298,11 @@ public static class NpgsqlModelBuilderExtensions
     /// <param name="version">The version of the extension.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
     /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/external-extensions.html
+    ///     See: https://www.postgresql.org/docs/current/external-extensions.html
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="modelBuilder"/></exception>
+    /// <exception cref="ArgumentNullException">
+    ///     <paramref name="modelBuilder" />
+    /// </exception>
     public static ModelBuilder HasPostgresExtension(
         this ModelBuilder modelBuilder,
         string? schema,
@@ -317,22 +319,24 @@ public static class NpgsqlModelBuilderExtensions
     }
 
     /// <summary>
-    /// Registers a PostgreSQL extension in the model.
+    ///     Registers a PostgreSQL extension in the model.
     /// </summary>
     /// <param name="modelBuilder">The model builder in which to define the extension.</param>
     /// <param name="name">The name of the extension to create.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
     /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/external-extensions.html
+    ///     See: https://www.postgresql.org/docs/current/external-extensions.html
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="modelBuilder"/></exception>
+    /// <exception cref="ArgumentNullException">
+    ///     <paramref name="modelBuilder" />
+    /// </exception>
     public static ModelBuilder HasPostgresExtension(
         this ModelBuilder modelBuilder,
         string name)
         => modelBuilder.HasPostgresExtension(null, name);
 
     /// <summary>
-    /// Registers a PostgreSQL extension in the model.
+    ///     Registers a PostgreSQL extension in the model.
     /// </summary>
     /// <param name="modelBuilder">The model builder in which to define the extension.</param>
     /// <param name="schema">The schema in which to create the extension.</param>
@@ -341,9 +345,11 @@ public static class NpgsqlModelBuilderExtensions
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
     /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/external-extensions.html
+    ///     See: https://www.postgresql.org/docs/current/external-extensions.html
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="modelBuilder"/></exception>
+    /// <exception cref="ArgumentNullException">
+    ///     <paramref name="modelBuilder" />
+    /// </exception>
     public static IConventionModelBuilder? HasPostgresExtension(
         this IConventionModelBuilder modelBuilder,
         string? schema,
@@ -361,16 +367,18 @@ public static class NpgsqlModelBuilderExtensions
     }
 
     /// <summary>
-    /// Registers a PostgreSQL extension in the model.
+    ///     Registers a PostgreSQL extension in the model.
     /// </summary>
     /// <param name="modelBuilder">The model builder in which to define the extension.</param>
     /// <param name="name">The name of the extension to create.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
     /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/external-extensions.html
+    ///     See: https://www.postgresql.org/docs/current/external-extensions.html
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="modelBuilder"/></exception>
+    /// <exception cref="ArgumentNullException">
+    ///     <paramref name="modelBuilder" />
+    /// </exception>
     public static IConventionModelBuilder? HasPostgresExtension(
         this IConventionModelBuilder modelBuilder,
         string name,
@@ -408,17 +416,17 @@ public static class NpgsqlModelBuilderExtensions
     #region Enums
 
     /// <summary>
-    /// Registers a user-defined enum type in the model.
+    ///     Registers a user-defined enum type in the model.
     /// </summary>
     /// <param name="modelBuilder">The model builder in which to create the enum type.</param>
     /// <param name="schema">The schema in which to create the enum type.</param>
     /// <param name="name">The name of the enum type to create.</param>
     /// <param name="labels">The enum label values.</param>
     /// <returns>
-    /// The updated <see cref="ModelBuilder"/>.
+    ///     The updated <see cref="ModelBuilder" />.
     /// </returns>
     /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/static/datatype-enum.html
+    ///     See: https://www.postgresql.org/docs/current/static/datatype-enum.html
     /// </remarks>
     /// <exception cref="ArgumentNullException">builder</exception>
     public static ModelBuilder HasPostgresEnum(
@@ -436,16 +444,16 @@ public static class NpgsqlModelBuilderExtensions
     }
 
     /// <summary>
-    /// Registers a user-defined enum type in the model.
+    ///     Registers a user-defined enum type in the model.
     /// </summary>
     /// <param name="modelBuilder">The model builder in which to create the enum type.</param>
     /// <param name="name">The name of the enum type to create.</param>
     /// <param name="labels">The enum label values.</param>
     /// <returns>
-    /// The updated <see cref="ModelBuilder"/>.
+    ///     The updated <see cref="ModelBuilder" />.
     /// </returns>
     /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/static/datatype-enum.html
+    ///     See: https://www.postgresql.org/docs/current/static/datatype-enum.html
     /// </remarks>
     /// <exception cref="ArgumentNullException">builder</exception>
     public static ModelBuilder HasPostgresEnum(
@@ -455,20 +463,21 @@ public static class NpgsqlModelBuilderExtensions
         => modelBuilder.HasPostgresEnum(null, name, labels);
 
     /// <summary>
-    /// Registers a user-defined enum type in the model.
+    ///     Registers a user-defined enum type in the model.
     /// </summary>
     /// <param name="modelBuilder">The model builder in which to create the enum type.</param>
     /// <param name="schema">The schema in which to create the enum type.</param>
     /// <param name="name">The name of the enum type to create.</param>
     /// <param name="nameTranslator">
-    /// The translator for name and label inference.
-    /// Defaults to <see cref="NpgsqlSnakeCaseNameTranslator"/>.</param>
+    ///     The translator for name and label inference.
+    ///     Defaults to <see cref="NpgsqlSnakeCaseNameTranslator" />.
+    /// </param>
     /// <typeparam name="TEnum"></typeparam>
     /// <returns>
-    /// The updated <see cref="ModelBuilder"/>.
+    ///     The updated <see cref="ModelBuilder" />.
     /// </returns>
     /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/static/datatype-enum.html
+    ///     See: https://www.postgresql.org/docs/current/static/datatype-enum.html
     /// </remarks>
     /// <exception cref="ArgumentNullException">builder</exception>
     public static ModelBuilder HasPostgresEnum<TEnum>(
@@ -509,24 +518,24 @@ public static class NpgsqlModelBuilderExtensions
     #region Ranges
 
     /// <summary>
-    /// Registers a user-defined range type in the model.
+    ///     Registers a user-defined range type in the model.
     /// </summary>
     /// <param name="modelBuilder">The model builder on which to create the range type.</param>
     /// <param name="schema">The schema in which to create the range type.</param>
     /// <param name="name">The name of the range type to be created.</param>
     /// <param name="subtype">The subtype (or element type) of the range</param>
     /// <param name="canonicalFunction">
-    /// An optional PostgreSQL function which converts range values to a canonical form.
+    ///     An optional PostgreSQL function which converts range values to a canonical form.
     /// </param>
     /// <param name="subtypeOpClass">Used to specify a non-default operator class.</param>
     /// <param name="collation">Used to specify a non-default collation in the range's order.</param>
     /// <param name="subtypeDiff">
-    /// An optional PostgreSQL function taking two values of the subtype type as argument, and return a double
-    /// precision value representing the difference between the two given values.
+    ///     An optional PostgreSQL function taking two values of the subtype type as argument, and return a double
+    ///     precision value representing the difference between the two given values.
     /// </param>
     /// <remarks>
-    /// See https://www.postgresql.org/docs/current/static/rangetypes.html,
-    /// https://www.postgresql.org/docs/current/static/sql-createtype.html,
+    ///     See https://www.postgresql.org/docs/current/static/rangetypes.html,
+    ///     https://www.postgresql.org/docs/current/static/sql-createtype.html,
     /// </remarks>
     public static ModelBuilder HasPostgresRange(
         this ModelBuilder modelBuilder,
@@ -554,14 +563,14 @@ public static class NpgsqlModelBuilderExtensions
     }
 
     /// <summary>
-    /// Registers a user-defined range type in the model.
+    ///     Registers a user-defined range type in the model.
     /// </summary>
     /// <param name="modelBuilder">The model builder on which to create the range type.</param>
     /// <param name="name">The name of the range type to be created.</param>
     /// <param name="subtype">The subtype (or element type) of the range</param>
     /// <remarks>
-    /// See https://www.postgresql.org/docs/current/static/rangetypes.html,
-    /// https://www.postgresql.org/docs/current/static/sql-createtype.html,
+    ///     See https://www.postgresql.org/docs/current/static/rangetypes.html,
+    ///     https://www.postgresql.org/docs/current/static/sql-createtype.html,
     /// </remarks>
     public static ModelBuilder HasPostgresRange(
         this ModelBuilder modelBuilder,
@@ -592,20 +601,21 @@ public static class NpgsqlModelBuilderExtensions
     #region Collation management
 
     /// <summary>
-    /// Creates a new collation in the database.
+    ///     Creates a new collation in the database.
     /// </summary>
     /// <remarks>
-    /// See https://www.postgresql.org/docs/current/sql-createcollation.html.
+    ///     See https://www.postgresql.org/docs/current/sql-createcollation.html.
     /// </remarks>
     /// <param name="modelBuilder">The model builder on which to create the collation.</param>
     /// <param name="name">The name of the collation to create.</param>
     /// <param name="locale">Sets LC_COLLATE and LC_CTYPE at once.</param>
     /// <param name="provider">
-    /// Specifies the provider to use for locale services associated with this collation.
-    /// The available choices depend on the operating system and build options.</param>
+    ///     Specifies the provider to use for locale services associated with this collation.
+    ///     The available choices depend on the operating system and build options.
+    /// </param>
     /// <param name="deterministic">
-    /// Specifies whether the collation should use deterministic comparisons.
-    /// Defaults to <c>true</c>.
+    ///     Specifies whether the collation should use deterministic comparisons.
+    ///     Defaults to <c>true</c>.
     /// </param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
     public static ModelBuilder HasCollation(
@@ -617,21 +627,22 @@ public static class NpgsqlModelBuilderExtensions
         => modelBuilder.HasCollation(schema: null, name, locale, provider: provider, deterministic: deterministic);
 
     /// <summary>
-    /// Creates a new collation in the database.
+    ///     Creates a new collation in the database.
     /// </summary>
     /// <remarks>
-    /// See https://www.postgresql.org/docs/current/sql-createcollation.html.
+    ///     See https://www.postgresql.org/docs/current/sql-createcollation.html.
     /// </remarks>
     /// <param name="modelBuilder">The model builder on which to create the collation.</param>
     /// <param name="schema">The schema in which to create the collation, or <c>null</c> for the default schema.</param>
     /// <param name="name">The name of the collation to create.</param>
     /// <param name="locale">Sets LC_COLLATE and LC_CTYPE at once.</param>
     /// <param name="provider">
-    /// Specifies the provider to use for locale services associated with this collation.
-    /// The available choices depend on the operating system and build options.</param>
+    ///     Specifies the provider to use for locale services associated with this collation.
+    ///     The available choices depend on the operating system and build options.
+    /// </param>
     /// <param name="deterministic">
-    /// Specifies whether the collation should use deterministic comparisons.
-    /// Defaults to <c>true</c>.
+    ///     Specifies whether the collation should use deterministic comparisons.
+    ///     Defaults to <c>true</c>.
     /// </param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
     public static ModelBuilder HasCollation(
@@ -657,10 +668,10 @@ public static class NpgsqlModelBuilderExtensions
     }
 
     /// <summary>
-    /// Creates a new collation in the database.
+    ///     Creates a new collation in the database.
     /// </summary>
     /// <remarks>
-    /// See https://www.postgresql.org/docs/current/sql-createcollation.html.
+    ///     See https://www.postgresql.org/docs/current/sql-createcollation.html.
     /// </remarks>
     /// <param name="modelBuilder">The model builder on which to create the collation.</param>
     /// <param name="schema">The schema in which to create the collation, or <c>null</c> for the default schema.</param>
@@ -668,11 +679,12 @@ public static class NpgsqlModelBuilderExtensions
     /// <param name="lcCollate">Use the specified operating system locale for the LC_COLLATE locale category.</param>
     /// <param name="lcCtype">Use the specified operating system locale for the LC_CTYPE locale category.</param>
     /// <param name="provider">
-    /// Specifies the provider to use for locale services associated with this collation.
-    /// The available choices depend on the operating system and build options.</param>
+    ///     Specifies the provider to use for locale services associated with this collation.
+    ///     The available choices depend on the operating system and build options.
+    /// </param>
     /// <param name="deterministic">
-    /// Specifies whether the collation should use deterministic comparisons.
-    /// Defaults to <c>true</c>.
+    ///     Specifies whether the collation should use deterministic comparisons.
+    ///     Defaults to <c>true</c>.
     /// </param>
     /// <returns>The same builder instance so that multiple calls can be chained.</returns>
     public static ModelBuilder HasCollation(
@@ -704,19 +716,20 @@ public static class NpgsqlModelBuilderExtensions
     #region Default column collation
 
     /// <summary>
-    /// Configures the default collation for all columns in the database. This causes EF Core to specify an explicit
-    /// collation when creating each column (unless overridden).
+    ///     Configures the default collation for all columns in the database. This causes EF Core to specify an explicit
+    ///     collation when creating each column (unless overridden).
     /// </summary>
     /// <remarks>
-    /// <p>
-    /// An alternative is to specify a database collation via <see cref="RelationalModelBuilderExtensions.UseCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string)"/>,
-    /// which will specify the query on <c>CREATE DATABASE</c> instead of for each and every column. However,
-    /// PostgreSQL support is limited for the collations that can be specific via this mechanism; ICU collations -
-    /// which include all case-insensitive collations - are currently unsupported.
-    /// </p>
-    /// <p>
-    /// For more information, see https://www.postgresql.org/docs/current/collation.html.
-    /// </p>
+    ///     <p>
+    ///         An alternative is to specify a database collation via
+    ///         <see cref="RelationalModelBuilderExtensions.UseCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string)" />,
+    ///         which will specify the query on <c>CREATE DATABASE</c> instead of for each and every column. However,
+    ///         PostgreSQL support is limited for the collations that can be specific via this mechanism; ICU collations -
+    ///         which include all case-insensitive collations - are currently unsupported.
+    ///     </p>
+    ///     <p>
+    ///         For more information, see https://www.postgresql.org/docs/current/collation.html.
+    ///     </p>
     /// </remarks>
     /// <param name="modelBuilder">The model builder.</param>
     /// <param name="collation">The collation.</param>
@@ -733,19 +746,20 @@ public static class NpgsqlModelBuilderExtensions
     }
 
     /// <summary>
-    /// Configures the default collation for all columns in the database. This causes EF Core to specify an explicit
-    /// collation when creating each column (unless overridden).
+    ///     Configures the default collation for all columns in the database. This causes EF Core to specify an explicit
+    ///     collation when creating each column (unless overridden).
     /// </summary>
     /// <remarks>
-    /// <p>
-    /// An alternative is to specify a database collation via <see cref="RelationalModelBuilderExtensions.UseCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string)"/>,
-    /// which will specify the query on <c>CREATE DATABASE</c> instead of for each and every column. However,
-    /// PostgreSQL support is limited for the collations that can be specific via this mechanism; ICU collations -
-    /// which include all case-insensitive collations - are currently unsupported.
-    /// </p>
-    /// <p>
-    /// For more information, see https://www.postgresql.org/docs/current/collation.html.
-    /// </p>
+    ///     <p>
+    ///         An alternative is to specify a database collation via
+    ///         <see cref="RelationalModelBuilderExtensions.UseCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string)" />,
+    ///         which will specify the query on <c>CREATE DATABASE</c> instead of for each and every column. However,
+    ///         PostgreSQL support is limited for the collations that can be specific via this mechanism; ICU collations -
+    ///         which include all case-insensitive collations - are currently unsupported.
+    ///     </p>
+    ///     <p>
+    ///         For more information, see https://www.postgresql.org/docs/current/collation.html.
+    ///     </p>
     /// </remarks>
     /// <param name="modelBuilder">The model builder.</param>
     /// <param name="collation">The collation.</param>
@@ -767,7 +781,7 @@ public static class NpgsqlModelBuilderExtensions
     }
 
     /// <summary>
-    /// Returns a value indicating whether the given value can be set as the default column collation.
+    ///     Returns a value indicating whether the given value can be set as the default column collation.
     /// </summary>
     /// <param name="modelBuilder">The model builder.</param>
     /// <param name="collation">The collation.</param>
@@ -790,16 +804,16 @@ public static class NpgsqlModelBuilderExtensions
     #region Helpers
 
     // See: https://github.com/npgsql/npgsql/blob/dev/src/Npgsql/TypeMapping/TypeMapperBase.cs#L132-L138
-    private static string GetTypePgName<TEnum>(INpgsqlNameTranslator nameTranslator) where TEnum : struct, Enum
-        => typeof(TEnum).GetCustomAttribute<PgNameAttribute>()?.PgName ??
-            nameTranslator.TranslateTypeName(typeof(TEnum).Name);
+    private static string GetTypePgName<TEnum>(INpgsqlNameTranslator nameTranslator)
+        where TEnum : struct, Enum
+        => typeof(TEnum).GetCustomAttribute<PgNameAttribute>()?.PgName ?? nameTranslator.TranslateTypeName(typeof(TEnum).Name);
 
     // See: https://github.com/npgsql/npgsql/blob/dev/src/Npgsql/TypeHandlers/EnumHandler.cs#L118-L129
-    private static string[] GetMemberPgNames<TEnum>(INpgsqlNameTranslator nameTranslator) where TEnum : struct, Enum
+    private static string[] GetMemberPgNames<TEnum>(INpgsqlNameTranslator nameTranslator)
+        where TEnum : struct, Enum
         => typeof(TEnum)
             .GetFields(BindingFlags.Static | BindingFlags.Public)
-            .Select(x => x.GetCustomAttribute<PgNameAttribute>()?.PgName ??
-                nameTranslator.TranslateMemberName(x.Name))
+            .Select(x => x.GetCustomAttribute<PgNameAttribute>()?.PgName ?? nameTranslator.TranslateMemberName(x.Name))
             .ToArray();
 
     #endregion

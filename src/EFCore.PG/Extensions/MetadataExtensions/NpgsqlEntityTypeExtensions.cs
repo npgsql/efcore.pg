@@ -5,7 +5,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 namespace Microsoft.EntityFrameworkCore;
 
 /// <summary>
-/// Extension methods for <see cref="IEntityType" /> for Npgsql-specific metadata.
+///     Extension methods for <see cref="IEntityType" /> for Npgsql-specific metadata.
 /// </summary>
 public static class NpgsqlEntityTypeExtensions
 {

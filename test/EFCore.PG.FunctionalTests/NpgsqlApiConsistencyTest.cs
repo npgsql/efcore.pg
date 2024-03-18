@@ -3,22 +3,19 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class NpgsqlApiConsistencyTest : ApiConsistencyTestBase<NpgsqlApiConsistencyTest.NpgsqlApiConsistencyFixture>
+public class NpgsqlApiConsistencyTest(NpgsqlApiConsistencyTest.NpgsqlApiConsistencyFixture fixture)
+    : ApiConsistencyTestBase<NpgsqlApiConsistencyTest.NpgsqlApiConsistencyFixture>(fixture)
 {
-    public NpgsqlApiConsistencyTest(NpgsqlApiConsistencyFixture fixture)
-        : base(fixture)
-    {
-    }
-
     protected override void AddServices(ServiceCollection serviceCollection)
         => serviceCollection.AddEntityFrameworkNpgsql();
 
-    protected override Assembly TargetAssembly => typeof(NpgsqlRelationalConnection).Assembly;
+    protected override Assembly TargetAssembly
+        => typeof(NpgsqlRelationalConnection).Assembly;
 
     public class NpgsqlApiConsistencyFixture : ApiConsistencyFixtureBase
     {
-        public override HashSet<Type> FluentApiTypes { get; } = new()
-        {
+        public override HashSet<Type> FluentApiTypes { get; } =
+        [
             typeof(NpgsqlDbContextOptionsBuilder),
             typeof(NpgsqlDbContextOptionsBuilderExtensions),
             typeof(NpgsqlMigrationBuilderExtensions),
@@ -27,14 +24,14 @@ public class NpgsqlApiConsistencyTest : ApiConsistencyTestBase<NpgsqlApiConsiste
             typeof(NpgsqlPropertyBuilderExtensions),
             typeof(NpgsqlEntityTypeBuilderExtensions),
             typeof(NpgsqlServiceCollectionExtensions)
-        };
+        ];
 
-        public override HashSet<MethodInfo> UnmatchedMetadataMethods { get; } = new()
-        {
+        public override HashSet<MethodInfo> UnmatchedMetadataMethods { get; } =
+        [
             typeof(NpgsqlPropertyBuilderExtensions).GetMethod(
                 nameof(NpgsqlPropertyBuilderExtensions.IsGeneratedTsVectorColumn),
-                new[] { typeof(PropertyBuilder), typeof(string), typeof(string[]) })
-        };
+                [typeof(PropertyBuilder), typeof(string), typeof(string[])])
+        ];
 
         public override
             Dictionary<Type,
@@ -46,8 +43,7 @@ public class NpgsqlApiConsistencyTest : ApiConsistencyTestBase<NpgsqlApiConsiste
             = new()
             {
                 {
-                    typeof(IReadOnlyModel),
-                    (
+                    typeof(IReadOnlyModel), (
                         typeof(NpgsqlModelExtensions),
                         typeof(NpgsqlModelExtensions),
                         typeof(NpgsqlModelExtensions),
@@ -56,8 +52,7 @@ public class NpgsqlApiConsistencyTest : ApiConsistencyTestBase<NpgsqlApiConsiste
                     )
                 },
                 {
-                    typeof(IReadOnlyEntityType),
-                    (
+                    typeof(IReadOnlyEntityType), (
                         typeof(NpgsqlEntityTypeExtensions),
                         typeof(NpgsqlEntityTypeExtensions),
                         typeof(NpgsqlEntityTypeExtensions),
@@ -66,8 +61,7 @@ public class NpgsqlApiConsistencyTest : ApiConsistencyTestBase<NpgsqlApiConsiste
                     )
                 },
                 {
-                    typeof(IReadOnlyProperty),
-                    (
+                    typeof(IReadOnlyProperty), (
                         typeof(NpgsqlPropertyExtensions),
                         typeof(NpgsqlPropertyExtensions),
                         typeof(NpgsqlPropertyExtensions),
@@ -76,8 +70,7 @@ public class NpgsqlApiConsistencyTest : ApiConsistencyTestBase<NpgsqlApiConsiste
                     )
                 },
                 {
-                    typeof(IReadOnlyIndex),
-                    (
+                    typeof(IReadOnlyIndex), (
                         typeof(NpgsqlIndexExtensions),
                         typeof(NpgsqlIndexExtensions),
                         typeof(NpgsqlIndexExtensions),
@@ -87,17 +80,11 @@ public class NpgsqlApiConsistencyTest : ApiConsistencyTestBase<NpgsqlApiConsiste
                 }
             };
 
-        public override HashSet<MethodInfo> MetadataMethodExceptions { get; } = new()
-        {
+        public override HashSet<MethodInfo> MetadataMethodExceptions { get; } =
+        [
             typeof(NpgsqlEntityTypeExtensions).GetRuntimeMethod(
                 nameof(NpgsqlEntityTypeExtensions.SetStorageParameter),
-                new[]
-                {
-                    typeof(IConventionEntityType),
-                    typeof(string),
-                    typeof(object),
-                    typeof(bool)
-                })
-        };
+                [typeof(IConventionEntityType), typeof(string), typeof(object), typeof(bool)])
+        ];
     }
 }

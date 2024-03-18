@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Utilties.Util;
@@ -14,23 +16,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 public class TimeTzMapping : NpgsqlTypeMapping
 {
     private static readonly ConstructorInfo OffsetTimeConstructor =
-        typeof(OffsetTime).GetConstructor(new[] { typeof(LocalTime), typeof(Offset) })!;
+        typeof(OffsetTime).GetConstructor([typeof(LocalTime), typeof(Offset)])!;
 
     private static readonly ConstructorInfo LocalTimeConstructorWithMinutes =
-        typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int) })!;
+        typeof(LocalTime).GetConstructor([typeof(int), typeof(int)])!;
 
     private static readonly ConstructorInfo LocalTimeConstructorWithSeconds =
-        typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
+        typeof(LocalTime).GetConstructor([typeof(int), typeof(int), typeof(int)])!;
 
     private static readonly MethodInfo LocalTimeFromHourMinuteSecondNanosecondMethod =
-        typeof(LocalTime).GetMethod(nameof(LocalTime.FromHourMinuteSecondNanosecond),
-            new[] { typeof(int), typeof(int), typeof(int), typeof(long) })!;
+        typeof(LocalTime).GetMethod(
+            nameof(LocalTime.FromHourMinuteSecondNanosecond),
+            [typeof(int), typeof(int), typeof(int), typeof(long)])!;
 
     private static readonly MethodInfo OffsetFromHoursMethod =
-        typeof(Offset).GetMethod(nameof(Offset.FromHours), new[] { typeof(int) })!;
+        typeof(Offset).GetMethod(nameof(Offset.FromHours), [typeof(int)])!;
 
     private static readonly MethodInfo OffsetFromSeconds =
-        typeof(Offset).GetMethod(nameof(Offset.FromSeconds), new[] { typeof(int) })!;
+        typeof(Offset).GetMethod(nameof(Offset.FromSeconds), [typeof(int)])!;
 
     private static readonly OffsetTimePattern Pattern =
         OffsetTimePattern.CreateWithInvariantCulture("HH':'mm':'ss;FFFFFFo<G>");
@@ -41,7 +44,18 @@ public class TimeTzMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public TimeTzMapping() : base("time with time zone", typeof(OffsetTime), NpgsqlDbType.TimeTz) {}
+    public static TimeTzMapping Default { get; } = new();
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public TimeTzMapping()
+        : base("time with time zone", typeof(OffsetTime), NpgsqlDbType.TimeTz, JsonOffsetTimeReaderWriter.Instance)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -50,7 +64,9 @@ public class TimeTzMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected TimeTzMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.TimeTz) {}
+        : base(parameters, NpgsqlDbType.TimeTz)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -86,7 +102,7 @@ public class TimeTzMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
-        => $"TIMETZ '{GenerateLiteralCore(value)}'";
+        => $"TIMETZ '{Pattern.Format((OffsetTime)value)}'";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -95,10 +111,7 @@ public class TimeTzMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => $@"""{GenerateLiteralCore(value)}""";
-
-    private string GenerateLiteralCore(object value)
-        => Pattern.Format((OffsetTime)value);
+        => $@"""{Pattern.Format((OffsetTime)value)}""";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -114,7 +127,9 @@ public class TimeTzMapping : NpgsqlTypeMapping
         Expression newLocalTimeExpr;
         if (offsetTime.NanosecondOfSecond != 0)
         {
-            newLocalTimeExpr = ConstantCall(LocalTimeFromHourMinuteSecondNanosecondMethod, offsetTime.Hour, offsetTime.Minute, offsetTime.Second, (long)offsetTime.NanosecondOfSecond);
+            newLocalTimeExpr = ConstantCall(
+                LocalTimeFromHourMinuteSecondNanosecondMethod, offsetTime.Hour, offsetTime.Minute, offsetTime.Second,
+                (long)offsetTime.NanosecondOfSecond);
         }
         else if (offsetTime.Second != 0)
         {
@@ -125,10 +140,22 @@ public class TimeTzMapping : NpgsqlTypeMapping
             newLocalTimeExpr = ConstantNew(LocalTimeConstructorWithMinutes, offsetTime.Hour, offsetTime.Minute);
         }
 
-        return Expression.New(OffsetTimeConstructor,
+        return Expression.New(
+            OffsetTimeConstructor,
             newLocalTimeExpr,
             offsetSeconds % 3600 == 0
                 ? ConstantCall(OffsetFromHoursMethod, offsetSeconds / 3600)
                 : ConstantCall(OffsetFromSeconds, offsetSeconds));
+    }
+
+    private sealed class JsonOffsetTimeReaderWriter : JsonValueReaderWriter<OffsetTime>
+    {
+        public static JsonOffsetTimeReaderWriter Instance { get; } = new();
+
+        public override OffsetTime FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+            => Pattern.Parse(manager.CurrentReader.GetString()!).GetValueOrThrow();
+
+        public override void ToJsonTyped(Utf8JsonWriter writer, OffsetTime value)
+            => writer.WriteStringValue(Pattern.Format(value));
     }
 }

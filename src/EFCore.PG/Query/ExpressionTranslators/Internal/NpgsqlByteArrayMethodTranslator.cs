@@ -22,7 +22,9 @@ public class NpgsqlByteArrayMethodTranslator : IMethodCallTranslator
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlByteArrayMethodTranslator(ISqlExpressionFactory sqlExpressionFactory)
-        => _sqlExpressionFactory = sqlExpressionFactory;
+    {
+        _sqlExpressionFactory = sqlExpressionFactory;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -69,7 +71,7 @@ public class NpgsqlByteArrayMethodTranslator : IMethodCallTranslator
                     PgFunctionExpression.CreateWithArgumentSeparators(
                         "position",
                         new[] { value, source },
-                        new[] { "IN" },   // POSITION(x IN y)
+                        new[] { "IN" }, // POSITION(x IN y)
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[2],
                         builtIn: true,

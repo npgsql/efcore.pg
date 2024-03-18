@@ -4,18 +4,35 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 {
-    public class MigrationsInfrastructureNpgsqlTest
-        : MigrationsInfrastructureTestBase<MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture>
+    public class MigrationsInfrastructureNpgsqlTest(MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture fixture)
+        : MigrationsInfrastructureTestBase<MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture>(fixture)
     {
-        public MigrationsInfrastructureNpgsqlTest(MigrationsInfrastructureNpgsqlFixture fixture)
-            : base(fixture) {}
-
         public override void Can_get_active_provider()
         {
             base.Can_get_active_provider();
 
             Assert.Equal("Npgsql.EntityFrameworkCore.PostgreSQL", ActiveProvider);
         }
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/issues/33056")]
+        public override void Can_apply_all_migrations()
+            => base.Can_apply_all_migrations();
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/issues/33056")]
+        public override void Can_apply_range_of_migrations()
+            => base.Can_apply_range_of_migrations();
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/issues/33056")]
+        public override void Can_revert_all_migrations()
+            => base.Can_revert_all_migrations();
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/issues/33056")]
+        public override void Can_revert_one_migrations()
+            => base.Can_revert_one_migrations();
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/issues/33056")]
+        public override Task Can_apply_all_migrations_async()
+            => base.Can_apply_all_migrations_async();
 
         [ConditionalFact]
         public async Task Empty_Migration_Creates_Database()
@@ -32,13 +49,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Assert.True(creator.Exists());
         }
 
-        private class BloggingContext : DbContext
+        private class BloggingContext(DbContextOptions options) : DbContext(options)
         {
-            public BloggingContext(DbContextOptions options)
-                : base(options)
-            {
-            }
-
             // ReSharper disable once UnusedMember.Local
             public DbSet<Blog> Blogs { get; set; }
 
@@ -76,51 +88,57 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 modelBuilder
                     .HasAnnotation("ProductVersion", "2.2.4-servicing-10062")
                     .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                    .HasAnnotation("Npgsql:ValueGenerationStrategy",
+                    .HasAnnotation(
+                        "Npgsql:ValueGenerationStrategy",
                         NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                modelBuilder.Entity("ModelSnapshot22.Blog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy",
-                            NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                modelBuilder.Entity(
+                    "ModelSnapshot22.Blog", b =>
+                    {
+                        b.Property<int>("Id")
+                            .ValueGeneratedOnAdd()
+                            .HasAnnotation(
+                                "Npgsql:ValueGenerationStrategy",
+                                NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<string>("Name");
+                        b.Property<string>("Name");
 
-                    b.HasKey("Id");
+                        b.HasKey("Id");
 
-                    b.ToTable("Blogs");
-                });
+                        b.ToTable("Blogs");
+                    });
 
-                modelBuilder.Entity("ModelSnapshot22.Post", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy",
-                            NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                modelBuilder.Entity(
+                    "ModelSnapshot22.Post", b =>
+                    {
+                        b.Property<int>("Id")
+                            .ValueGeneratedOnAdd()
+                            .HasAnnotation(
+                                "Npgsql:ValueGenerationStrategy",
+                                NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<int?>("BlogId");
+                        b.Property<int?>("BlogId");
 
-                    b.Property<string>("Content");
+                        b.Property<string>("Content");
 
-                    b.Property<DateTime>("EditDate");
+                        b.Property<DateTime>("EditDate");
 
-                    b.Property<string>("Title");
+                        b.Property<string>("Title");
 
-                    b.HasKey("Id");
+                        b.HasKey("Id");
 
-                    b.HasIndex("BlogId");
+                        b.HasIndex("BlogId");
 
-                    b.ToTable("Post");
-                });
+                        b.ToTable("Post");
+                    });
 
-                modelBuilder.Entity("ModelSnapshot22.Post", b =>
-                {
-                    b.HasOne("ModelSnapshot22.Blog", "Blog")
-                        .WithMany("Posts")
-                        .HasForeignKey("BlogId");
-                });
+                modelBuilder.Entity(
+                    "ModelSnapshot22.Post", b =>
+                    {
+                        b.HasOne("ModelSnapshot22.Blog", "Blog")
+                            .WithMany("Posts")
+                            .HasForeignKey("BlogId");
+                    });
 #pragma warning restore 612, 618
             }
         }
@@ -142,19 +160,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         public class MigrationsInfrastructureNpgsqlFixture : MigrationsInfrastructureFixtureBase
         {
-            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+            protected override ITestStoreFactory TestStoreFactory
+                => NpgsqlTestStoreFactory.Instance;
 
             public override MigrationsContext CreateContext()
             {
                 var options = AddOptions(
                         new DbContextOptionsBuilder()
-                            .UseNpgsql(TestStore.ConnectionString, b => b.ApplyConfiguration()
-                                .CommandTimeout(NpgsqlTestStore.CommandTimeout)
-                                .ReverseNullOrdering()))
-                    .UseInternalServiceProvider(ServiceProvider)
+                            .UseNpgsql(
+                                TestStore.ConnectionString, b => b.ApplyConfiguration()
+                                    .CommandTimeout(NpgsqlTestStore.CommandTimeout)
+                                    .SetPostgresVersion(TestEnvironment.PostgresVersion)
+                                    .ReverseNullOrdering()))
+                    .UseInternalServiceProvider(CreateServiceProvider())
                     .Options;
                 return new MigrationsContext(options);
             }
+
+            private static IServiceProvider CreateServiceProvider()
+                => new ServiceCollection()
+                    .AddEntityFrameworkNpgsql()
+                    .BuildServiceProvider();
         }
     }
 }

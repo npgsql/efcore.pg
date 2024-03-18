@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 /// <summary>
-/// Tests operations on the PostgreSQL citext type.
+///     Tests operations on the PostgreSQL citext type.
 /// </summary>
 public class CitextQueryTest : IClassFixture<CitextQueryTest.CitextQueryFixture>
 {
@@ -26,7 +26,7 @@ public class CitextQueryTest : IClassFixture<CitextQueryTest.CitextQueryFixture>
 
         Assert.Equal(1, result.Id);
         AssertSql(
-"""
+            """
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
 WHERE s."CaseInsensitiveText" LIKE 'some%'
@@ -43,12 +43,12 @@ LIMIT 2
 
         Assert.Equal(1, result.Id);
         AssertSql(
-"""
-@__param_0_rewritten='some%'
+            """
+@__param_0_startswith='some%'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" LIKE @__param_0_rewritten ESCAPE '\'
+WHERE s."CaseInsensitiveText" LIKE @__param_0_startswith
 LIMIT 2
 """);
     }
@@ -62,7 +62,7 @@ LIMIT 2
 
         Assert.Equal(1, result.Id);
         AssertSql(
-"""
+            """
 @__param_0='SomeTextWithExtraStuff'
 
 SELECT s."Id", s."CaseInsensitiveText"
@@ -80,7 +80,7 @@ LIMIT 2
 
         Assert.Equal(1, result.Id);
         AssertSql(
-"""
+            """
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
 WHERE s."CaseInsensitiveText" LIKE '%sometext'
@@ -97,12 +97,12 @@ LIMIT 2
 
         Assert.Equal(1, result.Id);
         AssertSql(
-"""
-@__param_0_rewritten='%sometext'
+            """
+@__param_0_endswith='%sometext'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" LIKE @__param_0_rewritten ESCAPE '\'
+WHERE s."CaseInsensitiveText" LIKE @__param_0_endswith
 LIMIT 2
 """);
     }
@@ -116,7 +116,7 @@ LIMIT 2
 
         Assert.Equal(1, result.Id);
         AssertSql(
-"""
+            """
 @__param_0='ExtraStuffThenSomeText'
 
 SELECT s."Id", s."CaseInsensitiveText"
@@ -134,7 +134,7 @@ LIMIT 2
 
         Assert.Equal(1, result.Id);
         AssertSql(
-"""
+            """
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
 WHERE s."CaseInsensitiveText" LIKE '%ometex%'
@@ -151,12 +151,12 @@ LIMIT 2
 
         Assert.Equal(1, result.Id);
         AssertSql(
-"""
-@__param_0_rewritten='%ometex%'
+            """
+@__param_0_contains='%ometex%'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" LIKE @__param_0_rewritten ESCAPE '\'
+WHERE s."CaseInsensitiveText" LIKE @__param_0_contains
 LIMIT 2
 """);
     }
@@ -170,7 +170,7 @@ LIMIT 2
 
         Assert.Equal(1, result.Id);
         AssertSql(
-"""
+            """
 @__param_0='ExtraSometextExtra'
 
 SELECT s."Id", s."CaseInsensitiveText"
@@ -188,7 +188,7 @@ LIMIT 2
 
         Assert.Equal(1, result.Id);
         AssertSql(
-"""
+            """
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
 WHERE strpos(s."CaseInsensitiveText", 'ometex') - 1 = 1
@@ -205,7 +205,7 @@ LIMIT 2
 
         Assert.Equal(1, result.Id);
         AssertSql(
-"""
+            """
 @__param_0='ometex'
 
 SELECT s."Id", s."CaseInsensitiveText"
@@ -224,7 +224,7 @@ LIMIT 2
 
         Assert.Equal(1, result.Id);
         AssertSql(
-"""
+            """
 @__param_0='ExtraSometextExtra'
 
 SELECT s."Id", s."CaseInsensitiveText"
@@ -242,7 +242,7 @@ LIMIT 2
 
         Assert.Equal(1, result.Id);
         AssertSql(
-"""
+            """
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
 WHERE replace(s."CaseInsensitiveText", 'Te', 'Ne') = 'SomeNext'
@@ -259,7 +259,7 @@ LIMIT 2
 
         Assert.Equal(1, result.Id);
         AssertSql(
-"""
+            """
 @__param_0='Te'
 
 SELECT s."Id", s."CaseInsensitiveText"
@@ -278,7 +278,7 @@ LIMIT 2
 
         Assert.Equal(1, result.Id);
         AssertSql(
-"""
+            """
 @__param_0='ExtraSometextExtra'
 
 SELECT s."Id", s."CaseInsensitiveText"
@@ -288,16 +288,15 @@ LIMIT 2
 """);
     }
 
-    protected CitextQueryContext CreateContext() => Fixture.CreateContext();
+    protected CitextQueryContext CreateContext()
+        => Fixture.CreateContext();
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-    public class CitextQueryContext : PoolableDbContext
+    public class CitextQueryContext(DbContextOptions options) : PoolableDbContext(options)
     {
         public DbSet<SomeArrayEntity> SomeEntities { get; set; }
-
-        public CitextQueryContext(DbContextOptions options) : base(options) {}
 
         public static void Seed(CitextQueryContext context)
         {
@@ -311,15 +310,23 @@ LIMIT 2
     public class SomeArrayEntity
     {
         public int Id { get; set; }
+
         [Column(TypeName = "citext")]
         public string CaseInsensitiveText { get; set; }
     }
 
     public class CitextQueryFixture : SharedStoreFixtureBase<CitextQueryContext>
     {
-        protected override string StoreName => "CitextQueryTest";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
-        protected override void Seed(CitextQueryContext context) => CitextQueryContext.Seed(context);
+        protected override string StoreName
+            => "CitextQueryTest";
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ListLoggerFactory;
+
+        protected override void Seed(CitextQueryContext context)
+            => CitextQueryContext.Seed(context);
     }
 }

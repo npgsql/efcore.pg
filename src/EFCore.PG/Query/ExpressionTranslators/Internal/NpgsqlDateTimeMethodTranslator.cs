@@ -13,70 +13,85 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
 {
     private static readonly Dictionary<MethodInfo, string> MethodInfoDatePartMapping = new()
     {
-        { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddYears), new[] { typeof(int) })!, "years" },
-        { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddMonths), new[] { typeof(int) })!, "months" },
-        { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddDays), new[] { typeof(double) })!, "days" },
-        { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddHours), new[] { typeof(double) })!, "hours" },
-        { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddMinutes), new[] { typeof(double) })!, "mins" },
-        { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddSeconds), new[] { typeof(double) })!, "secs" },
+        { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddYears), [typeof(int)])!, "years" },
+        { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddMonths), [typeof(int)])!, "months" },
+        { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddDays), [typeof(double)])!, "days" },
+        { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddHours), [typeof(double)])!, "hours" },
+        { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddMinutes), [typeof(double)])!, "mins" },
+        { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddSeconds), [typeof(double)])!, "secs" },
         //{ typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddMilliseconds), new[] { typeof(double) })!, "milliseconds" },
 
-        { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddYears), new[] { typeof(int) })!, "years" },
-        { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddMonths), new[] { typeof(int) })!, "months" },
-        { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddDays), new[] { typeof(double) })!, "days" },
-        { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddHours), new[] { typeof(double) })!, "hours" },
-        { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddMinutes), new[] { typeof(double) })!, "mins" },
-        { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddSeconds), new[] { typeof(double) })!, "secs" },
+        { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddYears), [typeof(int)])!, "years" },
+        { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddMonths), [typeof(int)])!, "months" },
+        { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddDays), [typeof(double)])!, "days" },
+        { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddHours), [typeof(double)])!, "hours" },
+        { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddMinutes), [typeof(double)])!, "mins" },
+        { typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddSeconds), [typeof(double)])!, "secs" },
         //{ typeof(DateTimeOffset).GetRuntimeMethod(nameof(DateTimeOffset.AddMilliseconds), new[] { typeof(double) })!, "milliseconds" }
 
-        { typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddYears), new[] { typeof(int) })!, "years" },
-        { typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddMonths), new[] { typeof(int) })!, "months" },
-        { typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddDays), new[] { typeof(int) })!, "days" },
-
-        { typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.AddHours), new[] { typeof(int) })!, "hours" },
-        { typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.AddMinutes), new[] { typeof(int) })!, "mins" },
+        // DateOnly.AddDays, AddMonths and AddYears have a specialized translation, see below
+        { typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.AddHours), [typeof(int)])!, "hours" },
+        { typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.AddMinutes), [typeof(int)])!, "mins" },
     };
 
     // ReSharper disable InconsistentNaming
     private static readonly MethodInfo DateTime_ToUniversalTime
-        = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.ToUniversalTime), Array.Empty<Type>())!;
+        = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.ToUniversalTime), [])!;
+
     private static readonly MethodInfo DateTime_ToLocalTime
-        = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.ToLocalTime), Array.Empty<Type>())!;
+        = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.ToLocalTime), [])!;
+
     private static readonly MethodInfo DateTime_SpecifyKind
-        = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.SpecifyKind), new[] { typeof(DateTime), typeof(DateTimeKind) })!;
+        = typeof(DateTime).GetRuntimeMethod(nameof(DateTime.SpecifyKind), [typeof(DateTime), typeof(DateTimeKind)])!;
+
     private static readonly MethodInfo DateTime_Distance
         = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
-            nameof(NpgsqlDbFunctionsExtensions.Distance), new[] { typeof(DbFunctions), typeof(DateTime), typeof(DateTime) })!;
+            nameof(NpgsqlDbFunctionsExtensions.Distance), [typeof(DbFunctions), typeof(DateTime), typeof(DateTime)])!;
 
     private static readonly MethodInfo DateOnly_FromDateTime
-        = typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.FromDateTime), new[] { typeof(DateTime) })!;
+        = typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.FromDateTime), [typeof(DateTime)])!;
+
     private static readonly MethodInfo DateOnly_ToDateTime
-        = typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.ToDateTime), new[] { typeof(TimeOnly) })!;
+        = typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.ToDateTime), [typeof(TimeOnly)])!;
+
     private static readonly MethodInfo DateOnly_Distance
         = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
-            nameof(NpgsqlDbFunctionsExtensions.Distance), new[] { typeof(DbFunctions), typeof(DateOnly), typeof(DateOnly) })!;
+            nameof(NpgsqlDbFunctionsExtensions.Distance), [typeof(DbFunctions), typeof(DateOnly), typeof(DateOnly)])!;
+
+    private static readonly MethodInfo DateOnly_AddDays
+        = typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddDays), [typeof(int)])!;
+
+    private static readonly MethodInfo DateOnly_AddMonths
+        = typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddMonths), [typeof(int)])!;
+
+    private static readonly MethodInfo DateOnly_AddYears
+        = typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddYears), [typeof(int)])!;
 
     private static readonly MethodInfo TimeOnly_FromDateTime
-        = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.FromDateTime), new[] { typeof(DateTime) })!;
+        = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.FromDateTime), [typeof(DateTime)])!;
+
     private static readonly MethodInfo TimeOnly_FromTimeSpan
-        = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.FromTimeSpan), new[] { typeof(TimeSpan) })!;
+        = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.FromTimeSpan), [typeof(TimeSpan)])!;
+
     private static readonly MethodInfo TimeOnly_ToTimeSpan
         = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.ToTimeSpan), Type.EmptyTypes)!;
+
     private static readonly MethodInfo TimeOnly_IsBetween
-        = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.IsBetween), new[] { typeof(TimeOnly), typeof(TimeOnly) })!;
+        = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.IsBetween), [typeof(TimeOnly), typeof(TimeOnly)])!;
+
     private static readonly MethodInfo TimeOnly_Add_TimeSpan
-        = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.Add), new[] { typeof(TimeSpan) })!;
+        = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.Add), [typeof(TimeSpan)])!;
 
     private static readonly MethodInfo TimeZoneInfo_ConvertTimeBySystemTimeZoneId_DateTime
         = typeof(TimeZoneInfo).GetRuntimeMethod(
-            nameof(TimeZoneInfo.ConvertTimeBySystemTimeZoneId), new[] { typeof(DateTime), typeof(string) })!;
+            nameof(TimeZoneInfo.ConvertTimeBySystemTimeZoneId), [typeof(DateTime), typeof(string)])!;
 
     private static readonly MethodInfo TimeZoneInfo_ConvertTimeBySystemTimeZoneId_DateTimeOffset
         = typeof(TimeZoneInfo).GetRuntimeMethod(
-            nameof(TimeZoneInfo.ConvertTimeBySystemTimeZoneId), new[] { typeof(DateTimeOffset), typeof(string) })!;
+            nameof(TimeZoneInfo.ConvertTimeBySystemTimeZoneId), [typeof(DateTimeOffset), typeof(string)])!;
 
     private static readonly MethodInfo TimeZoneInfo_ConvertTimeToUtc
-        = typeof(TimeZoneInfo).GetRuntimeMethod(nameof(TimeZoneInfo.ConvertTimeToUtc), new[] { typeof(DateTime) })!;
+        = typeof(TimeZoneInfo).GetRuntimeMethod(nameof(TimeZoneInfo.ConvertTimeToUtc), [typeof(DateTime)])!;
     // ReSharper restore InconsistentNaming
 
     private readonly IRelationalTypeMappingSource _typeMappingSource;
@@ -110,61 +125,21 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
-        => TranslateDatePart(instance, method, arguments)
-            ?? TranslateDateTime(instance, method, arguments)
-            ?? TranslateDateOnly(instance, method, arguments)
-            ?? TranslateTimeOnly(instance, method, arguments)
-            ?? TranslateTimeZoneInfo(method, arguments);
+        => TranslateDateTime(instance, method, arguments)
+           ?? TranslateDateOnly(instance, method, arguments)
+           ?? TranslateTimeOnly(instance, method, arguments)
+           ?? TranslateTimeZoneInfo(method, arguments)
+           ?? TranslateDatePart(instance, method, arguments);
 
     private SqlExpression? TranslateDatePart(
         SqlExpression? instance,
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments)
-    {
-        if (instance is null || !MethodInfoDatePartMapping.TryGetValue(method, out var datePart))
-        {
-            return null;
-        }
-
-        if (arguments[0] is not { } interval)
-        {
-            return null;
-        }
-
-        // Note: ideally we'd simply generate a PostgreSQL interval expression, but the .NET mapping of that is TimeSpan,
-        // which does not work for months, years, etc. So we generate special fragments instead.
-        if (interval is SqlConstantExpression constantExpression)
-        {
-            // We generate constant intervals as INTERVAL '1 days'
-            if (constantExpression.Type == typeof(double) &&
-                ((double)constantExpression.Value! >= int.MaxValue ||
-                    (double)constantExpression.Value <= int.MinValue))
-            {
-                return null;
-            }
-
-            interval = _sqlExpressionFactory.Fragment(FormattableString.Invariant($"INTERVAL '{constantExpression.Value} {datePart}'"));
-        }
-        else
-        {
-            // For non-constants, we can't parameterize INTERVAL '1 days'. Instead, we use CAST($1 || ' days' AS interval).
-            // Note that a make_interval() function also exists, but accepts only int (for all fields except for
-            // seconds), so we don't use it.
-            // Note: we instantiate SqlBinaryExpression manually rather than via sqlExpressionFactory because
-            // of the non-standard Add expression (concatenate int with text)
-            interval = _sqlExpressionFactory.Convert(
-                new SqlBinaryExpression(
-                    ExpressionType.Add,
-                    _sqlExpressionFactory.Convert(interval, typeof(string), _textMapping),
-                    _sqlExpressionFactory.Constant(' ' + datePart, _textMapping),
-                    typeof(string),
-                    _textMapping),
-                typeof(TimeSpan),
-                _intervalMapping);
-        }
-
-        return _sqlExpressionFactory.Add(instance, interval, instance.TypeMapping);
-    }
+        => instance is not null
+            && MethodInfoDatePartMapping.TryGetValue(method, out var datePart)
+            && CreateIntervalExpression(arguments[0], datePart) is SqlExpression interval
+                ? _sqlExpressionFactory.Add(instance, interval, instance.TypeMapping)
+                : null;
 
     private SqlExpression? TranslateDateTime(
         SqlExpression? instance,
@@ -263,11 +238,32 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
                     typeof(DateTime),
                     _timestampMapping);
             }
+
+            // In PG, date + int = date (int interpreted as days)
+            if (method == DateOnly_AddDays)
+            {
+                return _sqlExpressionFactory.Add(instance, arguments[0]);
+            }
+
+            // For months and years, date + interval yields a timestamp (since interval could have a time component), so we need to cast
+            // the results back to date
+            if (method == DateOnly_AddMonths
+                && CreateIntervalExpression(arguments[0], "months") is SqlExpression interval1)
+            {
+                return _sqlExpressionFactory.Convert(
+                    _sqlExpressionFactory.Add(instance, interval1, instance.TypeMapping), typeof(DateOnly));
+            }
+
+            if (method == DateOnly_AddYears
+                && CreateIntervalExpression(arguments[0], "years") is SqlExpression interval2)
+            {
+                return _sqlExpressionFactory.Convert(
+                    _sqlExpressionFactory.Add(instance, interval2, instance.TypeMapping), typeof(DateOnly));
+            }
         }
 
         return null;
     }
-
 
     private SqlExpression? TranslateTimeOnly(
         SqlExpression? instance,
@@ -353,5 +349,37 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
         }
 
         return null;
+    }
+
+    private SqlExpression? CreateIntervalExpression(SqlExpression intervalNum, string datePart)
+    {
+        // Note: ideally we'd simply generate a PostgreSQL interval expression, but the .NET mapping of that is TimeSpan,
+        // which does not work for months, years, etc. So we generate special fragments instead.
+        if (intervalNum is SqlConstantExpression constantExpression)
+        {
+            // We generate constant intervals as INTERVAL '1 days'
+            if (constantExpression.Type == typeof(double)
+                && ((double)constantExpression.Value! >= int.MaxValue || (double)constantExpression.Value <= int.MinValue))
+            {
+                return null;
+            }
+
+            return _sqlExpressionFactory.Fragment(FormattableString.Invariant($"INTERVAL '{constantExpression.Value} {datePart}'"));
+        }
+
+        // For non-constants, we can't parameterize INTERVAL '1 days'. Instead, we use CAST($1 || ' days' AS interval).
+        // Note that a make_interval() function also exists, but accepts only int (for all fields except for
+        // seconds), so we don't use it.
+        // Note: we instantiate SqlBinaryExpression manually rather than via sqlExpressionFactory because
+        // of the non-standard Add expression (concatenate int with text)
+        return _sqlExpressionFactory.Convert(
+            new SqlBinaryExpression(
+                ExpressionType.Add,
+                _sqlExpressionFactory.Convert(intervalNum, typeof(string), _textMapping),
+                _sqlExpressionFactory.Constant(' ' + datePart, _textMapping),
+                typeof(string),
+                _textMapping),
+            typeof(TimeSpan),
+            _intervalMapping);
     }
 }

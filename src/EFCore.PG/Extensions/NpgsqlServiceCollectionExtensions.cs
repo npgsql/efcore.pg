@@ -10,7 +10,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
 
@@ -18,7 +17,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
-/// Provides extension methods to configure Entity Framework Core for Npgsql.
+///     Provides extension methods to configure Entity Framework Core for Npgsql.
 /// </summary>
 // ReSharper disable once UnusedMember.Global
 public static class NpgsqlServiceCollectionExtensions
@@ -59,11 +58,12 @@ public static class NpgsqlServiceCollectionExtensions
     {
         Check.NotNull(serviceCollection, nameof(serviceCollection));
 
-        return serviceCollection.AddDbContext<TContext>((_, options) =>
-        {
-            optionsAction?.Invoke(options);
-            options.UseNpgsql(connectionString, npgsqlOptionsAction);
-        });
+        return serviceCollection.AddDbContext<TContext>(
+            (_, options) =>
+            {
+                optionsAction?.Invoke(options);
+                options.UseNpgsql(connectionString, npgsqlOptionsAction);
+            });
     }
 
     /// <summary>
@@ -95,6 +95,7 @@ public static class NpgsqlServiceCollectionExtensions
             .TryAdd<ISqlGenerationHelper, NpgsqlSqlGenerationHelper>()
             .TryAdd<IRelationalAnnotationProvider, NpgsqlAnnotationProvider>()
             .TryAdd<IModelValidator, NpgsqlModelValidator>()
+            .TryAdd<IMigrator, NpgsqlMigrator>()
             .TryAdd<IProviderConventionSetBuilder, NpgsqlConventionSetBuilder>()
             .TryAdd<IUpdateSqlGenerator, NpgsqlUpdateSqlGenerator>()
             .TryAdd<IModificationCommandFactory, NpgsqlModificationCommandFactory>()

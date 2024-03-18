@@ -1,25 +1,23 @@
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Runtime.CompilerServices;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
-using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 /// <summary>
-/// Provides translation services for operators and functions of PostgreSQL network typess (cidr, inet, macaddr, macaddr8).
+///     Provides translation services for operators and functions of PostgreSQL network typess (cidr, inet, macaddr, macaddr8).
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/functions-net.html
+///     See: https://www.postgresql.org/docs/current/static/functions-net.html
 /// </remarks>
 public class NpgsqlNetworkTranslator : IMethodCallTranslator
 {
     private static readonly MethodInfo IPAddressParse =
-        typeof(IPAddress).GetRuntimeMethod(nameof(IPAddress.Parse), new[] { typeof(string) })!;
+        typeof(IPAddress).GetRuntimeMethod(nameof(IPAddress.Parse), [typeof(string)])!;
 
     private static readonly MethodInfo PhysicalAddressParse =
-        typeof(PhysicalAddress).GetRuntimeMethod(nameof(PhysicalAddress.Parse), new[] { typeof(string) })!;
+        typeof(PhysicalAddress).GetRuntimeMethod(nameof(PhysicalAddress.Parse), [typeof(string)])!;
 
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
@@ -182,31 +180,31 @@ public class NpgsqlNetworkTranslator : IMethodCallTranslator
                     _longAddressMapping),
 
             nameof(NpgsqlNetworkDbFunctionsExtensions.Abbreviate)
-                => NullPropagatingFunction("abbrev", new[] { arguments[1] }, typeof(string)),
+                => NullPropagatingFunction("abbrev", [arguments[1]], typeof(string)),
             nameof(NpgsqlNetworkDbFunctionsExtensions.Broadcast)
-                => NullPropagatingFunction("broadcast", new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
+                => NullPropagatingFunction("broadcast", [arguments[1]], typeof(IPAddress), _inetMapping),
             nameof(NpgsqlNetworkDbFunctionsExtensions.Family)
-                => NullPropagatingFunction("family", new[] { arguments[1] }, typeof(int)),
+                => NullPropagatingFunction("family", [arguments[1]], typeof(int)),
             nameof(NpgsqlNetworkDbFunctionsExtensions.Host)
-                => NullPropagatingFunction("host", new[] { arguments[1] }, typeof(string)),
+                => NullPropagatingFunction("host", [arguments[1]], typeof(string)),
             nameof(NpgsqlNetworkDbFunctionsExtensions.HostMask)
-                => NullPropagatingFunction("hostmask", new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
+                => NullPropagatingFunction("hostmask", [arguments[1]], typeof(IPAddress), _inetMapping),
             nameof(NpgsqlNetworkDbFunctionsExtensions.MaskLength)
-                => NullPropagatingFunction("masklen", new[] { arguments[1] }, typeof(int)),
+                => NullPropagatingFunction("masklen", [arguments[1]], typeof(int)),
             nameof(NpgsqlNetworkDbFunctionsExtensions.Netmask)
-                => NullPropagatingFunction("netmask", new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
+                => NullPropagatingFunction("netmask", [arguments[1]], typeof(IPAddress), _inetMapping),
             nameof(NpgsqlNetworkDbFunctionsExtensions.Network)
-                => NullPropagatingFunction("network", new[] { arguments[1] }, typeof((IPAddress Address, int Subnet)), _cidrMapping),
+                => NullPropagatingFunction("network", [arguments[1]], typeof((IPAddress Address, int Subnet)), _cidrMapping),
             nameof(NpgsqlNetworkDbFunctionsExtensions.SetMaskLength)
                 => NullPropagatingFunction(
-                    "set_masklen", new[] { arguments[1], arguments[2] }, arguments[1].Type, arguments[1].TypeMapping),
+                    "set_masklen", [arguments[1], arguments[2]], arguments[1].Type, arguments[1].TypeMapping),
             nameof(NpgsqlNetworkDbFunctionsExtensions.Text)
-                => NullPropagatingFunction("text", new[] { arguments[1] }, typeof(string)),
+                => NullPropagatingFunction("text", [arguments[1]], typeof(string)),
             nameof(NpgsqlNetworkDbFunctionsExtensions.SameFamily)
-                => NullPropagatingFunction("inet_same_family", new[] { arguments[1], arguments[2] }, typeof(bool)),
+                => NullPropagatingFunction("inet_same_family", [arguments[1], arguments[2]], typeof(bool)),
             nameof(NpgsqlNetworkDbFunctionsExtensions.Merge)
                 => NullPropagatingFunction(
-                    "inet_merge", new[] { arguments[1], arguments[2] }, typeof((IPAddress Address, int Subnet)), _cidrMapping),
+                    "inet_merge", [arguments[1], arguments[2]], typeof((IPAddress Address, int Subnet)), _cidrMapping),
 
             _ => null
         };
@@ -215,10 +213,10 @@ public class NpgsqlNetworkTranslator : IMethodCallTranslator
         => method.Name switch
         {
             nameof(NpgsqlNetworkDbFunctionsExtensions.Abbreviate)
-                => NullPropagatingFunction("abbrev", new[] { arguments[1] }, typeof(string)),
+                => NullPropagatingFunction("abbrev", [arguments[1]], typeof(string)),
             nameof(NpgsqlNetworkDbFunctionsExtensions.SetMaskLength)
                 => NullPropagatingFunction(
-                    "set_masklen", new[] { arguments[1], arguments[2] }, arguments[1].Type, arguments[1].TypeMapping),
+                    "set_masklen", [arguments[1], arguments[2]], arguments[1].Type, arguments[1].TypeMapping),
 
             _ => null
         };
@@ -243,9 +241,9 @@ public class NpgsqlNetworkTranslator : IMethodCallTranslator
                 => _sqlExpressionFactory.Or(arguments[1], arguments[2]),
 
             nameof(NpgsqlNetworkDbFunctionsExtensions.Truncate) => NullPropagatingFunction(
-                "trunc", new[] { arguments[1] }, typeof(PhysicalAddress), arguments[1].TypeMapping),
+                "trunc", [arguments[1]], typeof(PhysicalAddress), arguments[1].TypeMapping),
             nameof(NpgsqlNetworkDbFunctionsExtensions.Set7BitMac8) => NullPropagatingFunction(
-                "macaddr8_set7bit", new[] { arguments[1] }, typeof(PhysicalAddress), _macaddr8Mapping),
+                "macaddr8_set7bit", [arguments[1]], typeof(PhysicalAddress), _macaddr8Mapping),
 
             _ => null
         };

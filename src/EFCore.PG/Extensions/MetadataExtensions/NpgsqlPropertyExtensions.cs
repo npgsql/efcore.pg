@@ -16,7 +16,7 @@ public static class NpgsqlPropertyExtensions
     #region Hi-lo
 
     /// <summary>
-    /// Returns the name to use for the hi-lo sequence.
+    ///     Returns the name to use for the hi-lo sequence.
     /// </summary>
     /// <param name="property"> The property.</param>
     /// <returns>The name to use for the hi-lo sequence.</returns>
@@ -44,7 +44,7 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Sets the name to use for the hi-lo sequence.
+    ///     Sets the name to use for the hi-lo sequence.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="name">The sequence name to use.</param>
@@ -54,7 +54,7 @@ public static class NpgsqlPropertyExtensions
             Check.NullButNotEmpty(name, nameof(name)));
 
     /// <summary>
-    /// Sets the name to use for the hi-lo sequence.
+    ///     Sets the name to use for the hi-lo sequence.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="name">The sequence name to use.</param>
@@ -73,7 +73,7 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the hi-lo sequence name.
+    ///     Returns the <see cref="ConfigurationSource" /> for the hi-lo sequence name.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the hi-lo sequence name.</returns>
@@ -81,7 +81,7 @@ public static class NpgsqlPropertyExtensions
         => property.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceName)?.GetConfigurationSource();
 
     /// <summary>
-    /// Returns the schema to use for the hi-lo sequence.
+    ///     Returns the schema to use for the hi-lo sequence.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The schema to use for the hi-lo sequence.</returns>
@@ -109,7 +109,7 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Sets the schema to use for the hi-lo sequence.
+    ///     Sets the schema to use for the hi-lo sequence.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="schema">The schema to use.</param>
@@ -119,13 +119,15 @@ public static class NpgsqlPropertyExtensions
             Check.NullButNotEmpty(schema, nameof(schema)));
 
     /// <summary>
-    /// Sets the schema to use for the hi-lo sequence.
+    ///     Sets the schema to use for the hi-lo sequence.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="schema">The schema to use.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     public static string? SetHiLoSequenceSchema(
-        this IConventionProperty property, string? schema, bool fromDataAnnotation = false)
+        this IConventionProperty property,
+        string? schema,
+        bool fromDataAnnotation = false)
     {
         property.SetOrRemoveAnnotation(
             NpgsqlAnnotationNames.HiLoSequenceSchema,
@@ -136,7 +138,7 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the hi-lo sequence schema.
+    ///     Returns the <see cref="ConfigurationSource" /> for the hi-lo sequence schema.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the hi-lo sequence schema.</returns>
@@ -144,7 +146,7 @@ public static class NpgsqlPropertyExtensions
         => property.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema)?.GetConfigurationSource();
 
     /// <summary>
-    /// Finds the <see cref="ISequence" /> in the model to use for the hi-lo pattern.
+    ///     Finds the <see cref="ISequence" /> in the model to use for the hi-lo pattern.
     /// </summary>
     /// <param name="property"> The property. </param>
     /// <returns> The sequence to use, or <see langword="null" /> if no sequence exists in the model. </returns>
@@ -162,7 +164,7 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Finds the <see cref="ISequence" /> in the model to use for the hi-lo pattern.
+    ///     Finds the <see cref="ISequence" /> in the model to use for the hi-lo pattern.
     /// </summary>
     /// <param name="property"> The property. </param>
     /// <param name="storeObject"> The identifier of the store object. </param>
@@ -198,7 +200,7 @@ public static class NpgsqlPropertyExtensions
         => (ISequence?)((IReadOnlyProperty)property).FindHiLoSequence(storeObject);
 
     /// <summary>
-    /// Removes all identity sequence annotations from the property.
+    ///     Removes all identity sequence annotations from the property.
     /// </summary>
     public static void RemoveHiLoOptions(this IMutableProperty property)
     {
@@ -207,7 +209,7 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Removes all identity sequence annotations from the property.
+    ///     Removes all identity sequence annotations from the property.
     /// </summary>
     public static void RemoveHiLoOptions(this IConventionProperty property)
     {
@@ -404,12 +406,12 @@ public static class NpgsqlPropertyExtensions
     #region Value generation
 
     /// <summary>
-    /// <para>Returns the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property.</para>
-    /// <para>
-    /// If no strategy is set for the property, then the strategy to use will be taken from the <see cref="IModel" />.
-    /// </para>
+    ///     <para>Returns the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property.</para>
+    ///     <para>
+    ///         If no strategy is set for the property, then the strategy to use will be taken from the <see cref="IModel" />.
+    ///     </para>
     /// </summary>
-    /// <returns>The strategy, or <see cref="NpgsqlValueGenerationStrategy.None"/> if none was set.</returns>
+    /// <returns>The strategy, or <see cref="NpgsqlValueGenerationStrategy.None" /> if none was set.</returns>
     public static NpgsqlValueGenerationStrategy GetValueGenerationStrategy(this IReadOnlyProperty property)
     {
         var annotation = property.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy);
@@ -432,10 +434,10 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// <para>Returns the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property.</para>
-    /// <para>
-    /// If no strategy is set for the property, then the strategy to use will be taken from the <see cref="IModel" />.
-    /// </para>
+    ///     <para>Returns the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property.</para>
+    ///     <para>
+    ///         If no strategy is set for the property, then the strategy to use will be taken from the <see cref="IModel" />.
+    ///     </para>
     /// </summary>
     /// <param name="property"> The property. </param>
     /// <param name="storeObject"> The identifier of the store object. </param>
@@ -489,11 +491,12 @@ public static class NpgsqlPropertyExtensions
             || property.GetDefaultValueSql(storeObject) != null
             || property.GetComputedColumnSql(storeObject) != null
             || property.GetContainingForeignKeys()
-                .Any(fk =>
-                    !fk.IsBaseLinking()
-                    || (StoreObjectIdentifier.Create(fk.PrincipalEntityType, StoreObjectType.Table)
-                        is StoreObjectIdentifier principal
-                        && fk.GetConstraintName(table, principal) != null)))
+                .Any(
+                    fk =>
+                        !fk.IsBaseLinking()
+                        || (StoreObjectIdentifier.Create(fk.PrincipalEntityType, StoreObjectType.Table)
+                                is StoreObjectIdentifier principal
+                            && fk.GetConstraintName(table, principal) != null)))
         {
             return NpgsqlValueGenerationStrategy.None;
         }
@@ -579,12 +582,13 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Sets the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property.
+    ///     Sets the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="value">The strategy to use.</param>
     public static void SetValueGenerationStrategy(
-        this IMutableProperty property, NpgsqlValueGenerationStrategy? value)
+        this IMutableProperty property,
+        NpgsqlValueGenerationStrategy? value)
     {
         CheckValueGenerationStrategy(property, value);
 
@@ -592,7 +596,7 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Sets the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property.
+    ///     Sets the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="value">The strategy to use.</param>
@@ -622,7 +626,7 @@ public static class NpgsqlPropertyExtensions
         => property.GetOrCreateOverrides(storeObject)
             .SetValueGenerationStrategy(value);
 
-        /// <summary>
+    /// <summary>
     ///     Sets the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property for a particular table.
     /// </summary>
     /// <param name="property">The property.</param>
@@ -696,7 +700,7 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the <see cref="NpgsqlValueGenerationStrategy" />.
+    ///     Returns the <see cref="ConfigurationSource" /> for the <see cref="NpgsqlValueGenerationStrategy" />.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the <see cref="NpgsqlValueGenerationStrategy" />.</returns>
@@ -725,7 +729,7 @@ public static class NpgsqlPropertyExtensions
         => overrides.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy)?.GetConfigurationSource();
 
     /// <summary>
-    /// Returns a value indicating whether the property is compatible with any <see cref="NpgsqlValueGenerationStrategy" />.
+    ///     Returns a value indicating whether the property is compatible with any <see cref="NpgsqlValueGenerationStrategy" />.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns><see langword="true" /> if compatible.</returns>
@@ -758,7 +762,7 @@ public static class NpgsqlPropertyExtensions
     #region Identity sequence options
 
     /// <summary>
-    /// Returns the identity start value.
+    ///     Returns the identity start value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The identity start value.</returns>
@@ -766,7 +770,7 @@ public static class NpgsqlPropertyExtensions
         => IdentitySequenceOptionsData.Get(property).StartValue;
 
     /// <summary>
-    /// Sets the identity start value.
+    ///     Sets the identity start value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="startValue">The value to set.</param>
@@ -778,13 +782,15 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Sets the identity start value.
+    ///     Sets the identity start value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="startValue">The value to set.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     public static long? SetIdentityStartValue(
-        this IConventionProperty property, long? startValue, bool fromDataAnnotation = false)
+        this IConventionProperty property,
+        long? startValue,
+        bool fromDataAnnotation = false)
     {
         var options = IdentitySequenceOptionsData.Get(property);
         options.StartValue = startValue;
@@ -793,7 +799,7 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the identity start value.
+    ///     Returns the <see cref="ConfigurationSource" /> for the identity start value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the identity start value.</returns>
@@ -802,7 +808,7 @@ public static class NpgsqlPropertyExtensions
         => property.FindAnnotation(NpgsqlAnnotationNames.IdentityOptions)?.GetConfigurationSource();
 
     /// <summary>
-    /// Returns the identity increment value.
+    ///     Returns the identity increment value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The identity increment value.</returns>
@@ -810,7 +816,7 @@ public static class NpgsqlPropertyExtensions
         => IdentitySequenceOptionsData.Get(property).IncrementBy;
 
     /// <summary>
-    /// Sets the identity increment value.
+    ///     Sets the identity increment value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="incrementBy">The value to set.</param>
@@ -822,13 +828,15 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Sets the identity increment value.
+    ///     Sets the identity increment value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="incrementBy">The value to set.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     public static long? SetIdentityIncrementBy(
-        this IConventionProperty property, long? incrementBy, bool fromDataAnnotation = false)
+        this IConventionProperty property,
+        long? incrementBy,
+        bool fromDataAnnotation = false)
     {
         var options = IdentitySequenceOptionsData.Get(property);
         options.IncrementBy = incrementBy ?? 1;
@@ -837,7 +845,7 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the identity increment value.
+    ///     Returns the <see cref="ConfigurationSource" /> for the identity increment value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the identity increment value.</returns>
@@ -846,7 +854,7 @@ public static class NpgsqlPropertyExtensions
         => property.FindAnnotation(NpgsqlAnnotationNames.IdentityOptions)?.GetConfigurationSource();
 
     /// <summary>
-    /// Returns the identity minimum value.
+    ///     Returns the identity minimum value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The identity minimum value.</returns>
@@ -854,7 +862,7 @@ public static class NpgsqlPropertyExtensions
         => IdentitySequenceOptionsData.Get(property).MinValue;
 
     /// <summary>
-    /// Sets the identity minimum value.
+    ///     Sets the identity minimum value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="minValue">The value to set.</param>
@@ -866,13 +874,15 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Sets the identity minimum value.
+    ///     Sets the identity minimum value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="minValue">The value to set.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     public static long? SetIdentityMinValue(
-        this IConventionProperty property, long? minValue, bool fromDataAnnotation = false)
+        this IConventionProperty property,
+        long? minValue,
+        bool fromDataAnnotation = false)
     {
         var options = IdentitySequenceOptionsData.Get(property);
         options.MinValue = minValue;
@@ -881,7 +891,7 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the identity minimum value.
+    ///     Returns the <see cref="ConfigurationSource" /> for the identity minimum value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the identity minimum value.</returns>
@@ -890,7 +900,7 @@ public static class NpgsqlPropertyExtensions
         => property.FindAnnotation(NpgsqlAnnotationNames.IdentityOptions)?.GetConfigurationSource();
 
     /// <summary>
-    /// Returns the identity maximum value.
+    ///     Returns the identity maximum value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The identity maximum value.</returns>
@@ -898,7 +908,7 @@ public static class NpgsqlPropertyExtensions
         => IdentitySequenceOptionsData.Get(property).MaxValue;
 
     /// <summary>
-    /// Sets the identity maximum value.
+    ///     Sets the identity maximum value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="maxValue">The value to set.</param>
@@ -910,13 +920,15 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Sets the identity maximum value.
+    ///     Sets the identity maximum value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="maxValue">The value to set.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     public static long? SetIdentityMaxValue(
-        this IConventionProperty property, long? maxValue, bool fromDataAnnotation = false)
+        this IConventionProperty property,
+        long? maxValue,
+        bool fromDataAnnotation = false)
     {
         var options = IdentitySequenceOptionsData.Get(property);
         options.MaxValue = maxValue;
@@ -925,7 +937,7 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the identity maximum value.
+    ///     Returns the <see cref="ConfigurationSource" /> for the identity maximum value.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the identity maximum value.</returns>
@@ -934,7 +946,7 @@ public static class NpgsqlPropertyExtensions
         => property.FindAnnotation(NpgsqlAnnotationNames.IdentityOptions)?.GetConfigurationSource();
 
     /// <summary>
-    /// Returns whether the identity's sequence is cyclic.
+    ///     Returns whether the identity's sequence is cyclic.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>Whether the identity's sequence is cyclic.</returns>
@@ -942,7 +954,7 @@ public static class NpgsqlPropertyExtensions
         => IdentitySequenceOptionsData.Get(property).IsCyclic;
 
     /// <summary>
-    /// Sets whether the identity's sequence is cyclic.
+    ///     Sets whether the identity's sequence is cyclic.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="cyclic">The value to set.</param>
@@ -954,13 +966,15 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Sets whether the identity's sequence is cyclic.
+    ///     Sets whether the identity's sequence is cyclic.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="cyclic">The value to set.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     public static bool? SetIdentityIsCyclic(
-        this IConventionProperty property, bool? cyclic, bool fromDataAnnotation = false)
+        this IConventionProperty property,
+        bool? cyclic,
+        bool fromDataAnnotation = false)
     {
         var options = IdentitySequenceOptionsData.Get(property);
         options.IsCyclic = cyclic ?? false;
@@ -969,7 +983,7 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for whether the identity's sequence is cyclic.
+    ///     Returns the <see cref="ConfigurationSource" /> for whether the identity's sequence is cyclic.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for whether the identity's sequence is cyclic.</returns>
@@ -978,8 +992,8 @@ public static class NpgsqlPropertyExtensions
         => property.FindAnnotation(NpgsqlAnnotationNames.IdentityOptions)?.GetConfigurationSource();
 
     /// <summary>
-    /// Returns the number of sequence numbers to be preallocated and stored in memory for faster access.
-    /// Defaults to 1 (no cache).
+    ///     Returns the number of sequence numbers to be preallocated and stored in memory for faster access.
+    ///     Defaults to 1 (no cache).
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The number of sequence numbers to be cached.</returns>
@@ -987,7 +1001,7 @@ public static class NpgsqlPropertyExtensions
         => IdentitySequenceOptionsData.Get(property).NumbersToCache;
 
     /// <summary>
-    /// Sets the number of sequence numbers to be preallocated and stored in memory for faster access.
+    ///     Sets the number of sequence numbers to be preallocated and stored in memory for faster access.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="numbersToCache">The value to set.</param>
@@ -999,13 +1013,15 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Sets the number of sequence numbers to be preallocated and stored in memory for faster access.
+    ///     Sets the number of sequence numbers to be preallocated and stored in memory for faster access.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="numbersToCache">The value to set.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     public static long? SetIdentityNumbersToCache(
-        this IConventionProperty property, long? numbersToCache, bool fromDataAnnotation = false)
+        this IConventionProperty property,
+        long? numbersToCache,
+        bool fromDataAnnotation = false)
     {
         var options = IdentitySequenceOptionsData.Get(property);
         options.NumbersToCache = numbersToCache ?? 1;
@@ -1014,26 +1030,26 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the number of sequence numbers to be preallocated
-    /// and stored in memory for faster access.
+    ///     Returns the <see cref="ConfigurationSource" /> for the number of sequence numbers to be preallocated
+    ///     and stored in memory for faster access.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>
-    /// The <see cref="ConfigurationSource" /> for the number of sequence numbers to be preallocated
-    /// and stored in memory for faster access.
+    ///     The <see cref="ConfigurationSource" /> for the number of sequence numbers to be preallocated
+    ///     and stored in memory for faster access.
     /// </returns>
     public static ConfigurationSource? GetIdentityNumbersToCacheConfigurationSource(
         this IConventionProperty property)
         => property.FindAnnotation(NpgsqlAnnotationNames.IdentityOptions)?.GetConfigurationSource();
 
     /// <summary>
-    /// Removes identity sequence options from the property.
+    ///     Removes identity sequence options from the property.
     /// </summary>
     public static void RemoveIdentityOptions(this IMutableProperty property)
         => property.RemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions);
 
     /// <summary>
-    /// Removes identity sequence options from the property.
+    ///     Removes identity sequence options from the property.
     /// </summary>
     public static void RemoveIdentityOptions(this IConventionProperty property)
         => property.RemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions);
@@ -1043,35 +1059,35 @@ public static class NpgsqlPropertyExtensions
     #region Generated tsvector column
 
     /// <summary>
-    /// Returns the text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
+    ///     Returns the text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///     generated tsvector property.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>
-    /// <para>
-    /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
-    /// </para>
-    /// <para>
-    /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
-    /// </para>
+    ///     <para>
+    ///         The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///         generated tsvector property.
+    ///     </para>
+    ///     <para>
+    ///         See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+    ///     </para>
     /// </returns>
     public static string? GetTsVectorConfig(this IReadOnlyProperty property)
         => (string?)property[NpgsqlAnnotationNames.TsVectorConfig];
 
     /// <summary>
-    /// Sets the text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
+    ///     Sets the text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///     generated tsvector property.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="config">
-    /// <para>
-    /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
-    /// </para>
-    /// <para>
-    /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
-    /// </para>
+    ///     <para>
+    ///         The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///         generated tsvector property.
+    ///     </para>
+    ///     <para>
+    ///         See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+    ///     </para>
     /// </param>
     public static void SetTsVectorConfig(this IMutableProperty property, string? config)
     {
@@ -1081,22 +1097,24 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Returns the text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
+    ///     Returns the text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///     generated tsvector property.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
     /// <param name="config">
-    /// <para>
-    /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
-    /// </para>
-    /// <para>
-    /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
-    /// </para>
+    ///     <para>
+    ///         The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+    ///         generated tsvector property.
+    ///     </para>
+    ///     <para>
+    ///         See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+    ///     </para>
     /// </param>
     public static string SetTsVectorConfig(
-        this IConventionProperty property, string config, bool fromDataAnnotation = false)
+        this IConventionProperty property,
+        string config,
+        bool fromDataAnnotation = false)
     {
         Check.NullButNotEmpty(config, nameof(config));
 
@@ -1106,8 +1124,8 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the text search configuration for the generated tsvector
-    /// property.
+    ///     Returns the <see cref="ConfigurationSource" /> for the text search configuration for the generated tsvector
+    ///     property.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The configuration source for the text search configuration for the generated tsvector property.</returns>
@@ -1115,8 +1133,8 @@ public static class NpgsqlPropertyExtensions
         => property.FindAnnotation(NpgsqlAnnotationNames.TsVectorConfig)?.GetConfigurationSource();
 
     /// <summary>
-    /// Returns the properties included in this generated tsvector property, or <c>null</c> if this is not a
-    /// generated tsvector property.
+    ///     Returns the properties included in this generated tsvector property, or <c>null</c> if this is not a
+    ///     generated tsvector property.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The included property names, or <c>null</c> if this is not a Generated tsvector column.</returns>
@@ -1124,8 +1142,8 @@ public static class NpgsqlPropertyExtensions
         => (string[]?)property[NpgsqlAnnotationNames.TsVectorProperties];
 
     /// <summary>
-    /// Sets the properties included in this generated tsvector property, or <c>null</c> to make this a regular,
-    /// non-generated property.
+    ///     Sets the properties included in this generated tsvector property, or <c>null</c> to make this a regular,
+    ///     non-generated property.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="properties">The included property names.</param>
@@ -1139,8 +1157,8 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Sets properties included in this generated tsvector property, or <c>null</c> to make this a regular,
-    /// non-generated property.
+    ///     Sets properties included in this generated tsvector property, or <c>null</c> to make this a regular,
+    ///     non-generated property.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
@@ -1158,7 +1176,7 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the properties included in the generated tsvector property.
+    ///     Returns the <see cref="ConfigurationSource" /> for the properties included in the generated tsvector property.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>The configuration source for the properties included in the generated tsvector property.</returns>
@@ -1170,9 +1188,9 @@ public static class NpgsqlPropertyExtensions
     #region Collation
 
     /// <summary>
-    /// Returns the collation to be used for the column - including the PostgreSQL-specific default column
-    /// collation defined at the model level (see
-    /// <see cref="NpgsqlModelExtensions.SetDefaultColumnCollation(Microsoft.EntityFrameworkCore.Metadata.IMutableModel,string)"/>).
+    ///     Returns the collation to be used for the column - including the PostgreSQL-specific default column
+    ///     collation defined at the model level (see
+    ///     <see cref="NpgsqlModelExtensions.SetDefaultColumnCollation(Microsoft.EntityFrameworkCore.Metadata.IMutableModel,string)" />).
     /// </summary>
     /// <param name="property"> The property. </param>
     /// <returns> The collation for the column this property is mapped to. </returns>
@@ -1187,7 +1205,7 @@ public static class NpgsqlPropertyExtensions
     #region Compression method
 
     /// <summary>
-    /// Returns the compression method to be used, or <c>null</c> if it hasn't been specified.
+    ///     Returns the compression method to be used, or <c>null</c> if it hasn't been specified.
     /// </summary>
     /// <remarks>This feature was introduced in PostgreSQL 14.</remarks>
     public static string? GetCompressionMethod(this IReadOnlyProperty property)
@@ -1196,7 +1214,7 @@ public static class NpgsqlPropertyExtensions
             : (string?)property[NpgsqlAnnotationNames.CompressionMethod];
 
     /// <summary>
-    /// Returns the compression method to be used, or <c>null</c> if it hasn't been specified.
+    ///     Returns the compression method to be used, or <c>null</c> if it hasn't been specified.
     /// </summary>
     /// <remarks>This feature was introduced in PostgreSQL 14.</remarks>
     public static string? GetCompressionMethod(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
@@ -1207,14 +1225,14 @@ public static class NpgsqlPropertyExtensions
                 : property.FindSharedStoreObjectRootProperty(storeObject)?.GetCompressionMethod(storeObject);
 
     /// <summary>
-    /// Sets the compression method to be used, or <c>null</c> if it hasn't been specified.
+    ///     Sets the compression method to be used, or <c>null</c> if it hasn't been specified.
     /// </summary>
     /// <remarks>This feature was introduced in PostgreSQL 14.</remarks>
     public static void SetCompressionMethod(this IMutableProperty property, string? compressionMethod)
         => property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.CompressionMethod, compressionMethod);
 
     /// <summary>
-    /// Sets the compression method to be used, or <c>null</c> if it hasn't been specified.
+    ///     Sets the compression method to be used, or <c>null</c> if it hasn't been specified.
     /// </summary>
     /// <remarks>This feature was introduced in PostgreSQL 14.</remarks>
     public static string? SetCompressionMethod(
@@ -1230,7 +1248,7 @@ public static class NpgsqlPropertyExtensions
     }
 
     /// <summary>
-    /// Returns the <see cref="ConfigurationSource" /> for the compression method.
+    ///     Returns the <see cref="ConfigurationSource" /> for the compression method.
     /// </summary>
     /// <param name="index">The property.</param>
     /// <returns>The <see cref="ConfigurationSource" /> for the compression method.</returns>

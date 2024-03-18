@@ -3,11 +3,13 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class NorthwindDbFunctionsQueryNpgsqlTest : NorthwindDbFunctionsQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
+public class NorthwindDbFunctionsQueryNpgsqlTest : NorthwindDbFunctionsQueryRelationalTestBase<
+    NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
 {
     // ReSharper disable once UnusedParameter.Local
     public NorthwindDbFunctionsQueryNpgsqlTest(
-        NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
+        NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture,
+        ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
@@ -28,7 +30,7 @@ public class NorthwindDbFunctionsQueryNpgsqlTest : NorthwindDbFunctionsQueryRela
             c => c.ContactName.Contains("M"));
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE c."ContactName" LIKE '%M%'
@@ -40,7 +42,7 @@ WHERE c."ContactName" LIKE '%M%'
         await base.Like_identity(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE c."ContactName" LIKE c."ContactName" ESCAPE ''
@@ -52,7 +54,7 @@ WHERE c."ContactName" LIKE c."ContactName" ESCAPE ''
         await base.Like_literal_with_escape(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE c."ContactName" LIKE '!%' ESCAPE '!'
@@ -67,7 +69,7 @@ WHERE c."ContactName" LIKE '!%' ESCAPE '!'
 
         Assert.Equal(0, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE c."ContactName" LIKE '\' ESCAPE ''
@@ -82,7 +84,7 @@ WHERE c."ContactName" LIKE '\' ESCAPE ''
 
         Assert.Equal(34, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE c."ContactName" ILIKE '%M%'
@@ -97,10 +99,25 @@ WHERE c."ContactName" ILIKE '%M%'
 
         Assert.Equal(0, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE c."ContactName" ILIKE '!%' ESCAPE '!'
+""");
+    }
+
+    [Fact]
+    public void String_ILike_negated()
+    {
+        using var context = CreateContext();
+        var count = context.Customers.Count(c => !EF.Functions.ILike(c.ContactName, "%M%"));
+
+        Assert.Equal(57, count);
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "Customers" AS c
+WHERE NOT (c."ContactName" ILIKE '%M%') OR c."ContactName" IS NULL
 """);
     }
 
@@ -115,7 +132,7 @@ WHERE c."ContactName" ILIKE '!%' ESCAPE '!'
         await base.Collate_case_insensitive(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE c."ContactName" COLLATE "some-case-insensitive-collation" = 'maria anders'
@@ -127,15 +144,18 @@ WHERE c."ContactName" COLLATE "some-case-insensitive-collation" = 'maria anders'
         await base.Collate_case_sensitive(async);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE c."ContactName" COLLATE "POSIX" = 'maria anders'
 """);
     }
 
-    protected override string CaseInsensitiveCollation => "some-case-insensitive-collation";
-    protected override string CaseSensitiveCollation => "POSIX";
+    protected override string CaseInsensitiveCollation
+        => "some-case-insensitive-collation";
+
+    protected override string CaseSensitiveCollation
+        => "POSIX";
 
     #endregion Collation
 
@@ -150,10 +170,10 @@ WHERE c."ContactName" COLLATE "POSIX" = 'maria anders'
         Assert.Equal(10582, closestOrder.OrderID);
 
         AssertSql(
-"""
+            """
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
-ORDER BY o."OrderDate" <-> TIMESTAMP '1997-06-28 00:00:00' NULLS FIRST
+ORDER BY o."OrderDate" <-> TIMESTAMP '1997-06-28T00:00:00' NULLS FIRST
 LIMIT 1
 """);
     }
@@ -167,7 +187,7 @@ LIMIT 1
         Assert.Equal(1, count);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE reverse(c."ContactName") = 'srednA airaM'
@@ -179,12 +199,12 @@ WHERE reverse(c."ContactName") = 'srednA airaM'
     public void StringToArray()
     {
         using var context = CreateContext();
-        var count = context.Customers.Count(c => EF.Functions.StringToArray(c.ContactName, " ") == new[] { "Maria", "Anders"});
+        var count = context.Customers.Count(c => EF.Functions.StringToArray(c.ContactName, " ") == new[] { "Maria", "Anders" });
 
         Assert.Equal(1, count);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE string_to_array(c."ContactName", ' ') = ARRAY['Maria','Anders']::text[]
@@ -195,12 +215,12 @@ WHERE string_to_array(c."ContactName", ' ') = ARRAY['Maria','Anders']::text[]
     public void StringToArray_with_null_string()
     {
         using var context = CreateContext();
-        var count = context.Customers.Count(c => EF.Functions.StringToArray(c.ContactName, " ", "Maria") == new[] { null, "Anders"});
+        var count = context.Customers.Count(c => EF.Functions.StringToArray(c.ContactName, " ", "Maria") == new[] { null, "Anders" });
 
         Assert.Equal(1, count);
 
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE string_to_array(c."ContactName", ' ', 'Maria') = ARRAY[NULL,'Anders']::text[]

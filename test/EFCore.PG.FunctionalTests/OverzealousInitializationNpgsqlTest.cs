@@ -2,16 +2,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class OverzealousInitializationNpgsqlTest
-    : OverzealousInitializationTestBase<OverzealousInitializationNpgsqlTest.OverzealousInitializationNpgsqlFixture>
+public class OverzealousInitializationNpgsqlTest(OverzealousInitializationNpgsqlTest.OverzealousInitializationNpgsqlFixture fixture)
+    : OverzealousInitializationTestBase<OverzealousInitializationNpgsqlTest.OverzealousInitializationNpgsqlFixture>(fixture)
 {
-    public OverzealousInitializationNpgsqlTest(OverzealousInitializationNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     public class OverzealousInitializationNpgsqlFixture : OverzealousInitializationFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
     }
 }

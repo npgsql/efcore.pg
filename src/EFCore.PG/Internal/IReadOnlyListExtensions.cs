@@ -18,12 +18,16 @@ internal static class IReadOnlyListExtensions
             _start = start;
         }
 
-        public IEnumerator<T> GetEnumerator() => _underlying.Skip(_start).GetEnumerator();
+        public IEnumerator<T> GetEnumerator()
+            => _underlying.Skip(_start).GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
 
-        public int Count => _underlying.Count - _start;
+        public int Count
+            => _underlying.Count - _start;
 
-        public T this[int index] => _underlying[_start + index];
+        public T this[int index]
+            => _underlying[_start + index];
     }
 }

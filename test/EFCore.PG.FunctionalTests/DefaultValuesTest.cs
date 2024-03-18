@@ -19,7 +19,8 @@ public class DefaultValuesTest : IDisposable
             context.Database.EnsureCreated();
 
             var honeyDijon = context.Add(new KettleChips { Name = "Honey Dijon" }).Entity;
-            var buffaloBleu = context.Add(new KettleChips { Name = "Buffalo Bleu", BestBuyDate = new DateTime(2111, 1, 11, 0, 0, 0, DateTimeKind.Utc) }).Entity;
+            var buffaloBleu = context.Add(
+                new KettleChips { Name = "Buffalo Bleu", BestBuyDate = new DateTime(2111, 1, 11, 0, 0, 0, DateTimeKind.Utc) }).Entity;
 
             context.SaveChanges();
 
@@ -29,8 +30,10 @@ public class DefaultValuesTest : IDisposable
 
         using (var context = new ChipsContext(_serviceProvider, "DefaultKettleChips"))
         {
-            Assert.Equal(new DateTime(2035, 9, 25, 0, 0, 0, DateTimeKind.Utc), context.Chips.Single(c => c.Name == "Honey Dijon").BestBuyDate);
-            Assert.Equal(new DateTime(2111, 1, 11, 0, 0, 0, DateTimeKind.Utc), context.Chips.Single(c => c.Name == "Buffalo Bleu").BestBuyDate);
+            Assert.Equal(
+                new DateTime(2035, 9, 25, 0, 0, 0, DateTimeKind.Utc), context.Chips.Single(c => c.Name == "Honey Dijon").BestBuyDate);
+            Assert.Equal(
+                new DateTime(2111, 1, 11, 0, 0, 0, DateTimeKind.Utc), context.Chips.Single(c => c.Name == "Buffalo Bleu").BestBuyDate);
         }
     }
 
@@ -40,23 +43,19 @@ public class DefaultValuesTest : IDisposable
         context.Database.EnsureDeleted();
     }
 
-    private class ChipsContext : DbContext
+    private class ChipsContext(IServiceProvider serviceProvider, string databaseName) : DbContext
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly string _databaseName;
-
-        public ChipsContext(IServiceProvider serviceProvider, string databaseName)
-        {
-            _serviceProvider = serviceProvider;
-            _databaseName = databaseName;
-        }
+        private readonly IServiceProvider _serviceProvider = serviceProvider;
+        private readonly string _databaseName = databaseName;
 
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public DbSet<KettleChips> Chips { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder
-                .UseNpgsql(NpgsqlTestStore.CreateConnectionString(_databaseName))
+                .UseNpgsql(
+                    NpgsqlTestStore.CreateConnectionString(_databaseName),
+                    o => o.SetPostgresVersion(TestEnvironment.PostgresVersion))
                 .UseInternalServiceProvider(_serviceProvider);
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

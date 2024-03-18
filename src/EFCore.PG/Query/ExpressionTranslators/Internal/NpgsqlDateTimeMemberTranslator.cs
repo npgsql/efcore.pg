@@ -6,10 +6,10 @@ using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 /// <summary>
-/// Provides translation services for <see cref="DateTime"/> members.
+///     Provides translation services for <see cref="DateTime" /> members.
 /// </summary>
 /// <remarks>
-/// See: https://www.postgresql.org/docs/current/static/functions-datetime.html
+///     See: https://www.postgresql.org/docs/current/static/functions-datetime.html
 /// </remarks>
 public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
 {
@@ -67,7 +67,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
             switch (instance)
             {
                 case { TypeMapping: NpgsqlTimestampTypeMapping }:
-                case { TypeMapping: NpgsqlTimestampTzTypeMapping } when NpgsqlTypeMappingSource.LegacyTimestampBehavior:
+                case { } when NpgsqlTypeMappingSource.LegacyTimestampBehavior:
                     return _sqlExpressionFactory.Function(
                         "date_trunc",
                         new[] { _sqlExpressionFactory.Constant("day"), instance },
@@ -86,7 +86,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
                         instance.TypeMapping);
 
                 // If DateTime.Date is invoked on a PostgreSQL date (or DateOnly, which can only be mapped to datE), simply no-op.
-                case { TypeMapping: NpgsqlDateTypeMapping }:
+                case { TypeMapping: NpgsqlDateTimeDateTypeMapping }:
                 case { Type: var type } when type == typeof(DateOnly):
                     return instance;
 
@@ -148,7 +148,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
         SqlExpression UtcNow()
             => _sqlExpressionFactory.Function(
                 "now",
-                Array.Empty<SqlExpression>(),
+                [],
                 nullable: false,
                 argumentsPropagateNullability: TrueArrays[0],
                 returnType,
@@ -172,11 +172,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
 
         var result = _sqlExpressionFactory.Function(
             "date_part",
-            new[]
-            {
-                _sqlExpressionFactory.Constant(partName),
-                instance
-            },
+            new[] { _sqlExpressionFactory.Constant(partName), instance },
             nullable: true,
             argumentsPropagateNullability: TrueArrays[2],
             typeof(double));
@@ -240,7 +236,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
         switch (timestamp)
         {
             // We're already dealing with a non-timestamptz mapping, no conversion needed.
-            case { TypeMapping: NpgsqlTimestampTypeMapping or NpgsqlDateTypeMapping or NpgsqlTimeTypeMapping }:
+            case { TypeMapping: NpgsqlTimestampTypeMapping or NpgsqlDateTimeDateTypeMapping or NpgsqlTimeTypeMapping }:
             case { Type: var type } when type == typeof(DateOnly) || type == typeof(TimeOnly):
                 result = timestamp;
                 return true;

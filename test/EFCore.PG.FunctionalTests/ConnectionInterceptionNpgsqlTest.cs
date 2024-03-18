@@ -4,13 +4,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public abstract class ConnectionInterceptionNpgsqlTestBase : ConnectionInterceptionTestBase
+public abstract class ConnectionInterceptionNpgsqlTestBase(ConnectionInterceptionNpgsqlTestBase.InterceptionNpgsqlFixtureBase fixture)
+    : ConnectionInterceptionTestBase(fixture)
 {
-    protected ConnectionInterceptionNpgsqlTestBase(InterceptionNpgsqlFixtureBase fixture)
-        : base(fixture)
-    {
-    }
-
     [ConditionalTheory(Skip = "#2368")]
     public override Task Intercept_connection_creation_passively(bool async)
         => base.Intercept_connection_creation_passively(async);
@@ -29,8 +25,11 @@ public abstract class ConnectionInterceptionNpgsqlTestBase : ConnectionIntercept
 
     public abstract class InterceptionNpgsqlFixtureBase : InterceptionFixtureBase
     {
-        protected override string StoreName => "ConnectionInterception";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override string StoreName
+            => "ConnectionInterception";
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override IServiceCollection InjectInterceptors(
             IServiceCollection serviceCollection,
@@ -47,42 +46,54 @@ public abstract class ConnectionInterceptionNpgsqlTestBase : ConnectionIntercept
     public class FakeDbConnection : DbConnection
     {
         public override string ConnectionString { get; set; }
-        public override string Database => "Database";
-        public override string DataSource => "DataSource";
-        public override string ServerVersion => throw new NotImplementedException();
-        public override ConnectionState State => ConnectionState.Closed;
-        public override void ChangeDatabase(string databaseName) => throw new NotImplementedException();
-        public override void Close() => throw new NotImplementedException();
-        public override void Open() => throw new NotImplementedException();
-        protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => throw new NotImplementedException();
-        protected override DbCommand CreateDbCommand() => throw new NotImplementedException();
+
+        public override string Database
+            => "Database";
+
+        public override string DataSource
+            => "DataSource";
+
+        public override string ServerVersion
+            => throw new NotImplementedException();
+
+        public override ConnectionState State
+            => ConnectionState.Closed;
+
+        public override void ChangeDatabase(string databaseName)
+            => throw new NotImplementedException();
+
+        public override void Close()
+            => throw new NotImplementedException();
+
+        public override void Open()
+            => throw new NotImplementedException();
+
+        protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
+            => throw new NotImplementedException();
+
+        protected override DbCommand CreateDbCommand()
+            => throw new NotImplementedException();
     }
 
-    public class ConnectionInterceptionNpgsqlTest
-        : ConnectionInterceptionNpgsqlTestBase, IClassFixture<ConnectionInterceptionNpgsqlTest.InterceptionNpgsqlFixture>
+    public class ConnectionInterceptionNpgsqlTest(ConnectionInterceptionNpgsqlTest.InterceptionNpgsqlFixture fixture)
+        : ConnectionInterceptionNpgsqlTestBase(fixture), IClassFixture<ConnectionInterceptionNpgsqlTest.InterceptionNpgsqlFixture>
     {
-        public ConnectionInterceptionNpgsqlTest(InterceptionNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
-            protected override bool ShouldSubscribeToDiagnosticListener => false;
+            protected override bool ShouldSubscribeToDiagnosticListener
+                => false;
         }
     }
 
-    public class ConnectionInterceptionWithDiagnosticsNpgsqlTest
-        : ConnectionInterceptionNpgsqlTestBase, IClassFixture<ConnectionInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture>
+    public class ConnectionInterceptionWithDiagnosticsNpgsqlTest(
+        ConnectionInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture fixture)
+        : ConnectionInterceptionNpgsqlTestBase(fixture),
+            IClassFixture<ConnectionInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture>
     {
-        public ConnectionInterceptionWithDiagnosticsNpgsqlTest(InterceptionNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
-            protected override bool ShouldSubscribeToDiagnosticListener => true;
+            protected override bool ShouldSubscribeToDiagnosticListener
+                => true;
         }
     }
 }

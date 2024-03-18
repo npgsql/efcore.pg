@@ -1,24 +1,24 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 /// <summary>
-/// Translates methods defined on <see cref="T:System.Convert"/> into PostgreSQL CAST expressions.
+///     Translates methods defined on <see cref="T:System.Convert" /> into PostgreSQL CAST expressions.
 /// </summary>
 public class NpgsqlConvertTranslator : IMethodCallTranslator
 {
     private static readonly Dictionary<string, string> TypeMapping = new()
     {
         [nameof(Convert.ToBoolean)] = "bool",
-        [nameof(Convert.ToByte)]    = "smallint",
+        [nameof(Convert.ToByte)] = "smallint",
         [nameof(Convert.ToDecimal)] = "numeric",
-        [nameof(Convert.ToDouble)]  = "double precision",
-        [nameof(Convert.ToInt16)]   = "smallint",
-        [nameof(Convert.ToInt32)]   = "int",
-        [nameof(Convert.ToInt64)]   = "bigint",
-        [nameof(Convert.ToString)]  = "text"
+        [nameof(Convert.ToDouble)] = "double precision",
+        [nameof(Convert.ToInt16)] = "smallint",
+        [nameof(Convert.ToInt32)] = "int",
+        [nameof(Convert.ToInt64)] = "bigint",
+        [nameof(Convert.ToString)] = "text"
     };
 
-    private static readonly List<Type> SupportedTypes = new()
-    {
+    private static readonly List<Type> SupportedTypes =
+    [
         typeof(bool),
         typeof(byte),
         typeof(decimal),
@@ -28,7 +28,7 @@ public class NpgsqlConvertTranslator : IMethodCallTranslator
         typeof(long),
         typeof(short),
         typeof(string)
-    };
+    ];
 
     private static readonly List<MethodInfo> SupportedMethods
         = TypeMapping.Keys
@@ -48,7 +48,9 @@ public class NpgsqlConvertTranslator : IMethodCallTranslator
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlConvertTranslator(ISqlExpressionFactory sqlExpressionFactory)
-        => _sqlExpressionFactory = sqlExpressionFactory;
+    {
+        _sqlExpressionFactory = sqlExpressionFactory;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

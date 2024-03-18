@@ -1,6 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
 using Microsoft.EntityFrameworkCore.BulkUpdates;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
@@ -8,7 +5,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
 
 public class NonSharedModelBulkUpdatesNpgsqlTest : NonSharedModelBulkUpdatesTestBase
 {
-    protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+    protected override ITestStoreFactory TestStoreFactory
+        => NpgsqlTestStoreFactory.Instance;
 
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
@@ -19,8 +17,26 @@ public class NonSharedModelBulkUpdatesNpgsqlTest : NonSharedModelBulkUpdatesTest
         await base.Delete_aggregate_root_when_eager_loaded_owned_collection(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Owner" AS o
+""");
+    }
+
+    public override async Task Delete_with_owned_collection_and_non_natively_translatable_query(bool async)
+    {
+        await base.Delete_with_owned_collection_and_non_natively_translatable_query(async);
+
+        AssertSql(
+            """
+@__p_0='1'
+
+DELETE FROM "Owner" AS o
+WHERE o."Id" IN (
+    SELECT o0."Id"
+    FROM "Owner" AS o0
+    ORDER BY o0."Title" NULLS FIRST
+    OFFSET @__p_0
+)
 """);
     }
 
@@ -29,7 +45,7 @@ DELETE FROM "Owner" AS o
         await base.Delete_aggregate_root_when_table_sharing_with_owned(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Owner" AS o
 """);
     }
@@ -46,7 +62,7 @@ DELETE FROM "Owner" AS o
         await base.Update_non_owned_property_on_entity_with_owned(async);
 
         AssertSql(
-"""
+            """
 UPDATE "Owner" AS o
 SET "Title" = 'SomeValue'
 """);
@@ -57,7 +73,7 @@ SET "Title" = 'SomeValue'
         await base.Delete_predicate_based_on_optional_navigation(async);
 
         AssertSql(
-"""
+            """
 DELETE FROM "Posts" AS p
 WHERE p."Id" IN (
     SELECT p0."Id"
@@ -73,9 +89,22 @@ WHERE p."Id" IN (
         await base.Update_non_owned_property_on_entity_with_owned2(async);
 
         AssertSql(
-"""
+            """
 UPDATE "Owner" AS o
 SET "Title" = COALESCE(o."Title", '') || '_Suffix'
+""");
+    }
+
+    public override async Task Update_non_owned_property_on_entity_with_owned_in_join(bool async)
+    {
+        await base.Update_non_owned_property_on_entity_with_owned_in_join(async);
+
+        AssertSql(
+            """
+UPDATE "Owner" AS o
+SET "Title" = 'NewValue'
+FROM "Owner" AS o0
+WHERE o."Id" = o0."Id"
 """);
     }
 
@@ -84,7 +113,7 @@ SET "Title" = COALESCE(o."Title", '') || '_Suffix'
         await base.Update_owned_and_non_owned_properties_with_table_sharing(async);
 
         AssertSql(
-"""
+            """
 UPDATE "Owner" AS o
 SET "OwnedReference_Number" = length(o."Title")::int,
     "Title" = o."OwnedReference_Number"::text
@@ -105,7 +134,7 @@ SET "OwnedReference_Number" = length(o."Title")::int,
                     }),
             seed: context =>
             {
-                context.Set<Blog>().Add(new() { Title = "SomeBlog" });
+                context.Set<Blog>().Add(new Blog { Title = "SomeBlog" });
                 context.SaveChanges();
             });
 
@@ -117,9 +146,9 @@ SET "OwnedReference_Number" = length(o."Title")::int,
             rowsAffectedCount: 1);
 
         AssertSql(
-"""
+            """
 UPDATE "Blogs" AS b
-SET "CreationTimestamp" = TIMESTAMPTZ '2020-01-01 00:00:00Z'
+SET "CreationTimestamp" = TIMESTAMPTZ '2020-01-01T00:00:00Z'
 """);
     }
 
@@ -128,22 +157,36 @@ SET "CreationTimestamp" = TIMESTAMPTZ '2020-01-01 00:00:00Z'
         await base.Update_non_main_table_in_entity_with_entity_splitting(async);
 
         AssertSql(
-"""
+            """
 UPDATE "BlogsPart1" AS b0
 SET "Rating" = length(b0."Title")::int,
     "Title" = b0."Rating"::text
+FROM "Blogs" AS b
+WHERE b."Id" = b0."Id"
 """);
     }
 
-    public override Task Delete_entity_with_auto_include(bool async)
-        => Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => base.Delete_entity_with_auto_include(async)); // #30577
+    public override async Task Delete_entity_with_auto_include(bool async)
+    {
+        await base.Delete_entity_with_auto_include(async);
+
+        AssertSql(
+            """
+DELETE FROM "Context30572_Principal" AS c
+WHERE c."Id" IN (
+    SELECT c0."Id"
+    FROM "Context30572_Principal" AS c0
+    LEFT JOIN "Context30572_Dependent" AS c1 ON c0."DependentId" = c1."Id"
+)
+""");
+    }
 
     public override async Task Update_with_alias_uniquification_in_setter_subquery(bool async)
     {
         await base.Update_with_alias_uniquification_in_setter_subquery(async);
 
         AssertSql(
-"""
+            """
 UPDATE "Orders" AS o
 SET "Total" = (
     SELECT COALESCE(sum(o0."Amount"), 0)::int
@@ -151,6 +194,36 @@ SET "Total" = (
     WHERE o."Id" = o0."OrderId")
 WHERE o."Id" = 1
 """);
+    }
+
+    [ConditionalTheory] // #3001
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Update_with_primitive_collection_in_value_selector(bool async)
+    {
+        var contextFactory = await InitializeAsync<Context3001>(
+            seed: ctx =>
+            {
+                ctx.AddRange(new EntityWithPrimitiveCollection { Tags = ["tag1", "tag2"] });
+                ctx.SaveChanges();
+            });
+
+        await AssertUpdate(
+            async,
+            contextFactory.CreateContext,
+            ss => ss.EntitiesWithPrimitiveCollection,
+            s => s.SetProperty(x => x.Tags, x => x.Tags.Append("another_tag")),
+            rowsAffectedCount: 1);
+    }
+
+    protected class Context3001(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<EntityWithPrimitiveCollection> EntitiesWithPrimitiveCollection { get; set; }
+    }
+
+    protected class EntityWithPrimitiveCollection
+    {
+        public int Id { get; set; }
+        public List<string> Tags { get; set; }
     }
 
     private void AssertSql(params string[] expected)

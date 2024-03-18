@@ -63,6 +63,12 @@ public class PgTableValuedFunctionExpression : TableValuedFunctionExpression, IE
         WithOrdinality = withOrdinality;
     }
 
+    /// <inheritdoc />
+    protected override Expression VisitChildren(ExpressionVisitor visitor)
+        => visitor.VisitAndConvert(Arguments) is var visitedArguments && visitedArguments == Arguments
+            ? this
+            : new PgTableValuedFunctionExpression(Alias, Name, visitedArguments, ColumnInfos, WithOrdinality);
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -70,9 +76,34 @@ public class PgTableValuedFunctionExpression : TableValuedFunctionExpression, IE
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public override PgTableValuedFunctionExpression Update(IReadOnlyList<SqlExpression> arguments)
-        => !arguments.SequenceEqual(Arguments)
-            ? new PgTableValuedFunctionExpression(Alias, Name, arguments, ColumnInfos, WithOrdinality)
-            : this;
+        => arguments.SequenceEqual(Arguments, ReferenceEqualityComparer.Instance)
+            ? this
+            : new PgTableValuedFunctionExpression(Alias, Name, arguments, ColumnInfos, WithOrdinality);
+
+    /// <inheritdoc />
+    public override TableExpressionBase Clone(string? alias, ExpressionVisitor cloningExpressionVisitor)
+    {
+        var arguments = new SqlExpression[Arguments.Count];
+        for (var i = 0; i < arguments.Length; i++)
+        {
+            arguments[i] = (SqlExpression)cloningExpressionVisitor.Visit(Arguments[i]);
+        }
+
+        return new PgTableValuedFunctionExpression(Alias, Name, arguments, ColumnInfos, WithOrdinality);
+    }
+
+    /// <inheritdoc />
+    public override PgTableValuedFunctionExpression WithAlias(string newAlias)
+        => new(newAlias, Name, Arguments, ColumnInfos, WithOrdinality);
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public virtual PgTableValuedFunctionExpression WithColumnInfos(IReadOnlyList<ColumnInfo> columnInfos)
+        => new(Alias, Name, Arguments, columnInfos, WithOrdinality);
 
     /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)
@@ -137,7 +168,7 @@ public class PgTableValuedFunctionExpression : TableValuedFunctionExpression, IE
         => base.GetHashCode();
 
     /// <summary>
-    /// Defines the name of a column coming out of a <see cref="PgTableValuedFunctionExpression" /> and optionally its type.
+    ///     Defines the name of a column coming out of a <see cref="PgTableValuedFunctionExpression" /> and optionally its type.
     /// </summary>
     public readonly record struct ColumnInfo(string Name, RelationalTypeMapping? TypeMapping = null);
 }

@@ -11,10 +11,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 public class NpgsqlEvaluatableExpressionFilter : RelationalEvaluatableExpressionFilter
 {
     private static readonly MethodInfo TsQueryParse =
-        typeof(NpgsqlTsQuery).GetRuntimeMethod(nameof(NpgsqlTsQuery.Parse), new[] { typeof(string) })!;
+        typeof(NpgsqlTsQuery).GetRuntimeMethod(nameof(NpgsqlTsQuery.Parse), [typeof(string)])!;
 
     private static readonly MethodInfo TsVectorParse =
-        typeof(NpgsqlTsVector).GetRuntimeMethod(nameof(NpgsqlTsVector.Parse), new[] { typeof(string) })!;
+        typeof(NpgsqlTsVector).GetRuntimeMethod(nameof(NpgsqlTsVector.Parse), [typeof(string)])!;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

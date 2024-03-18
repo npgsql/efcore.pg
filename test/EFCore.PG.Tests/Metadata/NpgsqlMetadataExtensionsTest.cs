@@ -34,7 +34,6 @@ public class NpgsqlMetadataExtensionsTest
         Assert.Null(((IConventionProperty)property).GetColumnNameConfigurationSource());
     }
 
-
     [ConditionalFact]
     public void Can_get_and_set_column_key_name()
     {
@@ -515,7 +514,8 @@ public class NpgsqlMetadataExtensionsTest
         Assert.Equal("R", property.FindHiLoSequence().Schema);
     }
 
-    private static ModelBuilder GetModelBuilder() => NpgsqlTestHelpers.Instance.CreateConventionBuilder();
+    private static ModelBuilder GetModelBuilder()
+        => NpgsqlTestHelpers.Instance.CreateConventionBuilder();
 
     // ReSharper disable once ClassNeverInstantiated.Local
     private class Customer

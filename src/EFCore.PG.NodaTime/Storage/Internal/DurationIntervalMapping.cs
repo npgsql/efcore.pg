@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 // ReSharper disable once CheckNamespace
@@ -11,11 +13,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 /// </summary>
 public class DurationIntervalMapping : NpgsqlTypeMapping
 {
-    private static readonly MethodInfo FromDays = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromDays), new[] { typeof(int) })!;
-    private static readonly MethodInfo FromHours = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromHours), new[] { typeof(int) })!;
-    private static readonly MethodInfo FromMinutes = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMinutes), new[] { typeof(long) })!;
-    private static readonly MethodInfo FromSeconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromSeconds), new[] { typeof(long) })!;
-    private static readonly MethodInfo FromMilliseconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMilliseconds), new[] { typeof(long) })!;
+    private static readonly MethodInfo FromDays = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromDays), [typeof(int)])!;
+    private static readonly MethodInfo FromHours = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromHours), [typeof(int)])!;
+
+    private static readonly MethodInfo FromMinutes =
+        typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMinutes), [typeof(long)])!;
+
+    private static readonly MethodInfo FromSeconds =
+        typeof(Duration).GetRuntimeMethod(nameof(Duration.FromSeconds), [typeof(long)])!;
+
+    private static readonly MethodInfo FromMilliseconds = typeof(Duration).GetRuntimeMethod(
+        nameof(Duration.FromMilliseconds), [typeof(long)])!;
 
     private static readonly PropertyInfo Zero = typeof(Duration).GetProperty(nameof(Duration.Zero))!;
 
@@ -25,7 +33,18 @@ public class DurationIntervalMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public DurationIntervalMapping() : base("interval", typeof(Duration), NpgsqlDbType.Interval) {}
+    public static DurationIntervalMapping Default { get; } = new();
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public DurationIntervalMapping()
+        : base("interval", typeof(Duration), NpgsqlDbType.Interval, JsonDurationReaderWriter.Instance)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -34,7 +53,9 @@ public class DurationIntervalMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected DurationIntervalMapping(RelationalTypeMappingParameters parameters)
-        : base(parameters, NpgsqlDbType.Interval) {}
+        : base(parameters, NpgsqlDbType.Interval)
+    {
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -61,7 +82,16 @@ public class DurationIntervalMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
-        => $"INTERVAL '{NpgsqlIntervalTypeMapping.FormatTimeSpanAsInterval(((Duration)value).ToTimeSpan())}'";
+        => $"INTERVAL '{GenerateEmbeddedNonNullSqlLiteral(value)}'";
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
+        => NpgsqlIntervalTypeMapping.FormatTimeSpanAsInterval(((Duration)value).ToTimeSpan());
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -101,6 +131,18 @@ public class DurationIntervalMapping : NpgsqlTypeMapping
 
         return e ?? Expression.MakeMemberAccess(null, Zero);
 
-        void Compose(Expression toAdd) => e = e is null ? toAdd : Expression.Add(e, toAdd);
+        void Compose(Expression toAdd)
+            => e = e is null ? toAdd : Expression.Add(e, toAdd);
+    }
+
+    private sealed class JsonDurationReaderWriter : JsonValueReaderWriter<Duration>
+    {
+        public static JsonDurationReaderWriter Instance { get; } = new();
+
+        public override Duration FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+            => Duration.FromTimeSpan(NpgsqlIntervalTypeMapping.ParseIntervalAsTimeSpan(manager.CurrentReader.GetString()!));
+
+        public override void ToJsonTyped(Utf8JsonWriter writer, Duration value)
+            => writer.WriteStringValue(NpgsqlIntervalTypeMapping.FormatTimeSpanAsInterval(value.ToTimeSpan()));
     }
 }

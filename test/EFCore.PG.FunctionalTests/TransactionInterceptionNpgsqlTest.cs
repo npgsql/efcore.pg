@@ -2,17 +2,16 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public abstract class TransactionInterceptionNpgsqlTestBase : TransactionInterceptionTestBase
+public abstract class TransactionInterceptionNpgsqlTestBase(TransactionInterceptionNpgsqlTestBase.InterceptionNpgsqlFixtureBase fixture)
+    : TransactionInterceptionTestBase(fixture)
 {
-    protected TransactionInterceptionNpgsqlTestBase(InterceptionNpgsqlFixtureBase fixture)
-        : base(fixture)
-    {
-    }
-
     public abstract class InterceptionNpgsqlFixtureBase : InterceptionFixtureBase
     {
-        protected override string StoreName => "TransactionInterception";
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+        protected override string StoreName
+            => "TransactionInterception";
+
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
 
         protected override IServiceCollection InjectInterceptors(
             IServiceCollection serviceCollection,
@@ -20,31 +19,25 @@ public abstract class TransactionInterceptionNpgsqlTestBase : TransactionInterce
             => base.InjectInterceptors(serviceCollection.AddEntityFrameworkNpgsql(), injectedInterceptors);
     }
 
-    public class TransactionInterceptionNpgsqlTest
-        : TransactionInterceptionNpgsqlTestBase, IClassFixture<TransactionInterceptionNpgsqlTest.InterceptionNpgsqlFixture>
+    public class TransactionInterceptionNpgsqlTest(TransactionInterceptionNpgsqlTest.InterceptionNpgsqlFixture fixture)
+        : TransactionInterceptionNpgsqlTestBase(fixture), IClassFixture<TransactionInterceptionNpgsqlTest.InterceptionNpgsqlFixture>
     {
-        public TransactionInterceptionNpgsqlTest(InterceptionNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
-            protected override bool ShouldSubscribeToDiagnosticListener => false;
+            protected override bool ShouldSubscribeToDiagnosticListener
+                => false;
         }
     }
 
-    public class TransactionInterceptionWithDiagnosticsNpgsqlTest
-        : TransactionInterceptionNpgsqlTestBase, IClassFixture<TransactionInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture>
+    public class TransactionInterceptionWithDiagnosticsNpgsqlTest(
+        TransactionInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture fixture)
+        : TransactionInterceptionNpgsqlTestBase(fixture),
+            IClassFixture<TransactionInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture>
     {
-        public TransactionInterceptionWithDiagnosticsNpgsqlTest(InterceptionNpgsqlFixture fixture)
-            : base(fixture)
-        {
-        }
-
         public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
         {
-            protected override bool ShouldSubscribeToDiagnosticListener => true;
+            protected override bool ShouldSubscribeToDiagnosticListener
+                => true;
         }
     }
 }

@@ -2,13 +2,9 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class DataAnnotationNpgsqlTest : DataAnnotationRelationalTestBase<DataAnnotationNpgsqlTest.DataAnnotationNpgsqlFixture>
+public class DataAnnotationNpgsqlTest(DataAnnotationNpgsqlTest.DataAnnotationNpgsqlFixture fixture)
+    : DataAnnotationRelationalTestBase<DataAnnotationNpgsqlTest.DataAnnotationNpgsqlFixture>(fixture)
 {
-    public DataAnnotationNpgsqlTest(DataAnnotationNpgsqlFixture fixture)
-        : base(fixture)
-    {
-    }
-
     protected override void UseTransaction(DatabaseFacade facade, IDbContextTransaction transaction)
         => facade.UseTransaction(transaction.GetDbTransaction());
 
@@ -32,7 +28,10 @@ public class DataAnnotationNpgsqlTest : DataAnnotationRelationalTestBase<DataAnn
 
     public class DataAnnotationNpgsqlFixture : DataAnnotationRelationalFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-        public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
+        public TestSqlLoggerFactory TestSqlLoggerFactory
+            => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
     }
 }

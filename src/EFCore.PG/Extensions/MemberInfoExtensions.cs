@@ -1,6 +1,5 @@
-
-
 // ReSharper disable once CheckNamespace
+
 namespace System.Reflection;
 
 internal static class EntityFrameworkMemberInfoExtensions

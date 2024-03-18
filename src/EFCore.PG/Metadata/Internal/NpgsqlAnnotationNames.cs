@@ -31,7 +31,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string CreatedConcurrently = Prefix + "CreatedConcurrently";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -39,7 +39,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string DatabaseTemplate = Prefix + "DatabaseTemplate";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -47,7 +47,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string HiLoSequenceName = Prefix + "HiLoSequenceName";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -55,7 +55,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string HiLoSequenceSchema = Prefix + "HiLoSequenceSchema";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -63,7 +63,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string IdentityOptions = Prefix + "IdentitySequenceOptions";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -71,7 +71,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string IndexMethod = Prefix + "IndexMethod";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -79,7 +79,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string IndexOperators = Prefix + "IndexOperators";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -87,7 +87,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string IndexNullSortOrder = Prefix + "IndexNullSortOrder";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -111,7 +111,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string Tablespace = Prefix + "Tablespace";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -119,7 +119,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string TsVectorConfig = Prefix + "TsVectorConfig";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -127,7 +127,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string TsVectorProperties = Prefix + "TsVectorProperties";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -135,7 +135,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string UnloggedTable = Prefix + "UnloggedTable";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -143,7 +143,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string ValueGenerationStrategy = Prefix + "ValueGenerationStrategy";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -151,7 +151,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string SequenceNameSuffix = Prefix + "SequenceNameSuffix";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -159,7 +159,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string SequenceName = Prefix + "SequenceName";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -167,7 +167,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string SequenceSchema = Prefix + "SequenceSchema";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -175,7 +175,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string CollationDefinitionPrefix = Prefix + "CollationDefinition:";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -183,7 +183,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string EnumPrefix = Prefix + "Enum:";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -191,7 +191,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string PostgresExtensionPrefix = Prefix + "PostgresExtension:";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -199,7 +199,7 @@ public static class NpgsqlAnnotationNames
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public const string RangePrefix = Prefix + "Range:";
-    
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -211,19 +211,19 @@ public static class NpgsqlAnnotationNames
     // Database model annotations
 
     /// <summary>
-    /// Identifies the type of the PostgreSQL type of this column (e.g. array, range, base).
+    ///     Identifies the type of the PostgreSQL type of this column (e.g. array, range, base).
     /// </summary>
     public const string PostgresTypeType = Prefix + "PostgresTypeType";
 
     /// <summary>
-    /// If this column's data type is an array, contains the data type of its elements.
-    /// Otherwise null.
+    ///     If this column's data type is an array, contains the data type of its elements.
+    ///     Otherwise null.
     /// </summary>
     public const string ElementDataType = Prefix + "ElementDataType";
 
     /// <summary>
-    /// If the index contains an expression (rather than simple column references), the expression is contained here.
-    /// This is currently unsupported and will be ignored.
+    ///     If the index contains an expression (rather than simple column references), the expression is contained here.
+    ///     This is currently unsupported and will be ignored.
     /// </summary>
     public const string IndexExpression = Prefix + "IndexExpression";
 

@@ -13,10 +13,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 public class DateIntervalRangeMapping : NpgsqlTypeMapping
 {
     private static readonly ConstructorInfo _constructorWithDates =
-        typeof(DateInterval).GetConstructor(new[] { typeof(LocalDate), typeof(LocalDate) })!;
+        typeof(DateInterval).GetConstructor([typeof(LocalDate), typeof(LocalDate)])!;
 
     private static readonly ConstructorInfo _localDateConstructor =
-        typeof(LocalDate).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
+        typeof(LocalDate).GetConstructor([typeof(int), typeof(int), typeof(int)])!;
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public static DateIntervalRangeMapping Default { get; } = new();
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -90,8 +98,10 @@ public class DateIntervalRangeMapping : NpgsqlTypeMapping
         var (start, end) = (DateInterval)value;
         return Expression.New(
             _constructorWithDates,
-            Expression.New(_localDateConstructor, Expression.Constant(start.Year), Expression.Constant(start.Month), Expression.Constant(start.Day)),
-            Expression.New(_localDateConstructor, Expression.Constant(end.Year), Expression.Constant(end.Month), Expression.Constant(end.Day))
+            Expression.New(
+                _localDateConstructor, Expression.Constant(start.Year), Expression.Constant(start.Month), Expression.Constant(start.Day)),
+            Expression.New(
+                _localDateConstructor, Expression.Constant(end.Year), Expression.Constant(end.Month), Expression.Constant(end.Day))
         );
     }
 }
