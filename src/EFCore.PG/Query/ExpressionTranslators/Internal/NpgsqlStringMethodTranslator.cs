@@ -437,7 +437,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                 "to_date",
                 new[] { arguments[1], arguments[2] },
                 nullable: true,
-                argumentsPropagateNullability: new[] { true, false },
+                argumentsPropagateNullability: new[] { true, true },
                 typeof(DateOnly?),
                 _typeMappingSource.FindMapping(typeof(DateOnly?))
             );
@@ -449,7 +449,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                 "to_timestamp",
                 new[] { arguments[1], arguments[2] },
                 nullable: true,
-                argumentsPropagateNullability: new[] { true, false },
+                argumentsPropagateNullability: new[] { true, true },
                 typeof(DateTime?),
                 _typeMappingSource.FindMapping(typeof(DateTime?))
             );
