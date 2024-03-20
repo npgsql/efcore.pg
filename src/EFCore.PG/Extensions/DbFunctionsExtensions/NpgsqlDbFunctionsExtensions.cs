@@ -143,22 +143,22 @@ public static class NpgsqlDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Distance)));
 
     /// <summary>
-    /// Returns the string <paramref name="value"/> as a Date
+    ///     Converts string to date according to the given format.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
-    /// <param name="value">The string to be converted</param>
-    /// <param name="format">The format of the input date</param>
-    /// <see href="https://www.postgresql.org/docs/current/functions-formatting.html"/>
+    /// <param name="value">The string to be converted.</param>
+    /// <param name="format">The format of the input date.</param>
+    /// <see href="https://www.postgresql.org/docs/current/functions-formatting.html" />
     public static DateOnly? ToDate(this DbFunctions _, string? value, string? format)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ToDate)));
 
     /// <summary>
-    /// Returns the string <paramref name="value"/> as a timestamp
+    ///     Converts string to time stamp according to the given format.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
     /// <param name="value">The string to be converted</param>
     /// <param name="format">The format of the input date</param>
-    /// <see href="https://www.postgresql.org/docs/current/functions-formatting.html"/>
+    /// <see href="https://www.postgresql.org/docs/current/functions-formatting.html" />
     public static DateTime? ToTimestamp(this DbFunctions _, string? value, string? format)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ToTimestamp)));
 }
