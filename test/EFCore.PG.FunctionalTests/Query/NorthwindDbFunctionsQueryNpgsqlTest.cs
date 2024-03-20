@@ -251,7 +251,7 @@ WHERE to_date(o."OrderDate"::text, 'YYYY-MM-DD') < DATE '2000-01-01'
             """
 SELECT count(*)::int
 FROM "Orders" AS o
-WHERE to_timestamp(o."OrderDate"::text, 'YYYY-MM-DD') < TIMESTAMPTZ '2000-01-01 00:00:00Z'
+WHERE to_timestamp(o."OrderDate"::text, 'YYYY-MM-DD') < TIMESTAMPTZ '2000-01-01T00:00:00Z'
 """);
     }
 
