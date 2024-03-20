@@ -227,6 +227,34 @@ WHERE string_to_array(c."ContactName", ' ', 'Maria') = ARRAY[NULL,'Anders']::tex
 """);
     }
 
+    [Fact]
+    public void ToDate()
+    {
+        using var context = CreateContext();
+        var count = context.Orders.Count(c => EF.Functions.ToDate(c.OrderDate.ToString(), "YYYY-MM-DD") < new DateOnly(2000, 01, 01));
+        Assert.Equal(830, count);
+        AssertSql(
+"""
+SELECT count(*)::int
+FROM "Orders" AS o
+WHERE to_date(o."OrderDate"::text, 'YYYY-MM-DD') < DATE '2000-01-01'
+""");
+    }
+
+    [Fact]
+    public void ToTimestamp()
+    {
+        using var context = CreateContext();
+        var count = context.Orders.Count(c => EF.Functions.ToTimestamp(c.OrderDate.ToString(), "YYYY-MM-DD") < new DateTime(2000, 01, 01, 0,0,0, DateTimeKind.Utc));
+        Assert.Equal(830, count);
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "Orders" AS o
+WHERE to_timestamp(o."OrderDate"::text, 'YYYY-MM-DD') < TIMESTAMPTZ '2000-01-01T00:00:00Z'
+""");
+    }
+
     #endregion
 
     private void AssertSql(params string[] expected)

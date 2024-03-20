@@ -78,6 +78,12 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
     private static readonly MethodInfo StringToArrayNullString = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
         nameof(NpgsqlDbFunctionsExtensions.StringToArray), [typeof(DbFunctions), typeof(string), typeof(string), typeof(string)])!;
 
+    private static readonly MethodInfo ToDate = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
+        nameof(NpgsqlDbFunctionsExtensions.ToDate), [typeof(DbFunctions), typeof(string), typeof(string)])!;
+
+    private static readonly MethodInfo ToTimestamp = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
+        nameof(NpgsqlDbFunctionsExtensions.ToTimestamp), [typeof(DbFunctions), typeof(string), typeof(string)])!;
+
     private static readonly MethodInfo FirstOrDefaultMethodInfoWithoutArgs
         = typeof(Enumerable).GetRuntimeMethods().Single(
             m => m.Name == nameof(Enumerable.FirstOrDefault)
@@ -423,6 +429,30 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                 argumentsPropagateNullability: new[] { true, false, false },
                 typeof(string[]),
                 _typeMappingSource.FindMapping(typeof(string[])));
+        }
+
+        if (method == ToDate)
+        {
+            return _sqlExpressionFactory.Function(
+                "to_date",
+                new[] { arguments[1], arguments[2] },
+                nullable: true,
+                argumentsPropagateNullability: new[] { true, true },
+                typeof(DateOnly?),
+                _typeMappingSource.FindMapping(typeof(DateOnly))
+            );
+        }
+
+        if (method == ToTimestamp)
+        {
+            return _sqlExpressionFactory.Function(
+                "to_timestamp",
+                new[] { arguments[1], arguments[2] },
+                nullable: true,
+                argumentsPropagateNullability: new[] { true, true },
+                typeof(DateTime?),
+                _typeMappingSource.FindMapping(typeof(DateTime))
+            );
         }
 
         return null;
