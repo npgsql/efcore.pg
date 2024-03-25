@@ -261,7 +261,7 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
                 _sqlExpressionFactory.IsNotNull(
                     _sqlExpressionFactory.Function(
                         "array_position",
-                        new[] { array, _sqlExpressionFactory.Constant(null, item.TypeMapping) },
+                        new[] { array, _sqlExpressionFactory.Constant(null, item.Type, item.TypeMapping) },
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[2],
                         typeof(int)))));
