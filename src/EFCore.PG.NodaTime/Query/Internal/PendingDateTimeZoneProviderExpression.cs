@@ -9,6 +9,9 @@ internal class PendingDateTimeZoneProviderExpression : SqlExpression
     {
     }
 
+    public override Expression Quote()
+        => throw new UnreachableException("PendingDateTimeZoneProviderExpression is a temporary tree representation and should never be quoted");
+
     protected override void Print(ExpressionPrinter expressionPrinter)
         => expressionPrinter.Append("TZDB");
 }

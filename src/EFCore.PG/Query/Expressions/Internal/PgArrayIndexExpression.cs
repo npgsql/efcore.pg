@@ -9,6 +9,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 /// </remarks>
 public class PgArrayIndexExpression : SqlExpression, IEquatable<PgArrayIndexExpression>
 {
+    private static ConstructorInfo? _quotingConstructor;
+
     /// <summary>
     ///     The array being indexed.
     /// </summary>
@@ -74,6 +76,17 @@ public class PgArrayIndexExpression : SqlExpression, IEquatable<PgArrayIndexExpr
         => array == Array && index == Index
             ? this
             : new PgArrayIndexExpression(array, index, IsNullable, Type, TypeMapping);
+
+    /// <inheritdoc />
+    public override Expression Quote()
+        => New(
+            _quotingConstructor ??= typeof(PgArrayIndexExpression).GetConstructor(
+                [typeof(SqlExpression), typeof(SqlExpression), typeof(bool), typeof(Type), typeof(RelationalTypeMapping)])!,
+            Array.Quote(),
+            Index.Quote(),
+            Constant(IsNullable),
+            Constant(Type),
+            RelationalExpressionQuotingUtilities.QuoteTypeMapping(TypeMapping));
 
     /// <inheritdoc />
     protected override Expression VisitChildren(ExpressionVisitor visitor)

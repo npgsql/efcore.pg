@@ -5,6 +5,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 /// </summary>
 public class PgNewArrayExpression : SqlExpression
 {
+    private static ConstructorInfo? _quotingConstructor;
+
     /// <summary>
     ///     Creates a new instance of the <see cref="PgNewArrayExpression" /> class.
     /// </summary>
@@ -73,6 +75,15 @@ public class PgNewArrayExpression : SqlExpression
             ? this
             : new PgNewArrayExpression(expressions, Type, TypeMapping);
     }
+
+    /// <inheritdoc />
+    public override Expression Quote()
+        => New(
+            _quotingConstructor ??= typeof(PgNewArrayExpression).GetConstructor(
+                [typeof(IReadOnlyList<SqlExpression>), typeof(Type), typeof(RelationalTypeMapping)])!,
+            NewArrayInit(typeof(SqlExpression), initializers: Expressions.Select(a => a.Quote())),
+            Constant(Type),
+            RelationalExpressionQuotingUtilities.QuoteTypeMapping(TypeMapping));
 
     /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)

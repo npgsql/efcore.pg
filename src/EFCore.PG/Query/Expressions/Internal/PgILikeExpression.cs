@@ -6,6 +6,8 @@
 // ReSharper disable once InconsistentNaming
 public class PgILikeExpression : SqlExpression, IEquatable<PgILikeExpression>
 {
+    private static ConstructorInfo? _quotingConstructor;
+
     /// <summary>
     ///     The match expression.
     /// </summary>
@@ -59,6 +61,16 @@ public class PgILikeExpression : SqlExpression, IEquatable<PgILikeExpression>
         => match == Match && pattern == Pattern && escapeChar == EscapeChar
             ? this
             : new PgILikeExpression(match, pattern, escapeChar, TypeMapping);
+
+    /// <inheritdoc />
+    public override Expression Quote()
+        => New(
+            _quotingConstructor ??= typeof(PgILikeExpression).GetConstructor(
+                [typeof(SqlExpression), typeof(SqlExpression), typeof(SqlExpression), typeof(RelationalTypeMapping)])!,
+            Match.Quote(),
+            Pattern.Quote(),
+            RelationalExpressionQuotingUtilities.VisitOrNull(EscapeChar),
+            RelationalExpressionQuotingUtilities.QuoteTypeMapping(TypeMapping));
 
     /// <inheritdoc />
     public override bool Equals(object? obj)

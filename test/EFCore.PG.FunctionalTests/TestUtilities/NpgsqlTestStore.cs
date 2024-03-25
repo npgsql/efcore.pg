@@ -4,10 +4,12 @@ using System.Text.RegularExpressions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
+#nullable enable
+
 public class NpgsqlTestStore : RelationalTestStore
 {
-    private readonly string _scriptPath;
-    private readonly string _additionalSql;
+    private readonly string? _scriptPath;
+    private readonly string? _additionalSql;
 
     private const string Northwind = "Northwind";
 
@@ -17,55 +19,53 @@ public class NpgsqlTestStore : RelationalTestStore
 
     public static NpgsqlTestStore GetNorthwindStore()
         => (NpgsqlTestStore)NpgsqlNorthwindTestStoreFactory.Instance
-            .GetOrCreate(NpgsqlNorthwindTestStoreFactory.Name).Initialize(null, (Func<DbContext>)null);
+            .GetOrCreate(NpgsqlNorthwindTestStoreFactory.Name).Initialize(null, (Func<DbContext>?)null);
 
     // ReSharper disable once UnusedMember.Global
     public static NpgsqlTestStore GetOrCreateInitialized(string name)
-        => new NpgsqlTestStore(name).InitializeNpgsql(null, (Func<DbContext>)null, null);
+        => new NpgsqlTestStore(name).InitializeNpgsql(null, (Func<DbContext>?)null, null);
 
     public static NpgsqlTestStore GetOrCreate(
         string name,
-        string scriptPath = null,
-        string additionalSql = null,
-        string connectionStringOptions = null)
+        string? scriptPath = null,
+        string? additionalSql = null,
+        string? connectionStringOptions = null)
         => new(name, scriptPath, additionalSql, connectionStringOptions);
 
-    public static NpgsqlTestStore Create(string name, string connectionStringOptions = null)
+    public static NpgsqlTestStore Create(string name, string? connectionStringOptions = null)
         => new(name, connectionStringOptions: connectionStringOptions, shared: false);
 
     public static NpgsqlTestStore CreateInitialized(string name)
         => new NpgsqlTestStore(name, shared: false)
-            .InitializeNpgsql(null, (Func<DbContext>)null, null);
+            .InitializeNpgsql(null, (Func<DbContext>?)null, null);
 
     private NpgsqlTestStore(
         string name,
-        string scriptPath = null,
-        string additionalSql = null,
-        string connectionStringOptions = null,
+        string? scriptPath = null,
+        string? additionalSql = null,
+        string? connectionStringOptions = null,
         bool shared = true)
-        : base(name, shared)
+        : base(name, shared, CreateConnection(name, connectionStringOptions))
     {
         Name = name;
 
         if (scriptPath is not null)
         {
             // ReSharper disable once AssignNullToNotNullAttribute
-            _scriptPath = Path.Combine(Path.GetDirectoryName(typeof(NpgsqlTestStore).GetTypeInfo().Assembly.Location), scriptPath);
+            _scriptPath = Path.Combine(Path.GetDirectoryName(typeof(NpgsqlTestStore).GetTypeInfo().Assembly.Location)!, scriptPath);
         }
 
         _additionalSql = additionalSql;
-
-        // ReSharper disable VirtualMemberCallInConstructor
-        ConnectionString = CreateConnectionString(Name, connectionStringOptions);
-        Connection = new NpgsqlConnection(ConnectionString);
-        // ReSharper restore VirtualMemberCallInConstructor
     }
+
+    private static NpgsqlConnection CreateConnection(string name, string? connectionStringOptions)
+        => new(CreateConnectionString(name, connectionStringOptions));
 
     // ReSharper disable once MemberCanBePrivate.Global
     public NpgsqlTestStore InitializeNpgsql(
-        IServiceProvider serviceProvider,
-        Func<DbContext> createContext,
-        Action<DbContext> seed)
+        IServiceProvider? serviceProvider,
+        Func<DbContext>? createContext,
+        Action<DbContext>? seed)
         => (NpgsqlTestStore)Initialize(serviceProvider, createContext, seed);
 
     // ReSharper disable once UnusedMember.Global
@@ -75,7 +75,7 @@ public class NpgsqlTestStore : RelationalTestStore
         Action<DbContext> seed)
         => InitializeNpgsql(serviceProvider, () => createContext(this), seed);
 
-    protected override void Initialize(Func<DbContext> createContext, Action<DbContext> seed, Action<DbContext> clean)
+    protected override void Initialize(Func<DbContext> createContext, Action<DbContext>? seed, Action<DbContext>? clean)
     {
         if (CreateDatabase(clean))
         {
@@ -123,7 +123,7 @@ public class NpgsqlTestStore : RelationalTestStore
         return name;
     }
 
-    private bool CreateDatabase(Action<DbContext> clean)
+    private bool CreateDatabase(Action<DbContext>? clean)
     {
         using (var master = new NpgsqlConnection(CreateAdminConnectionString()))
         {
@@ -273,34 +273,34 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
         => ExecuteScalar<T>(Connection, sql, parameters);
 
     private static T ExecuteScalar<T>(DbConnection connection, string sql, params object[] parameters)
-        => Execute(connection, command => (T)command.ExecuteScalar(), sql, false, parameters);
+        => Execute(connection, command => (T)command.ExecuteScalar()!, sql, false, parameters);
 
     // ReSharper disable once UnusedMember.Global
     public Task<T> ExecuteScalarAsync<T>(string sql, params object[] parameters)
         => ExecuteScalarAsync<T>(Connection, sql, parameters);
 
-    private static Task<T> ExecuteScalarAsync<T>(DbConnection connection, string sql, object[] parameters = null)
-        => ExecuteAsync(connection, async command => (T)await command.ExecuteScalarAsync(), sql, false, parameters);
+    private static Task<T> ExecuteScalarAsync<T>(DbConnection connection, string sql, object[]? parameters = null)
+        => ExecuteAsync(connection, async command => (T)(await command.ExecuteScalarAsync())!, sql, false, parameters);
 
     // ReSharper disable once UnusedMethodReturnValue.Global
     public int ExecuteNonQuery(string sql, params object[] parameters)
         => ExecuteNonQuery(Connection, sql, parameters);
 
-    private static int ExecuteNonQuery(DbConnection connection, string sql, object[] parameters = null)
+    private static int ExecuteNonQuery(DbConnection connection, string sql, object[]? parameters = null)
         => Execute(connection, command => command.ExecuteNonQuery(), sql, false, parameters);
 
     // ReSharper disable once UnusedMember.Global
     public Task<int> ExecuteNonQueryAsync(string sql, params object[] parameters)
         => ExecuteNonQueryAsync(Connection, sql, parameters);
 
-    private static Task<int> ExecuteNonQueryAsync(DbConnection connection, string sql, object[] parameters = null)
+    private static Task<int> ExecuteNonQueryAsync(DbConnection connection, string sql, object[]? parameters = null)
         => ExecuteAsync(connection, command => command.ExecuteNonQueryAsync(), sql, false, parameters);
 
     // ReSharper disable once UnusedMember.Global
     public IEnumerable<T> Query<T>(string sql, params object[] parameters)
         => Query<T>(Connection, sql, parameters);
 
-    private static IEnumerable<T> Query<T>(DbConnection connection, string sql, object[] parameters = null)
+    private static IEnumerable<T> Query<T>(DbConnection connection, string sql, object[]? parameters = null)
         => Execute(
             connection, command =>
             {
@@ -320,7 +320,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
     public Task<IEnumerable<T>> QueryAsync<T>(string sql, params object[] parameters)
         => QueryAsync<T>(Connection, sql, parameters);
 
-    private static Task<IEnumerable<T>> QueryAsync<T>(DbConnection connection, string sql, object[] parameters = null)
+    private static Task<IEnumerable<T>> QueryAsync<T>(DbConnection connection, string sql, object[]? parameters = null)
         => ExecuteAsync(
             connection, async command =>
             {
@@ -341,7 +341,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
         Func<DbCommand, T> execute,
         string sql,
         bool useTransaction = false,
-        object[] parameters = null)
+        object[]? parameters = null)
         => ExecuteCommand(connection, execute, sql, useTransaction, parameters);
 
     private static T ExecuteCommand<T>(
@@ -349,7 +349,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
         Func<DbCommand, T> execute,
         string sql,
         bool useTransaction,
-        object[] parameters)
+        object[]? parameters)
     {
         if (connection.State != ConnectionState.Closed)
         {
@@ -388,7 +388,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
         Func<DbCommand, Task<T>> executeAsync,
         string sql,
         bool useTransaction = false,
-        IReadOnlyList<object> parameters = null)
+        IReadOnlyList<object>? parameters = null)
         => ExecuteCommandAsync(connection, executeAsync, sql, useTransaction, parameters);
 
     private static async Task<T> ExecuteCommandAsync<T>(
@@ -396,7 +396,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
         Func<DbCommand, Task<T>> executeAsync,
         string sql,
         bool useTransaction,
-        IReadOnlyList<object> parameters)
+        IReadOnlyList<object>? parameters)
     {
         if (connection.State != ConnectionState.Closed)
         {
@@ -432,7 +432,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
     private static DbCommand CreateCommand(
         DbConnection connection,
         string commandText,
-        IReadOnlyList<object> parameters = null)
+        IReadOnlyList<object>? parameters = null)
     {
         var command = (NpgsqlCommand)connection.CreateCommand();
 
@@ -450,7 +450,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
         return command;
     }
 
-    public static string CreateConnectionString(string name, string options = null)
+    public static string CreateConnectionString(string name, string? options = null)
     {
         var builder = new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection) { Database = name };
 

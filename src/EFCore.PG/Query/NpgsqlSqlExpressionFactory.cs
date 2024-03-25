@@ -540,7 +540,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
 
                     for (var i = 0; i < v.Length; i++)
                     {
-                        v[i] = Constant(constantTuple[i]);
+                        v[i] = Constant(constantTuple[i], typeof(object));
                     }
 
                     values = v;
@@ -651,7 +651,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         // If a (non-null) type mapping is being applied, it's to the element being indexed.
         // Infer the array's mapping from that.
         var (_, array) = typeMapping is not null
-            ? ApplyTypeMappingsOnItemAndArray(Constant(null, typeMapping), pgArrayIndexExpression.Array)
+            ? ApplyTypeMappingsOnItemAndArray(Constant(null, typeMapping.ClrType, typeMapping), pgArrayIndexExpression.Array)
             : (null, ApplyDefaultTypeMapping(pgArrayIndexExpression.Array));
 
         return new PgArrayIndexExpression(
