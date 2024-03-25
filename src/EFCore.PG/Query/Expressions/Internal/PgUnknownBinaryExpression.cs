@@ -9,6 +9,8 @@
 /// </summary>
 public class PgUnknownBinaryExpression : SqlExpression, IEquatable<PgUnknownBinaryExpression>
 {
+    private static ConstructorInfo? _quotingConstructor;
+
     /// <summary>
     ///     The left-hand expression.
     /// </summary>
@@ -58,6 +60,17 @@ public class PgUnknownBinaryExpression : SqlExpression, IEquatable<PgUnknownBina
         => left == Left && right == Right
             ? this
             : new PgUnknownBinaryExpression(left, right, Operator, Type, TypeMapping);
+
+    /// <inheritdoc />
+    public override Expression Quote()
+        => New(
+            _quotingConstructor ??= typeof(PgUnknownBinaryExpression).GetConstructor(
+                [typeof(SqlExpression), typeof(SqlExpression), typeof(string), typeof(Type), typeof(RelationalTypeMapping)])!,
+            Left.Quote(),
+            Right.Quote(),
+            Constant(Operator),
+            Constant(Type),
+            RelationalExpressionQuotingUtilities.QuoteTypeMapping(TypeMapping));
 
     /// <inheritdoc />
     public virtual bool Equals(PgUnknownBinaryExpression? other)
