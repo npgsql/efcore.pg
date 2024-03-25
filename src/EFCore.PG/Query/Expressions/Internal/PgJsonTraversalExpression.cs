@@ -5,6 +5,8 @@
 /// </summary>
 public class PgJsonTraversalExpression : SqlExpression, IEquatable<PgJsonTraversalExpression>
 {
+    private static ConstructorInfo? _quotingConstructor;
+
     /// <summary>
     ///     The match expression.
     /// </summary>
@@ -55,6 +57,17 @@ public class PgJsonTraversalExpression : SqlExpression, IEquatable<PgJsonTravers
         => expression == Expression && path.Count == Path.Count && path.Zip(Path, (x, y) => (x, y)).All(tup => tup.x == tup.y)
             ? this
             : new PgJsonTraversalExpression(expression, path, ReturnsText, Type, TypeMapping);
+
+    /// <inheritdoc />
+    public override Expression Quote()
+        => New(
+            _quotingConstructor ??= typeof(PgJsonTraversalExpression).GetConstructor(
+                [typeof(SqlExpression), typeof(IReadOnlyList<SqlExpression>), typeof(bool), typeof(Type), typeof(RelationalTypeMapping)])!,
+            Expression.Quote(),
+            NewArrayInit(typeof(SqlExpression), initializers: Path.Select(a => a.Quote())),
+            Constant(ReturnsText),
+            Constant(Type),
+            RelationalExpressionQuotingUtilities.QuoteTypeMapping(TypeMapping));
 
     /// <summary>
     ///     Appends an additional path component to this <see cref="PgJsonTraversalExpression" /> and returns the result.

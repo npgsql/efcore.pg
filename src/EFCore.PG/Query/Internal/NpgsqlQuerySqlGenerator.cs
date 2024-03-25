@@ -1088,8 +1088,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                     s => s switch
                     {
                         { PropertyName: string propertyName }
-                            => new SqlConstantExpression(
-                                Expression.Constant(propertyName), _textTypeMapping ??= _typeMappingSource.FindMapping(typeof(string))),
+                            => new SqlConstantExpression(propertyName, _textTypeMapping ??= _typeMappingSource.FindMapping(typeof(string))),
                         { ArrayIndex: SqlExpression arrayIndex } => arrayIndex,
                         _ => throw new UnreachableException()
                     }).ToList());

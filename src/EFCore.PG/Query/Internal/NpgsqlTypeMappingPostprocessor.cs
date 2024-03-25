@@ -1,3 +1,5 @@
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 /// <summary>
@@ -6,9 +8,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlQueryTranslationPostprocessor : RelationalQueryTranslationPostprocessor
+public class NpgsqlTypeMappingPostprocessor : RelationalTypeMappingPostprocessor
 {
-    private readonly NpgsqlSqlTreePruner _pruner = new();
+    private readonly IRelationalTypeMappingSource _typeMappingSource;
+    private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -16,12 +19,14 @@ public class NpgsqlQueryTranslationPostprocessor : RelationalQueryTranslationPos
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlQueryTranslationPostprocessor(
+    public NpgsqlTypeMappingPostprocessor(
         QueryTranslationPostprocessorDependencies dependencies,
         RelationalQueryTranslationPostprocessorDependencies relationalDependencies,
         RelationalQueryCompilationContext queryCompilationContext)
         : base(dependencies, relationalDependencies, queryCompilationContext)
     {
+        _typeMappingSource = relationalDependencies.TypeMappingSource;
+        _sqlExpressionFactory = relationalDependencies.SqlExpressionFactory;
     }
 
     /// <summary>
@@ -30,31 +35,26 @@ public class NpgsqlQueryTranslationPostprocessor : RelationalQueryTranslationPos
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override Expression Process(Expression query)
+    protected override Expression VisitExtension(Expression expression)
     {
-        var result = base.Process(query);
+        switch (expression)
+        {
+            case PgUnnestExpression unnestExpression
+                when TryGetInferredTypeMapping(unnestExpression.Alias, unnestExpression.ColumnName, out var elementTypeMapping):
+            {
+                var collectionTypeMapping = _typeMappingSource.FindMapping(unnestExpression.Array.Type, Model, elementTypeMapping);
 
-        result = new NpgsqlUnnestPostprocessor().Visit(result);
-        result = new NpgsqlSetOperationTypeResolutionCompensatingExpressionVisitor().Visit(result);
+                if (collectionTypeMapping is null)
+                {
+                    throw new InvalidOperationException(RelationalStrings.NullTypeMappingInSqlTree(expression.Print()));
+                }
 
-        return result;
+                return unnestExpression.Update(
+                    _sqlExpressionFactory.ApplyTypeMapping(unnestExpression.Array, collectionTypeMapping));
+            }
+
+            default:
+                return base.VisitExtension(expression);
+        }
     }
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    protected override Expression ProcessTypeMappings(Expression expression)
-        => new NpgsqlTypeMappingPostprocessor(Dependencies, RelationalDependencies, RelationalQueryCompilationContext).Process(expression);
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    protected override Expression Prune(Expression query)
-        => _pruner.Prune(query);
 }

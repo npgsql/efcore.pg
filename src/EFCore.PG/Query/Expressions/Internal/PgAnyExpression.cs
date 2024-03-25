@@ -11,6 +11,8 @@
 /// </remarks>
 public class PgAnyExpression : SqlExpression, IEquatable<PgAnyExpression>
 {
+    private static ConstructorInfo? _quotingConstructor;
+
     /// <inheritdoc />
     public override Type Type
         => typeof(bool);
@@ -73,6 +75,16 @@ public class PgAnyExpression : SqlExpression, IEquatable<PgAnyExpression>
         => item != Item || array != Array
             ? new PgAnyExpression(item, array, OperatorType, TypeMapping)
             : this;
+
+    /// <inheritdoc />
+    public override Expression Quote()
+        => New(
+            _quotingConstructor ??= typeof(PgAnyExpression).GetConstructor(
+                [typeof(SqlExpression), typeof(SqlExpression), typeof(PgAllOperatorType), typeof(RelationalTypeMapping)])!,
+            Item.Quote(),
+            Array.Quote(),
+            Constant(OperatorType),
+            RelationalExpressionQuotingUtilities.QuoteTypeMapping(TypeMapping));
 
     /// <inheritdoc />
     protected override Expression VisitChildren(ExpressionVisitor visitor)
