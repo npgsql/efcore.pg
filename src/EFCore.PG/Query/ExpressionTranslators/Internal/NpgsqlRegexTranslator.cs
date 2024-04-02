@@ -134,32 +134,32 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
 
         var translatedOptions = TranslateOptions(options);
 
-        if (translatedOptions.Length > 0)
+        if (translatedOptions.Length is 0)
         {
-            return _sqlExpressionFactory.Function(
-                "regexp_replace",
+            return _sqlExpressionFactory.Function("regexp_replace",
                 new[]
                 {
                     _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
                     _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping),
-                    _sqlExpressionFactory.ApplyTypeMapping(replacement, typeMapping),
-                    _sqlExpressionFactory.Constant(translatedOptions)
+                    _sqlExpressionFactory.ApplyTypeMapping(replacement, typeMapping)
                 },
                 nullable: true,
-                new[] { true, true, true, true },
+                new[] { true, true, true},
                 typeof(string),
                 _typeMappingSource.FindMapping(typeof(string)));
         }
 
-        return _sqlExpressionFactory.Function("regexp_replace",
+        return _sqlExpressionFactory.Function(
+            "regexp_replace",
             new[]
             {
                 _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
                 _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping),
-                _sqlExpressionFactory.ApplyTypeMapping(replacement, typeMapping)
+                _sqlExpressionFactory.ApplyTypeMapping(replacement, typeMapping),
+                _sqlExpressionFactory.Constant(translatedOptions)
             },
             nullable: true,
-            new[] { true, true, true},
+            new[] { true, true, true, true },
             typeof(string),
             _typeMappingSource.FindMapping(typeof(string)));
     }
