@@ -253,7 +253,7 @@ WHERE c."CompanyName" ~ '(?px)^ A'
             SELECT regexp_replace(c."CompanyName", '^A', 'B', 'p')
             FROM "Customers" AS c
             """
-            );
+        );
     }
 
     [Theory]
@@ -275,7 +275,7 @@ WHERE c."CompanyName" ~ '(?px)^ A'
             SELECT regexp_replace(c."CompanyName", @__pattern_0, @__replacement_1, 'p')
             FROM "Customers" AS c
             """
-            );
+        );
     }
 
     [Theory]
@@ -348,7 +348,8 @@ WHERE c."CompanyName" ~ '(?px)^ A'
     {
         await AssertQuery(
             async,
-            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^a", "B", RegexOptions.Singleline | RegexOptions.IgnoreCase)));
+            source => source.Set<Customer>()
+                .Select(x => Regex.Replace(x.CompanyName, "^a", "B", RegexOptions.Singleline | RegexOptions.IgnoreCase)));
 
         AssertSql(
             """
@@ -380,7 +381,7 @@ WHERE c."CompanyName" ~ '(?px)^ A'
             () => Fixture.CreateContext().Customers
                 .FirstOrDefault(x => Regex.Replace(x.CompanyName, "^A", "foo", RegexOptions.RightToLeft) != null));
 
-    [Theory]
+    [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     [MinimumPostgresVersion(15, 0)]
     public async Task Regex_Count_with_constant_pattern(bool async)
@@ -397,7 +398,7 @@ WHERE c."CompanyName" ~ '(?px)^ A'
         );
     }
 
-    [Theory]
+    [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     [MinimumPostgresVersion(15, 0)]
     public async Task Regex_Count_with_parameter_pattern(bool async)
@@ -418,7 +419,7 @@ WHERE c."CompanyName" ~ '(?px)^ A'
         );
     }
 
-    [Theory]
+    [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     [MinimumPostgresVersion(15, 0)]
     public async Task Regex_Count_with_OptionsNone(bool async)
@@ -435,7 +436,7 @@ WHERE c."CompanyName" ~ '(?px)^ A'
         );
     }
 
-    [Theory]
+    [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     [MinimumPostgresVersion(15, 0)]
     public async Task Regex_Count_with_IgnoreCase(bool async)
@@ -452,7 +453,7 @@ WHERE c."CompanyName" ~ '(?px)^ A'
         );
     }
 
-    [Theory]
+    [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     [MinimumPostgresVersion(15, 0)]
     public async Task Regex_Count_with_Multiline(bool async)
@@ -469,7 +470,7 @@ WHERE c."CompanyName" ~ '(?px)^ A'
         );
     }
 
-    [Theory]
+    [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     [MinimumPostgresVersion(15, 0)]
     public async Task Regex_Count_with_Singleline(bool async)
@@ -486,7 +487,7 @@ WHERE c."CompanyName" ~ '(?px)^ A'
         );
     }
 
-    [Theory]
+    [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     [MinimumPostgresVersion(15, 0)]
     public async Task Regex_Count_with_Singleline_and_IgnoreCase(bool async)
@@ -503,7 +504,7 @@ WHERE c."CompanyName" ~ '(?px)^ A'
         );
     }
 
-    [Theory]
+    [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     [MinimumPostgresVersion(15, 0)]
     public async Task Regex_Count_with_IgnorePatternWhitespace(bool async)
@@ -520,7 +521,7 @@ WHERE c."CompanyName" ~ '(?px)^ A'
         );
     }
 
-    [Fact]
+    [ConditionalFact]
     [MinimumPostgresVersion(15, 0)]
     public void Regex_Count_with_unsupported_option()
         => Assert.Throws<InvalidOperationException>(
