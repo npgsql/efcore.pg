@@ -146,7 +146,7 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
                     _sqlExpressionFactory.Constant(translatedOptions)
                 },
                 nullable: true,
-                new[] { true, false, false, false },
+                new[] { true, true, true, true },
                 typeof(string),
                 _typeMappingSource.FindMapping(typeof(string)));
         }
@@ -159,7 +159,7 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
                 _sqlExpressionFactory.ApplyTypeMapping(replacement, typeMapping)
             },
             nullable: true,
-            new[] { true, false, false},
+            new[] { true, true, true},
             typeof(string),
             _typeMappingSource.FindMapping(typeof(string)));
     }
@@ -209,8 +209,8 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
                     _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping)
                 },
                 nullable: true,
-                new[] { true, false },
-                typeof(int),
+                new[] { true, true },
+                typeof(int?),
                 _typeMappingSource.FindMapping(typeof(int)));
         }
 
@@ -225,8 +225,8 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
                 _sqlExpressionFactory.Constant(translatedOptions)
             },
             nullable: true,
-            new[] { true, false, false, false },
-            typeof(int),
+            new[] { true, true, true, true },
+            typeof(int?),
             _typeMappingSource.FindMapping(typeof(int)));
     }
 
