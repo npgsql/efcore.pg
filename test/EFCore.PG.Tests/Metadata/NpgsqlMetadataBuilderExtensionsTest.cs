@@ -76,24 +76,6 @@ public class NpgsqlInternalMetadataBuilderExtensionsTest
     }
 
     [ConditionalFact]
-    public void Throws_setting_sequence_generation_for_invalid_type()
-    {
-        var propertyBuilder = CreateBuilder()
-            .Entity(typeof(Splot))
-            .Property(typeof(string), "Name");
-
-        Assert.Equal(
-            NpgsqlStrings.SequenceBadType("Name", nameof(Splot), "string"),
-            Assert.Throws<ArgumentException>(
-                () => propertyBuilder.HasValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo)).Message);
-
-        Assert.Equal(
-            NpgsqlStrings.SequenceBadType("Name", nameof(Splot), "string"),
-            Assert.Throws<ArgumentException>(
-                () => new PropertyBuilder((IMutableProperty)propertyBuilder.Metadata).UseHiLo()).Message);
-    }
-
-    [ConditionalFact]
     public void Can_access_index()
     {
         var modelBuilder = CreateBuilder();

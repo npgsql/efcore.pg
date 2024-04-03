@@ -103,6 +103,55 @@ public class NpgsqlModelValidator : RelationalModelValidator
         }
     }
 
+    /// <inheritdoc/>
+    protected override void ValidateTypeMappings(
+        IModel model,
+        IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
+    {
+        base.ValidateTypeMappings(model, logger);
+
+        foreach (var entityType in model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetFlattenedDeclaredProperties())
+            {
+                var strategy = property.GetValueGenerationStrategy();
+                var propertyType = property.ClrType;
+
+                switch (strategy)
+                {
+                    case NpgsqlValueGenerationStrategy.None:
+                        break;
+
+                    case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
+                    case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
+                        if (!NpgsqlPropertyExtensions.IsCompatibleWithValueGeneration(property))
+                        {
+                            throw new InvalidOperationException(
+                                NpgsqlStrings.IdentityBadType(
+                                    property.Name, property.DeclaringType.DisplayName(), propertyType.ShortDisplayName()));
+                        }
+
+                        break;
+
+                    case NpgsqlValueGenerationStrategy.SequenceHiLo:
+                    case NpgsqlValueGenerationStrategy.Sequence:
+                    case NpgsqlValueGenerationStrategy.SerialColumn:
+                        if (!NpgsqlPropertyExtensions.IsCompatibleWithValueGeneration(property))
+                        {
+                            throw new InvalidOperationException(
+                                NpgsqlStrings.SequenceBadType(
+                                    property.Name, property.DeclaringType.DisplayName(), propertyType.ShortDisplayName()));
+                        }
+
+                        break;
+
+                    default:
+                        throw new UnreachableException();
+                }
+            }
+        }
+    }
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in

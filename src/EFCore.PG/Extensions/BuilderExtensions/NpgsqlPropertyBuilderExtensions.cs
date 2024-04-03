@@ -426,6 +426,26 @@ public static class NpgsqlPropertyBuilderExtensions
     }
 
     /// <summary>
+    ///     Returns a value indicating whether the given value can be set as the value generation strategy for a particular table.
+    /// </summary>
+    /// <param name="propertyBuilder">The builder for the property being configured.</param>
+    /// <param name="valueGenerationStrategy">The value generation strategy.</param>
+    /// <param name="storeObject">The table identifier.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <returns><see langword="true" /> if the given value can be set as the default value generation strategy.</returns>
+    public static bool CanSetValueGenerationStrategy(
+        this IConventionPropertyBuilder propertyBuilder,
+        NpgsqlValueGenerationStrategy? valueGenerationStrategy,
+        in StoreObjectIdentifier storeObject,
+        bool fromDataAnnotation = false)
+        => propertyBuilder.Metadata.FindOverrides(storeObject)?.Builder
+                .CanSetAnnotation(
+                    NpgsqlAnnotationNames.ValueGenerationStrategy,
+                    valueGenerationStrategy,
+                    fromDataAnnotation)
+            ?? true;
+
+    /// <summary>
     ///     Returns a value indicating whether the given value can be set as the value generation strategy.
     /// </summary>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
@@ -436,14 +456,8 @@ public static class NpgsqlPropertyBuilderExtensions
         this IConventionPropertyBuilder propertyBuilder,
         NpgsqlValueGenerationStrategy? valueGenerationStrategy,
         bool fromDataAnnotation = false)
-    {
-        Check.NotNull(propertyBuilder, nameof(propertyBuilder));
-
-        return (valueGenerationStrategy is null
-                || NpgsqlPropertyExtensions.IsCompatibleWithValueGeneration(propertyBuilder.Metadata))
-            && propertyBuilder.CanSetAnnotation(
-                NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy, fromDataAnnotation);
-    }
+        => propertyBuilder.CanSetAnnotation(
+            NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy, fromDataAnnotation);
 
     #endregion General value generation strategy
 
