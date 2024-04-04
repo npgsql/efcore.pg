@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -18,8 +19,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     private readonly RelationalQueryCompilationContext _queryCompilationContext;
     private readonly NpgsqlTypeMappingSource _typeMappingSource;
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+    private readonly bool _isRedshift;
     private RelationalTypeMapping? _ordinalityTypeMapping;
-
 
     #region MethodInfos
 
@@ -46,12 +47,14 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     public NpgsqlQueryableMethodTranslatingExpressionVisitor(
         QueryableMethodTranslatingExpressionVisitorDependencies dependencies,
         RelationalQueryableMethodTranslatingExpressionVisitorDependencies relationalDependencies,
-        RelationalQueryCompilationContext queryCompilationContext)
+        RelationalQueryCompilationContext queryCompilationContext,
+        INpgsqlSingletonOptions npgsqlSingletonOptions)
         : base(dependencies, relationalDependencies, queryCompilationContext)
     {
         _queryCompilationContext = queryCompilationContext;
         _typeMappingSource = (NpgsqlTypeMappingSource)relationalDependencies.TypeMappingSource;
         _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)relationalDependencies.SqlExpressionFactory;
+        _isRedshift = npgsqlSingletonOptions.UseRedshift;
     }
 
     /// <summary>
@@ -66,6 +69,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         _queryCompilationContext = parentVisitor._queryCompilationContext;
         _typeMappingSource = parentVisitor._typeMappingSource;
         _sqlExpressionFactory = parentVisitor._sqlExpressionFactory;
+        _isRedshift = parentVisitor._isRedshift;
     }
 
     /// <summary>
@@ -83,11 +87,18 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected override ShapedQueryExpression TranslatePrimitiveCollection(
+    protected override ShapedQueryExpression? TranslatePrimitiveCollection(
         SqlExpression sqlExpression,
         IProperty? property,
         string tableAlias)
     {
+        if (_isRedshift)
+        {
+            AddTranslationErrorDetails("Redshift does not support unnest, which is required for most forms of querying of JSON arrays.");
+
+            return null;
+        }
+
         var elementClrType = sqlExpression.Type.GetSequenceType();
         var elementTypeMapping = (RelationalTypeMapping?)sqlExpression.TypeMapping?.ElementTypeMapping;
 
