@@ -7,6 +7,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 /// </summary>
 public class PgBinaryExpression : SqlExpression
 {
+    private static ConstructorInfo? _quotingConstructor;
+
     /// <summary>
     ///     Creates a new instance of the <see cref="PgBinaryExpression" /> class.
     /// </summary>
@@ -73,6 +75,17 @@ public class PgBinaryExpression : SqlExpression
             ? new PgBinaryExpression(OperatorType, left, right, Type, TypeMapping)
             : this;
     }
+
+    /// <inheritdoc />
+    public override Expression Quote()
+        => New(
+            _quotingConstructor ??= typeof(PgBinaryExpression).GetConstructor(
+                [typeof(PgExpressionType), typeof(SqlExpression), typeof(SqlExpression), typeof(Type), typeof(RelationalTypeMapping)])!,
+            Constant(OperatorType),
+            Left.Quote(),
+            Right.Quote(),
+            Constant(Type),
+            RelationalExpressionQuotingUtilities.QuoteTypeMapping(TypeMapping));
 
     /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)

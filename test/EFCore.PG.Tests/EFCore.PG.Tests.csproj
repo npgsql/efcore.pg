@@ -18,6 +18,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Npgsql.DependencyInjection" />
+
+    <!-- Needed to override xunit dependencies from EFCore projects on versions which aren't available on nuget.org -->
+    <PackageReference Include="xunit.assert" />
+    <PackageReference Include="xunit.core" />
   </ItemGroup>
 
 </Project>

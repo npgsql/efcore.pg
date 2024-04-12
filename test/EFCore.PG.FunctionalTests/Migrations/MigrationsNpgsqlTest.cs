@@ -391,40 +391,35 @@ CREATE UNLOGGED TABLE "People" (
     {
         await base.Drop_table();
 
-        AssertSql(
-            @"DROP TABLE ""People"";");
+        AssertSql("""DROP TABLE "People";""");
     }
 
     public override async Task Alter_table_add_comment()
     {
         await base.Alter_table_add_comment();
 
-        AssertSql(
-            @"COMMENT ON TABLE ""People"" IS 'Table comment';");
+        AssertSql("""COMMENT ON TABLE "People" IS 'Table comment';""");
     }
 
     public override async Task Alter_table_add_comment_non_default_schema()
     {
         await base.Alter_table_add_comment_non_default_schema();
 
-        AssertSql(
-            @"COMMENT ON TABLE ""SomeOtherSchema"".""People"" IS 'Table comment';");
+        AssertSql("""COMMENT ON TABLE "SomeOtherSchema"."People" IS 'Table comment';""");
     }
 
     public override async Task Alter_table_change_comment()
     {
         await base.Alter_table_change_comment();
 
-        AssertSql(
-            @"COMMENT ON TABLE ""People"" IS 'Table comment2';");
+        AssertSql("""COMMENT ON TABLE "People" IS 'Table comment2';""");
     }
 
     public override async Task Alter_table_remove_comment()
     {
         await base.Alter_table_remove_comment();
 
-        AssertSql(
-            @"COMMENT ON TABLE ""People"" IS NULL;");
+        AssertSql("""COMMENT ON TABLE "People" IS NULL;""");
     }
 
     [Fact]
@@ -478,8 +473,7 @@ ALTER TABLE "People" RESET (user_catalog_table);
             builder => builder.Entity("People").IsUnlogged(),
             asserter: null); // We don't scaffold unlogged
 
-        AssertSql(
-            @"ALTER TABLE ""People"" SET UNLOGGED;");
+        AssertSql("""ALTER TABLE "People" SET UNLOGGED;""");
     }
 
     [Fact]
@@ -496,8 +490,7 @@ ALTER TABLE "People" RESET (user_catalog_table);
             _ => { },
             asserter: null); // We don't scaffold unlogged
 
-        AssertSql(
-            @"ALTER TABLE ""People"" SET LOGGED;");
+        AssertSql("""ALTER TABLE "People" SET LOGGED;""");
     }
 
     public override async Task Rename_table()
@@ -505,11 +498,11 @@ ALTER TABLE "People" RESET (user_catalog_table);
         await base.Rename_table();
 
         AssertSql(
-            @"ALTER TABLE ""People"" DROP CONSTRAINT ""PK_People"";",
+            """ALTER TABLE "People" DROP CONSTRAINT "PK_People";""",
             //
-            @"ALTER TABLE ""People"" RENAME TO ""Persons"";",
+            """ALTER TABLE "People" RENAME TO "Persons";""",
             //
-            @"ALTER TABLE ""Persons"" ADD CONSTRAINT ""PK_Persons"" PRIMARY KEY (""Id"");");
+            """ALTER TABLE "Persons" ADD CONSTRAINT "PK_Persons" PRIMARY KEY ("Id");""");
     }
 
     public override async Task Rename_table_with_primary_key()
@@ -517,11 +510,11 @@ ALTER TABLE "People" RESET (user_catalog_table);
         await base.Rename_table_with_primary_key();
 
         AssertSql(
-            @"ALTER TABLE ""People"" DROP CONSTRAINT ""PK_People"";",
+            """ALTER TABLE "People" DROP CONSTRAINT "PK_People";""",
             //
-            @"ALTER TABLE ""People"" RENAME TO ""Persons"";",
+            """ALTER TABLE "People" RENAME TO "Persons";""",
             //
-            @"ALTER TABLE ""Persons"" ADD CONSTRAINT ""PK_Persons"" PRIMARY KEY (""Id"");");
+            """ALTER TABLE "Persons" ADD CONSTRAINT "PK_Persons" PRIMARY KEY ("Id");""");
     }
 
     public override async Task Move_table()
@@ -594,8 +587,7 @@ CREATE TABLE public."People" (
     {
         await base.Add_column_with_defaultValue_string();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""Name"" text NOT NULL DEFAULT 'John Doe';");
+        AssertSql("""ALTER TABLE "People" ADD "Name" text NOT NULL DEFAULT 'John Doe';""");
     }
 
     public override async Task Add_column_with_defaultValue_datetime()
@@ -614,8 +606,7 @@ CREATE TABLE public."People" (
                 Assert.False(birthdayColumn.IsNullable);
             });
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""Birthday"" timestamp with time zone NOT NULL DEFAULT TIMESTAMPTZ '2015-04-12T17:05:00Z';");
+        AssertSql("""ALTER TABLE "People" ADD "Birthday" timestamp with time zone NOT NULL DEFAULT TIMESTAMPTZ '2015-04-12T17:05:00Z';""");
     }
 
     [Fact]
@@ -623,8 +614,7 @@ CREATE TABLE public."People" (
     {
         await base.Add_column_with_defaultValueSql();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""Sum"" integer NOT NULL DEFAULT (1 + 2);");
+        AssertSql("""ALTER TABLE "People" ADD "Sum" integer NOT NULL DEFAULT (1 + 2);""");
     }
 
     public override async Task Add_column_with_computedSql(bool? stored)
@@ -644,40 +634,35 @@ CREATE TABLE public."People" (
 
         await base.Add_column_with_computedSql(stored: true);
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""Sum"" text GENERATED ALWAYS AS (""X"" + ""Y"") STORED;");
+        AssertSql("""ALTER TABLE "People" ADD "Sum" text GENERATED ALWAYS AS ("X" + "Y") STORED;""");
     }
 
     public override async Task Add_column_with_required()
     {
         await base.Add_column_with_required();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""Name"" text NOT NULL DEFAULT '';");
+        AssertSql("""ALTER TABLE "People" ADD "Name" text NOT NULL DEFAULT '';""");
     }
 
     public override async Task Add_column_with_ansi()
     {
         await base.Add_column_with_ansi();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""Name"" text;");
+        AssertSql("""ALTER TABLE "People" ADD "Name" text;""");
     }
 
     public override async Task Add_column_with_max_length()
     {
         await base.Add_column_with_max_length();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""Name"" character varying(30);");
+        AssertSql("""ALTER TABLE "People" ADD "Name" character varying(30);""");
     }
 
     public override async Task Add_column_with_unbounded_max_length()
     {
         await base.Add_column_with_unbounded_max_length();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""Name"" text;");
+        AssertSql("""ALTER TABLE "People" ADD "Name" text;""");
     }
 
     public override async Task Add_column_with_max_length_on_derived()
@@ -691,7 +676,7 @@ CREATE TABLE public."People" (
     {
         await base.Add_column_with_fixed_length();
 
-        AssertSql(@"ALTER TABLE ""People"" ADD ""Name"" character(100);");
+        AssertSql("""ALTER TABLE "People" ADD "Name" character(100);""");
     }
 
     public override async Task Add_column_with_comment()
@@ -709,8 +694,7 @@ COMMENT ON COLUMN "People"."FullName" IS 'My comment';
     {
         await base.Add_column_with_collation();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""POSIX"";");
+        AssertSql("""ALTER TABLE "People" ADD "Name" text COLLATE "POSIX";""");
     }
 
     public override async Task Add_column_computed_with_collation(bool stored)
@@ -730,8 +714,7 @@ COMMENT ON COLUMN "People"."FullName" IS 'My comment';
 
         await base.Add_column_computed_with_collation(stored);
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""POSIX"" GENERATED ALWAYS AS ('hello') STORED;");
+        AssertSql("""ALTER TABLE "People" ADD "Name" text COLLATE "POSIX" GENERATED ALWAYS AS ('hello') STORED;""");
     }
 
 #pragma warning disable CS0618
@@ -754,8 +737,7 @@ COMMENT ON COLUMN "People"."FullName" IS 'My comment';
                 Assert.Equal("POSIX", nameColumn.Collation);
             });
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""POSIX"";");
+        AssertSql("""ALTER TABLE "People" ADD "Name" text COLLATE "POSIX";""");
     }
 
     [ConditionalFact]
@@ -778,8 +760,7 @@ COMMENT ON COLUMN "People"."FullName" IS 'My comment';
                 Assert.Equal("C", nameColumn.Collation);
             });
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""C"";");
+        AssertSql("""ALTER TABLE "People" ADD "Name" text COLLATE "C";""");
     }
 #pragma warning restore CS0618
 
@@ -834,8 +815,7 @@ CREATE TABLE "People" (
                 Assert.Null(column[NpgsqlAnnotationNames.IdentityOptions]);
             });
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""SomeColumn"" integer GENERATED BY DEFAULT AS IDENTITY;");
+        AssertSql("""ALTER TABLE "People" ADD "SomeColumn" integer GENERATED BY DEFAULT AS IDENTITY;""");
     }
 
     [Fact]
@@ -859,8 +839,7 @@ CREATE TABLE "People" (
                 Assert.Null(column[NpgsqlAnnotationNames.IdentityOptions]);
             });
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""SomeColumn"" integer GENERATED ALWAYS AS IDENTITY;");
+        AssertSql("""ALTER TABLE "People" ADD "SomeColumn" integer GENERATED ALWAYS AS IDENTITY;""");
     }
 
     [Fact]
@@ -898,7 +877,9 @@ CREATE TABLE "People" (
             });
 
         AssertSql(
-            @"ALTER TABLE ""People"" ADD ""SomeColumn"" integer GENERATED BY DEFAULT AS IDENTITY (START WITH 5 INCREMENT BY 2 MINVALUE 3 MAXVALUE 2000 CYCLE CACHE 10);");
+            """
+ALTER TABLE "People" ADD "SomeColumn" integer GENERATED BY DEFAULT AS IDENTITY (START WITH 5 INCREMENT BY 2 MINVALUE 3 MAXVALUE 2000 CYCLE CACHE 10);
+""");
     }
 
     [Fact]
@@ -935,8 +916,7 @@ CREATE TABLE "People" (
                 Assert.Null(column[NpgsqlAnnotationNames.IdentityOptions]);
             });
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""SomeColumn"" serial NOT NULL;");
+        AssertSql("""ALTER TABLE "People" ADD "SomeColumn" serial NOT NULL;""");
     }
 
     [Fact]
@@ -960,8 +940,7 @@ CREATE TABLE "People" (
                 Assert.Null(column[NpgsqlAnnotationNames.IdentityOptions]);
             });
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""SomeColumn"" integer GENERATED BY DEFAULT AS IDENTITY;");
+        AssertSql("""ALTER TABLE "People" ADD "SomeColumn" integer GENERATED BY DEFAULT AS IDENTITY;""");
     }
 
     [Fact]
@@ -1008,8 +987,7 @@ CREATE TABLE "People" (
                 Assert.Equal("text", column.StoreType);
             });
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD ""Name"" text;");
+        AssertSql("""ALTER TABLE "People" ADD "Name" text;""");
     }
 
     [Fact]
@@ -1031,20 +1009,14 @@ CREATE TABLE "People" (
                 Assert.Equal("pglz", column[NpgsqlAnnotationNames.CompressionMethod]);
             });
 
-        AssertSql(
-            """
-ALTER TABLE "Blogs" ADD "Title" text COMPRESSION pglz;
-""");
+        AssertSql("""ALTER TABLE "Blogs" ADD "Title" text COMPRESSION pglz;""");
     }
 
     public override async Task Alter_column_change_type()
     {
         await base.Alter_column_change_type();
 
-        AssertSql(
-            """
-ALTER TABLE "People" ALTER COLUMN "SomeColumn" TYPE bigint;
-""");
+        AssertSql("""ALTER TABLE "People" ALTER COLUMN "SomeColumn" TYPE bigint;""");
     }
 
     public override async Task Alter_column_make_required()
@@ -1113,9 +1085,9 @@ ALTER TABLE "People" ALTER COLUMN "FirstName" SET DEFAULT '';
         await base.Alter_column_make_computed(stored);
 
         AssertSql(
-            @"ALTER TABLE ""People"" DROP COLUMN ""Sum"";",
+            """ALTER TABLE "People" DROP COLUMN "Sum";""",
             //
-            @"ALTER TABLE ""People"" ADD ""Sum"" integer GENERATED ALWAYS AS (""X"" + ""Y"") STORED NOT NULL;");
+            """ALTER TABLE "People" ADD "Sum" integer GENERATED ALWAYS AS ("X" + "Y") STORED NOT NULL;""");
     }
 
     public override async Task Alter_column_change_computed()
@@ -1150,9 +1122,9 @@ ALTER TABLE "People" ALTER COLUMN "FirstName" SET DEFAULT '';
             });
 
         AssertSql(
-            @"ALTER TABLE ""People"" DROP COLUMN ""Sum"";",
+            """ALTER TABLE "People" DROP COLUMN "Sum";""",
             //
-            @"ALTER TABLE ""People"" ADD ""Sum"" integer GENERATED ALWAYS AS (""X"" - ""Y"") STORED NOT NULL;");
+            """ALTER TABLE "People" ADD "Sum" integer GENERATED ALWAYS AS ("X" - "Y") STORED NOT NULL;""");
     }
 
     public override async Task Alter_column_change_computed_recreates_indexes()
@@ -1195,11 +1167,11 @@ ALTER TABLE "People" ALTER COLUMN "FirstName" SET DEFAULT '';
             });
 
         AssertSql(
-            @"ALTER TABLE ""People"" DROP COLUMN ""Sum"";",
+            """ALTER TABLE "People" DROP COLUMN "Sum";""",
             //
-            @"ALTER TABLE ""People"" ADD ""Sum"" integer GENERATED ALWAYS AS (""X"" - ""Y"") STORED NOT NULL;",
+            """ALTER TABLE "People" ADD "Sum" integer GENERATED ALWAYS AS ("X" - "Y") STORED NOT NULL;""",
             //
-            @"CREATE INDEX ""IX_People_Sum"" ON ""People"" (""Sum"");");
+            """CREATE INDEX "IX_People_Sum" ON "People" ("Sum");""");
     }
 
     public override Task Alter_column_change_computed_type()
@@ -1233,17 +1205,16 @@ ALTER TABLE "People" ALTER COLUMN "FirstName" SET DEFAULT '';
             });
 
         AssertSql(
-            @"ALTER TABLE ""People"" DROP COLUMN ""Sum"";",
+            """ALTER TABLE "People" DROP COLUMN "Sum";""",
             //
-            @"ALTER TABLE ""People"" ADD ""Sum"" integer NOT NULL;");
+            """ALTER TABLE "People" ADD "Sum" integer NOT NULL;""");
     }
 
     public override async Task Alter_column_add_comment()
     {
         await base.Alter_column_add_comment();
 
-        AssertSql(
-            @"COMMENT ON COLUMN ""People"".""Id"" IS 'Some comment';");
+        AssertSql("""COMMENT ON COLUMN "People"."Id" IS 'Some comment';""");
     }
 
     public override async Task Alter_computed_column_add_comment()
@@ -1273,16 +1244,14 @@ ALTER TABLE "People" ALTER COLUMN "FirstName" SET DEFAULT '';
                 }
             });
 
-        AssertSql(
-            @"COMMENT ON COLUMN ""People"".""SomeColumn"" IS 'Some comment';");
+        AssertSql("""COMMENT ON COLUMN "People"."SomeColumn" IS 'Some comment';""");
     }
 
     public override async Task Alter_column_change_comment()
     {
         await base.Alter_column_change_comment();
 
-        AssertSql(
-            @"COMMENT ON COLUMN ""People"".""Id"" IS 'Some comment2';");
+        AssertSql("""COMMENT ON COLUMN "People"."Id" IS 'Some comment2';""");
     }
 
     public override async Task Alter_column_remove_comment()
@@ -1290,7 +1259,7 @@ ALTER TABLE "People" ALTER COLUMN "FirstName" SET DEFAULT '';
         await base.Alter_column_remove_comment();
 
         AssertSql(
-            @"COMMENT ON COLUMN ""People"".""Id"" IS NULL;");
+            """COMMENT ON COLUMN "People"."Id" IS NULL;""");
     }
 
     [Fact]
@@ -1337,8 +1306,7 @@ ALTER TABLE "People" ALTER COLUMN "Id" ADD GENERATED BY DEFAULT AS IDENTITY;
                 Assert.Null(column[NpgsqlAnnotationNames.IdentityOptions]);
             });
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET GENERATED ALWAYS;");
+        AssertSql("""ALTER TABLE "People" ALTER COLUMN "Id" SET GENERATED ALWAYS;""");
     }
 
     [Fact]
@@ -1610,7 +1578,7 @@ ALTER SEQUENCE "People_Id_seq" OWNED BY "People"."Id";
             });
 
         AssertSql(
-            @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET GENERATED ALWAYS;");
+            """ALTER TABLE "People" ALTER COLUMN "Id" SET GENERATED ALWAYS;""");
     }
 
     [Fact]
@@ -1668,8 +1636,7 @@ DROP SEQUENCE "People_Id_old_seq";
                 Assert.Null(column[NpgsqlAnnotationNames.IdentityOptions]);
             });
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE bigint;");
+        AssertSql("""ALTER TABLE "People" ALTER COLUMN "Id" TYPE bigint;""");
     }
 
     [Fact]
@@ -1693,8 +1660,7 @@ DROP SEQUENCE "People_Id_old_seq";
                 Assert.Equal(10, options.StartValue); // Restarting doesn't change the scaffolded start value
             });
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" RESTART WITH 20;");
+        AssertSql("""ALTER TABLE "People" ALTER COLUMN "Id" RESTART WITH 20;""");
     }
 
     [Fact]
@@ -1702,8 +1668,7 @@ DROP SEQUENCE "People_Id_old_seq";
     {
         await base.Alter_column_set_collation();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""POSIX"";");
+        AssertSql("""ALTER TABLE "People" ALTER COLUMN "Name" TYPE text COLLATE "POSIX";""");
     }
 
     [Fact]
@@ -1711,8 +1676,7 @@ DROP SEQUENCE "People_Id_old_seq";
     {
         await base.Alter_column_reset_collation();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""default"";");
+        AssertSql("""ALTER TABLE "People" ALTER COLUMN "Name" TYPE text COLLATE "default";""");
     }
 
     public override async Task Convert_string_column_to_a_json_column_containing_reference()
@@ -1759,8 +1723,7 @@ DROP SEQUENCE "People_Id_old_seq";
                 // Assert.Equal("C", nameColumn.Collation);
             });
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""C"";");
+        AssertSql("""ALTER TABLE "People" ALTER COLUMN "Name" TYPE text COLLATE "C";""");
     }
 #pragma warning restore CS0618
 
@@ -1789,8 +1752,7 @@ DROP SEQUENCE "People_Id_old_seq";
                 Assert.Equal(NonDefaultCollation, computedColumn.Collation);
             });
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ALTER COLUMN ""Name2"" TYPE text COLLATE ""POSIX"";");
+        AssertSql("""ALTER TABLE "People" ALTER COLUMN "Name2" TYPE text COLLATE "POSIX";""");
     }
 
     [Fact]
@@ -1812,8 +1774,7 @@ DROP SEQUENCE "People_Id_old_seq";
                 Assert.Equal("pglz", column[NpgsqlAnnotationNames.CompressionMethod]);
             });
 
-        AssertSql(
-            @"ALTER TABLE ""Blogs"" ALTER COLUMN ""Title"" SET COMPRESSION pglz");
+        AssertSql("""ALTER TABLE "Blogs" ALTER COLUMN "Title" SET COMPRESSION pglz""");
     }
 
     [Fact]
@@ -1835,16 +1796,14 @@ DROP SEQUENCE "People_Id_old_seq";
                 Assert.Null(column[NpgsqlAnnotationNames.CompressionMethod]);
             });
 
-        AssertSql(
-            @"ALTER TABLE ""Blogs"" ALTER COLUMN ""Title"" SET COMPRESSION default");
+        AssertSql("""ALTER TABLE "Blogs" ALTER COLUMN "Title" SET COMPRESSION default""");
     }
 
     public override async Task Drop_column()
     {
         await base.Drop_column();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" DROP COLUMN ""SomeColumn"";");
+        AssertSql("""ALTER TABLE "People" DROP COLUMN "SomeColumn";""");
     }
 
     public override async Task Drop_column_primary_key()
@@ -1852,9 +1811,9 @@ DROP SEQUENCE "People_Id_old_seq";
         await base.Drop_column_primary_key();
 
         AssertSql(
-            @"ALTER TABLE ""People"" DROP CONSTRAINT ""PK_People"";",
+            """ALTER TABLE "People" DROP CONSTRAINT "PK_People";""",
             //
-            @"ALTER TABLE ""People"" DROP COLUMN ""Id"";");
+            """ALTER TABLE "People" DROP COLUMN "Id";""");
     }
 
     public override async Task Drop_column_computed_and_non_computed_with_dependency()
@@ -1880,9 +1839,9 @@ DROP SEQUENCE "People_Id_old_seq";
             });
 
         AssertSql(
-            @"ALTER TABLE ""People"" DROP COLUMN ""Y"";",
+            """ALTER TABLE "People" DROP COLUMN "Y";""",
             //
-            @"ALTER TABLE ""People"" DROP COLUMN ""X"";");
+            """ALTER TABLE "People" DROP COLUMN "X";""");
     }
 
     [Fact]
@@ -1918,8 +1877,7 @@ DROP SEQUENCE "People_Id_old_seq";
     {
         await base.Rename_column();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" RENAME COLUMN ""SomeColumn"" TO ""SomeOtherColumn"";");
+        AssertSql("""ALTER TABLE "People" RENAME COLUMN "SomeColumn" TO "SomeOtherColumn";""");
     }
 
     #endregion
@@ -1930,24 +1888,21 @@ DROP SEQUENCE "People_Id_old_seq";
     {
         await base.Create_index_unique();
 
-        AssertSql(
-            @"CREATE UNIQUE INDEX ""IX_People_FirstName_LastName"" ON ""People"" (""FirstName"", ""LastName"");");
+        AssertSql("""CREATE UNIQUE INDEX "IX_People_FirstName_LastName" ON "People" ("FirstName", "LastName");""");
     }
 
     public override async Task Create_index_descending()
     {
         await base.Create_index_descending();
 
-        AssertSql(
-            @"CREATE INDEX ""IX_People_X"" ON ""People"" (""X"" DESC);");
+        AssertSql("""CREATE INDEX "IX_People_X" ON "People" ("X" DESC);""");
     }
 
     public override async Task Create_index_descending_mixed()
     {
         await base.Create_index_descending_mixed();
 
-        AssertSql(
-            @"CREATE INDEX ""IX_People_X_Y_Z"" ON ""People"" (""X"", ""Y"" DESC, ""Z"");");
+        AssertSql("""CREATE INDEX "IX_People_X_Y_Z" ON "People" ("X", "Y" DESC, "Z");""");
     }
 
 #pragma warning disable CS0618 // HasSortOrder is obsolete
@@ -1974,8 +1929,7 @@ DROP SEQUENCE "People_Id_old_seq";
                 Assert.Collection(index.IsDescending, Assert.False, Assert.True, Assert.False);
             });
 
-        AssertSql(
-            @"CREATE INDEX ""IX_People_X_Y_Z"" ON ""People"" (""X"", ""Y"" DESC, ""Z"");");
+        AssertSql("""CREATE INDEX "IX_People_X_Y_Z" ON "People" ("X", "Y" DESC, "Z");""");
     }
 #pragma warning restore CS0618
 
@@ -2002,24 +1956,21 @@ DROP SEQUENCE "People_Id_old_seq";
                 Assert.Collection(index.IsDescending, Assert.False, Assert.True, Assert.False);
             });
 
-        AssertSql(
-            @"CREATE INDEX ""IX_People_X_Y_Z"" ON ""People"" (""X"", ""Y"" DESC, ""Z"");");
+        AssertSql("""CREATE INDEX "IX_People_X_Y_Z" ON "People" ("X", "Y" DESC, "Z");""");
     }
 
     public override async Task Create_index_with_filter()
     {
         await base.Create_index_with_filter();
 
-        AssertSql(
-            @"CREATE INDEX ""IX_People_Name"" ON ""People"" (""Name"") WHERE ""Name"" IS NOT NULL;");
+        AssertSql("""CREATE INDEX "IX_People_Name" ON "People" ("Name") WHERE "Name" IS NOT NULL;""");
     }
 
     public override async Task Create_unique_index_with_filter()
     {
         await base.Create_unique_index_with_filter();
 
-        AssertSql(
-            @"CREATE UNIQUE INDEX ""IX_People_Name"" ON ""People"" (""Name"") WHERE ""Name"" IS NOT NULL AND ""Name"" <> '';");
+        AssertSql("""CREATE UNIQUE INDEX "IX_People_Name" ON "People" ("Name") WHERE "Name" IS NOT NULL AND "Name" <> '';""");
     }
 
     [Fact]
@@ -2061,8 +2012,8 @@ DROP SEQUENCE "People_Id_old_seq";
 
         AssertSql(
             TestEnvironment.PostgresVersion.AtLeast(11)
-                ? @"CREATE INDEX ""IX_People_Name"" ON ""People"" (""Name"") INCLUDE (""FirstName"", last_name);"
-                : @"CREATE INDEX ""IX_People_Name"" ON ""People"" (""Name"");");
+                ? """CREATE INDEX "IX_People_Name" ON "People" ("Name") INCLUDE ("FirstName", last_name);"""
+                : """CREATE INDEX "IX_People_Name" ON "People" ("Name");""");
     }
 
     [Fact]
@@ -2106,8 +2057,8 @@ DROP SEQUENCE "People_Id_old_seq";
 
         AssertSql(
             TestEnvironment.PostgresVersion.AtLeast(11)
-                ? @"CREATE INDEX ""IX_People_Name"" ON ""People"" (""Name"") INCLUDE (""FirstName"", ""LastName"") WHERE ""Name"" IS NOT NULL;"
-                : @"CREATE INDEX ""IX_People_Name"" ON ""People"" (""Name"") WHERE ""Name"" IS NOT NULL;");
+                ? """CREATE INDEX "IX_People_Name" ON "People" ("Name") INCLUDE ("FirstName", "LastName") WHERE "Name" IS NOT NULL;"""
+                : """CREATE INDEX "IX_People_Name" ON "People" ("Name") WHERE "Name" IS NOT NULL;""");
     }
 
     [Fact]
@@ -2151,8 +2102,8 @@ DROP SEQUENCE "People_Id_old_seq";
 
         AssertSql(
             TestEnvironment.PostgresVersion.AtLeast(11)
-                ? @"CREATE UNIQUE INDEX ""IX_People_Name"" ON ""People"" (""Name"") INCLUDE (""FirstName"", ""LastName"");"
-                : @"CREATE UNIQUE INDEX ""IX_People_Name"" ON ""People"" (""Name"");");
+                ? """CREATE UNIQUE INDEX "IX_People_Name" ON "People" ("Name") INCLUDE ("FirstName", "LastName");"""
+                : """CREATE UNIQUE INDEX "IX_People_Name" ON "People" ("Name");""");
     }
 
     [Fact]
@@ -2198,8 +2149,8 @@ DROP SEQUENCE "People_Id_old_seq";
 
         AssertSql(
             TestEnvironment.PostgresVersion.AtLeast(11)
-                ? @"CREATE UNIQUE INDEX ""IX_People_Name"" ON ""People"" (""Name"") INCLUDE (""FirstName"", ""LastName"") WHERE ""Name"" IS NOT NULL;"
-                : @"CREATE UNIQUE INDEX ""IX_People_Name"" ON ""People"" (""Name"") WHERE ""Name"" IS NOT NULL;");
+                ? """CREATE UNIQUE INDEX "IX_People_Name" ON "People" ("Name") INCLUDE ("FirstName", "LastName") WHERE "Name" IS NOT NULL;"""
+                : """CREATE UNIQUE INDEX "IX_People_Name" ON "People" ("Name") WHERE "Name" IS NOT NULL;""");
     }
 
     [Fact]
@@ -2217,8 +2168,7 @@ DROP SEQUENCE "People_Id_old_seq";
                 .IsCreatedConcurrently(),
             asserter: null); // No scaffolding for IsCreatedConcurrently
 
-        AssertSql(
-            @"CREATE INDEX CONCURRENTLY ""IX_People_Age"" ON ""People"" (""Age"");");
+        AssertSql("""CREATE INDEX CONCURRENTLY "IX_People_Age" ON "People" ("Age");""");
     }
 
     [Fact]
@@ -2241,8 +2191,7 @@ DROP SEQUENCE "People_Id_old_seq";
                 Assert.Equal("hash", index[NpgsqlAnnotationNames.IndexMethod]);
             });
 
-        AssertSql(
-            @"CREATE INDEX ""IX_People_Age"" ON ""People"" USING hash (""Age"");");
+        AssertSql("""CREATE INDEX "IX_People_Age" ON "People" USING hash ("Age");""");
     }
 
     [Fact]
@@ -2266,8 +2215,7 @@ DROP SEQUENCE "People_Id_old_seq";
                 Assert.Equal(new[] { "text_pattern_ops", null }, index[NpgsqlAnnotationNames.IndexOperators]);
             });
 
-        AssertSql(
-            @"CREATE INDEX ""IX_People_FirstName_LastName"" ON ""People"" (""FirstName"" text_pattern_ops, ""LastName"");");
+        AssertSql("""CREATE INDEX "IX_People_FirstName_LastName" ON "People" ("FirstName" text_pattern_ops, "LastName");""");
     }
 
     [Fact]
@@ -2288,10 +2236,7 @@ DROP SEQUENCE "People_Id_old_seq";
                 Assert.Equal("some_collation", Assert.Single((IReadOnlyList<string>)index[RelationalAnnotationNames.Collation]!));
             });
 
-        AssertSql(
-            """
-CREATE INDEX "IX_People_Name" ON "People" ("Name" COLLATE some_collation);
-""");
+        AssertSql("""CREATE INDEX "IX_People_Name" ON "People" ("Name" COLLATE some_collation);""");
     }
 
     [Fact] // #3027
@@ -2315,10 +2260,7 @@ CREATE INDEX "IX_People_Name" ON "People" ("Name" COLLATE some_collation);
                 Assert.Equal("some_collation", Assert.Single((IReadOnlyList<string>)index[RelationalAnnotationNames.Collation]!));
             });
 
-        AssertSql(
-            """
-CREATE INDEX "IX_People_Name" ON "People" ("Name" COLLATE some_collation text_pattern_ops);
-""");
+        AssertSql("""CREATE INDEX "IX_People_Name" ON "People" ("Name" COLLATE some_collation text_pattern_ops);""");
     }
 
     [Fact]
@@ -2346,7 +2288,7 @@ CREATE INDEX "IX_People_Name" ON "People" ("Name" COLLATE some_collation text_pa
             });
 
         AssertSql(
-            @"CREATE INDEX ""IX_People_FirstName_MiddleName_LastName"" ON ""People"" (""FirstName"" NULLS FIRST, ""MiddleName"", ""LastName"" NULLS LAST);");
+            """CREATE INDEX "IX_People_FirstName_MiddleName_LastName" ON "People" ("FirstName" NULLS FIRST, "MiddleName", "LastName" NULLS LAST);""");
     }
 
     [Fact]
@@ -2366,7 +2308,7 @@ CREATE INDEX "IX_People_Name" ON "People" ("Name" COLLATE some_collation text_pa
             _ => { });
 
         AssertSql(
-            @"CREATE INDEX ""IX_Blogs_Title_Description"" ON ""Blogs"" (to_tsvector('simple', ""Title"" || ' ' || coalesce(""Description"", '')));");
+            """CREATE INDEX "IX_Blogs_Title_Description" ON "Blogs" (to_tsvector('simple', "Title" || ' ' || coalesce("Description", '')));""");
     }
 
     [Fact]
@@ -2387,7 +2329,7 @@ CREATE INDEX "IX_People_Name" ON "People" ("Name" COLLATE some_collation text_pa
             _ => { });
 
         AssertSql(
-            @"CREATE INDEX ""IX_Blogs_Title_Description"" ON ""Blogs"" USING GIN (to_tsvector('simple', ""Title"" || ' ' || coalesce(""Description"", '')));");
+            """CREATE INDEX "IX_Blogs_Title_Description" ON "Blogs" USING GIN (to_tsvector('simple', "Title" || ' ' || coalesce("Description", '')));""");
     }
 
     [ConditionalFact]
@@ -2425,13 +2367,9 @@ CREATE INDEX "IX_People_Name" ON "People" ("Name" COLLATE some_collation text_pa
             });
 
         AssertSql(
-            """
-CREATE UNIQUE INDEX "IX_NullsDistinct" ON "People" ("Age");
-""",
+            """CREATE UNIQUE INDEX "IX_NullsDistinct" ON "People" ("Age");""",
             //
-            """
-CREATE UNIQUE INDEX "IX_NullsNotDistinct" ON "People" ("Age") NULLS NOT DISTINCT;
-""");
+            """CREATE UNIQUE INDEX "IX_NullsNotDistinct" ON "People" ("Age") NULLS NOT DISTINCT;""");
     }
 
     [Fact]
@@ -2460,8 +2398,7 @@ CREATE UNIQUE INDEX "IX_NullsNotDistinct" ON "People" ("Age") NULLS NOT DISTINCT
                 Assert.Equal("70", storageParameter.Value);
             });
 
-        AssertSql(
-            @"CREATE INDEX ""IX_People_Age"" ON ""People"" (""Age"") WITH (fillfactor=70);");
+        AssertSql("""CREATE INDEX "IX_People_Age" ON "People" ("Age") WITH (fillfactor=70);""");
     }
 
     public override async Task Alter_index_change_sort_order()
@@ -2469,25 +2406,23 @@ CREATE UNIQUE INDEX "IX_NullsNotDistinct" ON "People" ("Age") NULLS NOT DISTINCT
         await base.Alter_index_change_sort_order();
 
         AssertSql(
-            @"DROP INDEX ""IX_People_X_Y_Z"";",
+            """DROP INDEX "IX_People_X_Y_Z";""",
             //
-            @"CREATE INDEX ""IX_People_X_Y_Z"" ON ""People"" (""X"", ""Y"" DESC, ""Z"");");
+            """CREATE INDEX "IX_People_X_Y_Z" ON "People" ("X", "Y" DESC, "Z");""");
     }
 
     public override async Task Drop_index()
     {
         await base.Drop_index();
 
-        AssertSql(
-            @"DROP INDEX ""IX_People_SomeField"";");
+        AssertSql("""DROP INDEX "IX_People_SomeField";""");
     }
 
     public override async Task Rename_index()
     {
         await base.Rename_index();
 
-        AssertSql(
-            @"ALTER INDEX ""Foo"" RENAME TO foo;");
+        AssertSql("""ALTER INDEX "Foo" RENAME TO foo;""");
     }
 
     #endregion
@@ -2504,14 +2439,16 @@ ALTER TABLE "People" ALTER COLUMN "SomeField" DROP DEFAULT;
 ALTER TABLE "People" ALTER COLUMN "SomeField" ADD GENERATED BY DEFAULT AS IDENTITY;
 """,
             //
-            @"ALTER TABLE ""People"" ADD CONSTRAINT ""PK_People"" PRIMARY KEY (""SomeField"");");
+            """
+ALTER TABLE "People" ADD CONSTRAINT "PK_People" PRIMARY KEY ("SomeField");
+""");
     }
 
     public override async Task Add_primary_key_string()
     {
         await base.Add_primary_key_string();
 
-        AssertSql(@"ALTER TABLE ""People"" ADD CONSTRAINT ""PK_People"" PRIMARY KEY (""SomeField"");");
+        AssertSql("""ALTER TABLE "People" ADD CONSTRAINT "PK_People" PRIMARY KEY ("SomeField");""");
     }
 
     public override async Task Add_primary_key_with_name()
@@ -2525,15 +2462,16 @@ ALTER TABLE "People" ALTER COLUMN "SomeField" SET NOT NULL;
 ALTER TABLE "People" ALTER COLUMN "SomeField" SET DEFAULT '';
 """,
             //
-            @"ALTER TABLE ""People"" ADD CONSTRAINT ""PK_Foo"" PRIMARY KEY (""SomeField"");");
+            """
+ALTER TABLE "People" ADD CONSTRAINT "PK_Foo" PRIMARY KEY ("SomeField");
+""");
     }
 
     public override async Task Add_primary_key_composite_with_name()
     {
         await base.Add_primary_key_composite_with_name();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD CONSTRAINT ""PK_Foo"" PRIMARY KEY (""SomeField1"", ""SomeField2"");");
+        AssertSql("""ALTER TABLE "People" ADD CONSTRAINT "PK_Foo" PRIMARY KEY ("SomeField1", "SomeField2");""");
     }
 
     public override async Task Drop_primary_key_int()
@@ -2541,17 +2479,16 @@ ALTER TABLE "People" ALTER COLUMN "SomeField" SET DEFAULT '';
         await base.Drop_primary_key_int();
 
         AssertSql(
-            @"ALTER TABLE ""People"" DROP CONSTRAINT ""PK_People"";",
+            """ALTER TABLE "People" DROP CONSTRAINT "PK_People";""",
             //
-            @"ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" DROP IDENTITY;");
+            """ALTER TABLE "People" ALTER COLUMN "SomeField" DROP IDENTITY;""");
     }
 
     public override async Task Drop_primary_key_string()
     {
         await base.Drop_primary_key_string();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" DROP CONSTRAINT ""PK_People"";");
+        AssertSql("""ALTER TABLE "People" DROP CONSTRAINT "PK_People";""");
     }
 
     public override Task Add_foreign_key()
@@ -2562,9 +2499,9 @@ ALTER TABLE "People" ALTER COLUMN "SomeField" SET DEFAULT '';
         await base.Add_foreign_key_with_name();
 
         AssertSql(
-            @"CREATE INDEX ""IX_Orders_CustomerId"" ON ""Orders"" (""CustomerId"");",
+            """CREATE INDEX "IX_Orders_CustomerId" ON "Orders" ("CustomerId");""",
             //
-            @"ALTER TABLE ""Orders"" ADD CONSTRAINT ""FK_Foo"" FOREIGN KEY (""CustomerId"") REFERENCES ""Customers"" (""Id"") ON DELETE CASCADE;");
+            """ALTER TABLE "Orders" ADD CONSTRAINT "FK_Foo" FOREIGN KEY ("CustomerId") REFERENCES "Customers" ("Id") ON DELETE CASCADE;""");
     }
 
     public override async Task Drop_foreign_key()
@@ -2572,49 +2509,44 @@ ALTER TABLE "People" ALTER COLUMN "SomeField" SET DEFAULT '';
         await base.Drop_foreign_key();
 
         AssertSql(
-            @"ALTER TABLE ""Orders"" DROP CONSTRAINT ""FK_Orders_Customers_CustomerId"";",
+            """ALTER TABLE "Orders" DROP CONSTRAINT "FK_Orders_Customers_CustomerId";""",
             //
-            @"DROP INDEX ""IX_Orders_CustomerId"";");
+            """DROP INDEX "IX_Orders_CustomerId";""");
     }
 
     public override async Task Add_unique_constraint()
     {
         await base.Add_unique_constraint();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD CONSTRAINT ""AK_People_AlternateKeyColumn"" UNIQUE (""AlternateKeyColumn"");");
+        AssertSql("""ALTER TABLE "People" ADD CONSTRAINT "AK_People_AlternateKeyColumn" UNIQUE ("AlternateKeyColumn");""");
     }
 
     public override async Task Add_unique_constraint_composite_with_name()
     {
         await base.Add_unique_constraint_composite_with_name();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD CONSTRAINT ""AK_Foo"" UNIQUE (""AlternateKeyColumn1"", ""AlternateKeyColumn2"");");
+        AssertSql("""ALTER TABLE "People" ADD CONSTRAINT "AK_Foo" UNIQUE ("AlternateKeyColumn1", "AlternateKeyColumn2");""");
     }
 
     public override async Task Drop_unique_constraint()
     {
         await base.Drop_unique_constraint();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" DROP CONSTRAINT ""AK_People_AlternateKeyColumn"";");
+        AssertSql("""ALTER TABLE "People" DROP CONSTRAINT "AK_People_AlternateKeyColumn";""");
     }
 
     public override async Task Add_check_constraint_with_name()
     {
         await base.Add_check_constraint_with_name();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" ADD CONSTRAINT ""CK_People_Foo"" CHECK (""DriverLicense"" > 0);");
+        AssertSql("""ALTER TABLE "People" ADD CONSTRAINT "CK_People_Foo" CHECK ("DriverLicense" > 0);""");
     }
 
     public override async Task Drop_check_constraint()
     {
         await base.Drop_check_constraint();
 
-        AssertSql(
-            @"ALTER TABLE ""People"" DROP CONSTRAINT ""CK_People_Foo"";");
+        AssertSql("""ALTER TABLE "People" DROP CONSTRAINT "CK_People_Foo";""");
     }
 
     #endregion
@@ -2625,10 +2557,7 @@ ALTER TABLE "People" ALTER COLUMN "SomeField" SET DEFAULT '';
     {
         await base.Create_sequence();
 
-        AssertSql(
-            """
-CREATE SEQUENCE "TestSequence" AS integer START WITH 1 INCREMENT BY 1 NO CYCLE;
-""");
+        AssertSql("""CREATE SEQUENCE "TestSequence" AS integer START WITH 1 INCREMENT BY 1 NO CYCLE;""");
     }
 
     public override async Task Create_sequence_all_settings()
@@ -2645,7 +2574,9 @@ BEGIN
 END $EF$;
 """,
             //
-            @"CREATE SEQUENCE dbo2.""TestSequence"" START WITH 3 INCREMENT BY 2 MINVALUE 2 MAXVALUE 916 CYCLE CACHE 20;");
+            """
+CREATE SEQUENCE dbo2."TestSequence" START WITH 3 INCREMENT BY 2 MINVALUE 2 MAXVALUE 916 CYCLE CACHE 20;
+""");
     }
 
     public override async Task Create_sequence_nocache()
@@ -2693,10 +2624,7 @@ END $EF$;
                 Assert.Equal("smallint", sequence.StoreType);
             });
 
-        AssertSql(
-            """
-CREATE SEQUENCE "TestSequence" AS smallint START WITH 1 INCREMENT BY 1 NO CYCLE;
-""");
+        AssertSql("""CREATE SEQUENCE "TestSequence" AS smallint START WITH 1 INCREMENT BY 1 NO CYCLE;""");
     }
 
     [Fact]
@@ -2719,32 +2647,28 @@ ALTER SEQUENCE foo RESTART;
     {
         await base.Alter_sequence_increment_by();
 
-        AssertSql(
-            @"ALTER SEQUENCE foo INCREMENT BY 2 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;");
+        AssertSql("ALTER SEQUENCE foo INCREMENT BY 2 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;");
     }
 
     public override async Task Alter_sequence_default_cache_to_cache()
     {
         await base.Alter_sequence_default_cache_to_cache();
 
-        AssertSql(
-            """ALTER SEQUENCE "Delta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 20;""");
+        AssertSql("""ALTER SEQUENCE "Delta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 20;""");
     }
 
     public override async Task Alter_sequence_default_cache_to_nocache()
     {
         await base.Alter_sequence_default_cache_to_nocache();
 
-        AssertSql(
-            """ALTER SEQUENCE "Epsilon" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
+        AssertSql("""ALTER SEQUENCE "Epsilon" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
     }
 
     public override async Task Alter_sequence_cache_to_nocache()
     {
         await base.Alter_sequence_cache_to_nocache();
 
-        AssertSql(
-            """ALTER SEQUENCE "Zeta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
+        AssertSql("""ALTER SEQUENCE "Zeta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
     }
 
     public override async Task Alter_sequence_cache_to_default_cache()
@@ -2762,18 +2686,14 @@ ALTER SEQUENCE foo RESTART;
                 Assert.Null(sequence.CacheSize);
             });
 
-        AssertSql(
-            """ALTER SEQUENCE "Eta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
+        AssertSql("""ALTER SEQUENCE "Eta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
     }
 
     public override async Task Alter_sequence_nocache_to_cache()
     {
         await base.Alter_sequence_nocache_to_cache();
 
-        AssertSql(
-            """
-ALTER SEQUENCE "Theta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 20;
-""");
+        AssertSql("""ALTER SEQUENCE "Theta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 20;""");
     }
 
     public override async Task Alter_sequence_nocache_to_default_cache()
@@ -2791,8 +2711,7 @@ ALTER SEQUENCE "Theta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 20;
                 Assert.Null(sequence.CacheSize);
             });
 
-        AssertSql(
-            """ALTER SEQUENCE "Iota" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
+        AssertSql("""ALTER SEQUENCE "Iota" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
     }
 
     public override async Task Alter_sequence_restart_with()
@@ -2810,16 +2729,14 @@ ALTER SEQUENCE foo RESTART;
     {
         await base.Drop_sequence();
 
-        AssertSql(
-            @"DROP SEQUENCE ""TestSequence"";");
+        AssertSql("""DROP SEQUENCE "TestSequence";""");
     }
 
     public override async Task Rename_sequence()
     {
         await base.Rename_sequence();
 
-        AssertSql(
-            @"ALTER SEQUENCE ""TestSequence"" RENAME TO testsequence;");
+        AssertSql("""ALTER SEQUENCE "TestSequence" RENAME TO testsequence;""");
     }
 
     public override async Task Move_sequence()
@@ -2836,7 +2753,9 @@ BEGIN
 END $EF$;
 """,
             //
-            @"ALTER SEQUENCE ""TestSequence"" SET SCHEMA ""TestSequenceSchema"";");
+            """
+ALTER SEQUENCE "TestSequence" SET SCHEMA "TestSequenceSchema";
+""");
     }
 
     #endregion
@@ -2993,7 +2912,6 @@ SELECT setval(
 
     #endregion Data seeding
 
-    [ConditionalFact]
     public override async Task Add_required_primitve_collection_with_custom_default_value_sql_to_existing_table()
     {
         await base.Add_required_primitve_collection_with_custom_default_value_sql_to_existing_table_core("ARRAY[3, 2, 1]");
@@ -3016,8 +2934,7 @@ SELECT setval(
                 Assert.Equal("public", citext.Schema);
             });
 
-        AssertSql(
-            @"CREATE EXTENSION IF NOT EXISTS citext;");
+        AssertSql("CREATE EXTENSION IF NOT EXISTS citext;");
     }
 
     [Fact]
@@ -3065,8 +2982,7 @@ END $EF$;",
                     l => Assert.Equal("Sad", l));
             });
 
-        AssertSql(
-            @"CREATE TYPE ""Mood"" AS ENUM ('Happy', 'Sad');");
+        AssertSql("""CREATE TYPE "Mood" AS ENUM ('Happy', 'Sad');""");
     }
 
     [Fact]
@@ -3096,7 +3012,9 @@ BEGIN
 END $EF$;
 """,
             //
-            @"CREATE TYPE some_schema.""Mood"" AS ENUM ('Happy', 'Sad');");
+            """
+CREATE TYPE some_schema."Mood" AS ENUM ('Happy', 'Sad');
+""");
     }
 
     [Fact]
@@ -3107,8 +3025,7 @@ END $EF$;
             _ => { },
             model => Assert.Empty(model.GetPostgresEnums()));
 
-        AssertSql(
-            @"DROP TYPE ""Mood"";");
+        AssertSql("""DROP TYPE "Mood";""");
     }
 
     [Fact] // #979
@@ -3120,8 +3037,7 @@ END $EF$;
             builder => builder.HasPostgresEnum("Enum2", ["X", "Y"]),
             model => Assert.Equal(2, model.GetPostgresEnums().Count()));
 
-        AssertSql(
-            @"CREATE TYPE ""Enum2"" AS ENUM ('X', 'Y');");
+        AssertSql("""CREATE TYPE "Enum2" AS ENUM ('X', 'Y');""");
     }
 
     [Fact]
@@ -3140,8 +3056,7 @@ END $EF$;
                     l => Assert.Equal("Angry", l));
             });
 
-        AssertSql(
-            @"ALTER TYPE ""Mood"" ADD VALUE 'Angry';");
+        AssertSql("""ALTER TYPE "Mood" ADD VALUE 'Angry';""");
     }
 
     [Fact]
@@ -3160,8 +3075,7 @@ END $EF$;
                     l => Assert.Equal("Sad", l));
             });
 
-        AssertSql(
-            @"ALTER TYPE ""Mood"" ADD VALUE 'Angry' BEFORE 'Sad';");
+        AssertSql("""ALTER TYPE "Mood" ADD VALUE 'Angry' BEFORE 'Sad';""");
     }
 
     [Fact]
@@ -3240,8 +3154,7 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
             _ => { },
             model => Assert.Empty(PostgresCollation.GetCollations(model)));
 
-        AssertSql(
-            @"DROP COLLATION dummy;");
+        AssertSql("""DROP COLLATION dummy;""");
     }
 
     [Fact]
@@ -3273,8 +3186,7 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
                 Assert.Equal("tsvector", column.StoreType);
             });
 
-        AssertSql(
-            @"ALTER TABLE ""Blogs"" ADD ""SearchColumn"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""TextColumn"")) STORED;");
+        AssertSql("""ALTER TABLE "Blogs" ADD "SearchColumn" tsvector GENERATED ALWAYS AS (to_tsvector('english', "TextColumn")) STORED;""");
     }
 
     [Fact]
@@ -3298,7 +3210,7 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
             });
 
         AssertSql(
-            @"ALTER TABLE ""People"" ADD ""SearchColumn"" tsvector GENERATED ALWAYS AS (jsonb_to_tsvector('english', ""JsonbColumn"", '""all""')) STORED;");
+            """ALTER TABLE "People" ADD "SearchColumn" tsvector GENERATED ALWAYS AS (jsonb_to_tsvector('english', "JsonbColumn", '"all"')) STORED;""");
     }
 
     [Fact]
@@ -3329,7 +3241,7 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
             });
 
         AssertSql(
-            @"ALTER TABLE ""People"" ADD ""SearchColumn"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""RequiredTextColumn"" || ' ' || coalesce(""OptionalTextColumn"", '')) || jsonb_to_tsvector('english', ""RequiredJsonbColumn"", '""all""') || json_to_tsvector('english', coalesce(""OptionalJsonColumn"", '{}'), '""all""')) STORED;");
+            """ALTER TABLE "People" ADD "SearchColumn" tsvector GENERATED ALWAYS AS (to_tsvector('english', "RequiredTextColumn" || ' ' || coalesce("OptionalTextColumn", '')) || jsonb_to_tsvector('english', "RequiredJsonbColumn", '"all"') || json_to_tsvector('english', coalesce("OptionalJsonColumn", '{}'), '"all"')) STORED;""");
     }
 
     [Fact]
@@ -3362,12 +3274,137 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
             });
 
         AssertSql(
-            @"ALTER TABLE ""Blogs"" DROP COLUMN ""TsVector"";",
+            """ALTER TABLE "Blogs" DROP COLUMN "TsVector";""",
             //
-            @"ALTER TABLE ""Blogs"" ADD ""TsVector"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""Title"" || ' ' || coalesce(""Description"", ''))) STORED;");
+            """ALTER TABLE "Blogs" ADD "TsVector" tsvector GENERATED ALWAYS AS (to_tsvector('english', "Title" || ' ' || coalesce("Description", ''))) STORED;""");
     }
 
     #endregion PostgreSQL full-text search
+
+    public override async Task Add_required_primitive_collection_to_existing_table()
+    {
+        await base.Add_required_primitive_collection_to_existing_table();
+
+        AssertSql("""ALTER TABLE "Customers" ADD "Numbers" integer[] NOT NULL;""");
+    }
+
+    public override async Task Add_required_primitive_collection_with_custom_default_value_to_existing_table()
+    {
+        await base.Add_required_primitive_collection_with_custom_default_value_to_existing_table();
+
+        AssertSql("""ALTER TABLE "Customers" ADD "Numbers" integer[] NOT NULL DEFAULT ARRAY[1,2,3]::integer[];""");
+    }
+
+    public override async Task Add_required_primitive_collection_with_custom_default_value_sql_to_existing_table()
+    {
+        await base.Add_required_primitive_collection_with_custom_default_value_sql_to_existing_table_core("ARRAY[1,2,3]");
+
+        AssertSql("""ALTER TABLE "Customers" ADD "Numbers" integer[] NOT NULL DEFAULT (ARRAY[1,2,3]);""");
+    }
+
+    [ConditionalFact(Skip = "issue #33038")]
+    public override async Task Add_required_primitive_collection_with_custom_converter_to_existing_table()
+    {
+        await base.Add_required_primitive_collection_with_custom_converter_to_existing_table();
+
+        AssertSql(
+            """
+ALTER TABLE [Customers] ADD [Numbers] nvarchar(max) NOT NULL DEFAULT N'nothing';
+""");
+    }
+
+    public override async Task Add_required_primitive_collection_with_custom_converter_and_custom_default_value_to_existing_table()
+    {
+        await base.Add_required_primitive_collection_with_custom_converter_and_custom_default_value_to_existing_table();
+
+        AssertSql("""ALTER TABLE "Customers" ADD "Numbers" text NOT NULL DEFAULT 'some numbers';""");
+    }
+
+    public override async Task Add_optional_primitive_collection_to_existing_table()
+    {
+        await base.Add_optional_primitive_collection_to_existing_table();
+
+        AssertSql("""ALTER TABLE "Customers" ADD "Numbers" integer[];""");
+    }
+
+    public override async Task Create_table_with_required_primitive_collection()
+    {
+        await base.Create_table_with_required_primitive_collection();
+
+        AssertSql(
+            """
+CREATE TABLE "Customers" (
+    "Id" integer GENERATED BY DEFAULT AS IDENTITY,
+    "Name" text,
+    "Numbers" integer[] NOT NULL,
+    CONSTRAINT "PK_Customers" PRIMARY KEY ("Id")
+);
+""");
+    }
+
+    public override async Task Create_table_with_optional_primitive_collection()
+    {
+        await base.Create_table_with_optional_primitive_collection();
+
+        AssertSql(
+            """
+CREATE TABLE "Customers" (
+    "Id" integer GENERATED BY DEFAULT AS IDENTITY,
+    "Name" text,
+    "Numbers" integer[],
+    CONSTRAINT "PK_Customers" PRIMARY KEY ("Id")
+);
+""");
+    }
+
+    public override async Task Create_table_with_complex_type_with_required_properties_on_derived_entity_in_TPH()
+    {
+        await base.Create_table_with_complex_type_with_required_properties_on_derived_entity_in_TPH();
+
+        AssertSql(
+            """
+CREATE TABLE "Contacts" (
+    "Id" integer GENERATED BY DEFAULT AS IDENTITY,
+    "Discriminator" character varying(8) NOT NULL,
+    "Name" text,
+    "Number" integer,
+    "MyComplex_Prop" text,
+    "MyComplex_MyNestedComplex_Bar" timestamp with time zone,
+    "MyComplex_MyNestedComplex_Foo" integer,
+    CONSTRAINT "PK_Contacts" PRIMARY KEY ("Id")
+);
+""");
+    }
+
+    public override async Task Add_required_primitve_collection_to_existing_table()
+    {
+        await base.Add_required_primitve_collection_to_existing_table();
+
+        AssertSql("""ALTER TABLE "Customers" ADD "Numbers" integer[] NOT NULL;""");
+    }
+
+    public override async Task Add_required_primitve_collection_with_custom_default_value_to_existing_table()
+    {
+        await base.Add_required_primitve_collection_with_custom_default_value_to_existing_table();
+
+        AssertSql("""ALTER TABLE "Customers" ADD "Numbers" integer[] NOT NULL DEFAULT ARRAY[1,2,3]::integer[];""");
+    }
+
+    [ConditionalFact(Skip = "issue #33038")]
+    public override async Task Add_required_primitve_collection_with_custom_converter_to_existing_table()
+    {
+        await base.Add_required_primitve_collection_with_custom_converter_to_existing_table();
+
+        AssertSql("ALTER TABLE [Customers] ADD [Numbers] nvarchar(max) NOT NULL DEFAULT N'nothing';");
+    }
+
+    public override async Task Add_required_primitve_collection_with_custom_converter_and_custom_default_value_to_existing_table()
+    {
+        await base.Add_required_primitve_collection_with_custom_converter_and_custom_default_value_to_existing_table();
+
+        AssertSql("""ALTER TABLE "Customers" ADD "Numbers" text NOT NULL DEFAULT 'some numbers';""");
+    }
+
 
     protected override string NonDefaultCollation
         => "POSIX";

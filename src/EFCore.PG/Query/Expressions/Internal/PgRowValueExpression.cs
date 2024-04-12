@@ -11,13 +11,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 /// </remarks>
 public class PgRowValueExpression : SqlExpression, IEquatable<PgRowValueExpression>
 {
+    private static ConstructorInfo? _quotingConstructor;
+
     /// <summary>
     ///     The values of this PostgreSQL row value expression.
     /// </summary>
     public virtual IReadOnlyList<SqlExpression> Values { get; }
 
     /// <inheritdoc />
-    public PgRowValueExpression(IReadOnlyList<SqlExpression> values, Type type, RelationalTypeMapping? typeMapping = null)
+    public PgRowValueExpression(
+        IReadOnlyList<SqlExpression> values,
+        Type type,
+        RelationalTypeMapping? typeMapping = null)
         : base(type, typeMapping)
     {
         Check.NotNull(values, nameof(values));
@@ -63,6 +68,15 @@ public class PgRowValueExpression : SqlExpression, IEquatable<PgRowValueExpressi
         => values.Count == Values.Count && values.Zip(Values, (x, y) => (x, y)).All(tup => tup.x == tup.y)
             ? this
             : new PgRowValueExpression(values, Type);
+
+    /// <inheritdoc />
+    public override Expression Quote()
+        => New(
+            _quotingConstructor ??= typeof(PgRowValueExpression).GetConstructor(
+                [typeof(IReadOnlyList<SqlExpression>), typeof(Type), typeof(RelationalTypeMapping)])!,
+            NewArrayInit(typeof(SqlExpression), initializers: Values.Select(a => a.Quote())),
+            Constant(Type),
+            RelationalExpressionQuotingUtilities.QuoteTypeMapping(TypeMapping));
 
     /// <inheritdoc />
     protected override void Print(ExpressionPrinter expressionPrinter)
