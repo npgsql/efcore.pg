@@ -453,7 +453,6 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         public override bool ShouldUseSameServiceProvider(DbContextOptionsExtensionInfo other)
             => other is ExtensionInfo otherInfo
                 && Extension.PostgresVersion == otherInfo.Extension.PostgresVersion
-                && ReferenceEquals(Extension.DataSource, otherInfo.Extension.DataSource)
                 && Extension.ReverseNullOrdering == otherInfo.Extension.ReverseNullOrdering
                 && Extension.UserRangeDefinitions.SequenceEqual(otherInfo.Extension.UserRangeDefinitions)
                 && Extension.UseRedshift == otherInfo.Extension.UseRedshift;

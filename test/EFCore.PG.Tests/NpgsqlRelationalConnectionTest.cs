@@ -193,8 +193,7 @@ public class NpgsqlRelationalConnectionTest
             extension.Validate(options);
         }
 
-        var singletonOptions = new NpgsqlSingletonOptions();
-        singletonOptions.Initialize(options);
+        var dbContextOptions = CreateOptions();
 
         return new NpgsqlRelationalConnection(
             new RelationalConnectionDependencies(
@@ -211,7 +210,7 @@ public class NpgsqlRelationalConnectionTest
                     new DiagnosticListener("FakeDiagnosticListener"),
                     new NpgsqlLoggingDefinitions(),
                     new NullDbContextLogger(),
-                    CreateOptions()),
+                    dbContextOptions),
                 new NamedConnectionStringResolver(options),
                 new RelationalTransactionFactory(
                     new RelationalTransactionFactoryDependencies(
@@ -226,7 +225,7 @@ public class NpgsqlRelationalConnectionTest
                             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                             new NpgsqlSingletonOptions()),
                         new ExceptionDetector()))),
-            singletonOptions);
+            dbContextOptions);
     }
 
     private const string ConnectionString = "Fake Connection String";

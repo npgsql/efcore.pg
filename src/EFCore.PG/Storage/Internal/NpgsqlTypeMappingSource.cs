@@ -348,7 +348,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
         ClrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
 
-        LoadUserDefinedTypeMappings(sqlGenerationHelper, options.DataSource as NpgsqlDataSource);
+        LoadUserDefinedTypeMappings(sqlGenerationHelper, dataSource: null);
 
         _userRangeDefinitions = options.UserRangeDefinitions;
     }

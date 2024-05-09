@@ -35,8 +35,8 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlRelationalConnection(RelationalConnectionDependencies dependencies, INpgsqlSingletonOptions options)
-        : this(dependencies, options.DataSource)
+    public NpgsqlRelationalConnection(RelationalConnectionDependencies dependencies, IDbContextOptions options)
+        : this(dependencies, options.FindExtension<NpgsqlOptionsExtension>()?.DataSource)
     {
     }
 
