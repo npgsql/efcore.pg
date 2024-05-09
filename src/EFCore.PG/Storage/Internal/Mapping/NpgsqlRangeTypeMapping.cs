@@ -42,7 +42,7 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     ///     For user-defined ranges, we have no <see cref="NpgsqlDbType" /> and so the PG type name is set on
     ///     <see cref="NpgsqlParameter.DataTypeName" /> instead.
     /// </summary>
-    private string? PgDataTypeName { get; init; }
+    public virtual string? UnquotedStoreType { get; init; }
 
     /// <summary>
     ///     Constructs an instance of the <see cref="NpgsqlRangeTypeMapping" /> class for a built-in range type which has a
@@ -74,7 +74,7 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
         RelationalTypeMapping subtypeMapping)
         => new(quotedRangeStoreType, rangeClrType, rangeNpgsqlDbType: NpgsqlDbType.Unknown, subtypeMapping)
         {
-            PgDataTypeName = unquotedRangeStoreType
+            UnquotedStoreType = unquotedRangeStoreType
         };
 
     private NpgsqlRangeTypeMapping(
@@ -139,7 +139,7 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     protected override void ConfigureParameter(DbParameter parameter)
     {
         // Built-in range types have an NpgsqlDbType, so we just do the normal thing.
-        if (PgDataTypeName is null)
+        if (UnquotedStoreType is null)
         {
             Check.DebugAssert(NpgsqlDbType is not NpgsqlDbType.Unknown, "NpgsqlDbType is Unknown but no PgDataTypeName is configured");
             base.ConfigureParameter(parameter);
@@ -154,7 +154,7 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
                 $"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
         }
 
-        npgsqlParameter.DataTypeName = PgDataTypeName;
+        npgsqlParameter.DataTypeName = UnquotedStoreType;
     }
 
     /// <summary>

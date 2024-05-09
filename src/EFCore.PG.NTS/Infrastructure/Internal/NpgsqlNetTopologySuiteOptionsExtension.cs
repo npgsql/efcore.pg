@@ -20,6 +20,30 @@ public class NpgsqlNetTopologySuiteOptionsExtension : IDbContextOptionsExtension
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    public virtual CoordinateSequenceFactory? CoordinateSequenceFactory { get; private set; }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public virtual PrecisionModel? PrecisionModel { get; private set; }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public virtual Ordinates HandleOrdinates { get; private set; }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual bool IsGeographyDefault { get; private set; }
 
     /// <summary>
@@ -67,6 +91,52 @@ public class NpgsqlNetTopologySuiteOptionsExtension : IDbContextOptionsExtension
     /// </summary>
     public virtual DbContextOptionsExtensionInfo Info
         => _info ??= new ExtensionInfo(this);
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public virtual NpgsqlNetTopologySuiteOptionsExtension WithCoordinateSequenceFactory(
+        CoordinateSequenceFactory? coordinateSequenceFactory)
+    {
+        var clone = Clone();
+
+        clone.CoordinateSequenceFactory = coordinateSequenceFactory;
+
+        return clone;
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public virtual NpgsqlNetTopologySuiteOptionsExtension WithPrecisionModel(PrecisionModel? precisionModel)
+    {
+        var clone = Clone();
+
+        clone.PrecisionModel = precisionModel;
+
+        return clone;
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public virtual NpgsqlNetTopologySuiteOptionsExtension WithHandleOrdinates(Ordinates handleOrdinates)
+    {
+        var clone = Clone();
+
+        clone.HandleOrdinates = handleOrdinates;
+
+        return clone;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -123,7 +193,11 @@ public class NpgsqlNetTopologySuiteOptionsExtension : IDbContextOptionsExtension
             => Extension.IsGeographyDefault.GetHashCode();
 
         public override bool ShouldUseSameServiceProvider(DbContextOptionsExtensionInfo other)
-            => true;
+            => other is ExtensionInfo otherInfo
+                && ReferenceEquals(Extension.CoordinateSequenceFactory, otherInfo.Extension.CoordinateSequenceFactory)
+                && ReferenceEquals(Extension.PrecisionModel, otherInfo.Extension.PrecisionModel)
+                && Extension.HandleOrdinates == otherInfo.Extension.HandleOrdinates
+                && Extension.IsGeographyDefault == otherInfo.Extension.IsGeographyDefault;
 
         public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
         {

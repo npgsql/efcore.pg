@@ -312,7 +312,7 @@ public class NpgsqlTypeMappingSourceTest
             new RelationalTypeMappingSourceDependencies(
                 new IRelationalTypeMappingSourcePlugin[]
                 {
-                    new NpgsqlNetTopologySuiteTypeMappingSourcePlugin(new NpgsqlNetTopologySuiteOptions()),
+                    new NpgsqlNetTopologySuiteTypeMappingSourcePlugin(new NpgsqlNetTopologySuiteSingletonOptions()),
                     new DummyTypeMappingSourcePlugin()
                 }),
             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),

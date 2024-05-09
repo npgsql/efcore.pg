@@ -15,7 +15,7 @@ public class NpgsqlNetTopologySuiteTypeMappingSourcePlugin : IRelationalTypeMapp
 {
     // Note: we reference the options rather than copying IsGeographyDefault out, because that field is initialized
     // rather late by SingletonOptionsInitializer
-    private readonly INpgsqlNetTopologySuiteOptions _options;
+    private readonly INpgsqlNetTopologySuiteSingletonOptions _options;
 
     private static bool TryGetClrType(string subtypeName, [NotNullWhen(true)] out Type? clrType)
     {
@@ -41,7 +41,7 @@ public class NpgsqlNetTopologySuiteTypeMappingSourcePlugin : IRelationalTypeMapp
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlNetTopologySuiteTypeMappingSourcePlugin(INpgsqlNetTopologySuiteOptions options)
+    public NpgsqlNetTopologySuiteTypeMappingSourcePlugin(INpgsqlNetTopologySuiteSingletonOptions options)
     {
         _options = Check.NotNull(options, nameof(options));
     }

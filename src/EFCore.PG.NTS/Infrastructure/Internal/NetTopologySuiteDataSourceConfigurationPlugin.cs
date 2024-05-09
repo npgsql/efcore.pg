@@ -1,11 +1,6 @@
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite.Scaffolding.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
-// ReSharper disable once CheckNamespace
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal;
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 /// <summary>
 ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -13,7 +8,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal;
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlNetTopologySuiteDesignTimeServices : IDesignTimeServices
+public class NetTopologySuiteDataSourceConfigurationPlugin(INpgsqlNetTopologySuiteSingletonOptions options)
+    : INpgsqlDataSourceConfigurationPlugin
 {
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -21,9 +17,10 @@ public class NpgsqlNetTopologySuiteDesignTimeServices : IDesignTimeServices
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual void ConfigureDesignTimeServices(IServiceCollection serviceCollection)
-        => serviceCollection
-            .AddSingleton<IRelationalTypeMappingSourcePlugin, NpgsqlNetTopologySuiteTypeMappingSourcePlugin>()
-            .AddSingleton<IProviderCodeGeneratorPlugin, NpgsqlNetTopologySuiteCodeGeneratorPlugin>()
-            .TryAddSingleton<INpgsqlNetTopologySuiteSingletonOptions, NpgsqlNetTopologySuiteSingletonOptions>();
+    public void Configure(NpgsqlDataSourceBuilder npgsqlDataSourceBuilder)
+        => npgsqlDataSourceBuilder.UseNetTopologySuite(
+            options.CoordinateSequenceFactory,
+            options.PrecisionModel,
+            options.HandleOrdinates,
+            options.IsGeographyDefault);
 }
