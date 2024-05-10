@@ -96,6 +96,33 @@ public class NpgsqlDbContextOptionsBuilder
         => WithOption(e => e.WithUserRangeDefinition(rangeName, schemaName, subtypeClrType, subtypeName));
 
     /// <summary>
+    ///     Maps a PostgreSQL enum type for use.
+    /// </summary>
+    /// <param name="enumName">The name of the PostgreSQL enum type to be mapped.</param>
+    /// <param name="schemaName">The name of the PostgreSQL schema in which the range is defined.</param>
+    /// <param name="nameTranslator">The name translator used to map enum value names to PostgreSQL enum values.</param>
+    public virtual NpgsqlDbContextOptionsBuilder MapEnum<T>(
+        string enumName,
+        string? schemaName = null,
+        INpgsqlNameTranslator? nameTranslator = null)
+        where T : struct, Enum
+        => MapEnum(typeof(T), enumName, schemaName, nameTranslator);
+
+    /// <summary>
+    ///     Maps a PostgreSQL enum type for use.
+    /// </summary>
+    /// <param name="clrType">The CLR type of the enum.</param>
+    /// <param name="enumName">The name of the PostgreSQL enum type to be mapped.</param>
+    /// <param name="schemaName">The name of the PostgreSQL schema in which the range is defined.</param>
+    /// <param name="nameTranslator">The name translator used to map enum value names to PostgreSQL enum values.</param>
+    public virtual NpgsqlDbContextOptionsBuilder MapEnum(
+        Type clrType,
+        string enumName,
+        string? schemaName = null,
+        INpgsqlNameTranslator? nameTranslator = null)
+        => WithOption(e => e.WithEnumMapping(clrType, enumName, schemaName, nameTranslator));
+
+    /// <summary>
     ///     Appends NULLS FIRST to all ORDER BY clauses. This is important for the tests which were written
     ///     for SQL Server. Note that to fully implement null-first ordering indexes also need to be generated
     ///     accordingly, and since this isn't done this feature isn't publicly exposed.

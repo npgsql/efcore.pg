@@ -1,6 +1,7 @@
 ﻿using System.Data.Common;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 
@@ -45,6 +46,14 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    public IReadOnlyList<NpgsqlEnumTypeMapping> EnumTypeMappings { get; private set; }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public virtual IReadOnlyList<UserRangeDefinition> UserRangeDefinitions { get; private set; }
 
     /// <summary>
@@ -55,6 +64,7 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
     /// </summary>
     public NpgsqlSingletonOptions()
     {
+        EnumTypeMappings = [];
         UserRangeDefinitions = [];
     }
 
@@ -67,6 +77,7 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
         IsPostgresVersionSet = npgsqlOptions.IsPostgresVersionSet;
         UseRedshift = npgsqlOptions.UseRedshift;
         ReverseNullOrderingEnabled = npgsqlOptions.ReverseNullOrdering;
+        EnumTypeMappings = npgsqlOptions.EnumTypeMappings;
         UserRangeDefinitions = npgsqlOptions.UserRangeDefinitions;
     }
 

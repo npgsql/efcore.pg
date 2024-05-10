@@ -57,6 +57,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     /// </summary>
     protected virtual ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
 
+    private readonly IReadOnlyList<NpgsqlEnumTypeMapping> _enumMappings;
     private readonly IReadOnlyList<UserRangeDefinition> _userRangeDefinitions;
 
     private readonly bool _supportsMultiranges;
@@ -348,64 +349,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
         ClrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
 
-        LoadUserDefinedTypeMappings(sqlGenerationHelper, dataSource: null);
-
+        _enumMappings = options.EnumTypeMappings;
         _userRangeDefinitions = options.UserRangeDefinitions;
-    }
-
-    /// <summary>
-    ///     To be used in case user-defined mappings are added late, after this TypeMappingSource has already been initialized.
-    ///     This is basically only for test usage.
-    /// </summary>
-    public virtual void LoadUserDefinedTypeMappings(
-        ISqlGenerationHelper sqlGenerationHelper,
-        NpgsqlDataSource? dataSource)
-        => SetupEnumMappings(sqlGenerationHelper, dataSource);
-
-    /// <summary>
-    ///     Gets all global enum mappings from the ADO.NET layer and creates mappings for them
-    /// </summary>
-    protected virtual void SetupEnumMappings(ISqlGenerationHelper sqlGenerationHelper, NpgsqlDataSource? dataSource)
-    {
-        List<HackyEnumTypeMapping>? adoEnumMappings = null;
-
-        if (dataSource is not null
-            && typeof(NpgsqlDataSource).GetField("_hackyEnumTypeMappings", BindingFlags.NonPublic | BindingFlags.Instance) is
-                { } dataSourceTypeMappingsFieldInfo
-            && dataSourceTypeMappingsFieldInfo.GetValue(dataSource) is List<HackyEnumTypeMapping> dataSourceEnumMappings)
-        {
-            // Note that the data source's enum mappings also include any global ones that were configured when the data source was created.
-            // So we don't need to also collect mappings from GlobalTypeMapper below.
-            adoEnumMappings = dataSourceEnumMappings;
-        }
-#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
-        else if (NpgsqlConnection.GlobalTypeMapper.GetType().GetProperty(
-                         "HackyEnumTypeMappings", BindingFlags.NonPublic | BindingFlags.Instance)
-                     is PropertyInfo globalEnumTypeMappingsProperty
-                 && globalEnumTypeMappingsProperty.GetValue(NpgsqlConnection.GlobalTypeMapper) is List<HackyEnumTypeMapping>
-                     globalEnumMappings)
-        {
-            adoEnumMappings = globalEnumMappings;
-        }
-#pragma warning restore CS0618
-
-        if (adoEnumMappings is not null)
-        {
-            foreach (var adoEnumMapping in adoEnumMappings)
-            {
-                // TODO: update with schema per https://github.com/npgsql/npgsql/issues/2121
-                var components = adoEnumMapping.PgTypeName.Split('.');
-                var schema = components.Length > 1 ? components.First() : null;
-                var name = components.Length > 1 ? string.Join(null, components.Skip(1)) : adoEnumMapping.PgTypeName;
-
-                var mapping = new NpgsqlEnumTypeMapping(
-                    sqlGenerationHelper.DelimitIdentifier(name, schema),
-                    adoEnumMapping.EnumClrType,
-                    adoEnumMapping.NameTranslator);
-                ClrTypeMappings[adoEnumMapping.EnumClrType] = mapping;
-                StoreTypeMappings[mapping.StoreType] = [mapping];
-            }
-        }
     }
 
     /// <summary>
@@ -418,6 +363,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         // First, try any plugins, allowing them to override built-in mappings (e.g. NodaTime)
         => base.FindMapping(mappingInfo)
             ?? FindBaseMapping(mappingInfo)?.Clone(mappingInfo)
+            ?? FindEnumMapping(mappingInfo)
             ?? FindRowValueMapping(mappingInfo)?.Clone(mappingInfo)
             ?? FindUserRangeMapping(mappingInfo);
 
@@ -813,6 +759,29 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             && clrType.IsAssignableTo(typeof(ITuple))
                 ? new NpgsqlRowValueTypeMapping(clrType)
                 : null;
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected virtual RelationalTypeMapping? FindEnumMapping(in RelationalTypeMappingInfo mappingInfo)
+    {
+        var storeType = mappingInfo.StoreTypeName;
+        var clrType = mappingInfo.ClrType;
+
+        if (clrType is not { IsEnum: true, IsClass: false})
+        {
+            return null;
+        }
+
+        // Try to find an enum definition (defined by the user on their context options), based on the
+        // incoming MappingInfo's StoreType or ClrType
+        return storeType is not null
+            ? _enumMappings.SingleOrDefault(m => m.StoreType == storeType)
+            : _enumMappings.SingleOrDefault(m => m.ClrType == clrType);
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

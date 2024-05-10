@@ -2,6 +2,8 @@ using System.Data.Common;
 using System.Globalization;
 using System.Net.Security;
 using System.Text;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
@@ -12,6 +14,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
 {
     private DbContextOptionsExtensionInfo? _info;
     private readonly List<UserRangeDefinition> _userRangeDefinitions;
+    private readonly List<NpgsqlEnumTypeMapping> _enumMappings;
 
     private Version? _postgresVersion;
 
@@ -58,6 +61,12 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         => _userRangeDefinitions;
 
     /// <summary>
+    ///     The list of range mappings specified by the user.
+    /// </summary>
+    public virtual IReadOnlyList<NpgsqlEnumTypeMapping> EnumTypeMappings
+        => _enumMappings;
+
+    /// <summary>
     ///     The specified <see cref="ProvideClientCertificatesCallback" />.
     /// </summary>
     public virtual ProvideClientCertificatesCallback? ProvideClientCertificatesCallback { get; private set; }
@@ -85,6 +94,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     public NpgsqlOptionsExtension()
     {
         _userRangeDefinitions = [];
+        _enumMappings = [];
     }
 
     // NB: When adding new options, make sure to update the copy ctor below.
@@ -100,6 +110,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         _postgresVersion = copyFrom._postgresVersion;
         UseRedshift = copyFrom.UseRedshift;
         _userRangeDefinitions = [..copyFrom._userRangeDefinitions];
+        _enumMappings = [..copyFrom._enumMappings];
         ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
         RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
         ProvidePasswordCallback = copyFrom.ProvidePasswordCallback;
@@ -176,6 +187,32 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         var clone = (NpgsqlOptionsExtension)Clone();
 
         clone._userRangeDefinitions.Add(new UserRangeDefinition(rangeName, schemaName, subtypeClrType, subtypeName));
+
+        return clone;
+    }
+
+    /// <summary>
+    ///     Returns a copy of the current instance configured with the specified range mapping.
+    /// </summary>
+    public virtual NpgsqlOptionsExtension WithEnumMapping(
+        Type clrType,
+        string enumName,
+        string? schemaName,
+        INpgsqlNameTranslator? nameTranslator)
+    {
+        if (clrType is not { IsEnum: true, IsClass: false})
+        {
+            throw new ArgumentException($"Enum type mappings require a CLR enum. {clrType.FullName} is not an enum.");
+        }
+
+        var clone = (NpgsqlOptionsExtension)Clone();
+
+        // TODO
+#pragma warning disable EF1001
+        var storeType = new NpgsqlSqlGenerationHelper(new()).DelimitIdentifier(enumName, schemaName);
+#pragma warning restore EF1001
+
+        clone._enumMappings.Add(new NpgsqlEnumTypeMapping(storeType, schemaName + "." + enumName, clrType, nameTranslator));
 
         return clone;
     }
@@ -454,6 +491,8 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
             => other is ExtensionInfo otherInfo
                 && Extension.PostgresVersion == otherInfo.Extension.PostgresVersion
                 && Extension.ReverseNullOrdering == otherInfo.Extension.ReverseNullOrdering
+                // TODO does not work, should be comparing a record, enum type definition instead of mapping.
+                && Extension.EnumTypeMappings.SequenceEqual(otherInfo.Extension.EnumTypeMappings)
                 && Extension.UserRangeDefinitions.SequenceEqual(otherInfo.Extension.UserRangeDefinitions)
                 && Extension.UseRedshift == otherInfo.Extension.UseRedshift;
 
@@ -494,51 +533,4 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     }
 
     #endregion Infrastructure
-}
-
-/// <summary>
-///     A definition for a user-defined PostgreSQL range to be mapped.
-/// </summary>
-public record UserRangeDefinition
-{
-    /// <summary>
-    ///     The name of the PostgreSQL range type to be mapped.
-    /// </summary>
-    public virtual string RangeName { get; }
-
-    /// <summary>
-    ///     The PostgreSQL schema in which the range is defined. If null, the default schema is used
-    ///     (which is public unless changed on the model).
-    /// </summary>
-    public virtual string? SchemaName { get; }
-
-    /// <summary>
-    ///     The CLR type of the range's subtype (or element).
-    ///     The actual mapped type will be an <see cref="NpgsqlRange{T}" /> over this type.
-    /// </summary>
-    public virtual Type SubtypeClrType { get; }
-
-    /// <summary>
-    ///     Optionally, the name of the range's PostgreSQL subtype (or element).
-    ///     This is usually not needed - the subtype will be inferred based on <see cref="SubtypeClrType" />.
-    /// </summary>
-    public virtual string? SubtypeName { get; }
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public UserRangeDefinition(
-        string rangeName,
-        string? schemaName,
-        Type subtypeClrType,
-        string? subtypeName)
-    {
-        RangeName = Check.NotEmpty(rangeName, nameof(rangeName));
-        SchemaName = schemaName;
-        SubtypeClrType = Check.NotNull(subtypeClrType, nameof(subtypeClrType));
-        SubtypeName = subtypeName;
-    }
 }

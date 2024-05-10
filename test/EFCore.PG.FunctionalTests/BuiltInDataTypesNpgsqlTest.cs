@@ -983,8 +983,8 @@ FROM "MappedDataTypes" AS m
             base.OnModelCreating(modelBuilder, context);
 
             // TODO: Switch to using data source
-            ((NpgsqlTypeMappingSource)context.GetService<ITypeMappingSource>()).LoadUserDefinedTypeMappings(
-                context.GetService<ISqlGenerationHelper>(), dataSource: null);
+            // ((NpgsqlTypeMappingSource)context.GetService<ITypeMappingSource>()).LoadUserDefinedTypeMappings(
+            //     context.GetService<ISqlGenerationHelper>(), dataSource: null);
 
             modelBuilder.HasPostgresEnum("mood", ["happy", "sad"]);
 

@@ -234,7 +234,22 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
             }
         }
 
-        return base.CreateParameter(command, name, value, nullable, direction);
+        var param = base.CreateParameter(command, name, value, nullable, direction);
+        if (param is not NpgsqlParameter npgsqlParameter)
+        {
+            throw new InvalidOperationException(
+                $"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {param.GetType().Name}");
+        }
+        switch (ElementTypeMapping)
+        {
+            case NpgsqlEnumTypeMapping enumTypeMapping:
+                npgsqlParameter.DataTypeName = enumTypeMapping.UnquotedStoreType + "[]";
+                break;
+            case NpgsqlRangeTypeMapping rangeTypeMapping:
+                npgsqlParameter.DataTypeName = rangeTypeMapping.UnquotedStoreType + "[]";
+                break;
+        }
+        return param;
     }
 
     /// <summary>

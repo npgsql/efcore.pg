@@ -1,4 +1,5 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
@@ -298,14 +299,24 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        static EnumFixture()
-        {
+         static EnumFixture()
+         {
 #pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<MappedEnum>("test.mapped_enum");
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<InferredEnum>("test.inferred_enum");
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<ByteEnum>("test.byte_enum");
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<SchemaQualifiedEnum>("test.schema_qualified_enum");
+             NpgsqlConnection.GlobalTypeMapper.EnableUnmappedTypes();
 #pragma warning restore CS0618
+         }
+
+        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+        {
+            var optionsBuilder = base.AddOptions(builder);
+
+            new NpgsqlDbContextOptionsBuilder(optionsBuilder)
+                .MapEnum<MappedEnum>("mapped_enum", "test")
+                .MapEnum<InferredEnum>("inferred_enum", "test")
+                .MapEnum<ByteEnum>("byte_enum", "test")
+                .MapEnum<SchemaQualifiedEnum>("schema_qualified_enum", "test");
+
+            return optionsBuilder;
         }
 
         private EnumData _expectedData;

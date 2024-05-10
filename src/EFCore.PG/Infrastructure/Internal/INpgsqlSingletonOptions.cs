@@ -1,4 +1,5 @@
 ﻿using System.Data.Common;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
@@ -26,6 +27,11 @@ public interface INpgsqlSingletonOptions : ISingletonOptions
     ///     Whether reverse null ordering is enabled.
     /// </summary>
     bool ReverseNullOrderingEnabled { get; }
+
+    /// <summary>
+    ///     The collection of enum mappings.
+    /// </summary>
+    IReadOnlyList<NpgsqlEnumTypeMapping> EnumTypeMappings { get; }
 
     /// <summary>
     ///     The collection of range mappings.

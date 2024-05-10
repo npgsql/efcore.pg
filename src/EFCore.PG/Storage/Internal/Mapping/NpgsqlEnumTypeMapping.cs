@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Data.Common;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -11,6 +12,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 /// </summary>
 public class NpgsqlEnumTypeMapping : RelationalTypeMapping
 {
+    /// <summary>
+    ///
+    /// </summary>
+    public string UnquotedStoreType { get; }
+
     /// <summary>
     ///     Translates the CLR member value to the PostgreSQL value label.
     /// </summary>
@@ -38,7 +44,7 @@ public class NpgsqlEnumTypeMapping : RelationalTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlEnumTypeMapping(string storeType, Type enumType, INpgsqlNameTranslator? nameTranslator = null)
+    public NpgsqlEnumTypeMapping(string storeType, string unquotedStoreType, Type enumType, INpgsqlNameTranslator? nameTranslator = null)
         : base(
             storeType,
             enumType,
@@ -49,6 +55,8 @@ public class NpgsqlEnumTypeMapping : RelationalTypeMapping
         {
             throw new ArgumentException($"Enum type mappings require a CLR enum. {enumType.FullName} is not an enum.");
         }
+
+        UnquotedStoreType = unquotedStoreType;
 
 #pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
         nameTranslator ??= NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator;
@@ -66,11 +74,12 @@ public class NpgsqlEnumTypeMapping : RelationalTypeMapping
     /// </summary>
     protected NpgsqlEnumTypeMapping(
         RelationalTypeMappingParameters parameters,
-        INpgsqlNameTranslator nameTranslator)
+        string unquotedStoreType, INpgsqlNameTranslator nameTranslator)
         : base(parameters)
     {
         NameTranslator = nameTranslator;
         _members = CreateValueMapping(parameters.CoreParameters.ClrType, nameTranslator);
+        UnquotedStoreType = unquotedStoreType;
     }
 
     // This constructor exists only to support the static Default property above, which is necessary to allow code generation for compiled
@@ -81,6 +90,7 @@ public class NpgsqlEnumTypeMapping : RelationalTypeMapping
 #pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
         NameTranslator = NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator;
 #pragma warning restore CS0618
+        UnquotedStoreType = null!;
         _members = null!;
     }
 
@@ -91,7 +101,24 @@ public class NpgsqlEnumTypeMapping : RelationalTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-        => new NpgsqlEnumTypeMapping(parameters, NameTranslator);
+        => new NpgsqlEnumTypeMapping(parameters, UnquotedStoreType, NameTranslator);
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected override void ConfigureParameter(DbParameter parameter)
+    {
+        if (parameter is not NpgsqlParameter npgsqlParameter)
+        {
+            throw new InvalidOperationException(
+                $"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+        }
+
+        npgsqlParameter.DataTypeName = UnquotedStoreType;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
