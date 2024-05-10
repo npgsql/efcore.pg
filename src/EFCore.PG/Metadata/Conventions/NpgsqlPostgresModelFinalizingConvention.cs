@@ -1,3 +1,5 @@
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 
 /// <summary>
@@ -9,14 +11,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 public class NpgsqlPostgresModelFinalizingConvention : IModelFinalizingConvention
 {
     private readonly IRelationalTypeMappingSource _typeMappingSource;
+    private readonly IReadOnlyList<NpgsqlEnumTypeMapping> _enumTypeMappings;
 
     /// <summary>
     ///     Creates a new instance of <see cref="NpgsqlPostgresModelFinalizingConvention" />.
     /// </summary>
     /// <param name="typeMappingSource">The type mapping source to use.</param>
-    public NpgsqlPostgresModelFinalizingConvention(IRelationalTypeMappingSource typeMappingSource)
+    /// <param name="enumTypeMappings"></param>
+    public NpgsqlPostgresModelFinalizingConvention(
+        IRelationalTypeMappingSource typeMappingSource,
+        IReadOnlyList<NpgsqlEnumTypeMapping> enumTypeMappings)
     {
         _typeMappingSource = typeMappingSource;
+        _enumTypeMappings = enumTypeMappings;
     }
 
     /// <inheritdoc />
@@ -36,6 +43,22 @@ public class NpgsqlPostgresModelFinalizingConvention : IModelFinalizingConventio
                 }
             }
         }
+
+        SetupEnums(modelBuilder);
+    }
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="modelBuilder"></param>
+    protected virtual void SetupEnums(IConventionModelBuilder modelBuilder)
+    {
+        foreach (var enumMapping in _enumTypeMappings)
+        {
+            // TODO schema and name needs to flow from definition.
+            var nameParts = enumMapping.UnquotedStoreType.Split(".");
+            modelBuilder.HasPostgresEnum(nameParts[0], nameParts[1], enumMapping.EnumValues.ToArray());
+        }
     }
 
     /// <summary>
@@ -46,6 +69,7 @@ public class NpgsqlPostgresModelFinalizingConvention : IModelFinalizingConventio
         RelationalTypeMapping typeMapping,
         IConventionModelBuilder modelBuilder)
     {
+        // TODO does not work if CREATE EXTENSION was done on a non-default schema.
         switch (typeMapping.StoreType)
         {
             case "hstore":

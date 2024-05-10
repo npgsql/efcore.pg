@@ -1,4 +1,5 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 
@@ -19,6 +20,7 @@ public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
 {
     private readonly IRelationalTypeMappingSource _typeMappingSource;
     private readonly Version _postgresVersion;
+    private readonly IReadOnlyList<NpgsqlEnumTypeMapping> _enumTypeMappings;
 
     /// <summary>
     ///     Creates a new <see cref="NpgsqlConventionSetBuilder" /> instance.
@@ -36,6 +38,7 @@ public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
     {
         _typeMappingSource = typeMappingSource;
         _postgresVersion = npgsqlSingletonOptions.PostgresVersion;
+        _enumTypeMappings = npgsqlSingletonOptions.EnumTypeMappings;
     }
 
     /// <inheritdoc />
@@ -70,7 +73,7 @@ public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
             conventionSet.PropertyAnnotationChangedConventions, (RelationalValueGenerationConvention)valueGenerationConvention);
 
         conventionSet.ModelFinalizingConventions.Add(valueGenerationStrategyConvention);
-        conventionSet.ModelFinalizingConventions.Add(new NpgsqlPostgresModelFinalizingConvention(_typeMappingSource));
+        conventionSet.ModelFinalizingConventions.Add(new NpgsqlPostgresModelFinalizingConvention(_typeMappingSource, _enumTypeMappings));
         ReplaceConvention(conventionSet.ModelFinalizingConventions, storeGenerationConvention);
         ReplaceConvention(
             conventionSet.ModelFinalizingConventions,

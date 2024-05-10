@@ -223,13 +223,14 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<SomeEnumEntity> SomeEntities { get; set; }
 
+        // TODO remove after fixing definition
         protected override void OnModelCreating(ModelBuilder builder)
             => builder
-                .HasPostgresEnum("mapped_enum", ["happy", "sad"])
-                .HasPostgresEnum<InferredEnum>()
-                .HasPostgresEnum<ByteEnum>()
-                .HasDefaultSchema("test")
-                .HasPostgresEnum<SchemaQualifiedEnum>();
+                // .HasPostgresEnum<SchemaQualifiedEnum>();
+                // .HasPostgresEnum("mapped_enum", ["happy", "sad"])
+                // .HasPostgresEnum<InferredEnum>()
+                // .HasPostgresEnum<ByteEnum>()
+                .HasDefaultSchema("test");
 
         public static void Seed(EnumContext context)
         {

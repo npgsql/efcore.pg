@@ -110,6 +110,14 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
                     nameof(DbContextOptionsBuilder.UseInternalServiceProvider)));
         }
 
+        if (!EnumTypeMappings.SequenceEqual(npgsqlOptions.EnumTypeMappings))
+        {
+            throw new InvalidOperationException(
+                CoreStrings.SingletonOptionChanged(
+                    nameof(NpgsqlDbContextOptionsBuilder.MapEnum),
+                    nameof(DbContextOptionsBuilder.UseInternalServiceProvider)));
+        }
+
         if (!UserRangeDefinitions.SequenceEqual(npgsqlOptions.UserRangeDefinitions))
         {
             throw new InvalidOperationException(

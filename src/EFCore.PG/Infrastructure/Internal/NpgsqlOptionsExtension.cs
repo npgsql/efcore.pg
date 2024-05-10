@@ -520,6 +520,16 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
             debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.ProvidePasswordCallback)]
                 = (Extension.ProvidePasswordCallback?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
 
+            foreach (var enumDefinition in Extension._enumMappings)
+            {
+                debugInfo[
+                        "Npgsql.EntityFrameworkCore.PostgreSQL:"
+                        + nameof(NpgsqlDbContextOptionsBuilder.MapEnum)
+                        + ":"
+                        + enumDefinition.ClrType.Name]
+                    = enumDefinition.GetHashCode().ToString(CultureInfo.InvariantCulture);
+            }
+
             foreach (var rangeDefinition in Extension._userRangeDefinitions)
             {
                 debugInfo[
