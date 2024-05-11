@@ -3234,6 +3234,17 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
 
     #endregion PostgreSQL full-text search
 
+    [ConditionalFact]
+    public override async Task Add_required_primitve_collection_with_custom_default_value_sql_to_existing_table()
+    {
+        await base.Add_required_primitve_collection_with_custom_default_value_sql_to_existing_table_core("ARRAY[3, 2, 1]");
+
+        AssertSql(
+            """
+ALTER TABLE "Customers" ADD "Numbers" integer[] NOT NULL DEFAULT (ARRAY[3, 2, 1]);
+""");
+    }
+
     protected override string NonDefaultCollation
         => "POSIX";
 

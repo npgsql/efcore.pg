@@ -362,6 +362,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         NpgsqlDataSource? dataSource)
         => SetupEnumMappings(sqlGenerationHelper, dataSource);
 
+#pragma warning disable NPG9001
     /// <summary>
     ///     Gets all global enum mappings from the ADO.NET layer and creates mappings for them
     /// </summary>
@@ -407,6 +408,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             }
         }
     }
+#pragma warning restore NPG9001
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

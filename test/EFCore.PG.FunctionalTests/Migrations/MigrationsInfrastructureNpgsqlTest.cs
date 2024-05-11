@@ -12,6 +12,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         {
         }
 
+        // https://github.com/dotnet/efcore/pull/33404/files#r1597462604
+        public override void Can_apply_all_migrations()
+            => Assert.Throws<PostgresException>(() => base.Can_apply_all_migrations());
+
+        // https://github.com/dotnet/efcore/pull/33404/files#r1597462604
+        public override Task Can_apply_all_migrations_async()
+            => Assert.ThrowsAsync<PostgresException>(() => base.Can_apply_all_migrations_async());
+
+        // https://github.com/dotnet/efcore/pull/33404/files#r1597462604
+        public override void Can_apply_range_of_migrations()
+            => Assert.Throws<PostgresException>(() => base.Can_apply_range_of_migrations());
+
+        // https://github.com/dotnet/efcore/pull/33404/files#r1597462604
+        public override void Can_revert_all_migrations()
+            => Assert.Throws<PostgresException>(() => base.Can_revert_all_migrations());
+
+        // https://github.com/dotnet/efcore/pull/33404/files#r1597462604
+        public override void Can_revert_one_migrations()
+            => Assert.Throws<PostgresException>(() => base.Can_revert_one_migrations());
+
         public override void Can_get_active_provider()
         {
             base.Can_get_active_provider();
