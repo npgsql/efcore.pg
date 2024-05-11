@@ -18,7 +18,7 @@ string.Concat(str0, str1)                                     | str0 \|\| str1
 string.IsNullOrEmpty(value)                                   | value IS NULL OR value = ''
 string.IsNullOrWhiteSpace(value)                              | value IS NULL OR btrim(value, E' \t\n\r') = ''
 stringValue.CompareTo(strB)                                   | CASE WHEN stringValue = strB THEN 0 ... END
-stringValue.Contains(value)                                   | strpos(stringValue, value) > 0
+stringValue.Contains(value)                                   | stringValue LIKE %value%
 stringValue.EndsWith(value)                                   | stringValue LIKE '%' \|\| value
 stringValue.FirstOrDefault()                                  | substr(stringValue, 1, 1)                                                                                               | Added in 5.0
 stringValue.IndexOf(value)                                    | strpos(stringValue, value) - 1
