@@ -1,7 +1,7 @@
+using System.Collections.Concurrent;
 using System.Data.Common;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
@@ -27,11 +27,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 /// </remarks>
 public class NpgsqlDataSourceManager : IDisposable, IAsyncDisposable
 {
-    private bool _isInitialized;
-    private string? _connectionString;
     private readonly IEnumerable<INpgsqlDataSourceConfigurationPlugin> _plugins;
-    private NpgsqlDataSource? _dataSource;
-    private readonly object _lock = new();
+    private readonly ConcurrentDictionary<string, NpgsqlDataSource> _dataSources = new();
+    private volatile int _isDisposed;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -70,8 +68,8 @@ public class NpgsqlDataSourceManager : IDisposable, IAsyncDisposable
             { ConnectionString: null } or null => null,
 
             // The following are features which require an NpgsqlDataSource, since they require configuration on NpgsqlDataSourceBuilder.
-            { EnumDefinitions.Count: > 0 } => GetSingletonDataSource(npgsqlOptionsExtension, "MapEnum"),
-            _ when _plugins.Any() => GetSingletonDataSource(npgsqlOptionsExtension, _plugins.First().GetType().Name),
+            { EnumDefinitions.Count: > 0 } => GetSingletonDataSource(npgsqlOptionsExtension),
+            _ when _plugins.Any() => GetSingletonDataSource(npgsqlOptionsExtension),
 
             // If there's no configured feature which requires us to use a data source internally, don't use one; this causes
             // NpgsqlRelationalConnection to use the connection string as before (no data source), allowing switching connection strings
@@ -79,30 +77,30 @@ public class NpgsqlDataSourceManager : IDisposable, IAsyncDisposable
             _ => null
         };
 
-    private DbDataSource GetSingletonDataSource(NpgsqlOptionsExtension npgsqlOptionsExtension, string dataSourceFeature)
+    private DbDataSource GetSingletonDataSource(NpgsqlOptionsExtension npgsqlOptionsExtension)
     {
-        if (!_isInitialized)
+        var connectionString = npgsqlOptionsExtension.ConnectionString;
+        Check.DebugAssert(connectionString is not null, "Connection string can't be null");
+
+        if (_dataSources.TryGetValue(connectionString, out var dataSource))
         {
-            lock (_lock)
-            {
-                if (!_isInitialized)
-                {
-                    _dataSource = CreateSingletonDataSource(npgsqlOptionsExtension);
-                    _connectionString = npgsqlOptionsExtension.ConnectionString;
-                    _isInitialized = true;
-                    return _dataSource;
-                }
-            }
+            return dataSource;
         }
 
-        Check.DebugAssert(_dataSource is not null, "_dataSource cannot be null at this point");
+        var newDataSource = CreateDataSource(npgsqlOptionsExtension);
 
-        if (_connectionString != npgsqlOptionsExtension.ConnectionString)
+        var addedDataSource = _dataSources.GetOrAdd(connectionString, newDataSource);
+        if (!ReferenceEquals(addedDataSource, newDataSource))
         {
-            throw new InvalidOperationException(NpgsqlStrings.DataSourceWithMultipleConnectionStrings(dataSourceFeature));
+            newDataSource.Dispose();
+        }
+        else if (_isDisposed == 1)
+        {
+            newDataSource.Dispose();
+            throw new ObjectDisposedException(nameof(NpgsqlDataSourceManager));
         }
 
-        return _dataSource;
+        return addedDataSource;
     }
 
     /// <summary>
@@ -111,7 +109,7 @@ public class NpgsqlDataSourceManager : IDisposable, IAsyncDisposable
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected virtual NpgsqlDataSource CreateSingletonDataSource(NpgsqlOptionsExtension npgsqlOptionsExtension)
+    protected virtual NpgsqlDataSource CreateDataSource(NpgsqlOptionsExtension npgsqlOptionsExtension)
     {
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(npgsqlOptionsExtension.ConnectionString);
 
@@ -151,7 +149,15 @@ public class NpgsqlDataSourceManager : IDisposable, IAsyncDisposable
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public void Dispose()
-        => _dataSource?.Dispose();
+    {
+        if (Interlocked.CompareExchange(ref _isDisposed, 1, 0) == 0)
+        {
+            foreach (var dataSource in _dataSources.Values)
+            {
+                dataSource.Dispose();
+            }
+        }
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -161,9 +167,12 @@ public class NpgsqlDataSourceManager : IDisposable, IAsyncDisposable
     /// </summary>
     public async ValueTask DisposeAsync()
     {
-        if (_dataSource != null)
+        if (Interlocked.CompareExchange(ref _isDisposed, 1, 0) == 0)
         {
-            await _dataSource.DisposeAsync().ConfigureAwait(false);
+            foreach (var dataSource in _dataSources.Values)
+            {
+                await dataSource.DisposeAsync().ConfigureAwait(false);
+            }
         }
     }
 }

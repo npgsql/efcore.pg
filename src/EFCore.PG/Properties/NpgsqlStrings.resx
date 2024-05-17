@@ -247,7 +247,4 @@
   <data name="StoredProcedureReturnValueNotSupported" xml:space="preserve">
     <value>The entity type '{entityType}' is mapped to the stored procedure '{sproc}', which is configured with result columns. PostgreSQL stored procedures do not support return values; use output parameters instead.</value>
   </data>
-  <data name="DataSourceWithMultipleConnectionStrings" xml:space="preserve">
-    <value>Different connection strings are being used, but the provider uses has been configured with a feature that requires a singleton data source internally: {dataSourceFeature}</value>
-  </data>
 </root>

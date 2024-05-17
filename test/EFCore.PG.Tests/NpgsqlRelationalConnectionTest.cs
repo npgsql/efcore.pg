@@ -103,34 +103,60 @@ public class NpgsqlRelationalConnectionTest
     }
 
     [Fact]
-    public void Multiple_connection_strings_with_plugin_is_not_supported()
+    public void Multiple_connection_strings_with_plugin()
     {
         var context1 = new ConnectionStringSwitchingContext("Host=FakeHost1", withNetTopologySuite: true);
-        _ = context1.GetService<IRelationalConnection>();
-        var context2 = new ConnectionStringSwitchingContext("Host=FakeHost2", withNetTopologySuite: true);
+        var connection1 = (NpgsqlRelationalConnection)context1.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost1", connection1.ConnectionString);
+        Assert.NotNull(connection1.DbDataSource);
 
-        var exception = Assert.Throws<InvalidOperationException>(() => context2.GetService<IRelationalConnection>());
-        Assert.Equal(NpgsqlStrings.DataSourceWithMultipleConnectionStrings("NetTopologySuiteDataSourceConfigurationPlugin"), exception.Message);
+        var context2 = new ConnectionStringSwitchingContext("Host=FakeHost1", withNetTopologySuite: true);
+        var connection2 = (NpgsqlRelationalConnection)context2.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost1", connection2.ConnectionString);
+        Assert.Same(connection1.DbDataSource, connection2.DbDataSource);
+
+        var context3 = new ConnectionStringSwitchingContext("Host=FakeHost2", withNetTopologySuite: true);
+        var connection3 = (NpgsqlRelationalConnection)context3.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost2", connection3.ConnectionString);
+        Assert.NotSame(connection1.DbDataSource, connection3.DbDataSource);
     }
 
     [Fact]
-    public void Multiple_connection_strings_with_enum_is_not_supported()
+    public void Multiple_connection_strings_with_enum()
     {
         var context1 = new ConnectionStringSwitchingContext("Host=FakeHost1", withEnum: true);
-        _ = context1.GetService<IRelationalConnection>();
-        var context2 = new ConnectionStringSwitchingContext("Host=FakeHost2", withEnum: true);
+        var connection1 = (NpgsqlRelationalConnection)context1.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost1", connection1.ConnectionString);
+        Assert.NotNull(connection1.DbDataSource);
 
-        var exception = Assert.Throws<InvalidOperationException>(() => context2.GetService<IRelationalConnection>());
-        Assert.Equal(NpgsqlStrings.DataSourceWithMultipleConnectionStrings("MapEnum"), exception.Message);
+        var context2 = new ConnectionStringSwitchingContext("Host=FakeHost1", withEnum: true);
+        var connection2 = (NpgsqlRelationalConnection)context2.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost1", connection2.ConnectionString);
+        Assert.Same(connection1.DbDataSource, connection2.DbDataSource);
+
+        var context3 = new ConnectionStringSwitchingContext("Host=FakeHost2", withEnum: true);
+        var connection3 = (NpgsqlRelationalConnection)context3.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost2", connection3.ConnectionString);
+        Assert.NotSame(connection1.DbDataSource, connection3.DbDataSource);
     }
 
     [Fact]
-    public void Multiple_connection_strings_without_data_source_features_is_supported()
+    public void Multiple_connection_strings_without_data_source_features()
     {
         var context1 = new ConnectionStringSwitchingContext("Host=FakeHost1");
-        _ = context1.GetService<IRelationalConnection>();
-        var context2 = new ConnectionStringSwitchingContext("Host=FakeHost2");
-        _ = context2.GetService<IRelationalConnection>();
+        var connection1 = (NpgsqlRelationalConnection)context1.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost1", connection1.ConnectionString);
+        Assert.Null(connection1.DbDataSource);
+
+        var context2 = new ConnectionStringSwitchingContext("Host=FakeHost1");
+        var connection2 = (NpgsqlRelationalConnection)context2.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost1", connection2.ConnectionString);
+        Assert.Null(connection2.DbDataSource);
+
+        var context3 = new ConnectionStringSwitchingContext("Host=FakeHost2");
+        var connection3 = (NpgsqlRelationalConnection)context3.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost2", connection3.ConnectionString);
+        Assert.Null(connection3.DbDataSource);
     }
 
     private class ConnectionStringSwitchingContext(string connectionString, bool withNetTopologySuite = false, bool withEnum = false)

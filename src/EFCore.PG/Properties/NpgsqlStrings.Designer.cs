@@ -172,14 +172,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
                 entityType, sproc);
 
         /// <summary>
-        ///     Different connection strings are being used, but the provider uses has been configured with a feature that requires a singleton data source internally: {dataSourceFeature}
-        /// </summary>
-        public static string DataSourceWithMultipleConnectionStrings(object? dataSourceFeature)
-            => string.Format(
-                GetString("DataSourceWithMultipleConnectionStrings", nameof(dataSourceFeature)),
-                dataSourceFeature);
-
-        /// <summary>
         ///     An exception has been raised that is likely due to a transient failure. Consider enabling transient error resiliency by adding 'EnableRetryOnFailure()' to the 'UseSqlServer' call.
         /// </summary>
         public static string TransientExceptionDetected
