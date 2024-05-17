@@ -798,11 +798,12 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             return null;
         }
 
-        // We now have a user-defined range definition from the context options.
+        // We now have an enum definition from the context options.
 
         // We need the following store type names:
         // 1. The quoted type name is used in migrations, where quoting is needed
         // 2. The unquoted type name is set on NpgsqlParameter.DataTypeName
+        //    (though see https://github.com/npgsql/npgsql/issues/5710).
         var (name, schema) = (enumDefinition.StoreTypeName, enumDefinition.StoreTypeSchema);
         return new NpgsqlEnumTypeMapping(
             _sqlGenerationHelper.DelimitIdentifier(name, schema),

@@ -69,7 +69,7 @@ public class NpgsqlPostgresModelFinalizingConvention : IModelFinalizingConventio
         RelationalTypeMapping typeMapping,
         IConventionModelBuilder modelBuilder)
     {
-        // TODO does not work if CREATE EXTENSION was done on a non-default schema.
+        // TODO: does not work if CREATE EXTENSION was done on a non-default schema. #3177
         switch (typeMapping.StoreType)
         {
             case "hstore":

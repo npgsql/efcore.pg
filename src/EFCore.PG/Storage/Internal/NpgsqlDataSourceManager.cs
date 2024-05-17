@@ -40,7 +40,7 @@ public class NpgsqlDataSourceManager : IDisposable, IAsyncDisposable
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlDataSourceManager(IEnumerable<INpgsqlDataSourceConfigurationPlugin> plugins)
-        => _plugins = plugins;
+        => _plugins = plugins.ToArray();
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

@@ -121,8 +121,9 @@ public class NpgsqlTestStore : RelationalTestStore
             // sorts NULLs last by default. This configures the provider to emit NULLS FIRST.
             .ReverseNullOrdering();
 
-        // The default mode in the EF tests is to use a DbConnection, but in Npgsql we have certain certain test suites which require that
-        // we use a connection string instead, because an NpgsqlDataSource
+        // The default mode in the EF tests is to use a DbConnection, but in Npgsql we have certain test suites which require that
+        // we use a connection string instead, because an NpgsqlDataSource is required internally (e.g. enums or plugins
+        // are used).
         return _connectionString is null
             ? builder.UseNpgsql(Connection, npgsqlOptionsBuilder)
             : builder.UseNpgsql(_connectionString, npgsqlOptionsBuilder);
