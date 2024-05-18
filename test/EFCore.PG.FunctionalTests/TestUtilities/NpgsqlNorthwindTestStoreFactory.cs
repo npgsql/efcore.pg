@@ -21,8 +21,9 @@ public class NpgsqlNorthwindTestStoreFactory : NpgsqlTestStoreFactory
 
     public override TestStore GetOrCreate(string storeName)
         => NpgsqlTestStore.GetOrCreate(
-            Name, "Northwind.sql",
-            TestEnvironment.PostgresVersion >= new Version(12, 0)
-                ? @"CREATE COLLATION IF NOT EXISTS ""some-case-insensitive-collation"" (LOCALE = 'en-u-ks-primary', PROVIDER = icu, DETERMINISTIC = False);"
+            Name,
+            scriptPath: "Northwind.sql",
+            additionalSql: TestEnvironment.PostgresVersion >= new Version(12, 0)
+                ? """CREATE COLLATION IF NOT EXISTS "some-case-insensitive-collation" (LOCALE = 'en-u-ks-primary', PROVIDER = icu, DETERMINISTIC = False);"""
                 : null);
 }

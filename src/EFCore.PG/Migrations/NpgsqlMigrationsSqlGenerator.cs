@@ -1262,9 +1262,9 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             GenerateDropEnum(enumTypeToDrop, model, builder);
         }
 
-        foreach (var (newEnum, oldEnum) in operation.GetPostgresEnums()
+        foreach (var (newEnum, oldEnum) in operation.GetPostgresEnums().OrderBy(e => e.Schema).ThenBy(e => e.Name)
                      .Join(
-                         operation.GetOldPostgresEnums(),
+                         operation.GetOldPostgresEnums().OrderBy(e => e.Schema).ThenBy(e => e.Name),
                          e => new { e.Name, e.Schema },
                          e => new { e.Name, e.Schema },
                          (ne, oe) => (New: ne, Old: oe)))

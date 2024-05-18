@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
@@ -14,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 public class NpgsqlRelationalConnectionTest
 {
     [Fact]
-    public void Creates_Npgsql_Server_connection_string()
+    public void Creates_NpgsqlConnection()
     {
         using var connection = CreateConnection();
 
@@ -51,7 +52,7 @@ public class NpgsqlRelationalConnectionTest
         Assert.Equal("Host=FakeHost", connection2.ConnectionString);
     }
 
-    [Fact(Skip = "Passes in isolation, but fails when the entire test suite is run because of #2891")]
+    [Fact]
     public void Uses_DbDataSource_from_application_service_provider()
     {
         var serviceCollection = new ServiceCollection();
@@ -99,6 +100,83 @@ public class NpgsqlRelationalConnectionTest
 
         var connection1 = context1.GetService<FakeDbContext>().Database.GetDbConnection();
         Assert.Equal("Host=FakeHost2", connection1.ConnectionString);
+    }
+
+    [Fact]
+    public void Multiple_connection_strings_with_plugin()
+    {
+        var context1 = new ConnectionStringSwitchingContext("Host=FakeHost1", withNetTopologySuite: true);
+        var connection1 = (NpgsqlRelationalConnection)context1.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost1", connection1.ConnectionString);
+        Assert.NotNull(connection1.DbDataSource);
+
+        var context2 = new ConnectionStringSwitchingContext("Host=FakeHost1", withNetTopologySuite: true);
+        var connection2 = (NpgsqlRelationalConnection)context2.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost1", connection2.ConnectionString);
+        Assert.Same(connection1.DbDataSource, connection2.DbDataSource);
+
+        var context3 = new ConnectionStringSwitchingContext("Host=FakeHost2", withNetTopologySuite: true);
+        var connection3 = (NpgsqlRelationalConnection)context3.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost2", connection3.ConnectionString);
+        Assert.NotSame(connection1.DbDataSource, connection3.DbDataSource);
+    }
+
+    [Fact]
+    public void Multiple_connection_strings_with_enum()
+    {
+        var context1 = new ConnectionStringSwitchingContext("Host=FakeHost1", withEnum: true);
+        var connection1 = (NpgsqlRelationalConnection)context1.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost1", connection1.ConnectionString);
+        Assert.NotNull(connection1.DbDataSource);
+
+        var context2 = new ConnectionStringSwitchingContext("Host=FakeHost1", withEnum: true);
+        var connection2 = (NpgsqlRelationalConnection)context2.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost1", connection2.ConnectionString);
+        Assert.Same(connection1.DbDataSource, connection2.DbDataSource);
+
+        var context3 = new ConnectionStringSwitchingContext("Host=FakeHost2", withEnum: true);
+        var connection3 = (NpgsqlRelationalConnection)context3.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost2", connection3.ConnectionString);
+        Assert.NotSame(connection1.DbDataSource, connection3.DbDataSource);
+    }
+
+    [Fact]
+    public void Multiple_connection_strings_without_data_source_features()
+    {
+        var context1 = new ConnectionStringSwitchingContext("Host=FakeHost1");
+        var connection1 = (NpgsqlRelationalConnection)context1.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost1", connection1.ConnectionString);
+        Assert.Null(connection1.DbDataSource);
+
+        var context2 = new ConnectionStringSwitchingContext("Host=FakeHost1");
+        var connection2 = (NpgsqlRelationalConnection)context2.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost1", connection2.ConnectionString);
+        Assert.Null(connection2.DbDataSource);
+
+        var context3 = new ConnectionStringSwitchingContext("Host=FakeHost2");
+        var connection3 = (NpgsqlRelationalConnection)context3.GetService<IRelationalConnection>();
+        Assert.Equal("Host=FakeHost2", connection3.ConnectionString);
+        Assert.Null(connection3.DbDataSource);
+    }
+
+    private class ConnectionStringSwitchingContext(string connectionString, bool withNetTopologySuite = false, bool withEnum = false)
+        : DbContext
+    {
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+            => optionsBuilder.UseNpgsql(connectionString, b =>
+            {
+                if (withNetTopologySuite)
+                {
+                    b.UseNetTopologySuite();
+                }
+
+                if (withEnum)
+                {
+                    b.MapEnum<Mood>("mood");
+                }
+            });
+
+        private enum Mood { Happy, Sad }
     }
 
     [Fact]
@@ -193,8 +271,7 @@ public class NpgsqlRelationalConnectionTest
             extension.Validate(options);
         }
 
-        var singletonOptions = new NpgsqlSingletonOptions();
-        singletonOptions.Initialize(options);
+        var dbContextOptions = CreateOptions();
 
         return new NpgsqlRelationalConnection(
             new RelationalConnectionDependencies(
@@ -211,7 +288,7 @@ public class NpgsqlRelationalConnectionTest
                     new DiagnosticListener("FakeDiagnosticListener"),
                     new NpgsqlLoggingDefinitions(),
                     new NullDbContextLogger(),
-                    CreateOptions()),
+                    dbContextOptions),
                 new NamedConnectionStringResolver(options),
                 new RelationalTransactionFactory(
                     new RelationalTransactionFactoryDependencies(
@@ -226,7 +303,8 @@ public class NpgsqlRelationalConnectionTest
                             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                             new NpgsqlSingletonOptions()),
                         new ExceptionDetector()))),
-            singletonOptions);
+            new NpgsqlDataSourceManager([]),
+            dbContextOptions);
     }
 
     private const string ConnectionString = "Fake Connection String";

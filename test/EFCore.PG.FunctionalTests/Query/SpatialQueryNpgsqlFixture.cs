@@ -4,15 +4,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class SpatialQueryNpgsqlFixture : SpatialQueryRelationalFixture
 {
-#pragma warning disable CS0618 // GlobalTypeMapper is obsolete
-    public SpatialQueryNpgsqlFixture()
-    {
-        NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite();
-    }
-#pragma warning restore CS0618
-
+    // We instruct the test store to pass a connection string to UseNpgsql() instead of a DbConnection - that's required to allow
+    // EF's UseNodaTime() to function properly and instantiate an NpgsqlDataSource internally.
     protected override ITestStoreFactory TestStoreFactory
-        => NpgsqlTestStoreFactory.Instance;
+        => new NpgsqlTestStoreFactory(useConnectionString: true);
 
     protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
         => base.AddServices(serviceCollection).AddEntityFrameworkNpgsqlNetTopologySuite();

@@ -962,8 +962,10 @@ FROM "MappedDataTypes" AS m
         public override bool PreservesDateTimeKind
             => false;
 
+        // We instruct the test store to pass a connection string to UseNpgsql() instead of a DbConnection - that's required to allow
+        // EF's MapEnum() to function properly and instantiate an NpgsqlDataSource internally.
         protected override ITestStoreFactory TestStoreFactory
-            => NpgsqlTestStoreFactory.Instance;
+            => new NpgsqlTestStoreFactory(useConnectionString: true);
 
         protected override bool ShouldLogCategory(string logCategory)
             => logCategory == DbLoggerCategory.Query.Name;
@@ -971,22 +973,12 @@ FROM "MappedDataTypes" AS m
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
 
-        static BuiltInDataTypesNpgsqlFixture()
-        {
-#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<Mood>();
-#pragma warning restore CS0618
-        }
+        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+            => base.AddOptions(builder).UseNpgsql(o => o.MapEnum<Mood>("mood"));
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {
             base.OnModelCreating(modelBuilder, context);
-
-            // TODO: Switch to using data source
-            ((NpgsqlTypeMappingSource)context.GetService<ITypeMappingSource>()).LoadUserDefinedTypeMappings(
-                context.GetService<ISqlGenerationHelper>(), dataSource: null);
-
-            modelBuilder.HasPostgresEnum("mood", ["happy", "sad"]);
 
             MakeRequired<MappedDataTypes>(modelBuilder);
 

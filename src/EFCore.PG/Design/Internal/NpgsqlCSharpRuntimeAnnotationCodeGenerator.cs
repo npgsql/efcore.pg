@@ -82,15 +82,40 @@ public class NpgsqlCSharpRuntimeAnnotationCodeGenerator : RelationalCSharpRuntim
 
         switch (typeMapping)
         {
-#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
             case NpgsqlEnumTypeMapping enumTypeMapping:
-                if (enumTypeMapping.NameTranslator != NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator)
+                var code = Dependencies.CSharpHelper;
+                mainBuilder.AppendLine(";");
+
+                mainBuilder.AppendLine(
+                        $"{parameters.TargetName}.TypeMapping = ((NpgsqlEnumTypeMapping){parameters.TargetName}.TypeMapping).Clone(")
+                    .IncrementIndent();
+
+                mainBuilder
+                    .Append("unquotedStoreType: ")
+                    .Append(code.Literal(enumTypeMapping.UnquotedStoreType))
+                    .AppendLine(",")
+                    .AppendLine("labels: new Dictionary<object, string>()")
+                    .AppendLine("{")
+                    .IncrementIndent();
+
+                foreach (var (enumValue, label) in enumTypeMapping.Labels)
                 {
-                    throw new NotSupportedException(
-                        "Mapped enums are only supported in the compiled model if they use the default name translator");
+                    mainBuilder
+                        .Append('[')
+                        .Append(code.UnknownLiteral(enumValue))
+                        .Append(']')
+                        .Append(" = ")
+                        .Append(code.Literal(label))
+                        .AppendLine(",");
                 }
+
+                mainBuilder
+                    .Append("}")
+                    .DecrementIndent()
+                    .Append(")")
+                    .DecrementIndent();
+
                 break;
-#pragma warning restore CS0618
 
             case NpgsqlRangeTypeMapping rangeTypeMapping:
             {
@@ -127,7 +152,6 @@ public class NpgsqlCSharpRuntimeAnnotationCodeGenerator : RelationalCSharpRuntim
 
                 break;
             }
-
         }
 
         return result;

@@ -74,6 +74,49 @@ public class PostgresEnum
     ///     Gets or adds a <see cref="PostgresEnum" /> from or to the <see cref="IMutableAnnotatable" />.
     /// </summary>
     /// <param name="annotatable">The annotatable from which to get or add the enum.</param>
+    /// <param name="schema">The enum schema or null to use the model's default schema.</param>
+    /// <param name="name">The enum name.</param>
+    /// <param name="labels">The enum labels.</param>
+    /// <returns>
+    ///     The <see cref="PostgresEnum" /> from the <see cref="IMutableAnnotatable" />.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    ///     <paramref name="schema" />
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    ///     <paramref name="annotatable" />
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    ///     <paramref name="name" />
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    ///     <paramref name="labels" />
+    /// </exception>
+    public static PostgresEnum GetOrAddPostgresEnum(
+        IConventionAnnotatable annotatable,
+        string? schema,
+        string name,
+        string[] labels)
+    {
+        Check.NotNull(annotatable, nameof(annotatable));
+        Check.NullButNotEmpty(schema, nameof(schema));
+        Check.NotEmpty(name, nameof(name));
+        Check.NotNull(labels, nameof(labels));
+
+        if (FindPostgresEnum(annotatable, schema, name) is { } enumType)
+        {
+            return enumType;
+        }
+
+        var annotationName = BuildAnnotationName(schema, name);
+
+        return new PostgresEnum(annotatable, annotationName) { Labels = labels };
+    }
+
+    /// <summary>
+    ///     Gets or adds a <see cref="PostgresEnum" /> from or to the <see cref="IMutableAnnotatable" />.
+    /// </summary>
+    /// <param name="annotatable">The annotatable from which to get or add the enum.</param>
     /// <param name="name">The enum name.</param>
     /// <param name="labels">The enum labels.</param>
     /// <returns>

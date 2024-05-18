@@ -1,6 +1,8 @@
 ﻿using System.Data;
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
@@ -10,6 +12,7 @@ public class NpgsqlTestStore : RelationalTestStore
 {
     private readonly string? _scriptPath;
     private readonly string? _additionalSql;
+    private readonly string? _connectionString;
 
     private const string Northwind = "Northwind";
 
@@ -29,8 +32,9 @@ public class NpgsqlTestStore : RelationalTestStore
         string name,
         string? scriptPath = null,
         string? additionalSql = null,
-        string? connectionStringOptions = null)
-        => new(name, scriptPath, additionalSql, connectionStringOptions);
+        string? connectionStringOptions = null,
+        bool useConnectionString = false)
+        => new(name, scriptPath, additionalSql, connectionStringOptions, useConnectionString: useConnectionString);
 
     public static NpgsqlTestStore Create(string name, string? connectionStringOptions = null)
         => new(name, connectionStringOptions: connectionStringOptions, shared: false);
@@ -39,14 +43,20 @@ public class NpgsqlTestStore : RelationalTestStore
         => new NpgsqlTestStore(name, shared: false)
             .InitializeNpgsql(null, (Func<DbContext>?)null, null);
 
-    private NpgsqlTestStore(
+    public NpgsqlTestStore(
         string name,
         string? scriptPath = null,
         string? additionalSql = null,
         string? connectionStringOptions = null,
-        bool shared = true)
+        bool shared = true,
+        bool useConnectionString = false)
         : base(name, shared, CreateConnection(name, connectionStringOptions))
     {
+        if (useConnectionString)
+        {
+            _connectionString = CreateConnectionString(name, connectionStringOptions);
+        }
+
         Name = name;
 
         if (scriptPath is not null)
@@ -104,23 +114,19 @@ public class NpgsqlTestStore : RelationalTestStore
     }
 
     public override DbContextOptionsBuilder AddProviderOptions(DbContextOptionsBuilder builder)
-        => builder.UseNpgsql(
-            Connection, b => b.ApplyConfiguration()
-                .CommandTimeout(CommandTimeout)
-                // The tests are written with the assumption that NULLs are sorted first (SQL Server and .NET behavior), but PostgreSQL
-                // sorts NULLs last by default. This configures the provider to emit NULLS FIRST.
-                .ReverseNullOrdering());
-
-    private static string GetScratchDbName()
     {
-        string name;
-        do
-        {
-            name = "Scratch_" + Guid.NewGuid();
-        }
-        while (DatabaseExists(name));
+        Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsBuilder = b => b.ApplyConfiguration()
+            .CommandTimeout(CommandTimeout)
+            // The tests are written with the assumption that NULLs are sorted first (SQL Server and .NET behavior), but PostgreSQL
+            // sorts NULLs last by default. This configures the provider to emit NULLS FIRST.
+            .ReverseNullOrdering();
 
-        return name;
+        // The default mode in the EF tests is to use a DbConnection, but in Npgsql we have certain test suites which require that
+        // we use a connection string instead, because an NpgsqlDataSource is required internally (e.g. enums or plugins
+        // are used).
+        return _connectionString is null
+            ? builder.UseNpgsql(Connection, npgsqlOptionsBuilder)
+            : builder.UseNpgsql(_connectionString, npgsqlOptionsBuilder);
     }
 
     private bool CreateDatabase(Action<DbContext>? clean)

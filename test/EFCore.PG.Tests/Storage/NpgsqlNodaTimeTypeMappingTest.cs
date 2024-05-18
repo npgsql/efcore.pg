@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore.Design.Internal;
 using Microsoft.EntityFrameworkCore.Storage.Json;
+using NodaTime;
 using NodaTime.Calendars;
 using NodaTime.Text;
 using NodaTime.TimeZones;
@@ -8,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage;
 
 public class NpgsqlNodaTimeTypeMappingTest
 {

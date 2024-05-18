@@ -144,7 +144,7 @@ WHERE now() AT TIME ZONE 'UTC' <> @__myDatetime_0
     }
 
     [CollectionDefinition("LegacyTimestampQueryTest", DisableParallelization = true)]
-    public class EventSourceTestCollection;
+    public class NodaTimeEventSourceTestCollection;
 }
 
 #endif

@@ -1,7 +1,8 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+﻿using NodaTime;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 public class NodaTimeQueryNpgsqlTest : QueryTestBase<NodaTimeQueryNpgsqlTest.NodaTimeQueryNpgsqlFixture>
 {
@@ -1898,10 +1899,10 @@ LIMIT 1
         // ReSharper restore UnusedAutoPropertyAccessor.Global
     }
 
-    public class NodaTimeQueryNpgsqlFixture : SharedStoreFixtureBase<NodaTimeContext>, IQueryFixtureBase
+    public class NodaTimeQueryNpgsqlFixture : SharedStoreFixtureBase<NodaTimeContext>, IQueryFixtureBase, ITestSqlLoggerFactory
     {
         protected override string StoreName
-            => "NodaTimeTest";
+            => "NodaTimeQueryTest";
 
         // Set the PostgreSQL TimeZone parameter to something local, to ensure that operations which take TimeZone into account
         // don't depend on the database's time zone, and also that operations which shouldn't take TimeZone into account indeed
