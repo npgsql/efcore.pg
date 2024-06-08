@@ -542,6 +542,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Source1:
                         {
                             Tables: [PgUnnestExpression { Array: var array1 }],
+                            Predicate: null,
                             GroupBy: [],
                             Having: null,
                             IsDistinct: false,
@@ -551,6 +552,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Source2:
                         {
                             Tables: [PgUnnestExpression { Array: var array2 }],
+                            Predicate: null,
                             GroupBy: [],
                             Having: null,
                             IsDistinct: false,
@@ -667,6 +669,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             && source.QueryExpression is SelectExpression
             {
                 Tables: [PgUnnestExpression { Array: var array }],
+                Predicate: null,
                 GroupBy: [],
                 Having: null,
                 IsDistinct: false,
@@ -704,6 +707,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         if (source1.QueryExpression is SelectExpression
             {
                 Tables: [PgUnnestExpression { Array: var array1 } unnestExpression1],
+                Predicate: null,
                 GroupBy: [],
                 Having: null,
                 IsDistinct: false,
@@ -714,6 +718,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             && source2.QueryExpression is SelectExpression
             {
                 Tables: [PgUnnestExpression { Array: var array2 }],
+                Predicate: null,
                 GroupBy: [],
                 Having: null,
                 IsDistinct: false,
@@ -780,6 +785,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             && source.QueryExpression is SelectExpression
             {
                 Tables: [PgUnnestExpression { Array: var array }],
+                Predicate: null,
                 GroupBy: [],
                 Having: null,
                 IsDistinct: false,
@@ -907,6 +913,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         if (source.QueryExpression is SelectExpression
             {
                 Tables: [PgUnnestExpression { Array: var array } unnestExpression],
+                Predicate: null,
                 GroupBy: [],
                 Having: null,
                 IsDistinct: false,
@@ -970,6 +977,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         if (source.QueryExpression is SelectExpression
             {
                 Tables: [PgUnnestExpression { Array: var array } unnestExpression],
+                Predicate: null,
                 GroupBy: [],
                 Having: null,
                 IsDistinct: false,
