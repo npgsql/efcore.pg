@@ -33,19 +33,21 @@ public class NpgsqlUnnestPostprocessor : ExpressionVisitor
             {
                 TableExpressionBase[]? newTables = null;
 
+                var orderings = selectExpression.Orderings;
+
                 for (var i = 0; i < selectExpression.Tables.Count; i++)
                 {
                     var table = selectExpression.Tables[i];
                     var unwrappedTable = table.UnwrapJoin();
 
                     // Find any unnest table which does not have any references to its ordinality column in the projection or orderings
-                    // (this is where they may appear when a column is an identifier).
+                    // (this is where they may appear); if found, remove the ordinality column from the unnest call.
+                    // Note that if the ordinality column is the first ordering, we can still remove it, since unnest already returns
+                    // ordered results.
                     if (unwrappedTable is PgUnnestExpression unnest
-                        && !selectExpression.Orderings.Select(o => o.Expression)
+                        && !selectExpression.Orderings.Skip(1).Select(o => o.Expression)
                             .Concat(selectExpression.Projection.Select(p => p.Expression))
-                            .Any(
-                                p => p is ColumnExpression { Name: "ordinality" } ordinalityColumn
-                                    && ordinalityColumn.TableAlias == unwrappedTable.Alias))
+                            .Any(IsOrdinalityColumn))
                     {
                         if (newTables is null)
                         {
@@ -65,7 +67,16 @@ public class NpgsqlUnnestPostprocessor : ExpressionVisitor
                             PgUnnestExpression => newUnnest,
                             _ => throw new UnreachableException()
                         };
+
+                        if (orderings.Count > 0 && IsOrdinalityColumn(orderings[0].Expression))
+                        {
+                            orderings = orderings.Skip(1).ToList();
+                        }
                     }
+
+                    bool IsOrdinalityColumn(SqlExpression expression)
+                        => expression is ColumnExpression { Name: "ordinality" } ordinalityColumn
+                            && ordinalityColumn.TableAlias == unwrappedTable.Alias;
                 }
 
                 return base.Visit(
@@ -77,7 +88,7 @@ public class NpgsqlUnnestPostprocessor : ExpressionVisitor
                             selectExpression.Predicate,
                             selectExpression.GroupBy,
                             selectExpression.Having,
-                            selectExpression.Orderings,
+                            orderings,
                             selectExpression.Limit,
                             selectExpression.Offset));
             }
