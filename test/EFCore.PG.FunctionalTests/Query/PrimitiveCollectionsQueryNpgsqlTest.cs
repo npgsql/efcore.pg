@@ -1190,7 +1190,7 @@ LEFT JOIN LATERAL (
     FROM unnest(p."DateTimes") WITH ORDINALITY AS d(value)
     WHERE date_part('day', d.value AT TIME ZONE 'UTC')::int <> 1 OR d.value AT TIME ZONE 'UTC' IS NULL
 ) AS t ON TRUE
-ORDER BY p."Id" NULLS FIRST
+ORDER BY p."Id" NULLS FIRST, t.ordinality NULLS FIRST
 """);
     }
 
@@ -1279,7 +1279,7 @@ LEFT JOIN LATERAL (
     FROM unnest(p."NullableInts") WITH ORDINALITY AS n0(value)
     WHERE n0.value IS NULL
 ) AS t0 ON TRUE
-ORDER BY p."Id" NULLS FIRST, t.ordinality NULLS FIRST
+ORDER BY p."Id" NULLS FIRST, t.ordinality NULLS FIRST, t0.ordinality NULLS FIRST
 """);
     }
 
@@ -1321,7 +1321,7 @@ LEFT JOIN LATERAL (
     FROM unnest(p."DateTimes") WITH ORDINALITY AS d0(value)
     WHERE d0.value > TIMESTAMPTZ '2000-01-01T00:00:00Z'
 ) AS t0 ON TRUE
-ORDER BY p."Id" NULLS FIRST, i.ordinality NULLS FIRST, i0.value DESC NULLS LAST, i0.ordinality NULLS FIRST, t.ordinality NULLS FIRST
+ORDER BY p."Id" NULLS FIRST, i.ordinality NULLS FIRST, i0.value DESC NULLS LAST, i0.ordinality NULLS FIRST, t.ordinality NULLS FIRST, t0.ordinality NULLS FIRST
 """);
     }
 
