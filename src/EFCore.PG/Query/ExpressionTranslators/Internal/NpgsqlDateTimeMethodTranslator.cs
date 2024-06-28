@@ -113,9 +113,9 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
     {
         _typeMappingSource = typeMappingSource;
         _sqlExpressionFactory = sqlExpressionFactory;
-        _timestampMapping = typeMappingSource.FindMapping("timestamp without time zone")!;
-        _timestampTzMapping = typeMappingSource.FindMapping("timestamp with time zone")!;
-        _intervalMapping = typeMappingSource.FindMapping("interval")!;
+        _timestampMapping = typeMappingSource.FindMapping(typeof(DateTime), "timestamp without time zone")!;
+        _timestampTzMapping = typeMappingSource.FindMapping(typeof(DateTime), "timestamp with time zone")!;
+        _intervalMapping = typeMappingSource.FindMapping(typeof(TimeSpan), "interval")!;
         _textMapping = typeMappingSource.FindMapping("text")!;
     }
 

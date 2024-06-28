@@ -27,8 +27,8 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
     public NpgsqlDateTimeMemberTranslator(IRelationalTypeMappingSource typeMappingSource, NpgsqlSqlExpressionFactory sqlExpressionFactory)
     {
         _typeMappingSource = typeMappingSource;
-        _timestampMapping = typeMappingSource.FindMapping("timestamp without time zone")!;
-        _timestampTzMapping = typeMappingSource.FindMapping("timestamp with time zone")!;
+        _timestampMapping = typeMappingSource.FindMapping(typeof(DateTime), "timestamp without time zone")!;
+        _timestampTzMapping = typeMappingSource.FindMapping(typeof(DateTime), "timestamp with time zone")!;
         _sqlExpressionFactory = sqlExpressionFactory;
     }
 
