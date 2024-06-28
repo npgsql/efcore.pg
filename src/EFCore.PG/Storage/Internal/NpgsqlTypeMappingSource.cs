@@ -11,7 +11,6 @@ using System.Text;
 using System.Text.Json;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
-using Npgsql.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
