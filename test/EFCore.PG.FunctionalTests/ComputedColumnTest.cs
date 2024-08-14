@@ -3,7 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
 [MinimumPostgresVersion(12, 0)]
-public class ComputedColumnTest : IDisposable
+public class ComputedColumnTest : IAsyncLifetime
 {
     [ConditionalFact]
     public void Can_use_computed_columns()
@@ -128,8 +128,14 @@ public class ComputedColumnTest : IDisposable
         Assert.Equal(FlagEnum.AValue | FlagEnum.BValue, entity.CalculatedFlagEnum);
     }
 
-    protected NpgsqlTestStore TestStore { get; } = NpgsqlTestStore.CreateInitialized("ComputedColumnTest");
+    protected NpgsqlTestStore TestStore { get; private set; }
 
-    public virtual void Dispose()
-        => TestStore.Dispose();
+    public async Task InitializeAsync()
+        => TestStore = await NpgsqlTestStore.CreateInitializedAsync("ComputedColumnTest");
+
+    public Task DisposeAsync()
+    {
+        TestStore.Dispose();
+        return Task.CompletedTask;
+    }
 }

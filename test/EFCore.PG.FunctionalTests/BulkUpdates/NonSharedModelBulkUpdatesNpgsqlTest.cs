@@ -3,7 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
 
-public class NonSharedModelBulkUpdatesNpgsqlTest : NonSharedModelBulkUpdatesTestBase
+public class NonSharedModelBulkUpdatesNpgsqlTest : NonSharedModelBulkUpdatesRelationalTestBase
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
@@ -48,6 +48,14 @@ WHERE o."Id" IN (
             """
 DELETE FROM "Owner" AS o
 """);
+    }
+
+    // TODO: #3253
+    public override async Task Replace_ColumnExpression_in_column_setter(bool async)
+    {
+        var exception = await Assert.ThrowsAsync<PostgresException>(() => base.Replace_ColumnExpression_in_column_setter(async));
+
+        Assert.Equal("42712", exception.SqlState);
     }
 
     public override async Task Delete_aggregate_root_when_table_sharing_with_non_owned_throws(bool async)
@@ -116,7 +124,7 @@ WHERE o."Id" = o0."Id"
             """
 UPDATE "Owner" AS o
 SET "OwnedReference_Number" = length(o."Title")::int,
-    "Title" = o."OwnedReference_Number"::text
+    "Title" = COALESCE(o."OwnedReference_Number"::text, '')
 """);
     }
 
@@ -132,10 +140,10 @@ SET "OwnedReference_Number" = length(o."Title")::int,
                         tb.Property(b => b.Title);
                         tb.Property(b => b.Rating);
                     }),
-            seed: context =>
+            seed: async context =>
             {
                 context.Set<Blog>().Add(new Blog { Title = "SomeBlog" });
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             });
 
         await AssertUpdate(
@@ -201,10 +209,10 @@ WHERE o."Id" = 1
     public virtual async Task Update_with_primitive_collection_in_value_selector(bool async)
     {
         var contextFactory = await InitializeAsync<Context3001>(
-            seed: ctx =>
+            seed: async ctx =>
             {
                 ctx.AddRange(new EntityWithPrimitiveCollection { Tags = ["tag1", "tag2"] });
-                ctx.SaveChanges();
+                await ctx.SaveChangesAsync();
             });
 
         await AssertUpdate(

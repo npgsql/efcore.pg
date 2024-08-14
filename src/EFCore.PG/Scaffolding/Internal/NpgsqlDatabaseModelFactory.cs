@@ -1021,8 +1021,6 @@ WHERE NOT EXISTS (SELECT * FROM pg_depend AS dep WHERE dep.objid = cls.oid AND d
                     MaxValue = seqInfo.MaxValue,
                     IncrementBy = (int?)seqInfo.IncrementBy,
                     IsCyclic = seqInfo.IsCyclic,
-                    IsCached = seqInfo.CacheSize is not null,
-                    CacheSize = seqInfo.CacheSize
                 };
 
                 yield return sequence;

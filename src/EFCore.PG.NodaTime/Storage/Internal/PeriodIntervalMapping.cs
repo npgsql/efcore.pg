@@ -163,6 +163,8 @@ public class PeriodIntervalMapping : NpgsqlTypeMapping
 
     private sealed class JsonPeriodReaderWriter : JsonValueReaderWriter<Period>
     {
+        private static readonly PropertyInfo InstanceProperty = typeof(JsonPeriodReaderWriter).GetProperty(nameof(Instance))!;
+
         public static JsonPeriodReaderWriter Instance { get; } = new();
 
         public override Period FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
@@ -170,5 +172,8 @@ public class PeriodIntervalMapping : NpgsqlTypeMapping
 
         public override void ToJsonTyped(Utf8JsonWriter writer, Period value)
             => writer.WriteStringValue(PeriodPattern.NormalizingIso.Format(value));
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }

@@ -95,6 +95,8 @@ public class NpgsqlDateTimeDateTypeMapping : NpgsqlTypeMapping
     /// </summary>
     public sealed class NpgsqlJsonDateTimeReaderWriter : JsonValueReaderWriter<DateTime>
     {
+        private static readonly PropertyInfo InstanceProperty = typeof(NpgsqlJsonDateTimeReaderWriter).GetProperty(nameof(Instance))!;
+
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
         ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -135,5 +137,8 @@ public class NpgsqlDateTimeDateTypeMapping : NpgsqlTypeMapping
         /// </summary>
         public override void ToJsonTyped(Utf8JsonWriter writer, DateTime value)
             => writer.WriteStringValue(Format(value));
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }

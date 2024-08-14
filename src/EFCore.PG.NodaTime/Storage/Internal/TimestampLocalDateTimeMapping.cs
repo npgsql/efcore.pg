@@ -143,6 +143,8 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
 
     private sealed class JsonLocalDateTimeReaderWriter : JsonValueReaderWriter<LocalDateTime>
     {
+        private static readonly PropertyInfo InstanceProperty = typeof(JsonLocalDateTimeReaderWriter).GetProperty(nameof(Instance))!;
+
         public static JsonLocalDateTimeReaderWriter Instance { get; } = new();
 
         public override LocalDateTime FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
@@ -165,5 +167,8 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
 
         public override void ToJsonTyped(Utf8JsonWriter writer, LocalDateTime value)
             => writer.WriteStringValue(Format(value));
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }

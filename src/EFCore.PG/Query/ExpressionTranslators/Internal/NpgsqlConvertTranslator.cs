@@ -27,7 +27,8 @@ public class NpgsqlConvertTranslator : IMethodCallTranslator
         typeof(int),
         typeof(long),
         typeof(short),
-        typeof(string)
+        typeof(string),
+        typeof(object)
     ];
 
     private static readonly List<MethodInfo> SupportedMethods

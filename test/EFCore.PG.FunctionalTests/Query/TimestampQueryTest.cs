@@ -829,10 +829,10 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
     {
         public DbSet<Entity> Entities { get; set; }
 
-        public static void Seed(TimestampQueryContext context)
+        public static async Task SeedAsync (TimestampQueryContext context)
         {
             context.Entities.AddRange(TimestampData.CreateEntities());
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 
@@ -876,8 +876,8 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
 
         private TimestampData _expectedData;
 
-        protected override void Seed(TimestampQueryContext context)
-            => TimestampQueryContext.Seed(context);
+        protected override Task SeedAsync(TimestampQueryContext context)
+            => TimestampQueryContext.SeedAsync(context);
 
         public Func<DbContext> GetContextCreator()
             => CreateContext;

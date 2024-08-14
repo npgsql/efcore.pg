@@ -16,7 +16,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
 {
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
     private readonly IRelationalTypeMappingSource _typeMappingSource;
-    private readonly SqlConstantExpression _whitespace;
+    private readonly SqlExpression _whitespace;
 
     #region MethodInfo
 

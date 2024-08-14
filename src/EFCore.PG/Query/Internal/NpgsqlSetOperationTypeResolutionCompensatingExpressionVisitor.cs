@@ -112,8 +112,7 @@ public class NpgsqlSetOperationTypeResolutionCompensatingExpressionVisitor : Exp
         _state = parentState == State.InNestedSetOperation ? State.AlreadyCompensated : parentState;
 
         return changed
-            ? selectExpression.Update(
-                projections, tables, predicate, groupBy, havingExpression, orderings, limit, offset)
+            ? selectExpression.Update(tables, predicate, groupBy, havingExpression, projections, orderings, offset, limit)
             : selectExpression;
     }
 

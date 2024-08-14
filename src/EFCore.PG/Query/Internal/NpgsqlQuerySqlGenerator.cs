@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
@@ -131,6 +132,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
             ExpressionType.And when e.Type == typeof(bool) => " AND ",
             ExpressionType.Or when e.Type == typeof(bool) => " OR ",
+
+            // In most databases/languages, the caret (^) is the bitwise XOR operator. But in PostgreSQL the caret is the exponentiation
+            // operator, and hash (#) is used instead.
+            ExpressionType.ExclusiveOr when e.Type == typeof(bool) => " <> ",
+            ExpressionType.ExclusiveOr => " # ",
+
             _ => base.GetOperator(e)
         };
 
@@ -406,7 +413,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         }
 
         throw new InvalidOperationException(
-            RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(nameof(RelationalQueryableExtensions.ExecuteUpdate)));
+            RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(nameof(EntityFrameworkQueryableExtensions.ExecuteUpdate)));
     }
 
     /// <summary>
@@ -1122,7 +1129,8 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         Sql.Append(returnsText ? " #>> " : " #> ");
 
         // Use simplified array literal syntax if all path components are constants for cleaner SQL
-        if (path.All(p => p is SqlConstantExpression))
+        if (path.All(p => p is SqlConstantExpression { Value: var pathSegment }
+                && (pathSegment is not string s || s.All(char.IsAsciiLetterOrDigit))))
         {
             Sql
                 .Append("'{")

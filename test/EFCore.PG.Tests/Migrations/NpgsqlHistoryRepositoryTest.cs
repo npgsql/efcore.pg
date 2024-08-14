@@ -128,7 +128,6 @@ BEGIN
 
         Assert.Equal(
             """
-
 DO $EF$
 BEGIN
     IF EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = 'Migration1') THEN

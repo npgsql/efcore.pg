@@ -78,7 +78,9 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
                     },
                     source,
                     nullable: true,
-                    argumentsPropagateNullability: new[] { false, true },
+                    // string_agg can return nulls regardless of the nullability of its arguments, since if there's an aggregate predicate
+                    // (string_agg(...) WHERE ...), it could cause there to be no elements, in which case string_agg returns null.
+                    argumentsPropagateNullability: FalseArrays[2],
                     typeof(string),
                     _typeMappingSource.FindMapping("text")), // Note that string_agg returns text even if its inputs are varchar(x)
                 _sqlExpressionFactory.Constant(string.Empty, typeof(string)));

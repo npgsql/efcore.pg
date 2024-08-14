@@ -506,7 +506,7 @@ WHERE lca(ARRAY[l."LTree",'Top.Hobbies']::ltree[]) = 'Top'
     {
         public DbSet<LTreeEntity> LTreeEntities { get; set; }
 
-        public static void Seed(LTreeQueryContext context)
+        public static async Task SeedAsync(LTreeQueryContext context)
         {
             var ltreeEntities = new LTreeEntity[]
             {
@@ -527,7 +527,7 @@ WHERE lca(ARRAY[l."LTree",'Top.Hobbies']::ltree[]) = 'Top'
             }
 
             context.LTreeEntities.AddRange(ltreeEntities);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 
@@ -560,8 +560,8 @@ WHERE lca(ARRAY[l."LTree",'Top.Hobbies']::ltree[]) = 'Top'
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        protected override void Seed(LTreeQueryContext context)
-            => LTreeQueryContext.Seed(context);
+        protected override Task SeedAsync(LTreeQueryContext context)
+            => LTreeQueryContext.SeedAsync(context);
     }
 
     #endregion

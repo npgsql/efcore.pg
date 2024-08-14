@@ -45,7 +45,7 @@ public class ConferencePlannerNpgsqlTest(ConferencePlannerNpgsqlTest.ConferenceP
 
         // We don't support DateTimeOffset with non-zero offsets, so we unfortunately need to override the entire seeding method.
         // See https://github.com/dotnet/efcore/issues/26068
-        protected override void Seed(ApplicationDbContext context)
+        protected override async Task SeedAsync(ApplicationDbContext context)
         {
             var attendees1 = new List<Attendee>
             {
@@ -162,7 +162,7 @@ public class ConferencePlannerNpgsqlTest(ConferencePlannerNpgsqlTest.ConferenceP
             }
 
             context.AddRange(tracks.Values);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 }

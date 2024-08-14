@@ -11,20 +11,14 @@ public class DataAnnotationNpgsqlTest(DataAnnotationNpgsqlTest.DataAnnotationNpg
     protected override TestHelpers TestHelpers
         => NpgsqlTestHelpers.Instance;
 
-    public override void StringLengthAttribute_throws_while_inserting_value_longer_than_max_length()
-    {
-        // Npgsql does not support length
-    }
+    public override Task StringLengthAttribute_throws_while_inserting_value_longer_than_max_length()
+        => Task.CompletedTask; // Npgsql does not support length
 
-    public override void TimestampAttribute_throws_if_value_in_database_changed()
-    {
-        // Npgsql does not support length
-    }
+    public override Task TimestampAttribute_throws_if_value_in_database_changed()
+        => Task.CompletedTask; // Npgsql does not support length
 
-    public override void MaxLengthAttribute_throws_while_inserting_value_longer_than_max_length()
-    {
-        // Npgsql does not support length
-    }
+    public override Task MaxLengthAttribute_throws_while_inserting_value_longer_than_max_length()
+        => Task.CompletedTask; // Npgsql does not support length
 
     public class DataAnnotationNpgsqlFixture : DataAnnotationRelationalFixtureBase
     {

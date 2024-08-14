@@ -1,5 +1,6 @@
 ﻿using System.Data.Common;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
+using Xunit.Sdk;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
@@ -14,8 +15,12 @@ public class FromSqlQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomi
     public override Task Bad_data_error_handling_invalid_cast_projection(bool async)
         => base.Bad_data_error_handling_invalid_cast_projection(async);
 
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
+    // The test attempts to project out a column with the wrong case; this works on other databases, and fails when EF tries to materialize.
+    // But in PG this fails at the database since PG is case-sensitive and the column does not exist.
+    public override Task FromSqlRaw_queryable_simple_different_cased_columns_and_not_enough_columns_throws(bool async)
+        => Assert.ThrowsAsync<ThrowsException>(
+            () => base.FromSqlRaw_queryable_simple_different_cased_columns_and_not_enough_columns_throws(async));
+
     public override async Task FromSqlInterpolated_queryable_multiple_composed_with_parameters_and_closure_parameters_interpolated(
         bool async)
     {

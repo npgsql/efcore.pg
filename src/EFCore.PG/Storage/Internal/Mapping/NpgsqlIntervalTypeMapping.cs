@@ -163,6 +163,8 @@ public class NpgsqlIntervalTypeMapping : NpgsqlTypeMapping
     /// </summary>
     public sealed class NpgsqlJsonTimeSpanReaderWriter : JsonValueReaderWriter<TimeSpan>
     {
+        private static readonly PropertyInfo InstanceProperty = typeof(NpgsqlJsonTimeSpanReaderWriter).GetProperty(nameof(Instance))!;
+
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
         ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -188,5 +190,8 @@ public class NpgsqlIntervalTypeMapping : NpgsqlTypeMapping
         /// </summary>
         public override void ToJsonTyped(Utf8JsonWriter writer, TimeSpan value)
             => writer.WriteStringValue(FormatTimeSpanAsInterval(value));
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }

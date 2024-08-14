@@ -80,8 +80,8 @@ public class PgArraySliceExpression : SqlExpression, IEquatable<PgArraySliceExpr
             _quotingConstructor ??= typeof(PgArraySliceExpression).GetConstructor(
                 [typeof(SqlExpression), typeof(SqlExpression), typeof(SqlExpression), typeof(bool), typeof(Type), typeof(RelationalTypeMapping)])!,
             Array.Quote(),
-            RelationalExpressionQuotingUtilities.VisitOrNull(LowerBound),
-            RelationalExpressionQuotingUtilities.VisitOrNull(UpperBound),
+            RelationalExpressionQuotingUtilities.QuoteOrNull(LowerBound),
+            RelationalExpressionQuotingUtilities.QuoteOrNull(UpperBound),
             Constant(IsNullable),
             Constant(Type),
             RelationalExpressionQuotingUtilities.QuoteTypeMapping(TypeMapping));

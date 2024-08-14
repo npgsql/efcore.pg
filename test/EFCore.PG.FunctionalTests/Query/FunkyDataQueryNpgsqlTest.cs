@@ -77,10 +77,10 @@ public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpg
             return _expectedData;
         }
 
-        protected override void Seed(FunkyDataContext context)
+        protected override async Task SeedAsync(FunkyDataContext context)
         {
             context.FunkyCustomers.AddRange(GetExpectedData().Set<FunkyCustomer>());
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 }

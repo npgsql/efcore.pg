@@ -827,25 +827,6 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
 
         builder.Append(operation.IsCyclic ? " CYCLE" : " NO CYCLE");
-
-        if (!operation.IsCached)
-        {
-            // The base implementation appends NO CACHE, which isn't supported by PG
-            builder
-                .Append(" CACHE 1");
-        }
-        else if (operation.CacheSize != null)
-        {
-            builder
-                .Append(" CACHE ")
-                .Append(intTypeMapping.GenerateSqlLiteral(operation.CacheSize.Value));
-        }
-        else if (forAlter)
-        {
-            // The base implementation just appends CACHE, which isn't supported by PG
-            builder
-                .Append(" CACHE 1");
-        }
     }
 
     /// <inheritdoc />
@@ -964,7 +945,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     }
 
     /// <inheritdoc />
-    protected override void IndexOptions(CreateIndexOperation operation, IModel? model, MigrationCommandListBuilder builder)
+    protected override void IndexOptions(MigrationOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         if (_postgresVersion.AtLeast(11) && operation[NpgsqlAnnotationNames.IndexInclude] is string[] { Length: > 0 } includeColumns)
         {

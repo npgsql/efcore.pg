@@ -111,10 +111,13 @@ WHERE now() AT TIME ZONE 'UTC' <> @__myDatetime_0
                 NpgsqlTypeMappingSource.LegacyTimestampBehavior = true;
             }
 
-            public override void Dispose()
-                => NpgsqlTypeMappingSource.LegacyTimestampBehavior = false;
+            public override Task DisposeAsync()
+            {
+                NpgsqlTypeMappingSource.LegacyTimestampBehavior = false;
+                return Task.CompletedTask;
+            }
 
-            protected override void Seed(TimestampQueryContext context)
+            protected override async Task SeedAsync(TimestampQueryContext context)
             {
                 using var ctx = CreateContext();
 
@@ -136,7 +139,8 @@ WHERE now() AT TIME ZONE 'UTC' <> @__myDatetime_0
                         TimestampDateTime = DateTime.SpecifyKind(utcDateTime2.ToLocalTime(), DateTimeKind.Unspecified),
                         TimestampDateTimeOffset = new DateTimeOffset(utcDateTime2)
                     });
-                ctx.SaveChanges();
+
+                await ctx.SaveChangesAsync();
             }
         }
 

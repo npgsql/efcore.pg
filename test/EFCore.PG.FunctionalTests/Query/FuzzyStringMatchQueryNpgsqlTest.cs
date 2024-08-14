@@ -140,8 +140,8 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        protected override void Seed(FuzzyStringMatchContext context)
-            => FuzzyStringMatchContext.Seed(context);
+        protected override Task SeedAsync(FuzzyStringMatchContext context)
+            => FuzzyStringMatchContext.SeedAsync(context);
     }
 
     /// <summary>
@@ -190,7 +190,7 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
             base.OnModelCreating(modelBuilder);
         }
 
-        public static void Seed(FuzzyStringMatchContext context)
+        public static async Task SeedAsync(FuzzyStringMatchContext context)
         {
             for (var i = 1; i <= 9; i++)
             {
@@ -199,7 +199,7 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
                     new FuzzyStringMatchTestEntity { Id = i, Text = text });
             }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 

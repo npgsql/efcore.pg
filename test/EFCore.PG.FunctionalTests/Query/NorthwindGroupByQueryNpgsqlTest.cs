@@ -2670,15 +2670,18 @@ GROUP BY o1."Key0"
 SELECT o."OrderID", o."OrderDate", EXISTS (
     SELECT 1
     FROM "Order Details" AS o0
-    WHERE o."OrderID" = o0."OrderID" AND o0."ProductID" < 25) AS "HasOrderDetails", (
-    SELECT count(*)::int
-    FROM (
-        SELECT 1
-        FROM "Order Details" AS o1
-        INNER JOIN "Products" AS p ON o1."ProductID" = p."ProductID"
-        WHERE o."OrderID" = o1."OrderID" AND o1."ProductID" < 25
-        GROUP BY p."ProductName"
-    ) AS s) > 1 AS "HasMultipleProducts"
+    WHERE o."OrderID" = o0."OrderID" AND o0."ProductID" < 25) AS "HasOrderDetails", CASE
+    WHEN (
+        SELECT count(*)::int
+        FROM (
+            SELECT 1
+            FROM "Order Details" AS o1
+            INNER JOIN "Products" AS p ON o1."ProductID" = p."ProductID"
+            WHERE o."OrderID" = o1."OrderID" AND o1."ProductID" < 25
+            GROUP BY p."ProductName"
+        ) AS s) > 1 THEN TRUE
+    ELSE FALSE
+END AS "HasMultipleProducts"
 FROM "Orders" AS o
 WHERE o."OrderDate" IS NOT NULL
 """);
