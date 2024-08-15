@@ -1466,7 +1466,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     #endregion Range management
 
 
-    #region MatchType management
+    #region MatchingStrategy management
 
     
     /// <inheritdoc/>
@@ -1483,10 +1483,10 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             builder.Append(" (").Append(ColumnList(operation.PrincipalColumns)).Append(")");
         }
 
-        if (operation[NpgsqlAnnotationNames.MatchType] is PostgresMatchStrategy matchType)
+        if (operation[NpgsqlAnnotationNames.MatchStrategy] is PostgresMatchStrategy matchStrategy)
         {
             builder.Append(" MATCH ")
-                .Append(TranslateMatchStrategy(matchType));
+                .Append(TranslateMatchStrategy(matchStrategy));
 
         }
 
@@ -1503,15 +1503,15 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
-    private string TranslateMatchStrategy(PostgresMatchStrategy matchType)
-        => matchType switch {
+    private string TranslateMatchStrategy(PostgresMatchStrategy matchStrategy)
+        => matchStrategy switch {
             PostgresMatchStrategy.Simple => "SIMPLE",
             PostgresMatchStrategy.Partial => "PARTIAL",
             PostgresMatchStrategy.Full => "FULL",
-            _ => throw new InvalidEnumArgumentException(nameof(matchType), (int)matchType, typeof(PostgresMatchStrategy))
+            _ => throw new InvalidEnumArgumentException(nameof(matchStrategy), (int)matchStrategy, typeof(PostgresMatchStrategy))
         };
 
-    #endregion MatchType management
+    #endregion MatchingStrategy management
 
     /// <inheritdoc />
     protected override void Generate(
