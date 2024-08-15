@@ -1,12 +1,12 @@
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 /// <summary>
-///     Matching strategies for a multicolumn foreign key.
+///     Matching strategies for a foreign key.
 /// </summary>
 /// <remarks>
 ///     <see href="https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-PARMS-REFERENCES"/>
 /// </remarks>
-public enum PostgresMatchType
+public enum PostgresMatchStrategy
 {
     /// <summary>
     ///     The default matching strategy, allows any foreignkey column to be NULL.
