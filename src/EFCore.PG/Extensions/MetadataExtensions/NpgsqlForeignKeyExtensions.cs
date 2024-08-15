@@ -14,18 +14,18 @@ public static class NpgsqlForeignKeyExtensions
     ///     Sets the <see cref="PostgresMatchStrategy"/> for a foreign key.
     /// </summary>
     /// <param name="foreignKey">the foreign key being configured.</param>
-    /// <param name="matchType">the <see cref="PostgresMatchStrategy"/> defining the used matching strategy.</param>
+    /// <param name="matchStrategy">the <see cref="PostgresMatchStrategy"/> defining the used matching strategy.</param>
     /// <remarks>
     ///     <see href="https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-PARMS-REFERENCES"/>
     /// </remarks>
-    public static void SetMatchType(this IMutableForeignKey foreignKey, PostgresMatchStrategy matchType)
-        => foreignKey.SetOrRemoveAnnotation(NpgsqlAnnotationNames.MatchType, matchType);
+    public static void SetMatchStrategy(this IMutableForeignKey foreignKey, PostgresMatchStrategy matchStrategy)
+        => foreignKey.SetOrRemoveAnnotation(NpgsqlAnnotationNames.MatchStrategy, matchStrategy);
 
     /// <summary>
-    ///     Returns the assigned MATCH strategy for the provided foreign key
+    ///     Returns the assigned <see cref="PostgresMatchStrategy"/> for the provided foreign key
     /// </summary>
     /// <param name="foreignKey">the foreign key</param>
-    /// <returns>the <see cref="MatchType"/> if assigned, null otherwise</returns>
-    public static PostgresMatchStrategy? GetMatchType(this IReadOnlyForeignKey foreignKey) => 
-        (PostgresMatchStrategy?)foreignKey[NpgsqlAnnotationNames.MatchType];
+    /// <returns>the <see cref="PostgresMatchStrategy"/> if assigned, null otherwise</returns>
+    public static PostgresMatchStrategy? GetMatchStrategy(this IReadOnlyForeignKey foreignKey) => 
+        (PostgresMatchStrategy?)foreignKey[NpgsqlAnnotationNames.MatchStrategy];
 }

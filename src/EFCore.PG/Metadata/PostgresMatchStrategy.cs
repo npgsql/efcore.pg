@@ -9,7 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 public enum PostgresMatchStrategy
 {
     /// <summary>
-    ///     The default matching strategy, allows any foreignkey column to be NULL.
+    ///     The default matching strategy, allows any foreign key column to be NULL.
     /// </summary>
     Simple = 0,
     /// <summary>

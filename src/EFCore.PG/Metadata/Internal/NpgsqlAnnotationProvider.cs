@@ -214,9 +214,9 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
 
         foreach (var item in foreignKey.MappedForeignKeys)
         {
-            if (item.GetMatchType() is {} match)
+            if (item.GetMatchStrategy() is {} match)
             {
-                yield return new Annotation(NpgsqlAnnotationNames.MatchType, match);
+                yield return new Annotation(NpgsqlAnnotationNames.MatchStrategy, match);
             }
         }
     }
