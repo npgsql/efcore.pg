@@ -1486,7 +1486,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         if (operation[NpgsqlAnnotationNames.MatchType] is PostgresMatchStrategy matchType)
         {
             builder.Append(" MATCH ")
-                .Append(TranslateMatchType(matchType));
+                .Append(TranslateMatchStrategy(matchType));
 
         }
 
@@ -1503,7 +1503,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
-    private string TranslateMatchType(PostgresMatchStrategy matchType)
+    private string TranslateMatchStrategy(PostgresMatchStrategy matchType)
         => matchType switch {
             PostgresMatchStrategy.Simple => "SIMPLE",
             PostgresMatchStrategy.Partial => "PARTIAL",
