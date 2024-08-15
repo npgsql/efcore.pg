@@ -9,54 +9,58 @@ namespace Microsoft.EntityFrameworkCore;
 public static class NpgsqlForeignKeyBuilderExtensions
 {
     /// <summary>
-    ///     Configure the matching strategy to be used with the multicolumn foreign keys.
+    ///     Configure the matching strategy to be used with the foreign key.
     /// </summary>
     /// <param name="builder">The builder for the foreign key being configured.</param>
-    /// <param name="matchType">The <see cref="PostgresMatchType"/> defining the used matching strategy.</param>
+    /// <param name="matchType">The <see cref="PostgresMatchStrategy"/> defining the used matching strategy.</param>
     /// <remarks>
     ///     <see href="https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-PARMS-REFERENCES"/>
     /// </remarks>
-    public static ReferenceReferenceBuilder HasMatchType(this ReferenceReferenceBuilder builder, PostgresMatchType matchType){
+    public static ReferenceReferenceBuilder UsesMatchStrategy(this ReferenceReferenceBuilder builder, PostgresMatchStrategy matchType){
+        Check.NotNull(builder, nameof(builder));
+        Check.IsDefined(matchType);
         builder.Metadata.SetMatchType(matchType);
         return builder;
     }
 
     /// <summary>
-    ///     Configure the matching strategy to be used with the multicolumn foreign keys.
+    ///     Configure the matching strategy to be used with the foreign key.
     /// </summary>
     /// <param name="builder">The builder for the foreign key being configured.</param>
-    /// <param name="matchType">The <see cref="PostgresMatchType"/> defining the used matching strategy.</param>
+    /// <param name="matchType">The <see cref="PostgresMatchStrategy"/> defining the used matching strategy.</param>
     /// <remarks>
     ///     <see href="https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-PARMS-REFERENCES"/>
     /// </remarks>
-    public static ReferenceReferenceBuilder<TEntity, TRelatedEntity> HasMatchType<TEntity, TRelatedEntity>(this ReferenceReferenceBuilder<TEntity, TRelatedEntity> builder, PostgresMatchType matchType) 
+    public static ReferenceReferenceBuilder<TEntity, TRelatedEntity> UsesMatchStrategy<TEntity, TRelatedEntity>(this ReferenceReferenceBuilder<TEntity, TRelatedEntity> builder, PostgresMatchStrategy matchType) 
         where TEntity : class
         where TRelatedEntity : class
-            => (ReferenceReferenceBuilder<TEntity, TRelatedEntity>)HasMatchType((ReferenceReferenceBuilder)builder, matchType);
+            => (ReferenceReferenceBuilder<TEntity, TRelatedEntity>)UsesMatchStrategy((ReferenceReferenceBuilder)builder, matchType);
 
     /// <summary>
-    ///     Configure the matching strategy to be used with the multicolumn foreign keys.
+    ///     Configure the matching strategy to be used with the foreign key.
     /// </summary>
     /// <param name="builder">The builder for the foreign key being configured.</param>
-    /// <param name="matchType">The <see cref="PostgresMatchType"/> defining the used matching strategy.</param>
+    /// <param name="matchType">The <see cref="PostgresMatchStrategy"/> defining the used matching strategy.</param>
     /// <remarks>
     ///     <see href="https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-PARMS-REFERENCES"/>
     /// </remarks>
-    public static ReferenceCollectionBuilder HasMatchType(this ReferenceCollectionBuilder builder, PostgresMatchType matchType){
+    public static ReferenceCollectionBuilder UsesMatchStrategy(this ReferenceCollectionBuilder builder, PostgresMatchStrategy matchType){
+        Check.NotNull(builder, nameof(builder));
+        Check.IsDefined(matchType);
         builder.Metadata.SetMatchType(matchType);
         return builder;
     }
 
     /// <summary>
-    ///     Configure the matching strategy to be used with the multicolumn foreign keys.
+    ///     Configure the matching strategy to be used with the foreign key.
     /// </summary>
     /// <param name="builder">The builder for the foreign key being configured.</param>
-    /// <param name="matchType">The <see cref="PostgresMatchType"/> defining the used matching strategy.</param>
+    /// <param name="matchType">The <see cref="PostgresMatchStrategy"/> defining the used matching strategy.</param>
     /// <remarks>
     ///     <see href="https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-PARMS-REFERENCES"/>
     /// </remarks>
-    public static ReferenceCollectionBuilder HasMatchType<TEntity, TRelatedEntity>(this ReferenceCollectionBuilder<TEntity, TRelatedEntity> builder, PostgresMatchType matchType)
+    public static ReferenceCollectionBuilder UsesMatchStrategy<TEntity, TRelatedEntity>(this ReferenceCollectionBuilder<TEntity, TRelatedEntity> builder, PostgresMatchStrategy matchType)
         where TEntity : class
         where TRelatedEntity : class
-        => (ReferenceCollectionBuilder<TEntity, TRelatedEntity>)HasMatchType((ReferenceCollectionBuilder)builder, matchType);
+        => (ReferenceCollectionBuilder<TEntity, TRelatedEntity>)UsesMatchStrategy((ReferenceCollectionBuilder)builder, matchType);
 }

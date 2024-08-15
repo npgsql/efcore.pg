@@ -2549,6 +2549,49 @@ ALTER TABLE "People" ADD CONSTRAINT "PK_Foo" PRIMARY KEY ("SomeField");
         AssertSql("""ALTER TABLE "People" DROP CONSTRAINT "CK_People_Foo";""");
     }
 
+    [Theory]
+    [InlineData(PostgresMatchStrategy.Simple, "SIMPLE", false)]
+    [InlineData(PostgresMatchStrategy.Partial, "PARTIAL", true)]
+    [InlineData(PostgresMatchStrategy.Full, "FULL", false)]
+    public async Task Add_foreign_key_with_match_strategy(PostgresMatchStrategy strategy, string matchValue, bool throws)
+    {
+        Task runningTest = Test(
+            builder => {
+                builder.Entity("Customers", delegate (EntityTypeBuilder e)
+                {
+                    e.Property<int>("Id");
+                    e.HasKey("Id");
+                    e.Property<int>("AddressId");
+                });
+                builder.Entity("Orders", delegate (EntityTypeBuilder e)
+                {
+                    e.Property<int>("Id");
+                    e.Property<int>("CustomerId");
+                });
+            },
+            _ => {},
+            builder => {
+                builder.Entity("Orders")
+                .HasOne("Customers")
+                .WithMany()
+                .HasForeignKey("CustomerId")
+                .UsesMatchStrategy(strategy)
+                .HasConstraintName("FK_Foo");
+            },
+            asserter: null);
+
+        if (throws)
+        {
+            await Assert.ThrowsAsync<PostgresException>(() => runningTest);
+        }else{
+            await runningTest;
+        }
+
+        AssertSql(
+            """CREATE INDEX "IX_Orders_CustomerId" ON "Orders" ("CustomerId");""",
+            $"""ALTER TABLE "Orders" ADD CONSTRAINT "FK_Foo" FOREIGN KEY ("CustomerId") REFERENCES "Customers" ("Id") MATCH {matchValue} ON DELETE CASCADE;""");
+    }
+
     #endregion
 
     #region Sequence
