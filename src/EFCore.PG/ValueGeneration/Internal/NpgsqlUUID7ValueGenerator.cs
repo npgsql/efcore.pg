@@ -7,7 +7,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
 ///     Generates sequential <see cref="Guid" /> values according to the UUID version 7 specification.
 ///     Will be updated to use Guid.CreateVersion7 when available.
 /// </summary>
-public class NpgsqlUUid7ValueGenerator : ValueGenerator<Guid>
+public class NpgsqlUuid7ValueGenerator : ValueGenerator<Guid>
 {
     /// <summary>
     ///     Gets a value indicating whether the values generated are temporary or permanent. This implementation

@@ -104,6 +104,6 @@ public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
         => property.ClrType.UnwrapNullableType() == typeof(Guid)
             ? property.ValueGenerated == ValueGenerated.Never || property.GetDefaultValueSql() is not null
                 ? new TemporaryGuidValueGenerator()
-                : new NpgsqlUUid7ValueGenerator()
+                : new NpgsqlUuid7ValueGenerator()
             : base.FindForType(property, typeBase, clrType);
 }

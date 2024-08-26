@@ -21,7 +21,7 @@ public class NpgsqlValueGeneratorSelectorTest
         AssertGenerator<TemporaryByteValueGenerator>("NullableByte");
         AssertGenerator<TemporaryDecimalValueGenerator>("Decimal");
         AssertGenerator<StringValueGenerator>("String");
-        AssertGenerator<NpgsqlUUid7ValueGenerator>("Guid");
+        AssertGenerator<NpgsqlUuid7ValueGenerator>("Guid");
         AssertGenerator<BinaryValueGenerator>("Binary");
     }
 
@@ -212,11 +212,11 @@ public class NpgsqlValueGeneratorSelectorTest
     }
 
     [Fact]
-    public void CustomUuid7Test()
+    public void NpgsqlUuid7ValueGenerator_creates_uuidv7()
     {
         var dtoNow = DateTimeOffset.UtcNow;
         var net9Internal = Guid.CreateVersion7(dtoNow);
-        var custom = NpgsqlUUid7ValueGenerator.BorrowedFromNet9.CreateVersion7(dtoNow);
+        var custom = NpgsqlUuid7ValueGenerator.BorrowedFromNet9.CreateVersion7(dtoNow);
         var bytenet9 = net9Internal.ToByteArray().AsSpan(0, 6);
         var bytecustom = custom.ToByteArray().AsSpan(0, 6);
         Assert.Equal(bytenet9, bytecustom);
