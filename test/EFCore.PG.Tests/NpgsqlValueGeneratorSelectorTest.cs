@@ -128,7 +128,7 @@ public class NpgsqlValueGeneratorSelectorTest
         AssertGenerator<NpgsqlSequenceHiLoValueGenerator<long>>("NullableLong", setSequences: true);
         AssertGenerator<NpgsqlSequenceHiLoValueGenerator<short>>("NullableShort", setSequences: true);
         AssertGenerator<StringValueGenerator>("String", setSequences: true);
-        AssertGenerator<GuidValueGenerator>("Guid", setSequences: true);
+        AssertGenerator<NpgsqlUuid7ValueGenerator>("Guid", setSequences: true);
         AssertGenerator<BinaryValueGenerator>("Binary", setSequences: true);
     }
 
