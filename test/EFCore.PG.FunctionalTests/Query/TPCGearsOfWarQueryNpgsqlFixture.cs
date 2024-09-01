@@ -46,12 +46,12 @@ public class TPCGearsOfWarQueryNpgsqlFixture : TPCGearsOfWarQueryRelationalFixtu
         return _expectedData;
     }
 
-    protected override void Seed(GearsOfWarContext context)
+    protected override Task SeedAsync(GearsOfWarContext context)
         // GearsOfWarData contains DateTimeOffsets with various offsets, which we don't support. Change these to UTC.
         // Also chop sub-microsecond precision which PostgreSQL does not support.
-        => SeedForNpgsql(context);
+        => SeedForNpgsqlAsync(context);
 
-    public static void SeedForNpgsql(GearsOfWarContext context)
+    public static async Task SeedForNpgsqlAsync(GearsOfWarContext context)
     {
         var squads = GearsOfWarData.CreateSquads();
         var missions = GearsOfWarData.CreateMissions();
@@ -85,10 +85,10 @@ public class TPCGearsOfWarQueryNpgsqlFixture : TPCGearsOfWarQueryRelationalFixtu
         context.LocustLeaders.AddRange(locustLeaders);
         context.Factions.AddRange(factions);
         context.LocustHighCommands.AddRange(locustHighCommands);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
 
         GearsOfWarData.WireUp2(locustLeaders, factions);
 
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 }

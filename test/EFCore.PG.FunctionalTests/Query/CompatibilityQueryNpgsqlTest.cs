@@ -73,11 +73,10 @@ LIMIT 2
             return new CompatibilityContext(builder.Options);
         }
 
-        public virtual Task InitializeAsync()
+        public virtual async Task InitializeAsync()
         {
             _testStore = NpgsqlTestStoreFactory.Instance.GetOrCreate(StoreName);
-            _testStore.Initialize(null, CreateContext, c => CompatibilityContext.Seed((CompatibilityContext)c));
-            return Task.CompletedTask;
+            await _testStore.InitializeAsync(null, CreateContext, c => CompatibilityContext.SeedAsync((CompatibilityContext)c));
         }
 
         // Called after DisposeAsync
@@ -99,12 +98,12 @@ LIMIT 2
     {
         public DbSet<CompatibilityTestEntity> TestEntities { get; set; }
 
-        public static void Seed(CompatibilityContext context)
+        public static async Task SeedAsync(CompatibilityContext context)
         {
             context.TestEntities.AddRange(
                 new CompatibilityTestEntity { Id = 1, SomeInt = 8 },
                 new CompatibilityTestEntity { Id = 2, SomeInt = 10 });
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 

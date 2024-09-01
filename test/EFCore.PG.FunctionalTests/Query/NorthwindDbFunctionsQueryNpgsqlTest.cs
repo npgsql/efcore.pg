@@ -234,10 +234,10 @@ WHERE string_to_array(c."ContactName", ' ', 'Maria') = ARRAY[NULL,'Anders']::tex
         var count = context.Orders.Count(c => EF.Functions.ToDate(c.OrderDate.ToString(), "YYYY-MM-DD") < new DateOnly(2000, 01, 01));
         Assert.Equal(830, count);
         AssertSql(
-"""
+            """
 SELECT count(*)::int
 FROM "Orders" AS o
-WHERE to_date(o."OrderDate"::text, 'YYYY-MM-DD') < DATE '2000-01-01'
+WHERE to_date(COALESCE(o."OrderDate"::text, ''), 'YYYY-MM-DD') < DATE '2000-01-01'
 """);
     }
 
@@ -251,7 +251,7 @@ WHERE to_date(o."OrderDate"::text, 'YYYY-MM-DD') < DATE '2000-01-01'
             """
 SELECT count(*)::int
 FROM "Orders" AS o
-WHERE to_timestamp(o."OrderDate"::text, 'YYYY-MM-DD') < TIMESTAMPTZ '2000-01-01T00:00:00Z'
+WHERE to_timestamp(COALESCE(o."OrderDate"::text, ''), 'YYYY-MM-DD') < TIMESTAMPTZ '2000-01-01T00:00:00Z'
 """);
     }
 

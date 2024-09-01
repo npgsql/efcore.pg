@@ -154,6 +154,9 @@ public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
     /// </summary>
     public sealed class NpgsqlJsonTimestampTzDateTimeReaderWriter : JsonValueReaderWriter<DateTime>
     {
+        private static readonly PropertyInfo InstanceProperty
+            = typeof(NpgsqlJsonTimestampTzDateTimeReaderWriter).GetProperty(nameof(Instance))!;
+
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
         ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -196,6 +199,9 @@ public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
         /// </summary>
         public override void ToJsonTyped(Utf8JsonWriter writer, DateTime value)
             => writer.WriteStringValue(Format(value));
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 
     /// <summary>
@@ -206,6 +212,9 @@ public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
     /// </summary>
     public sealed class NpgsqlJsonTimestampTzDateTimeOffsetReaderWriter : JsonValueReaderWriter<DateTimeOffset>
     {
+        private static readonly PropertyInfo InstanceProperty
+            = typeof(NpgsqlJsonTimestampTzDateTimeOffsetReaderWriter).GetProperty(nameof(Instance))!;
+
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
         ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -246,5 +255,8 @@ public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
         /// </summary>
         public override void ToJsonTyped(Utf8JsonWriter writer, DateTimeOffset value)
             => writer.WriteStringValue(Format(value));
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }

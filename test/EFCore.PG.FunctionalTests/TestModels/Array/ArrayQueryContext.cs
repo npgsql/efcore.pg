@@ -54,14 +54,12 @@ public class ArrayQueryContext(DbContextOptions options) : PoolableDbContext(opt
                 e.HasIndex(ae => ae.NonNullableText);
             });
 
-    public static void Seed(ArrayQueryContext context)
+    public static async Task SeedAsync(ArrayQueryContext context)
     {
         var arrayEntities = ArrayQueryData.CreateArrayEntities();
 
         context.SomeEntities.AddRange(arrayEntities);
-        context.SomeEntityContainers.Add(
-            new ArrayContainerEntity { Id = 1, ArrayEntities = arrayEntities.ToList() }
-        );
-        context.SaveChanges();
+        context.SomeEntityContainers.Add(new ArrayContainerEntity { Id = 1, ArrayEntities = arrayEntities.ToList() });
+        await context.SaveChangesAsync();
     }
 }

@@ -226,10 +226,10 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
         protected override void OnModelCreating(ModelBuilder builder)
             => builder.HasDefaultSchema("test");
 
-        public static void Seed(EnumContext context)
+        public static async Task SeedAsync(EnumContext context)
         {
             context.AddRange(EnumData.CreateSomeEnumEntities());
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 
@@ -311,8 +311,8 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
 
         private EnumData _expectedData;
 
-        protected override void Seed(EnumContext context)
-            => EnumContext.Seed(context);
+        protected override Task SeedAsync(EnumContext context)
+            => EnumContext.SeedAsync(context);
 
         public Func<DbContext> GetContextCreator()
             => CreateContext;

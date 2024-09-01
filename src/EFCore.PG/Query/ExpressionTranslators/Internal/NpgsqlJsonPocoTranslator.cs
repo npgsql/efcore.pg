@@ -134,7 +134,7 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator, IMethodCallTranslator
                     mapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
                     new[] { expression },
                     nullable: true,
-                    argumentsPropagateNullability: TrueArrays[2],
+                    argumentsPropagateNullability: TrueArrays[1],
                     typeof(int));
 
             case PgJsonTraversalExpression traversal:
@@ -152,7 +152,7 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator, IMethodCallTranslator
                     jsonMapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
                     new[] { newTraversal },
                     nullable: true,
-                    argumentsPropagateNullability: TrueArrays[2],
+                    argumentsPropagateNullability: TrueArrays[1],
                     typeof(int));
 
             default:

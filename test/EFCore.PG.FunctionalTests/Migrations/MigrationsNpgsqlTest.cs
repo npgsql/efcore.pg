@@ -2618,40 +2618,8 @@ END $EF$;
 """,
             //
             """
-CREATE SEQUENCE dbo2."TestSequence" START WITH 3 INCREMENT BY 2 MINVALUE 2 MAXVALUE 916 CYCLE CACHE 20;
+CREATE SEQUENCE dbo2."TestSequence" START WITH 3 INCREMENT BY 2 MINVALUE 2 MAXVALUE 916 CYCLE;
 """);
-    }
-
-    public override async Task Create_sequence_nocache()
-    {
-        await base.Create_sequence_nocache();
-
-        AssertSql("""CREATE SEQUENCE "Alpha" START WITH 1 INCREMENT BY 1 NO CYCLE CACHE 1;""");
-    }
-
-    public override async Task Create_sequence_cache()
-    {
-        await base.Create_sequence_cache();
-
-        AssertSql("""CREATE SEQUENCE "Beta" START WITH 1 INCREMENT BY 1 NO CYCLE CACHE 20;""");
-    }
-
-    public override async Task Create_sequence_default_cache()
-    {
-        // PG has no distinction between "no cached" and "CACHE 1" (which is the default), so setting to the default is the same as
-        // disabling caching.
-        await Test(
-            builder => { },
-            builder => builder.HasSequence("Gamma").UseCache(),
-            model =>
-            {
-                var sequence = Assert.Single(model.Sequences);
-                Assert.Equal("Gamma", sequence.Name);
-                Assert.False(sequence.IsCached);
-                Assert.Null(sequence.CacheSize);
-            });
-
-        AssertSql("""CREATE SEQUENCE "Gamma" START WITH 1 INCREMENT BY 1 NO CYCLE;""");
     }
 
     [Fact]
@@ -2677,7 +2645,7 @@ CREATE SEQUENCE dbo2."TestSequence" START WITH 3 INCREMENT BY 2 MINVALUE 2 MAXVA
 
         AssertSql(
             """
-ALTER SEQUENCE foo INCREMENT BY 2 MINVALUE -5 MAXVALUE 10 CYCLE CACHE 20;
+ALTER SEQUENCE foo INCREMENT BY 2 MINVALUE -5 MAXVALUE 10 CYCLE;
 """,
             //
             """
@@ -2690,71 +2658,10 @@ ALTER SEQUENCE foo RESTART;
     {
         await base.Alter_sequence_increment_by();
 
-        AssertSql("ALTER SEQUENCE foo INCREMENT BY 2 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;");
-    }
-
-    public override async Task Alter_sequence_default_cache_to_cache()
-    {
-        await base.Alter_sequence_default_cache_to_cache();
-
-        AssertSql("""ALTER SEQUENCE "Delta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 20;""");
-    }
-
-    public override async Task Alter_sequence_default_cache_to_nocache()
-    {
-        await base.Alter_sequence_default_cache_to_nocache();
-
-        AssertSql("""ALTER SEQUENCE "Epsilon" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
-    }
-
-    public override async Task Alter_sequence_cache_to_nocache()
-    {
-        await base.Alter_sequence_cache_to_nocache();
-
-        AssertSql("""ALTER SEQUENCE "Zeta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
-    }
-
-    public override async Task Alter_sequence_cache_to_default_cache()
-    {
-        // PG has no distinction between "no cached" and "CACHE 1" (which is the default), so setting to the default is the same as
-        // disabling caching.
-        await Test(
-            builder => builder.HasSequence<int>("Eta").UseCache(20),
-            builder => { },
-            builder => builder.HasSequence<int>("Eta").UseCache(),
-            model =>
-            {
-                var sequence = Assert.Single(model.Sequences);
-                Assert.False(sequence.IsCached);
-                Assert.Null(sequence.CacheSize);
-            });
-
-        AssertSql("""ALTER SEQUENCE "Eta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
-    }
-
-    public override async Task Alter_sequence_nocache_to_cache()
-    {
-        await base.Alter_sequence_nocache_to_cache();
-
-        AssertSql("""ALTER SEQUENCE "Theta" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 20;""");
-    }
-
-    public override async Task Alter_sequence_nocache_to_default_cache()
-    {
-        // PG has no distinction between "no cached" and "CACHE 1" (which is the default), so setting to the default is the same as
-        // disabling caching.
-        await Test(
-            builder => builder.HasSequence<int>("Iota").UseNoCache(),
-            builder => { },
-            builder => builder.HasSequence<int>("Iota").UseCache(),
-            model =>
-            {
-                var sequence = Assert.Single(model.Sequences);
-                Assert.False(sequence.IsCached);
-                Assert.Null(sequence.CacheSize);
-            });
-
-        AssertSql("""ALTER SEQUENCE "Iota" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE CACHE 1;""");
+        AssertSql(
+            """
+ALTER SEQUENCE foo INCREMENT BY 2 NO MINVALUE NO MAXVALUE NO CYCLE;
+""");
     }
 
     public override async Task Alter_sequence_restart_with()

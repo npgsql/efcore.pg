@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore.TestModels.NullSemanticsModel;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 // ReSharper disable once UnusedMember.Global
-public class NullSemanticsQueryNpgsqlTest : NullSemanticsQueryTestBase<NullSemanticsQueryNpgsqlFixture>
+public class NullSemanticsQueryNpgsqlTest : NullSemanticsQueryTestBase<NullSemanticsQueryNpgsqlTest.NullSemanticsQueryNpgsqlFixture>
 {
     public NullSemanticsQueryNpgsqlTest(NullSemanticsQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         : base(fixture)
@@ -179,5 +181,27 @@ WHERE (e."IntA", e."StringA") <> (e."IntB", e."StringB") OR ((e."NullableBoolA" 
         context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
         return context;
+    }
+
+    public class NullSemanticsQueryNpgsqlFixture : NullSemanticsQueryFixtureBase
+    {
+        protected override ITestStoreFactory TestStoreFactory
+            => NpgsqlTestStoreFactory.Instance;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
+        {
+            base.OnModelCreating(modelBuilder, context);
+
+            // The base implementations maps this function to bool constants with BoolTypeMapping.Default which doesn't work with PG;
+            // override to use NpgsqlBoolTypeMapping instead.
+            modelBuilder.HasDbFunction(
+                typeof(NullSemanticsQueryFixtureBase).GetMethod(nameof(BoolSwitch))!,
+                b => b.HasTranslation(args => new CaseExpression(
+                    operand: args[0],
+                    [
+                        new CaseWhenClause(new SqlConstantExpression(true, typeMapping: NpgsqlBoolTypeMapping.Default), args[1]),
+                        new CaseWhenClause(new SqlConstantExpression(false, typeMapping: NpgsqlBoolTypeMapping.Default), args[2])
+                    ])));
+        }
     }
 }

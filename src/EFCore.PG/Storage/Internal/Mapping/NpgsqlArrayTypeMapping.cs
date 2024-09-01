@@ -133,10 +133,11 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
             ? null // TODO: Value comparer for multidimensional arrays
             : (ValueComparer?)Activator.CreateInstance(
                 elementType.IsNullableValueType()
-                    ? typeof(NullableValueTypeListComparer<>).MakeGenericType(elementType.UnwrapNullableType())
-                    : elementMapping.Comparer.Type.IsAssignableFrom(elementType)
-                        ? typeof(ListComparer<>).MakeGenericType(elementType)
-                        : typeof(ObjectListComparer<>).MakeGenericType(elementType),
+                    ? typeof(ListOfNullableValueTypesComparer<,>)
+                        .MakeGenericType(typeof(TConcreteCollection), elementType.UnwrapNullableType())
+                    : elementType.IsValueType
+                        ? typeof(ListOfValueTypesComparer<,>).MakeGenericType(typeof(TConcreteCollection), elementType)
+                        : typeof(ListOfReferenceTypesComparer<,>).MakeGenericType(typeof(TConcreteCollection), elementType),
                 elementMapping.Comparer.ToNullableComparer(elementType)!);
 #pragma warning restore EF1001
 
@@ -155,9 +156,11 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
                 ? null
                 : (JsonValueReaderWriter?)Activator.CreateInstance(
                     (elementType.IsNullableValueType()
-                        ? typeof(JsonNullableStructCollectionReaderWriter<,,>)
-                        : typeof(JsonCollectionReaderWriter<,,>))
-                    .MakeGenericType(typeof(TCollection), typeof(TConcreteCollection), elementType.UnwrapNullableType()),
+                        ? typeof(JsonCollectionOfNullableStructsReaderWriter<,>)
+                        : elementType.IsValueType
+                            ? typeof(JsonCollectionOfStructsReaderWriter<,>)
+                            : typeof(JsonCollectionOfReferencesReaderWriter<,>))
+                    .MakeGenericType(typeof(TConcreteCollection), elementType.UnwrapNullableType()),
                     elementJsonReaderWriter);
 
         return new RelationalTypeMappingParameters(

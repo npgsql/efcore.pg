@@ -45,28 +45,21 @@ WHERE c."Region" IS NULL OR btrim(c."Region", E' \t\n\r') = ''
     public override Task Convert_ToString(bool async)
         => AssertTranslationFailed(() => base.Convert_ToString(async));
 
-//     [ConditionalTheory]
-//     [MemberData(nameof(IsAsyncData))]
-//     public virtual async Task String_Join_non_aggregate(bool async)
-//     {
-//         var param = "param";
-//         string nullParam = null;
-//
-//         await AssertQuery(
-//             async,
-//             ss => ss.Set<Customer>().Where(
-//                 c => string.Join("|", c.CustomerID, c.CompanyName, param, nullParam, "constant", null)
-//                     == "ALFKI|Alfreds Futterkiste|param||constant|"));
-//
-//         AssertSql(
-//             """
-// @__param_0='param'
-//
-// SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
-// FROM "Customers" AS c
-// WHERE concat_ws('|', c."CustomerID", c."CompanyName", COALESCE(@__param_0, ''), COALESCE(NULL, ''), 'constant', '') = 'ALFKI|Alfreds Futterkiste|param||constant|'
-// """);
-//     }
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public override async Task String_Join_non_aggregate(bool async)
+    {
+        await base.String_Join_non_aggregate(async);
+
+        AssertSql(
+            """
+@__foo_0='foo'
+
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE concat_ws('|', c."CompanyName", @__foo_0, '', 'bar') = 'Around the Horn|foo||bar'
+""");
+    }
 
     #region Substring
 

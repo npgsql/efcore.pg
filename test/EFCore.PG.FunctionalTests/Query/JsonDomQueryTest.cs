@@ -598,7 +598,7 @@ WHERE json_typeof(j."CustomerElement" #> '{Statistics,Visits}') = 'number'
         public DbSet<JsonbEntity> JsonbEntities { get; set; }
         public DbSet<JsonEntity> JsonEntities { get; set; }
 
-        public static void Seed(JsonDomQueryContext context)
+        public static async Task SeedAsync(JsonDomQueryContext context)
         {
             var (customer1, customer2, customer3) = (CreateCustomer1(), CreateCustomer2(), CreateCustomer3());
 
@@ -640,7 +640,8 @@ WHERE json_typeof(j."CustomerElement" #> '{Statistics,Visits}') = 'number'
                     CustomerDocument = customer3,
                     CustomerElement = customer3.RootElement
                 });
-            context.SaveChanges();
+
+            await context.SaveChangesAsync();
 
             static JsonDocument CreateCustomer1()
                 => JsonDocument.Parse(
@@ -765,8 +766,8 @@ WHERE json_typeof(j."CustomerElement" #> '{Statistics,Visits}') = 'number'
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        protected override void Seed(JsonDomQueryContext context)
-            => JsonDomQueryContext.Seed(context);
+        protected override Task SeedAsync(JsonDomQueryContext context)
+            => JsonDomQueryContext.SeedAsync(context);
     }
 
     #endregion

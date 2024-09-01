@@ -148,7 +148,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
                     "setweight",
                     newArgs,
                     nullable: true,
-                    argumentsPropagateNullability: TrueArrays[2],
+                    argumentsPropagateNullability: TrueArrays[newArgs.Count],
                     method.ReturnType);
             }
 
@@ -321,7 +321,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
                     arguments[2]
                 },
                 nullable: true,
-                argumentsPropagateNullability: TrueArrays[arguments.Count],
+                argumentsPropagateNullability: TrueArrays[2],
                 method.ReturnType,
                 _typeMappingSource.FindMapping(method.ReturnType, _model));
 
@@ -338,7 +338,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
                     arguments[2]
                 },
                 nullable: true,
-                argumentsPropagateNullability: TrueArrays[arguments.Count],
+                argumentsPropagateNullability: TrueArrays[2],
                 method.ReturnType,
                 _typeMappingSource.FindMapping(method.ReturnType, _model));
 
@@ -347,7 +347,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
                 functionName,
                 new[] { arguments[1] },
                 nullable: true,
-                argumentsPropagateNullability: TrueArrays[arguments.Count],
+                argumentsPropagateNullability: TrueArrays[1],
                 method.ReturnType,
                 _typeMappingSource.FindMapping(method.ReturnType, _model));
     }

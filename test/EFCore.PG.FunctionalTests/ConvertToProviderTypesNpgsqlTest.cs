@@ -12,53 +12,56 @@ public class ConvertToProviderTypesNpgsqlTest : ConvertToProviderTypesTestBase<
         Fixture.TestSqlLoggerFactory.Clear();
     }
 
-    [Fact]
-    public override void Can_insert_and_read_with_max_length_set()
-    {
-        const string shortString = "Sky";
-        var shortBinary = new byte[] { 8, 8, 7, 8, 7 };
-
-        var longString = new string('X', Fixture.LongStringLength);
-        var longBinary = new byte[Fixture.LongStringLength];
-        for (var i = 0; i < longBinary.Length; i++)
-        {
-            longBinary[i] = (byte)i;
-        }
-
-        using (var context = CreateContext())
-        {
-            context.Set<MaxLengthDataTypes>().Add(
-                new MaxLengthDataTypes
-                {
-                    Id = 79,
-                    String3 = shortString,
-                    ByteArray5 = shortBinary,
-                    String9000 = longString,
-                    ByteArray9000 = longBinary
-                });
-
-            Assert.Equal(1, context.SaveChanges());
-        }
-
-        using (var context = CreateContext())
-        {
-            var dt = context.Set<MaxLengthDataTypes>().Where(e => e.Id == 79).ToList().Single();
-
-            Assert.Equal(shortString, dt.String3);
-            Assert.Equal(shortBinary, dt.ByteArray5);
-            Assert.Equal(longString, dt.String9000);
-            Assert.Equal(longBinary, dt.ByteArray9000);
-        }
-    }
-
-    [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
-    public override void Can_insert_and_read_back_non_nullable_backed_data_types() { }
+    // [Fact]
+    // public override void Can_insert_and_read_with_max_length_set()
+    // {
+    //     const string shortString = "Sky";
+    //     var shortBinary = new byte[] { 8, 8, 7, 8, 7 };
+    //
+    //     var longString = new string('X', Fixture.LongStringLength);
+    //     var longBinary = new byte[Fixture.LongStringLength];
+    //     for (var i = 0; i < longBinary.Length; i++)
+    //     {
+    //         longBinary[i] = (byte)i;
+    //     }
+    //
+    //     using (var context = CreateContext())
+    //     {
+    //         context.Set<MaxLengthDataTypes>().Add(
+    //             new MaxLengthDataTypes
+    //             {
+    //                 Id = 79,
+    //                 String3 = shortString,
+    //                 ByteArray5 = shortBinary,
+    //                 String9000 = longString,
+    //                 ByteArray9000 = longBinary
+    //             });
+    //
+    //         Assert.Equal(1, context.SaveChanges());
+    //     }
+    //
+    //     using (var context = CreateContext())
+    //     {
+    //         var dt = context.Set<MaxLengthDataTypes>().Where(e => e.Id == 79).ToList().Single();
+    //
+    //         Assert.Equal(shortString, dt.String3);
+    //         Assert.Equal(shortBinary, dt.ByteArray5);
+    //         Assert.Equal(longString, dt.String9000);
+    //         Assert.Equal(longBinary, dt.ByteArray9000);
+    //     }
+    // }
 
     [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
-    public override void Can_insert_and_read_back_nullable_backed_data_types() { }
+    public override Task Can_insert_and_read_back_non_nullable_backed_data_types()
+        => Task.CompletedTask;
 
     [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
-    public override void Can_insert_and_read_back_object_backed_data_types() { }
+    public override Task Can_insert_and_read_back_nullable_backed_data_types()
+        => Task.CompletedTask;
+
+    [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
+    public override Task Can_insert_and_read_back_object_backed_data_types()
+        => Task.CompletedTask;
 
     public class ConvertToProviderTypesNpgsqlFixture : ConvertToProviderTypesFixtureBase
     {

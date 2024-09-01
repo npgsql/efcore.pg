@@ -6,7 +6,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 ///     Represents a SQL function call expression, supporting PostgreSQL's named parameter notation
 ///     (e.g. make_interval(weeks => 2) and non-comma parameter separators (e.g. position(substring in string)).
 /// </summary>
-[DebuggerDisplay("{" + nameof(ToString) + "()}")]
 public class PgFunctionExpression : SqlFunctionExpression, IEquatable<PgFunctionExpression>
 {
     /// <inheritdoc />

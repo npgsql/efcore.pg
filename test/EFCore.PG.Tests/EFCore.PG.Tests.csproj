@@ -3,6 +3,10 @@
   <PropertyGroup>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.Tests</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL</RootNamespace>
+
+    <NoWarn>$(NoWarn);NU1903</NoWarn> <!-- TEMPORARY, DO NOT MERGE -->
+    <NuGetAudit>false</NuGetAudit>
+    <NuGetAuditLevel>critical</NuGetAuditLevel>
   </PropertyGroup>
 
   <ItemGroup>

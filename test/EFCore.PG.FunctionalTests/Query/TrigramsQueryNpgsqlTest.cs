@@ -232,8 +232,8 @@ WHERE 1 - (t."Text" <-> 'query') > 8
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        protected override void Seed(TrigramsContext context)
-            => TrigramsContext.Seed(context);
+        protected override Task SeedAsync(TrigramsContext context)
+            => TrigramsContext.SeedAsync(context);
     }
 
     /// <summary>
@@ -282,7 +282,7 @@ WHERE 1 - (t."Text" <-> 'query') > 8
             base.OnModelCreating(modelBuilder);
         }
 
-        public static void Seed(TrigramsContext context)
+        public static async Task SeedAsync(TrigramsContext context)
         {
             for (var i = 1; i <= 9; i++)
             {
@@ -291,7 +291,7 @@ WHERE 1 - (t."Text" <-> 'query') > 8
                     new TrigramsTestEntity { Id = i, Text = text });
             }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 

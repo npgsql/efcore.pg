@@ -10,6 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 /// </summary>
 public class NpgsqlTypeMappingPostprocessor : RelationalTypeMappingPostprocessor
 {
+    private readonly IModel _model;
     private readonly IRelationalTypeMappingSource _typeMappingSource;
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
@@ -25,6 +26,7 @@ public class NpgsqlTypeMappingPostprocessor : RelationalTypeMappingPostprocessor
         RelationalQueryCompilationContext queryCompilationContext)
         : base(dependencies, relationalDependencies, queryCompilationContext)
     {
+        _model = queryCompilationContext.Model;
         _typeMappingSource = relationalDependencies.TypeMappingSource;
         _sqlExpressionFactory = relationalDependencies.SqlExpressionFactory;
     }
@@ -42,7 +44,7 @@ public class NpgsqlTypeMappingPostprocessor : RelationalTypeMappingPostprocessor
             case PgUnnestExpression unnestExpression
                 when TryGetInferredTypeMapping(unnestExpression.Alias, unnestExpression.ColumnName, out var elementTypeMapping):
             {
-                var collectionTypeMapping = _typeMappingSource.FindMapping(unnestExpression.Array.Type, Model, elementTypeMapping);
+                var collectionTypeMapping = _typeMappingSource.FindMapping(unnestExpression.Array.Type, _model, elementTypeMapping);
 
                 if (collectionTypeMapping is null)
                 {

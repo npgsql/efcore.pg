@@ -7,8 +7,8 @@ public class AdHocMiscellaneousQueryNpgsqlTest : AdHocMiscellaneousQueryRelation
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
-    protected override void Seed2951(Context2951 context)
-        => context.Database.ExecuteSqlRaw(
+    protected override Task Seed2951(Context2951 context)
+        => context.Database.ExecuteSqlRawAsync(
             """
 CREATE TABLE "ZeroKey" ("Id" int);
 INSERT INTO "ZeroKey" VALUES (NULL)

@@ -346,11 +346,13 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                     rewrittenArguments.Add(_sqlExpressionFactory.Constant("UTC"));
                 }
 
-                return kind == DateTimeKind.Utc
-                    ? _sqlExpressionFactory.Function(
-                        "make_timestamptz", rewrittenArguments, nullable: true, TrueArrays[8], typeof(DateTime), _timestampTzMapping)
-                    : _sqlExpressionFactory.Function(
-                        "make_timestamp", rewrittenArguments, nullable: true, TrueArrays[7], typeof(DateTime), _timestampMapping);
+                return _sqlExpressionFactory.Function(
+                    kind == DateTimeKind.Utc ? "make_timestamptz" : "make_timestamp",
+                    rewrittenArguments,
+                    nullable: true,
+                    TrueArrays[rewrittenArguments.Count],
+                    typeof(DateTime),
+                    kind == DateTimeKind.Utc ? _timestampTzMapping : _timestampMapping);
             }
         }
 
@@ -575,6 +577,44 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     }
 
     #endregion StartsWith/EndsWith/Contains
+
+    #region GREATEST/LEAST
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public override SqlExpression GenerateGreatest(IReadOnlyList<SqlExpression> expressions, Type resultType)
+    {
+        // Docs: https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
+        var resultTypeMapping = ExpressionExtensions.InferTypeMapping(expressions);
+
+        // If one or more arguments aren't NULL, then NULL arguments are ignored during comparison.
+        // If all arguments are NULL, then GREATEST returns NULL.
+        return _sqlExpressionFactory.Function(
+            "GREATEST", expressions, nullable: true, Enumerable.Repeat(false, expressions.Count), resultType, resultTypeMapping);
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public override SqlExpression GenerateLeast(IReadOnlyList<SqlExpression> expressions, Type resultType)
+    {
+        // Docs: https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
+        var resultTypeMapping = ExpressionExtensions.InferTypeMapping(expressions);
+
+        // If one or more arguments aren't NULL, then NULL arguments are ignored during comparison.
+        // If all arguments are NULL, then LEAST returns NULL.
+        return _sqlExpressionFactory.Function(
+            "LEAST", expressions, nullable: true, Enumerable.Repeat(false, expressions.Count), resultType, resultTypeMapping);
+    }
+
+    #endregion GREATEST/LEAST
 
     #region Copied from RelationalSqlTranslatingExpressionVisitor
 

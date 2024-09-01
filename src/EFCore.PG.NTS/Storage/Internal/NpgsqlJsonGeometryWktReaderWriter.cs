@@ -10,6 +10,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 /// </summary>
 public sealed class NpgsqlJsonGeometryWktReaderWriter : JsonValueReaderWriter<Geometry>
 {
+    private static readonly PropertyInfo InstanceProperty = typeof(NpgsqlJsonGeometryWktReaderWriter).GetProperty(nameof(Instance))!;
+
     private static readonly WKTReader WktReader = new();
 
     /// <summary>
@@ -28,4 +30,7 @@ public sealed class NpgsqlJsonGeometryWktReaderWriter : JsonValueReaderWriter<Ge
     /// <inheritdoc />
     public override void ToJsonTyped(Utf8JsonWriter writer, Geometry value)
         => writer.WriteStringValue(value.ToText());
+
+    /// <inheritdoc />
+    public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
 }

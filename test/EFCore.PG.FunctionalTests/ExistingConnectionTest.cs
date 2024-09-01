@@ -20,7 +20,7 @@ public class ExistingConnectionTest
             .AddEntityFrameworkNpgsql()
             .BuildServiceProvider();
 
-        await using (var store = NpgsqlTestStore.GetNorthwindStore())
+        await using (var store = await NpgsqlTestStore.GetNorthwindStoreAsync())
         {
             store.CloseConnection();
 

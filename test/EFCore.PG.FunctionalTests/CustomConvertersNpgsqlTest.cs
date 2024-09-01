@@ -6,19 +6,24 @@ public class CustomConvertersNpgsqlTest(CustomConvertersNpgsqlTest.CustomConvert
     : CustomConvertersTestBase<CustomConvertersNpgsqlTest.CustomConvertersNpgsqlFixture>(fixture)
 {
     // Disabled: PostgreSQL is case-sensitive
-    public override void Can_insert_and_read_back_with_case_insensitive_string_key() { }
+    public override Task Can_insert_and_read_back_with_case_insensitive_string_key()
+        => Task.CompletedTask;
 
     [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
-    public override void Can_insert_and_read_back_non_nullable_backed_data_types() { }
+    public override Task Can_insert_and_read_back_non_nullable_backed_data_types()
+        => Task.CompletedTask;
 
     [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
-    public override void Can_insert_and_read_back_nullable_backed_data_types() { }
+    public override Task Can_insert_and_read_back_nullable_backed_data_types()
+        => Task.CompletedTask;
 
     [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
-    public override void Can_insert_and_read_back_object_backed_data_types() { }
+    public override Task Can_insert_and_read_back_object_backed_data_types()
+        => Task.CompletedTask;
 
     [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
-    public override void Can_query_using_any_data_type_nullable_shadow() { }
+    public override Task Can_query_using_any_data_type_nullable_shadow()
+        => Task.CompletedTask;
 
     public override void Value_conversion_on_enum_collection_contains()
         => Assert.Contains(

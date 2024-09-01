@@ -709,7 +709,7 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
         public DbSet<JsonbEntity> JsonbEntities { get; set; }
         public DbSet<JsonEntity> JsonEntities { get; set; }
 
-        public static void Seed(JsonPocoQueryContext context)
+        public static async Task SeedAsync(JsonPocoQueryContext context)
         {
             context.JsonbEntities.AddRange(
                 new JsonbEntity
@@ -727,7 +727,8 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
                     ToplevelArray = ["one", "two", "three"]
                 },
                 new JsonEntity { Id = 2, Customer = CreateCustomer2() });
-            context.SaveChanges();
+
+            await context.SaveChangesAsync();
 
             static Customer CreateCustomer1()
                 => new()
@@ -861,8 +862,8 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        protected override void Seed(JsonPocoQueryContext context)
-            => JsonPocoQueryContext.Seed(context);
+        protected override Task SeedAsync(JsonPocoQueryContext context)
+            => JsonPocoQueryContext.SeedAsync(context);
     }
 
     public class Customer

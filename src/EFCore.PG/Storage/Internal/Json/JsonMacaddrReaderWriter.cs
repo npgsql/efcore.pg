@@ -12,6 +12,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Json;
 /// </summary>
 public sealed class JsonMacaddrReaderWriter : JsonValueReaderWriter<PhysicalAddress>
 {
+    private static readonly PropertyInfo InstanceProperty = typeof(JsonMacaddrReaderWriter).GetProperty(nameof(Instance))!;
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -31,4 +33,7 @@ public sealed class JsonMacaddrReaderWriter : JsonValueReaderWriter<PhysicalAddr
     /// <inheritdoc />
     public override void ToJsonTyped(Utf8JsonWriter writer, PhysicalAddress value)
         => writer.WriteStringValue(value.ToString());
+
+    /// <inheritdoc />
+    public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
 }
