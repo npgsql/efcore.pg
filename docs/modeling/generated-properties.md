@@ -92,9 +92,9 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 ## GUID/UUID Generation
 
-By default, for GUID key properties, a random GUID is generated client-side by the EF provider and sent to the database.
+By default, for GUID key properties, a GUID is generated client-side by the EF provider and sent to the database. From version 9.0 and onwards, these GUIDs are sequential (version 7), which are more optimized for database indexes (before version 9.0, these GUIDs were random).
 
-To generate GUID's client-side for non-key properties, configure them as follows:
+To have the provider generate GUIDs client-side for **non-key** properties, configure them as follows:
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -102,7 +102,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
     modelBuilder
         .Entity<Blog>()
         .Property(b => b.SomeGuidProperty)
-        .HasValueGenerator<GuidValueGenerator>();
+        .HasValueGenerator<NpgsqlSequentialGuidValueGenerator>();
 }
 ```
 
