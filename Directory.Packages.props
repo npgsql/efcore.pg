@@ -1,7 +1,7 @@
   <Project>
   <PropertyGroup>
-    <EFCoreVersion>[9.0.0-preview.7.24405.3]</EFCoreVersion>
-    <MicrosoftExtensionsVersion>9.0.0-preview.7.24405.7</MicrosoftExtensionsVersion>
+    <EFCoreVersion>[9.0.0-rc.1.24451.1]</EFCoreVersion>
+    <MicrosoftExtensionsVersion>9.0.0-rc.1.24431.7</MicrosoftExtensionsVersion>
     <NpgsqlVersion>8.0.3</NpgsqlVersion>
   </PropertyGroup>
 
@@ -21,15 +21,16 @@
     <PackageVersion Include="Npgsql.NetTopologySuite" Version="$(NpgsqlVersion)" />
     <PackageVersion Include="Npgsql.DependencyInjection" Version="$(NpgsqlVersion)" />
 
-    <!-- Workaround for unsecure dependency on EF.Specification.Tests -->
+    <!-- Workaround for unsecure dependencies in EF -->
     <PackageVersion Include="System.Formats.Asn1" Version="8.0.1" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.4" />
 
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageVersion Include="xunit" Version="2.8.1" />
-    <PackageVersion Include="xunit.assert" Version="2.8.1" />
-    <PackageVersion Include="xunit.core" Version="2.8.1" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.1" />
+    <PackageVersion Include="xunit" Version="2.9.0" />
+    <PackageVersion Include="xunit.assert" Version="2.9.0" />
+    <PackageVersion Include="xunit.core" Version="2.9.0" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.3.3" />
   </ItemGroup>
 </Project>

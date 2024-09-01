@@ -16,14 +16,33 @@ public class NorthwindAggregateOperatorsQueryNpgsqlTest : NorthwindAggregateOper
     }
 
     // Overriding to add equality tolerance because of floating point precision
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
-    public override Task Average_over_max_subquery_is_client_eval(bool async)
-        => AssertAverage(
+    public override async Task Average_over_max_subquery(bool async)
+    {
+        await AssertAverage(
             async,
             ss => ss.Set<Customer>().OrderBy(c => c.CustomerID).Take(3),
             selector: c => (decimal)c.Orders.Average(o => 5 + o.OrderDetails.Max(od => od.ProductID)),
-            asserter: (a, b) => Assert.Equal(a, b, 15));
+            asserter: (e, a) => Assert.Equal(e, a, 10));
+
+        AssertSql(
+            """
+@__p_0='3'
+
+SELECT avg((
+    SELECT avg(CAST(5 + (
+        SELECT max(o0."ProductID")
+        FROM "Order Details" AS o0
+        WHERE o."OrderID" = o0."OrderID") AS double precision))
+    FROM "Orders" AS o
+    WHERE c0."CustomerID" = o."CustomerID")::numeric)
+FROM (
+    SELECT c."CustomerID"
+    FROM "Customers" AS c
+    ORDER BY c."CustomerID" NULLS FIRST
+    LIMIT @__p_0
+) AS c0
+""");
+    }
 
     public override async Task Contains_with_local_uint_array_closure(bool async)
     {

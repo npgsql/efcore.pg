@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Numerics;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using Xunit.Sdk;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
@@ -17,76 +18,76 @@ public class JsonTypesNpgsqlTest : JsonTypesRelationalTestBase
     // supported).
 
     public override Task Can_read_write_array_of_array_of_array_of_int_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_array_of_array_of_array_of_int_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_array_of_array_of_array_of_int_JSON_values());
 
     public override Task Can_read_write_array_of_list_of_array_of_IPAddress_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_array_of_list_of_array_of_IPAddress_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_array_of_list_of_array_of_IPAddress_JSON_values());
 
     public override Task Can_read_write_array_of_list_of_array_of_string_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_array_of_list_of_array_of_string_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_array_of_list_of_array_of_string_JSON_values());
 
     public override Task Can_read_write_array_of_list_of_binary_JSON_values(string expected)
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_array_of_list_of_binary_JSON_values(expected));
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_array_of_list_of_binary_JSON_values(expected));
 
     public override Task Can_read_write_array_of_list_of_GUID_JSON_values(string expected)
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_array_of_list_of_GUID_JSON_values(expected));
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_array_of_list_of_GUID_JSON_values(expected));
 
     public override Task Can_read_write_array_of_list_of_int_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_array_of_list_of_int_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_array_of_list_of_int_JSON_values());
 
     public override Task Can_read_write_array_of_list_of_IPAddress_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_array_of_list_of_IPAddress_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_array_of_list_of_IPAddress_JSON_values());
 
     public override Task Can_read_write_array_of_list_of_string_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_array_of_list_of_string_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_array_of_list_of_string_JSON_values());
 
     public override Task Can_read_write_array_of_list_of_ulong_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_array_of_list_of_ulong_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_array_of_list_of_ulong_JSON_values());
 
     public override Task Can_read_write_list_of_array_of_GUID_JSON_values(string expected)
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_list_of_array_of_GUID_JSON_values(expected));
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_list_of_array_of_GUID_JSON_values(expected));
 
     public override Task Can_read_write_list_of_array_of_int_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_list_of_array_of_int_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_list_of_array_of_int_JSON_values());
 
     public override Task Can_read_write_list_of_array_of_IPAddress_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_list_of_array_of_IPAddress_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_list_of_array_of_IPAddress_JSON_values());
 
     public override Task Can_read_write_list_of_array_of_list_of_array_of_binary_JSON_values(string expected)
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_list_of_array_of_list_of_array_of_binary_JSON_values(expected));
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_list_of_array_of_list_of_array_of_binary_JSON_values(expected));
 
     public override Task Can_read_write_list_of_array_of_list_of_IPAddress_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_list_of_array_of_list_of_IPAddress_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_list_of_array_of_list_of_IPAddress_JSON_values());
 
     public override Task Can_read_write_list_of_array_of_list_of_string_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_list_of_array_of_list_of_string_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_list_of_array_of_list_of_string_JSON_values());
 
     public override Task Can_read_write_list_of_array_of_list_of_ulong_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_list_of_array_of_list_of_ulong_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_list_of_array_of_list_of_ulong_JSON_values());
 
     public override Task Can_read_write_list_of_array_of_nullable_GUID_JSON_values(string expected)
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_list_of_array_of_nullable_GUID_JSON_values(expected));
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_list_of_array_of_nullable_GUID_JSON_values(expected));
 
     public override Task Can_read_write_list_of_array_of_nullable_int_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_list_of_array_of_nullable_int_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_list_of_array_of_nullable_int_JSON_values());
 
     public override Task Can_read_write_list_of_array_of_nullable_ulong_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_list_of_array_of_nullable_ulong_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_list_of_array_of_nullable_ulong_JSON_values());
 
     public override Task Can_read_write_list_of_array_of_string_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_list_of_array_of_string_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_list_of_array_of_string_JSON_values());
 
     public override Task Can_read_write_list_of_array_of_ulong_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_list_of_array_of_ulong_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_list_of_array_of_ulong_JSON_values());
 
     public override Task Can_read_write_list_of_list_of_list_of_int_JSON_values()
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_list_of_list_of_list_of_int_JSON_values());
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_list_of_list_of_list_of_int_JSON_values());
 
     #endregion Nested collections (unsupported)
 
     // IEnumerable property
     public override Task Can_read_write_list_of_array_of_binary_JSON_values(string expected)
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Can_read_write_list_of_array_of_binary_JSON_values(expected));
+        => Assert.ThrowsAsync<EqualException>(() => base.Can_read_write_list_of_array_of_binary_JSON_values(expected));
 
     // public override Task Can_read_write_ulong_enum_JSON_values(EnumU64 value, string json)
     // {

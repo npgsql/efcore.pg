@@ -11,14 +11,15 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
     /// <summary>
-    ///     Creates a new instance of the <see cref="NpgsqlSqlNullabilityProcessor" /> class.
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    /// <param name="dependencies">Parameter object containing dependencies for this class.</param>
-    /// <param name="useRelationalNulls">A bool value indicating whether relational null semantics are in use.</param>
     public NpgsqlSqlNullabilityProcessor(
         RelationalParameterBasedSqlProcessorDependencies dependencies,
-        bool useRelationalNulls)
-        : base(dependencies, useRelationalNulls)
+        RelationalParameterBasedSqlProcessorParameters parameters)
+        : base(dependencies, parameters)
     {
         _sqlExpressionFactory = dependencies.SqlExpressionFactory;
     }
@@ -101,7 +102,7 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
                 // visit that (that adds the compensation). We then chain all such expressions together with AND.
                 var valueBinaryExpression = Visit(
                     _sqlExpressionFactory.MakeBinary(
-                        operatorType, visitedLeftValue, visitedRightValue, typeMapping: null, existingExpr: sqlBinaryExpression)!,
+                        operatorType, visitedLeftValue, visitedRightValue, typeMapping: null, existingExpression: sqlBinaryExpression)!,
                     allowOptimizedExpansion,
                     out _);
 
@@ -144,7 +145,7 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
                             ? rightRowValue
                             : new PgRowValueExpression(visitedRightValues, leftRowValue.Type, leftRowValue.TypeMapping),
                         typeMapping: null,
-                        existingExpr: sqlBinaryExpression)!;
+                        existingExpression: sqlBinaryExpression)!;
             }
 
             Check.DebugAssert(visitedLeftValues is not null, "visitedLeftValues is not null");
