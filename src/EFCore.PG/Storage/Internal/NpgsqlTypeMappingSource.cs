@@ -441,11 +441,10 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
                 }
             }
 
-            // TODO: the following is a workaround/hack for https://github.com/dotnet/efcore/issues/31505
             if ((storeTypeName.EndsWith("[]", StringComparison.Ordinal)
                     || storeTypeName is "int4multirange" or "int8multirange" or "nummultirange" or "datemultirange" or "tsmultirange"
                         or "tstzmultirange")
-                && FindCollectionMapping(mappingInfo, mappingInfo.ClrType!, providerType: null, elementMapping: null) is
+                && FindCollectionMapping(mappingInfo, mappingInfo.ClrType, providerType: null, elementMapping: null) is
                     RelationalTypeMapping collectionMapping)
             {
                 return collectionMapping;
@@ -460,7 +459,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             if (ClrTypeMappings.TryGetValue(clrType, out var mapping))
             {
                 // Handle types with the size facet (string, bitarray)
-                if (mappingInfo.Size is > 0)
+                if (mappingInfo.Size > 0)
                 {
                     if (clrType == typeof(string))
                     {
@@ -526,7 +525,9 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     /// </summary>
     protected override RelationalTypeMapping? FindCollectionMapping(
         RelationalTypeMappingInfo info,
-        Type modelType,
+        // Note that modelType is nullable (in the relational base signature it isn't) because of array scaffolding, i.e. we call
+        // FindCollectionMapping from our own FindMapping, where the clrType is null when scaffolding.
+        Type? modelType,
         Type? providerType,
         CoreTypeMapping? elementMapping)
     {
@@ -538,9 +539,6 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         Type concreteCollectionType;
         Type? elementType = null;
 
-        // TODO: modelType can be null (contrary to nullable annotations) only because of https://github.com/dotnet/efcore/issues/31505,
-        // i.e. we call into here
-        // If there's a CLR type (i.e. not reverse-engineering), check that it's a compatible enumerable.
         if (modelType is not null)
         {
             // We do GetElementType for multidimensional arrays - these don't implement generic IEnumerable<>

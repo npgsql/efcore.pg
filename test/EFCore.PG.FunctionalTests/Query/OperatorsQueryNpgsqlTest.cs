@@ -15,21 +15,46 @@ public class OperatorsQueryNpgsqlTest : OperatorsQueryTestBase
     {
         await base.Bitwise_and_on_expression_with_like_and_null_check_being_compared_to_false();
 
-        AssertSql("");
+        AssertSql(
+            """
+SELECT o."Value" AS "Value1", o0."Value" AS "Value2", o1."Value" AS "Value3"
+FROM "OperatorEntityString" AS o
+CROSS JOIN "OperatorEntityString" AS o0
+CROSS JOIN "OperatorEntityBool" AS o1
+WHERE ((o0."Value" LIKE 'B' AND o0."Value" IS NOT NULL) OR o1."Value") AND o."Value" IS NOT NULL
+ORDER BY o."Id" NULLS FIRST, o0."Id" NULLS FIRST, o1."Id" NULLS FIRST
+""");
     }
 
     public override async Task Complex_predicate_with_bitwise_and_modulo_and_negation()
     {
         await base.Complex_predicate_with_bitwise_and_modulo_and_negation();
 
-        AssertSql("");
+        AssertSql(
+            """
+SELECT o."Value" AS "Value0", o0."Value" AS "Value1", o1."Value" AS "Value2", o2."Value" AS "Value3"
+FROM "OperatorEntityLong" AS o
+CROSS JOIN "OperatorEntityLong" AS o0
+CROSS JOIN "OperatorEntityLong" AS o1
+CROSS JOIN "OperatorEntityLong" AS o2
+WHERE (o0."Value" % 2) / o."Value" & ((o2."Value" | o1."Value") - o."Value") - o1."Value" * o1."Value" >= ((o0."Value" / (~o2."Value")) % 2) % ((~o."Value") + 1)
+ORDER BY o."Id" NULLS FIRST, o0."Id" NULLS FIRST, o1."Id" NULLS FIRST, o2."Id" NULLS FIRST
+""");
     }
 
     public override async Task Complex_predicate_with_bitwise_and_arithmetic_operations()
     {
         await base.Complex_predicate_with_bitwise_and_arithmetic_operations();
 
-        AssertSql("");
+        AssertSql(
+            """
+SELECT o."Value" AS "Value0", o0."Value" AS "Value1", o1."Value" AS "Value2"
+FROM "OperatorEntityInt" AS o
+CROSS JOIN "OperatorEntityInt" AS o0
+CROSS JOIN "OperatorEntityBool" AS o1
+WHERE (o0."Value" & o."Value" + o."Value" & o."Value") / 1 > o0."Value" & 10 AND o1."Value"
+ORDER BY o."Id" NULLS FIRST, o0."Id" NULLS FIRST, o1."Id" NULLS FIRST
+""");
     }
 
     public override async Task Or_on_two_nested_binaries_and_another_simple_comparison()
@@ -44,7 +69,7 @@ CROSS JOIN "OperatorEntityString" AS o0
 CROSS JOIN "OperatorEntityString" AS o1
 CROSS JOIN "OperatorEntityString" AS o2
 CROSS JOIN "OperatorEntityInt" AS o3
-WHERE ((o."Value" = 'A' AND o."Value" IS NOT NULL AND o0."Value" = 'A' AND o0."Value" IS NOT NULL) OR (o1."Value" = 'B' AND o1."Value" IS NOT NULL AND o2."Value" = 'B' AND o2."Value" IS NOT NULL)) AND o3."Value" = 2
+WHERE ((o."Value" = 'A' AND o0."Value" = 'A') OR (o1."Value" = 'B' AND o2."Value" = 'B')) AND o3."Value" = 2
 ORDER BY o."Id" NULLS FIRST, o0."Id" NULLS FIRST, o1."Id" NULLS FIRST, o2."Id" NULLS FIRST, o3."Id" NULLS FIRST
 """);
     }
@@ -129,12 +154,12 @@ LIMIT 2
     public virtual async Task AtTimeZone_and_addition()
     {
         var contextFactory = await InitializeAsync<OperatorsContext>(
-            seed: context =>
+            seed: async context =>
             {
                 context.Set<OperatorEntityDateTime>().AddRange(
                     new OperatorEntityDateTime { Id = 1, Value = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
                     new OperatorEntityDateTime { Id = 2, Value = new DateTime(2020, 2, 1, 0, 0, 0, DateTimeKind.Utc) });
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             },
             onModelCreating: modelBuilder => modelBuilder.Entity<OperatorEntityDateTime>().Property(x => x.Id).ValueGeneratedNever());
 
@@ -160,7 +185,7 @@ LIMIT 2
         public DateTime Value { get; set; }
     }
 
-    protected override void Seed(OperatorsContext ctx)
+    protected override async Task Seed(OperatorsContext ctx)
     {
         ctx.Set<OperatorEntityString>().AddRange(ExpectedData.OperatorEntitiesString);
         ctx.Set<OperatorEntityInt>().AddRange(ExpectedData.OperatorEntitiesInt);
@@ -170,6 +195,6 @@ LIMIT 2
         ctx.Set<OperatorEntityNullableBool>().AddRange(ExpectedData.OperatorEntitiesNullableBool);
         // ctx.Set<OperatorEntityDateTimeOffset>().AddRange(ExpectedData.OperatorEntitiesDateTimeOffset);
 
-        ctx.SaveChanges();
+        await ctx.SaveChangesAsync();
     }
 }

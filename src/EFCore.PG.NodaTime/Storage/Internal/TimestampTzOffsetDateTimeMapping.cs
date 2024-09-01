@@ -123,6 +123,8 @@ public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
 
     private sealed class JsonOffsetDateTimeReaderWriter : JsonValueReaderWriter<OffsetDateTime>
     {
+        private static readonly PropertyInfo InstanceProperty = typeof(JsonOffsetDateTimeReaderWriter).GetProperty(nameof(Instance))!;
+
         public static JsonOffsetDateTimeReaderWriter Instance { get; } = new();
 
         public override OffsetDateTime FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
@@ -130,5 +132,8 @@ public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
 
         public override void ToJsonTyped(Utf8JsonWriter writer, OffsetDateTime value)
             => writer.WriteStringValue(Format(value));
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }

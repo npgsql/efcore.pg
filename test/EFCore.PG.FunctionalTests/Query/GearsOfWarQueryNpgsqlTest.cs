@@ -103,7 +103,7 @@ WHERE length(s."Banner") = length(@__byteArrayParam)
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Timeline" <> now()
 """);
@@ -133,7 +133,7 @@ WHERE m."Timeline" <> now()
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC') > TIMESTAMP '0001-01-01T00:00:00'
 """);
@@ -145,7 +145,7 @@ WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC') > TIMESTAMP '0001-01-01
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('hour', m."Timeline" AT TIME ZONE 'UTC')::int = 10
 """);
@@ -163,7 +163,7 @@ WHERE date_part('hour', m."Timeline" AT TIME ZONE 'UTC')::int = 10
             """
 @__dateTimeOffset_Date_0='0002-03-01T00:00:00.0000000'
 
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamp >= @__dateTimeOffset_Date_0
 """);
@@ -188,7 +188,7 @@ WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamp >= @__dateTi
 @__end_1='1902-01-03T10:00:00.1234567+00:00' (DbType = DateTime)
 @__dates_2={ '1902-01-02T10:00:00.1234567+00:00' } (DbType = Object)
 
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE @__start_0 <= date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamptz AND m."Timeline" < @__end_1 AND m."Timeline" = ANY (@__dates_2)
 """);
@@ -297,7 +297,7 @@ FROM "Missions" AS m
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE floor(date_part('minute', m."Duration"))::int = 2
 """);
@@ -309,7 +309,7 @@ WHERE floor(date_part('minute', m."Duration"))::int = 2
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE floor(date_part('second', m."Duration"))::int = 3
 """);
@@ -321,7 +321,7 @@ WHERE floor(date_part('second', m."Duration"))::int = 3
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE floor(date_part('millisecond', m."Duration"))::int % 1000 = 456
 """);
@@ -337,7 +337,7 @@ WHERE floor(date_part('millisecond', m."Duration"))::int % 1000 = 456
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('epoch', m."Duration") / 86400.0 < 0.042000000000000003
 """);
@@ -353,7 +353,7 @@ WHERE date_part('epoch', m."Duration") / 86400.0 < 0.042000000000000003
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('epoch', m."Duration") / 3600.0 < 1.02
 """);
@@ -369,7 +369,7 @@ WHERE date_part('epoch', m."Duration") / 3600.0 < 1.02
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('epoch', m."Duration") / 60.0 < 61.0
 """);
@@ -385,7 +385,7 @@ WHERE date_part('epoch', m."Duration") / 60.0 < 61.0
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('epoch', m."Duration") < 3700.0
 """);
@@ -401,7 +401,7 @@ WHERE date_part('epoch', m."Duration") < 3700.0
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('epoch', m."Duration") / 0.001 < 3700000.0
 """);
@@ -491,7 +491,7 @@ WHERE date_part('year', m."Date")::int = 1990
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('month', m."Date")::int = 11
 """);
@@ -503,7 +503,7 @@ WHERE date_part('month', m."Date")::int = 11
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('day', m."Date")::int = 10
 """);
@@ -515,7 +515,7 @@ WHERE date_part('day', m."Date")::int = 10
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('doy', m."Date")::int = 314
 """);
@@ -527,7 +527,7 @@ WHERE date_part('doy', m."Date")::int = 314
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE floor(date_part('dow', m."Date"))::int = 6
 """);
@@ -539,7 +539,7 @@ WHERE floor(date_part('dow', m."Date"))::int = 6
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE CAST(m."Date" + INTERVAL '3 years' AS date) = DATE '1993-11-10'
 """);
@@ -551,7 +551,7 @@ WHERE CAST(m."Date" + INTERVAL '3 years' AS date) = DATE '1993-11-10'
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE CAST(m."Date" + INTERVAL '3 months' AS date) = DATE '1991-02-10'
 """);
@@ -563,7 +563,7 @@ WHERE CAST(m."Date" + INTERVAL '3 months' AS date) = DATE '1991-02-10'
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Date" + 3 = DATE '1990-11-13'
 """);
@@ -644,7 +644,7 @@ WHERE m."Date" <> @__MinValue_0
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('hour', m."Time")::int = 10
 """);
@@ -658,7 +658,7 @@ WHERE date_part('hour', m."Time")::int = 10
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('minute', m."Time")::int = 15
 """);
@@ -672,7 +672,7 @@ WHERE date_part('minute', m."Time")::int = 15
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_part('second', m."Time")::int = 50
 """);
@@ -689,7 +689,7 @@ WHERE date_part('second', m."Time")::int = 50
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Time" + INTERVAL '3 hours' = TIME '13:15:50.5'
 """);
@@ -703,7 +703,7 @@ WHERE m."Time" + INTERVAL '3 hours' = TIME '13:15:50.5'
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Time" + INTERVAL '3 mins' = TIME '10:18:50.5'
 """);
@@ -717,7 +717,7 @@ WHERE m."Time" + INTERVAL '3 mins' = TIME '10:18:50.5'
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Time" + INTERVAL '03:00:00' = TIME '13:15:50.5'
 """);
@@ -731,7 +731,7 @@ WHERE m."Time" + INTERVAL '03:00:00' = TIME '13:15:50.5'
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Time" >= TIME '10:00:00' AND m."Time" < TIME '11:00:00'
 """);
@@ -745,7 +745,7 @@ WHERE m."Time" >= TIME '10:00:00' AND m."Time" < TIME '11:00:00'
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Time" - TIME '10:00:00' = INTERVAL '00:15:50.5'
 """);
@@ -762,7 +762,7 @@ WHERE m."Time" - TIME '10:00:00' = INTERVAL '00:15:50.5'
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Duration"::time without time zone = TIME '01:02:03'
 LIMIT 2
@@ -779,7 +779,7 @@ LIMIT 2
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE m."Time"::interval = INTERVAL '15:30:10'
 """);

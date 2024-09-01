@@ -171,7 +171,7 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
             _ => null
         };
 
-        SqlFunctionExpression SingleArgBoolFunction(string name, SqlExpression argument)
+        SqlExpression SingleArgBoolFunction(string name, SqlExpression argument)
             => _sqlExpressionFactory.Function(
                 name,
                 new[] { argument },

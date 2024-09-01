@@ -74,14 +74,14 @@ public class NpgsqlTimeSpanMemberTranslator : IMemberTranslator
                     typeof(double)),
                 typeof(int));
 
-        SqlFunctionExpression DatePart(string part, SqlExpression value)
+        SqlExpression DatePart(string part, SqlExpression value)
             => _sqlExpressionFactory.Function(
                 "date_part", new[] { _sqlExpressionFactory.Constant(part), value },
                 nullable: true,
                 argumentsPropagateNullability: FalseTrueArray,
                 returnType);
 
-        SqlBinaryExpression TranslateDurationTotalMember(SqlExpression instance, double divisor)
+        SqlExpression TranslateDurationTotalMember(SqlExpression instance, double divisor)
             => _sqlExpressionFactory.Divide(DatePart("epoch", instance), _sqlExpressionFactory.Constant(divisor));
     }
 }

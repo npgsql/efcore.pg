@@ -12,6 +12,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Json;
 /// </summary>
 public sealed class JsonBitArrayReaderWriter : JsonValueReaderWriter<BitArray>
 {
+    private static readonly PropertyInfo InstanceProperty = typeof(JsonBitArrayReaderWriter).GetProperty(nameof(Instance))!;
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -51,4 +53,7 @@ public sealed class JsonBitArrayReaderWriter : JsonValueReaderWriter<BitArray>
                         s[i] = a[i] ? '1' : '0';
                     }
                 }));
+
+    /// <inheritdoc />
+    public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
 }

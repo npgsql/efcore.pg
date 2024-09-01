@@ -248,7 +248,7 @@ public class NpgsqlNetworkTranslator : IMethodCallTranslator
             _ => null
         };
 
-    private SqlFunctionExpression NullPropagatingFunction(
+    private SqlExpression NullPropagatingFunction(
         string name,
         SqlExpression[] arguments,
         Type returnType,

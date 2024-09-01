@@ -6,7 +6,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
 public class ComplexTypeBulkUpdatesNpgsqlTest(
     ComplexTypeBulkUpdatesNpgsqlTest.ComplexTypeBulkUpdatesNpgsqlFixture fixture,
     ITestOutputHelper testOutputHelper)
-    : ComplexTypeBulkUpdatesTestBase<ComplexTypeBulkUpdatesNpgsqlTest.ComplexTypeBulkUpdatesNpgsqlFixture>(fixture, testOutputHelper)
+    : ComplexTypeBulkUpdatesRelationalTestBase<ComplexTypeBulkUpdatesNpgsqlTest.ComplexTypeBulkUpdatesNpgsqlFixture>(fixture, testOutputHelper)
 {
     public override async Task Delete_entity_type_with_complex_type(bool async)
     {
@@ -19,9 +19,9 @@ WHERE c."Name" = 'Monty Elias'
 """);
     }
 
-    public override async Task Delete_complex_type_throws(bool async)
+    public override async Task Delete_complex_type(bool async)
     {
-        await base.Delete_complex_type_throws(async);
+        await base.Delete_complex_type(async);
 
         AssertSql();
     }
@@ -87,9 +87,9 @@ SET "BillingAddress_ZipCode" = 54321,
 """);
     }
 
-    public override async Task Update_projected_complex_type_via_OrderBy_Skip_throws(bool async)
+    public override async Task Update_projected_complex_type_via_OrderBy_Skip(bool async)
     {
-        await base.Update_projected_complex_type_via_OrderBy_Skip_throws(async);
+        await base.Update_projected_complex_type_via_OrderBy_Skip(async);
 
         AssertExecuteUpdateSql();
     }
@@ -229,7 +229,7 @@ SET "ShippingAddress_Tags" = ARRAY['new_tag1','new_tag2']::text[]
     protected void ClearLog()
         => Fixture.TestSqlLoggerFactory.Clear();
 
-    public class ComplexTypeBulkUpdatesNpgsqlFixture : ComplexTypeBulkUpdatesFixtureBase
+    public class ComplexTypeBulkUpdatesNpgsqlFixture : ComplexTypeBulkUpdatesRelationalFixtureBase
     {
         protected override ITestStoreFactory TestStoreFactory
             => NpgsqlTestStoreFactory.Instance;

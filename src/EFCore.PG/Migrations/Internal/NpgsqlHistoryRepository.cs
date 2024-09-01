@@ -19,6 +19,81 @@ public class NpgsqlHistoryRepository : HistoryRepository
     {
     }
 
+    // TODO: We override Exists() as a workaround for https://github.com/dotnet/efcore/issues/34569; this should be fixed on the EF side
+    // before EF 9.0 is released
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public override bool Exists()
+        => Dependencies.DatabaseCreator.Exists()
+            && InterpretExistsResult(
+                Dependencies.RawSqlCommandBuilder.Build(ExistsSql).ExecuteScalar(
+                    new RelationalCommandParameterObject(
+                        Dependencies.Connection,
+                        null,
+                        null,
+                        Dependencies.CurrentContext.Context,
+                        Dependencies.CommandLogger, CommandSource.Migrations)));
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public override async Task<bool> ExistsAsync(CancellationToken cancellationToken = default)
+        => await Dependencies.DatabaseCreator.ExistsAsync(cancellationToken).ConfigureAwait(false)
+            && InterpretExistsResult(
+                await Dependencies.RawSqlCommandBuilder.Build(ExistsSql).ExecuteScalarAsync(
+                    new RelationalCommandParameterObject(
+                        Dependencies.Connection,
+                        null,
+                        null,
+                        Dependencies.CurrentContext.Context,
+                        Dependencies.CommandLogger, CommandSource.Migrations),
+                    cancellationToken).ConfigureAwait(false));
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public override IDisposable GetDatabaseLock(TimeSpan timeout)
+    {
+        // TODO: There are issues with the current lock implementation in EF - most importantly, the lock isn't acquired within a
+        // transaction so we can't use e.g. LOCK TABLE. This should be fixed for rc.1, see #34439.
+
+        // Dependencies.RawSqlCommandBuilder
+        //     .Build($"LOCK TABLE {Dependencies.SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} IN ACCESS EXCLUSIVE MODE")
+        //     .ExecuteNonQuery(CreateRelationalCommandParameters());
+
+        return new DummyDisposable();
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public override Task<IAsyncDisposable> GetDatabaseLockAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
+    {
+        // TODO: There are issues with the current lock implementation in EF - most importantly, the lock isn't acquired within a
+        // transaction so we can't use e.g. LOCK TABLE. This should be fixed for rc.1, see #34439.
+
+        // await Dependencies.RawSqlCommandBuilder
+        //     .Build($"LOCK TABLE {Dependencies.SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} IN ACCESS EXCLUSIVE MODE")
+        //     .ExecuteNonQueryAsync(CreateRelationalCommandParameters(), cancellationToken)
+        //     .ConfigureAwait(false);
+
+        return Task.FromResult<IAsyncDisposable>(new DummyDisposable());
+    }
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -83,10 +158,11 @@ BEGIN
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public override string GetBeginIfExistsScript(string migrationId)
-        => $@"
+        => $"""
 DO $EF$
 BEGIN
-    IF EXISTS(SELECT 1 FROM {SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} WHERE ""{MigrationIdColumnName}"" = '{migrationId}') THEN";
+    IF EXISTS(SELECT 1 FROM {SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} WHERE "{MigrationIdColumnName}" = '{migrationId}') THEN
+""";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -95,6 +171,26 @@ BEGIN
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public override string GetEndIfScript()
-        => @"    END IF;
-END $EF$;";
+        => """
+    END IF;
+END $EF$;
+""";
+
+    private RelationalCommandParameterObject CreateRelationalCommandParameters()
+        => new(
+            Dependencies.Connection,
+            null,
+            null,
+            Dependencies.CurrentContext.Context,
+            Dependencies.CommandLogger, CommandSource.Migrations);
+
+    private sealed class DummyDisposable : IDisposable, IAsyncDisposable
+    {
+        public void Dispose()
+        {
+        }
+
+        public ValueTask DisposeAsync()
+            => default;
+    }
 }

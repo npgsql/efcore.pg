@@ -1869,10 +1869,10 @@ LIMIT 1
             modelBuilder.HasPostgresExtension("btree_gist");
         }
 
-        public static void Seed(NodaTimeContext context)
+        public static async Task SeedAsync(NodaTimeContext context)
         {
             context.AddRange(NodaTimeData.CreateNodaTimeTypes());
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 
@@ -1928,8 +1928,8 @@ LIMIT 1
             return optionsBuilder;
         }
 
-        protected override void Seed(NodaTimeContext context)
-            => NodaTimeContext.Seed(context);
+        protected override Task SeedAsync(NodaTimeContext context)
+            => NodaTimeContext.SeedAsync(context);
 
         public Func<DbContext> GetContextCreator()
             => CreateContext;

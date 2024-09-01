@@ -225,11 +225,12 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         => (PgNewArrayExpression)ApplyTypeMapping(new PgNewArrayExpression(expressions, type, typeMapping), typeMapping);
 
     /// <inheritdoc />
-    public override SqlBinaryExpression? MakeBinary(
+    public override SqlExpression? MakeBinary(
         ExpressionType operatorType,
         SqlExpression left,
         SqlExpression right,
-        RelationalTypeMapping? typeMapping)
+        RelationalTypeMapping? typeMapping,
+        SqlExpression? existingExpr = null)
     {
         switch (operatorType)
         {
@@ -268,7 +269,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             }
         }
 
-        return base.MakeBinary(operatorType, left, right, typeMapping);
+        return base.MakeBinary(operatorType, left, right, typeMapping, existingExpr);
     }
 
     /// <summary>
@@ -279,7 +280,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     /// <param name="right">The right operand of binary operation.</param>
     /// <param name="typeMapping">A type mapping to be assigned to the created expression.</param>
     /// <returns>A <see cref="PgBinaryExpression" /> with the given arguments.</returns>
-    public virtual PgBinaryExpression MakePostgresBinary(
+    public virtual SqlExpression MakePostgresBinary(
         PgExpressionType operatorType,
         SqlExpression left,
         SqlExpression right,
@@ -321,7 +322,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     /// <summary>
     ///     Creates a new <see cref="PgBinaryExpression" />, for checking whether one value contains another.
     /// </summary>
-    public virtual PgBinaryExpression Contains(SqlExpression left, SqlExpression right)
+    public virtual SqlExpression Contains(SqlExpression left, SqlExpression right)
     {
         Check.NotNull(left, nameof(left));
         Check.NotNull(right, nameof(right));
@@ -332,7 +333,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     /// <summary>
     ///     Creates a new <see cref="PgBinaryExpression" />, for checking whether one value is contained by another.
     /// </summary>
-    public virtual PgBinaryExpression ContainedBy(SqlExpression left, SqlExpression right)
+    public virtual SqlExpression ContainedBy(SqlExpression left, SqlExpression right)
     {
         Check.NotNull(left, nameof(left));
         Check.NotNull(right, nameof(right));
@@ -343,7 +344,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     /// <summary>
     ///     Creates a new <see cref="PgBinaryExpression" />, for checking whether one value overlaps with another.
     /// </summary>
-    public virtual PgBinaryExpression Overlaps(SqlExpression left, SqlExpression right)
+    public virtual SqlExpression Overlaps(SqlExpression left, SqlExpression right)
     {
         Check.NotNull(left, nameof(left));
         Check.NotNull(right, nameof(right));
@@ -495,8 +496,19 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             {
                 var updatedElementBinaryExpression = MakeBinary(binary.OperatorType, leftValues[i], rightValues[i], typeMapping: null)!;
 
-                updatedLeftValues[i] = updatedElementBinaryExpression.Left;
-                updatedRightValues[i] = updatedElementBinaryExpression.Right;
+                if (updatedElementBinaryExpression is not SqlBinaryExpression
+                    {
+                        Left: var updatedLeft,
+                        Right: var updatedRight,
+                        OperatorType: var updatedOperatorType
+                    }
+                    || updatedOperatorType != binary.OperatorType)
+                {
+                    throw new UnreachableException("MakeBinary modified binary expression type/operator when doing row value comparison");
+                }
+
+                updatedLeftValues[i] = updatedLeft;
+                updatedRightValues[i] = updatedRight;
             }
 
             // Note that we always return non-constant PostgresRowValueExpression operands, even if the original input was a

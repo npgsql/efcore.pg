@@ -192,7 +192,7 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
                 "trunc",
                 new[] { argument },
                 nullable: true,
-                argumentsPropagateNullability: new[] { true, false, false },
+                argumentsPropagateNullability: TrueArrays[1],
                 argument.Type == typeof(float) ? typeof(double) : argument.Type);
 
             if (argument.Type == typeof(float))
@@ -213,7 +213,7 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
                 "round",
                 new[] { argument },
                 nullable: true,
-                argumentsPropagateNullability: new[] { true, true },
+                argumentsPropagateNullability: TrueArrays[1],
                 argument.Type == typeof(float) ? typeof(double) : argument.Type);
 
             if (argument.Type == typeof(float))

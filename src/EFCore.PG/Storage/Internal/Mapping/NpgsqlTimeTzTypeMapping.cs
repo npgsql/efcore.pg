@@ -85,6 +85,8 @@ public class NpgsqlTimeTzTypeMapping : NpgsqlTypeMapping
     /// </summary>
     public sealed class JsonTimeTzReaderWriter : JsonValueReaderWriter<DateTimeOffset>
     {
+        private static readonly PropertyInfo InstanceProperty = typeof(JsonTimeTzReaderWriter).GetProperty(nameof(Instance))!;
+
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
         ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -114,5 +116,8 @@ public class NpgsqlTimeTzTypeMapping : NpgsqlTypeMapping
         /// </summary>
         public override void ToJsonTyped(Utf8JsonWriter writer, DateTimeOffset value)
             => writer.WriteStringValue(value.ToString("HH:mm:ss.FFFFFFz"));
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }

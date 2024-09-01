@@ -175,7 +175,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
             _ => null,
         };
 
-        SqlBinaryExpression TranslateDurationTotalMember(SqlExpression instance, double divisor)
+        SqlExpression TranslateDurationTotalMember(SqlExpression instance, double divisor)
             => _sqlExpressionFactory.Divide(GetDatePartExpressionDouble(instance, "epoch"), _sqlExpressionFactory.Constant(divisor));
     }
 

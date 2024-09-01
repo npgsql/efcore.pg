@@ -27,7 +27,9 @@ public class NpgsqlUnnestPostprocessor : ExpressionVisitor
         switch (expression)
         {
             case ShapedQueryExpression shapedQueryExpression:
-                return shapedQueryExpression.UpdateQueryExpression(Visit(shapedQueryExpression.QueryExpression));
+                return shapedQueryExpression
+                    .UpdateQueryExpression(Visit(shapedQueryExpression.QueryExpression))
+                    .UpdateShaperExpression(Visit(shapedQueryExpression.ShaperExpression));
 
             case SelectExpression selectExpression:
             {
@@ -83,14 +85,14 @@ public class NpgsqlUnnestPostprocessor : ExpressionVisitor
                     newTables is null
                         ? selectExpression
                         : selectExpression.Update(
-                            selectExpression.Projection,
                             newTables,
                             selectExpression.Predicate,
                             selectExpression.GroupBy,
                             selectExpression.Having,
+                            selectExpression.Projection,
                             orderings,
-                            selectExpression.Limit,
-                            selectExpression.Offset));
+                            selectExpression.Offset,
+                            selectExpression.Limit));
             }
 
             default:

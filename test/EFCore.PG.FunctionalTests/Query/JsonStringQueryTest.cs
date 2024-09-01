@@ -251,7 +251,7 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
     {
         public DbSet<JsonEntity> JsonEntities { get; set; }
 
-        public static void Seed(JsonStringQueryContext context)
+        public static async Task SeedAsync(JsonStringQueryContext context)
         {
             const string customer1 = @"
                 {
@@ -331,7 +331,8 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
                     CustomerJsonb = array,
                     CustomerJson = array
                 });
-            context.SaveChanges();
+
+            await context.SaveChangesAsync();
         }
     }
 
@@ -359,8 +360,8 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        protected override void Seed(JsonStringQueryContext context)
-            => JsonStringQueryContext.Seed(context);
+        protected override Task SeedAsync(JsonStringQueryContext context)
+            => JsonStringQueryContext.SeedAsync(context);
     }
 
     #endregion

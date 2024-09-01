@@ -125,6 +125,8 @@ public class TimestampTzInstantMapping : NpgsqlTypeMapping
 
     private sealed class JsonInstantReaderWriter : JsonValueReaderWriter<Instant>
     {
+        private static readonly PropertyInfo InstanceProperty = typeof(JsonInstantReaderWriter).GetProperty(nameof(Instance))!;
+
         public static JsonInstantReaderWriter Instance { get; } = new();
 
         public override Instant FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
@@ -147,5 +149,8 @@ public class TimestampTzInstantMapping : NpgsqlTypeMapping
 
         public override void ToJsonTyped(Utf8JsonWriter writer, Instant value)
             => writer.WriteStringValue(Format(value));
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }

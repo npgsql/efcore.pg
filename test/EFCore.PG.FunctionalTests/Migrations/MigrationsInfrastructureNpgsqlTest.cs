@@ -7,6 +7,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
     public class MigrationsInfrastructureNpgsqlTest(MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture fixture)
         : MigrationsInfrastructureTestBase<MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture>(fixture)
     {
+        // TODO: The following test the migration lock, which isn't yet implemented - waiting for EF-side fixes in rc.2
+        #region Unskip for 9.0.0-rc.2
+
+        public override void Can_apply_one_migration_in_parallel()
+        {
+        }
+
+        public override Task Can_apply_one_migration_in_parallel_async()
+            => Task.CompletedTask;
+
+        public override void Can_apply_second_migration_in_parallel()
+        {
+        }
+
+        public override Task Can_apply_second_migration_in_parallel_async()
+            => Task.CompletedTask;
+
+        #endregion Unskip for 9.0.0-rc.2
+
         public override void Can_get_active_provider()
         {
             base.Can_get_active_provider();

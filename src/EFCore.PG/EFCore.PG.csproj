@@ -9,7 +9,7 @@
     <Description>PostgreSQL/Npgsql provider for Entity Framework Core.</Description>
     <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <NoWarn>EF1003</NoWarn> <!-- Precompiled query is experimental -->
+    <NoWarn>EF9100</NoWarn> <!-- Precompiled query is experimental -->
   </PropertyGroup>
 
   <ItemGroup>

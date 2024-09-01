@@ -76,6 +76,8 @@ public class NpgsqlLTreeTypeMapping : NpgsqlStringTypeMapping
     /// </summary>
     public sealed class JsonLTreeReaderWriter : JsonValueReaderWriter<LTree>
     {
+        private static readonly PropertyInfo InstanceProperty = typeof(JsonLTreeReaderWriter).GetProperty(nameof(Instance))!;
+
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
         ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -101,5 +103,8 @@ public class NpgsqlLTreeTypeMapping : NpgsqlStringTypeMapping
         /// </summary>
         public override void ToJsonTyped(Utf8JsonWriter writer, LTree value)
             => writer.WriteStringValue(value.ToString());
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }

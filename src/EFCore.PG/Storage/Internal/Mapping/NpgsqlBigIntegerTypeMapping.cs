@@ -72,6 +72,8 @@ public class NpgsqlBigIntegerTypeMapping : NpgsqlTypeMapping
     /// </summary>
     public sealed class JsonBigIntegerReaderWriter : JsonValueReaderWriter<BigInteger>
     {
+        private static readonly PropertyInfo InstanceProperty = typeof(JsonBigIntegerReaderWriter).GetProperty(nameof(Instance))!;
+
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
         ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -98,5 +100,8 @@ public class NpgsqlBigIntegerTypeMapping : NpgsqlTypeMapping
         /// </summary>
         public override void ToJsonTyped(Utf8JsonWriter writer, BigInteger value)
             => writer.WriteStringValue(value.ToString());
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }
