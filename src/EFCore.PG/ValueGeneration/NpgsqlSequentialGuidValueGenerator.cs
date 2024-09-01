@@ -1,13 +1,13 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration;
 
 /// <summary>
 ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
 ///     directly from your code. This API may change or be removed in future releases.
 /// </summary>
-public class NpgsqlUuid7ValueGenerator : ValueGenerator<Guid>
+public class NpgsqlSequentialGuidValueGenerator : ValueGenerator<Guid>
 {
     /// <summary>
     ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
