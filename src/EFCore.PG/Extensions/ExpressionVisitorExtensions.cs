@@ -3,8 +3,6 @@ using System.Runtime.CompilerServices;
 // ReSharper disable once CheckNamespace
 namespace System.Linq.Expressions;
 
-#nullable enable
-
 [DebuggerStepThrough]
 internal static class ExpressionVisitorExtensions
 {

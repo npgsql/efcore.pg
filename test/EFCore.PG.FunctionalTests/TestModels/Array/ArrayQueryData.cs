@@ -22,8 +22,8 @@ public class ArrayQueryData : ISetSource
     }
 
     public static IReadOnlyList<ArrayEntity> CreateArrayEntities()
-        => new ArrayEntity[]
-        {
+        =>
+        [
             new()
             {
                 Id = 1,
@@ -49,7 +49,7 @@ public class ArrayQueryData : ISetSource
                 ValueConvertedListOfEnum = [SomeEnum.Eight, SomeEnum.Nine],
                 ArrayOfStringConvertedToDelimitedString = ["3", "4"],
                 ListOfStringConvertedToDelimitedString = ["3", "4"],
-                IList = new[] { 8, 9 },
+                IList = [8, 9],
                 Byte = 10
             },
             new()
@@ -77,11 +77,11 @@ public class ArrayQueryData : ISetSource
                 ValueConvertedListOfEnum = [SomeEnum.Nine, SomeEnum.Ten],
                 ArrayOfStringConvertedToDelimitedString = ["5", "6", "7", "8"],
                 ListOfStringConvertedToDelimitedString = ["5", "6", "7", "8"],
-                IList = new[] { 9, 10 },
+                IList = [9, 10],
                 Byte = 20
             }
-        };
+        ];
 
     public static IReadOnlyList<ArrayContainerEntity> CreateContainerEntities()
-        => new[] { new ArrayContainerEntity { Id = 1, ArrayEntities = CreateArrayEntities().ToList() } };
+        => [new ArrayContainerEntity { Id = 1, ArrayEntities = CreateArrayEntities().ToList() }];
 }

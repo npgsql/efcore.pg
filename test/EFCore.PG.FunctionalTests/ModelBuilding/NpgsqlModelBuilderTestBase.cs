@@ -1,8 +1,7 @@
-using Microsoft.EntityFrameworkCore.ModelBuilding;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
 #nullable enable
+
+using Microsoft.EntityFrameworkCore.ModelBuilding;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.ModelBuilding;
 

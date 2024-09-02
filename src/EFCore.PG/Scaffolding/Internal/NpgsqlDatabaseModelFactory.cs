@@ -19,7 +19,7 @@ public class NpgsqlDatabaseModelFactory : DatabaseModelFactory
 {
     #region Fields
 
-    private const string NamePartRegex = @"(?:(?:""(?<part{0}>(?:(?:"""")|[^""])+)"")|(?<part{0}>[^\.\[""]+))";
+    private const string NamePartRegex = """(?:(?:"(?<part{0}>(?:(?:"")|[^"])+)")|(?<part{0}>[^\.\["]+))""";
 
     private static readonly Regex SchemaTableNameExtractor =
         new(

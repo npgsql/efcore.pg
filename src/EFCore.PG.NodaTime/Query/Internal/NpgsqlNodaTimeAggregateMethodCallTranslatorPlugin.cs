@@ -25,10 +25,10 @@ public class NpgsqlNodaTimeAggregateMethodCallTranslatorPlugin : IAggregateMetho
             throw new ArgumentException($"Must be an {nameof(NpgsqlSqlExpressionFactory)}", nameof(sqlExpressionFactory));
         }
 
-        Translators = new IAggregateMethodCallTranslator[]
-        {
+        Translators =
+        [
             new NpgsqlNodaTimeAggregateMethodTranslator(npgsqlSqlExpressionFactory, typeMappingSource)
-        };
+        ];
     }
 
     /// <summary>
@@ -87,19 +87,19 @@ public class NpgsqlNodaTimeAggregateMethodTranslator : IAggregateMethodCallTrans
         return method.Name switch
         {
             nameof(NpgsqlNodaTimeDbFunctionsExtensions.Sum) => _sqlExpressionFactory.AggregateFunction(
-                "sum", new[] { sqlExpression }, source, nullable: true, argumentsPropagateNullability: FalseArrays[1],
+                "sum", [sqlExpression], source, nullable: true, argumentsPropagateNullability: FalseArrays[1],
                 returnType: sqlExpression.Type, sqlExpression.TypeMapping),
 
             nameof(NpgsqlNodaTimeDbFunctionsExtensions.Average) => _sqlExpressionFactory.AggregateFunction(
-                "avg", new[] { sqlExpression }, source, nullable: true, argumentsPropagateNullability: FalseArrays[1],
+                "avg", [sqlExpression], source, nullable: true, argumentsPropagateNullability: FalseArrays[1],
                 returnType: sqlExpression.Type, sqlExpression.TypeMapping),
 
             nameof(NpgsqlNodaTimeDbFunctionsExtensions.RangeAgg) => _sqlExpressionFactory.AggregateFunction(
-                "range_agg", new[] { sqlExpression }, source, nullable: true, argumentsPropagateNullability: FalseArrays[1],
+                "range_agg", [sqlExpression], source, nullable: true, argumentsPropagateNullability: FalseArrays[1],
                 returnType: method.ReturnType, _typeMappingSource.FindMapping(method.ReturnType)),
 
             nameof(NpgsqlNodaTimeDbFunctionsExtensions.RangeIntersectAgg) => _sqlExpressionFactory.AggregateFunction(
-                "range_intersect_agg", new[] { sqlExpression }, source, nullable: true, argumentsPropagateNullability: FalseArrays[1],
+                "range_intersect_agg", [sqlExpression], source, nullable: true, argumentsPropagateNullability: FalseArrays[1],
                 returnType: sqlExpression.Type, sqlExpression.TypeMapping),
 
             _ => null

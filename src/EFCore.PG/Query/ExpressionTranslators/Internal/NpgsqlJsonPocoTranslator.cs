@@ -105,7 +105,7 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator, IMethodCallTranslator
                 => ConvertFromText(
                     _sqlExpressionFactory.JsonTraversal(
                         columnExpression,
-                        new[] { member },
+                        [member],
                         returnsText: true,
                         typeof(string),
                         _stringTypeMapping),
@@ -132,7 +132,7 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator, IMethodCallTranslator
             case ColumnExpression { TypeMapping: NpgsqlJsonTypeMapping mapping }:
                 return _sqlExpressionFactory.Function(
                     mapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
-                    new[] { expression },
+                    [expression],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(int));
@@ -150,7 +150,7 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator, IMethodCallTranslator
                 var jsonMapping = (NpgsqlJsonTypeMapping)traversal.Expression.TypeMapping!;
                 return _sqlExpressionFactory.Function(
                     jsonMapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
-                    new[] { newTraversal },
+                    [newTraversal],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(int));

@@ -169,7 +169,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
             var argument = arguments[0];
             return _sqlExpressionFactory.Function(
                 "substr",
-                new[] { argument, _sqlExpressionFactory.Constant(1), _sqlExpressionFactory.Constant(1) },
+                [argument, _sqlExpressionFactory.Constant(1), _sqlExpressionFactory.Constant(1)],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[3],
                 method.ReturnType);
@@ -180,17 +180,16 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
             var argument = arguments[0];
             return _sqlExpressionFactory.Function(
                 "substr",
-                new[]
-                {
+                [
                     argument,
                     _sqlExpressionFactory.Function(
                         "length",
-                        new[] { argument },
+                        [argument],
                         nullable: true,
-                        argumentsPropagateNullability: new[] { true },
+                        argumentsPropagateNullability: [true],
                         typeof(int)),
                     _sqlExpressionFactory.Constant(1)
-                },
+                ],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[3],
                 method.ReturnType);
@@ -209,11 +208,10 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
             return _sqlExpressionFactory.Subtract(
                 _sqlExpressionFactory.Function(
                     "strpos",
-                    new[]
-                    {
+                    [
                         _sqlExpressionFactory.ApplyTypeMapping(instance!, stringTypeMapping),
                         _sqlExpressionFactory.ApplyTypeMapping(argument, stringTypeMapping)
-                    },
+                    ],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
                     method.ReturnType),
@@ -228,12 +226,11 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
 
             return _sqlExpressionFactory.Function(
                 "replace",
-                new[]
-                {
+                [
                     _sqlExpressionFactory.ApplyTypeMapping(instance!, stringTypeMapping),
                     _sqlExpressionFactory.ApplyTypeMapping(oldValue, stringTypeMapping),
                     _sqlExpressionFactory.ApplyTypeMapping(newValue, stringTypeMapping)
-                },
+                ],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[3],
                 method.ReturnType,
@@ -244,7 +241,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
         {
             return _sqlExpressionFactory.Function(
                 method == ToLower ? "lower" : "upper",
-                new[] { instance! },
+                [instance!],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 method.ReturnType,
@@ -275,7 +272,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                 _sqlExpressionFactory.Equal(
                     _sqlExpressionFactory.Function(
                         "btrim",
-                        new[] { argument, _whitespace },
+                        [argument, _whitespace],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[2],
                         argument.Type,
@@ -310,13 +307,12 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
 
             return _sqlExpressionFactory.Function(
                 isTrimStart ? "ltrim" : isTrimEnd ? "rtrim" : "btrim",
-                new[]
-                {
+                [
                     instance!,
                     trimChars is null || trimChars.Length == 0
                         ? _whitespace
                         : _sqlExpressionFactory.Constant(new string(trimChars))
-                },
+                ],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[2],
                 instance!.Type,
@@ -385,7 +381,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
 
             return _sqlExpressionFactory.Function(
                 "array_to_string",
-                new[] { arguments[1], arguments[0], _sqlExpressionFactory.Constant("") },
+                [arguments[1], arguments[0], _sqlExpressionFactory.Constant("")],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[3],
                 typeof(string));
@@ -400,7 +396,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
         {
             return _sqlExpressionFactory.Function(
                 "reverse",
-                new[] { arguments[1] },
+                [arguments[1]],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(string),
@@ -412,9 +408,9 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
             // Note that string_to_array always returns text[], regardless of the input type
             return _sqlExpressionFactory.Function(
                 "string_to_array",
-                new[] { arguments[1], arguments[2] },
+                [arguments[1], arguments[2]],
                 nullable: true,
-                argumentsPropagateNullability: new[] { true, false },
+                argumentsPropagateNullability: [true, false],
                 typeof(string[]),
                 _typeMappingSource.FindMapping(typeof(string[])));
         }
@@ -424,9 +420,9 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
             // Note that string_to_array always returns text[], regardless of the input type
             return _sqlExpressionFactory.Function(
                 "string_to_array",
-                new[] { arguments[1], arguments[2], arguments[3] },
+                [arguments[1], arguments[2], arguments[3]],
                 nullable: true,
-                argumentsPropagateNullability: new[] { true, false, false },
+                argumentsPropagateNullability: [true, false, false],
                 typeof(string[]),
                 _typeMappingSource.FindMapping(typeof(string[])));
         }
@@ -435,9 +431,9 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
         {
             return _sqlExpressionFactory.Function(
                 "to_date",
-                new[] { arguments[1], arguments[2] },
+                [arguments[1], arguments[2]],
                 nullable: true,
-                argumentsPropagateNullability: new[] { true, true },
+                argumentsPropagateNullability: [true, true],
                 typeof(DateOnly),
                 _typeMappingSource.FindMapping(typeof(DateOnly))
             );
@@ -447,9 +443,9 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
         {
             return _sqlExpressionFactory.Function(
                 "to_timestamp",
-                new[] { arguments[1], arguments[2] },
+                [arguments[1], arguments[2]],
                 nullable: true,
-                argumentsPropagateNullability: new[] { true, true },
+                argumentsPropagateNullability: [true, true],
                 typeof(DateTime),
                 _typeMappingSource.FindMapping(typeof(DateTime))
             );

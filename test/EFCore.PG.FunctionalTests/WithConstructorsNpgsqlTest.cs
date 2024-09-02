@@ -17,7 +17,9 @@ public class WithConstructorsNpgsqlTest(WithConstructorsNpgsqlTest.WithConstruct
         {
             base.OnModelCreating(modelBuilder, context);
 
-            modelBuilder.Entity<BlogQuery>().HasNoKey().ToSqlQuery(@"SELECT * FROM ""Blog""");
+            modelBuilder.Entity<BlogQuery>().HasNoKey().ToSqlQuery("""
+                SELECT * FROM "Blog"
+                """);
         }
     }
 }

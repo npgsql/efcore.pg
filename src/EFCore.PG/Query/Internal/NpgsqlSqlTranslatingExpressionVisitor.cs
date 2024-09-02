@@ -100,7 +100,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                 {
                     return _sqlExpressionFactory.Function(
                         "length",
-                        new[] { sqlOperand },
+                        [sqlOperand],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[1],
                         typeof(int));
@@ -195,8 +195,8 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
 
                 return PgFunctionExpression.CreateWithNamedArguments(
                     "make_interval",
-                    new[] { subtraction },
-                    new[] { "days" },
+                    [subtraction],
+                    ["days"],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     builtIn: true,
@@ -477,13 +477,12 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                         translation =
                             _sqlExpressionFactory.Function(
                                 methodType is StartsEndsWithContains.StartsWith ? "left" : "right",
-                                new[]
-                                {
+                                [
                                     translatedInstance,
                                     _sqlExpressionFactory.Function(
-                                        "length", new[] { translatedPattern }, nullable: true,
-                                        argumentsPropagateNullability: new[] { true }, typeof(int))
-                                }, nullable: true, argumentsPropagateNullability: new[] { true, true }, typeof(string),
+                                        "length", [translatedPattern], nullable: true,
+                                        argumentsPropagateNullability: [true], typeof(int))
+                                ], nullable: true, argumentsPropagateNullability: [true, true], typeof(string),
                                 stringTypeMapping);
 
                         // LEFT/RIGHT of a citext return a text, so for non-default text mappings we apply an explicit cast.
@@ -513,8 +512,8 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                                     _sqlExpressionFactory.IsNotNull(translatedPattern),
                                     _sqlExpressionFactory.GreaterThan(
                                         _sqlExpressionFactory.Function(
-                                            "strpos", new[] { translatedInstance, translatedPattern }, nullable: true,
-                                            argumentsPropagateNullability: new[] { true, true }, typeof(int)),
+                                            "strpos", [translatedInstance, translatedPattern], nullable: true,
+                                            argumentsPropagateNullability: [true, true], typeof(int)),
                                         _sqlExpressionFactory.Constant(0))));
                         break;
 

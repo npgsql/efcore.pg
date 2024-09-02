@@ -153,9 +153,8 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
         }
 
         expressions.AddRange(
-            new[]
-            {
-                // Get the length of the input array or list
+        [
+            // Get the length of the input array or list
                 // var length = input.Length;
                 Assign(lengthVariable, getInputLength),
 
@@ -192,7 +191,7 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
                                 ? indexer(loopVariable)
                                 : Invoke(elementConversionExpression, indexer(loopVariable)))),
                 output
-            });
+        ]);
 
         return Lambda<Func<TInput, TOutput>>(
             // First, check if the given array value is null and return null immediately if so
@@ -213,7 +212,7 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
         var initAssign = Assign(loopVar, initValue);
         var breakLabel = Label("LoopBreak");
         var loop = Block(
-            new[] { loopVar },
+            [loopVar],
             initAssign,
             Loop(
                 IfThenElse(

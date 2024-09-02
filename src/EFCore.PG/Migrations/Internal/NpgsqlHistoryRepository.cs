@@ -146,10 +146,12 @@ SELECT EXISTS (
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public override string GetBeginIfNotExistsScript(string migrationId)
-        => $@"
+        => $"""
+
 DO $EF$
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM {SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} WHERE ""{MigrationIdColumnName}"" = '{migrationId}') THEN";
+    IF NOT EXISTS(SELECT 1 FROM {SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} WHERE "{MigrationIdColumnName}" = '{migrationId}') THEN
+""";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -175,14 +177,6 @@ BEGIN
     END IF;
 END $EF$;
 """;
-
-    private RelationalCommandParameterObject CreateRelationalCommandParameters()
-        => new(
-            Dependencies.Connection,
-            null,
-            null,
-            Dependencies.CurrentContext.Context,
-            Dependencies.CommandLogger, CommandSource.Migrations);
 
     private sealed class DummyDisposable : IDisposable, IAsyncDisposable
     {

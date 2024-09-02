@@ -97,7 +97,9 @@ public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => $@"""{Format((OffsetDateTime)value)}""";
+        => $"""
+            "{Format((OffsetDateTime)value)}"
+            """;
 
     private static string Format(OffsetDateTime offsetDateTime)
         => OffsetDateTimePattern.ExtendedIso.Format(offsetDateTime);

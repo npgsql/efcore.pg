@@ -2,8 +2,6 @@ using System.Data.Common;
 using System.Globalization;
 using System.Net.Security;
 using System.Text;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 

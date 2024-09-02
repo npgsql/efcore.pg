@@ -40,9 +40,8 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
         LTreeTranslator = new NpgsqlLTreeTranslator(typeMappingSource, sqlExpressionFactory, model);
 
         AddTranslators(
-            new IMethodCallTranslator[]
-            {
-                new NpgsqlArrayMethodTranslator(sqlExpressionFactory, jsonTranslator),
+        [
+            new NpgsqlArrayMethodTranslator(sqlExpressionFactory, jsonTranslator),
                 new NpgsqlByteArrayMethodTranslator(sqlExpressionFactory),
                 new NpgsqlConvertTranslator(sqlExpressionFactory),
                 new NpgsqlDateTimeMethodTranslator(typeMappingSource, sqlExpressionFactory),
@@ -62,7 +61,7 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
                 new NpgsqlRegexIsMatchTranslator(sqlExpressionFactory),
                 new NpgsqlRowValueTranslator(sqlExpressionFactory),
                 new NpgsqlStringMethodTranslator(typeMappingSource, sqlExpressionFactory),
-                new NpgsqlTrigramsMethodTranslator(typeMappingSource, sqlExpressionFactory, model),
-            });
+                new NpgsqlTrigramsMethodTranslator(typeMappingSource, sqlExpressionFactory, model)
+        ]);
     }
 }

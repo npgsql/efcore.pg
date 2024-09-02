@@ -1,7 +1,6 @@
 #nullable enable
 
 using System.Collections;
-
 using System.Globalization;
 using System.Numerics;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;

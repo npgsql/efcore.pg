@@ -85,7 +85,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                                         NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
                                         or NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
                                         or NpgsqlValueGenerationStrategy.SerialColumn))
-                        ?? Enumerable.Empty<IColumn>())
+                        ?? [])
                 .Distinct()
                 .ToArray();
 
@@ -117,12 +117,14 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 //    e.g. negative values seeded)
                 builder
                     .AppendLine(
-                        @$"{selectOrPerform} setval(
+                        $"""
+{selectOrPerform} setval(
     pg_get_serial_sequence('{table}', '{unquotedColumn}'),
     GREATEST(
         (SELECT MAX({column}) FROM {table}) + 1,
         nextval(pg_get_serial_sequence('{table}', '{unquotedColumn}'))),
-    false);");
+    false);
+""");
             }
 
             builder.EndCommand();
@@ -2243,11 +2245,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                     "json" => string.Join(
                         " || ", columnGroup.Select(
                             c =>
-                                $@"json_to_tsvector({tsVectorConfigLiteral}, {JsonColumn(c)}, '""all""')")),
+                                $"""json_to_tsvector({tsVectorConfigLiteral}, {JsonColumn(c)}, '"all"')""")),
                     "jsonb" => string.Join(
                         " || ", columnGroup.Select(
                             c =>
-                                $@"jsonb_to_tsvector({tsVectorConfigLiteral}, {JsonColumn(c)}, '""all""')")),
+                                $"""jsonb_to_tsvector({tsVectorConfigLiteral}, {JsonColumn(c)}, '"all"')""")),
                     "null" => throw new InvalidOperationException(
                         $"Column or index {columnOrIndexName} refers to unknown column in tsvector definition"),
                     _ => throw new ArgumentOutOfRangeException()

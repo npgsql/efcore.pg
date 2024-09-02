@@ -97,7 +97,9 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => $@"""{Format((LocalDateTime)value)}""";
+        => $"""
+            "{Format((LocalDateTime)value)}"
+            """;
 
     private static string Format(LocalDateTime localDateTime)
     {

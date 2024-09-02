@@ -85,7 +85,7 @@ public class ExistingConnectionTest
                 b =>
                 {
                     b.HasKey(c => c.CustomerId);
-                    RelationalEntityTypeBuilderExtensions.ToTable((EntityTypeBuilder)b, "Customers");
+                    ((EntityTypeBuilder)b).ToTable("Customers");
                 });
     }
 

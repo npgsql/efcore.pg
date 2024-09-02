@@ -534,7 +534,7 @@ GROUP BY c."City"
         var london = results.Single(r => r.City == "London");
 
         Assert.Equal(
-            @"{ ""Around the Horn"" : ""Thomas Hardy"", ""B's Beverages"" : ""Victoria Ashworth"", ""Consolidated Holdings"" : ""Elizabeth Brown"", ""Eastern Connection"" : ""Ann Devon"", ""North/South"" : ""Simon Crowther"", ""Seven Seas Imports"" : ""Hari Kumar"" }",
+            """{ "Around the Horn" : "Thomas Hardy", "B's Beverages" : "Victoria Ashworth", "Consolidated Holdings" : "Elizabeth Brown", "Eastern Connection" : "Ann Devon", "North/South" : "Simon Crowther", "Seven Seas Imports" : "Hari Kumar" }""",
             london.Companies);
 
         AssertSql(

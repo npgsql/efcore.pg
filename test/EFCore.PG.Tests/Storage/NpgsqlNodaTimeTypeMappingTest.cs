@@ -105,7 +105,7 @@ public class NpgsqlNodaTimeTypeMappingTest
         Assert.Equal("timestamp without time zone", mapping.SubtypeMapping.StoreType);
 
         var value = new NpgsqlRange<LocalDateTime>(new LocalDateTime(2020, 1, 1, 12, 0, 0), new LocalDateTime(2020, 1, 2, 12, 0, 0));
-        Assert.Equal(@"'[""2020-01-01T12:00:00"",""2020-01-02T12:00:00""]'::tsrange", mapping.GenerateSqlLiteral(value));
+        Assert.Equal("""'["2020-01-01T12:00:00","2020-01-02T12:00:00"]'::tsrange""", mapping.GenerateSqlLiteral(value));
     }
 
     [Fact]
@@ -170,7 +170,7 @@ public class NpgsqlNodaTimeTypeMappingTest
         var zonedDateTime = (new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660))
             .InZone(DateTimeZone.ForOffset(Offset.FromHours(2)), Resolvers.LenientResolver);
         Assert.Equal(
-            @"new NodaTime.ZonedDateTime(NodaTime.Instant.FromUnixTimeTicks(15242130936666660L), NodaTime.TimeZones.TzdbDateTimeZoneSource.Default.ForId(""UTC+02""))",
+            """new NodaTime.ZonedDateTime(NodaTime.Instant.FromUnixTimeTicks(15242130936666660L), NodaTime.TimeZones.TzdbDateTimeZoneSource.Default.ForId("UTC+02"))""",
             CodeLiteral(zonedDateTime));
     }
 
@@ -369,7 +369,7 @@ public class NpgsqlNodaTimeTypeMappingTest
         var value = new NpgsqlRange<Instant>(
             new LocalDateTime(2020, 1, 1, 12, 0, 0).InUtc().ToInstant(),
             new LocalDateTime(2020, 1, 2, 12, 0, 0).InUtc().ToInstant());
-        Assert.Equal(@"'[""2020-01-01T12:00:00Z"",""2020-01-02T12:00:00Z""]'::tstzrange", mapping.GenerateSqlLiteral(value));
+        Assert.Equal("""'["2020-01-01T12:00:00Z","2020-01-02T12:00:00Z"]'::tstzrange""", mapping.GenerateSqlLiteral(value));
     }
 
     [Fact]
@@ -382,7 +382,7 @@ public class NpgsqlNodaTimeTypeMappingTest
         var value = new NpgsqlRange<ZonedDateTime>(
             new LocalDateTime(2020, 1, 1, 12, 0, 0).InUtc(),
             new LocalDateTime(2020, 1, 2, 12, 0, 0).InUtc());
-        Assert.Equal(@"'[""2020-01-01T12:00:00Z"",""2020-01-02T12:00:00Z""]'::tstzrange", mapping.GenerateSqlLiteral(value));
+        Assert.Equal("""'["2020-01-01T12:00:00Z","2020-01-02T12:00:00Z"]'::tstzrange""", mapping.GenerateSqlLiteral(value));
     }
 
     [Fact]
@@ -395,7 +395,7 @@ public class NpgsqlNodaTimeTypeMappingTest
         var value = new NpgsqlRange<OffsetDateTime>(
             new LocalDateTime(2020, 1, 1, 12, 0, 0).WithOffset(Offset.Zero),
             new LocalDateTime(2020, 1, 2, 12, 0, 0).WithOffset(Offset.Zero));
-        Assert.Equal(@"'[""2020-01-01T12:00:00Z"",""2020-01-02T12:00:00Z""]'::tstzrange", mapping.GenerateSqlLiteral(value));
+        Assert.Equal("""'["2020-01-01T12:00:00Z","2020-01-02T12:00:00Z"]'::tstzrange""", mapping.GenerateSqlLiteral(value));
     }
 
     [Fact]
@@ -688,7 +688,7 @@ public class NpgsqlNodaTimeTypeMappingTest
     [Fact]
     public void Duration_is_properly_mapped()
         => Assert.All(
-            new[] { GetMapping(typeof(Duration)), GetMapping(typeof(Duration), "interval") },
+            [GetMapping(typeof(Duration)), GetMapping(typeof(Duration), "interval")],
             m =>
             {
                 Assert.Equal("interval", m.StoreType);
@@ -698,7 +698,7 @@ public class NpgsqlNodaTimeTypeMappingTest
     [Fact]
     public void Period_is_properly_mapped()
         => Assert.All(
-            new[] { GetMapping(typeof(Period)), GetMapping(typeof(Period), "interval") },
+            [GetMapping(typeof(Period)), GetMapping(typeof(Period), "interval")],
             m =>
             {
                 Assert.Equal("interval", m.StoreType);
@@ -841,11 +841,10 @@ public class NpgsqlNodaTimeTypeMappingTest
             new JsonValueReaderWriterSource(new JsonValueReaderWriterSourceDependencies()),
             []),
         new RelationalTypeMappingSourceDependencies(
-            new IRelationalTypeMappingSourcePlugin[]
-            {
-                new NpgsqlNodaTimeTypeMappingSourcePlugin(
+        [
+            new NpgsqlNodaTimeTypeMappingSourcePlugin(
                     new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()))
-            }),
+        ]),
         new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
         new NpgsqlSingletonOptions()
     );

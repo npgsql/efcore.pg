@@ -53,8 +53,7 @@ public class NpgsqlDatabaseCleaner : RelationalDatabaseCleaner
 
     private void DropExtensions(NpgsqlConnection conn)
     {
-        const string getExtensions = @"
-SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND name <> 'plpgsql'";
+        const string getExtensions = "SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND name <> 'plpgsql'";
 
         List<string> extensions;
         using (var cmd = new NpgsqlCommand(getExtensions, conn))
@@ -76,11 +75,12 @@ SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND
     /// </summary>
     private void DropTypes(NpgsqlConnection conn)
     {
-        const string getUserDefinedRangesEnums = @"
+        const string getUserDefinedRangesEnums = """
 SELECT ns.nspname, typname
 FROM pg_type
 JOIN pg_namespace AS ns ON ns.oid = pg_type.typnamespace
-WHERE typtype IN ('r', 'e') AND nspname <> 'pg_catalog'";
+WHERE typtype IN ('r', 'e') AND nspname <> 'pg_catalog'
+""";
 
         (string Schema, string Name)[] userDefinedTypes;
         using (var cmd = new NpgsqlCommand(getUserDefinedRangesEnums, conn))
@@ -91,7 +91,7 @@ WHERE typtype IN ('r', 'e') AND nspname <> 'pg_catalog'";
 
         if (userDefinedTypes.Any())
         {
-            var dropTypes = string.Concat(userDefinedTypes.Select(t => $@"DROP TYPE ""{t.Schema}"".""{t.Name}"" CASCADE;"));
+            var dropTypes = string.Concat(userDefinedTypes.Select(t => $"""DROP TYPE "{t.Schema}"."{t.Name}" CASCADE;"""));
             using var cmd = new NpgsqlCommand(dropTypes, conn);
             cmd.ExecuteNonQuery();
         }
@@ -102,8 +102,8 @@ WHERE typtype IN ('r', 'e') AND nspname <> 'pg_catalog'";
     /// </summary>
     private void DropFunctions(NpgsqlConnection conn)
     {
-        const string getUserDefinedFunctions = @"
-SELECT 'DROP ROUTINE ""' || nspname || '"".""' || proname || '""(' || oidvectortypes(proargtypes) || ');' FROM pg_proc
+        const string getUserDefinedFunctions = """
+SELECT 'DROP ROUTINE "' || nspname || '"."' || proname || '"(' || oidvectortypes(proargtypes) || ');' FROM pg_proc
 JOIN pg_namespace AS ns ON ns.oid = pg_proc.pronamespace
 WHERE
         nspname NOT IN ('pg_catalog', 'information_schema') AND
@@ -111,7 +111,8 @@ WHERE
             SELECT * FROM pg_depend AS dep
             WHERE dep.classid = (SELECT oid FROM pg_class WHERE relname = 'pg_proc') AND
                     dep.objid = pg_proc.oid AND
-                    deptype = 'e');";
+                    deptype = 'e');
+""";
 
         string dropSql;
         using (var cmd = new NpgsqlCommand(getUserDefinedFunctions, conn))
@@ -151,7 +152,7 @@ FROM pg_collation coll
 
         if (userDefinedTypes.Any())
         {
-            var dropTypes = string.Concat(userDefinedTypes.Select(t => $@"DROP COLLATION ""{t.Schema}"".""{t.Name}"" CASCADE;"));
+            var dropTypes = string.Concat(userDefinedTypes.Select(t => $"""DROP COLLATION "{t.Schema}"."{t.Name}" CASCADE;"""));
             using var cmd = new NpgsqlCommand(dropTypes, conn);
             cmd.ExecuteNonQuery();
         }

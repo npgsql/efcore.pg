@@ -1,7 +1,8 @@
-// ReSharper disable once CheckNamespace
+
 
 using System.Text;
 using NodaTime.Text;
+// ReSharper disable once CheckNamespace
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 // ReSharper disable once CheckNamespace
