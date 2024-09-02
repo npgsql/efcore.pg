@@ -3,7 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class JsonQueryNpgsqlTest : JsonQueryTestBase<JsonQueryNpgsqlTest.JsonQueryNpgsqlFixture>
+public class JsonQueryNpgsqlTest : JsonQueryRelationalTestBase<JsonQueryNpgsqlTest.JsonQueryNpgsqlFixture>
 {
     public JsonQueryNpgsqlTest(JsonQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         : base(fixture)
@@ -3370,7 +3370,7 @@ FROM "JsonEntitiesBasic" AS j
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-    public class JsonQueryNpgsqlFixture : JsonQueryFixtureBase, IQueryFixtureBase
+    public class JsonQueryNpgsqlFixture : JsonQueryRelationalFixture, IQueryFixtureBase
     {
         protected override ITestStoreFactory TestStoreFactory
             => NpgsqlTestStoreFactory.Instance;

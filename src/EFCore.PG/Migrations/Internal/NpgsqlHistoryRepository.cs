@@ -63,7 +63,7 @@ public class NpgsqlHistoryRepository : HistoryRepository
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override IDisposable GetDatabaseLock(TimeSpan timeout)
+    public override IDisposable GetDatabaseLock()
     {
         // TODO: There are issues with the current lock implementation in EF - most importantly, the lock isn't acquired within a
         // transaction so we can't use e.g. LOCK TABLE. This should be fixed for rc.1, see #34439.
@@ -81,7 +81,7 @@ public class NpgsqlHistoryRepository : HistoryRepository
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override Task<IAsyncDisposable> GetDatabaseLockAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
+    public override Task<IAsyncDisposable> GetDatabaseLockAsync(CancellationToken cancellationToken = default)
     {
         // TODO: There are issues with the current lock implementation in EF - most importantly, the lock isn't acquired within a
         // transaction so we can't use e.g. LOCK TABLE. This should be fixed for rc.1, see #34439.

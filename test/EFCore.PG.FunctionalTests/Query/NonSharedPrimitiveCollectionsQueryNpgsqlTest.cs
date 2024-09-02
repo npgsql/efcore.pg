@@ -1,3 +1,4 @@
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
@@ -93,6 +94,20 @@ FROM "TestOwner" AS t
 WHERE ((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elements_text(t."Owned" -> 'Strings') WITH ORDINALITY AS t(element) ORDER BY ordinality)))[2] = 'bar'
 LIMIT 2
 """);
+    }
+
+    protected override DbContextOptionsBuilder SetTranslateParameterizedCollectionsToConstants(DbContextOptionsBuilder optionsBuilder)
+    {
+        new NpgsqlDbContextOptionsBuilder(optionsBuilder).TranslateParameterizedCollectionsToConstants();
+
+        return optionsBuilder;
+    }
+
+    protected override DbContextOptionsBuilder SetTranslateParameterizedCollectionsToParameters(DbContextOptionsBuilder optionsBuilder)
+    {
+        new NpgsqlDbContextOptionsBuilder(optionsBuilder).TranslateParameterizedCollectionsToParameters();
+
+        return optionsBuilder;
     }
 
     protected override ITestStoreFactory TestStoreFactory
