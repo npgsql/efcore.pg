@@ -1992,37 +1992,37 @@ LIMIT 2
     #region Skipped tests because of nested collections outside of JSON (nested arrays not supported in PG)
 
     public override Task Edit_single_property_collection_of_collection_of_bool()
-        => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
+        => Assert.ThrowsAsync<NotEqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
 
     public override Task Edit_single_property_collection_of_collection_of_char()
-        => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
+        => Assert.ThrowsAsync<NotEqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
 
     public override Task Edit_single_property_collection_of_collection_of_double()
-        => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
+        => Assert.ThrowsAsync<NotEqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
 
     public override Task Edit_single_property_collection_of_collection_of_int16()
-        => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
+        => Assert.ThrowsAsync<NotEqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
 
     public override Task Edit_single_property_collection_of_collection_of_int32()
-        => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
+        => Assert.ThrowsAsync<NotEqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
 
     public override Task Edit_single_property_collection_of_collection_of_int64()
-        => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
+        => Assert.ThrowsAsync<NotEqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
 
     public override Task Edit_single_property_collection_of_collection_of_single()
-        => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
+        => Assert.ThrowsAsync<NotEqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
 
     public override Task Edit_single_property_collection_of_collection_of_nullable_int32()
-        => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
+        => Assert.ThrowsAsync<NotEqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
 
     public override Task Edit_single_property_collection_of_collection_of_nullable_int32_set_to_null()
-        => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
+        => Assert.ThrowsAsync<NotEqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
 
     public override Task Edit_single_property_collection_of_collection_of_nullable_enum_set_to_null()
-        => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
+        => Assert.ThrowsAsync<NotEqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
 
     public override Task Edit_single_property_collection_of_collection_of_nullable_enum_with_int_converter()
-        => Assert.ThrowsAsync<EqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
+        => Assert.ThrowsAsync<NotEqualException>(() => base.Edit_single_property_collection_of_collection_of_bool());
 
     #endregion Skipped tests because of nested collections outside of JSON (nested arrays not supported in PG)
 

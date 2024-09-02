@@ -58,7 +58,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         {
             await using var context = new BloggingContext(
                 Fixture.TestStore.AddProviderOptions(
-                    new DbContextOptionsBuilder().EnableServiceProviderCaching(false)).Options);
+                        new DbContextOptionsBuilder().EnableServiceProviderCaching(false))
+                    .ConfigureWarnings(e => e.Log(RelationalEventId.PendingModelChangesWarning)).Options);
 
             var creator = (NpgsqlDatabaseCreator)context.GetService<IRelationalDatabaseCreator>();
             creator.RetryTimeout = TimeSpan.FromMinutes(10);
@@ -185,21 +186,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             public override MigrationsContext CreateContext()
             {
                 var options = AddOptions(
-                        new DbContextOptionsBuilder()
+                        TestStore.AddProviderOptions(new DbContextOptionsBuilder())
                             .UseNpgsql(
                                 TestStore.ConnectionString, b => b.ApplyConfiguration()
-                                    .CommandTimeout(NpgsqlTestStore.CommandTimeout)
-                                    .SetPostgresVersion(TestEnvironment.PostgresVersion)
-                                    .ReverseNullOrdering()))
-                    .UseInternalServiceProvider(CreateServiceProvider())
+                                    .SetPostgresVersion(TestEnvironment.PostgresVersion)))
+                    .UseInternalServiceProvider(ServiceProvider)
                     .Options;
                 return new MigrationsContext(options);
             }
-
-            private static IServiceProvider CreateServiceProvider()
-                => new ServiceCollection()
-                    .AddEntityFrameworkNpgsql()
-                    .BuildServiceProvider();
         }
     }
 }

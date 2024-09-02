@@ -396,11 +396,11 @@ CREATE TABLE "db2"."DependentTable" (
                 Assert.Equal("db2", sequence.Schema);
 
                 Assert.Single(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "QuotedTableName"));
-                Assert.Empty(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "Table.With.Dot"));
+                Assert.DoesNotContain(dbModel.Tables, t => t.Schema == "db.2" && t.Name == "Table.With.Dot");
                 Assert.Single(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "SimpleTableName"));
                 Assert.Single(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "JustTableName"));
 
-                Assert.Empty(dbModel.Tables.Where(t => t.Schema == "public" && t.Name == "QuotedTableName"));
+                Assert.DoesNotContain(dbModel.Tables, t => t.Schema == "public" && t.Name == "QuotedTableName");
                 Assert.Single(dbModel.Tables.Where(t => t.Schema == "public" && t.Name == "Table.With.Dot"));
                 Assert.Single(dbModel.Tables.Where(t => t.Schema == "public" && t.Name == "SimpleTableName"));
                 Assert.Single(dbModel.Tables.Where(t => t.Schema == "public" && t.Name == "JustTableName"));

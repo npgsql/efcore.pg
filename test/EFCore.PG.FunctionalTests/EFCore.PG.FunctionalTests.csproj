@@ -21,6 +21,7 @@
 
     <!-- Workaround for unsecure dependency on EF.Specification.Tests -->
     <PackageReference Include="System.Formats.Asn1" />
+    <PackageReference Include="System.Text.Json" />
 
     <!-- Needed to override xunit dependencies from EFCore projects on versions which aren't available on nuget.org -->
     <PackageReference Include="xunit.assert" />
