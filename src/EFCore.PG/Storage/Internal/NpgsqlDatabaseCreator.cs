@@ -170,16 +170,15 @@ WHERE
         var designTimeModel = Dependencies.CurrentContext.Context.GetService<IDesignTimeModel>().Model;
 
         return Dependencies.MigrationsSqlGenerator.Generate(
-            new[]
-            {
-                new NpgsqlCreateDatabaseOperation
+        [
+            new NpgsqlCreateDatabaseOperation
                 {
                     Name = _connection.DbConnection.Database,
                     Template = designTimeModel.GetDatabaseTemplate(),
                     Collation = designTimeModel.GetCollation(),
                     Tablespace = designTimeModel.GetTablespace()
                 }
-            });
+        ]);
     }
 
     /// <summary>

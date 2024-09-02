@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Text;
@@ -88,7 +87,9 @@ public class TimestampTzInstantMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => $@"""{Format((Instant)value)}""";
+        => $"""
+            "{Format((Instant)value)}"
+            """;
 
     private static string Format(Instant instant)
     {

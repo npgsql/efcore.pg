@@ -20,7 +20,7 @@ public class NpgsqlNetTopologySuiteMemberTranslatorPlugin : IMemberTranslatorPlu
         IRelationalTypeMappingSource typeMappingSource,
         ISqlExpressionFactory sqlExpressionFactory)
     {
-        Translators = new IMemberTranslator[] { new NpgsqlGeometryMemberTranslator(sqlExpressionFactory, typeMappingSource), };
+        Translators = [new NpgsqlGeometryMemberTranslator(sqlExpressionFactory, typeMappingSource)];
     }
 
     /// <summary>

@@ -52,16 +52,15 @@ public class NpgsqlByteArrayMethodTranslator : IMethodCallTranslator
 
                 // We have a byte value, but we need a bytea for PostgreSQL POSITION.
                 var value = arguments[1] is SqlConstantExpression constantValue
-                    ? (SqlExpression)_sqlExpressionFactory.Constant(new[] { (byte)constantValue.Value! }, typeMapping)
+                    ? _sqlExpressionFactory.Constant(new[] { (byte)constantValue.Value! }, typeMapping)
                     // Create bytea from non-constant byte: SELECT set_byte('\x00', 0, 8::smallint);
                     : _sqlExpressionFactory.Function(
                         "set_byte",
-                        new[]
-                        {
+                        [
                             _sqlExpressionFactory.Constant(new[] { (byte)0 }, typeMapping),
                             _sqlExpressionFactory.Constant(0),
                             arguments[1]
-                        },
+                        ],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[3],
                         typeof(byte[]),
@@ -70,8 +69,8 @@ public class NpgsqlByteArrayMethodTranslator : IMethodCallTranslator
                 return _sqlExpressionFactory.GreaterThan(
                     PgFunctionExpression.CreateWithArgumentSeparators(
                         "position",
-                        new[] { value, source },
-                        new[] { "IN" }, // POSITION(x IN y)
+                        [value, source],
+                        ["IN"], // POSITION(x IN y)
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[2],
                         builtIn: true,
@@ -85,7 +84,7 @@ public class NpgsqlByteArrayMethodTranslator : IMethodCallTranslator
                 return _sqlExpressionFactory.Convert(
                     _sqlExpressionFactory.Function(
                         "get_byte",
-                        new[] { arguments[0], _sqlExpressionFactory.Constant(0) },
+                        [arguments[0], _sqlExpressionFactory.Constant(0)],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[2],
                         typeof(byte)),

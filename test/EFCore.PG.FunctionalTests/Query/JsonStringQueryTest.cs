@@ -52,7 +52,7 @@ public class JsonStringQueryTest : IClassFixture<JsonStringQueryTest.JsonStringQ
 
         Assert.Empty(
             ctx.JsonEntities.Where(
-                e => e.CustomerJsonb == @"{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}"));
+                e => e.CustomerJsonb == """{"Name":"Test customer","Age":80,"IsVip":false,"Statistics":null,"Orders":null}"""));
 
         AssertSql(
             """
@@ -99,7 +99,7 @@ LIMIT 2
     {
         using var ctx = CreateContext();
 
-        var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
+        var element = JsonDocument.Parse("""{"Name": "Joe", "Age": 25}""").RootElement;
         var count = ctx.JsonEntities.Count(e => EF.Functions.JsonContains(e.CustomerJsonb, element));
 
         Assert.Equal(1, count);
@@ -119,7 +119,7 @@ WHERE j."CustomerJsonb" @> @__element_1
     {
         using var ctx = CreateContext();
 
-        var count = ctx.JsonEntities.Count(e => EF.Functions.JsonContains(e.CustomerJsonb, @"{""Name"": ""Joe"", ""Age"": 25}"));
+        var count = ctx.JsonEntities.Count(e => EF.Functions.JsonContains(e.CustomerJsonb, """{"Name": "Joe", "Age": 25}"""));
 
         Assert.Equal(1, count);
 
@@ -137,7 +137,11 @@ WHERE j."CustomerJsonb" @> '{"Name": "Joe", "Age": 25}'
         using var ctx = CreateContext();
 
         var count = ctx.JsonEntities.Count(
-            e => EF.Functions.JsonContains(e.CustomerJsonb, @"{""Name"": """ + e.SomeString + @""", ""Age"": 25}"));
+            e => EF.Functions.JsonContains(e.CustomerJsonb, """
+                {"Name": "
+                """ + e.SomeString + """
+                    ", "Age": 25}
+                    """));
 
         Assert.Equal(1, count);
 
@@ -154,7 +158,7 @@ WHERE j."CustomerJsonb" @> CAST('{"Name": "' || COALESCE(j."SomeString", '') || 
     {
         using var ctx = CreateContext();
 
-        var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
+        var element = JsonDocument.Parse("""{"Name": "Joe", "Age": 25}""").RootElement;
         var count = ctx.JsonEntities.Count(e => EF.Functions.JsonContained(element, e.CustomerJsonb));
 
         Assert.Equal(1, count);
@@ -174,7 +178,7 @@ WHERE @__element_1 <@ j."CustomerJsonb"
     {
         using var ctx = CreateContext();
 
-        var count = ctx.JsonEntities.Count(e => EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", e.CustomerJsonb));
+        var count = ctx.JsonEntities.Count(e => EF.Functions.JsonContained("""{"Name": "Joe", "Age": 25}""", e.CustomerJsonb));
 
         Assert.Equal(1, count);
 
@@ -253,60 +257,64 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
 
         public static async Task SeedAsync(JsonStringQueryContext context)
         {
-            const string customer1 = @"
+            const string customer1 = """
+
                 {
-                    ""Name"": ""Joe"",
-                    ""Age"": 25,
-                    ""IsVip"": false,
-                    ""Statistics"":
+                    "Name": "Joe",
+                    "Age": 25,
+                    "IsVip": false,
+                    "Statistics":
                     {
-                        ""Visits"": 4,
-                        ""Purchases"": 3,
-                        ""Nested"":
+                        "Visits": 4,
+                        "Purchases": 3,
+                        "Nested":
                         {
-                            ""SomeProperty"": 10,
-                            ""IntArray"": [3, 4]
+                            "SomeProperty": 10,
+                            "IntArray": [3, 4]
                         }
                     },
-                    ""Orders"":
+                    "Orders":
                     [
                         {
-                            ""Price"": 99.5,
-                            ""ShippingAddress"": ""Some address 1"",
-                            ""ShippingDate"": ""2019-10-01""
+                            "Price": 99.5,
+                            "ShippingAddress": "Some address 1",
+                            "ShippingDate": "2019-10-01"
                         },
                         {
-                            ""Price"": 23,
-                            ""ShippingAddress"": ""Some address 2"",
-                            ""ShippingDate"": ""2019-10-10""
+                            "Price": 23,
+                            "ShippingAddress": "Some address 2",
+                            "ShippingDate": "2019-10-10"
                         }
                     ]
-                }";
+                }
+""";
 
-            const string customer2 = @"
+            const string customer2 = """
+
                 {
-                    ""Name"": ""Moe"",
-                    ""Age"": 35,
-                    ""IsVip"": true,
-                    ""Statistics"":
+                    "Name": "Moe",
+                    "Age": 35,
+                    "IsVip": true,
+                    "Statistics":
                     {
-                        ""Visits"": 20,
-                        ""Purchases"": 25,
-                        ""Nested"":
+                        "Visits": 20,
+                        "Purchases": 25,
+                        "Nested":
                         {
-                            ""SomeProperty"": 20,
-                            ""IntArray"": [5, 6]
+                            "SomeProperty": 20,
+                            "IntArray": [5, 6]
                         }
                     },
-                    ""Orders"":
+                    "Orders":
                     [
                         {
-                            ""Price"": 5,
-                            ""ShippingAddress"": ""Moe's address"",
-                            ""ShippingDate"": ""2019-11-03""
+                            "Price": 5,
+                            "ShippingAddress": "Moe's address",
+                            "ShippingDate": "2019-11-03"
                         }
                     ]
-                }";
+                }
+""";
 
             const string array = "[1, 2, 3]";
 

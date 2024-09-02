@@ -139,7 +139,7 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
         {
             return _sqlExpressionFactory.Function(
                 mapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
-                new[] { instance },
+                [instance],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(int));

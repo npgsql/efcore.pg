@@ -71,11 +71,10 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
             return _sqlExpressionFactory.Coalesce(
                 _sqlExpressionFactory.AggregateFunction(
                     "string_agg",
-                    new[]
-                    {
+                    [
                         sqlExpression,
                         method == StringJoin ? arguments[0] : _sqlExpressionFactory.Constant(string.Empty, typeof(string))
-                    },
+                    ],
                     source,
                     nullable: true,
                     // string_agg can return nulls regardless of the nullability of its arguments, since if there's an aggregate predicate
@@ -93,7 +92,7 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.ArrayAgg):
                     return _sqlExpressionFactory.AggregateFunction(
                         "array_agg",
-                        new[] { sqlExpression },
+                        [sqlExpression],
                         source,
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[1],
@@ -105,7 +104,7 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.JsonAgg):
                     return _sqlExpressionFactory.AggregateFunction(
                         "json_agg",
-                        new[] { sqlExpression },
+                        [sqlExpression],
                         source,
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[1],
@@ -115,7 +114,7 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.JsonbAgg):
                     return _sqlExpressionFactory.AggregateFunction(
                         "jsonb_agg",
-                        new[] { sqlExpression },
+                        [sqlExpression],
                         source,
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[1],
@@ -125,7 +124,7 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.Sum):
                     return _sqlExpressionFactory.AggregateFunction(
                         "sum",
-                        new[] { sqlExpression },
+                        [sqlExpression],
                         source,
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[1],
@@ -135,7 +134,7 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.Average):
                     return _sqlExpressionFactory.AggregateFunction(
                         "avg",
-                        new[] { sqlExpression },
+                        [sqlExpression],
                         source,
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[1],
@@ -158,7 +157,7 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
 
                     return _sqlExpressionFactory.AggregateFunction(
                         isJsonb ? "jsonb_object_agg" : "json_object_agg",
-                        new[] { keys, values },
+                        [keys, values],
                         source,
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[2],
@@ -176,7 +175,7 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
 
                     return _sqlExpressionFactory.AggregateFunction(
                         "range_agg",
-                        new[] { sqlExpression },
+                        [sqlExpression],
                         source,
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[1],
@@ -186,7 +185,7 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
                 case nameof(NpgsqlRangeDbFunctionsExtensions.RangeIntersectAgg):
                     return _sqlExpressionFactory.AggregateFunction(
                         "range_intersect_agg",
-                        new[] { sqlExpression },
+                        [sqlExpression],
                         source,
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[1],

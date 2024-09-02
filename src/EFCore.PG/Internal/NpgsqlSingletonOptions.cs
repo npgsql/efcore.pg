@@ -1,7 +1,5 @@
-﻿using System.Data.Common;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 

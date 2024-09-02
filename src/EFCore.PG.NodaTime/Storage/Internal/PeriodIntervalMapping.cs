@@ -94,7 +94,9 @@ public class PeriodIntervalMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => $@"""{GenerateLiteralCore(value)}""";
+        => $"""
+            "{GenerateLiteralCore(value)}"
+            """;
 
     private string GenerateLiteralCore(object value)
         => PeriodPattern.NormalizingIso.Format((Period)value);

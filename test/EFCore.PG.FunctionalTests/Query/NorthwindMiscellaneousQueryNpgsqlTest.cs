@@ -298,9 +298,8 @@ WHERE c."Region" = ANY (@__regions_0) OR (c."Region" IS NULL AND array_position(
         var result = async ? await query.ToListAsync() : query.ToList();
 
         Assert.Equal(
-            new[]
-            {
-                "ANATR",
+        [
+            "ANATR",
                 "BERGS",
                 "BOLID",
                 "CACTU",
@@ -322,7 +321,7 @@ WHERE c."Region" = ANY (@__regions_0) OR (c."Region" IS NULL AND array_position(
                 "TORTU",
                 "TRADH",
                 "WANDK"
-            }, result.Select(e => e.CustomerID));
+        ], result.Select(e => e.CustomerID));
 
         AssertSql(
             """
@@ -367,9 +366,8 @@ WHERE c."Address" LIKE ALL (@__collection_1)
         var result = async ? await query.ToListAsync() : query.ToList();
 
         Assert.Equal(
-            new[]
-            {
-                "ANATR",
+        [
+            "ANATR",
                 "BERGS",
                 "BOLID",
                 "CACTU",
@@ -391,7 +389,7 @@ WHERE c."Address" LIKE ALL (@__collection_1)
                 "TORTU",
                 "TRADH",
                 "WANDK"
-            }, result.Select(e => e.CustomerID));
+        ], result.Select(e => e.CustomerID));
 
         AssertSql(
             """

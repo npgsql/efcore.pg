@@ -70,7 +70,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
                 case { } when NpgsqlTypeMappingSource.LegacyTimestampBehavior:
                     return _sqlExpressionFactory.Function(
                         "date_trunc",
-                        new[] { _sqlExpressionFactory.Constant("day"), instance },
+                        [_sqlExpressionFactory.Constant("day"), instance],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[2],
                         returnType,
@@ -79,7 +79,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
                 case { TypeMapping: NpgsqlTimestampTzTypeMapping }:
                     return _sqlExpressionFactory.Function(
                         "date_trunc",
-                        new[] { _sqlExpressionFactory.Constant("day"), instance, _sqlExpressionFactory.Constant("UTC") },
+                        [_sqlExpressionFactory.Constant("day"), instance, _sqlExpressionFactory.Constant("UTC")],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[3],
                         returnType,
@@ -112,7 +112,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
 
             nameof(DateTime.Today) => _sqlExpressionFactory.Function(
                 "date_trunc",
-                new[] { _sqlExpressionFactory.Constant("day"), LocalNow() },
+                [_sqlExpressionFactory.Constant("day"), LocalNow()],
                 nullable: false,
                 argumentsPropagateNullability: FalseArrays[2],
                 typeof(DateTime),
@@ -172,7 +172,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
 
         var result = _sqlExpressionFactory.Function(
             "date_part",
-            new[] { _sqlExpressionFactory.Constant(partName), instance },
+            [_sqlExpressionFactory.Constant(partName), instance],
             nullable: true,
             argumentsPropagateNullability: TrueArrays[2],
             typeof(double));
@@ -181,7 +181,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
         {
             result = _sqlExpressionFactory.Function(
                 "floor",
-                new[] { result },
+                [result],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(double));
@@ -217,7 +217,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
             nameof(DateTimeOffset.Date) =>
                 _sqlExpressionFactory.Function(
                     "date_trunc",
-                    new SqlExpression[] { _sqlExpressionFactory.Constant("day"), _sqlExpressionFactory.AtUtc(instance) },
+                    [_sqlExpressionFactory.Constant("day"), _sqlExpressionFactory.AtUtc(instance)],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
                     typeof(DateTime),

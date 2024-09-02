@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Net.NetworkInformation;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
@@ -101,8 +100,8 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
                     EnumAsVarchar = StringEnumU16.Value4,
                     PhysicalAddressAsMacaddr = PhysicalAddress.Parse("08-00-2B-01-02-03"),
                     NpgsqlPointAsPoint = new NpgsqlPoint(5.2, 3.3),
-                    StringAsJsonb = @"{""a"": ""b""}",
-                    StringAsJson = @"{""a"": ""b""}",
+                    StringAsJsonb = """{"a": "b"}""",
+                    StringAsJson = """{"a": "b"}""",
                     DictionaryAsHstore = new Dictionary<string, string> { { "a", "b" } },
                     ImmutableDictionaryAsHstore = ImmutableDictionary<string, string>.Empty.Add("c", "d"),
                     NpgsqlRangeAsRange = new NpgsqlRange<int>(4, true, 8, false),
@@ -238,7 +237,7 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
             // Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Point == param29));
 
             // ReSharper disable once ConvertToConstant.Local
-            var param30 = @"{""a"": ""b""}";
+            var param30 = """{"a": "b"}""";
             Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.StringAsJsonb == param30));
 
             // operator does not exist: json = json (https://stackoverflow.com/questions/32843213/operator-does-not-exist-json-json)
@@ -467,7 +466,8 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
 
         var parameters = DumpParameters();
         Assert.Equal(
-            @"@p0='77'
+            """
+@p0='77'
 @p1='True'
 @p2='80' (DbType = Int16)
 @p3='0x56' (Nullable = false)
@@ -500,8 +500,8 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
 @p28=''a' & 'b'' (Nullable = false) (DbType = Object)
 @p29=''a' 'b'' (Nullable = false) (DbType = Object)
 @p30='79'
-@p31='{""a"": ""b""}' (Nullable = false) (DbType = Object)
-@p32='{""a"": ""b""}' (Nullable = false) (DbType = Object)
+@p31='{"a": "b"}' (Nullable = false) (DbType = Object)
+@p32='{"a": "b"}' (Nullable = false) (DbType = Object)
 @p33='Gumball Rules!' (Nullable = false)
 @p34='Gumball Rules OK' (Nullable = false)
 @p35='11:15:12' (DbType = Object)
@@ -511,7 +511,8 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
 @p39='4294967295'
 @p40='-1'
 @p41='2147483648' (DbType = Object)
-@p42='-1'",
+@p42='-1'
+""",
             parameters,
             ignoreLineEndingDifferences: true);
     }
@@ -564,8 +565,8 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
 
         Assert.Equal(PhysicalAddress.Parse("08-00-2B-01-02-03"), entity.PhysicalAddressAsMacaddr);
         Assert.Equal(new NpgsqlPoint(5.2, 3.3), entity.NpgsqlPointAsPoint);
-        Assert.Equal(@"{""a"": ""b""}", entity.StringAsJsonb);
-        Assert.Equal(@"{""a"": ""b""}", entity.StringAsJson);
+        Assert.Equal("""{"a": "b"}""", entity.StringAsJsonb);
+        Assert.Equal("""{"a": "b"}""", entity.StringAsJson);
         Assert.Equal(new Dictionary<string, string> { { "a", "b" } }, entity.DictionaryAsHstore);
         Assert.Equal(new NpgsqlRange<int>(4, true, 8, false), entity.NpgsqlRangeAsRange);
 
@@ -619,8 +620,8 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
             EnumAsVarchar = StringEnumU16.Value4,
             PhysicalAddressAsMacaddr = PhysicalAddress.Parse("08-00-2B-01-02-03"),
             NpgsqlPointAsPoint = new NpgsqlPoint(5.2, 3.3),
-            StringAsJsonb = @"{""a"": ""b""}",
-            StringAsJson = @"{""a"": ""b""}",
+            StringAsJsonb = """{"a": "b"}""",
+            StringAsJson = """{"a": "b"}""",
             DictionaryAsHstore = new Dictionary<string, string> { { "a", "b" } },
             NpgsqlRangeAsRange = new NpgsqlRange<int>(4, true, 8, false),
             IntArrayAsIntArray = [2, 3],

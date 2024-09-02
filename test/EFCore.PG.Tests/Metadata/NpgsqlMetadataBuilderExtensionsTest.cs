@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -81,7 +80,7 @@ public class NpgsqlInternalMetadataBuilderExtensionsTest
         var modelBuilder = CreateBuilder();
         var entityTypeBuilder = modelBuilder.Entity(typeof(Splot));
         var idProperty = entityTypeBuilder.Property(typeof(int), "Id").Metadata;
-        var indexBuilder = entityTypeBuilder.HasIndex(new[] { idProperty });
+        var indexBuilder = entityTypeBuilder.HasIndex([idProperty]);
 
         Assert.NotNull(indexBuilder.HasMethod("gin"));
         Assert.Equal("gin", indexBuilder.Metadata.GetMethod());
@@ -103,7 +102,7 @@ public class NpgsqlInternalMetadataBuilderExtensionsTest
         var modelBuilder = CreateBuilder();
         var entityTypeBuilder = modelBuilder.Entity(typeof(Splot));
         var idProperty = entityTypeBuilder.Property(typeof(int), "Id").Metadata;
-        var key = entityTypeBuilder.HasKey(new[] { idProperty }).Metadata;
+        var key = entityTypeBuilder.HasKey([idProperty]).Metadata;
         var relationshipBuilder = entityTypeBuilder.HasRelationship(entityTypeBuilder.Metadata, key);
 
         Assert.NotNull(relationshipBuilder.HasConstraintName("Splew"));

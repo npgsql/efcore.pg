@@ -62,7 +62,7 @@ public class NpgsqlQueryableAggregateMethodTranslator : IAggregateMethodCallTran
                         ? _sqlExpressionFactory.Convert(
                             _sqlExpressionFactory.AggregateFunction(
                                 "avg",
-                                new[] { averageSqlExpression },
+                                [averageSqlExpression],
                                 source,
                                 nullable: true,
                                 argumentsPropagateNullability: FalseArrays[1],
@@ -71,7 +71,7 @@ public class NpgsqlQueryableAggregateMethodTranslator : IAggregateMethodCallTran
                             averageSqlExpression.TypeMapping)
                         : _sqlExpressionFactory.AggregateFunction(
                             "avg",
-                            new[] { averageSqlExpression },
+                            [averageSqlExpression],
                             source,
                             nullable: true,
                             argumentsPropagateNullability: FalseArrays[1],
@@ -86,7 +86,7 @@ public class NpgsqlQueryableAggregateMethodTranslator : IAggregateMethodCallTran
                     return _sqlExpressionFactory.Convert(
                         _sqlExpressionFactory.AggregateFunction(
                             "count",
-                            new[] { countSqlExpression },
+                            [countSqlExpression],
                             source,
                             nullable: false,
                             argumentsPropagateNullability: FalseArrays[1],
@@ -100,7 +100,7 @@ public class NpgsqlQueryableAggregateMethodTranslator : IAggregateMethodCallTran
                     var longCountSqlExpression = (source.Selector as SqlExpression) ?? _sqlExpressionFactory.Fragment("*");
                     return _sqlExpressionFactory.AggregateFunction(
                         "count",
-                        new[] { longCountSqlExpression },
+                        [longCountSqlExpression],
                         source,
                         nullable: false,
                         argumentsPropagateNullability: FalseArrays[1],
@@ -112,7 +112,7 @@ public class NpgsqlQueryableAggregateMethodTranslator : IAggregateMethodCallTran
                     && source.Selector is SqlExpression maxSqlExpression:
                     return _sqlExpressionFactory.AggregateFunction(
                         "max",
-                        new[] { maxSqlExpression },
+                        [maxSqlExpression],
                         source,
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[1],
@@ -125,7 +125,7 @@ public class NpgsqlQueryableAggregateMethodTranslator : IAggregateMethodCallTran
                     && source.Selector is SqlExpression minSqlExpression:
                     return _sqlExpressionFactory.AggregateFunction(
                         "min",
-                        new[] { minSqlExpression },
+                        [minSqlExpression],
                         source,
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[1],
@@ -147,7 +147,7 @@ public class NpgsqlQueryableAggregateMethodTranslator : IAggregateMethodCallTran
                         return _sqlExpressionFactory.Convert(
                             _sqlExpressionFactory.AggregateFunction(
                                 "sum",
-                                new[] { sumSqlExpression },
+                                [sumSqlExpression],
                                 source,
                                 nullable: true,
                                 argumentsPropagateNullability: FalseArrays[1],
@@ -161,7 +161,7 @@ public class NpgsqlQueryableAggregateMethodTranslator : IAggregateMethodCallTran
                         return _sqlExpressionFactory.Convert(
                             _sqlExpressionFactory.AggregateFunction(
                                 "sum",
-                                new[] { sumSqlExpression },
+                                [sumSqlExpression],
                                 source,
                                 nullable: true,
                                 argumentsPropagateNullability: FalseArrays[1],
@@ -172,7 +172,7 @@ public class NpgsqlQueryableAggregateMethodTranslator : IAggregateMethodCallTran
 
                     return _sqlExpressionFactory.AggregateFunction(
                         "sum",
-                        new[] { sumSqlExpression },
+                        [sumSqlExpression],
                         source,
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[1],

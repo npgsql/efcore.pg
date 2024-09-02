@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore.Storage.Json;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
-using Npgsql.NameTranslation;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage;
 
@@ -259,7 +258,7 @@ public class NpgsqlTypeMappingTest
     [Fact]
     public void GenerateCodeLiteral_returns_macaddr_literal()
         => Assert.Equal(
-            @"System.Net.NetworkInformation.PhysicalAddress.Parse(""001122334455"")",
+            """System.Net.NetworkInformation.PhysicalAddress.Parse("001122334455")""",
             CodeLiteral(PhysicalAddress.Parse("00-11-22-33-44-55")));
 
     [Fact]
@@ -270,7 +269,7 @@ public class NpgsqlTypeMappingTest
     [Fact]
     public void GenerateCodeLiteral_returns_macaddr8_literal()
         => Assert.Equal(
-            @"System.Net.NetworkInformation.PhysicalAddress.Parse(""0011223344556677"")",
+            """System.Net.NetworkInformation.PhysicalAddress.Parse("0011223344556677")""",
             CodeLiteral(PhysicalAddress.Parse("00-11-22-33-44-55-66-77")));
 
     [Fact]
@@ -279,7 +278,7 @@ public class NpgsqlTypeMappingTest
 
     [Fact]
     public void GenerateCodeLiteral_returns_inet_literal()
-        => Assert.Equal(@"System.Net.IPAddress.Parse(""192.168.1.1"")", CodeLiteral(IPAddress.Parse("192.168.1.1")));
+        => Assert.Equal("""System.Net.IPAddress.Parse("192.168.1.1")""", CodeLiteral(IPAddress.Parse("192.168.1.1")));
 
     [Fact]
     public void GenerateSqlLiteral_returns_cidr_literal()
@@ -288,7 +287,7 @@ public class NpgsqlTypeMappingTest
     [Fact]
     public void GenerateCodeLiteral_returns_cidr_literal()
         => Assert.Equal(
-            @"new NpgsqlTypes.NpgsqlCidr(System.Net.IPAddress.Parse(""192.168.1.0""), (byte)24)",
+            """new NpgsqlTypes.NpgsqlCidr(System.Net.IPAddress.Parse("192.168.1.0"), (byte)24)""",
             CodeLiteral(new NpgsqlCidr(IPAddress.Parse("192.168.1.0"), 24)));
 
     #endregion Networking
@@ -402,19 +401,19 @@ public class NpgsqlTypeMappingTest
 
     [Fact]
     public void GenerateSqlLiteral_returns_varbit_literal()
-        => Assert.Equal("B'10'", GetMapping("varbit").GenerateSqlLiteral(new BitArray(new[] { true, false })));
+        => Assert.Equal("B'10'", GetMapping("varbit").GenerateSqlLiteral(new BitArray([true, false])));
 
     [Fact]
     public void GenerateCodeLiteral_returns_varbit_literal()
-        => Assert.Equal("new System.Collections.BitArray(new bool[] { true, false })", CodeLiteral(new BitArray(new[] { true, false })));
+        => Assert.Equal("new System.Collections.BitArray(new bool[] { true, false })", CodeLiteral(new BitArray([true, false])));
 
     [Fact]
     public void GenerateSqlLiteral_returns_bit_literal()
-        => Assert.Equal("B'10'", GetMapping("bit").GenerateSqlLiteral(new BitArray(new[] { true, false })));
+        => Assert.Equal("B'10'", GetMapping("bit").GenerateSqlLiteral(new BitArray([true, false])));
 
     [Fact]
     public void GenerateCodeLiteral_returns_bit_literal()
-        => Assert.Equal("new System.Collections.BitArray(new bool[] { true, false })", CodeLiteral(new BitArray(new[] { true, false })));
+        => Assert.Equal("new System.Collections.BitArray(new bool[] { true, false })", CodeLiteral(new BitArray([true, false])));
 
     [Fact(Skip = "https://github.com/dotnet/efcore/pull/30939")]
     public void ValueComparer_hstore_array()
@@ -438,7 +437,7 @@ public class NpgsqlTypeMappingTest
     [Fact]
     public void GenerateSqlLiteral_returns_hstore_literal()
         => Assert.Equal(
-            @"HSTORE '""k1""=>""v1"",""k2""=>""v2""'",
+            """HSTORE '"k1"=>"v1","k2"=>"v2"'""",
             GetMapping("hstore").GenerateSqlLiteral(new Dictionary<string, string> { { "k1", "v1" }, { "k2", "v2" } }));
 
     [Fact]
@@ -454,7 +453,7 @@ public class NpgsqlTypeMappingTest
     [Fact]
     public void GenerateCodeLiteral_returns_BigInteger_literal()
         => Assert.Equal(
-            @"BigInteger.Parse(""18446744073709551615"", NumberFormatInfo.InvariantInfo)",
+            """BigInteger.Parse("18446744073709551615", NumberFormatInfo.InvariantInfo)""",
             CodeLiteral(new BigInteger(ulong.MaxValue)));
 
     [Fact]
@@ -501,13 +500,17 @@ public class NpgsqlTypeMappingTest
     [Fact]
     public void GenerateSqlLiteral_returns_enum_uppercase_literal()
     {
-        var mapping = new NpgsqlEnumTypeMapping(@"""DummyEnum""", "DummyEnum", typeof(DummyEnum), new Dictionary<object, string>
+        var mapping = new NpgsqlEnumTypeMapping("""
+            "DummyEnum"
+            """, "DummyEnum", typeof(DummyEnum), new Dictionary<object, string>
         {
             [DummyEnum.Happy] = "happy",
             [DummyEnum.Sad] = "sad"
         });
 
-        Assert.Equal(@"'sad'::""DummyEnum""", mapping.GenerateSqlLiteral(DummyEnum.Sad));
+        Assert.Equal("""
+            'sad'::"DummyEnum"
+            """, mapping.GenerateSqlLiteral(DummyEnum.Sad));
     }
 
     private enum DummyEnum
@@ -713,7 +716,7 @@ public class NpgsqlTypeMappingTest
         Assert.Equal("timestamp without time zone", mapping.SubtypeMapping.StoreType);
 
         var value = new NpgsqlRange<DateTime>(new DateTime(2020, 1, 1, 12, 0, 0), new DateTime(2020, 1, 2, 12, 0, 0));
-        Assert.Equal(@"'[""2020-01-01T12:00:00"",""2020-01-02T12:00:00""]'::tsrange", mapping.GenerateSqlLiteral(value));
+        Assert.Equal("""'["2020-01-01T12:00:00","2020-01-02T12:00:00"]'::tsrange""", mapping.GenerateSqlLiteral(value));
     }
 
     [Fact]
@@ -724,7 +727,7 @@ public class NpgsqlTypeMappingTest
 
         var value = new NpgsqlRange<DateTime>(
             new DateTime(2020, 1, 1, 12, 0, 0, DateTimeKind.Utc), new DateTime(2020, 1, 2, 12, 0, 0, DateTimeKind.Utc));
-        Assert.Equal(@"'[""2020-01-01T12:00:00Z"",""2020-01-02T12:00:00Z""]'::tstzrange", mapping.GenerateSqlLiteral(value));
+        Assert.Equal("""'["2020-01-01T12:00:00Z","2020-01-02T12:00:00Z"]'::tstzrange""", mapping.GenerateSqlLiteral(value));
     }
 
     [Fact]
@@ -908,12 +911,12 @@ public class NpgsqlTypeMappingTest
     public void GenerateCodeLiteral_returns_json_document_literal()
         => Assert.Equal(
             """System.Text.Json.JsonDocument.Parse("{\"Name\":\"Joe\",\"Age\":25}", new System.Text.Json.JsonDocumentOptions())""",
-            CodeLiteral(JsonDocument.Parse(@"{""Name"":""Joe"",""Age"":25}")));
+            CodeLiteral(JsonDocument.Parse("""{"Name":"Joe","Age":25}""")));
 
     [Fact]
     public void GenerateCodeLiteral_returns_json_element_literal()
         // TODO: https://github.com/dotnet/efcore/issues/32192
-        => Assert.Throws<NotSupportedException>(() => CodeLiteral(JsonDocument.Parse(@"{""Name"":""Joe"",""Age"":25}").RootElement));
+        => Assert.Throws<NotSupportedException>(() => CodeLiteral(JsonDocument.Parse("""{"Name":"Joe","Age":25}""").RootElement));
 
     // Assert.Equal(
     //     """System.Text.Json.JsonDocument.Parse("{\"Name\":\"Joe\",\"Age\":25}", new System.Text.Json.JsonDocumentOptions()).RootElement""",
