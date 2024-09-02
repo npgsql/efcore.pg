@@ -29,10 +29,10 @@ jobs:
           - os: ubuntu-22.04
             pg_major: 16
             config: Debug
-#          - os: ubuntu-22.04
-#            pg_major: 17
-#            config: Release
-#            pg_prerelease: 'PG Prerelease'
+          - os: ubuntu-22.04
+            pg_major: 17
+            config: Release
+            pg_prerelease: 'PG Prerelease'
 
     outputs:
       is_release: ${{ steps.analyze_tag.outputs.is_release }}
