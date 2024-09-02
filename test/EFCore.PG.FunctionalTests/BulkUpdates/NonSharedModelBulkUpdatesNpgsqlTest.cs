@@ -50,12 +50,17 @@ DELETE FROM "Owner" AS o
 """);
     }
 
-    // TODO: #3253
     public override async Task Replace_ColumnExpression_in_column_setter(bool async)
     {
-        var exception = await Assert.ThrowsAsync<PostgresException>(() => base.Replace_ColumnExpression_in_column_setter(async));
+        await base.Replace_ColumnExpression_in_column_setter(async);
 
-        Assert.Equal("42712", exception.SqlState);
+        AssertSql(
+            """
+UPDATE "OwnedCollection" AS o0
+SET "Value" = 'SomeValue'
+FROM "Owner" AS o
+WHERE o."Id" = o0."OwnerId"
+""");
     }
 
     public override async Task Delete_aggregate_root_when_table_sharing_with_non_owned_throws(bool async)
