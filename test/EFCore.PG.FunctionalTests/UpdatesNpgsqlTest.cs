@@ -69,7 +69,9 @@ public class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlTest.Upd
             modelBuilder.Entity<ProductBase>()
                 .Property(p => p.Id).HasDefaultValueSql("uuid_generate_v4()");
 
-            modelBuilder.Entity<Product>().HasIndex(p => new { p.Name, p.Price }).IsUnique().HasFilter(@"""Name"" IS NOT NULL");
+            modelBuilder.Entity<Product>().HasIndex(p => new { p.Name, p.Price }).IsUnique().HasFilter("""
+                "Name" IS NOT NULL
+                """);
 
             modelBuilder.Entity<Rodney>().Property(r => r.Concurrency).HasColumnType("timestamp without time zone");
         }

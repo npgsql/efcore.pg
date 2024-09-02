@@ -125,7 +125,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         {
             // TODO: For geometry collection support (not yet supported), see #2850.
             selectExpression = new SelectExpression(
-                [new TableValuedFunctionExpression(tableAlias, "ST_Dump", new[] { sqlExpression })],
+                [new TableValuedFunctionExpression(tableAlias, "ST_Dump", [sqlExpression])],
                 new ColumnExpression("geom", tableAlias, elementClrType.UnwrapNullableType(), elementTypeMapping, isElementNullable),
                 identifier: [], // TODO
                 _queryCompilationContext.SqlAliasManager);
@@ -240,7 +240,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
 
         // Construct the json_to_recordset around the JsonScalarExpression, and wrap it in a SelectExpression
         var jsonToRecordSetExpression = new PgTableValuedFunctionExpression(
-            tableAlias, functionName, new[] { jsonScalarExpression }, columnInfos, withOrdinality: true);
+            tableAlias, functionName, [jsonScalarExpression], columnInfos, withOrdinality: true);
 
 #pragma warning disable EF1001 // SelectExpression constructors are currently internal
         var selectExpression = CreateSelect(
@@ -367,7 +367,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                     _sqlExpressionFactory.GreaterThan(
                         _sqlExpressionFactory.Function(
                             "cardinality",
-                            new[] { array },
+                            [array],
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[1],
                             typeof(int)),
@@ -603,7 +603,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                             _sqlExpressionFactory.IsNotNull(
                                 _sqlExpressionFactory.Function(
                                     "array_position",
-                                    new[] { array, translatedItem },
+                                    [array, translatedItem],
                                     nullable: true,
                                     argumentsPropagateNullability: FalseArrays[2],
                                     typeof(int))));
@@ -613,7 +613,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         source,
                         _sqlExpressionFactory.Contains(
                             array,
-                            _sqlExpressionFactory.NewArrayOrConstant(new[] { translatedItem }, array.Type, array.TypeMapping)));
+                            _sqlExpressionFactory.NewArrayOrConstant([translatedItem], array.Type, array.TypeMapping)));
 
                 // For constant arrays (new[] { 1, 2, 3 }) or inline arrays (new[] { 1, param, 3 }), don't do anything PG-specific for since
                 // the general EF Core mechanism is fine for that case: item IN (1, 2, 3).
@@ -658,7 +658,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         {
             var translation = _sqlExpressionFactory.Function(
                 "cardinality",
-                new[] { array },
+                [array],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(int));

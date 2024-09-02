@@ -63,7 +63,7 @@ public class NpgsqlStatisticsAggregateMethodTranslator : IAggregateMethodCallTra
         {
             return _sqlExpressionFactory.AggregateFunction(
                 functionName,
-                new[] { sqlExpression },
+                [sqlExpression],
                 source,
                 nullable: true,
                 argumentsPropagateNullability: FalseArrays[1],
@@ -101,7 +101,7 @@ public class NpgsqlStatisticsAggregateMethodTranslator : IAggregateMethodCallTra
             return method.Name == nameof(NpgsqlAggregateDbFunctionsExtensions.RegrCount)
                 ? _sqlExpressionFactory.AggregateFunction(
                     functionName,
-                    new[] { y, x },
+                    [y, x],
                     source,
                     nullable: true,
                     argumentsPropagateNullability: FalseArrays[2],
@@ -109,7 +109,7 @@ public class NpgsqlStatisticsAggregateMethodTranslator : IAggregateMethodCallTra
                     _longTypeMapping)
                 : _sqlExpressionFactory.AggregateFunction(
                     functionName,
-                    new[] { y, x },
+                    [y, x],
                     source,
                     nullable: true,
                     argumentsPropagateNullability: FalseArrays[2],

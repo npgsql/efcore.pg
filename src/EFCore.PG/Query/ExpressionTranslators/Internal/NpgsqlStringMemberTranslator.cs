@@ -35,7 +35,7 @@ public class NpgsqlStringMemberTranslator : IMemberTranslator
             ? _sqlExpressionFactory.Convert(
                 _sqlExpressionFactory.Function(
                     "length",
-                    new[] { instance! },
+                    [instance!],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(long)),

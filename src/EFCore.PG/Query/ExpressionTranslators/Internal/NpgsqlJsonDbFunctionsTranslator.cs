@@ -72,7 +72,7 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
         {
             return _sqlExpressionFactory.Function(
                 ((NpgsqlJsonTypeMapping)args[0].TypeMapping!).IsJsonb ? "jsonb_typeof" : "json_typeof",
-                new[] { args[0] },
+                [args[0]],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(string));

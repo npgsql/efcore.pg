@@ -15,11 +15,11 @@ public class SqlExecutorNpgsqlTest : SqlExecutorTestBase<NorthwindQueryNpgsqlFix
         => new NpgsqlParameter { ParameterName = name, Value = value };
 
     protected override string TenMostExpensiveProductsSproc
-        => @"SELECT * FROM ""Ten Most Expensive Products""()";
+        => """SELECT * FROM "Ten Most Expensive Products"()""";
 
     protected override string CustomerOrderHistorySproc
-        => @"SELECT * FROM ""CustOrderHist""(@CustomerID)";
+        => """SELECT * FROM "CustOrderHist"(@CustomerID)""";
 
     protected override string CustomerOrderHistoryWithGeneratedParameterSproc
-        => @"SELECT * FROM ""CustOrderHist""({0})";
+        => """SELECT * FROM "CustOrderHist"({0})""";
 }

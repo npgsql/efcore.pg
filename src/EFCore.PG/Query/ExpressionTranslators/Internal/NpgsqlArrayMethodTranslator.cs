@@ -84,7 +84,7 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
             {
                 return _sqlExpressionFactory.Function(
                     "get_byte",
-                    new[] { arguments[0], arguments[1] },
+                    [arguments[0], arguments[1]],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
                     typeof(byte));
@@ -159,7 +159,7 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
                     _sqlExpressionFactory.Subtract(
                         _sqlExpressionFactory.Function(
                             "array_position",
-                            new[] { array, item, startIndex },
+                            [array, item, startIndex],
                             nullable: true,
                             TrueArrays[3],
                             arrayOrList.Type),
@@ -175,7 +175,7 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
 
                 return _sqlExpressionFactory.Function(
                     "array_append",
-                    new[] { array, item },
+                    [array, item],
                     nullable: true,
                     TrueArrays[2],
                     arrayOrList.Type,
@@ -188,11 +188,10 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
 
                 return _sqlExpressionFactory.Function(
                     "array_cat",
-                    new[]
-                    {
+                    [
                         _sqlExpressionFactory.ApplyTypeMapping(arrayOrList, inferredMapping),
                         _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping)
-                    },
+                    ],
                     nullable: true,
                     TrueArrays[2],
                     arrayOrList.Type,

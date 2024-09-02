@@ -499,7 +499,7 @@ LIMIT 2
     public void JsonContains_with_json_element()
     {
         using var ctx = CreateContext();
-        var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
+        var element = JsonDocument.Parse("""{"Name": "Joe", "Age": 25}""").RootElement;
         var count = ctx.JsonbEntities.Count(
             e =>
                 EF.Functions.JsonContains(e.Customer, element));
@@ -521,7 +521,7 @@ WHERE j."Customer" @> @__element_1
         using var ctx = CreateContext();
         var count = ctx.JsonbEntities.Count(
             e =>
-                EF.Functions.JsonContains(e.Customer, @"{""Name"": ""Joe"", ""Age"": 25}"));
+                EF.Functions.JsonContains(e.Customer, """{"Name": "Joe", "Age": 25}"""));
 
         Assert.Equal(1, count);
         AssertSql(
@@ -536,7 +536,7 @@ WHERE j."Customer" @> '{"Name": "Joe", "Age": 25}'
     public void JsonContains_with_string_parameter()
     {
         using var ctx = CreateContext();
-        var someJson = @"{""Name"": ""Joe"", ""Age"": 25}";
+        var someJson = """{"Name": "Joe", "Age": 25}""";
         var count = ctx.JsonbEntities.Count(
             e =>
                 EF.Functions.JsonContains(e.Customer, someJson));
@@ -556,7 +556,7 @@ WHERE j."Customer" @> @__someJson_1
     public void JsonContained_with_json_element()
     {
         using var ctx = CreateContext();
-        var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
+        var element = JsonDocument.Parse("""{"Name": "Joe", "Age": 25}""").RootElement;
         var count = ctx.JsonbEntities.Count(
             e =>
                 EF.Functions.JsonContained(element, e.Customer));
@@ -578,7 +578,7 @@ WHERE @__element_1 <@ j."Customer"
         using var ctx = CreateContext();
         var count = ctx.JsonbEntities.Count(
             e =>
-                EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", e.Customer));
+                EF.Functions.JsonContained("""{"Name": "Joe", "Age": 25}""", e.Customer));
 
         Assert.Equal(1, count);
         AssertSql(
@@ -593,7 +593,7 @@ WHERE '{"Name": "Joe", "Age": 25}' <@ j."Customer"
     public void JsonContained_with_string_parameter()
     {
         using var ctx = CreateContext();
-        var someJson = @"{""Name"": ""Joe"", ""Age"": 25}";
+        var someJson = """{"Name": "Joe", "Age": 25}""";
         var count = ctx.JsonbEntities.Count(
             e =>
                 EF.Functions.JsonContained(someJson, e.Customer));

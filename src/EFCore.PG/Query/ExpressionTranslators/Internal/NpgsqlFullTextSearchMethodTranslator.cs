@@ -111,12 +111,11 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
 
                     3 => _sqlExpressionFactory.Function(
                         rankFunctionName,
-                        new[]
-                        {
+                        [
                             arguments[1].Type == typeof(float[]) ? arguments[1] : arguments[0],
                             arguments[1].Type == typeof(float[]) ? arguments[0] : arguments[1],
                             arguments[2]
-                        },
+                        ],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[3],
                         typeof(float),
@@ -124,7 +123,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
 
                     4 => _sqlExpressionFactory.Function(
                         rankFunctionName,
-                        new[] { arguments[1], arguments[0], arguments[2], arguments[3] },
+                        [arguments[1], arguments[0], arguments[2], arguments[3]],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[4],
                         method.ReturnType,
@@ -181,7 +180,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
                         arguments[1].Type == typeof(string)
                             ? _sqlExpressionFactory.Function(
                                 "plainto_tsquery",
-                                new[] { arguments[1] },
+                                [arguments[1]],
                                 nullable: true,
                                 argumentsPropagateNullability: TrueArrays[1],
                                 typeof(NpgsqlTsQuery),
@@ -211,7 +210,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
                 nameof(NpgsqlFullTextSearchLinqExtensions.GetResultHeadline) when arguments.Count == 2
                     => _sqlExpressionFactory.Function(
                         "ts_headline",
-                        new[] { arguments[1], arguments[0] },
+                        [arguments[1], arguments[0]],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[2],
                         method.ReturnType),
@@ -219,7 +218,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
                 nameof(NpgsqlFullTextSearchLinqExtensions.GetResultHeadline) when arguments.Count == 3 =>
                     _sqlExpressionFactory.Function(
                         "ts_headline",
-                        new[] { arguments[1], arguments[0], arguments[2] },
+                        [arguments[1], arguments[0], arguments[2]],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[3],
                         method.ReturnType),
@@ -227,8 +226,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
                 nameof(NpgsqlFullTextSearchLinqExtensions.GetResultHeadline) when arguments.Count == 4 =>
                     _sqlExpressionFactory.Function(
                         "ts_headline",
-                        new[]
-                        {
+                        [
                             // For the regconfig parameter, if a constant string was provided, just pass it as a string - regconfig-accepting functions
                             // will implicitly cast to regconfig. For (string!) parameters, we add an explicit cast, since regconfig actually is an OID
                             // behind the scenes, and for parameter binary transfer no type coercion occurs.
@@ -238,7 +236,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
                             arguments[2],
                             arguments[0],
                             arguments[3]
-                        },
+                        ],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[4],
                         method.ReturnType),
@@ -310,8 +308,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
 
         SqlExpression ConfigAccepting(string functionName)
             => _sqlExpressionFactory.Function(
-                functionName, new[]
-                {
+                functionName, [
                     // For the regconfig parameter, if a constant string was provided, just pass it as a string - regconfig-accepting functions
                     // will implicitly cast to regconfig. For (string!) parameters, we add an explicit cast, since regconfig actually is an OID
                     // behind the scenes, and for parameter binary transfer no type coercion occurs.
@@ -319,7 +316,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
                         ? _sqlExpressionFactory.ApplyDefaultTypeMapping(constant)
                         : _sqlExpressionFactory.Convert(arguments[1], typeof(string), _regconfigMapping),
                     arguments[2]
-                },
+                ],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[2],
                 method.ReturnType,
@@ -327,8 +324,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
 
         SqlExpression DictionaryAccepting(string functionName)
             => _sqlExpressionFactory.Function(
-                functionName, new[]
-                {
+                functionName, [
                     // For the regdictionary parameter, if a constant string was provided, just pass it as a string - regdictionary-accepting functions
                     // will implicitly cast to regdictionary. For (string!) parameters, we add an explicit cast, since regdictionary actually is an OID
                     // behind the scenes, and for parameter binary transfer no type coercion occurs.
@@ -336,7 +332,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
                         ? _sqlExpressionFactory.ApplyDefaultTypeMapping(constant)
                         : _sqlExpressionFactory.Convert(arguments[1], typeof(string), _regdictionaryMapping),
                     arguments[2]
-                },
+                ],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[2],
                 method.ReturnType,
@@ -345,7 +341,7 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
         SqlExpression NonConfigAccepting(string functionName)
             => _sqlExpressionFactory.Function(
                 functionName,
-                new[] { arguments[1] },
+                [arguments[1]],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 method.ReturnType,

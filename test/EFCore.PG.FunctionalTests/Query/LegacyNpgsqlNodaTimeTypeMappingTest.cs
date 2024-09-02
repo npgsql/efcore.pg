@@ -55,7 +55,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             var value = new NpgsqlRange<Instant>(
                 new LocalDateTime(2020, 1, 1, 12, 0, 0).InUtc().ToInstant(),
                 new LocalDateTime(2020, 1, 2, 12, 0, 0).InUtc().ToInstant());
-            Assert.Equal(@"'[""2020-01-01T12:00:00Z"",""2020-01-02T12:00:00Z""]'::tsrange", mapping.GenerateSqlLiteral(value));
+            Assert.Equal("""'["2020-01-01T12:00:00Z","2020-01-02T12:00:00Z"]'::tsrange""", mapping.GenerateSqlLiteral(value));
         }
 
         #region Support
@@ -66,11 +66,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 new JsonValueReaderWriterSource(new JsonValueReaderWriterSourceDependencies()),
                 []),
             new RelationalTypeMappingSourceDependencies(
-                new IRelationalTypeMappingSourcePlugin[]
-                {
-                    new NpgsqlNodaTimeTypeMappingSourcePlugin(
+            [
+                new NpgsqlNodaTimeTypeMappingSourcePlugin(
                         new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()))
-                }),
+            ]),
             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
             new NpgsqlSingletonOptions()
         );

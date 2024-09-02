@@ -452,37 +452,37 @@ public class NpgsqlDatabaseCreatorCreateTablesTest : NpgsqlDatabaseCreatorTest
         using var context = new BloggingContext("Data Source=foo");
         var script = context.Database.GenerateCreateScript();
         Assert.Equal(
-            @"CREATE TABLE ""Blogs"" ("
+            """CREATE TABLE "Blogs" ("""
             + _eol
-            + @"    ""Key1"" text NOT NULL,"
+            + """    "Key1" text NOT NULL,"""
             + _eol
-            + @"    ""Key2"" bytea NOT NULL,"
+            + """    "Key2" bytea NOT NULL,"""
             + _eol
-            + @"    ""Cheese"" text,"
+            + """    "Cheese" text,"""
             + _eol
-            + @"    ""ErMilan"" integer NOT NULL,"
+            + """    "ErMilan" integer NOT NULL,"""
             + _eol
-            + @"    ""George"" boolean NOT NULL,"
+            + """    "George" boolean NOT NULL,"""
             + _eol
-            + @"    ""TheGu"" uuid NOT NULL,"
+            + """    "TheGu" uuid NOT NULL,"""
             + _eol
-            + @"    ""NotFigTime"" timestamp with time zone NOT NULL,"
+            + """    "NotFigTime" timestamp with time zone NOT NULL,"""
             + _eol
-            + @"    ""ToEat"" smallint NOT NULL,"
+            + """    "ToEat" smallint NOT NULL,"""
             + _eol
-            + @"    ""OrNothing"" double precision NOT NULL,"
+            + """    "OrNothing" double precision NOT NULL,"""
             + _eol
-            + @"    ""Fuse"" smallint NOT NULL,"
+            + """    "Fuse" smallint NOT NULL,"""
             + _eol
-            + @"    ""WayRound"" bigint NOT NULL,"
+            + """    "WayRound" bigint NOT NULL,"""
             + _eol
-            + @"    ""On"" real NOT NULL,"
+            + """    "On" real NOT NULL,"""
             + _eol
-            + @"    ""AndChew"" bytea,"
+            + """    "AndChew" bytea,"""
             + _eol
-            + @"    ""AndRow"" bytea,"
+            + """    "AndRow" bytea,"""
             + _eol
-            + @"    CONSTRAINT ""PK_Blogs"" PRIMARY KEY (""Key1"", ""Key2"")"
+            + """    CONSTRAINT "PK_Blogs" PRIMARY KEY ("Key1", "Key2")"""
             + _eol
             + ");"
             + _eol

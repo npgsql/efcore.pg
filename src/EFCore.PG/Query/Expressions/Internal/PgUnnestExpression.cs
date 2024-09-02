@@ -59,7 +59,7 @@ public class PgUnnestExpression : PgTableValuedFunctionExpression
     }
 
     private PgUnnestExpression(string alias, SqlExpression array, ColumnInfo? columnInfo, bool withOrdinality = true)
-        : base(alias, "unnest", new[] { array }, columnInfo is null ? null : [columnInfo.Value], withOrdinality)
+        : base(alias, "unnest", [array], columnInfo is null ? null : [columnInfo.Value], withOrdinality)
     {
     }
 

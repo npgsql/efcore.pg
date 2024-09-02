@@ -310,11 +310,10 @@ public class NpgsqlTypeMappingSourceTest
                 new JsonValueReaderWriterSource(new JsonValueReaderWriterSourceDependencies()),
                 []),
             new RelationalTypeMappingSourceDependencies(
-                new IRelationalTypeMappingSourcePlugin[]
-                {
-                    new NpgsqlNetTopologySuiteTypeMappingSourcePlugin(new NpgsqlNetTopologySuiteSingletonOptions()),
+            [
+                new NpgsqlNetTopologySuiteTypeMappingSourcePlugin(new NpgsqlNetTopologySuiteSingletonOptions()),
                     new DummyTypeMappingSourcePlugin()
-                }),
+            ]),
             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
             options);
     }

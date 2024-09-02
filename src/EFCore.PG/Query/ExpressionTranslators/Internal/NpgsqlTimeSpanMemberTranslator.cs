@@ -68,7 +68,7 @@ public class NpgsqlTimeSpanMemberTranslator : IMemberTranslator
             => _sqlExpressionFactory.Convert(
                 _sqlExpressionFactory.Function(
                     "floor",
-                    new[] { value },
+                    [value],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(double)),
@@ -76,7 +76,7 @@ public class NpgsqlTimeSpanMemberTranslator : IMemberTranslator
 
         SqlExpression DatePart(string part, SqlExpression value)
             => _sqlExpressionFactory.Function(
-                "date_part", new[] { _sqlExpressionFactory.Constant(part), value },
+                "date_part", [_sqlExpressionFactory.Constant(part), value],
                 nullable: true,
                 argumentsPropagateNullability: FalseTrueArray,
                 returnType);

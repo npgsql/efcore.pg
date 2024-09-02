@@ -31,7 +31,7 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
             .Select(x => EF.Functions.FuzzyStringMatchSoundex(x.Text))
             .ToArray();
 
-        AssertContainsSql(@"soundex(f.""Text"")");
+        AssertContainsSql("""soundex(f."Text")""");
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
             .Select(x => EF.Functions.FuzzyStringMatchDifference(x.Text, "target"))
             .ToArray();
 
-        AssertContainsSql(@"difference(f.""Text"", 'target')");
+        AssertContainsSql("""difference(f."Text", 'target')""");
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
             .Select(x => EF.Functions.FuzzyStringMatchLevenshtein(x.Text, "target"))
             .ToArray();
 
-        AssertContainsSql(@"levenshtein(f.""Text"", 'target')");
+        AssertContainsSql("""levenshtein(f."Text", 'target')""");
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
             .Select(x => EF.Functions.FuzzyStringMatchLevenshtein(x.Text, "target", 1, 2, 3))
             .ToArray();
 
-        AssertContainsSql(@"levenshtein(f.""Text"", 'target', 1, 2, 3)");
+        AssertContainsSql("""levenshtein(f."Text", 'target', 1, 2, 3)""");
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
             .Select(x => EF.Functions.FuzzyStringMatchLevenshteinLessEqual(x.Text, "target", 5))
             .ToArray();
 
-        AssertContainsSql(@"levenshtein_less_equal(f.""Text"", 'target', 5)");
+        AssertContainsSql("""levenshtein_less_equal(f."Text", 'target', 5)""");
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
             .Select(x => EF.Functions.FuzzyStringMatchLevenshteinLessEqual(x.Text, "target", 1, 2, 3, 5))
             .ToArray();
 
-        AssertContainsSql(@"levenshtein_less_equal(f.""Text"", 'target', 1, 2, 3, 5)");
+        AssertContainsSql("""levenshtein_less_equal(f."Text", 'target', 1, 2, 3, 5)""");
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
             .Select(x => EF.Functions.FuzzyStringMatchMetaphone(x.Text, 6))
             .ToArray();
 
-        AssertContainsSql(@"metaphone(f.""Text"", 6)");
+        AssertContainsSql("""metaphone(f."Text", 6)""");
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
             .Select(x => EF.Functions.FuzzyStringMatchDoubleMetaphone(x.Text))
             .ToArray();
 
-        AssertContainsSql(@"dmetaphone(f.""Text"")");
+        AssertContainsSql("""dmetaphone(f."Text")""");
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
             .Select(x => EF.Functions.FuzzyStringMatchDoubleMetaphoneAlt(x.Text))
             .ToArray();
 
-        AssertContainsSql(@"dmetaphone_alt(f.""Text"")");
+        AssertContainsSql("""dmetaphone_alt(f."Text")""");
     }
 
     #endregion

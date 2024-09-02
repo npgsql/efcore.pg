@@ -55,8 +55,10 @@ public class JsonDomQueryTest : IClassFixture<JsonDomQueryTest.JsonDomQueryFixtu
             ctx.JsonbEntities.Where(
                 e => e.CustomerDocument
                     == JsonDocument.Parse(
-                        @"
-{ ""Name"": ""Test customer"", ""Age"": 80 }", default)));
+                        """
+
+                        { "Name": "Test customer", "Age": 80 }
+                        """, default)));
 
         AssertSql(
             """
@@ -428,7 +430,7 @@ LIMIT 2
     public void JsonContains_with_json_element()
     {
         using var ctx = CreateContext();
-        var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
+        var element = JsonDocument.Parse("""{"Name": "Joe", "Age": 25}""").RootElement;
         var count = ctx.JsonbEntities.Count(
             e =>
                 EF.Functions.JsonContains(e.CustomerElement, element));
@@ -450,7 +452,7 @@ WHERE j."CustomerElement" @> @__element_1
         using var ctx = CreateContext();
         var count = ctx.JsonbEntities.Count(
             e =>
-                EF.Functions.JsonContains(e.CustomerElement, @"{""Name"": ""Joe"", ""Age"": 25}"));
+                EF.Functions.JsonContains(e.CustomerElement, """{"Name": "Joe", "Age": 25}"""));
 
         Assert.Equal(1, count);
         AssertSql(
@@ -465,7 +467,7 @@ WHERE j."CustomerElement" @> '{"Name": "Joe", "Age": 25}'
     public void JsonContained_with_json_element()
     {
         using var ctx = CreateContext();
-        var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
+        var element = JsonDocument.Parse("""{"Name": "Joe", "Age": 25}""").RootElement;
         var count = ctx.JsonbEntities.Count(
             e =>
                 EF.Functions.JsonContained(element, e.CustomerElement));
@@ -487,7 +489,7 @@ WHERE @__element_1 <@ j."CustomerElement"
         using var ctx = CreateContext();
         var count = ctx.JsonbEntities.Count(
             e =>
-                EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", e.CustomerElement));
+                EF.Functions.JsonContained("""{"Name": "Joe", "Age": 25}""", e.CustomerElement));
 
         // Assert.Equal(1, count);
         AssertSql(
@@ -732,7 +734,9 @@ WHERE json_typeof(j."CustomerElement" #> '{Statistics,Visits}') = 'number'
 """);
 
             static JsonDocument CreateCustomer3()
-                => JsonDocument.Parse(@"""foo""");
+                => JsonDocument.Parse("""
+                    "foo"
+                    """);
         }
     }
 

@@ -83,22 +83,22 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
         { typeof(BigInteger).GetRuntimeMethod(nameof(BigInteger.Min), [typeof(BigInteger), typeof(BigInteger)])!, "LEAST" },
     };
 
-    private static readonly IEnumerable<MethodInfo> TruncateMethodInfos = new[]
-    {
+    private static readonly IEnumerable<MethodInfo> TruncateMethodInfos =
+    [
         typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Truncate), typeof(decimal)),
         typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Truncate), typeof(double)),
         typeof(MathF).GetRequiredRuntimeMethod(nameof(MathF.Truncate), typeof(float))
-    };
+    ];
 
-    private static readonly IEnumerable<MethodInfo> RoundMethodInfos = new[]
-    {
+    private static readonly IEnumerable<MethodInfo> RoundMethodInfos =
+    [
         typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Round), typeof(decimal)),
         typeof(Math).GetRequiredRuntimeMethod(nameof(Math.Round), typeof(double)),
         typeof(MathF).GetRequiredRuntimeMethod(nameof(MathF.Round), typeof(float))
-    };
+    ];
 
-    private static readonly IEnumerable<MethodInfo> SignMethodInfos = new[]
-    {
+    private static readonly IEnumerable<MethodInfo> SignMethodInfos =
+    [
         typeof(Math).GetRuntimeMethod(nameof(Math.Sign), [typeof(decimal)])!,
         typeof(Math).GetRuntimeMethod(nameof(Math.Sign), [typeof(double)])!,
         typeof(Math).GetRuntimeMethod(nameof(Math.Sign), [typeof(float)])!,
@@ -106,8 +106,8 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
         typeof(Math).GetRuntimeMethod(nameof(Math.Sign), [typeof(long)])!,
         typeof(Math).GetRuntimeMethod(nameof(Math.Sign), [typeof(sbyte)])!,
         typeof(Math).GetRuntimeMethod(nameof(Math.Sign), [typeof(short)])!,
-        typeof(MathF).GetRuntimeMethod(nameof(MathF.Sign), [typeof(float)])!,
-    };
+        typeof(MathF).GetRuntimeMethod(nameof(MathF.Sign), [typeof(float)])!
+    ];
 
     private static readonly MethodInfo RoundDecimalTwoParams
         = typeof(Math).GetRuntimeMethod(nameof(Math.Round), [typeof(decimal), typeof(int)])!;
@@ -188,9 +188,9 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
 
             // C# has Round over decimal/double/float only so our argument will be one of those types (compiler puts convert node)
             // In database result will be same type except for float which returns double which we need to cast back to float.
-            var result = (SqlExpression)_sqlExpressionFactory.Function(
+            var result = _sqlExpressionFactory.Function(
                 "trunc",
-                new[] { argument },
+                [argument],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 argument.Type == typeof(float) ? typeof(double) : argument.Type);
@@ -209,9 +209,9 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
 
             // C# has Round over decimal/double/float only so our argument will be one of those types (compiler puts convert node)
             // In database result will be same type except for float which returns double which we need to cast back to float.
-            var result = (SqlExpression)_sqlExpressionFactory.Function(
+            var result = _sqlExpressionFactory.Function(
                 "round",
-                new[] { argument },
+                [argument],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 argument.Type == typeof(float) ? typeof(double) : argument.Type);
@@ -244,11 +244,10 @@ public class NpgsqlMathTranslator : IMethodCallTranslator
         {
             return _sqlExpressionFactory.Function(
                 "round",
-                new[]
-                {
+                [
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]),
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1])
-                },
+                ],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[2],
                 method.ReturnType,

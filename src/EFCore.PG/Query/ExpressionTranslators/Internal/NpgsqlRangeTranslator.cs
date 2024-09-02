@@ -56,7 +56,7 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
             return _sqlExpressionFactory.Not(
                 _sqlExpressionFactory.Function(
                     "isempty",
-                    new[] { arguments[0] },
+                    [arguments[0]],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(bool)));
@@ -76,11 +76,10 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
 
                 return _sqlExpressionFactory.Function(
                     "range_merge",
-                    new[]
-                    {
+                    [
                         _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping),
                         _sqlExpressionFactory.ApplyTypeMapping(arguments[1], inferredMapping)
-                    },
+                    ],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
                     method.ReturnType,
@@ -95,7 +94,7 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
 
                 return _sqlExpressionFactory.Function(
                     "range_merge",
-                    new[] { arguments[0] },
+                    [arguments[0]],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     method.ReturnType,
@@ -153,7 +152,7 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
 
             return _sqlExpressionFactory.Function(
                 member.Name == nameof(NpgsqlRange<int>.LowerBound) ? "lower" : "upper",
-                new[] { instance },
+                [instance],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 returnType,
@@ -174,7 +173,7 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
         SqlExpression SingleArgBoolFunction(string name, SqlExpression argument)
             => _sqlExpressionFactory.Function(
                 name,
-                new[] { argument },
+                [argument],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(bool));

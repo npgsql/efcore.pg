@@ -1,5 +1,3 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 /// <summary>

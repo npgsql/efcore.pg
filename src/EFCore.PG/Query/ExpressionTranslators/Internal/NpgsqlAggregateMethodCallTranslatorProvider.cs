@@ -23,11 +23,10 @@ public class NpgsqlAggregateMethodCallTranslatorProvider : RelationalAggregateMe
         var typeMappingSource = dependencies.RelationalTypeMappingSource;
 
         AddTranslators(
-            new IAggregateMethodCallTranslator[]
-            {
-                new NpgsqlQueryableAggregateMethodTranslator(sqlExpressionFactory, typeMappingSource),
+        [
+            new NpgsqlQueryableAggregateMethodTranslator(sqlExpressionFactory, typeMappingSource),
                 new NpgsqlStatisticsAggregateMethodTranslator(sqlExpressionFactory, typeMappingSource),
                 new NpgsqlMiscAggregateMethodTranslator(sqlExpressionFactory, typeMappingSource, model)
-            });
+        ]);
     }
 }
