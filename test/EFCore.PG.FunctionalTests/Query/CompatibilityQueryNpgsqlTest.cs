@@ -84,8 +84,8 @@ LIMIT 2
         {
         }
 
-        public virtual Task DisposeAsync()
-            => _testStore.DisposeAsync();
+        public virtual async Task DisposeAsync()
+            => await _testStore.DisposeAsync();
     }
 
     public class CompatibilityTestEntity

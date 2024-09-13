@@ -39,10 +39,11 @@ public class NpgsqlMigrator : Migrator
         IDatabaseProvider databaseProvider,
         IMigrationsModelDiffer migrationsModelDiffer,
         IDesignTimeModel designTimeModel,
-        IDbContextOptions contextOptions)
+        IDbContextOptions contextOptions,
+        IExecutionStrategy executionStrategy)
         : base(migrationsAssembly, historyRepository, databaseCreator, migrationsSqlGenerator, rawSqlCommandBuilder,
             migrationCommandExecutor, connection, sqlGenerationHelper, currentContext, modelRuntimeInitializer, logger,
-            commandLogger, databaseProvider, migrationsModelDiffer, designTimeModel, contextOptions)
+            commandLogger, databaseProvider, migrationsModelDiffer, designTimeModel, contextOptions, executionStrategy)
     {
         _historyRepository = historyRepository;
         _connection = connection;
