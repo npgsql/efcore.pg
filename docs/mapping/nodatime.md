@@ -12,36 +12,45 @@ Beyond NodaTime's general advantages, some specific advantages NodaTime for Post
 
 ## Setup
 
-To set up the NodaTime plugin, add the [Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime nuget](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime) to your project. Then, configure NodaTime as follows:
+To set up the NodaTime plugin, add the [Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime nuget](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime) to your project. Then, configure the NodaTime plugin as follows:
 
-### [NpgsqlDataSource](#tab/with-datasource)
+### [EF 9.0, with a connection string](#tab/ef9-with-connection-string)
 
-Since version 7.0, NpgsqlDataSource is the recommended way to use Npgsql. When using NpsgqlDataSource, NodaTime currently has to be configured twice - once at the EF level, and once at the underlying ADO.NET level (there are plans to improve this):
+If you're passing a connection string to `UseNpgsql`, simply add the `UseNodaTime` call as follows:
 
 ```c#
-// Call UseNodaTime() when building your data source:
-var dataSourceBuilder = new NpgsqlDataSourceBuilder(/* connection string */);
+builder.Services.AddDbContext<MyContext>(options => options.UseNpgsql(
+    "<connection string>",
+    o => o.UseNodaTime()));
+```
+
+This configures all aspects of Npgsql to use the NodaTime plugin - both at the EF and the lower-level Npgsql layer.
+
+### [With an external NpgsqlDataSource](#tab/with-datasource)
+
+If you're creating an external NpgsqlDataSource and passing it to `UseNpgsql`, you must call `UseNodaTime` on your NpgsqlDataSourceBuilder independently of the EF-level setup:
+
+```c#
+var dataSourceBuilder = new NpgsqlDataSourceBuilder("<connection string>");
 dataSourceBuilder.UseNodaTime();
 var dataSource = dataSourceBuilder.Build();
 
-// Then, when configuring EF Core with UseNpgsql(), call UseNodaTime() there as well:
-builder.Services.AddDbContext<MyContext>(options =>
-    options.UseNpgsql(dataSource, o => o.UseNodaTime()));
+builder.Services.AddDbContext<MyContext>(options => options.UseNpgsql(
+    dataSource,
+    o => o.UseNodaTime()));
 ```
 
-### [Without NpgsqlDatasource](#tab/without-datasource)
-
-Since version 7.0, NpgsqlDataSource is the recommended way to use Npgsql. However, if you're not yet using NpgsqlDataSource, configure NodaTime as follows:
+### [Older EF versions, with a connection string](#tab/legacy-with-connection-string)
 
 ```c#
-// Configure NodaTime at the ADO.NET level.
+// Configure UseNodaTime at the ADO.NET level.
 // This code must be placed at the beginning of your application, before any other Npgsql API is called; an appropriate place for this is in the static constructor on your DbContext class:
 static MyDbContext()
     => NpgsqlConnection.GlobalTypeMapper.UseNodaTime();
 
 // Then, when configuring EF Core with UseNpgsql(), call UseNodaTime():
 builder.Services.AddDbContext<MyContext>(options =>
-    options.UseNpgsql(/* connection string */, o => o.UseNodaTime()));
+    options.UseNpgsql("<connection string>", o => o.UseNodaTime()));
 ```
 
 ***

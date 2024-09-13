@@ -9,26 +9,35 @@ Note that the EF Core NetTopologySuite plugin depends on [the Npgsql ADO.NET Net
 
 ## Setup
 
-To use the NetTopologySuite plugin, add the [Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite nuget](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite) to your project. Then, configure NetTopologySuite as followed:
+To use the NetTopologySuite plugin, add the [Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite nuget](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite) to your project. Then, configure the NetTopologySuite plugin as follows:
 
-### [NpgsqlDataSource](#tab/with-datasource)
+### [EF 9.0, with a connection string](#tab/ef9-with-connection-string)
 
-Since version 7.0, NpgsqlDataSource is the recommended way to use Npgsql. When using NpsgqlDataSource, NetTopologySuite currently has to be configured twice - once at the EF level, and once at the underlying ADO.NET level (there are plans to improve this):
+If you're passing a connection string to `UseNpgsql`, simply add the `UseNetTopologySuite` call as follows:
 
 ```c#
-// Call UseNetTopologySuite() when building your data source:
-var dataSourceBuilder = new NpgsqlDataSourceBuilder(/* connection string */);
+builder.Services.AddDbContext<MyContext>(options => options.UseNpgsql(
+    "<connection string>",
+    o => o.UseNetTopologySuite()));
+```
+
+This configures all aspects of Npgsql to use the NetTopologySuite plugin - both at the EF and the lower-level Npgsql layer.
+
+### [With an external NpgsqlDataSource](#tab/with-datasource)
+
+If you're creating an external NpgsqlDataSource and passing it to `UseNpgsql`, you must call `UseNetTopologySuite` on your NpgsqlDataSourceBuilder independently of the EF-level setup:
+
+```c#
+var dataSourceBuilder = new NpgsqlDataSourceBuilder("<connection string>");
 dataSourceBuilder.UseNetTopologySuite();
 var dataSource = dataSourceBuilder.Build();
 
-// Then, when configuring EF Core with UseNpgsql(), call UseNetTopologySuite() there as well:
-builder.Services.AddDbContext<MyContext>(options =>
-    options.UseNpgsql(dataSource, o => o.UseNetTopologySuite()));
+builder.Services.AddDbContext<MyContext>(options => options.UseNpgsql(
+    dataSource,
+    o => o.UseNetTopologySuite()));
 ```
 
-### [Without NpgsqlDatasource](#tab/without-datasource)
-
-Since version 7.0, NpgsqlDataSource is the recommended way to use Npgsql. However, if you're not yet using NpgsqlDataSource, configure NetTopologySuite as follows:
+### [Older EF versions, with a connection string](#tab/legacy-with-connection-string)
 
 ```c#
 // Configure NetTopologySuite at the ADO.NET level.
@@ -38,12 +47,12 @@ static MyDbContext()
 
 // Then, when configuring EF Core with UseNpgsql(), call UseNetTopologySuite():
 builder.Services.AddDbContext<MyContext>(options =>
-    options.UseNpgsql(/* connection string */, o => o.UseNetTopologySuite()));
+    options.UseNpgsql("<connection string>", o => o.UseNetTopologySuite()));
 ```
 
 ***
 
-The above sets up all the necessary EF mappings and operation translators. In addition, to make sure that the PostGIS extension is installed in your database, add the following to your DbContext:
+The above sets up all the necessary EF mappings and operation translators. If you're using EF 6.0, you also need to make sure that the PostGIS extension is installed in your database (later versions do this automatically). Add the following to your DbContext:
 
 ```c#
 protected override void OnModelCreating(ModelBuilder builder)
