@@ -133,6 +133,22 @@ WHERE c."CompanyName" ~ ('(?p)' || @__pattern_0)
 
     [Theory]
     [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_IsMatch_negated(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Customer>().Where(c => !Regex.IsMatch(c.CompanyName, "^A")));
+
+        AssertSql(
+            """
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CompanyName" !~ '(?p)^A'
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
     public async Task Regex_IsMatchOptionsNone(bool async)
     {
         await AssertQuery(
@@ -160,6 +176,22 @@ WHERE c."CompanyName" ~ '(?p)^A'
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE c."CompanyName" ~* '(?p)^a'
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_IsMatch_with_IgnoreCase_negated(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Customer>().Where(c => !Regex.IsMatch(c.CompanyName, "^a", RegexOptions.IgnoreCase)));
+
+        AssertSql(
+            """
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CompanyName" !~* '(?p)^a'
 """);
     }
 
