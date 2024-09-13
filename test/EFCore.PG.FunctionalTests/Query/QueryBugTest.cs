@@ -22,7 +22,7 @@ public class QueryBugsTest : IClassFixture<NpgsqlFixture>
     [Fact]
     public async Task Bug920()
     {
-        using var _ = await CreateDatabase920Async();
+        await using var _ = await CreateDatabase920Async();
         using var context = new Bug920Context(_options);
         context.Entities.Add(new Bug920Entity { Enum = Bug920Enum.Two });
         context.SaveChanges();
