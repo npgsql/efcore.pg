@@ -139,9 +139,6 @@ public class ComputedColumnTest : IAsyncLifetime
     public async Task InitializeAsync()
         => TestStore = await NpgsqlTestStore.CreateInitializedAsync("ComputedColumnTest");
 
-    public Task DisposeAsync()
-    {
-        TestStore.Dispose();
-        return Task.CompletedTask;
-    }
+    public async Task DisposeAsync()
+        => await TestStore.DisposeAsync();
 }

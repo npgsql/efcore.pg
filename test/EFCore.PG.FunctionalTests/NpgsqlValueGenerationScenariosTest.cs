@@ -10,7 +10,7 @@ public class NpgsqlValueGenerationScenariosTest
     [Fact]
     public async Task Insert_with_sequence_id()
     {
-        using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
+        await using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
 
         using (var context = new BlogContextSequence(testStore.Name))
         {
@@ -35,7 +35,7 @@ public class NpgsqlValueGenerationScenariosTest
     [Fact]
     public async Task Insert_with_sequence_HiLo()
     {
-        using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
+        await using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
 
         using (var context = new BlogContextHiLo(testStore.Name))
         {
@@ -68,7 +68,7 @@ public class NpgsqlValueGenerationScenariosTest
     [Fact]
     public async Task Insert_with_default_value_from_sequence()
     {
-        using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
+        await using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
 
         using (var context = new BlogContextDefaultValue(testStore.Name))
         {
@@ -146,7 +146,7 @@ public class NpgsqlValueGenerationScenariosTest
     [Fact]
     public async Task Insert_with_key_default_value_from_sequence()
     {
-        using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
+        await using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
 
         using (var context = new BlogContextKeyColumnWithDefaultValue(testStore.Name))
         {
@@ -187,7 +187,7 @@ public class NpgsqlValueGenerationScenariosTest
     [ConditionalFact]
     public async Task Insert_uint_to_Identity_column_using_value_converter()
     {
-        using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
+        await using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
         using (var context = new BlogContextUIntToIdentityUsingValueConverter(testStore.Name))
         {
             context.Database.EnsureCreatedResiliently();
@@ -231,7 +231,7 @@ public class NpgsqlValueGenerationScenariosTest
     [ConditionalFact]
     public async Task Insert_string_to_Identity_column_using_value_converter()
     {
-        using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
+        await using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
         using (var context = new BlogContextStringToIdentityUsingValueConverter(testStore.Name))
         {
             context.Database.EnsureCreatedResiliently();
@@ -276,7 +276,7 @@ public class NpgsqlValueGenerationScenariosTest
     [Fact]
     public async Task  Insert_with_explicit_non_default_keys()
     {
-        using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
+        await using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
 
         using (var context = new BlogContextNoKeyGeneration(testStore.Name))
         {
@@ -312,7 +312,7 @@ public class NpgsqlValueGenerationScenariosTest
     [Fact]
     public async Task  Insert_with_explicit_with_default_keys()
     {
-        using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
+        await using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
 
         using (var context = new BlogContextNoKeyGenerationNullableKey(testStore.Name))
         {
@@ -348,7 +348,7 @@ public class NpgsqlValueGenerationScenariosTest
     [Fact]
     public async Task  Insert_with_non_key_default_value()
     {
-        using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
+        await using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
 
         using (var context = new BlogContextNonKeyDefaultValue(testStore.Name))
         {
@@ -401,7 +401,7 @@ public class NpgsqlValueGenerationScenariosTest
     [Fact]
     public async Task  Insert_with_non_key_default_value_readonly()
     {
-        using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
+        await using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
 
         using (var context = new BlogContextNonKeyReadOnlyDefaultValue(testStore.Name))
         {
@@ -455,7 +455,7 @@ public class NpgsqlValueGenerationScenariosTest
     [Fact]
     public async Task  Insert_with_serial_non_id()
     {
-        using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
+        await using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
 
         int afterSave;
 
@@ -493,7 +493,7 @@ public class NpgsqlValueGenerationScenariosTest
     [Fact]
     public async Task  Insert_with_client_generated_GUID_key()
     {
-        using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
+        await using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
 
         Guid afterSave;
         using (var context = new BlogContext(testStore.Name))
@@ -518,7 +518,7 @@ public class NpgsqlValueGenerationScenariosTest
     [Fact]
     public async Task  Insert_with_server_generated_GUID_key()
     {
-        using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
+        await using var testStore = await NpgsqlTestStore.CreateInitializedAsync(DatabaseName);
 
         Guid afterSave;
         using (var context = new BlogContextServerGuidKey(testStore.Name))
