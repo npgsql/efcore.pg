@@ -23,7 +23,7 @@ builder.Services.AddDbContext<MyContext>(options => options.UseNpgsql(
 
 This configures all aspects of Npgsql to use your `Mood` enum - both at the EF and the lower-level Npgsql layer - and ensures that the enum is created in the database in EF migrations.
 
-### [With an external NpgsqlDataSource](#tab/with-datasource)
+### [With an external NpgsqlDataSource](#tab/with-external-datasource)
 
 If you're creating an external NpgsqlDataSource and passing it to `UseNpgsql`, you must make sure to map your enum on that data independently of the EF-level setup:
 
