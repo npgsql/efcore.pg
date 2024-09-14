@@ -117,7 +117,7 @@ WHERE c."ContactName" ILIKE '!%' ESCAPE '!'
             """
 SELECT count(*)::int
 FROM "Customers" AS c
-WHERE NOT (c."ContactName" ILIKE '%M%') OR c."ContactName" IS NULL
+WHERE c."ContactName" NOT ILIKE '%M%' OR c."ContactName" IS NULL
 """);
     }
 

@@ -357,6 +357,28 @@ WHERE c."Address" LIKE ALL (@__collection_1)
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
+    public async Task Array_All_Like_negated(bool async)
+    {
+        await using var context = CreateContext();
+
+        var collection = new[] { "A%", "B%", "C%" };
+        var query = context.Set<Customer>().Where(c => !collection.All(y => EF.Functions.Like(c.Address, y)));
+        var result = async ? await query.ToListAsync() : query.ToList();
+
+        Assert.NotEmpty(result);
+
+        AssertSql(
+            """
+@__collection_1={ 'A%', 'B%', 'C%' } (DbType = Object)
+
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE NOT (c."Address" LIKE ALL (@__collection_1))
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
     public async Task Array_Any_ILike(bool async)
     {
         await using var context = CreateContext();
@@ -398,6 +420,35 @@ WHERE c."Address" LIKE ALL (@__collection_1)
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE c."Address" ILIKE ANY (@__collection_1)
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Array_Any_ILike_negated(bool async)
+    {
+        await using var context = CreateContext();
+
+        var collection = new[] { "a%", "b%", "c%" };
+        var query = context.Set<Customer>().Where(c => !collection.Any(y => EF.Functions.ILike(c.Address, y)));
+        var result = async ? await query.ToListAsync() : query.ToList();
+
+        Assert.Equal(
+        [
+            "ALFKI",
+            "ANTON",
+            "AROUT",
+            "BLAUS",
+            "BLONP"
+        ], result.Select(e => e.CustomerID).Order().Take(5));
+
+        AssertSql(
+            """
+@__collection_1={ 'a%', 'b%', 'c%' } (DbType = Object)
+
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE NOT (c."Address" ILIKE ANY (@__collection_1))
 """);
     }
 
