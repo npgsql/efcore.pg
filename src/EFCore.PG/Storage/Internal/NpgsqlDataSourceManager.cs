@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Data.Common;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
@@ -52,7 +53,12 @@ public class NpgsqlDataSourceManager : IDisposable, IAsyncDisposable
             // If the user has explicitly passed in a data source via UseNpgsql(), use that.
             // Note that in this case, the data source is scoped (not singleton), and so can change between different
             // DbContext instances using the same internal service provider.
-            { DataSource: DbDataSource dataSource } => dataSource,
+            { DataSource: DbDataSource dataSource }
+                => npgsqlOptionsExtension.DataSourceBuilderAction is null
+                    ? dataSource
+                    // If the user has explicitly passed in a data source via UseNpgsql(), but also supplied a data source configuration
+                    // lambda, throw - we're unable to apply the configuration lambda to the externally-provided, already-built data source.
+                    : throw new NotSupportedException(NpgsqlStrings.DataSourceAndConfigNotSupported),
 
             // If the user has passed in a DbConnection, never use a data source - even if e.g. MapEnum() was called.
             // This is to avoid blocking and allow continuing using enums in conjunction with DbConnections (which
@@ -68,6 +74,7 @@ public class NpgsqlDataSourceManager : IDisposable, IAsyncDisposable
             { ConnectionString: null } or null => null,
 
             // The following are features which require an NpgsqlDataSource, since they require configuration on NpgsqlDataSourceBuilder.
+            { DataSourceBuilderAction: not null } => GetSingletonDataSource(npgsqlOptionsExtension),
             { EnumDefinitions.Count: > 0 } => GetSingletonDataSource(npgsqlOptionsExtension),
             _ when _plugins.Any() => GetSingletonDataSource(npgsqlOptionsExtension),
 
@@ -138,6 +145,10 @@ public class NpgsqlDataSourceManager : IDisposable, IAsyncDisposable
         {
             dataSourceBuilder.UseUserCertificateValidationCallback(npgsqlOptionsExtension.RemoteCertificateValidationCallback);
         }
+
+        // Finally, if the user has provided a data source builder configuration action, invoke it.
+        // Do this last, to allow the user to override anything set above.
+        npgsqlOptionsExtension.DataSourceBuilderAction?.Invoke(dataSourceBuilder);
 
         return dataSourceBuilder.Build();
     }
