@@ -18,6 +18,7 @@ public class LoggingNpgsqlTest : LoggingRelationalTestBase<NpgsqlDbContextOption
             ExpectedMessage($"PostgresVersion=10.7 {DefaultOptions}"),
             ActualMessage(s => CreateOptionsBuilder(s, b => ((NpgsqlDbContextOptionsBuilder)b).SetPostgresVersion(Version.Parse("10.7")))));
 
+#pragma warning disable CS0618 // Authentication APIs on NpgsqlDbContextOptionsBuilder are obsolete
     [Fact]
     public void Logs_context_initialization_provide_client_certificates_callback()
         => Assert.Equal(
@@ -42,6 +43,7 @@ public class LoggingNpgsqlTest : LoggingRelationalTestBase<NpgsqlDbContextOption
                 s => CreateOptionsBuilder(
                     s,
                     b => ((NpgsqlDbContextOptionsBuilder)b).RemoteCertificateValidationCallback((_, _, _, _) => true))));
+#pragma warning restore CS0618 // Authentication APIs on NpgsqlDbContextOptionsBuilder are obsolete
 
     [Fact]
     public void Logs_context_initialization_reverse_null_ordering()

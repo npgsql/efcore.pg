@@ -37,6 +37,11 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         => _postgresVersion is not null;
 
     /// <summary>
+    ///     A lambda to configure Npgsql options on <see cref="NpgsqlDataSourceBuilder" />.
+    /// </summary>
+    public virtual Action<NpgsqlDataSourceBuilder>? DataSourceBuilderAction { get; private set; }
+
+    /// <summary>
     ///     The <see cref="DbDataSource" />, or <see langword="null" /> if a connection string or <see cref="DbConnection" /> was used
     ///     instead of a <see cref="DbDataSource" />.
     /// </summary>
@@ -125,6 +130,21 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     /// </summary>
     public override int? MinBatchSize
         => base.MinBatchSize ?? 2;
+
+    /// <summary>
+    ///     Creates a new instance with all options the same as for this instance, but with the given option changed.
+    ///     It is unusual to call this method directly. Instead use <see cref="DbContextOptionsBuilder" />.
+    /// </summary>
+    /// <param name="dataSourceBuilderAction">A lambda to configure Npgsql options on <see cref="NpgsqlDataSourceBuilder" />.</param>
+    /// <returns>A new instance with the option changed.</returns>
+    public virtual NpgsqlOptionsExtension WithDataSourceConfiguration(Action<NpgsqlDataSourceBuilder> dataSourceBuilderAction)
+    {
+        var clone = (NpgsqlOptionsExtension)Clone();
+
+        clone.DataSourceBuilderAction = dataSourceBuilderAction;
+
+        return clone;
+    }
 
     /// <summary>
     ///     Creates a new instance with all options the same as for this instance, but with the given option changed.
