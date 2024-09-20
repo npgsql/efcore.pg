@@ -133,7 +133,7 @@ builder.Services.AddDbContextPool<BloggingContext>(opt =>
             o => o.ConfigureDataSource(dataSourceBuilder => dataSourceBuilder.UseClientCertificate(certificate))));
 ```
 
-`ConfigureDataSource()` provides access to a lower-level [`NpgsqlDataSourceBuilder`](../doc/basic-usage.html#data-source) which you can use to configure all aspects of the Npgsql ADO.NET provider.
+`ConfigureDataSource()` provides access to a lower-level [`NpgsqlDataSourceBuilder`](../Npgsql/basic-usage.md#data-source) which you can use to configure all aspects of the Npgsql ADO.NET provider.
 
 > [!WARNING]
 > The EF provider internally creates an NpgsqlDataSource and uses that; for most configuration (e.g. connection string), the provider knows to switch between NpgsqlDataSources automatically.
