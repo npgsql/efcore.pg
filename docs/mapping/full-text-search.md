@@ -6,7 +6,7 @@ PostgreSQL has [built-in support for full-text search](https://www.postgresql.or
 
 PostgreSQL full text search types are mapped onto .NET types built-in to Npgsql. The `tsvector` type is mapped to `NpgsqlTsVector` and `tsquery` is mapped to `NpgsqlTsQuery`. This means you can use properties of type `NpgsqlTsVector` directly in your model to create `tsvector` columns. The `NpgsqlTsQuery` type on the other hand, is used in LINQ queries.
 
-```c#
+```csharp
 public class Product
 {
     public int Id { get; set; }
@@ -24,7 +24,7 @@ public class Product
 
 This method adds a `tsvector` column to your table, that is automatically updated when the row is modified. First, add an `NpgsqlTsVector` property to your entity:
 
-```c#
+```csharp
 public class Product
 {
     public int Id { get; set; }
@@ -43,7 +43,7 @@ Setting up the column to be auto-updated depends on your PostgreSQL version. On 
 
 The following will set up a generated `tsvector` column, over which you can easily create an index:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.Entity<Product>()
@@ -60,7 +60,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 First, modify the `OnModelCreating()` of your context class to add an index as follows:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.Entity<Product>()
@@ -71,7 +71,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 Now generate a migration (`dotnet ef migrations add ....`), and open it with your favorite editor, adding the following:
 
-```c#
+```csharp
 public partial class CreateProductTable : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
@@ -99,7 +99,7 @@ public partial class CreateProductTable : Migration
 
 Once your auto-updated `tsvector` column is set up, any inserts or updates on the `Products` table will now update the `SearchVector` column and maintain it automatically. You can query it as follows:
 
-```c#
+```csharp
 var context = new ProductDbContext();
 var npgsql = context.Products
     .Where(p => p.SearchVector.Matches("Npgsql"))
@@ -112,7 +112,7 @@ Version 5.0.0 of the provider includes sugar for defining the appropriate expres
 
 #### [Version 5.0.0](#tab/v5)
 
-```c#
+```csharp
 modelBuilder.Entity<Blog>()
     .HasIndex(b => new { b.Title, b.Description })
     .HasMethod("GIN")
@@ -123,7 +123,7 @@ modelBuilder.Entity<Blog>()
 
 Create a migration which will contain the index creation SQL (`dotnet ef migrations add ...`). At this point, open the generated migration with your editor and add the following:
 
-```c#
+```csharp
 protected override void Up(MigrationBuilder migrationBuilder)
 {
     migrationBuilder.Sql(@"CREATE INDEX fts_idx ON ""Product"" USING GIN (to_tsvector('english', ""Name"" || ' ' || ""Description""));");
@@ -138,7 +138,7 @@ protected override void Down(MigrationBuilder migrationBuilder)
 
 Once the index is created on the `Title` and `Description` columns, you can query as follows:
 
-```c#
+```csharp
 var context = new ProductDbContext();
 var npgsql = context.Products
     .Where(p => EF.Functions.ToTsVector("english", p.Title + " " + p.Description)

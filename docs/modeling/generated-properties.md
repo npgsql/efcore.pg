@@ -25,7 +25,7 @@ The default value generation strategy is "identity by default". In other words, 
 
 You can easily control the value generation strategy for the entire model. For example, to opt out of the change to identity columns, simply place the following in your context's `OnModelCreating()`:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.UseIdentityByDefaultColumns();
 ```
@@ -34,7 +34,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 Regardless of the model default, you can define a value-generation strategy on a property-by-property basis:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Blog>().Property(b => b.Id).UseIdentityAlwaysColumn();
 ```
@@ -43,7 +43,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 Identity columns have a standard sequence, managed behind the scenes by PostgreSQL; you can customize the sequence options for these. For example, the following makes the column values start at 100:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Blog>().Property(b => b.Id)
         .HasIdentityOptions(startValue: 100);
@@ -57,7 +57,7 @@ It is not possible to specify sequence options for serial columns, but you can s
 
 While identity and serial columns set up a sequence for you behind the scenes, sometimes you may want to manage sequence creation yourself. For example, you may want to have multiple columns drawing their default values from a single sequence. Adding a sequence to your model is described in [the general EF Core documentation](https://docs.microsoft.com/ef/core/modeling/relational/sequences); once the sequence is specified, you can simply set a column's default value to extract the next value from that sequence. Note that the SQL used to fetch the next value from a sequence differs across databases (see [the PostgreSQL docs](https://www.postgresql.org/docs/current/static/functions-sequence.html)). Your models' `OnModelCreating` should look like this:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.HasSequence<int>("OrderNumbers")
@@ -76,7 +76,7 @@ One disadvantage of database-generated values is that these values must be read 
 
 To use HiLo, specify `UseHiLo` on a property in your model's `OnModelCreating`:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Blog>()
                    .Property(b => b.Id)
@@ -85,7 +85,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 You can also make your model use HiLo everywhere:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.UseHiLo();
 ```
@@ -96,7 +96,7 @@ By default, for GUID key properties, a GUID is generated client-side by the EF p
 
 To have the provider generate GUIDs client-side for **non-key** properties, configure them as follows:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder
@@ -110,7 +110,7 @@ If you prefer to generate values in the database instead, you can do so by speci
 
 ### [PG 13+](#tab/13)
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder
@@ -124,7 +124,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 Versions of PostgreSQL prior to 13 don't include any GUID/UUID generation functions, but extensions such as `uuid-ossp` or `pgcrypto` exist to fill thie gap. This can be done by placing the following code in your model's `OnModelCreating`:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.HasPostgresExtension("uuid-ossp");    
@@ -147,7 +147,7 @@ See [the PostgreSQL docs on UUID for more details](https://www.postgresql.org/do
 
 In many scenarios, it's useful to have a column containing the timestamp when the row was originally created. To do this, add a `DateTime` property to your entity type (or `Instant` if using NodaTime) , and configure its default with `HasDefaultValueSql` as follows:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder
@@ -183,7 +183,7 @@ PostgreSQL 12 added support for [stored generated columns](https://www.postgresq
 
 ### [Version 5.0](#tab/efcore5)
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.Entity<Person>()
@@ -194,7 +194,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 ### [Version 3.x](#tab/efcore3)
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.Entity<Person>()

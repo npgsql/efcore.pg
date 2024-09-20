@@ -6,7 +6,7 @@ When the Npgsql EF Core provider creates or deletes a database (`EnsureCreated()
 
 However, there are some PostgreSQL-like databases where the `postgres` database is not available. For these cases you can specify the administrative database as follows:
 
-```c#
+```csharp
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     => optionsBuilder.UseNpgsql(
         "<connection_string>",
@@ -19,7 +19,7 @@ When creating a new database,
 [PostgreSQL allows specifying another "template database"](http://www.postgresql.org/docs/current/static/manage-ag-templatedbs.html)
 which will be copied as the basis for the new one. This can be useful for including database entities which are not managed by Entity Framework Core. You can trigger this by using `HasDatabaseTemplate` in your context's `OnModelCreating`:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.UseDatabaseTemplate("my_template_db");
 ```
@@ -28,7 +28,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 PostgreSQL allows you to locate your database in different parts of your filesystem, [via tablespaces](https://www.postgresql.org/docs/current/static/manage-ag-tablespaces.html). The Npgsql EF Core provider allows you to specify your database's namespace:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.UseTablespace("my_tablespace");
 ```

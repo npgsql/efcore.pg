@@ -13,7 +13,7 @@ Starting with version 7.0, you can map a `uint` property to the PostgreSQL `xmin
 
 ### [Data Annotations](#tab/data-annotations)
 
-```c#
+```csharp
 public class SomeEntity
 {
     public int Id { get; set; }
@@ -25,7 +25,7 @@ public class SomeEntity
 
 ### [Fluent API](#tab/fluent-api)
 
-```c#
+```csharp
 class MyContext : DbContext
 {
     public DbSet<SomeEntity> SomeEntities { get; set; }
@@ -49,7 +49,7 @@ public class SomeEntity
 
 In older version of the provider, use the following instead:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.Entity<Blog>().UseXminAsConcurrencyToken();

@@ -6,7 +6,7 @@ PostgreSQL and the Npgsql provider support the standard index modeling described
 
 PostgreSQL supports [covering indexes](https://paquier.xyz/postgresql-2/postgres-11-covering-indexes), which allow you to include "non-key" columns in your indexes. This allows you to perform index-only scans and can provide a significant performance boost:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Blog>()
         .HasIndex(b => b.Id)
@@ -26,7 +26,7 @@ CREATE INDEX "IX_Blog_Id" ON blogs ("Id") INCLUDE ("Name");
 
 By default, when you create a unique index, PostgreSQL treats null values as distinct; this means that a unique index can contain multiple null values in a column. When creating an index, you can also instruct PostgreSQL that nulls should be treated as *non-distinct*; this causes a unique constraint violation to be raised if a column contains multiple null values:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Blog>()
         .IsUnique()
@@ -39,7 +39,7 @@ PostgreSQL supports a number of *index methods*, or *types*. These are specified
 
 The Npgsql EF Core provider allows you to specify the index method to be used by calling `HasMethod()` on your index in your context's `OnModelCreating` method:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Blog>()
         .HasIndex(b => b.Url)
@@ -50,7 +50,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 PostgreSQL allows you to specify [operator classes on your indexes](https://www.postgresql.org/docs/current/indexes-opclass.html), to allow tweaking how the index should work. Use the following code to specify an operator class:
 
-```c#
+```csharp
 protected override void OnConfiguring(DbContextOptionsBuilder builder)
     => modelBuilder.Entity<Blog>()
         .HasIndex(b => new { b.Id, b.Name })
@@ -69,7 +69,7 @@ PostgreSQL allows configuring indexes with *storage parameters*, which can tweak
 
 To configure a storage parameter on an index, use the following code:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Blog>()
         .HasIndex(b => b.Url)
@@ -82,7 +82,7 @@ Creating an index can interfere with regular operation of a database. Normally P
 
 The EF provider allows you to specify that an index should be created *concurrently*, partially mitigating the above issues:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Blog>()
         .HasIndex(b => b.Url)

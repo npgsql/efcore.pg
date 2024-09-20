@@ -18,7 +18,7 @@ While PostgreSQL has supported collations for a long time, supported was limited
 
 In PostgreSQL, collations are first-class, named database objects which can be created and dropped, just like tables. To create a collation, place the following in your context's `OnModelCreating`:
 
-```c#
+```csharp
 modelBuilder.HasCollation("my_collation", locale: "en-u-ks-primary", provider: "icu", deterministic: false);
 ```
 
@@ -28,7 +28,7 @@ This creates a collation with the name `my_collation`: this is an arbitrary name
 
 Once a collation has been created in your database, you can specify it on columns:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.HasCollation("my_collation", locale: "en-u-ks-primary", provider: "icu", deterministic: false);
@@ -44,7 +44,7 @@ This will cause all textual operators on this column to be case-insensitive.
 
 PostgreSQL also allows you to specify collations at the database level, when it is created:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.UseCollation("<collation_name>");
@@ -53,7 +53,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 Unfortunately, the database collation is quite limited in PostgreSQL; it notably does not support non-deterministic collations (e.g. case-insensitive ones). To work around this limitation, you can use EF Core's [pre-convention model configuration](https://docs.microsoft.com/ef/core/modeling/bulk-configuration#pre-convention-configuration) feature:
 
-```c#
+```csharp
 protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
 {
     configurationBuilder.Properties<string>().UseCollation("my_collation");
@@ -68,7 +68,7 @@ The older PostgreSQL method for performing case-insensitive text operations is t
 
 `citext` is available in a PostgreSQL-bundled extension, so you'll first have to install it:
 
-```c#
+```csharp
 modelBuilder.HasPostgresExtension("citext");
 ```
 
@@ -76,7 +76,7 @@ Specifying that a column should use `citext` is simply a matter of setting the c
 
 ### [Data Annotations](#tab/data-annotations)
 
-```c#
+```csharp
 public class Blog
 {
     public int Id { get; set; }
@@ -87,7 +87,7 @@ public class Blog
 
 ### [Fluent API](#tab/fluent-api)
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.Entity<Blog>().Property(b => b.Name)
@@ -107,7 +107,7 @@ Some limitations (others are listed in [the PostgreSQL docs](https://www.postgre
 
 `ILIKE` is a PostgreSQL-specific operator that works just like `LIKE`, but is case-insensitive. If you only need to perform case-insensitive `LIKE` pattern matching, then this could be sufficient. The provider exposes this via `EF.Functions.ILike`:
 
-```c#
+```csharp
 var results = ctx.Blogs
     .Where(b => EF.Functions.ILike(b.Name, "a%b"))
     .ToList();

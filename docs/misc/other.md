@@ -5,7 +5,7 @@
 The Npgsql EF Core provider allows you to specify PostgreSQL extensions that should be set up in your database.
 Simply use `HasPostgresExtension` in your context's `OnModelCreating` method:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.HasPostgresExtension("hstore");
 ```
@@ -14,7 +14,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 The Npgsql EF Core provider provides a retrying execution strategy, which will attempt to detect most transient PostgreSQL/network errors and will automatically retry your operation. To enable, place the following code in your context's `OnModelConfiguring`:
 
-```c#
+```csharp
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     => optionsBuilder.UseNpgsql(
         "<connection_string>",
@@ -29,7 +29,7 @@ The Npgsql allows you to provide a callback for verifying the server-provided ce
 
 The Npgsql EF Core provider allows you to set these two callbacks on the `DbContextOptionsBuilder` as follows:
 
-```c#
+```csharp
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     => optionsBuilder.UseNpgsql(
         "<connection_string>",
@@ -49,7 +49,7 @@ You may also consider passing `Trust Server Certificate=true` in your connection
 
 If you're using CockroachDB, the Npgsql EF Core provider exposes its ["interleave in parent" feature](https://www.cockroachlabs.com/docs/stable/interleave-in-parent.html). Use the following code:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Customer>()
                    .UseCockroachDbInterleaveInParent(

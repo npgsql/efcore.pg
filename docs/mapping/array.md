@@ -9,7 +9,7 @@ PostgreSQL has the unique feature of supporting [*array data types*](https://www
 
 Simply define a regular .NET array or `List<>` property:
 
-```c#
+```csharp
 public class Post
 {
     public int Id { get; set; }

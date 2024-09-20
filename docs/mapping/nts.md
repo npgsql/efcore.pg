@@ -15,7 +15,7 @@ To use the NetTopologySuite plugin, add the [Npgsql.EntityFrameworkCore.PostgreS
 
 If you're passing a connection string to `UseNpgsql`, simply add the `UseNetTopologySuite` call as follows:
 
-```c#
+```csharp
 builder.Services.AddDbContext<MyContext>(options => options.UseNpgsql(
     "<connection string>",
     o => o.UseNetTopologySuite()));
@@ -27,7 +27,7 @@ This configures all aspects of Npgsql to use the NetTopologySuite plugin - both 
 
 If you're creating an external NpgsqlDataSource and passing it to `UseNpgsql`, you must call `UseNetTopologySuite` on your NpgsqlDataSourceBuilder independently of the EF-level setup:
 
-```c#
+```csharp
 var dataSourceBuilder = new NpgsqlDataSourceBuilder("<connection string>");
 dataSourceBuilder.UseNetTopologySuite();
 var dataSource = dataSourceBuilder.Build();
@@ -39,7 +39,7 @@ builder.Services.AddDbContext<MyContext>(options => options.UseNpgsql(
 
 ### [Older EF versions, with a connection string](#tab/legacy-with-connection-string)
 
-```c#
+```csharp
 // Configure NetTopologySuite at the ADO.NET level.
 // This code must be placed at the beginning of your application, before any other Npgsql API is called; an appropriate place for this is in the static constructor on your DbContext class:
 static MyDbContext()
@@ -54,7 +54,7 @@ builder.Services.AddDbContext<MyContext>(options =>
 
 The above sets up all the necessary EF mappings and operation translators. If you're using EF 6.0, you also need to make sure that the PostGIS extension is installed in your database (later versions do this automatically). Add the following to your DbContext:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder builder)
 {
     builder.HasPostgresExtension("postgis");
@@ -63,7 +63,7 @@ protected override void OnModelCreating(ModelBuilder builder)
 
 At this point spatial support is set up. You can now use NetTopologySuite types as regular properties in your entities, and even perform some operations:
 
-```c#
+```csharp
 public class City
 {
     public int Id { get; set; }
@@ -78,7 +78,7 @@ var nearbyCities = context.Cities.Where(c => c.Location.Distance(somePoint) < 10
 
 With the code above, the provider will create a database column of type `geometry`. This is perfectly fine, but be aware that this type accepts any geometry type (point, polygon...), with any coordinate system (XY, XYZ...). It's good practice to constrain the column to the exact type of data you will be storing, but unfortunately the provider isn't aware of your required coordinate system and therefore can't do that for you. Consider explicitly specifying your column types on your properties as follows:
 
-```c#
+```csharp
 [Column(TypeName="geometry (point)")]
 public Point Location { get; set; }
 ```
@@ -91,7 +91,7 @@ PostGIS has two types: `geometry` (for Cartesian coordinates) and `geography` (f
 
 The Npgsql provider will be default map all NetTopologySuite types to PostGIS `geometry`. However, you can instruct it to map certain properties to `geography` instead:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder builder)
 {
     builder.Entity<City>().Property(b => b.Location).HasColumnType("geography (point)");
@@ -100,7 +100,7 @@ protected override void OnModelCreating(ModelBuilder builder)
 
 or via an attribute:
 
-```c#
+```csharp
 public class City
 {
     public int Id { get; set; }

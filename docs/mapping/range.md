@@ -8,7 +8,7 @@ In addition, PostgreSQL 14 introduced *multiranges*, which are basically sorted 
 
 Npgsql maps PostgreSQL ranges to the generic CLR type `NpgsqlRange<T>`:
 
-```c#
+```csharp
 public class Event
 {
     public int Id { get; set; }
@@ -25,7 +25,7 @@ PostgreSQL comes with 6 built-in ranges: `int4range`, `int8range`, `numrange`, `
 
 To make the EF Core type mapper aware of your user-defined range, call the `MapRange()` method in your context's `OnConfiguring()` method as follows:
 
-```c#
+```csharp
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     => optionsBuilder.UseNpgsql(
         "<connection_string>",
@@ -36,7 +36,7 @@ This allows you to have properties of type `NpgsqlRange<float>`, which will be m
 
 The above does *not* create the `floatrange` type for you. In order to do that, include the following in your context's `OnModelCreating()`:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.HasPostgresRange("floatrange", "real");
 ```
@@ -50,7 +50,7 @@ This will cause the appropriate [`CREATE TYPE ... AS RANGE`](https://www.postgre
 
 Npgsql maps arrays or lists of `NpgsqlRange<T>` to PostgreSQL multiranges:
 
-```c#
+```csharp
 public class Store
 {
     public int Id { get; set; }
@@ -63,7 +63,7 @@ public class Store
 
 Ranges can be queried via extensions methods on `NpgsqlRange`:
 
-```c#
+```csharp
 var events = context.Events.Where(p => p.Duration.Contains(someDate));
 ```
 

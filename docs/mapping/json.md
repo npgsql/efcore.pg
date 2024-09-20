@@ -18,7 +18,7 @@ The simplest form of mapping to JSON is via a regular string property, just like
 
 ### [Data Annotations](#tab/data-annotations)
 
-```c#
+```csharp
 public class SomeEntity
 {
     public int Id { get; set; }
@@ -29,7 +29,7 @@ public class SomeEntity
 
 ### [Fluent API](#tab/fluent-api)
 
-```c#
+```csharp
 class MyContext : DbContext
 {
     public DbSet<SomeEntity> SomeEntities { get; set; }
@@ -67,7 +67,7 @@ Npgsql's support for `ToJson()` is fully aligned with the general EF support; se
 
 To get you started quickly, assume that we have the following Customer type, with a Details property that we want to map to a single JSON column in the database:
 
-```c#
+```csharp
 public class Customer
 {
     public int Id { get; set; }
@@ -90,7 +90,7 @@ public class Order       // Part of the JSON column
 
 To instruct EF to map CustomerDetails - and within it, Order - to a JSON column, configure it as follows:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.Entity<Customer>()
@@ -112,7 +112,7 @@ To use traditional POCO mapping, configure a property a mapping to map to a `jso
 
 ### [Data Annotations](#tab/data-annotations)
 
-```c#
+```csharp
 public class Customer
 {
     public int Id { get; set; }
@@ -136,7 +136,7 @@ public class Order       // Part of the JSON column
 
 ### [Fluent API](#tab/fluent-api)
 
-```c#
+```csharp
 class MyContext : DbContext
 {
     public DbSet<SomeEntity> SomeEntities { get; set; }
@@ -178,7 +178,7 @@ Note that when using this mapping, only limited forms of LINQ querying is suppor
 
 If your column JSON schema isn't stable, a strongly-typed POCO mapping may not be appropriate. The Npgsql provider also allows you to map the DOM document type provided by [System.Text.Json APIs](https://devblogs.microsoft.com/dotnet/try-the-new-system-text-json-apis/).
 
-```c#
+```csharp
 public class SomeEntity : IDisposable
 {
     public int Id { get; set; }
@@ -192,7 +192,7 @@ Note that neither a data annotation nor the fluent API are required, as [JsonDoc
 
 Once a document is loaded from the database, you can traverse it:
 
-```c#
+```csharp
 var someEntity = context.Entities.First();
 Console.WriteLine(someEntity.Customer.RootElement.GetProperty("Orders")[0].GetProperty("Price").GetInt32());
 ```
@@ -208,7 +208,7 @@ Saving and loading documents these documents wouldn't be much use without the ab
 
 ### [Classic POCO Mapping](#tab/poco)
 
-```c#
+```csharp
 var joes = context.CustomerEntries
     .Where(e => e.Customer.Name == "Joe")
     .ToList();
@@ -216,7 +216,7 @@ var joes = context.CustomerEntries
 
 ### [JsonDocument Mapping](#tab/jsondocument)
 
-```c#
+```csharp
 var joes = context.CustomerEntries
     .Where(e => e.Customer.RootElement.GetProperty("Name").GetString() == "Joe")
     .ToList();

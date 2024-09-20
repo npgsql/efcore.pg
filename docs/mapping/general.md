@@ -4,7 +4,7 @@ The EF Core provider transparently maps the types supported by Npgsql at the ADO
 
 This means that you can use PostgreSQL-specific types, such as `inet` or `circle`, directly in your entities. Simply define your properties just as if they were a simple type, such as a `string`:
 
-```c#
+```csharp
 public class MyEntity
 {
     public int Id { get; set; }
@@ -25,14 +25,14 @@ In some cases, your .NET property type can be mapped to several PostgreSQL data 
 
 ## [Data Annotations](#tab/data-annotations)
 
-```c#
+```csharp
 [Column(TypeName="jsonb")]
 public string SomeStringProperty { get; set; }
 ```
 
 ## [Fluent API](#tab/fluent-api)
 
-```c#
+```csharp
 builder.Entity<Blog>()
        .Property(b => b.SomeStringProperty)
        .HasColumnType("jsonb");

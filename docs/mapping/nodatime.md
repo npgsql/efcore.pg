@@ -18,7 +18,7 @@ To set up the NodaTime plugin, add the [Npgsql.EntityFrameworkCore.PostgreSQL.No
 
 If you're passing a connection string to `UseNpgsql`, simply add the `UseNodaTime` call as follows:
 
-```c#
+```csharp
 builder.Services.AddDbContext<MyContext>(options => options.UseNpgsql(
     "<connection string>",
     o => o.UseNodaTime()));
@@ -30,7 +30,7 @@ This configures all aspects of Npgsql to use the NodaTime plugin - both at the E
 
 If you're creating an external NpgsqlDataSource and passing it to `UseNpgsql`, you must call `UseNodaTime` on your NpgsqlDataSourceBuilder independently of the EF-level setup:
 
-```c#
+```csharp
 var dataSourceBuilder = new NpgsqlDataSourceBuilder("<connection string>");
 dataSourceBuilder.UseNodaTime();
 var dataSource = dataSourceBuilder.Build();
@@ -42,7 +42,7 @@ builder.Services.AddDbContext<MyContext>(options => options.UseNpgsql(
 
 ### [Older EF versions, with a connection string](#tab/legacy-with-connection-string)
 
-```c#
+```csharp
 // Configure UseNodaTime at the ADO.NET level.
 // This code must be placed at the beginning of your application, before any other Npgsql API is called; an appropriate place for this is in the static constructor on your DbContext class:
 static MyDbContext()
@@ -57,7 +57,7 @@ builder.Services.AddDbContext<MyContext>(options =>
 
 The above sets up all the necessary mappings and operation translators. You can now use NodaTime types as regular properties in your entities, and even perform some operations:
 
-```c#
+```csharp
 public class Post
 {
     public int Id { get; set; }
@@ -72,7 +72,7 @@ var recentPosts = context.Posts.Where(p => p.CreationTime > someInstant);
 
 The provider knows how to translate many members and methods on mapped NodaTime types. For example, the following query will be translated to SQL and evaluated server-side:
 
-```c#
+```csharp
 // Get all events which occurred on a Monday
 var mondayEvents = context.Events.Where(p => p.SomeDate.DayOfWeek == DayOfWeek.Monday);
 

@@ -31,7 +31,7 @@ Below is a `.csproj` file for a console application that uses the Npgsql EF Core
 
 Let's say you want to store blogs and their posts in their database; you can model these as .NET types as follows:
 
-```c#
+```csharp
 public class Blog
 {
     public int BlogId { get; set; }
@@ -57,7 +57,7 @@ You then define a `DbContext` type which you'll use to interact with the databas
 
 Using `OnConfiguring()` to configure your context is the easiest way to get started, but is discouraged for most production applications:
 
-```c#
+```csharp
 public class BloggingContext : DbContext
 {
     public DbSet<Blog> Blogs { get; set; }
@@ -74,7 +74,7 @@ using var context = new BloggingContext();
 
 ### [DbContext pooling](#tab/context-pooling)
 
-```c#
+```csharp
 var dbContextFactory = new PooledDbContextFactory<BloggingContext>(
     new DbContextOptionsBuilder<BloggingContext>()
         .UseNpgsql("<connection string>")
@@ -89,7 +89,7 @@ using var context = dbContextFactory.CreateDbContext();
 
 When using ASP.NET - or any application with dependency injection - the context instance will be injected into your code. Use the following to configure EF with your DI container:
 
-```c#
+```csharp
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContextPool<BloggingContext>(opt => 
@@ -112,7 +112,7 @@ The Npgsql EF provider is built on top of the lower-level Npgsql ADO.NET provide
 
 If you're using EF 9.0 or above, the `UseNpgsql()` is a single point where you can configure everything related to Npgsql. For example:
 
-```c#
+```csharp
 builder.Services.AddDbContextPool<BloggingContext>(opt =>
     opt.UseNpgsql(
         builder.Configuration.GetConnectionString("BloggingContext"),
@@ -126,7 +126,7 @@ The above configures the EF provider to produce SQL for PostgreSQL version 13 (a
 
 If you need to configure something at the lower-level ADO.NET layer, use `ConfigureDataSource()` as follows:
 
-```c#
+```csharp
 builder.Services.AddDbContextPool<BloggingContext>(opt =>
     opt.UseNpgsql(
         builder.Configuration.GetConnectionString("BloggingContext"),
@@ -145,7 +145,7 @@ builder.Services.AddDbContextPool<BloggingContext>(opt =>
 
 If you're using a version of EF prior to 9.0, the above configuration methods aren't available. You can still create an `NpgsqlDataSource` yourself, and then pass it EF's `UseNpgsql()`:
 
-```c#
+```csharp
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("BloggingContext"));
 dataSourceBuilder.MapEnum<Mood>();
 dataSourceBuilder.UseNodaTime();

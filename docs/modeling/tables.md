@@ -6,7 +6,7 @@ By default, EF Core will map to tables and columns named exactly after your .NET
 
 Starting with 3.0.0, you can use the [EFCore.NamingConventions](https://github.com/efcore/EFCore.NamingConventions) plugin to automatically set all your table and column names to snake_case instead:
 
-```c#
+```csharp
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     => optionsBuilder
         .UseNpgsql(...)
@@ -39,7 +39,7 @@ PostgreSQL allows configuring tables with *storage parameters*, which can tweak 
 
 To configure a storage parameter on a table, use the following code:
 
-```c#
+```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Blog>().HasStorageParameter("fillfactor", 70);
 ```

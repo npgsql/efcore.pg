@@ -306,7 +306,7 @@ The PostgreSQL aggregate functions are documented [here](https://www.postgresql.
 
 Aggregate functions can be used as follows:
 
-```c#
+```csharp
 var query = ctx.Set<Customer>()
     .GroupBy(c => c.City)
     .Select(
@@ -319,7 +319,7 @@ var query = ctx.Set<Customer>()
 
 To use functions accepting a tuple_of_2, project out from the group as follows:
 
-```c#
+```csharp
 var query = ctx.Set<Customer>()
     .GroupBy(c => c.City)
     .Select(
