@@ -35,7 +35,7 @@ public class NpgsqlQueryTranslationPostprocessor : RelationalQueryTranslationPos
         var result = base.Process(query);
 
         result = new NpgsqlUnnestPostprocessor().Visit(result);
-        result = new NpgsqlSetOperationTypeResolutionCompensatingExpressionVisitor().Visit(result);
+        result = new NpgsqlSetOperationTypingInjector().Visit(result);
 
         return result;
     }
