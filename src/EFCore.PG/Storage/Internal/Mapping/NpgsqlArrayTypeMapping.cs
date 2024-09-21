@@ -222,8 +222,10 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
         // In queries which compose non-server-correlated LINQ operators over an array parameter (e.g. Where(b => ids.Skip(1)...) we
         // get an enumerable parameter value that isn't an array/list - but those aren't supported at the Npgsql ADO level.
         // Detect this here and evaluate the enumerable to get a fully materialized List.
+        // Note that when we have a value converter (e.g. for HashSet), we don't want to convert it to a List, since the value converter
+        // expects the original type.
         // TODO: Make Npgsql support IList<> instead of only arrays and List<>
-        if (value is not null && !value.GetType().IsArrayOrGenericList())
+        if (value is not null && Converter is null && !value.GetType().IsArrayOrGenericList())
         {
             switch (value)
             {
