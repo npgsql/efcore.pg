@@ -588,6 +588,17 @@ FROM "Customers" AS c
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
+    public Task PadLeft_with_parameter_does_not_truncate(bool async)
+    {
+        var length = 5;
+
+        return AssertQuery(
+            async,
+            ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(length).EndsWith("Walserweg 21")));
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
     public Task PadLeft_char_with_parameter(bool async)
     {
         var length = 20;
@@ -616,6 +627,17 @@ FROM "Customers" AS c
     public Task PadRight_with_parameter(bool async)
     {
         var length = 20;
+
+        return AssertQuery(
+            async,
+            ss => ss.Set<Customer>().Where(x => x.Address.PadRight(length).StartsWith("Walserweg 21")));
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public Task PadRight_with_parameter_does_not_truncate(bool async)
+    {
+        var length = 5;
 
         return AssertQuery(
             async,
