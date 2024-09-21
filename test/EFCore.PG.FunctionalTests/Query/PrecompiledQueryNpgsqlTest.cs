@@ -1591,9 +1591,11 @@ WHERE (
 
         AssertSql(
             """
-SELECT `b`.`Id`, `b`.`Name`
-FROM `Blogs` AS `b`
-WHERE `b`.`Id` IN (1, 2, 3)
+@__ids_0={ '1', '2', '3' } (DbType = Object)
+
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+WHERE b."Id" = ANY (@__ids_0)
 """);
     }
 
