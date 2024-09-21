@@ -225,26 +225,6 @@ ORDER BY b."Name" NULLS FIRST
 
     #endregion Tests for the different querying enumerables
 
-    [ConditionalFact]
-    public virtual async Task Do_not_cache_is_respected()
-    {
-        // The "do not cache" flag in the 2nd part of the query pipeline is turned on in provider-specific situations, so we test it
-        // here in SQL Server; note that SQL Server compatibility mode is set low to trigger this.
-        await Test(
-            """
-string[] names = ["foo", "bar"];
-var blogs = await context.Blogs.Where(b => names.Contains(b.Name)).ToListAsync();
-""",
-            interceptorCodeAsserter: code => Assert.Contains(nameof(RelationalCommandCache), code));
-
-        AssertSql(
-            """
-SELECT `b`.`Id`, `b`.`Name`
-FROM `Blogs` AS `b`
-WHERE `b`.`Name` IN ('foo', 'bar')
-""");
-    }
-
     public class PrecompiledSqlPregenerationQueryNpgsqlFixture : PrecompiledSqlPregenerationQueryRelationalFixture
     {
         protected override ITestStoreFactory TestStoreFactory
