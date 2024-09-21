@@ -603,21 +603,19 @@ FROM "Blogs" AS b
             """
 @__p_0='8'
 
-SELECT IIF(@__p_0 IN (
-        SELECT `b`.`Id`
-        FROM `Blogs` AS `b`
-    ), TRUE, FALSE)
-FROM (SELECT COUNT(*) FROM `#Dual`)
+SELECT @__p_0 IN (
+    SELECT b."Id"
+    FROM "Blogs" AS b
+)
 """,
             //
             """
 @__p_0='7'
 
-SELECT IIF(@__p_0 IN (
-        SELECT `b`.`Id`
-        FROM `Blogs` AS `b`
-    ), TRUE, FALSE)
-FROM (SELECT COUNT(*) FROM `#Dual`)
+SELECT @__p_0 IN (
+    SELECT b."Id"
+    FROM "Blogs" AS b
+)
 """);
     }
 
@@ -1418,17 +1416,17 @@ WHERE b."Id" = 9 AND b."Name" = 'Blog2Suffix'
 
         AssertSql(
             """
-SELECT `u`.`Id`, `u`.`Name`
+SELECT u."Id", u."BlogId", u."Title"
 FROM (
-    SELECT `b`.`Id`, `b`.`Name`
-    FROM `Blogs` AS `b`
-    WHERE `b`.`Id` > 7
+    SELECT p."Id", p."BlogId", p."Title"
+    FROM "Posts" AS p
+    WHERE p."Id" > 11
     UNION
-    SELECT `b0`.`Id`, `b0`.`Name`
-    FROM `Blogs` AS `b0`
-    WHERE `b0`.`Id` < 10
-) AS `u`
-ORDER BY `u`.`Id`
+    SELECT p0."Id", p0."BlogId", p0."Title"
+    FROM "Posts" AS p0
+    WHERE p0."Id" < 21
+) AS u
+ORDER BY u."Id" NULLS FIRST
 """);
     }
 
@@ -1458,17 +1456,17 @@ ORDER BY [u].[Id]
 
         AssertSql(
             """
-SELECT `u`.`Id`, `u`.`Name`
+SELECT u."Id", u."BlogId", u."Title"
 FROM (
-    SELECT `b`.`Id`, `b`.`Name`
-    FROM `Blogs` AS `b`
-    WHERE `b`.`Id` > 7
+    SELECT p."Id", p."BlogId", p."Title"
+    FROM "Posts" AS p
+    WHERE p."Id" > 11
     UNION ALL
-    SELECT `b0`.`Id`, `b0`.`Name`
-    FROM `Blogs` AS `b0`
-    WHERE `b0`.`Id` < 10
-) AS `u`
-ORDER BY `u`.`Id`
+    SELECT p0."Id", p0."BlogId", p0."Title"
+    FROM "Posts" AS p0
+    WHERE p0."Id" < 21
+) AS u
+ORDER BY u."Id" NULLS FIRST
 """);
     }
 
@@ -1498,17 +1496,17 @@ ORDER BY [u].[Id]
 
         AssertSql(
             """
-SELECT [i].[Id], [i].[Name]
+SELECT i."Id", i."BlogId", i."Title"
 FROM (
-    SELECT [b].[Id], [b].[Name]
-    FROM [Blogs] AS [b]
-    WHERE [b].[Id] > 7
+    SELECT p."Id", p."BlogId", p."Title"
+    FROM "Posts" AS p
+    WHERE p."Id" > 11
     INTERSECT
-    SELECT [b0].[Id], [b0].[Name]
-    FROM [Blogs] AS [b0]
-    WHERE [b0].[Id] > 8
-) AS [i]
-ORDER BY [i].[Id]
+    SELECT p0."Id", p0."BlogId", p0."Title"
+    FROM "Posts" AS p0
+    WHERE p0."Id" < 22
+) AS i
+ORDER BY i."Id" NULLS FIRST
 """);
     }
 
@@ -1538,17 +1536,17 @@ ORDER BY [i].[Id]
 
         AssertSql(
             """
-SELECT [e].[Id], [e].[Name]
+SELECT e."Id", e."BlogId", e."Title"
 FROM (
-    SELECT [b].[Id], [b].[Name]
-    FROM [Blogs] AS [b]
-    WHERE [b].[Id] > 7
+    SELECT p."Id", p."BlogId", p."Title"
+    FROM "Posts" AS p
+    WHERE p."Id" > 11
     EXCEPT
-    SELECT [b0].[Id], [b0].[Name]
-    FROM [Blogs] AS [b0]
-    WHERE [b0].[Id] > 8
-) AS [e]
-ORDER BY [e].[Id]
+    SELECT p0."Id", p0."BlogId", p0."Title"
+    FROM "Posts" AS p0
+    WHERE p0."Id" > 21
+) AS e
+ORDER BY e."Id" NULLS FIRST
 """);
     }
 
@@ -1894,12 +1892,8 @@ LIMIT @__p_0
 
         AssertSql(
             """
-@__p_0='1'
-
-SELECT b."Id", b."Name", b."Json"
+SELECT COALESCE(b."Name", '') || 'Foo' AS "Foo"
 FROM "Blogs" AS b
-ORDER BY b."Name" NULLS FIRST
-LIMIT @__p_0
 """);
     }
 

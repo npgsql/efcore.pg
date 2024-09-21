@@ -10,6 +10,7 @@ public class NpgsqlPrecompiledQueryTestHelpers : PrecompiledQueryTestHelpers
     protected override IEnumerable<MetadataReference> BuildProviderMetadataReferences()
     {
         yield return MetadataReference.CreateFromFile(typeof(NpgsqlOptionsExtension).Assembly.Location);
+        yield return MetadataReference.CreateFromFile(typeof(NpgsqlTsVector).Assembly.Location);
         yield return MetadataReference.CreateFromFile(Assembly.GetExecutingAssembly().Location);
     }
 }

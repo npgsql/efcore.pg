@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
@@ -249,16 +250,16 @@ WHERE `b`.`Name` IN ('foo', 'bar')
         protected override ITestStoreFactory TestStoreFactory
             => NpgsqlTestStoreFactory.Instance;
 
-        /*public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
         {
             builder = base.AddOptions(builder);
 
             // TODO: Figure out if there's a nice way to continue using the retrying strategy
-            var jetOptionsBuilder = new JetDbContextOptionsBuilder(builder);
-            jetOptionsBuilder
+            var npgsqlOptionsBuilder = new NpgsqlDbContextOptionsBuilder(builder);
+            npgsqlOptionsBuilder
                 .ExecutionStrategy(d => new NonRetryingExecutionStrategy(d));
             return builder;
-        }*/
+        }
 
         public override PrecompiledQueryTestHelpers PrecompiledQueryTestHelpers => NpgsqlPrecompiledQueryTestHelpers.Instance;
     }
