@@ -103,16 +103,16 @@ SELECT EXISTS (
 
     bool IHistoryRepository.CreateIfNotExists()
     {
-        // In PG, doing CREATE TABLE IF NOT EXISTS concurrently can result in a unique constraint violation
-        // (duplicate key value violates unique constraint "pg_type_typname_nsp_index"). We catch this and report that the table wasn't
-        // created.
+        // In PG, doing CREATE TABLE IF NOT EXISTS isn't concurrency-safe, and can result a "duplicate table" error or in a unique
+        // constraint violation (duplicate key value violates unique constraint "pg_type_typname_nsp_index").
+        // We catch this and report that the table wasn't created.
         try
         {
             return Dependencies.MigrationCommandExecutor.ExecuteNonQuery(
                     GetCreateIfNotExistsCommands(), Dependencies.Connection, new MigrationExecutionState(), commitTransaction: true)
                 != 0;
         }
-        catch (PostgresException e) when (e.SqlState == "23505")
+        catch (PostgresException e) when (e.SqlState is "23505" or "42P07")
         {
             return false;
         }
@@ -120,9 +120,9 @@ SELECT EXISTS (
 
     async Task<bool> IHistoryRepository.CreateIfNotExistsAsync(CancellationToken cancellationToken)
     {
-        // In PG, doing CREATE TABLE IF NOT EXISTS concurrently can result in a unique constraint violation
-        // (duplicate key value violates unique constraint "pg_type_typname_nsp_index"). We catch this and report that the table wasn't
-        // created.
+        // In PG, doing CREATE TABLE IF NOT EXISTS isn't concurrency-safe, and can result a "duplicate table" error or in a unique
+        // constraint violation (duplicate key value violates unique constraint "pg_type_typname_nsp_index").
+        // We catch this and report that the table wasn't created.
         try
         {
             return (await Dependencies.MigrationCommandExecutor.ExecuteNonQueryAsync(
@@ -130,7 +130,7 @@ SELECT EXISTS (
                     cancellationToken: cancellationToken).ConfigureAwait(false))
                 != 0;
         }
-        catch (PostgresException e) when (e.SqlState == "23505")
+        catch (PostgresException e) when (e.SqlState is "23505" or "42P07")
         {
             return false;
         }
