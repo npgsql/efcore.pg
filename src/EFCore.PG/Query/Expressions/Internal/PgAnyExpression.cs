@@ -80,7 +80,7 @@ public class PgAnyExpression : SqlExpression, IEquatable<PgAnyExpression>
     public override Expression Quote()
         => New(
             _quotingConstructor ??= typeof(PgAnyExpression).GetConstructor(
-                [typeof(SqlExpression), typeof(SqlExpression), typeof(PgAllOperatorType), typeof(RelationalTypeMapping)])!,
+                [typeof(SqlExpression), typeof(SqlExpression), typeof(PgAnyOperatorType), typeof(RelationalTypeMapping)])!,
             Item.Quote(),
             Array.Quote(),
             Constant(OperatorType),
