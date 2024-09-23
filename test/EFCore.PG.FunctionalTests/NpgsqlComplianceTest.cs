@@ -10,11 +10,6 @@ public class NpgsqlComplianceTest : RelationalComplianceTestBase
         typeof(UdfDbFunctionTestBase<>),
         typeof(UpdateSqlGeneratorTestBase),
 
-        // Precompiled query/NativeAOT (#3257)
-        typeof(AdHocPrecompiledQueryRelationalTestBase),
-        typeof(PrecompiledQueryRelationalTestBase),
-        typeof(PrecompiledSqlPregenerationQueryRelationalTestBase),
-
         // Disabled
         typeof(GraphUpdatesTestBase<>),
         typeof(ProxyGraphUpdatesTestBase<>),
