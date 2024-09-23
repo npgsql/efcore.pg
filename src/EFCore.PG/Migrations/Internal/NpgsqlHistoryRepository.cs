@@ -75,22 +75,8 @@ public class NpgsqlHistoryRepository : HistoryRepository, IHistoryRepository
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string ExistsSql
-    {
-        get
-        {
-            var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
-
-            return
-                $"""
-SELECT EXISTS (
-    SELECT 1 FROM pg_catalog.pg_class c
-    JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
-    WHERE n.nspname={stringTypeMapping.GenerateSqlLiteral(TableSchema ?? "public")} AND
-          c.relname={stringTypeMapping.GenerateSqlLiteral(TableName)}
-)
-""";
-        }
-    }
+        => throw new UnreachableException(
+            "We should not be checking for the existence of the history table, but rather creating it and catching exceptions (see below)");
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -193,6 +179,58 @@ BEGIN
     END IF;
 END $EF$;
 """;
+
+    /// <summary>
+    ///     Calls the base implementation, but catches "table not found" exceptions; we do this rather than try to detect whether the
+    ///     migration table already exists (see <see cref="ExistsAsync" /> override below), since it's difficult to reliably check if the
+    ///     migration history table exists or not (because user may set PG <c>search_path</c>, which determines unqualified tables
+    ///     references when creating, selecting).
+    /// </summary>
+    public override IReadOnlyList<HistoryRow> GetAppliedMigrations()
+    {
+        try
+        {
+            return base.GetAppliedMigrations();
+        }
+        catch (PostgresException e) when (e.SqlState is "3D000" or "42P01")
+        {
+            return [];
+        }
+    }
+
+    /// <summary>
+    ///     Calls the base implementation, but catches "table not found" exceptions; we do this rather than try to detect whether the
+    ///     migration table already exists (see <see cref="ExistsAsync" /> override below), since it's difficult to reliably check if the
+    ///     migration history table exists or not (because user may set PG <c>search_path</c>, which determines unqualified tables
+    ///     references when creating, selecting).
+    /// </summary>
+    public override async Task<IReadOnlyList<HistoryRow>> GetAppliedMigrationsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await base.GetAppliedMigrationsAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (PostgresException e) when (e.SqlState is "3D000" or "42P01")
+        {
+            return [];
+        }
+    }
+
+    /// <summary>
+    ///     Always returns <see langword="true" /> for PostgreSQL - it's difficult to reliably check if the migration history table
+    ///     exists or not (because user may set PG <c>search_path</c>, which determines unqualified tables references when creating,
+    ///     selecting). So we instead catch the "table doesn't exist" exceptions instead.
+    /// </summary>
+    public override bool Exists()
+        => true;
+
+    /// <summary>
+    ///     Always returns <see langword="true" /> for PostgreSQL - it's difficult to reliably check if the migration history table
+    ///     exists or not (because user may set PG <c>search_path</c>, which determines unqualified tables references when creating,
+    ///     selecting). So we instead catch the "table doesn't exist" exceptions instead.
+    /// </summary>
+    public override Task<bool> ExistsAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult(true);
 
     private sealed class NpgsqlMigrationDatabaseLock(IHistoryRepository historyRepository) : IMigrationsDatabaseLock
     {
