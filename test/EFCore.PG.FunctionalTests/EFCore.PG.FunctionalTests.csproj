@@ -17,6 +17,11 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+
+    <!-- To work around https://github.com/advisories/GHSA-7jgj-8wvc-jh57 -->
+    <PackageReference Include="System.Net.Http" />
+    <!-- To work around https://github.com/advisories/GHSA-cmhx-cq75-c4mj -->
+    <PackageReference Include="System.Text.RegularExpressions" />
   </ItemGroup>
 
   <ItemGroup>
