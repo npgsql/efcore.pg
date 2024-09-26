@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <VersionPrefix>8.0.5</VersionPrefix>
+    <VersionPrefix>8.0.8</VersionPrefix>
     <LangVersion>preview</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest</AnalysisLevel>
@@ -12,7 +12,7 @@
     <ImplicitUsings>true</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
-    <Copyright>Copyright 2023 © The Npgsql Development Team</Copyright>
+    <Copyright>Copyright 2024 © The Npgsql Development Team</Copyright>
     <Company>Npgsql</Company>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
