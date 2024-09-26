@@ -962,7 +962,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         }
         else
         {
-            Sql.Append(constantPattern);
+            Sql.Append(constantPattern.Replace("'", "''"));
             Sql.Append("'");
         }
 

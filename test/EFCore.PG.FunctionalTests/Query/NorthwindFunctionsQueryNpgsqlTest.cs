@@ -120,6 +120,23 @@ WHERE c."CompanyName" ~ '(?p)^A'
 
     [Theory]
     [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_IsMatch_with_constant_pattern_properly_escaped(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A';foo")),
+            assertEmpty: true);
+
+        AssertSql(
+            """
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CompanyName" ~ '(?p)^A'';foo'
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
     public async Task Regex_IsMatch_with_parameter_pattern(bool async)
     {
         var pattern = "^A";
