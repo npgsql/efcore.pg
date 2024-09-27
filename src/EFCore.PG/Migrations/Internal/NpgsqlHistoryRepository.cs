@@ -98,7 +98,9 @@ public class NpgsqlHistoryRepository : HistoryRepository, IHistoryRepository
                     GetCreateIfNotExistsCommands(), Dependencies.Connection, new MigrationExecutionState(), commitTransaction: true)
                 != 0;
         }
-        catch (PostgresException e) when (e.SqlState is "23505" or "42P07")
+        catch (PostgresException e) when (e.SqlState is PostgresErrorCodes.UniqueViolation
+                                              or PostgresErrorCodes.DuplicateTable
+                                              or PostgresErrorCodes.DuplicateObject)
         {
             return false;
         }
@@ -116,7 +118,9 @@ public class NpgsqlHistoryRepository : HistoryRepository, IHistoryRepository
                     cancellationToken: cancellationToken).ConfigureAwait(false))
                 != 0;
         }
-        catch (PostgresException e) when (e.SqlState is "23505" or "42P07")
+        catch (PostgresException e) when (e.SqlState is PostgresErrorCodes.UniqueViolation
+                                              or PostgresErrorCodes.DuplicateTable
+                                              or PostgresErrorCodes.DuplicateObject)
         {
             return false;
         }
@@ -192,7 +196,7 @@ END $EF$;
         {
             return base.GetAppliedMigrations();
         }
-        catch (PostgresException e) when (e.SqlState is "3D000" or "42P01")
+        catch (PostgresException e) when (e.SqlState is PostgresErrorCodes.InvalidCatalogName or PostgresErrorCodes.UndefinedTable)
         {
             return [];
         }
@@ -210,7 +214,7 @@ END $EF$;
         {
             return await base.GetAppliedMigrationsAsync(cancellationToken).ConfigureAwait(false);
         }
-        catch (PostgresException e) when (e.SqlState is "3D000" or "42P01")
+        catch (PostgresException e) when (e.SqlState is PostgresErrorCodes.InvalidCatalogName or PostgresErrorCodes.UndefinedTable)
         {
             return [];
         }
