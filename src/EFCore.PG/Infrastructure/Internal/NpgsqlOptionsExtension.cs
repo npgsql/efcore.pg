@@ -174,7 +174,8 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     /// <inheritdoc />
     public override RelationalOptionsExtension WithConnection(DbConnection? connection)
     {
-        var clone = (NpgsqlOptionsExtension)base.WithConnection(connection);
+        var clone = (NpgsqlOptionsExtension)base.WithConnection(connection)
+            .WithConnectionString(connection?.ConnectionString);
 
         clone.DataSource = null;
 
