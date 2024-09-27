@@ -23,16 +23,16 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, windows-2022]
-        pg_major: [16, 15, 14, 13, 12]
+        pg_major: [17, 16, 15, 14, 13, 12]
         config: [Release]
         include:
           - os: ubuntu-22.04
-            pg_major: 16
-            config: Debug
-          - os: ubuntu-22.04
             pg_major: 17
-            config: Release
-            pg_prerelease: 'PG Prerelease'
+            config: Debug
+#          - os: ubuntu-22.04
+#            pg_major: 17
+#            config: Release
+#            pg_prerelease: 'PG Prerelease'
 
     outputs:
       is_release: ${{ steps.analyze_tag.outputs.is_release }}
