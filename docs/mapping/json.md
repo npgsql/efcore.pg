@@ -255,7 +255,7 @@ EF.Functions.JsonTypeof(e.Customer.Age)                                         
 .NET                                                                                  | SQL
 ------------------------------------------------------------------------------------- | ----
 customer.RootElement.GetProperty("Name").GetString()                                  | [customer->>'Name' = 'Joe'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
-customer.RootElement.GetProperty("Orders")[1].GetProperty("Price").GetInt32()         | [customer#>>'{Orders,0,Price}'\[1\] = 8](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
+customer.RootElement.GetProperty("Orders")[1].GetProperty("Price").GetInt32()         | [CAST(customer #>> '{Orders,1,Price}' AS integer) = 8](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
 customer.RootElement.GetProperty("Orders").GetArrayLength()                           | [jsonb_array_length(customer->'Orders'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
 EF.Functions.JsonContains(customer, @"{""Name"": ""Joe"", ""Age"": 25}")<sup>1</sup>  | [customer @> '{"Name": "Joe", "Age": 25}'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
 EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", customer)<sup>1</sup> | ['{"Name": "Joe", "Age": 25}' <@ customer](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
