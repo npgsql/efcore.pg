@@ -3,6 +3,8 @@
 using System.Collections;
 using System.Globalization;
 using System.Numerics;
+using NetTopologySuite;
+using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit.Sdk;
@@ -462,6 +464,102 @@ public class JsonTypesNpgsqlTest : JsonTypesRelationalTestBase
             nameof(LogSequenceNumberType.LogSequenceNumber),
             new NpgsqlLogSequenceNumber(value),
             json);
+
+    [ConditionalFact]
+    public override async Task Can_read_write_point()
+    {
+        var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
+
+        await Can_read_and_write_JSON_value<PointType, Point>(
+            nameof(PointType.Point),
+            factory.CreatePoint(new Coordinate(2, 4)),
+            """{"Prop":"SRID=4326;POINT (2 4)"}""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Can_read_write_point_without_SRID()
+        => await Can_read_and_write_JSON_value<PointType, Point>(
+            nameof(PointType.Point),
+            new Point(2, 4),
+            """{"Prop":"POINT (2 4)"}""");
+
+    [ConditionalFact]
+    public override async Task Can_read_write_point_with_M()
+    {
+        var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
+
+        await Can_read_and_write_JSON_value<PointMType, Point>(
+            nameof(PointMType.PointM),
+            factory.CreatePoint(new CoordinateM(2, 4, 6)),
+            """{"Prop":"SRID=4326;POINT (2 4)"}""");
+    }
+
+    public override async Task Can_read_write_point_with_Z()
+    {
+        var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
+
+        await Can_read_and_write_JSON_value<PointZType, Point>(
+            nameof(PointZType.PointZ),
+            factory.CreatePoint(new CoordinateZ(2, 4, 6)),
+            """{"Prop":"SRID=4326;POINT Z(2 4 6)"}""");
+    }
+
+    public override async Task Can_read_write_point_with_Z_and_M()
+    {
+        var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
+
+        await Can_read_and_write_JSON_value<PointZMType, Point>(
+            nameof(PointZMType.PointZM),
+            factory.CreatePoint(new CoordinateZM(1, 2, 3, 4)),
+            """{"Prop":"SRID=4326;POINT Z(1 2 3)"}""");
+    }
+
+    [ConditionalFact]
+    public override async Task Can_read_write_line_string()
+    {
+        var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
+
+        await Can_read_and_write_JSON_value<LineStringType, LineString>(
+            nameof(LineStringType.LineString),
+            factory.CreateLineString([new Coordinate(0, 0), new Coordinate(1, 0)]),
+            """{"Prop":"SRID=4326;LINESTRING (0 0, 1 0)"}""");
+    }
+
+    public override async Task Can_read_write_multi_line_string()
+    {
+        var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
+
+        await Can_read_and_write_JSON_value<MultiLineStringType, MultiLineString>(
+            nameof(MultiLineStringType.MultiLineString),
+            factory.CreateMultiLineString(
+            [
+                factory.CreateLineString(
+                    [new Coordinate(0, 0), new Coordinate(0, 1)]),
+                factory.CreateLineString(
+                    [new Coordinate(1, 0), new Coordinate(1, 1)])
+            ]),
+            """{"Prop":"SRID=4326;MULTILINESTRING ((0 0, 0 1), (1 0, 1 1))"}""");
+    }
+
+    public override async Task Can_read_write_polygon()
+    {
+        var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
+
+        await Can_read_and_write_JSON_value<PolygonType, Polygon>(
+            nameof(PolygonType.Polygon),
+            factory.CreatePolygon([new Coordinate(0, 0), new Coordinate(1, 0), new Coordinate(0, 1), new Coordinate(0, 0)]),
+            """{"Prop":"SRID=4326;POLYGON ((0 0, 1 0, 0 1, 0 0))"}""");
+    }
+
+    public override async Task Can_read_write_polygon_typed_as_geometry()
+    {
+        var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
+
+        await Can_read_and_write_JSON_value<GeometryType, Geometry>(
+            nameof(GeometryType.Geometry),
+            factory.CreatePolygon([new Coordinate(0, 0), new Coordinate(1, 0), new Coordinate(0, 1), new Coordinate(0, 0)]),
+            """{"Prop":"SRID=4326;POLYGON ((0 0, 1 0, 0 1, 0 0))"}""");
+    }
 
     protected class LogSequenceNumberType
     {
