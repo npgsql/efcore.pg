@@ -1,4 +1,6 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
 namespace Microsoft.EntityFrameworkCore.Utilities;
@@ -127,4 +129,14 @@ internal static class Check
     [DoesNotReturn]
     public static void DebugFail(string message)
         => throw new Exception($"Check.DebugFail failed: {message}");
+
+    public static void IsDefined<T>(T value,
+        [InvokerParameterName, CallerArgumentExpression(nameof(value))] string? parameterName = null)
+        where T : struct, Enum
+    {
+        if (!Enum.IsDefined(value))
+        {
+            throw new InvalidEnumArgumentException(parameterName, Convert.ToInt32(value), typeof(T));
+        }
+    }
 }
