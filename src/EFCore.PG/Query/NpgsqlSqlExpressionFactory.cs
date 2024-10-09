@@ -307,6 +307,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case PgExpressionType.JsonExists:
             case PgExpressionType.JsonExistsAny:
             case PgExpressionType.JsonExistsAll:
+            case PgExpressionType.ContainsAnyKey:
+            case PgExpressionType.ContainsAllKeys:
+            case PgExpressionType.HStoreContainsKey:
                 returnType = typeof(bool);
                 break;
 
@@ -773,6 +776,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case PgExpressionType.JsonExists:
             case PgExpressionType.JsonExistsAny:
             case PgExpressionType.JsonExistsAll:
+            case PgExpressionType.ContainsAnyKey:
+            case PgExpressionType.ContainsAllKeys:
+            case PgExpressionType.HStoreContainsKey:
             {
                 // TODO: For networking, this probably needs to be cleaned up, i.e. we know where the CIDR and INET are
                 // based on operator type?
@@ -821,6 +827,19 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                         $"PostgreSQL type '{inferredTypeMapping.StoreTypeNameBase}' isn't supported with the distance operator")
                 };
                 break;
+            }
+
+            case PgExpressionType.HStoreValueForKey:
+            case PgExpressionType.HStoreConcat:
+            case PgExpressionType.HStoreSubtract:
+            case PgExpressionType.JsonValueForKeyAsText:
+            {
+                return new PgBinaryExpression(
+                    operatorType,
+                    ApplyDefaultTypeMapping(left),
+                    ApplyDefaultTypeMapping(right),
+                    typeMapping!.ClrType,
+                    typeMapping);
             }
 
             default:

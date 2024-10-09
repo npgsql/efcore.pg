@@ -129,6 +129,11 @@ public enum PgExpressionType
     /// </summary>
     JsonExistsAll, // ?<@
 
+    /// <summary>
+    ///     Represents a PostgreSQL operator for retrieving a field from a JSON object or element from JSON array as text.
+    /// </summary>
+    JsonValueForKeyAsText, // ->>
+
     #endregion JSON
 
     #region LTree
@@ -159,4 +164,42 @@ public enum PgExpressionType
     LTreeFirstMatches, // ?~ or ?@
 
     #endregion LTree
+
+    #region Dictionary
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for determining if a hstore or json column contains any of an array of keys
+    /// </summary>
+    ContainsAnyKey, // ?|
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for determining if a hstore or json column contains all of an array of keys
+    /// </summary>
+    ContainsAllKeys, // ?&
+
+    #endregion
+
+    #region HStore
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for checking if a hstore contains the given key
+    /// </summary>
+    HStoreContainsKey, // ?
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for accessing a hstore value for a given key
+    /// </summary>
+    HStoreValueForKey, // ->
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for concatenating hstores
+    /// </summary>
+    HStoreConcat, // ||
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for subtracting hstores
+    /// </summary>
+    HStoreSubtract, // -
+
+    #endregion HStore
 }
