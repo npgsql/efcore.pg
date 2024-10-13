@@ -1,8 +1,8 @@
   <Project>
   <PropertyGroup>
-    <EFCoreVersion>[9.0.0-rc.2.24460.3]</EFCoreVersion>
-    <MicrosoftExtensionsVersion>9.0.0-rc.2.24456.9</MicrosoftExtensionsVersion>
-    <NpgsqlVersion>8.0.4</NpgsqlVersion>
+    <EFCoreVersion>[9.0.0-rc.2.24474.1]</EFCoreVersion>
+    <MicrosoftExtensionsVersion>9.0.0-rc.2.24473.5</MicrosoftExtensionsVersion>
+    <NpgsqlVersion>8.0.5</NpgsqlVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,10 +20,6 @@
     <PackageVersion Include="Npgsql.NodaTime" Version="$(NpgsqlVersion)" />
     <PackageVersion Include="Npgsql.NetTopologySuite" Version="$(NpgsqlVersion)" />
     <PackageVersion Include="Npgsql.DependencyInjection" Version="$(NpgsqlVersion)" />
-
-    <!-- Workaround for unsecure dependencies in EF -->
-    <PackageVersion Include="System.Formats.Asn1" Version="8.0.1" />
-    <PackageVersion Include="System.Text.Json" Version="8.0.4" />
 
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
