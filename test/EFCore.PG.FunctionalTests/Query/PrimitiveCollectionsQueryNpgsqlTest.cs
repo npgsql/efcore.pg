@@ -1418,6 +1418,22 @@ WHERE cardinality(@__ints_0 || p."Ints") = 2
 """);
     }
 
+    public override async Task Parameter_collection_with_type_inference_for_JsonScalarExpression(bool async)
+    {
+        await base.Parameter_collection_with_type_inference_for_JsonScalarExpression(async);
+
+        AssertSql(
+            """
+@__values_0={ 'one', 'two' } (DbType = Object)
+
+SELECT CASE
+    WHEN p."Id" <> 0 THEN @__values_0[p."Int" % 2 + 1]
+    ELSE 'foo'
+END
+FROM "PrimitiveCollectionsEntity" AS p
+""");
+    }
+
     public override async Task Column_collection_Union_parameter_collection(bool async)
     {
         await base.Column_collection_Union_parameter_collection(async);
