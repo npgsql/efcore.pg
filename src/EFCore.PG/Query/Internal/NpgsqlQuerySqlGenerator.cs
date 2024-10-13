@@ -510,6 +510,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                     PgExpressionType.JsonExists => "?",
                     PgExpressionType.JsonExistsAny => "?|",
                     PgExpressionType.JsonExistsAll => "?&",
+                    PgExpressionType.JsonValueForKeyAsText => "->>",
 
                     PgExpressionType.LTreeMatches
                         when binaryExpression.Right.TypeMapping.StoreType == "lquery"
@@ -526,6 +527,14 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                         when binaryExpression.Right.TypeMapping.StoreType == "ltxtquery" => "?@",
 
                     PgExpressionType.Distance => "<->",
+
+                    PgExpressionType.DictionaryContainsAnyKey => "?|",
+                    PgExpressionType.DictionaryContainsAllKeys => "?&",
+
+                    PgExpressionType.DictionaryContainsKey => "?",
+                    PgExpressionType.DictionaryValueForKey => "->",
+                    PgExpressionType.DictionaryConcat => "||",
+                    PgExpressionType.DictionarySubtract => "-",
 
                     _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {binaryExpression.OperatorType}")
                 })
