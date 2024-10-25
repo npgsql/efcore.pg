@@ -45,6 +45,10 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
         typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .Single(m => m.Name == nameof(Enumerable.Concat) && m.GetParameters().Length == 2);
 
+    private static readonly MethodInfo Enumerable_Remove =
+typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+    .Single(m => m.Name == nameof(Enumerable.Remove) && m.GetParameters().Length == 2);
+
     // ReSharper restore InconsistentNaming
 
     #endregion Methods
@@ -188,6 +192,22 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
 
                 return _sqlExpressionFactory.Function(
                     "array_cat",
+                    [
+                        _sqlExpressionFactory.ApplyTypeMapping(arrayOrList, inferredMapping),
+                        _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping)
+                    ],
+                    nullable: true,
+                    TrueArrays[2],
+                    arrayOrList.Type,
+                    inferredMapping);
+            }
+
+            if (method.IsClosedFormOf(Enumerable_Remove))
+            {
+                var inferredMapping = ExpressionExtensions.InferTypeMapping(arrayOrList, arguments[0]);
+
+                return _sqlExpressionFactory.Function(
+                    "array_remove",
                     [
                         _sqlExpressionFactory.ApplyTypeMapping(arrayOrList, inferredMapping),
                         _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping)
