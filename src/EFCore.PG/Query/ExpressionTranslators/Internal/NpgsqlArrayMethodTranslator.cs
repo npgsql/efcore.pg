@@ -204,18 +204,15 @@ typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.S
 
             if (method.IsClosedFormOf(Enumerable_Remove))
             {
-                var inferredMapping = ExpressionExtensions.InferTypeMapping(arrayOrList, arguments[0]);
+                var (item, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(arguments[0], arrayOrList);
 
                 return _sqlExpressionFactory.Function(
                     "array_remove",
-                    [
-                        _sqlExpressionFactory.ApplyTypeMapping(arrayOrList, inferredMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping)
-                    ],
+                    [array, item],
                     nullable: true,
                     TrueArrays[2],
                     arrayOrList.Type,
-                    inferredMapping);
+                    arrayOrList.TypeMapping);
             }
 
             return null;
