@@ -37,6 +37,7 @@ array1.SequenceEqual(array2)                  | [array1 = array2](https://www.po
 arrayNonColumn.Contains(element)              | [element = ANY(arrayNonColumn)](https://www.postgresql.org/docs/current/static/functions-comparisons.html#AEN21104)                      | Can use regular index
 arrayColumn.Contains(element)                 | [arrayColumn @> ARRAY\[element\]](https://www.postgresql.org/docs/current/functions-array.html#ARRAY-OPERATORS-TABLE)                    | Can use GIN index
 array.Append(element)                         | [array_append(array, element)](https://www.postgresql.org/docs/current/functions-array.html#ARRAY-FUNCTIONS-TABLE)                       | Added in 6.0
+array.Where(i => i != 8)                      | [array_remove(array, value)](https://www.postgresql.org/docs/current/functions-array.html#ARRAY-FUNCTIONS-TABLE)                         | Added in 9.0
 array1.Concat(array2)                         | [array1 \|\| array2](https://www.postgresql.org/docs/current/functions-array.html#ARRAY-FUNCTIONS-TABLE)                                 | Added in 6.0
 array.IndexOf(element)                        | [array_position(array, element) - 1](https://www.postgresql.org/docs/current/functions-array.html#ARRAY-FUNCTIONS-TABLE)                 | Added in 6.0
 array.IndexOf(element, startIndex)            | [array_position(array, element, startIndex + 1) - 1](https://www.postgresql.org/docs/current/functions-array.html#ARRAY-FUNCTIONS-TABLE) | Added in 6.0
