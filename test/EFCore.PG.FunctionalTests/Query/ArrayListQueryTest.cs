@@ -845,7 +845,7 @@ WHERE array_cat(s."IntList", ARRAY[5,6]::integer[]) = ARRAY[3,4,5,6]::integer[]
 
     public override async Task Remove(bool async)
     {
-        await base.Concat(async);
+        await base.Remove(async);
 
         AssertSql(
             """
