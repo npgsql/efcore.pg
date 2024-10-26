@@ -974,6 +974,61 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    protected override ShapedQueryExpression? TranslateWhere(ShapedQueryExpression source, LambdaExpression predicate)
+    {
+        // Simplify x.Array.Where(i => i != 3) => array_remove(x.Array, 3) instead of subquery
+        if (predicate.Body is BinaryExpression
+            {
+                NodeType: ExpressionType.NotEqual,
+                Left: var left,
+                Right: var right
+            }
+            && (left == predicate.Parameters[0] ? right : right == predicate.Parameters[0] ? left : null) is Expression itemToFilterOut
+            && source.TryExtractArray(out var array, out var projectedColumn)
+            && TranslateExpression(itemToFilterOut) is SqlExpression translatedItemToFilterOut)
+        {
+            var simplifiedTranslation = _sqlExpressionFactory.Function(
+                "array_remove",
+                [array, translatedItemToFilterOut],
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[2],
+                array.Type,
+                array.TypeMapping);
+
+#pragma warning disable EF1001 // SelectExpression constructors are currently internal
+            var tableAlias = ((SelectExpression)source.QueryExpression).Tables[0].Alias!;
+            var selectExpression = new SelectExpression(
+                [new PgUnnestExpression(tableAlias, simplifiedTranslation, "value")],
+                new ColumnExpression("value", tableAlias, projectedColumn.Type, projectedColumn.TypeMapping, projectedColumn.IsNullable),
+                [GenerateOrdinalityIdentifier(tableAlias)],
+                _queryCompilationContext.SqlAliasManager);
+#pragma warning restore EF1001 // Internal EF Core API usage.
+
+            // TODO: Simplify by using UpdateQueryExpression after https://github.com/dotnet/efcore/issues/31511
+            Expression shaperExpression = new ProjectionBindingExpression(
+                selectExpression, new ProjectionMember(), source.ShaperExpression.Type.MakeNullable());
+
+            if (source.ShaperExpression.Type != shaperExpression.Type)
+            {
+                Check.DebugAssert(
+                    source.ShaperExpression.Type.MakeNullable() == shaperExpression.Type,
+                    "expression.Type must be nullable of targetType");
+
+                shaperExpression = Expression.Convert(shaperExpression, source.ShaperExpression.Type);
+            }
+
+            return new ShapedQueryExpression(selectExpression, shaperExpression);
+        }
+
+        return base.TranslateWhere(source, predicate);
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override bool IsNaturallyOrdered(SelectExpression selectExpression)
         => selectExpression is { Tables: [PgUnnestExpression unnest, ..] }
             && (selectExpression.Orderings is []

@@ -110,12 +110,24 @@ WHERE e."EmployeeID" = ANY (@__ids_0)
 
     public override async Task Contains_with_local_enumerable_inline_closure_mix(bool async)
     {
-        // Issue #31776
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            async () =>
-                await base.Contains_with_local_enumerable_inline_closure_mix(async));
+        await base.Contains_with_local_enumerable_inline_closure_mix(async);
 
-        AssertSql();
+        AssertSql(
+            """
+@__p_0={ 'ABCDE', 'ALFKI' } (DbType = Object)
+
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CustomerID" = ANY (array_remove(@__p_0, NULL))
+""",
+            //
+            """
+@__p_0={ 'ABCDE', 'ANATR' } (DbType = Object)
+
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CustomerID" = ANY (array_remove(@__p_0, NULL))
+""");
     }
 
     public override async Task Contains_with_local_non_primitive_list_closure_mix(bool async)
