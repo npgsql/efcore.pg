@@ -136,14 +136,19 @@ public class NpgsqlDataSourceManager : IDisposable, IAsyncDisposable
         }
 
         // Legacy authentication-related callbacks at the EF level; apply these when building a data source as well.
-        if (npgsqlOptionsExtension.ProvideClientCertificatesCallback is not null)
+        if (npgsqlOptionsExtension.ProvideClientCertificatesCallback is not null
+            || npgsqlOptionsExtension.RemoteCertificateValidationCallback is not null)
         {
-            dataSourceBuilder.UseClientCertificatesCallback(x => npgsqlOptionsExtension.ProvideClientCertificatesCallback(x));
-        }
+            dataSourceBuilder.UseSslClientAuthenticationOptionsCallback(o =>
+            {
+                if (npgsqlOptionsExtension.ProvideClientCertificatesCallback is not null)
+                {
+                    o.ClientCertificates ??= new();
+                    npgsqlOptionsExtension.ProvideClientCertificatesCallback(o.ClientCertificates);
+                }
 
-        if (npgsqlOptionsExtension.RemoteCertificateValidationCallback is not null)
-        {
-            dataSourceBuilder.UseUserCertificateValidationCallback(npgsqlOptionsExtension.RemoteCertificateValidationCallback);
+                o.RemoteCertificateValidationCallback = npgsqlOptionsExtension.RemoteCertificateValidationCallback;
+            });
         }
 
         // Finally, if the user has provided a data source builder configuration action, invoke it.
