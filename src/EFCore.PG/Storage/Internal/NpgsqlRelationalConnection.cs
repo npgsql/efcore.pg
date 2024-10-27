@@ -226,9 +226,14 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual INpgsqlRelationalConnection CloneWith(string connectionString)
+    public virtual async ValueTask<INpgsqlRelationalConnection> CloneWith(
+        string connectionString,
+        bool async,
+        CancellationToken cancellationToken = default)
     {
-        var clonedDbConnection = DbConnection.CloneWith(connectionString);
+        var clonedDbConnection = async
+            ? await DbConnection.CloneWithAsync(connectionString, cancellationToken).ConfigureAwait(false)
+            : DbConnection.CloneWith(connectionString);
 
         var relationalOptions = RelationalOptionsExtension.Extract(Dependencies.ContextOptions)
             .WithConnectionString(null)
