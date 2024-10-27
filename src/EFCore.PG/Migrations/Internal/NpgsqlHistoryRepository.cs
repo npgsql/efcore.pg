@@ -1,4 +1,6 @@
-﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
+
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal;
 
 /// <summary>
 ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -8,6 +10,8 @@
 /// </summary>
 public class NpgsqlHistoryRepository : HistoryRepository, IHistoryRepository
 {
+    private IModel? _model;
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -86,6 +90,50 @@ public class NpgsqlHistoryRepository : HistoryRepository, IHistoryRepository
     /// </summary>
     protected override bool InterpretExistsResult(object? value)
         => (bool?)value == true;
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected override IReadOnlyList<MigrationCommand> GetCreateCommands()
+    {
+        // TODO: This is all a hack around https://github.com/dotnet/efcore/issues/34991: we have provider-specific conventions which add
+        // enums and extensions to the model, and the default EF logic causes them to be created at this point, when the history table is
+        // being created.
+        var model = EnsureModel();
+
+        var operations = Dependencies.ModelDiffer.GetDifferences(null, model.GetRelationalModel());
+        var commandList = Dependencies.MigrationsSqlGenerator.Generate(operations, model);
+        return commandList;
+    }
+
+    private IModel EnsureModel()
+    {
+        if (_model == null)
+        {
+            var conventionSet = Dependencies.ConventionSetBuilder.CreateConventionSet();
+
+            conventionSet.Remove(typeof(DbSetFindingConvention));
+            conventionSet.Remove(typeof(RelationalDbFunctionAttributeConvention));
+            // TODO: this whole method exists only so we can remove this convention (https://github.com/dotnet/efcore/issues/34991)
+            conventionSet.Remove(typeof(NpgsqlPostgresModelFinalizingConvention));
+
+            var modelBuilder = new ModelBuilder(conventionSet);
+            modelBuilder.Entity<HistoryRow>(
+                x =>
+                {
+                    ConfigureTable(x);
+                    x.ToTable(TableName, TableSchema);
+                });
+
+            _model = Dependencies.ModelRuntimeInitializer.Initialize(
+                (IModel)modelBuilder.Model, designTime: true, validationLogger: null);
+        }
+
+        return _model;
+    }
 
     bool IHistoryRepository.CreateIfNotExists()
     {
