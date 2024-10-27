@@ -350,7 +350,7 @@ public class NpgsqlRelationalConnectionTest
     }
 
     [ConditionalFact]
-    public void CloneWith_with_connection_and_connection_string()
+    public async Task CloneWith_with_connection_and_connection_string()
     {
         var services = NpgsqlTestHelpers.Instance.CreateContextServices(
             new DbContextOptionsBuilder()
@@ -359,7 +359,7 @@ public class NpgsqlRelationalConnectionTest
 
         var relationalConnection = (NpgsqlRelationalConnection)services.GetRequiredService<IRelationalConnection>();
 
-        var clone = relationalConnection.CloneWith("Host=localhost;Database=DummyDatabase;Application Name=foo");
+        var clone = await relationalConnection.CloneWith("Host=localhost;Database=DummyDatabase;Application Name=foo", async: true);
 
         Assert.Equal("Host=localhost;Database=DummyDatabase;Application Name=foo", clone.ConnectionString);
     }
