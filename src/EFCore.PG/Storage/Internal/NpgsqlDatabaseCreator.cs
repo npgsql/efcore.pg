@@ -208,7 +208,9 @@ WHERE
         var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString) { Pooling = false, Multiplexing = false };
 
         using var _ = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
-        var unpooledRelationalConnection = _connection.CloneWith(unpooledCsb.ToString());
+        var unpooledRelationalConnection =
+            await _connection.CloneWith(unpooledCsb.ToString(), async, cancellationToken).ConfigureAwait(false);
+
         try
         {
             if (async)
