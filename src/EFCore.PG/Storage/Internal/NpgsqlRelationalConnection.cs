@@ -99,14 +99,18 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
 
         var conn = new NpgsqlConnection(ConnectionString);
 
-        if (_provideClientCertificatesCallback is not null)
+        if (_provideClientCertificatesCallback is not null || _remoteCertificateValidationCallback is not null)
         {
-            conn.ProvideClientCertificatesCallback = _provideClientCertificatesCallback;
-        }
+            conn.SslClientAuthenticationOptionsCallback = o =>
+            {
+                if (_provideClientCertificatesCallback is not null)
+                {
+                    o.ClientCertificates ??= new();
+                    _provideClientCertificatesCallback(o.ClientCertificates);
+                }
 
-        if (_remoteCertificateValidationCallback is not null)
-        {
-            conn.UserCertificateValidationCallback = _remoteCertificateValidationCallback;
+                o.RemoteCertificateValidationCallback = _remoteCertificateValidationCallback;
+            };
         }
 
         if (_providePasswordCallback is not null)
