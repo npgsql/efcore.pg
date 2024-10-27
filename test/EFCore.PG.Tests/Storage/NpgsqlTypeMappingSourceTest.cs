@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
@@ -47,6 +49,7 @@ public class NpgsqlTypeMappingSourceTest
     [InlineData("xid", typeof(uint), null, null, null, false)]
     [InlineData("xid8", typeof(ulong), null, null, null, false)]
     [InlineData("jsonpath", typeof(string), null, null, null, false)]
+    [InlineData("cidr", typeof(IPNetwork), null, null, null, false)]
     public void By_StoreType(string typeName, Type type, int? size, int? precision, int? scale, bool fixedLength)
     {
         var mapping = CreateTypeMappingSource().FindMapping(typeName);
@@ -124,6 +127,12 @@ public class NpgsqlTypeMappingSourceTest
     [InlineData(typeof(List<NpgsqlRange<int>>), "int4multirange")]
     [InlineData(typeof(Geometry), "geometry")]
     [InlineData(typeof(Point), "geometry")]
+    [InlineData(typeof(IPAddress), "inet")]
+    [InlineData(typeof(IPNetwork), "cidr")]
+#pragma warning disable CS0618 // NpgsqlCidr is obsolete, replaced by .NET IPNetwork
+    [InlineData(typeof(NpgsqlCidr), "cidr")] // legacy
+#pragma warning restore CS0618
+    [InlineData(typeof(PhysicalAddress), "macaddr")]
     public void By_ClrType(Type clrType, string expectedStoreType)
     {
         var mapping = CreateTypeMappingSource().FindMapping(clrType);

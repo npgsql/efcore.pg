@@ -31,11 +31,11 @@ public class NetworkTranslationsNpgsqlTest : IClassFixture<NetworkTranslationsNp
     public void Demonstrate_ValueTypeParametersAreDuplicated()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        var cidr = new IPNetwork(IPAddress.Any, default);
 
-        var _ = context.NetTestEntities
-            .Where(x => EF.Functions.ContainsOrEqual(x.Cidr, cidr))
-            .Select(x => x.Cidr.Equals(cidr))
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainsOrEqual(x.IPNetwork, cidr))
+            .Select(x => x.IPNetwork.Equals(cidr))
             .ToArray();
 
         AssertSql(
@@ -43,9 +43,9 @@ public class NetworkTranslationsNpgsqlTest : IClassFixture<NetworkTranslationsNp
 @cidr='0.0.0.0/0' (DbType = Object)
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Cidr" = @cidr
+SELECT n."IPNetwork" = @cidr
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" >>= @p
+WHERE n."IPNetwork" >>= @p
 """);
     }
 
@@ -153,21 +153,21 @@ WHERE n."Inet" < INET '192.168.1.7'
     }
 
     [Fact]
-    public void LessThan_NpgsqlCidr()
+    public void LessThan_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
-            .Where(x => EF.Functions.LessThan(x.Cidr, cidr))
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.LessThan(x.IPNetwork, cidr))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" < @p
+WHERE n."IPNetwork" < @p
 """);
     }
 
@@ -218,21 +218,21 @@ WHERE n."Inet" <= INET '192.168.1.7'
     }
 
     [Fact]
-    public void LessThanOrEqual_NpgsqlCidr()
+    public void LessThanOrEqual_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
-            .Where(x => EF.Functions.LessThanOrEqual(x.Cidr, cidr))
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.LessThanOrEqual(x.IPNetwork, cidr))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" <= @p
+WHERE n."IPNetwork" <= @p
 """);
     }
 
@@ -284,21 +284,21 @@ WHERE n."Inet" >= INET '192.168.1.7'
     }
 
     [Fact]
-    public void GreaterThanOrEqual_NpgsqlCidr()
+    public void GreaterThanOrEqual_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
-            .Where(x => EF.Functions.GreaterThanOrEqual(x.Cidr, cidr))
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.GreaterThanOrEqual(x.IPNetwork, cidr))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" >= @p
+WHERE n."IPNetwork" >= @p
 """);
     }
 
@@ -351,21 +351,21 @@ WHERE n."Inet" > INET '192.168.1.7'
     }
 
     [Fact]
-    public void GreaterThan_NpgsqlCidr()
+    public void GreaterThan_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
-            .Where(x => EF.Functions.GreaterThan(x.Cidr, cidr))
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.GreaterThan(x.IPNetwork, cidr))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" > @p
+WHERE n."IPNetwork" > @p
 """);
     }
 
@@ -410,7 +410,7 @@ WHERE n."Macaddr8" > MACADDR8 '08002B0102030407'
     {
         using var context = CreateContext();
         var inet = IPAddress.Any;
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Where(x => EF.Functions.ContainedBy(x.Inet, inet))
             .ToArray();
 
@@ -418,18 +418,18 @@ WHERE n."Macaddr8" > MACADDR8 '08002B0102030407'
             """
 @p='0.0.0.0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
 WHERE n."Inet" << @p
 """);
     }
 
     [Fact]
-    public void ContainedBy_IPAddress_and_NpgsqlCidr()
+    public void ContainedBy_IPAddress_and_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
             .Where(x => EF.Functions.ContainedBy(x.Inet, cidr))
             .ToArray();
 
@@ -437,28 +437,28 @@ WHERE n."Inet" << @p
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
 WHERE n."Inet" << @p
 """);
     }
 
     [Fact]
-    public void ContainedBy_NpgsqlCidr_and_NpgsqlCidr()
+    public void ContainedBy_IPNetwork_and_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
-            .Where(x => EF.Functions.ContainedBy(x.Cidr, cidr))
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainedBy(x.IPNetwork, cidr))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" << @p
+WHERE n."IPNetwork" << @p
 """);
     }
 
@@ -467,7 +467,7 @@ WHERE n."Cidr" << @p
     {
         using var context = CreateContext();
         var inet = IPAddress.Any;
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Where(x => EF.Functions.ContainedByOrEqual(x.Inet, inet))
             .ToArray();
 
@@ -475,18 +475,18 @@ WHERE n."Cidr" << @p
             """
 @p='0.0.0.0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
 WHERE n."Inet" <<= @p
 """);
     }
 
     [Fact]
-    public void ContainedByOrEqual_IPAddress_and_NpgsqlCidr()
+    public void ContainedByOrEqual_IPAddress_and_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
             .Where(x => EF.Functions.ContainedByOrEqual(x.Inet, cidr))
             .ToArray();
 
@@ -494,28 +494,28 @@ WHERE n."Inet" <<= @p
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
 WHERE n."Inet" <<= @p
 """);
     }
 
     [Fact]
-    public void ContainedByOrEqual_NpgsqlCidr_and_NpgsqlCidr()
+    public void ContainedByOrEqual_IPNetwork_and_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
-            .Where(x => EF.Functions.ContainedByOrEqual(x.Cidr, cidr))
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainedByOrEqual(x.IPNetwork, cidr))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" <<= @p
+WHERE n."IPNetwork" <<= @p
 """);
     }
 
@@ -524,7 +524,7 @@ WHERE n."Cidr" <<= @p
     {
         using var context = CreateContext();
         var inet = IPAddress.Any;
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Where(x => EF.Functions.Contains(x.Inet, inet))
             .ToArray();
 
@@ -532,47 +532,47 @@ WHERE n."Cidr" <<= @p
             """
 @p='0.0.0.0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
 WHERE n."Inet" >> @p
 """);
     }
 
     [Fact]
-    public void Contains_NpgsqlCidr_and_IPAddress()
+    public void Contains_IPNetwork_and_IPAddress()
     {
         using var context = CreateContext();
         var inet = IPAddress.Any;
-        var _ = context.NetTestEntities
-            .Where(x => EF.Functions.Contains(x.Cidr, inet))
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.Contains(x.IPNetwork, inet))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" >> @p
+WHERE n."IPNetwork" >> @p
 """);
     }
 
     [Fact]
-    public void Contains_NpgsqlCidr_and_NpgsqlCidr()
+    public void Contains_IPNetwork_and_IPNetworks()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
-            .Where(x => EF.Functions.Contains(x.Cidr, cidr))
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.Contains(x.IPNetwork, cidr))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" >> @p
+WHERE n."IPNetwork" >> @p
 """);
     }
 
@@ -581,7 +581,7 @@ WHERE n."Cidr" >> @p
     {
         using var context = CreateContext();
         var inet = IPAddress.Any;
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Where(x => EF.Functions.ContainsOrEqual(x.Inet, inet))
             .ToArray();
 
@@ -589,47 +589,47 @@ WHERE n."Cidr" >> @p
             """
 @p='0.0.0.0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
 WHERE n."Inet" >>= @p
 """);
     }
 
     [Fact]
-    public void ContainsOrEqual_NpgsqlCidr_and_IPAddress()
+    public void ContainsOrEqual_IPNetwork_and_IPAddress()
     {
         using var context = CreateContext();
         var inet = IPAddress.Any;
-        var _ = context.NetTestEntities
-            .Where(x => EF.Functions.ContainsOrEqual(x.Cidr, inet))
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainsOrEqual(x.IPNetwork, inet))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" >>= @p
+WHERE n."IPNetwork" >>= @p
 """);
     }
 
     [Fact]
-    public void ContainsOrEqual_NpgsqlCidr_and_NpgsqlCidr()
+    public void ContainsOrEqual_IPNetwork_and_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
-            .Where(x => EF.Functions.ContainsOrEqual(x.Cidr, cidr))
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainsOrEqual(x.IPNetwork, cidr))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" >>= @p
+WHERE n."IPNetwork" >>= @p
 """);
     }
 
@@ -638,7 +638,7 @@ WHERE n."Cidr" >>= @p
     {
         using var context = CreateContext();
         var inet = IPAddress.Any;
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Where(x => EF.Functions.ContainsOrContainedBy(x.Inet, inet))
             .ToArray();
 
@@ -646,18 +646,18 @@ WHERE n."Cidr" >>= @p
             """
 @p='0.0.0.0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
 WHERE n."Inet" && @p
 """);
     }
 
     [Fact]
-    public void ContainsOrContainedBy_IPAddress_and_NpgsqlCidr()
+    public void ContainsOrContainedBy_IPAddress_and_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
             .Where(x => EF.Functions.ContainsOrContainedBy(x.Inet, cidr))
             .ToArray();
 
@@ -665,47 +665,47 @@ WHERE n."Inet" && @p
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
 WHERE n."Inet" && @p
 """);
     }
 
     [Fact]
-    public void ContainsOrContainedBy_NpgsqlCidr_and_IPAddress()
+    public void ContainsOrContainedBy_IPNetwork_and_IPAddress()
     {
         using var context = CreateContext();
         var inet = IPAddress.Any;
-        var _ = context.NetTestEntities
-            .Where(x => EF.Functions.ContainsOrContainedBy(x.Cidr, inet))
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainsOrContainedBy(x.IPNetwork, inet))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" && @p
+WHERE n."IPNetwork" && @p
 """);
     }
 
     [Fact]
-    public void ContainsOrContainedBy_NpgsqlCidr_and_NpgsqlCidr()
+    public void ContainsOrContainedBy_IPNetwork_and_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
-            .Where(x => EF.Functions.ContainsOrContainedBy(x.Cidr, cidr))
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainsOrContainedBy(x.IPNetwork, cidr))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" && @p
+WHERE n."IPNetwork" && @p
 """);
     }
 
@@ -717,7 +717,7 @@ WHERE n."Cidr" && @p
     public void BitwiseNot_IPAddress()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.BitwiseNot(x.Inet))
             .ToArray();
 
@@ -729,16 +729,16 @@ FROM "NetTestEntities" AS n
     }
 
     [Fact]
-    public void BitwiseNot_NpgsqlCidr()
+    public void BitwiseNot_IPNetwork()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.BitwiseNot(x.Cidr))
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.BitwiseNot(x.IPNetwork))
             .ToArray();
 
         AssertSql(
             """
-SELECT ~n."Cidr"
+SELECT ~n."IPNetwork"
 FROM "NetTestEntities" AS n
 """);
     }
@@ -747,7 +747,7 @@ FROM "NetTestEntities" AS n
     public void BitwiseNot_PhysicalAddress()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.BitwiseNot(x.Macaddr))
             .ToArray();
 
@@ -763,7 +763,7 @@ FROM "NetTestEntities" AS n
     public void BitwiseNot_PhysicalAddress_macaddr8()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.BitwiseNot(x.Macaddr8))
             .ToArray();
 
@@ -793,19 +793,19 @@ WHERE n."Inet" = n."Inet" & @p
     }
 
     [Fact]
-    public void BitwiseAnd_NpgsqlCidr()
+    public void BitwiseAnd_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.BitwiseAnd(x.Cidr, cidr))
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.BitwiseAnd(x.IPNetwork, cidr))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Cidr" & @p
+SELECT n."IPNetwork" & @p
 FROM "NetTestEntities" AS n
 """);
     }
@@ -815,7 +815,7 @@ FROM "NetTestEntities" AS n
     {
         using var context = CreateContext();
         var macaddr = new PhysicalAddress(new byte[6]);
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.BitwiseAnd(x.Macaddr, macaddr))
             .ToArray();
 
@@ -833,7 +833,7 @@ FROM "NetTestEntities" AS n
     public void BitwiseAnd_PhysicalAddress_macaddr8()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.BitwiseAnd(x.Macaddr8, x.Macaddr8))
             .ToArray();
 
@@ -849,7 +849,7 @@ FROM "NetTestEntities" AS n
     {
         using var context = CreateContext();
         var inet = IPAddress.Any;
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.BitwiseOr(x.Inet, inet))
             .ToArray();
 
@@ -863,19 +863,19 @@ FROM "NetTestEntities" AS n
     }
 
     [Fact]
-    public void BitwiseOr_NpgsqlCidr()
+    public void BitwiseOr_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.BitwiseOr(x.Cidr, cidr))
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.BitwiseOr(x.IPNetwork, cidr))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Cidr" | @p
+SELECT n."IPNetwork" | @p
 FROM "NetTestEntities" AS n
 """);
     }
@@ -885,7 +885,7 @@ FROM "NetTestEntities" AS n
     {
         using var context = CreateContext();
         var macaddr = new PhysicalAddress(new byte[6]);
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.BitwiseOr(x.Macaddr, macaddr))
             .ToArray();
 
@@ -903,7 +903,7 @@ FROM "NetTestEntities" AS n
     public void BitwiseOr_PhysicalAddress_macaddr8()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.BitwiseOr(x.Macaddr8, x.Macaddr8))
             .ToArray();
 
@@ -927,7 +927,7 @@ FROM "NetTestEntities" AS n
         Assert.Equal(actual, IPAddress.Parse("192.168.1.1"));
         AssertSql(
             """
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
 WHERE n."Inet" + 1 = INET '192.168.1.2'
 LIMIT 2
@@ -935,16 +935,16 @@ LIMIT 2
     }
 
     [Fact]
-    public void Add_NpgsqlCidr_and_int()
+    public void Add_IPNetwork_and_int()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.Add(x.Cidr, 1))
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Add(x.IPNetwork, 1))
             .ToArray();
 
         AssertSql(
             """
-SELECT n."Cidr" + 1
+SELECT n."IPNetwork" + 1
 FROM "NetTestEntities" AS n
 """);
     }
@@ -958,7 +958,7 @@ FROM "NetTestEntities" AS n
         Assert.Equal(actual, IPAddress.Parse("192.168.1.2"));
         AssertSql(
             """
-SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
 WHERE n."Inet" - 1 = INET '192.168.1.1'
 LIMIT 2
@@ -966,16 +966,16 @@ LIMIT 2
     }
 
     [Fact]
-    public void Subtract_NpgsqlCidr_and_int()
+    public void Subtract_IPNetwork_and_int()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.Subtract(x.Cidr, 1))
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Subtract(x.IPNetwork, 1))
             .ToArray();
 
         AssertSql(
             """
-SELECT n."Cidr" - 1
+SELECT n."IPNetwork" - 1
 FROM "NetTestEntities" AS n
 """);
     }
@@ -985,7 +985,7 @@ FROM "NetTestEntities" AS n
     {
         using var context = CreateContext();
         var inet = IPAddress.Any;
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.Subtract(x.Inet, inet))
             .ToArray();
 
@@ -999,19 +999,19 @@ FROM "NetTestEntities" AS n
     }
 
     [Fact]
-    public void Subtract_NpgsqlCidr_and_NpgsqlCidr()
+    public void Subtract_IPNetwork_and_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.Subtract(x.Cidr, cidr))
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Subtract(x.IPNetwork, cidr))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Cidr" - @p
+SELECT n."IPNetwork" - @p
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1024,7 +1024,7 @@ FROM "NetTestEntities" AS n
     public void Abbreviate_IPAddress()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.Abbreviate(x.Inet))
             .ToArray();
 
@@ -1036,16 +1036,16 @@ FROM "NetTestEntities" AS n
     }
 
     [Fact]
-    public void Abbreviate_NpgsqlCidr()
+    public void Abbreviate_IPNetwork()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.Abbreviate(x.Cidr))
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Abbreviate(x.IPNetwork))
             .ToArray();
 
         AssertSql(
             """
-SELECT abbrev(n."Cidr")
+SELECT abbrev(n."IPNetwork")
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1054,7 +1054,7 @@ FROM "NetTestEntities" AS n
     public void Broadcast_IPAddress()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.Broadcast(x.Inet))
             .ToArray();
 
@@ -1066,16 +1066,16 @@ FROM "NetTestEntities" AS n
     }
 
     [Fact]
-    public void Broadcast_NpgsqlCidr()
+    public void Broadcast_IPNetwork()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.Broadcast(x.Cidr))
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Broadcast(x.IPNetwork))
             .ToArray();
 
         AssertSql(
             """
-SELECT broadcast(n."Cidr")
+SELECT broadcast(n."IPNetwork")
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1084,7 +1084,7 @@ FROM "NetTestEntities" AS n
     public void Family_IPAddress()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.Family(x.Inet))
             .ToArray();
 
@@ -1096,16 +1096,16 @@ FROM "NetTestEntities" AS n
     }
 
     [Fact]
-    public void Family_NpgsqlCidr()
+    public void Family_IPNetwork()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.Family(x.Cidr))
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Family(x.IPNetwork))
             .ToArray();
 
         AssertSql(
             """
-SELECT family(n."Cidr")
+SELECT family(n."IPNetwork")
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1114,7 +1114,7 @@ FROM "NetTestEntities" AS n
     public void Host_IPAddress()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.Host(x.Inet))
             .ToArray();
 
@@ -1126,16 +1126,16 @@ FROM "NetTestEntities" AS n
     }
 
     [Fact]
-    public void Host_NpgsqlCidr()
+    public void Host_IPNetwork()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.Host(x.Cidr))
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Host(x.IPNetwork))
             .ToArray();
 
         AssertSql(
             """
-SELECT host(n."Cidr")
+SELECT host(n."IPNetwork")
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1144,7 +1144,7 @@ FROM "NetTestEntities" AS n
     public void HostMask_IPAddress()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.HostMask(x.Inet))
             .ToArray();
 
@@ -1156,16 +1156,16 @@ FROM "NetTestEntities" AS n
     }
 
     [Fact]
-    public void HostMask_NpgsqlCidr()
+    public void HostMask_IPNetwork()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.HostMask(x.Cidr))
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.HostMask(x.IPNetwork))
             .ToArray();
 
         AssertSql(
             """
-SELECT hostmask(n."Cidr")
+SELECT hostmask(n."IPNetwork")
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1174,7 +1174,7 @@ FROM "NetTestEntities" AS n
     public void MaskLength_IPAddress()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.MaskLength(x.Inet))
             .ToArray();
 
@@ -1186,16 +1186,16 @@ FROM "NetTestEntities" AS n
     }
 
     [Fact]
-    public void MaskLength_NpgsqlCidr()
+    public void MaskLength_IPNetwork()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.MaskLength(x.Cidr))
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.MaskLength(x.IPNetwork))
             .ToArray();
 
         AssertSql(
             """
-SELECT masklen(n."Cidr")
+SELECT masklen(n."IPNetwork")
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1204,7 +1204,7 @@ FROM "NetTestEntities" AS n
     public void Netmask_IPAddress()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.Netmask(x.Inet))
             .ToArray();
 
@@ -1216,16 +1216,16 @@ FROM "NetTestEntities" AS n
     }
 
     [Fact]
-    public void Netmask_NpgsqlCidr()
+    public void Netmask_IPNetwork()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.Netmask(x.Cidr))
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Netmask(x.IPNetwork))
             .ToArray();
 
         AssertSql(
             """
-SELECT netmask(n."Cidr")
+SELECT netmask(n."IPNetwork")
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1234,7 +1234,7 @@ FROM "NetTestEntities" AS n
     public void Network_IPAddress()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.Network(x.Inet))
             .ToArray();
 
@@ -1246,16 +1246,16 @@ FROM "NetTestEntities" AS n
     }
 
     [Fact]
-    public void Network_NpgsqlCidr()
+    public void Network_IPNetwork()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.Network(x.Cidr))
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Network(x.IPNetwork))
             .ToArray();
 
         AssertSql(
             """
-SELECT network(n."Cidr")
+SELECT network(n."IPNetwork")
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1264,7 +1264,7 @@ FROM "NetTestEntities" AS n
     public void SetMaskLength_IPAddress()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.SetMaskLength(x.Inet, default))
             .ToArray();
 
@@ -1276,16 +1276,16 @@ FROM "NetTestEntities" AS n
     }
 
     [Fact]
-    public void SetMaskLength_NpgsqlCidr()
+    public void SetMaskLength_IPNetwork()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.SetMaskLength(x.Cidr, default))
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.SetMaskLength(x.IPNetwork, default))
             .ToArray();
 
         AssertSql(
             """
-SELECT set_masklen(n."Cidr", 0)
+SELECT set_masklen(n."IPNetwork", 0)
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1294,7 +1294,7 @@ FROM "NetTestEntities" AS n
     public void Text_IPAddress()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.Text(x.Inet))
             .ToArray();
 
@@ -1306,16 +1306,16 @@ FROM "NetTestEntities" AS n
     }
 
     [Fact]
-    public void Text_NpgsqlCidr()
+    public void Text_IPNetwork()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.Text(x.Cidr))
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Text(x.IPNetwork))
             .ToArray();
 
         AssertSql(
             """
-SELECT text(n."Cidr")
+SELECT text(n."IPNetwork")
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1325,7 +1325,7 @@ FROM "NetTestEntities" AS n
     {
         using var context = CreateContext();
         var inet = IPAddress.Any;
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.SameFamily(x.Inet, inet))
             .ToArray();
 
@@ -1339,19 +1339,19 @@ FROM "NetTestEntities" AS n
     }
 
     [Fact]
-    public void SameFamily_NpgsqlCidr()
+    public void SameFamily_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.SameFamily(x.Cidr, cidr))
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.SameFamily(x.IPNetwork, cidr))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT inet_same_family(n."Cidr", @p)
+SELECT inet_same_family(n."IPNetwork", @p)
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1361,7 +1361,7 @@ FROM "NetTestEntities" AS n
     {
         using var context = CreateContext();
         var inet = IPAddress.Any;
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.Merge(x.Inet, inet))
             .ToArray();
 
@@ -1375,19 +1375,19 @@ FROM "NetTestEntities" AS n
     }
 
     [Fact]
-    public void Merge_NpgsqlCidr()
+    public void Merge_IPNetwork()
     {
         using var context = CreateContext();
-        var cidr = new NpgsqlCidr(IPAddress.Any, default);
-        var _ = context.NetTestEntities
-            .Select(x => EF.Functions.Merge(x.Cidr, cidr))
+        var cidr = new IPNetwork(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Merge(x.IPNetwork, cidr))
             .ToArray();
 
         AssertSql(
             """
 @p='0.0.0.0/0' (DbType = Object)
 
-SELECT inet_merge(n."Cidr", @p)
+SELECT inet_merge(n."IPNetwork", @p)
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1396,7 +1396,7 @@ FROM "NetTestEntities" AS n
     public void Truncate_PhysicalAddress()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.Truncate(x.Macaddr))
             .ToArray();
 
@@ -1412,7 +1412,7 @@ FROM "NetTestEntities" AS n
     public void Truncate_PhysicalAddress_macaddr8()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.Truncate(x.Macaddr8))
             .ToArray();
 
@@ -1428,7 +1428,7 @@ FROM "NetTestEntities" AS n
     public void Set7BitMac8_PhysicalAddress_macaddr8()
     {
         using var context = CreateContext();
-        var _ = context.NetTestEntities
+        _ = context.NetTestEntities
             .Select(x => EF.Functions.Set7BitMac8(x.Macaddr8))
             .ToArray();
 
@@ -1440,6 +1440,584 @@ FROM "NetTestEntities" AS n
     }
 
     #endregion
+
+    #region Obsolete (NpgsqlCidr)
+
+#pragma warning disable CS0618 // NpgsqlCidr is obsolete, replaced by .NET IPNetwork
+
+    [Fact]
+    public void LessThan_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.LessThan(x.Cidr, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" < @p
+""");
+    }
+
+    [Fact]
+    public void LessThanOrEqual_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.LessThanOrEqual(x.Cidr, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" <= @p
+""");
+    }
+
+    [Fact]
+    public void GreaterThanOrEqual_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.GreaterThanOrEqual(x.Cidr, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" >= @p
+""");
+    }
+
+    [Fact]
+    public void GreaterThan_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.GreaterThan(x.Cidr, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" > @p
+""");
+    }
+
+    [Fact]
+    public void ContainedBy_IPAddress_and_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainedBy(x.Inet, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Inet" << @p
+""");
+    }
+
+    [Fact]
+    public void ContainedBy_NpgsqlCidr_and_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainedBy(x.Cidr, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" << @p
+""");
+    }
+
+    [Fact]
+    public void ContainedByOrEqual_IPAddress_and_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainedByOrEqual(x.Inet, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Inet" <<= @p
+""");
+    }
+
+    [Fact]
+    public void ContainedByOrEqual_NpgsqlCidr_and_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainedByOrEqual(x.Cidr, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" <<= @p
+""");
+    }
+
+    [Fact]
+    public void Contains_NpgsqlCidr_and_IPAddress()
+    {
+        using var context = CreateContext();
+        var inet = IPAddress.Any;
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.Contains(x.Cidr, inet))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0' (DbType = Object)
+
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" >> @p
+""");
+    }
+
+    [Fact]
+    public void Contains_NpgsqlCidr_and_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.Contains(x.Cidr, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" >> @p
+""");
+    }
+
+    [Fact]
+    public void ContainsOrEqual_NpgsqlCidr_and_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainsOrEqual(x.Cidr, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" >>= @p
+""");
+    }
+
+    [Fact]
+    public void ContainsOrEqual_NpgsqlCidr_and_IPAddress()
+    {
+        using var context = CreateContext();
+        var inet = IPAddress.Any;
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainsOrEqual(x.Cidr, inet))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0' (DbType = Object)
+
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" >>= @p
+""");
+    }
+
+    [Fact]
+    public void ContainsOrContainedBy_IPAddress_and_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainsOrContainedBy(x.Inet, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Inet" && @p
+""");
+    }
+
+    [Fact]
+    public void ContainsOrContainedBy_NpgsqlCidr_and_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainsOrContainedBy(x.Cidr, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" && @p
+""");
+    }
+
+    [Fact]
+    public void ContainsOrContainedBy_NpgsqlCidr_and_IPAddress()
+    {
+        using var context = CreateContext();
+        var inet = IPAddress.Any;
+        _ = context.NetTestEntities
+            .Where(x => EF.Functions.ContainsOrContainedBy(x.Cidr, inet))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0' (DbType = Object)
+
+SELECT n."Id", n."Cidr", n."IPNetwork", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
+FROM "NetTestEntities" AS n
+WHERE n."Cidr" && @p
+""");
+    }
+
+    [Fact]
+    public void BitwiseAnd_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.BitwiseAnd(x.Cidr, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT n."Cidr" & @p
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void BitwiseOr_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.BitwiseOr(x.Cidr, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT n."Cidr" | @p
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void Subtract_NpgsqlCidr_and_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Subtract(x.Cidr, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT n."Cidr" - @p
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void SameFamily_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.SameFamily(x.Cidr, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT inet_same_family(n."Cidr", @p)
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void Merge_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        var cidr = new NpgsqlCidr(IPAddress.Any, default);
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Merge(x.Cidr, cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+@p='0.0.0.0/0' (DbType = Object)
+
+SELECT inet_merge(n."Cidr", @p)
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void BitwiseNot_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.BitwiseNot(x.Cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+SELECT ~n."Cidr"
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void Add_NpgsqlCidr_and_int()
+    {
+        using var context = CreateContext();
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Add(x.Cidr, 1))
+            .ToArray();
+
+        AssertSql(
+            """
+SELECT n."Cidr" + 1
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void Subtract_NpgsqlCidr_and_int()
+    {
+        using var context = CreateContext();
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Subtract(x.Cidr, 1))
+            .ToArray();
+
+        AssertSql(
+            """
+SELECT n."Cidr" - 1
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void Abbreviate_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Abbreviate(x.Cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+SELECT abbrev(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void Broadcast_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Broadcast(x.Cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+SELECT broadcast(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void Family_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Family(x.Cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+SELECT family(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void Host_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Host(x.Cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+SELECT host(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void HostMask_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.HostMask(x.Cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+SELECT hostmask(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void MaskLength_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.MaskLength(x.Cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+SELECT masklen(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void Netmask_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Netmask(x.Cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+SELECT netmask(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void Network_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Network(x.Cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+SELECT network(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void SetMaskLength_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.SetMaskLength(x.Cidr, default))
+            .ToArray();
+
+        AssertSql(
+            """
+SELECT set_masklen(n."Cidr", 0)
+FROM "NetTestEntities" AS n
+""");
+    }
+
+    [Fact]
+    public void Text_NpgsqlCidr()
+    {
+        using var context = CreateContext();
+        _ = context.NetTestEntities
+            .Select(x => EF.Functions.Text(x.Cidr))
+            .ToArray();
+
+        AssertSql(
+            """
+SELECT text(n."Cidr")
+FROM "NetTestEntities" AS n
+""");
+    }
+
+#pragma warning restore CS0618
+
+    #endregion Obsolete (NpgsqlCidr)
 
     #region Fixtures
 
@@ -1481,6 +2059,12 @@ FROM "NetTestEntities" AS n
         /// <summary>
         ///     The network address.
         /// </summary>
+        public IPNetwork IPNetwork { get; set; }
+
+        /// <summary>
+        ///     The network address.
+        /// </summary>
+        [Obsolete("NpgsqlCidr is obsolete, replaced by .NET IPNetwork")]
         public NpgsqlCidr Cidr { get; set; }
 
         /// <summary>
@@ -1548,7 +2132,10 @@ FROM "NetTestEntities" AS n
                     {
                         Id = i,
                         Inet = ip,
+#pragma warning disable CS0618 // NpgsqlCidr is obsolete, replaced by .NET IPNetwork
                         Cidr = new NpgsqlCidr(IPAddress.Parse("192.168.1.0"), 24),
+#pragma warning restore CS0618
+                        IPNetwork = new IPNetwork(IPAddress.Parse("192.168.1.0"), 24),
                         Macaddr = macaddr,
                         Macaddr8 = macaddr8,
                         TextInet = ip.ToString(),

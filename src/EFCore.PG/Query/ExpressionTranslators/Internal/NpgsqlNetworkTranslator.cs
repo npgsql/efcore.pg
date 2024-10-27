@@ -70,10 +70,12 @@ public class NpgsqlNetworkTranslator : IMethodCallTranslator
                 return TranslateInetExtensionMethod(method, arguments);
             }
 
-            if (paramType == typeof(NpgsqlCidr))
+#pragma warning disable CS0618 // NpgsqlCidr is obsolete, replaced by .NET IPNetwork
+            if (paramType == typeof(IPNetwork) || paramType == typeof(NpgsqlCidr))
             {
                 return TranslateCidrExtensionMethod(method, arguments);
             }
+#pragma warning restore CS0618
 
             if (paramType == typeof(PhysicalAddress))
             {
