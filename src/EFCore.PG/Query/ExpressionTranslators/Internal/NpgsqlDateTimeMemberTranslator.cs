@@ -56,6 +56,11 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
             return translated;
         }
 
+        if (declaringType == typeof(DateOnly) && TranslateDateOnly(instance, member) is { } translated2)
+        {
+            return translated2;
+        }
+
         if (member.Name == nameof(DateTime.Date))
         {
             // Note that DateTime.Date returns a DateTime, not a DateOnly (introduced later); so we convert using date_trunc (which returns
@@ -190,13 +195,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
         return _sqlExpressionFactory.Convert(result, typeof(int));
     }
 
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public virtual SqlExpression? TranslateDateTimeOffset(SqlExpression instance, MemberInfo member)
+    private SqlExpression? TranslateDateTimeOffset(SqlExpression instance, MemberInfo member)
         => member.Name switch
         {
             // We only support UTC DateTimeOffset, so DateTimeOffset.DateTime is just a matter of converting to timestamp without time zone
@@ -222,6 +221,17 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
                     argumentsPropagateNullability: TrueArrays[2],
                     typeof(DateTime),
                     _timestampMapping),
+
+            _ => null
+        };
+
+    private SqlExpression? TranslateDateOnly(SqlExpression? instance, MemberInfo member)
+        => member.Name switch
+        {
+            // We use fragment rather than a DateOnly constant, since 0001-01-01 gets rendered as -infinity by default.
+            // TODO: Set the right type/type mapping after https://github.com/dotnet/efcore/pull/34995 is merged
+            nameof(DateOnly.DayNumber) when instance is not null
+                => _sqlExpressionFactory.Subtract(instance, _sqlExpressionFactory.Fragment("DATE '0001-01-01'")),
 
             _ => null
         };

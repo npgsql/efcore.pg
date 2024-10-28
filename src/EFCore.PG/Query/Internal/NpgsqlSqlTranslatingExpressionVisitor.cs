@@ -218,21 +218,39 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
 
         var translation = base.VisitBinary(binaryExpression);
 
-        // A somewhat hacky workaround for #2942.
-        // When an optional owned JSON entity is compared to null, we get WHERE (x -> y) IS NULL.
-        // The -> operator (returning jsonb) is used rather than ->> (returning text), since an entity type is being extracted, and further
-        // JSON operations may need to be composed. However, when the value extracted is a JSON null, a non-NULL jsonb value is returned,
-        // and comparing that to relational NULL returns false.
-        // Pattern-match this and force the use of ->> by changing the mapping to be a scalar rather than an entity type.
-        if (translation is SqlUnaryExpression
+        switch (translation)
+        {
+            // Optimize (x - c) - (y - c) to x - y.
+            // This is particularly useful for DateOnly.DayNumber - DateOnly.DayNumber, which is the way to express DateOnly subtraction
+            // (the subtraction operator isn't defined over DateOnly in .NET). The translation of x.DayNumber is x - DATE '0001-01-01',
+            // so the below is a useful simplification.
+            // TODO: As this is a generic mathematical simplification, we should move it to a generic optimization phase in EF Core.
+            case SqlBinaryExpression
+            {
+                OperatorType: ExpressionType.Subtract,
+                Left: SqlBinaryExpression { OperatorType: ExpressionType.Subtract, Left: var left1, Right: var right1 },
+                Right: SqlBinaryExpression { OperatorType: ExpressionType.Subtract, Left: var left2, Right: var right2 }
+            } originalBinary when right1.Equals(right2):
+            {
+                return new SqlBinaryExpression(ExpressionType.Subtract, left1, left2, originalBinary.Type, originalBinary.TypeMapping);
+            }
+
+            // A somewhat hacky workaround for #2942.
+            // When an optional owned JSON entity is compared to null, we get WHERE (x -> y) IS NULL.
+            // The -> operator (returning jsonb) is used rather than ->> (returning text), since an entity type is being extracted, and
+            // further JSON operations may need to be composed. However, when the value extracted is a JSON null, a non-NULL jsonb value is
+            // returned, and comparing that to relational NULL returns false.
+            // Pattern-match this and force the use of ->> by changing the mapping to be a scalar rather than an entity type.
+            case SqlUnaryExpression
             {
                 OperatorType: ExpressionType.Equal or ExpressionType.NotEqual,
                 Operand: JsonScalarExpression { TypeMapping: NpgsqlOwnedJsonTypeMapping } operand
-            } unary)
-        {
-            return unary.Update(
-                new JsonScalarExpression(
-                    operand.Json, operand.Path, operand.Type, _typeMappingSource.FindMapping("text"), operand.IsNullable));
+            } unary:
+            {
+                return unary.Update(
+                    new JsonScalarExpression(
+                        operand.Json, operand.Path, operand.Type, _typeMappingSource.FindMapping("text"), operand.IsNullable));
+            }
         }
 
         return translation;
