@@ -273,7 +273,15 @@ WHERE
     /// </summary>
     public override void Delete()
     {
-        ClearAllPools();
+        switch (_connection.DataSource)
+        {
+            case NpgsqlDataSource dataSource:
+                dataSource.Clear();
+                break;
+            case null:
+                ClearAllPools();
+                break;
+        }
 
         using (var masterConnection = _connection.CreateAdminConnection())
         {
@@ -290,7 +298,16 @@ WHERE
     /// </summary>
     public override async Task DeleteAsync(CancellationToken cancellationToken = default)
     {
-        ClearAllPools();
+        switch (_connection.DataSource)
+        {
+            case NpgsqlDataSource dataSource:
+                // TODO: Do this asynchronously once https://github.com/npgsql/npgsql/issues/4499 is done
+                dataSource.Clear();
+                break;
+            case null:
+                ClearAllPools();
+                break;
+        }
 
         var masterConnection = _connection.CreateAdminConnection();
         await using (masterConnection)
