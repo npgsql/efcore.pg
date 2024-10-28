@@ -21,7 +21,13 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     private readonly ProvidePasswordCallback? _providePasswordCallback;
 #pragma warning restore CS0618
 
-    private DbDataSource? _dataSource;
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public DbDataSource? DataSource { get; private set; }
 
     /// <summary>
     ///     Indicates whether the store connection supports ambient transactions
@@ -58,7 +64,7 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     {
         if (dataSource is not null)
         {
-            _dataSource = dataSource;
+            DataSource = dataSource;
 
 #if DEBUG
             // We validate in NpgsqlOptionsExtensions.Validate that DataSource and these callbacks aren't specified together
@@ -92,9 +98,9 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     /// </summary>
     protected override DbConnection CreateDbConnection()
     {
-        if (_dataSource is not null)
+        if (DataSource is not null)
         {
-            return _dataSource.CreateConnection();
+            return DataSource.CreateConnection();
         }
 
         var conn = new NpgsqlConnection(ConnectionString);
@@ -132,12 +138,12 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     // TODO: Remove after DbDataSource support is added to EF Core (https://github.com/dotnet/efcore/issues/28266)
     public override string? ConnectionString
     {
-        get => _dataSource is null ? base.ConnectionString : _dataSource.ConnectionString;
+        get => DataSource is null ? base.ConnectionString : DataSource.ConnectionString;
         set
         {
             base.ConnectionString = value;
 
-            _dataSource = null;
+            DataSource = null;
         }
     }
 
@@ -155,7 +161,7 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
         {
             base.DbConnection = value;
 
-            _dataSource = null;
+            DataSource = null;
         }
     }
 
@@ -167,12 +173,12 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     /// </summary>
     public virtual DbDataSource? DbDataSource
     {
-        get => _dataSource;
+        get => DataSource;
         set
         {
             DbConnection = null;
             ConnectionString = null;
-            _dataSource = value;
+            DataSource = value;
         }
     }
 
@@ -196,7 +202,7 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
             Multiplexing = false
         }.ToString();
 
-        var adminNpgsqlOptions = _dataSource is not null
+        var adminNpgsqlOptions = DataSource is not null
             ? npgsqlOptions.WithConnection(((NpgsqlConnection)CreateDbConnection()).CloneWith(adminConnectionString))
             : npgsqlOptions.Connection is not null
                 ? npgsqlOptions.WithConnection(DbConnection.CloneWith(adminConnectionString))
