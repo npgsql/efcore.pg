@@ -41,6 +41,7 @@ public class NpgsqlTypeMappingSourceTest
     [InlineData("geometry(POLYGONM)", typeof(Polygon), null, null, null, false)]
     [InlineData("xid", typeof(uint), null, null, null, false)]
     [InlineData("xid8", typeof(ulong), null, null, null, false)]
+    [InlineData("jsonpath", typeof(string), null, null, null, false)]
     public void By_StoreType(string typeName, Type type, int? size, int? precision, int? scale, bool fixedLength)
     {
         var mapping = CreateTypeMappingSource().FindMapping(typeName);

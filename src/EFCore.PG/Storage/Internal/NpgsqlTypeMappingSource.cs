@@ -84,6 +84,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     private readonly NpgsqlCharacterCharTypeMapping _singleChar = new("character(1)");
     private readonly NpgsqlStringTypeMapping _xml = new("xml", NpgsqlDbType.Xml);
     private readonly NpgsqlStringTypeMapping _citext = new("citext", NpgsqlDbType.Citext);
+    private readonly NpgsqlStringTypeMapping _jsonpath = new("jsonpath", NpgsqlDbType.JsonPath);
 
     // JSON mappings - EF owned entity support
     private readonly NpgsqlOwnedJsonTypeMapping _jsonbOwned = new("jsonb");
@@ -234,6 +235,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { "text", [_text] },
             { "jsonb", [_jsonbString, _jsonbDocument, _jsonbElement] },
             { "json", [_jsonString, _jsonDocument, _jsonElement] },
+            { "jsonpath", [_jsonpath] },
             { "xml", [_xml] },
             { "citext", [_citext] },
             { "character varying", [_varchar] },
