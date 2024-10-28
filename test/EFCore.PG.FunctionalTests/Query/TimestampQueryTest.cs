@@ -744,6 +744,56 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS date) + TIME '15:26:38'
 """);
     }
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task DateOnly_DayNumber(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>().Where(e => DateOnly.FromDateTime(e.TimestamptzDateTime).DayNumber == 729490));
+
+        AssertSql(
+            """
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS date) - DATE '0001-01-01' = 729490
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task DateOnly_DayNumber_subtraction(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>().Where(
+                e => DateOnly.FromDateTime(e.TimestamptzDateTime).DayNumber -
+                    DateOnly.FromDateTime(e.TimestamptzDateTime - TimeSpan.FromDays(3)).DayNumber == 3));
+
+        AssertSql(
+            """
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS date) - CAST((e."TimestamptzDateTime" - INTERVAL '3 00:00:00') AT TIME ZONE 'UTC' AS date) = 3
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task DateOnly_FromDayNumber(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>().Where(e => DateOnly.FromDayNumber(e.Id) == new DateOnly(0001, 01, 03)));
+
+        AssertSql(
+            """
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE DATE '0001-01-01' + e."Id" = DATE '0001-01-03'
+""");
+    }
+
     #endregion DateOnly
 
     #region TimeOnly

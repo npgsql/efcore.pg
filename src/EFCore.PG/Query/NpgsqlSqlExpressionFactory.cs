@@ -476,6 +476,18 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                     binary.Type,
                     typeMapping ?? _typeMappingSource.FindMapping(binary.Type, "interval"));
             }
+
+            // TODO: This is a hack until https://github.com/dotnet/efcore/pull/34995 is done; the translation of DateOnly.DayNumber
+            // generates a substraction with a fragment, but for now we can't assign a type/type mapping to a fragment.
+            case ExpressionType.Subtract when left.Type == typeof(DateOnly) && right is SqlFragmentExpression:
+            {
+                return new SqlBinaryExpression(
+                    ExpressionType.Subtract,
+                    ApplyDefaultTypeMapping(left),
+                    right,
+                    typeof(int),
+                    _typeMappingSource.FindMapping(typeof(int)));
+            }
         }
 
         // If this is a row value comparison (e.g. (a, b) > (5, 6)), doing type mapping inference on each corresponding pair.
