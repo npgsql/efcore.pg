@@ -97,7 +97,8 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator, IMethodCallTranslator
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public virtual SqlExpression? TranslateMemberAccess(SqlExpression instance, SqlExpression member, Type returnType)
-        => instance switch
+    {
+        return instance switch
         {
             // The first time we see a JSON traversal it's on a column - create a JsonTraversalExpression.
             // Traversals on top of that get appended into the same expression.
@@ -118,6 +119,25 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator, IMethodCallTranslator
 
             _ => null
         };
+
+        // The PostgreSQL traversal operator always returns text.
+        // If the type returned is a scalar (int, bool, etc.), we need to apply a conversion from string.
+        SqlExpression ConvertFromText(SqlExpression expression, Type returnType)
+            => _typeMappingSource.FindMapping(returnType.UnwrapNullableType(), _model) switch
+            {
+                // Type mapping not found - this isn't a scalar
+                null => expression,
+
+                // Arrays are dealt with as JSON arrays, not array scalars
+                NpgsqlArrayTypeMapping => expression,
+
+                // Text types don't a a conversion to string
+                { StoreTypeNameBase: "text" or "varchar" or "char" } => expression,
+
+                // For any other type mapping, this is a scalar; apply a conversion to the type from string.
+                var mapping => _sqlExpressionFactory.Convert(expression, returnType, mapping)
+            };
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -158,39 +178,5 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator, IMethodCallTranslator
             default:
                 return null;
         }
-    }
-
-    // The PostgreSQL traversal operator always returns text, so we need to convert to int, bool, etc.
-    private SqlExpression ConvertFromText(SqlExpression expression, Type returnType)
-    {
-        var unwrappedReturnType = returnType.UnwrapNullableType();
-
-        switch (Type.GetTypeCode(unwrappedReturnType))
-        {
-            case TypeCode.Boolean:
-            case TypeCode.Byte:
-            case TypeCode.DateTime:
-            case TypeCode.Decimal:
-            case TypeCode.Double:
-            case TypeCode.Int16:
-            case TypeCode.Int32:
-            case TypeCode.Int64:
-            case TypeCode.SByte:
-            case TypeCode.Single:
-            case TypeCode.UInt16:
-            case TypeCode.UInt32:
-            case TypeCode.UInt64:
-                return _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType, _model));
-        }
-
-        if (unwrappedReturnType == typeof(Guid)
-            || unwrappedReturnType == typeof(DateTimeOffset)
-            || unwrappedReturnType == typeof(DateOnly)
-            || unwrappedReturnType == typeof(TimeOnly))
-        {
-            return _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType, _model));
-        }
-
-        return expression;
     }
 }
