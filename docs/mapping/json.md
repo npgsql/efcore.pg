@@ -74,14 +74,14 @@ public class Customer
     public CustomerDetails Details { get; set; }
 }
 
-public class CustomerDetails    // Map to a JSON column in the table
+public class CustomerDetails // Map to a JSON column in the table
 {
     public string Name { get; set; }
     public int Age { get; set; }
     public List<Order> Orders { get; set; }
 }
 
-public class Order       // Part of the JSON column
+public class Order // Part of the JSON column
 {
     public decimal Price { get; set; }
     public string ShippingAddress { get; set; }
@@ -104,13 +104,13 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 At this point you can interact with the Customer just like you would normally, and EF will seamlessly serialize and deserialize it to a JSON column in the database. You can also perform LINQ queries which reference properties inside the JSON document, and these will get translated to SQL.
 
-## Traditional POCO mapping (deprecated)
+### Legacy POCO mapping (deprecated)
 
 Before version 8.0 introduced support for EF's ToJson (owned entity mapping), the provider had its own support for JSON POCO mapping, by simply delegating serialization/deserialization to System.Text.Json; in this model, EF itself model the contents of the JSON document, and cannot take that structure into account for queries and updates. This approach can now be considered deprecated as it allows for less powerful mapping and supports less query types; using ToJson() is now the recommended way to map POCOs to JSON.
 
-To use traditional POCO mapping, configure a property a mapping to map to a `jsonb` column as follows:
+To use legacy POCO mapping, configure a property a mapping to map to a `jsonb` column as follows:
 
-### [Data Annotations](#tab/data-annotations)
+#### [Data Annotations](#tab/data-annotations)
 
 ```csharp
 public class Customer
@@ -199,26 +199,26 @@ Console.WriteLine(someEntity.Customer.RootElement.GetProperty("Orders")[0].GetPr
 
 Note that when using this mapping, only limited forms of LINQ querying is supported; [see below](#querying-traditional-and-dom) for more details.
 
-## <a name="querying-traditional-and-dom">Querying JSON columns (traditional JSON and DOM)
+## <a name="querying-traditional-and-dom">Querying JSON columns (DOM and legacy POCO)
 
 > [!NOTE]
-> The below does not apply if you are using ToJson (owned entity mapping). ToJson supports
+> The below does not apply if you are using ToJson (owned entity mapping). ToJson mapping supports far more querying patterns than both legacy POCO and DOM and should be preferred.
 
 Saving and loading documents these documents wouldn't be much use without the ability to query them. You can express your queries via the same LINQ constructs you are already using in EF Core:
-
-### [Classic POCO Mapping](#tab/poco)
-
-```csharp
-var joes = context.CustomerEntries
-    .Where(e => e.Customer.Name == "Joe")
-    .ToList();
-```
 
 ### [JsonDocument Mapping](#tab/jsondocument)
 
 ```csharp
 var joes = context.CustomerEntries
     .Where(e => e.Customer.RootElement.GetProperty("Name").GetString() == "Joe")
+    .ToList();
+```
+
+### [Legacy POCO Mapping](#tab/poco)
+
+```csharp
+var joes = context.CustomerEntries
+    .Where(e => e.Customer.Name == "Joe")
     .ToList();
 ```
 
@@ -236,20 +236,6 @@ WHERE c.""Customer""->>'Name' = 'Joe'
 
 The following expression types and functions are translated:
 
-### [POCO Mapping](#tab/poco)
-
-.NET                                                                                    | SQL
---------------------------------------------------------------------------------------- | ----
-customer.Name                                                                           | [customer->>'Name'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
-customer.Orders[1].Price                                                                | [customer#>>'{Orders,0,Price}'\[1\]](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
-customer.Orders.Length (or Count)                                                       | [jsonb_array_length(customer->'Orders')](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
-EF.Functions.JsonContains(customer, @"{""Name"": ""Joe"", ""Age"": 25}")<sup>1</sup>    | [customer @> '{"Name": "Joe", "Age": 25}'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
-EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", e.Customer)<sup>1</sup> | ['{"Name": "Joe", "Age": 25}' <@ customer](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
-EF.Functions.JsonExists(e.Customer, "Age")                                              | [customer ? 'Age'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
-EF.Functions.JsonExistsAny(e.Customer, "Age", "Address")                                | [customer ?\| ARRAY\['Age','Address'\]](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
-EF.Functions.JsonExistsAll(e.Customer, "Age", "Address")                                | [customer ?& ARRAY\['Age','Address'\]](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
-EF.Functions.JsonTypeof(e.Customer.Age)                                                 | [jsonb_typeof(customer->'Age')](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
-
 ### [JsonDocument Mapping](#tab/jsondocument)
 
 .NET                                                                                  | SQL
@@ -263,6 +249,20 @@ EF.Functions.JsonExists(customer, "Age")                                        
 EF.Functions.JsonExistsAny(customer, "Age", "Address")                                | [customer ?\| ARRAY\['Age','Address'\]](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
 EF.Functions.JsonExistsAll(customer, "Age", "Address")                                | [customer ?& ARRAY\['Age','Address'\]](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
 EF.Functions.JsonTypeof(customer.GetProperty("Age")) == "number"                      | [jsonb_typeof(customer->'Age') = 'number'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
+
+### [Legacy POCO Mapping](#tab/poco)
+
+.NET                                                                                    | SQL
+--------------------------------------------------------------------------------------- | ----
+customer.Name                                                                           | [customer->>'Name'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
+customer.Orders[1].Price                                                                | [customer#>>'{Orders,0,Price}'\[1\]](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
+customer.Orders.Length (or Count)                                                       | [jsonb_array_length(customer->'Orders')](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
+EF.Functions.JsonContains(customer, @"{""Name"": ""Joe"", ""Age"": 25}")<sup>1</sup>    | [customer @> '{"Name": "Joe", "Age": 25}'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
+EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", e.Customer)<sup>1</sup> | ['{"Name": "Joe", "Age": 25}' <@ customer](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
+EF.Functions.JsonExists(e.Customer, "Age")                                              | [customer ? 'Age'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
+EF.Functions.JsonExistsAny(e.Customer, "Age", "Address")                                | [customer ?\| ARRAY\['Age','Address'\]](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
+EF.Functions.JsonExistsAll(e.Customer, "Age", "Address")                                | [customer ?& ARRAY\['Age','Address'\]](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
+EF.Functions.JsonTypeof(e.Customer.Age)                                                 | [jsonb_typeof(customer->'Age')](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
 
 ***
 
