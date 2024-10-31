@@ -80,14 +80,14 @@ public class NpgsqlMigrator : Migrator
 
         if (reloadTypes && _connection.DbConnection is NpgsqlConnection npgsqlConnection)
         {
-            npgsqlConnection.Open();
+            _connection.Open();
             try
             {
                 npgsqlConnection.ReloadTypes();
             }
             catch
             {
-                npgsqlConnection.Close();
+                _connection.Close();
             }
         }
     }
@@ -123,14 +123,14 @@ public class NpgsqlMigrator : Migrator
 
         if (reloadTypes && _connection.DbConnection is NpgsqlConnection npgsqlConnection)
         {
-            await npgsqlConnection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await _connection.OpenAsync(cancellationToken).ConfigureAwait(false);
             try
             {
                 await npgsqlConnection.ReloadTypesAsync().ConfigureAwait(false);
             }
             catch
             {
-                await npgsqlConnection.CloseAsync().ConfigureAwait(false);
+                await _connection.CloseAsync().ConfigureAwait(false);
             }
         }
     }
