@@ -148,7 +148,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     private readonly NpgsqlRangeTypeMapping _int8range;
     private readonly NpgsqlRangeTypeMapping _numrange;
     private readonly NpgsqlRangeTypeMapping _tsrange;
-    private readonly NpgsqlRangeTypeMapping _tstzrange;
+    private readonly NpgsqlRangeTypeMapping _tstzrange, _tstzrangeDto;
     private readonly NpgsqlRangeTypeMapping _dateOnlyDaterange;
     private readonly NpgsqlRangeTypeMapping _dateTimeDaterange;
 
@@ -206,6 +206,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             "tsrange", typeof(NpgsqlRange<DateTime>), NpgsqlDbType.TimestampRange, _timestamp);
         _tstzrange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
             "tstzrange", typeof(NpgsqlRange<DateTime>), NpgsqlDbType.TimestampTzRange, _timestamptz);
+        _tstzrangeDto = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
+            "tstzrange", typeof(NpgsqlRange<DateTimeOffset>), NpgsqlDbType.TimestampTzRange, _timestamptzDto);
         _dateOnlyDaterange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
             "daterange", typeof(NpgsqlRange<DateOnly>), NpgsqlDbType.DateRange, _dateDateOnly);
         _dateTimeDaterange = NpgsqlRangeTypeMapping.CreatBuiltInRangeMapping(
@@ -277,7 +279,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { "int8range", new[] { _int8range } },
             { "numrange", new[] { _numrange } },
             { "tsrange", new[] { _tsrange } },
-            { "tstzrange", new[] { _tstzrange } },
+            { "tstzrange", new[] { _tstzrange, _tstzrangeDto } },
             { "daterange", new[] { _dateOnlyDaterange, _dateTimeDaterange } },
             { "tsquery", new[] { _tsquery } },
             { "tsvector", new[] { _tsvector } },
