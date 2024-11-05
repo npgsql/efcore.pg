@@ -1142,23 +1142,6 @@ public static class NpgsqlPropertyExtensions
 
     #endregion Generated tsvector column
 
-    #region Collation
-
-    /// <summary>
-    ///     Returns the collation to be used for the column - including the PostgreSQL-specific default column
-    ///     collation defined at the model level (see
-    ///     <see cref="NpgsqlModelExtensions.SetDefaultColumnCollation(Microsoft.EntityFrameworkCore.Metadata.IMutableModel,string)" />).
-    /// </summary>
-    /// <param name="property"> The property. </param>
-    /// <returns> The collation for the column this property is mapped to. </returns>
-    [Obsolete("Use EF Core's standard model bulk configuration API")]
-    public static string? GetDefaultCollation(this IReadOnlyProperty property)
-        => property.FindTypeMapping() is StringTypeMapping
-            ? property.DeclaringType.Model.GetDefaultColumnCollation()
-            : null;
-
-    #endregion Collation
-
     #region Compression method
 
     /// <summary>
