@@ -717,53 +717,6 @@ COMMENT ON COLUMN "People"."FullName" IS 'My comment';
         AssertSql("""ALTER TABLE "People" ADD "Name" text COLLATE "POSIX" GENERATED ALWAYS AS ('hello') STORED;""");
     }
 
-#pragma warning disable CS0618
-    [ConditionalFact]
-    public async Task Add_column_with_default_column_collation()
-    {
-        await Test(
-            builder =>
-            {
-                builder.UseDefaultColumnCollation("POSIX");
-                builder.Entity("People").Property<int>("Id");
-            },
-            _ => { },
-            builder => builder.Entity("People").Property<string>("Name"),
-            model =>
-            {
-                var table = Assert.Single(model.Tables);
-                Assert.Equal(2, table.Columns.Count);
-                var nameColumn = Assert.Single(table.Columns, c => c.Name == "Name");
-                Assert.Equal("POSIX", nameColumn.Collation);
-            });
-
-        AssertSql("""ALTER TABLE "People" ADD "Name" text COLLATE "POSIX";""");
-    }
-
-    [ConditionalFact]
-    public async Task Add_column_with_collation_overriding_default()
-    {
-        await Test(
-            builder =>
-            {
-                builder.UseDefaultColumnCollation("POSIX");
-                builder.Entity("People").Property<int>("Id");
-            },
-            _ => { },
-            builder => builder.Entity("People").Property<string>("Name")
-                .UseCollation("C"),
-            model =>
-            {
-                var table = Assert.Single(model.Tables);
-                Assert.Equal(2, table.Columns.Count);
-                var nameColumn = Assert.Single(table.Columns, c => c.Name == "Name");
-                Assert.Equal("C", nameColumn.Collation);
-            });
-
-        AssertSql("""ALTER TABLE "People" ADD "Name" text COLLATE "C";""");
-    }
-#pragma warning restore CS0618
-
     public override async Task Add_column_shared()
     {
         await base.Add_column_shared();
@@ -1705,30 +1658,6 @@ DROP SEQUENCE "People_Id_old_seq";
         Assert.Equal("42804", exception.SqlState); // column "Name" cannot be cast automatically to type jsonb
     }
 
-#pragma warning disable CS0618
-    public async Task Alter_column_change_default_column_collation()
-    {
-        await Test(
-            builder => builder.Entity(
-                "People", b =>
-                {
-                    b.Property<int>("Id");
-                    b.Property<string>("Name");
-                }),
-            builder => builder.UseDefaultColumnCollation("POSIX"),
-            builder => builder.UseDefaultColumnCollation("C"),
-            _ =>
-            {
-                // var table = Assert.Single(model.Tables);
-                // Assert.Equal(2, table.Columns.Count);
-                // var nameColumn = Assert.Single(table.Columns, c => c.Name == "Name");
-                // Assert.Equal("C", nameColumn.Collation);
-            });
-
-        AssertSql("""ALTER TABLE "People" ALTER COLUMN "Name" TYPE text COLLATE "C";""");
-    }
-#pragma warning restore CS0618
-
     [Fact]
     public virtual async Task Alter_column_computed_set_collation()
     {
@@ -1910,34 +1839,6 @@ DROP SEQUENCE "People_Id_old_seq";
 
         AssertSql("""CREATE INDEX "IX_People_X_Y_Z" ON "People" ("X", "Y" DESC, "Z");""");
     }
-
-#pragma warning disable CS0618 // HasSortOrder is obsolete
-    [Fact]
-    public virtual async Task Create_index_descending_mixed_legacy_api()
-    {
-        await Test(
-            builder => builder.Entity(
-                "People", e =>
-                {
-                    e.Property<int>("Id");
-                    e.Property<int>("X");
-                    e.Property<int>("Y");
-                    e.Property<int>("Z");
-                }),
-            builder => { },
-            builder => builder.Entity("People")
-                .HasIndex("X", "Y", "Z")
-                .HasSortOrder(SortOrder.Ascending, SortOrder.Descending),
-            model =>
-            {
-                var table = Assert.Single(model.Tables);
-                var index = Assert.Single(table.Indexes);
-                Assert.Collection(index.IsDescending, Assert.False, Assert.True, Assert.False);
-            });
-
-        AssertSql("""CREATE INDEX "IX_People_X_Y_Z" ON "People" ("X", "Y" DESC, "Z");""");
-    }
-#pragma warning restore CS0618
 
     [Fact]
     public virtual async Task Create_index_descending_mixed_legacy_annotation()
