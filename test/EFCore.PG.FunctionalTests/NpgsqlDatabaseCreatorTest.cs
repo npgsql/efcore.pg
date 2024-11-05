@@ -646,11 +646,11 @@ public class NpgsqlDatabaseCreatorTest
         public TestDatabaseCreator(
             RelationalDatabaseCreatorDependencies dependencies,
             INpgsqlRelationalConnection connection,
-            IRawSqlCommandBuilder rawSqlCommandBuilder)
-            : base(dependencies, connection, rawSqlCommandBuilder)
+            IRawSqlCommandBuilder rawSqlCommandBuilder,
+            IRelationalConnectionDiagnosticsLogger connectionLogger)
+        : base(dependencies, connection, rawSqlCommandBuilder, connectionLogger)
         {
         }
-
         public bool HasTablesBase()
             => HasTables();
 

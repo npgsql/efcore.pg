@@ -10,27 +10,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
-{
-    private readonly INpgsqlRelationalConnection _connection;
-    private readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public NpgsqlDatabaseCreator(
+public class NpgsqlDatabaseCreator(
         RelationalDatabaseCreatorDependencies dependencies,
         INpgsqlRelationalConnection connection,
-        IRawSqlCommandBuilder rawSqlCommandBuilder)
-        : base(dependencies)
-    {
-        _connection = connection;
-        _rawSqlCommandBuilder = rawSqlCommandBuilder;
-    }
-
+        IRawSqlCommandBuilder rawSqlCommandBuilder,
+        IRelationalConnectionDiagnosticsLogger connectionLogger)
+    : RelationalDatabaseCreator(dependencies)
+{
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -55,7 +41,7 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
     /// </summary>
     public override void Create()
     {
-        using (var masterConnection = _connection.CreateAdminConnection())
+        using (var masterConnection = connection.CreateAdminConnection())
         {
             try
             {
@@ -82,7 +68,7 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
     /// </summary>
     public override async Task CreateAsync(CancellationToken cancellationToken = default)
     {
-        var masterConnection = _connection.CreateAdminConnection();
+        var masterConnection = connection.CreateAdminConnection();
         await using (masterConnection.ConfigureAwait(false))
         {
             try
@@ -112,7 +98,7 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
     public override bool HasTables()
         => Dependencies.ExecutionStrategy
             .Execute(
-                _connection,
+                connection,
                 connection => (bool)CreateHasTablesCommand()
                     .ExecuteScalar(
                         new RelationalCommandParameterObject(
@@ -130,7 +116,7 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
     /// </summary>
     public override Task<bool> HasTablesAsync(CancellationToken cancellationToken = default)
         => Dependencies.ExecutionStrategy.ExecuteAsync(
-            _connection,
+            connection,
             async (connection, ct) => (bool)(await CreateHasTablesCommand()
                 .ExecuteScalarAsync(
                     new RelationalCommandParameterObject(
@@ -142,7 +128,7 @@ public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
                     cancellationToken: ct).ConfigureAwait(false))!, cancellationToken);
 
     private IRelationalCommand CreateHasTablesCommand()
-        => _rawSqlCommandBuilder
+        => rawSqlCommandBuilder
             .Build(
                 """
 SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END
@@ -174,7 +160,7 @@ WHERE
             {
                 new NpgsqlCreateDatabaseOperation
                 {
-                    Name = _connection.DbConnection.Database,
+                    Name = connection.DbConnection.Database,
                     Template = designTimeModel.GetDatabaseTemplate(),
                     Collation = designTimeModel.GetCollation(),
                     Tablespace = designTimeModel.GetTablespace()
@@ -202,14 +188,28 @@ WHERE
 
     private async Task<bool> Exists(bool async, CancellationToken cancellationToken = default)
     {
+        var logger = connectionLogger;
+        var startTime = DateTimeOffset.UtcNow;
+
+        var interceptionResult = async
+            ? await logger.ConnectionOpeningAsync(connection, startTime, cancellationToken).ConfigureAwait(false)
+            : logger.ConnectionOpening(connection, startTime);
+
+        if (interceptionResult.IsSuppressed)
+        {
+            // If the connection attempt was suppressed by an interceptor, assume that the interceptor took care of all the opening
+            // details, and the database exists.
+            return true;
+        }
+
         // When checking whether a database exists, pooling must be off, otherwise we may
         // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
         // If Pooling is off, but Multiplexing is on - NpgsqlConnectionStringBuilder.Validate will throw,
         // so we turn off Multiplexing as well.
-        var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString) { Pooling = false, Multiplexing = false };
+        var unpooledCsb = new NpgsqlConnectionStringBuilder(connection.ConnectionString) { Pooling = false, Multiplexing = false };
 
         using var _ = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
-        var unpooledRelationalConnection = _connection.CloneWith(unpooledCsb.ToString());
+        var unpooledRelationalConnection = connection.CloneWith(unpooledCsb.ToString());
         try
         {
             if (async)
@@ -274,7 +274,7 @@ WHERE
     {
         ClearAllPools();
 
-        using (var masterConnection = _connection.CreateAdminConnection())
+        using (var masterConnection = connection.CreateAdminConnection())
         {
             Dependencies.MigrationCommandExecutor
                 .ExecuteNonQuery(CreateDropCommands(), masterConnection);
@@ -291,7 +291,7 @@ WHERE
     {
         ClearAllPools();
 
-        var masterConnection = _connection.CreateAdminConnection();
+        var masterConnection = connection.CreateAdminConnection();
         await using (masterConnection)
         {
             await Dependencies.MigrationCommandExecutor
@@ -321,7 +321,7 @@ WHERE
 
         try
         {
-            Dependencies.MigrationCommandExecutor.ExecuteNonQuery(commands, _connection);
+            Dependencies.MigrationCommandExecutor.ExecuteNonQuery(commands, connection);
         }
         catch (PostgresException e) when (e is { SqlState: "23505", ConstraintName: "pg_type_typname_nsp_index" })
         {
@@ -329,7 +329,7 @@ WHERE
             // (happens in the tests). Simply ignore the error.
         }
 
-        if (reloadTypes && _connection.DbConnection is NpgsqlConnection npgsqlConnection)
+        if (reloadTypes && connection.DbConnection is NpgsqlConnection npgsqlConnection)
         {
             npgsqlConnection.Open();
             try
@@ -357,7 +357,7 @@ WHERE
 
         try
         {
-            await Dependencies.MigrationCommandExecutor.ExecuteNonQueryAsync(commands, _connection, cancellationToken)
+            await Dependencies.MigrationCommandExecutor.ExecuteNonQueryAsync(commands, connection, cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (PostgresException e) when (e is { SqlState: "23505", ConstraintName: "pg_type_typname_nsp_index" })
@@ -371,7 +371,7 @@ WHERE
             .OfType<AlterDatabaseOperation>()
             .Any(o => o.GetPostgresExtensions().Any() || o.GetPostgresEnums().Any() || o.GetPostgresRanges().Any());
 
-        if (reloadTypes && _connection.DbConnection is NpgsqlConnection npgsqlConnection)
+        if (reloadTypes && connection.DbConnection is NpgsqlConnection npgsqlConnection)
         {
             await npgsqlConnection.OpenAsync(cancellationToken).ConfigureAwait(false);
             try
@@ -391,7 +391,7 @@ WHERE
         {
             // TODO Check DbConnection.Database always gives us what we want
             // Issue #775
-            new NpgsqlDropDatabaseOperation { Name = _connection.DbConnection.Database }
+            new NpgsqlDropDatabaseOperation { Name = connection.DbConnection.Database }
         };
 
         return Dependencies.MigrationsSqlGenerator.Generate(operations);
@@ -404,5 +404,5 @@ WHERE
     // Clear connection pool for the database connection since after the 'create database' call, a previously
     // invalid connection may now be valid.
     private void ClearPool()
-        => NpgsqlConnection.ClearPool((NpgsqlConnection)_connection.DbConnection);
+        => NpgsqlConnection.ClearPool((NpgsqlConnection)connection.DbConnection);
 }
