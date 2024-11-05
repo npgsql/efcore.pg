@@ -294,45 +294,4 @@ public static class NpgsqlEntityTypeBuilderExtensions
             (EntityTypeBuilder)entityTypeBuilder, parentTableType, interleavePrefix);
 
     #endregion CockroachDB Interleave-in-parent
-
-    #region Obsolete
-
-    /// <summary>
-    ///     Configures using the auto-updating system column <c>xmin</c> as the optimistic concurrency token.
-    /// </summary>
-    /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
-    /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-    /// <remarks>
-    ///     See <see href="https://www.npgsql.org/efcore/modeling/concurrency.html">Concurrency tokens</see>
-    ///     for more information on using optimistic concurrency in PostgreSQL.
-    /// </remarks>
-    [Obsolete("Use EF Core's standard IsRowVersion() or [Timestamp], see https://learn.microsoft.com/ef/core/saving/concurrency")]
-    public static EntityTypeBuilder UseXminAsConcurrencyToken(
-        this EntityTypeBuilder entityTypeBuilder)
-    {
-        Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
-
-        entityTypeBuilder.Property<uint>("xmin")
-            .HasColumnType("xid")
-            .ValueGeneratedOnAddOrUpdate()
-            .IsConcurrencyToken();
-
-        return entityTypeBuilder;
-    }
-
-    /// <summary>
-    ///     Configures using the auto-updating system column <c>xmin</c> as the optimistic concurrency token.
-    /// </summary>
-    /// <remarks>
-    ///     See http://www.npgsql.org/efcore/miscellaneous.html#optimistic-concurrency-and-concurrency-tokens
-    /// </remarks>
-    /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
-    /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-    [Obsolete("Use EF Core's standard IsRowVersion() or [Timestamp], see https://learn.microsoft.com/ef/core/saving/concurrency")]
-    public static EntityTypeBuilder<TEntity> UseXminAsConcurrencyToken<TEntity>(
-        this EntityTypeBuilder<TEntity> entityTypeBuilder)
-        where TEntity : class
-        => (EntityTypeBuilder<TEntity>)UseXminAsConcurrencyToken((EntityTypeBuilder)entityTypeBuilder);
-
-    #endregion Obsolete
 }
