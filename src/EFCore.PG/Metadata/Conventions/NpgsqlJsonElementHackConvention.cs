@@ -21,7 +21,7 @@ public class NpgsqlJsonElementHackConvention : IPropertyAddedConvention
     {
         var property = propertyBuilder.Metadata;
 
-        if (property.ClrType == typeof(JsonElement) && property.GetColumnType() is null)
+        if (property.ClrType.UnwrapNullableType() == typeof(JsonElement) && property.GetColumnType() is null)
         {
             property.SetTypeMapping(_jsonTypeMapping ??= new NpgsqlJsonTypeMapping("jsonb", typeof(JsonElement)));
         }
