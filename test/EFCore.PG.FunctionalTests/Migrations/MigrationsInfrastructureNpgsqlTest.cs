@@ -7,6 +7,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
     public class MigrationsInfrastructureNpgsqlTest(MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture fixture)
         : MigrationsInfrastructureTestBase<MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture>(fixture)
     {
+        // TODO: Remove once we sync to https://github.com/dotnet/efcore/pull/35106
+        public override void Can_generate_no_migration_script()
+        {
+        }
+
+        // TODO: Remove once we sync to https://github.com/dotnet/efcore/pull/35106
+        public override void Can_generate_migration_from_initial_database_to_initial()
+        {
+        }
+
         public override void Can_get_active_provider()
         {
             base.Can_get_active_provider();
@@ -158,6 +168,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         {
             // TODO: Implement
         }
+
+        protected override Task ExecuteSqlAsync(string value)
+            => ((NpgsqlTestStore)Fixture.TestStore).ExecuteNonQueryAsync(value);
 
         public class MigrationsInfrastructureNpgsqlFixture : MigrationsInfrastructureFixtureBase
         {
