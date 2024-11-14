@@ -214,7 +214,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     /// </summary>
     public virtual NpgsqlOptionsExtension WithEnumMapping(
         Type clrType,
-        string enumName,
+        string? enumName,
         string? schemaName,
         INpgsqlNameTranslator? nameTranslator)
     {

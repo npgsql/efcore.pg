@@ -121,7 +121,7 @@ public class NpgsqlDbContextOptionsBuilder
     /// <param name="schemaName">The name of the PostgreSQL schema in which the range is defined.</param>
     /// <param name="nameTranslator">The name translator used to map enum value names to PostgreSQL enum values.</param>
     public virtual NpgsqlDbContextOptionsBuilder MapEnum<T>(
-        string enumName,
+        string? enumName = null,
         string? schemaName = null,
         INpgsqlNameTranslator? nameTranslator = null)
         where T : struct, Enum
@@ -136,7 +136,7 @@ public class NpgsqlDbContextOptionsBuilder
     /// <param name="nameTranslator">The name translator used to map enum value names to PostgreSQL enum values.</param>
     public virtual NpgsqlDbContextOptionsBuilder MapEnum(
         Type clrType,
-        string enumName,
+        string? enumName = null,
         string? schemaName = null,
         INpgsqlNameTranslator? nameTranslator = null)
         => WithOption(e => e.WithEnumMapping(clrType, enumName, schemaName, nameTranslator));
