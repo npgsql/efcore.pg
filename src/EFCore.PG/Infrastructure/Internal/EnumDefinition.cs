@@ -71,7 +71,7 @@ public sealed class EnumDefinition : IEquatable<EnumDefinition>
     /// </summary>
     public EnumDefinition(
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] Type clrType,
-        string name,
+        string? name,
         string? schema,
         INpgsqlNameTranslator nameTranslator)
     {
@@ -80,7 +80,7 @@ public sealed class EnumDefinition : IEquatable<EnumDefinition>
             throw new ArgumentException($"Enum type mappings require a CLR enum. {clrType.FullName} is not an enum.");
         }
 
-        StoreTypeName = name;
+        StoreTypeName = name ?? nameTranslator.TranslateTypeName(clrType.Name);
         StoreTypeSchema = schema;
         ClrType = clrType;
 
