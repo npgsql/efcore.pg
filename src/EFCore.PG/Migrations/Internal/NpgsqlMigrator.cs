@@ -126,7 +126,7 @@ public class NpgsqlMigrator : Migrator
             await _connection.OpenAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                await npgsqlConnection.ReloadTypesAsync().ConfigureAwait(false);
+                await npgsqlConnection.ReloadTypesAsync(cancellationToken).ConfigureAwait(false);
             }
             catch
             {
