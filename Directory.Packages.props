@@ -1,7 +1,7 @@
   <Project>
   <PropertyGroup>
-    <EFCoreVersion>8.0.10</EFCoreVersion>
-    <NpgsqlVersion>8.0.5</NpgsqlVersion>
+    <EFCoreVersion>8.0.11</EFCoreVersion>
+    <NpgsqlVersion>8.0.6</NpgsqlVersion>
   </PropertyGroup>
 
   <ItemGroup>
