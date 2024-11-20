@@ -27,6 +27,6 @@ public class NpgsqlParameterBasedSqlProcessorFactory : IRelationalParameterBased
     /// </summary>
     /// <param name="parameters">Parameters for <see cref="RelationalParameterBasedSqlProcessor" />.</param>
     /// <returns>A relational parameter based sql processor.</returns>
-    public RelationalParameterBasedSqlProcessor Create(RelationalParameterBasedSqlProcessorParameters parameters)
+    public virtual RelationalParameterBasedSqlProcessor Create(RelationalParameterBasedSqlProcessorParameters parameters)
         => new NpgsqlParameterBasedSqlProcessor(_dependencies, parameters);
 }
