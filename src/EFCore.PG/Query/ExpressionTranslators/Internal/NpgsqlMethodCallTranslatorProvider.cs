@@ -50,6 +50,7 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
                 new NpgsqlJsonDomTranslator(typeMappingSource, sqlExpressionFactory, model),
                 new NpgsqlJsonDbFunctionsTranslator(typeMappingSource, sqlExpressionFactory, model),
                 new NpgsqlJsonPocoTranslator(typeMappingSource, sqlExpressionFactory, model),
+                new NpgsqlHstoreTranslator(typeMappingSource, sqlExpressionFactory, model),
                 new NpgsqlLikeTranslator(sqlExpressionFactory),
                 LTreeTranslator,
                 new NpgsqlMathTranslator(typeMappingSource, sqlExpressionFactory, model),
