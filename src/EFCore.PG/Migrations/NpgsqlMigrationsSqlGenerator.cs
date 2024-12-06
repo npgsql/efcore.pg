@@ -1176,7 +1176,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
 
         builder
-            .Append("CREATE COLLATION ")
+            .Append("CREATE COLLATION IF NOT EXISTS ")
             .Append(DelimitIdentifier(collation.Name, schema))
             .Append(" (")
             .IncrementIndent();
