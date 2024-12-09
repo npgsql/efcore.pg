@@ -83,6 +83,74 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    protected override Expression VisitConditional(ConditionalExpression conditionalExpression)
+    {
+        var test = Visit(conditionalExpression.Test);
+        var ifTrue = Visit(conditionalExpression.IfTrue);
+        var ifFalse = Visit(conditionalExpression.IfFalse);
+
+        if (TranslationFailed(conditionalExpression.Test, test, out var sqlTest)
+            || TranslationFailed(conditionalExpression.IfTrue, ifTrue, out var sqlIfTrue)
+            || TranslationFailed(conditionalExpression.IfFalse, ifFalse, out var sqlIfFalse))
+        {
+            return QueryCompilationContext.NotTranslatedExpression;
+        }
+
+        (SqlExpression, SqlExpression)? result = null;
+
+        if (sqlTest is SqlBinaryExpression binary && sqlIfTrue is not null && sqlIfFalse is not null)
+        {
+            result = ConstructOperandsByOperator(binary, sqlIfTrue, sqlIfFalse);
+        }
+
+        return result is not ({ } left, { } right)
+            ? _sqlExpressionFactory.Case([new CaseWhenClause(sqlTest!, sqlIfTrue!)], sqlIfFalse)
+            : _sqlExpressionFactory.Function("NULLIF", [left, right], true, [false, false], right.Type);
+    }
+
+    private static (SqlExpression left, SqlExpression right)? ConstructOperandsByOperator(
+        SqlBinaryExpression binary,
+        SqlExpression ifTrue,
+        SqlExpression ifFalse)
+    {
+        (SqlExpression, SqlExpression)? result = null;
+
+        if (binary.OperatorType is ExpressionType.Equal && ifTrue is SqlConstantExpression { Value: null })
+        {
+            result = ConstructOperandsBySide(binary, ifFalse);
+        }
+        else if (binary.OperatorType is ExpressionType.NotEqual && ifFalse is SqlConstantExpression { Value: null })
+        {
+            result = ConstructOperandsBySide(binary, ifTrue);
+        }
+
+        return result;
+    }
+
+    private static (SqlExpression left, SqlExpression right)? ConstructOperandsBySide(
+        SqlBinaryExpression expression,
+        SqlExpression sqlOnFalse)
+    {
+        (SqlExpression, SqlExpression)? operands = null;
+        if (expression.Left.Equals(sqlOnFalse))
+        {
+            operands = (expression.Left, expression.Right);
+        }
+
+        if (expression.Right.Equals(sqlOnFalse))
+        {
+            operands = (expression.Right, expression.Left);
+        }
+
+        return operands;
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override Expression VisitUnary(UnaryExpression unaryExpression)
     {
         switch (unaryExpression.NodeType)
