@@ -136,8 +136,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         {
             operands = (expression.Left, expression.Right);
         }
-
-        if (expression.Right.Equals(sqlOnFalse))
+        else if (expression.Right.Equals(sqlOnFalse))
         {
             operands = (expression.Right, expression.Left);
         }
