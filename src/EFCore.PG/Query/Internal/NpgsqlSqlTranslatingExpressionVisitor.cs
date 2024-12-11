@@ -96,52 +96,44 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
             return QueryCompilationContext.NotTranslatedExpression;
         }
 
-        (SqlExpression, SqlExpression)? result = null;
-
+        // Translate:
+        // a == b ? null : a -> NULLIF(a, b)
+        // a != b ? a : null -> NULLIF(a, b)
         if (sqlTest is SqlBinaryExpression binary && sqlIfTrue is not null && sqlIfFalse is not null)
         {
-            result = ConstructOperandsByOperator(binary, sqlIfTrue, sqlIfFalse);
+            switch (binary.OperatorType)
+            {
+                case ExpressionType.Equal
+                    when ifTrue is SqlConstantExpression { Value: null } && TryTranslateToNullIf(sqlIfFalse, out var nullIfTranslation):
+                case ExpressionType.NotEqual
+                    when ifFalse is SqlConstantExpression { Value: null } && TryTranslateToNullIf(sqlIfTrue, out nullIfTranslation):
+                    return nullIfTranslation;
+            }
         }
 
-        return result is not ({ } left, { } right)
-            ? _sqlExpressionFactory.Case([new CaseWhenClause(sqlTest!, sqlIfTrue!)], sqlIfFalse)
-            : _sqlExpressionFactory.Function("NULLIF", [left, right], true, [false, false], right.Type);
-    }
+        return _sqlExpressionFactory.Case([new CaseWhenClause(sqlTest!, sqlIfTrue!)], sqlIfFalse);
 
-    private static (SqlExpression left, SqlExpression right)? ConstructOperandsByOperator(
-        SqlBinaryExpression binary,
-        SqlExpression ifTrue,
-        SqlExpression ifFalse)
-    {
-        (SqlExpression, SqlExpression)? result = null;
-
-        if (binary.OperatorType is ExpressionType.Equal && ifTrue is SqlConstantExpression { Value: null })
+        bool TryTranslateToNullIf(SqlExpression conditionalResult, [NotNullWhen(true)] out Expression? nullIfTranslation)
         {
-            result = ConstructOperandsBySide(binary, ifFalse);
-        }
-        else if (binary.OperatorType is ExpressionType.NotEqual && ifFalse is SqlConstantExpression { Value: null })
-        {
-            result = ConstructOperandsBySide(binary, ifTrue);
-        }
+            var (left, right) = (binary.Left, binary.Right);
 
-        return result;
-    }
+            if (left.Equals(conditionalResult))
+            {
+                nullIfTranslation = _sqlExpressionFactory.Function(
+                    "NULLIF", [left, right], true, [false, false], left.Type, left.TypeMapping);
+                return true;
+            }
 
-    private static (SqlExpression left, SqlExpression right)? ConstructOperandsBySide(
-        SqlBinaryExpression expression,
-        SqlExpression sqlOnFalse)
-    {
-        (SqlExpression, SqlExpression)? operands = null;
-        if (expression.Left.Equals(sqlOnFalse))
-        {
-            operands = (expression.Left, expression.Right);
-        }
-        else if (expression.Right.Equals(sqlOnFalse))
-        {
-            operands = (expression.Right, expression.Left);
-        }
+            if (right.Equals(conditionalResult))
+            {
+                nullIfTranslation = _sqlExpressionFactory.Function(
+                    "NULLIF", [right, left], true, [false, false], right.Type, right.TypeMapping);
+                return true;
+            }
 
-        return operands;
+            nullIfTranslation = null;
+            return false;
+        }
     }
 
     /// <summary>
