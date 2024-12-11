@@ -83,6 +83,65 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    protected override Expression VisitConditional(ConditionalExpression conditionalExpression)
+    {
+        var test = Visit(conditionalExpression.Test);
+        var ifTrue = Visit(conditionalExpression.IfTrue);
+        var ifFalse = Visit(conditionalExpression.IfFalse);
+
+        if (TranslationFailed(conditionalExpression.Test, test, out var sqlTest)
+            || TranslationFailed(conditionalExpression.IfTrue, ifTrue, out var sqlIfTrue)
+            || TranslationFailed(conditionalExpression.IfFalse, ifFalse, out var sqlIfFalse))
+        {
+            return QueryCompilationContext.NotTranslatedExpression;
+        }
+
+        // Translate:
+        // a == b ? null : a -> NULLIF(a, b)
+        // a != b ? a : null -> NULLIF(a, b)
+        if (sqlTest is SqlBinaryExpression binary && sqlIfTrue is not null && sqlIfFalse is not null)
+        {
+            switch (binary.OperatorType)
+            {
+                case ExpressionType.Equal
+                    when ifTrue is SqlConstantExpression { Value: null } && TryTranslateToNullIf(sqlIfFalse, out var nullIfTranslation):
+                case ExpressionType.NotEqual
+                    when ifFalse is SqlConstantExpression { Value: null } && TryTranslateToNullIf(sqlIfTrue, out nullIfTranslation):
+                    return nullIfTranslation;
+            }
+        }
+
+        return _sqlExpressionFactory.Case([new CaseWhenClause(sqlTest!, sqlIfTrue!)], sqlIfFalse);
+
+        bool TryTranslateToNullIf(SqlExpression conditionalResult, [NotNullWhen(true)] out Expression? nullIfTranslation)
+        {
+            var (left, right) = (binary.Left, binary.Right);
+
+            if (left.Equals(conditionalResult))
+            {
+                nullIfTranslation = _sqlExpressionFactory.Function(
+                    "NULLIF", [left, right], true, [false, false], left.Type, left.TypeMapping);
+                return true;
+            }
+
+            if (right.Equals(conditionalResult))
+            {
+                nullIfTranslation = _sqlExpressionFactory.Function(
+                    "NULLIF", [right, left], true, [false, false], right.Type, right.TypeMapping);
+                return true;
+            }
+
+            nullIfTranslation = null;
+            return false;
+        }
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override Expression VisitUnary(UnaryExpression unaryExpression)
     {
         switch (unaryExpression.NodeType)

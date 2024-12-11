@@ -843,6 +843,70 @@ GROUP BY o."ProductID"
 
     #endregion Statistics
 
+    #region NullIf
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task NullIf_with_equality_left_sided(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Order>().Select(x => x.OrderID == 1 ? (int?)null : x.OrderID));
+
+        AssertSql(
+            """
+SELECT NULLIF(o."OrderID", 1)
+FROM "Orders" AS o
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task NullIf_with_equality_right_sided(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Order>().Select(x => 1 == x.OrderID ? (int?)null : x.OrderID));
+
+        AssertSql(
+            """
+SELECT NULLIF(o."OrderID", 1)
+FROM "Orders" AS o
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task NullIf_with_inequality_left_sided(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Order>().Select(x => x.OrderID != 1 ? x.OrderID : (int?)null));
+
+        AssertSql(
+            """
+SELECT NULLIF(o."OrderID", 1)
+FROM "Orders" AS o
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task NullIf_with_inequality_right_sided(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Order>().Select(x => 1 != x.OrderID ? x.OrderID : (int?)null));
+
+        AssertSql(
+            """
+SELECT NULLIF(o."OrderID", 1)
+FROM "Orders" AS o
+""");
+    }
+
+    #endregion
+
     #region Unsupported
 
     // PostgreSQL does not have strpos with starting position
