@@ -60,7 +60,7 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         => TranslateIsMatch(instance, method, arguments, logger)
-            ?? TranslateRegexReplace(method, arguments, logger)
+            ?? TranslateReplace(method, arguments, logger)
             ?? TranslateCount(method, arguments, logger);
 
     private SqlExpression? TranslateIsMatch(
@@ -85,7 +85,7 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
             : null;
     }
 
-    private SqlExpression? TranslateRegexReplace(
+    private SqlExpression? TranslateReplace(
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -109,9 +109,7 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
             _sqlExpressionFactory.ApplyTypeMapping(replacement, typeMapping)
         ];
 
-        var translatedOptions = TranslateOptions(regexOptions.Value);
-
-        if (translatedOptions.Length is not 0)
+        if (TranslateOptions(regexOptions.Value) is { Length: not 0 } translatedOptions)
         {
             passingArguments.Add(_sqlExpressionFactory.Constant(translatedOptions));
         }
@@ -148,9 +146,7 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
             _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping)
         ];
 
-        var translatedOptions = TranslateOptions(regexOptions.Value);
-
-        if (translatedOptions.Length is not 0)
+        if (TranslateOptions(regexOptions.Value) is { Length: not 0 } translatedOptions)
         {
             passingArguments.AddRange([
                 //starting position has to be set to use the options in postgres
