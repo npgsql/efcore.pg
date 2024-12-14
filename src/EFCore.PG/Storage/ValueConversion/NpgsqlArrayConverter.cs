@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Frozen;
 using static System.Linq.Expressions.Expression;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
@@ -107,7 +108,12 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
 
         var input = Parameter(typeof(TInput), "input");
         var convertedInput = input;
-        var output = Parameter(typeof(TConcreteOutput), "result");
+        var mutableOutput = typeof(TConcreteOutput) is { IsGenericType: true } generic
+            && generic.GetGenericTypeDefinition() == typeof(FrozenSet<>)
+                ? typeof(HashSet<>).MakeGenericType(outputElementType)
+                : typeof(TConcreteOutput);
+        var output = Parameter(mutableOutput, "result");
+
         var lengthVariable = Variable(typeof(int), "length");
 
         var expressions = new List<Expression>();
@@ -185,11 +191,11 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
             // Allocate an output array or list
             // var result = new int[length];
             Assign(
-                output, typeof(TConcreteOutput).IsArray
+                output, mutableOutput.IsArray
                     ? NewArrayBounds(outputElementType, lengthVariable)
-                    : typeof(TConcreteOutput).GetConstructor([typeof(int)]) is ConstructorInfo ctorWithLength
+                    : mutableOutput.GetConstructor([typeof(int)]) is ConstructorInfo ctorWithLength
                         ? New(ctorWithLength, lengthVariable)
-                        : New(typeof(TConcreteOutput).GetConstructor([])!))
+                        : New(mutableOutput.GetConstructor([])!))
         ]);
 
         if (indexer is not null)
@@ -209,7 +215,7 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
                     condition: LessThan(counter, lengthVariable),
                     increment: AddAssign(counter, Constant(1)),
                     loopContent:
-                    typeof(TConcreteOutput).IsArray
+                    mutableOutput.IsArray
                         ? Assign(
                             ArrayAccess(output, counter),
                             elementConversionExpression is null
@@ -217,7 +223,7 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
                                 : Invoke(elementConversionExpression, indexer(counter)))
                         : Call(
                             output,
-                            typeof(TConcreteOutput).GetMethod("Add", [outputElementType])!,
+                            mutableOutput.GetMethod("Add", [outputElementType])!,
                             elementConversionExpression is null
                                 ? indexer(counter)
                                 : Invoke(elementConversionExpression, indexer(counter)))));
@@ -256,7 +262,7 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
                     IfThenElse(
                         Equal(Call(enumeratorVariable, typeof(IEnumerator).GetMethod(nameof(IEnumerator.MoveNext))!), Constant(true)),
                         Block(
-                            typeof(TConcreteOutput).IsArray
+                            mutableOutput.IsArray
                                 // output[counter] = enumerator.Current;
                                 ? Assign(
                                     ArrayAccess(output, counterVariable),
@@ -266,7 +272,7 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
                                 // output.Add(enumerator.Current);
                                 : Call(
                                     output,
-                                    typeof(TConcreteOutput).GetMethod("Add", [outputElementType])!,
+                                    mutableOutput.GetMethod("Add", [outputElementType])!,
                                     elementConversionExpression is null
                                         ? Property(enumeratorVariable, "Current")
                                         : Invoke(elementConversionExpression, Property(enumeratorVariable, "Current"))),
@@ -282,8 +288,22 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
                     Call(enumeratorVariable, typeof(IDisposable).GetMethod(nameof(IDisposable.Dispose))!)));
         }
 
-        // return output;
-        expressions.Add(output);
+        if (typeof(TConcreteOutput) == typeof(FrozenSet<>).MakeGenericType(outputElementType))
+        {
+            // return output.ToFrozenSet(null);
+            expressions.Add(
+                Call(
+                    typeof(FrozenSet), nameof(FrozenSet.ToFrozenSet),
+                    [outputElementType],
+                    output,
+                    Constant(null, typeof(IEqualityComparer<>).MakeGenericType(outputElementType))));
+        }
+        else
+        {
+            // return output;
+            expressions.Add(output);
+        }
+
 
         return Lambda<Func<TInput, TOutput>>(
             // First, check if the given array value is null and return null immediately if so
