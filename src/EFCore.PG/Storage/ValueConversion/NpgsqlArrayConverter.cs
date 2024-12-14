@@ -293,11 +293,13 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
 
         expressions.Add(
             outputIsImmutable
+                // return output.ToFrozenSet(null);
                 ? Call(
                     typeof(FrozenSet), nameof(FrozenSet.ToFrozenSet),
                     [outputElementType],
                     output,
                     Constant(null, typeof(IEqualityComparer<>).MakeGenericType(outputElementType)))
+                // return output;
                 : output);
 
         return Lambda<Func<TInput, TOutput>>(
