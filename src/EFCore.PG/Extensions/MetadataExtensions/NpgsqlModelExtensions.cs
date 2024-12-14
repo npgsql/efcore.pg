@@ -327,6 +327,19 @@ public static class NpgsqlModelExtensions
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    public static PostgresEnum GetOrAddPostgresEnum(
+        this IConventionModel model,
+        string? schema,
+        string name,
+        string[] labels)
+        => PostgresEnum.GetOrAddPostgresEnum(model, schema, name, labels);
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public static IReadOnlyList<PostgresEnum> GetPostgresEnums(this IReadOnlyModel model)
         => PostgresEnum.GetPostgresEnums(model).ToArray();
 
@@ -503,74 +516,4 @@ public static class NpgsqlModelExtensions
         => PostgresCollation.GetCollations(model).ToArray();
 
     #endregion Collation management
-
-    #region Default column collation
-
-    /// <summary>
-    ///     Gets the default collation for all columns in the database, or <see langword="null" /> if none is defined.
-    ///     This causes EF Core to specify an explicit collation when creating all column, unless one is overridden
-    ///     on a column.
-    /// </summary>
-    /// <remarks>
-    ///     <p>
-    ///         See <see cref="RelationalModelExtensions.GetCollation" /> for another approach to defining a
-    ///         database-wide collation.
-    ///     </p>
-    ///     <p>
-    ///         For more information, see https://www.postgresql.org/docs/current/collation.html.
-    ///     </p>
-    /// </remarks>
-    [Obsolete("Use EF Core's standard model bulk configuration API")]
-    public static string? GetDefaultColumnCollation(this IReadOnlyModel model)
-        => (string?)model[NpgsqlAnnotationNames.DefaultColumnCollation];
-
-    /// <summary>
-    ///     Sets the default collation for all columns in the database, or <c>null</c> if none is defined.
-    ///     This causes EF Core to specify an explicit collation when creating all column, unless one is overridden
-    ///     on a column.
-    /// </summary>
-    /// <remarks>
-    ///     <p>
-    ///         See <see cref="RelationalModelExtensions.GetCollation" /> for another approach to defining a
-    ///         database-wide collation.
-    ///     </p>
-    ///     <p>
-    ///         For more information, see https://www.postgresql.org/docs/current/collation.html.
-    ///     </p>
-    /// </remarks>
-    [Obsolete("Use EF Core's standard model bulk configuration API")]
-    public static void SetDefaultColumnCollation(this IMutableModel model, string? collation)
-        => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DefaultColumnCollation, collation);
-
-    /// <summary>
-    ///     Sets the default collation for all columns in the database, or <c>null</c> if none is defined.
-    ///     This causes EF Core to specify an explicit collation when creating all column, unless one is overridden
-    ///     on a column.
-    /// </summary>
-    /// <remarks>
-    ///     <p>
-    ///         See <see cref="RelationalModelExtensions.SetCollation(Microsoft.EntityFrameworkCore.Metadata.IMutableModel,string)" />
-    ///         for another approach to defining a database-wide collation.
-    ///     </p>
-    ///     <p>
-    ///         For more information, see https://www.postgresql.org/docs/current/collation.html.
-    ///     </p>
-    /// </remarks>
-    [Obsolete("Use EF Core's standard model bulk configuration API")]
-    public static string? SetDefaultColumnCollation(this IConventionModel model, string? collation, bool fromDataAnnotation = false)
-    {
-        model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DefaultColumnCollation, collation, fromDataAnnotation);
-        return collation;
-    }
-
-    /// <summary>
-    ///     Returns the <see cref="ConfigurationSource" /> for the default column collation.
-    /// </summary>
-    /// <param name="model">The model.</param>
-    /// <returns>The <see cref="ConfigurationSource" /> for the default column collation.</returns>
-    [Obsolete("Use EF Core's standard model bulk configuration API")]
-    public static ConfigurationSource? GetDefaultColumnCollationConfigurationSource(this IConventionModel model)
-        => model.FindAnnotation(NpgsqlAnnotationNames.DefaultColumnCollation)?.GetConfigurationSource();
-
-    #endregion Default column collation
 }

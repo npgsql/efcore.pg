@@ -47,24 +47,17 @@ WHERE c."Region" IS NULL OR btrim(c."Region", E' \t\n\r') = ''
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
-    public virtual async Task String_Join_non_aggregate(bool async)
+    public override async Task String_Join_non_aggregate(bool async)
     {
-        var param = "param";
-        string nullParam = null;
-
-        await AssertQuery(
-            async,
-            ss => ss.Set<Customer>().Where(
-                c => string.Join("|", c.CustomerID, c.CompanyName, param, nullParam, "constant", null)
-                    == "ALFKI|Alfreds Futterkiste|param||constant|"));
+        await base.String_Join_non_aggregate(async);
 
         AssertSql(
             """
-@__param_0='param'
+@__foo_0='foo'
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE concat_ws('|', c."CustomerID", c."CompanyName", COALESCE(@__param_0, ''), COALESCE(NULL, ''), 'constant', '') = 'ALFKI|Alfreds Futterkiste|param||constant|'
+WHERE concat_ws('|', c."CompanyName", @__foo_0, '', 'bar') = 'Around the Horn|foo||bar'
 """);
     }
 
@@ -120,6 +113,23 @@ WHERE c."CompanyName" ~ '(?p)^A'
 
     [Theory]
     [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_IsMatch_with_constant_pattern_properly_escaped(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A';foo")),
+            assertEmpty: true);
+
+        AssertSql(
+            """
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CompanyName" ~ '(?p)^A'';foo'
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
     public async Task Regex_IsMatch_with_parameter_pattern(bool async)
     {
         var pattern = "^A";
@@ -135,6 +145,22 @@ WHERE c."CompanyName" ~ '(?p)^A'
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE c."CompanyName" ~ ('(?p)' || @__pattern_0)
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_IsMatch_negated(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Customer>().Where(c => !Regex.IsMatch(c.CompanyName, "^A")));
+
+        AssertSql(
+            """
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CompanyName" !~ '(?p)^A'
 """);
     }
 
@@ -167,6 +193,22 @@ WHERE c."CompanyName" ~ '(?p)^A'
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
 WHERE c."CompanyName" ~* '(?p)^a'
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_IsMatch_with_IgnoreCase_negated(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Customer>().Where(c => !Regex.IsMatch(c.CompanyName, "^a", RegexOptions.IgnoreCase)));
+
+        AssertSql(
+            """
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CompanyName" !~* '(?p)^a'
 """);
     }
 
@@ -829,7 +871,7 @@ GROUP BY c."City"
         var london = results.Single(r => r.City == "London");
 
         Assert.Equal(
-            @"{ ""Around the Horn"" : ""Thomas Hardy"", ""B's Beverages"" : ""Victoria Ashworth"", ""Consolidated Holdings"" : ""Elizabeth Brown"", ""Eastern Connection"" : ""Ann Devon"", ""North/South"" : ""Simon Crowther"", ""Seven Seas Imports"" : ""Hari Kumar"" }",
+            """{ "Around the Horn" : "Thomas Hardy", "B's Beverages" : "Victoria Ashworth", "Consolidated Holdings" : "Elizabeth Brown", "Eastern Connection" : "Ann Devon", "North/South" : "Simon Crowther", "Seven Seas Imports" : "Hari Kumar" }""",
             london.Companies);
 
         AssertSql(
@@ -1088,6 +1130,70 @@ GROUP BY o."ProductID"
     }
 
     #endregion Statistics
+
+    #region NullIf
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task NullIf_with_equality_left_sided(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Order>().Select(x => x.OrderID == 1 ? (int?)null : x.OrderID));
+
+        AssertSql(
+            """
+SELECT NULLIF(o."OrderID", 1)
+FROM "Orders" AS o
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task NullIf_with_equality_right_sided(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Order>().Select(x => 1 == x.OrderID ? (int?)null : x.OrderID));
+
+        AssertSql(
+            """
+SELECT NULLIF(o."OrderID", 1)
+FROM "Orders" AS o
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task NullIf_with_inequality_left_sided(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Order>().Select(x => x.OrderID != 1 ? x.OrderID : (int?)null));
+
+        AssertSql(
+            """
+SELECT NULLIF(o."OrderID", 1)
+FROM "Orders" AS o
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task NullIf_with_inequality_right_sided(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Order>().Select(x => 1 != x.OrderID ? x.OrderID : (int?)null));
+
+        AssertSql(
+            """
+SELECT NULLIF(o."OrderID", 1)
+FROM "Orders" AS o
+""");
+    }
+
+    #endregion
 
     #region Unsupported
 

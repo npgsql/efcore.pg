@@ -447,6 +447,61 @@ public static class NpgsqlModelBuilderExtensions
     ///     Registers a user-defined enum type in the model.
     /// </summary>
     /// <param name="modelBuilder">The model builder in which to create the enum type.</param>
+    /// <param name="schema">The schema in which to create the enum type.</param>
+    /// <param name="name">The name of the enum type to create.</param>
+    /// <param name="labels">The enum label values.</param>
+    /// <returns>
+    ///     The updated <see cref="ModelBuilder" />.
+    /// </returns>
+    /// <remarks>
+    ///     See: https://www.postgresql.org/docs/current/static/datatype-enum.html
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">builder</exception>
+    public static IConventionModelBuilder HasPostgresEnum(
+        this IConventionModelBuilder modelBuilder,
+        string? schema,
+        string name,
+        string[] labels)
+    {
+        Check.NotNull(modelBuilder, nameof(modelBuilder));
+        Check.NotEmpty(name, nameof(name));
+        Check.NotNull(labels, nameof(labels));
+
+        if (modelBuilder.CanSetPostgresEnum(schema, name))
+        {
+            modelBuilder.Metadata.GetOrAddPostgresEnum(schema, name, labels);
+        }
+        return modelBuilder;
+    }
+
+    /// <summary>
+    ///     Returns a value indicating whether the given PostgreSQL extension can be registered in the model.
+    /// </summary>
+    /// <remarks>
+    ///     See <see href="https://aka.ms/efcore-docs-modeling">Modeling entity types and relationships</see>, and
+    ///     <see href="https://aka.ms/efcore-docs-sqlserver">Accessing SQL Server and SQL Azure databases with EF Core</see>
+    ///     for more information and examples.
+    /// </remarks>
+    /// <param name="modelBuilder">The model builder.</param>
+    /// <param name="schema">The schema in which to create the extension.</param>
+    /// <param name="name">The name of the extension to create.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <returns><see langword="true" /> if the given value can be set as the default increment for SQL Server IDENTITY.</returns>
+    public static bool CanSetPostgresEnum(
+        this IConventionModelBuilder modelBuilder,
+        string? schema,
+        string name,
+        bool fromDataAnnotation = false)
+    {
+        var annotationName = PostgresExtension.BuildAnnotationName(schema, name);
+
+        return modelBuilder.CanSetAnnotation(annotationName, $"{schema},{name}", fromDataAnnotation);
+    }
+
+    /// <summary>
+    ///     Registers a user-defined enum type in the model.
+    /// </summary>
+    /// <param name="modelBuilder">The model builder in which to create the enum type.</param>
     /// <param name="name">The name of the enum type to create.</param>
     /// <param name="labels">The enum label values.</param>
     /// <returns>
@@ -712,94 +767,6 @@ public static class NpgsqlModelBuilderExtensions
     }
 
     #endregion Collation management
-
-    #region Default column collation
-
-    /// <summary>
-    ///     Configures the default collation for all columns in the database. This causes EF Core to specify an explicit
-    ///     collation when creating each column (unless overridden).
-    /// </summary>
-    /// <remarks>
-    ///     <p>
-    ///         An alternative is to specify a database collation via
-    ///         <see cref="RelationalModelBuilderExtensions.UseCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string)" />,
-    ///         which will specify the query on <c>CREATE DATABASE</c> instead of for each and every column. However,
-    ///         PostgreSQL support is limited for the collations that can be specific via this mechanism; ICU collations -
-    ///         which include all case-insensitive collations - are currently unsupported.
-    ///     </p>
-    ///     <p>
-    ///         For more information, see https://www.postgresql.org/docs/current/collation.html.
-    ///     </p>
-    /// </remarks>
-    /// <param name="modelBuilder">The model builder.</param>
-    /// <param name="collation">The collation.</param>
-    /// <returns>A builder to further configure the property.</returns>
-    [Obsolete("Use EF Core's standard model bulk configuration API")]
-    public static ModelBuilder UseDefaultColumnCollation(this ModelBuilder modelBuilder, string? collation)
-    {
-        Check.NotNull(modelBuilder, nameof(modelBuilder));
-        Check.NullButNotEmpty(collation, nameof(collation));
-
-        modelBuilder.Model.SetDefaultColumnCollation(collation);
-
-        return modelBuilder;
-    }
-
-    /// <summary>
-    ///     Configures the default collation for all columns in the database. This causes EF Core to specify an explicit
-    ///     collation when creating each column (unless overridden).
-    /// </summary>
-    /// <remarks>
-    ///     <p>
-    ///         An alternative is to specify a database collation via
-    ///         <see cref="RelationalModelBuilderExtensions.UseCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string)" />,
-    ///         which will specify the query on <c>CREATE DATABASE</c> instead of for each and every column. However,
-    ///         PostgreSQL support is limited for the collations that can be specific via this mechanism; ICU collations -
-    ///         which include all case-insensitive collations - are currently unsupported.
-    ///     </p>
-    ///     <p>
-    ///         For more information, see https://www.postgresql.org/docs/current/collation.html.
-    ///     </p>
-    /// </remarks>
-    /// <param name="modelBuilder">The model builder.</param>
-    /// <param name="collation">The collation.</param>
-    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
-    /// <returns>A builder to further configure the property.</returns>
-    [Obsolete("Use EF Core's standard model bulk configuration API")]
-    public static IConventionModelBuilder? UseDefaultColumnCollation(
-        this IConventionModelBuilder modelBuilder,
-        string? collation,
-        bool fromDataAnnotation = false)
-    {
-        if (modelBuilder.CanSetDefaultColumnCollation(collation, fromDataAnnotation))
-        {
-            modelBuilder.Metadata.SetDefaultColumnCollation(collation);
-            return modelBuilder;
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    ///     Returns a value indicating whether the given value can be set as the default column collation.
-    /// </summary>
-    /// <param name="modelBuilder">The model builder.</param>
-    /// <param name="collation">The collation.</param>
-    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
-    /// <returns><c>true</c> if the given value can be set as the collation.</returns>
-    [Obsolete("Use EF Core's standard model bulk configuration API")]
-    public static bool CanSetDefaultColumnCollation(
-        this IConventionModelBuilder modelBuilder,
-        string? collation,
-        bool fromDataAnnotation = false)
-    {
-        Check.NotNull(modelBuilder, nameof(modelBuilder));
-
-        return modelBuilder.CanSetAnnotation(
-            NpgsqlAnnotationNames.DefaultColumnCollation, collation, fromDataAnnotation);
-    }
-
-    #endregion Default column collation
 
     #region Helpers
 

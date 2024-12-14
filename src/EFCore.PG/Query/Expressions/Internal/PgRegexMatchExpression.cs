@@ -7,6 +7,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 /// </summary>
 public class PgRegexMatchExpression : SqlExpression, IEquatable<PgRegexMatchExpression>
 {
+    private static ConstructorInfo? _quotingConstructor;
+
     /// <inheritdoc />
     public override Type Type
         => typeof(bool);
@@ -57,6 +59,16 @@ public class PgRegexMatchExpression : SqlExpression, IEquatable<PgRegexMatchExpr
         => match != Match || pattern != Pattern
             ? new PgRegexMatchExpression(match, pattern, Options, TypeMapping)
             : this;
+
+    /// <inheritdoc />
+    public override Expression Quote()
+        => New(
+            _quotingConstructor ??= typeof(PgRegexMatchExpression).GetConstructor(
+                [typeof(SqlExpression), typeof(SqlExpression), typeof(RegexOptions), typeof(RelationalTypeMapping)])!,
+            Match.Quote(),
+            Pattern.Quote(),
+            Constant(Options),
+            RelationalExpressionQuotingUtilities.QuoteTypeMapping(TypeMapping));
 
     /// <inheritdoc />
     public virtual bool Equals(PgRegexMatchExpression? other)

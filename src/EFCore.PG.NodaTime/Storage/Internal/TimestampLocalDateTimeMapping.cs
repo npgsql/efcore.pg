@@ -97,7 +97,9 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => $@"""{Format((LocalDateTime)value)}""";
+        => $"""
+            "{Format((LocalDateTime)value)}"
+            """;
 
     private static string Format(LocalDateTime localDateTime)
     {
@@ -143,6 +145,8 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
 
     private sealed class JsonLocalDateTimeReaderWriter : JsonValueReaderWriter<LocalDateTime>
     {
+        private static readonly PropertyInfo InstanceProperty = typeof(JsonLocalDateTimeReaderWriter).GetProperty(nameof(Instance))!;
+
         public static JsonLocalDateTimeReaderWriter Instance { get; } = new();
 
         public override LocalDateTime FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
@@ -165,5 +169,8 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
 
         public override void ToJsonTyped(Utf8JsonWriter writer, LocalDateTime value)
             => writer.WriteStringValue(Format(value));
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }

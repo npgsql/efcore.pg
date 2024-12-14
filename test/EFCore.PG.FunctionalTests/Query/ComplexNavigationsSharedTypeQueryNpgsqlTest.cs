@@ -19,14 +19,6 @@ public class ComplexNavigationsSharedTypeQueryNpgsqlTest
     public override Task Subquery_with_Distinct_Skip_FirstOrDefault_without_OrderBy(bool async)
         => base.Subquery_with_Distinct_Skip_FirstOrDefault_without_OrderBy(async);
 
-    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/22532")]
-    public override Task Distinct_skip_without_orderby(bool async)
-        => base.Distinct_skip_without_orderby(async);
-
-    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/22532")]
-    public override Task Distinct_take_without_orderby(bool async)
-        => base.Distinct_take_without_orderby(async);
-
     public override async Task Join_with_result_selector_returning_queryable_throws_validation_error(bool async)
         => await Assert.ThrowsAsync<ArgumentException>(
             () => base.Join_with_result_selector_returning_queryable_throws_validation_error(async));

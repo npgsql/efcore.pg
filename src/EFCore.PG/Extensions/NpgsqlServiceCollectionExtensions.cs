@@ -87,7 +87,7 @@ public static class NpgsqlServiceCollectionExtensions
     {
         Check.NotNull(serviceCollection, nameof(serviceCollection));
 
-        new EntityFrameworkRelationalServicesBuilder(serviceCollection)
+        new EntityFrameworkNpgsqlServicesBuilder(serviceCollection)
             .TryAdd<LoggingDefinitions, NpgsqlLoggingDefinitions>()
             .TryAdd<IDatabaseProvider, DatabaseProvider<NpgsqlOptionsExtension>>()
             .TryAdd<IValueGeneratorCache>(p => p.GetRequiredService<INpgsqlValueGeneratorCache>())
@@ -114,7 +114,6 @@ public static class NpgsqlServiceCollectionExtensions
             .TryAdd<IEvaluatableExpressionFilter, NpgsqlEvaluatableExpressionFilter>()
             .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
             .TryAdd<IRelationalSqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
-            .TryAdd<IQueryTranslationPreprocessorFactory, NpgsqlQueryTranslationPreprocessorFactory>()
             .TryAdd<IQueryTranslationPostprocessorFactory, NpgsqlQueryTranslationPostprocessorFactory>()
             .TryAdd<IRelationalParameterBasedSqlProcessorFactory, NpgsqlParameterBasedSqlProcessorFactory>()
             .TryAdd<ISqlExpressionFactory, NpgsqlSqlExpressionFactory>()
@@ -125,6 +124,7 @@ public static class NpgsqlServiceCollectionExtensions
                     .TryAddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()
                     .TryAddSingleton<INpgsqlSingletonOptions, NpgsqlSingletonOptions>()
                     .TryAddSingleton<INpgsqlSequenceValueGeneratorFactory, NpgsqlSequenceValueGeneratorFactory>()
+                    .TryAddSingleton<NpgsqlDataSourceManager, NpgsqlDataSourceManager>()
                     .TryAddScoped<INpgsqlRelationalConnection, NpgsqlRelationalConnection>())
             .TryAddCoreServices();
 

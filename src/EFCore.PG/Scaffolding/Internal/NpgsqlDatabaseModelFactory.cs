@@ -19,7 +19,7 @@ public class NpgsqlDatabaseModelFactory : DatabaseModelFactory
 {
     #region Fields
 
-    private const string NamePartRegex = @"(?:(?:""(?<part{0}>(?:(?:"""")|[^""])+)"")|(?<part{0}>[^\.\[""]+))";
+    private const string NamePartRegex = """(?:(?:"(?<part{0}>(?:(?:"")|[^"])+)")|(?<part{0}>[^\.\["]+))""";
 
     private static readonly Regex SchemaTableNameExtractor =
         new(
@@ -1021,8 +1021,6 @@ WHERE NOT EXISTS (SELECT * FROM pg_depend AS dep WHERE dep.objid = cls.oid AND d
                     MaxValue = seqInfo.MaxValue,
                     IncrementBy = (int?)seqInfo.IncrementBy,
                     IsCyclic = seqInfo.IsCyclic,
-                    IsCached = seqInfo.CacheSize is not null,
-                    CacheSize = seqInfo.CacheSize
                 };
 
                 yield return sequence;
@@ -1169,7 +1167,11 @@ JOIN pg_namespace ns ON ns.oid=extnamespace
         var commandText = $"""
 SELECT
     nspname, collname, collprovider, collcollate, collctype,
-    {(connection.PostgreSqlVersion >= new Version(15, 0) ? "colliculocale" : "NULL AS colliculocale")},
+    {(connection.PostgreSqlVersion.Major switch {
+        >= 17 => "colllocale",
+        >= 15 => "colliculocale AS colllocale",
+        _ => "NULL AS colllocale"
+         })},
     {(connection.PostgreSqlVersion >= new Version(12, 0) ? "collisdeterministic" : "true AS collisdeterministic")}
 FROM pg_collation coll
     JOIN pg_namespace ns ON ns.oid=coll.collnamespace
@@ -1185,7 +1187,7 @@ WHERE
             {
                 var schema = reader.GetString(reader.GetOrdinal("nspname"));
                 var name = reader.GetString(reader.GetOrdinal("collname"));
-                var icuLocale = reader.GetValueOrDefault<string>("colliculocale");
+                var icuLocale = reader.GetValueOrDefault<string>("colllocale");
                 var lcCollate = reader.GetValueOrDefault<string>("collcollate");
                 var lcCtype = reader.GetValueOrDefault<string>("collctype");
                 var providerCode = reader.GetChar(reader.GetOrdinal("collprovider"));

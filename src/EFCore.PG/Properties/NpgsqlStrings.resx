@@ -117,8 +117,8 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="TwoDataSourcesInSameServiceProvider" xml:space="preserve">
-    <value>Using two distinct data sources within a service provider is not supported, and Entity Framework is not building its own internal service provider. Either allow Entity Framework to build the service provider by removing the call to '{useInternalServiceProvider}', or ensure that the same data source is used for all uses of a given service provider passed to '{useInternalServiceProvider}'.</value>
+  <data name="DataSourceAndConfigNotSupported" xml:space="preserve">
+    <value>ConfigureDataSource() cannot be used when an externally-provided NpgsqlDataSource is passed to UseNpgsql(). Either perform all data source configuration on the external NpgsqlDataSource, or pass a connection string to UseNpgsql() and specify the data source configuration there.</value>
   </data>
   <data name="DuplicateColumnCompressionMethodMismatch" xml:space="preserve">
     <value>'{entityType1}.{property1}' and '{entityType2}.{property2}' are both mapped to column '{columnName}' in '{table}' but are configured with different compression methods.</value>
@@ -246,5 +246,8 @@
   </data>
   <data name="StoredProcedureReturnValueNotSupported" xml:space="preserve">
     <value>The entity type '{entityType}' is mapped to the stored procedure '{sproc}', which is configured with result columns. PostgreSQL stored procedures do not support return values; use output parameters instead.</value>
+  </data>
+  <data name="TwoDataSourcesInSameServiceProvider" xml:space="preserve">
+    <value>Using two distinct data sources within a service provider is not supported, and Entity Framework is not building its own internal service provider. Either allow Entity Framework to build the service provider by removing the call to '{useInternalServiceProvider}', or ensure that the same data source is used for all uses of a given service provider passed to '{useInternalServiceProvider}'.</value>
   </data>
 </root>

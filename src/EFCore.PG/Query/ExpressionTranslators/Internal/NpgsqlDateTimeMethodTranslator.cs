@@ -67,6 +67,10 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
     private static readonly MethodInfo DateOnly_AddYears
         = typeof(DateOnly).GetRuntimeMethod(nameof(DateOnly.AddYears), [typeof(int)])!;
 
+    private static readonly MethodInfo DateOnly_FromDayNumber
+        = typeof(DateOnly).GetRuntimeMethod(
+            nameof(DateOnly.FromDayNumber), [typeof(int)])!;
+
     private static readonly MethodInfo TimeOnly_FromDateTime
         = typeof(TimeOnly).GetRuntimeMethod(nameof(TimeOnly.FromDateTime), [typeof(DateTime)])!;
 
@@ -113,9 +117,9 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
     {
         _typeMappingSource = typeMappingSource;
         _sqlExpressionFactory = sqlExpressionFactory;
-        _timestampMapping = typeMappingSource.FindMapping("timestamp without time zone")!;
-        _timestampTzMapping = typeMappingSource.FindMapping("timestamp with time zone")!;
-        _intervalMapping = typeMappingSource.FindMapping("interval")!;
+        _timestampMapping = typeMappingSource.FindMapping(typeof(DateTime), "timestamp without time zone")!;
+        _timestampTzMapping = typeMappingSource.FindMapping(typeof(DateTime), "timestamp with time zone")!;
+        _intervalMapping = typeMappingSource.FindMapping(typeof(TimeSpan), "interval")!;
         _textMapping = typeMappingSource.FindMapping("text")!;
     }
 
@@ -225,6 +229,18 @@ public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
             if (method == DateOnly_Distance)
             {
                 return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]);
+            }
+
+            if (method == DateOnly_FromDayNumber)
+            {
+                // We use fragment rather than a DateOnly constant, since 0001-01-01 gets rendered as -infinity by default.
+                // TODO: Set the right type/type mapping after https://github.com/dotnet/efcore/pull/34995 is merged
+                return new SqlBinaryExpression(
+                    ExpressionType.Add,
+                    _sqlExpressionFactory.Fragment("DATE '0001-01-01'"),
+                    arguments[0],
+                    typeof(DateOnly),
+                    _typeMappingSource.FindMapping(typeof(DateOnly)));
             }
         }
         else

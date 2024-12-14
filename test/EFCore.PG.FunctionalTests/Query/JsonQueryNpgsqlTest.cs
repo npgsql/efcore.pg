@@ -3,7 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class JsonQueryNpgsqlTest : JsonQueryTestBase<JsonQueryNpgsqlTest.JsonQueryNpgsqlFixture>
+public class JsonQueryNpgsqlTest : JsonQueryRelationalTestBase<JsonQueryNpgsqlTest.JsonQueryNpgsqlFixture>
 {
     public JsonQueryNpgsqlTest(JsonQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         : base(fixture)
@@ -34,6 +34,17 @@ FROM "JsonEntitiesBasic" AS j
 """);
     }
 
+    public override async Task Basic_json_projection_owner_entity_NoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Basic_json_projection_owner_entity_NoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
     public override async Task Basic_json_projection_owner_entity_duplicated(bool async)
     {
         await base.Basic_json_projection_owner_entity_duplicated(async);
@@ -56,6 +67,17 @@ FROM "JsonEntitiesSingleOwned" AS j
 """);
     }
 
+    public override async Task Basic_json_projection_owner_entity_duplicated_NoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Basic_json_projection_owner_entity_duplicated_NoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT j."Id", j."Name", j."OwnedCollection", j."OwnedCollection"
+FROM "JsonEntitiesSingleOwned" AS j
+""");
+    }
+
     public override async Task Basic_json_projection_owner_entity_twice(bool async)
     {
         await base.Basic_json_projection_owner_entity_twice(async);
@@ -70,6 +92,17 @@ FROM "JsonEntitiesBasic" AS j
     public override async Task Basic_json_projection_owner_entity_twice_NoTracking(bool async)
     {
         await base.Basic_json_projection_owner_entity_twice_NoTracking(async);
+
+        AssertSql(
+            """
+SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
+    public override async Task Basic_json_projection_owner_entity_twice_NoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Basic_json_projection_owner_entity_twice_NoTrackingWithIdentityResolution(async);
 
         AssertSql(
             """
@@ -113,9 +146,32 @@ FROM "JsonEntitiesBasic" AS j
 """);
     }
 
+    public override async Task Basic_json_projection_owned_reference_root_NoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Basic_json_projection_owned_reference_root_NoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT j."OwnedReferenceRoot", j."Id"
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
     public override async Task Basic_json_projection_owned_reference_duplicated2(bool async)
     {
         await base.Basic_json_projection_owned_reference_duplicated2(async);
+
+        AssertSql(
+            """
+SELECT j."OwnedReferenceRoot", j."Id", j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}', j."OwnedReferenceRoot", j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}'
+FROM "JsonEntitiesBasic" AS j
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
+
+    public override async Task Basic_json_projection_owned_reference_duplicated2_NoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Basic_json_projection_owned_reference_duplicated2_NoTrackingWithIdentityResolution(async);
 
         AssertSql(
             """
@@ -137,9 +193,32 @@ ORDER BY j."Id" NULLS FIRST
 """);
     }
 
+    public override async Task Basic_json_projection_owned_reference_duplicated_NoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Basic_json_projection_owned_reference_duplicated_NoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT j."OwnedReferenceRoot", j."Id", j."OwnedReferenceRoot" -> 'OwnedReferenceBranch', j."OwnedReferenceRoot", j."OwnedReferenceRoot" -> 'OwnedReferenceBranch'
+FROM "JsonEntitiesBasic" AS j
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
+
     public override async Task Basic_json_projection_owned_collection_root(bool async)
     {
         await base.Basic_json_projection_owned_collection_root(async);
+
+        AssertSql(
+            """
+SELECT j."OwnedCollectionRoot", j."Id"
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
+    public override async Task Basic_json_projection_owned_collection_root_NoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Basic_json_projection_owned_collection_root_NoTrackingWithIdentityResolution(async);
 
         AssertSql(
             """
@@ -159,9 +238,31 @@ FROM "JsonEntitiesBasic" AS j
 """);
     }
 
+    public override async Task Basic_json_projection_owned_reference_branch_NoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Basic_json_projection_owned_reference_branch_NoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT j."OwnedReferenceRoot" -> 'OwnedReferenceBranch', j."Id"
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
     public override async Task Basic_json_projection_owned_collection_branch(bool async)
     {
         await base.Basic_json_projection_owned_collection_branch(async);
+
+        AssertSql(
+            """
+SELECT j."OwnedReferenceRoot" -> 'OwnedCollectionBranch', j."Id"
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
+    public override async Task Basic_json_projection_owned_collection_branch_NoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Basic_json_projection_owned_collection_branch_NoTrackingWithIdentityResolution(async);
 
         AssertSql(
             """
@@ -232,7 +333,7 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-SELECT j."Id", CAST(j.json_reference_custom_naming ->> 'CustomEnum' AS integer) AS "Enum"
+SELECT j."Id", CAST(j.json_reference_custom_naming ->> '1CustomEnum' AS integer) AS "Enum"
 FROM "JsonEntitiesCustomNaming" AS j
 """);
     }
@@ -456,7 +557,7 @@ FROM "JsonEntitiesCustomNaming" AS j
 
         AssertSql(
             """
-SELECT j.json_reference_custom_naming -> 'CustomOwnedReferenceBranch', j."Id"
+SELECT j.json_reference_custom_naming -> 'Custom#OwnedReferenceBranch`-=[]\;'',./~!@#$%^&*()_+{}|:"<>?独角兽π獨角獸', j."Id"
 FROM "JsonEntitiesCustomNaming" AS j
 """);
     }
@@ -479,7 +580,7 @@ ORDER BY j."Id" NULLS FIRST
 
         AssertSql(
             """
-SELECT CAST(j.json_reference_custom_naming #>> '{CustomOwnedReferenceBranch,CustomFraction}' AS double precision)
+SELECT CAST(j.json_reference_custom_naming #>> ARRAY['Custom#OwnedReferenceBranch`-=[]\;'',./~!@#$%^&*()_+{}|:"<>?独角兽π獨角獸','ユニコーンFraction一角獣']::text[] AS double precision)
 FROM "JsonEntitiesCustomNaming" AS j
 """);
     }
@@ -490,7 +591,7 @@ FROM "JsonEntitiesCustomNaming" AS j
 
         AssertSql(
             """
-SELECT j."Id", j."Title", j.json_collection_custom_naming, j.json_reference_custom_naming, j.json_reference_custom_naming, j.json_reference_custom_naming -> 'CustomOwnedReferenceBranch', j.json_collection_custom_naming, j.json_reference_custom_naming -> 'CustomOwnedCollectionBranch', j.json_reference_custom_naming ->> 'CustomName', CAST(j.json_reference_custom_naming #>> '{CustomOwnedReferenceBranch,CustomFraction}' AS double precision)
+SELECT j."Id", j."Title", j.json_collection_custom_naming, j.json_reference_custom_naming, j.json_reference_custom_naming, j.json_reference_custom_naming -> 'Custom#OwnedReferenceBranch`-=[]\;'',./~!@#$%^&*()_+{}|:"<>?独角兽π獨角獸', j.json_collection_custom_naming, j.json_reference_custom_naming -> 'CustomOwnedCollectionBranch', j.json_reference_custom_naming ->> 'CustomName', CAST(j.json_reference_custom_naming #>> ARRAY['Custom#OwnedReferenceBranch`-=[]\;'',./~!@#$%^&*()_+{}|:"<>?独角兽π獨角獸','ユニコーンFraction一角獣']::text[] AS double precision)
 FROM "JsonEntitiesCustomNaming" AS j
 """);
     }
@@ -1051,6 +1152,7 @@ WHERE (
         "Date" timestamp without time zone,
         "Enum" integer,
         "Fraction" numeric(18,2),
+        "Id" integer,
         "OwnedReferenceLeaf" jsonb
     )) WITH ORDINALITY AS o
     WHERE o."Enum" = -3
@@ -1093,6 +1195,7 @@ WHERE (
             "Date" timestamp without time zone,
             "Enum" integer,
             "Fraction" numeric(18,2),
+            "Id" integer,
             "OwnedReferenceLeaf" jsonb
         )) WITH ORDINALITY AS o
         ORDER BY o."Date" DESC NULLS LAST
@@ -1114,12 +1217,13 @@ FROM "JsonEntitiesBasic" AS j
 WHERE (
     SELECT count(*)::int
     FROM (
-        SELECT DISTINCT j."Id", o."Date", o."Enum", o."Enums", o."Fraction", o."NullableEnum", o."NullableEnums", o."OwnedCollectionLeaf" AS c, o."OwnedReferenceLeaf" AS c0
+        SELECT DISTINCT j."Id", o."Date", o."Enum", o."Enums", o."Fraction", o."Id" AS "Id0", o."NullableEnum", o."NullableEnums", o."OwnedCollectionLeaf" AS c, o."OwnedReferenceLeaf" AS c0
         FROM ROWS FROM (jsonb_to_recordset(j."OwnedReferenceRoot" -> 'OwnedCollectionBranch') AS (
             "Date" timestamp without time zone,
             "Enum" integer,
             "Enums" integer[],
             "Fraction" numeric(18,2),
+            "Id" integer,
             "NullableEnum" integer,
             "NullableEnums" integer[],
             "OwnedCollectionLeaf" jsonb,
@@ -1148,6 +1252,7 @@ WHERE EXISTS (
             "Enum" integer,
             "Enums" integer[],
             "Fraction" numeric(18,2),
+            "Id" integer,
             "NullableEnum" integer,
             "NullableEnums" integer[],
             "OwnedCollectionLeaf" jsonb,
@@ -1165,6 +1270,7 @@ WHERE EXISTS (
 SELECT (
     SELECT count(*)::int
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
+        "Id" integer,
         "Name" text,
         "Names" text[],
         "Number" integer,
@@ -1186,6 +1292,7 @@ ORDER BY j."Id" NULLS FIRST
 SELECT j."Id", o."Name", o."Number", o.ordinality
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
+    "Id" integer,
     "Name" text,
     "Number" integer
 )) WITH ORDINALITY AS o ON TRUE
@@ -1204,6 +1311,7 @@ FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
     SELECT o."Name", o."Number", o.ordinality
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
+        "Id" integer,
         "Name" text,
         "Number" integer
     )) WITH ORDINALITY AS o
@@ -1224,6 +1332,7 @@ FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
     SELECT o."Names", o."Numbers", o.ordinality
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
+        "Id" integer,
         "Name" text,
         "Names" text[],
         "Number" integer,
@@ -1241,11 +1350,12 @@ ORDER BY j."Id" NULLS FIRST
 
         AssertSql(
             """
-SELECT j."Id", o0."Id", o0."Name", o0."Names", o0."Number", o0."Numbers", o0.c, o0.c0, o0.ordinality
+SELECT j."Id", o0."Id", o0."Id0", o0."Name", o0."Names", o0."Number", o0."Numbers", o0.c, o0.c0, o0.ordinality
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
-    SELECT j."Id", o."Name", o."Names", o."Number", o."Numbers", o."OwnedCollectionBranch" AS c, o."OwnedReferenceBranch" AS c0, o.ordinality
+    SELECT j."Id", o."Id" AS "Id0", o."Name", o."Names", o."Number", o."Numbers", o."OwnedCollectionBranch" AS c, o."OwnedReferenceBranch" AS c0, o.ordinality
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
+        "Id" integer,
         "Name" text,
         "Names" text[],
         "Number" integer,
@@ -1265,18 +1375,19 @@ ORDER BY j."Id" NULLS FIRST
 
         AssertSql(
             """
-SELECT j."Id", s.ordinality, s."Id", s."Date", s."Enum", s."Enums", s."Fraction", s."NullableEnum", s."NullableEnums", s.c, s.c0, s.ordinality0
+SELECT j."Id", s.ordinality, s."Id", s."Date", s."Enum", s."Enums", s."Fraction", s."Id0", s."NullableEnum", s."NullableEnums", s.c, s.c0, s.ordinality0
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
-    SELECT o.ordinality, o1."Id", o1."Date", o1."Enum", o1."Enums", o1."Fraction", o1."NullableEnum", o1."NullableEnums", o1.c, o1.c0, o1.ordinality AS ordinality0
+    SELECT o.ordinality, o1."Id", o1."Date", o1."Enum", o1."Enums", o1."Fraction", o1."Id0", o1."NullableEnum", o1."NullableEnums", o1.c, o1.c0, o1.ordinality AS ordinality0
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS ("OwnedCollectionBranch" jsonb)) WITH ORDINALITY AS o
     LEFT JOIN LATERAL (
-        SELECT j."Id", o0."Date", o0."Enum", o0."Enums", o0."Fraction", o0."NullableEnum", o0."NullableEnums", o0."OwnedCollectionLeaf" AS c, o0."OwnedReferenceLeaf" AS c0, o0.ordinality
+        SELECT j."Id", o0."Date", o0."Enum", o0."Enums", o0."Fraction", o0."Id" AS "Id0", o0."NullableEnum", o0."NullableEnums", o0."OwnedCollectionLeaf" AS c, o0."OwnedReferenceLeaf" AS c0, o0.ordinality
         FROM ROWS FROM (jsonb_to_recordset(o."OwnedCollectionBranch") AS (
             "Date" timestamp without time zone,
             "Enum" integer,
             "Enums" integer[],
             "Fraction" numeric(18,2),
+            "Id" integer,
             "NullableEnum" integer,
             "NullableEnums" integer[],
             "OwnedCollectionLeaf" jsonb,
@@ -1305,6 +1416,7 @@ LEFT JOIN LATERAL (
         "Enum" integer,
         "Enums" integer[],
         "Fraction" numeric(18,2),
+        "Id" integer,
         "OwnedCollectionLeaf" jsonb,
         "OwnedReferenceLeaf" jsonb
     )) WITH ORDINALITY AS o0 ON TRUE
@@ -1319,11 +1431,12 @@ ORDER BY j."Id" NULLS FIRST, s.ordinality NULLS FIRST
 
         AssertSql(
             """
-SELECT j."Id", o0."Id", o0."Name", o0."Names", o0."Number", o0."Numbers", o0.c, o0.c0, o0.ordinality
+SELECT j."Id", o0."Id", o0."Id0", o0."Name", o0."Names", o0."Number", o0."Numbers", o0.c, o0.c0, o0.ordinality
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
-    SELECT j."Id", o."Name", o."Names", o."Number", o."Numbers", o."OwnedCollectionBranch" AS c, o."OwnedReferenceBranch" AS c0, o.ordinality, o."Name" AS c1
+    SELECT j."Id", o."Id" AS "Id0", o."Name", o."Names", o."Number", o."Numbers", o."OwnedCollectionBranch" AS c, o."OwnedReferenceBranch" AS c0, o.ordinality, o."Name" AS c1
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
+        "Id" integer,
         "Name" text,
         "Names" text[],
         "Number" integer,
@@ -1349,6 +1462,7 @@ FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
     SELECT o."Name" AS c, o."Names" AS c0, o."Number" AS c1, o."Numbers" AS c2, o."OwnedCollectionBranch" AS c3, j."Id", o."OwnedReferenceBranch" AS c4, o.ordinality
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
+        "Id" integer,
         "Name" text,
         "Names" text[],
         "Number" integer,
@@ -1374,6 +1488,7 @@ FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
     SELECT o."OwnedReferenceBranch" AS c, j."Id", o.ordinality, o."Name" AS c0
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
+        "Id" integer,
         "Name" text,
         "Number" integer,
         "OwnedReferenceBranch" jsonb
@@ -1391,11 +1506,12 @@ ORDER BY j."Id" NULLS FIRST, o0.c0 NULLS FIRST
 
         AssertSql(
             """
-SELECT j."Id", o0."Id", o0."Name", o0."Names", o0."Number", o0."Numbers", o0.c, o0.c0
+SELECT j."Id", o0."Id", o0."Id0", o0."Name", o0."Names", o0."Number", o0."Numbers", o0.c, o0.c0
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
-    SELECT DISTINCT j."Id", o."Name", o."Names", o."Number", o."Numbers", o."OwnedCollectionBranch" AS c, o."OwnedReferenceBranch" AS c0
+    SELECT DISTINCT j."Id", o."Id" AS "Id0", o."Name", o."Names", o."Number", o."Numbers", o."OwnedCollectionBranch" AS c, o."OwnedReferenceBranch" AS c0
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
+        "Id" integer,
         "Name" text,
         "Names" text[],
         "Number" integer,
@@ -1404,7 +1520,7 @@ LEFT JOIN LATERAL (
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o
 ) AS o0 ON TRUE
-ORDER BY j."Id" NULLS FIRST, o0."Name" NULLS FIRST, o0."Names" NULLS FIRST, o0."Number" NULLS FIRST
+ORDER BY j."Id" NULLS FIRST, o0."Id0" NULLS FIRST, o0."Name" NULLS FIRST, o0."Names" NULLS FIRST, o0."Number" NULLS FIRST
 """);
     }
 
@@ -1438,7 +1554,7 @@ ORDER BY j."Id" NULLS FIRST
 
         AssertSql(
             """
-SELECT j."Id", o4."Id", o4."SomethingSomething", o4.ordinality, o1."Id", o1."Name", o1."Names", o1."Number", o1."Numbers", o1.c, o1.c0, s.ordinality, s."Id", s."Date", s."Enum", s."Enums", s."Fraction", s."NullableEnum", s."NullableEnums", s.c, s.c0, s.ordinality0, j0."Id", j0."Name", j0."ParentId"
+SELECT j."Id", o4."Id", o4."SomethingSomething", o4.ordinality, o1."Id", o1."Id0", o1."Name", o1."Names", o1."Number", o1."Numbers", o1.c, o1.c0, s.ordinality, s."Id", s."Date", s."Enum", s."Enums", s."Fraction", s."Id0", s."NullableEnum", s."NullableEnums", s.c, s.c0, s.ordinality0, j0."Id", j0."Name", j0."ParentId"
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
     SELECT j."Id", o."SomethingSomething", o.ordinality
@@ -1446,8 +1562,9 @@ LEFT JOIN LATERAL (
     WHERE o."SomethingSomething" <> 'Baz' OR o."SomethingSomething" IS NULL
 ) AS o4 ON TRUE
 LEFT JOIN LATERAL (
-    SELECT DISTINCT j."Id", o0."Name", o0."Names", o0."Number", o0."Numbers", o0."OwnedCollectionBranch" AS c, o0."OwnedReferenceBranch" AS c0
+    SELECT DISTINCT j."Id", o0."Id" AS "Id0", o0."Name", o0."Names", o0."Number", o0."Numbers", o0."OwnedCollectionBranch" AS c, o0."OwnedReferenceBranch" AS c0
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
+        "Id" integer,
         "Name" text,
         "Names" text[],
         "Number" integer,
@@ -1457,15 +1574,16 @@ LEFT JOIN LATERAL (
     )) WITH ORDINALITY AS o0
 ) AS o1 ON TRUE
 LEFT JOIN LATERAL (
-    SELECT o2.ordinality, o5."Id", o5."Date", o5."Enum", o5."Enums", o5."Fraction", o5."NullableEnum", o5."NullableEnums", o5.c, o5.c0, o5.ordinality AS ordinality0
+    SELECT o2.ordinality, o5."Id", o5."Date", o5."Enum", o5."Enums", o5."Fraction", o5."Id0", o5."NullableEnum", o5."NullableEnums", o5.c, o5.c0, o5.ordinality AS ordinality0
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS ("OwnedCollectionBranch" jsonb)) WITH ORDINALITY AS o2
     LEFT JOIN LATERAL (
-        SELECT j."Id", o3."Date", o3."Enum", o3."Enums", o3."Fraction", o3."NullableEnum", o3."NullableEnums", o3."OwnedCollectionLeaf" AS c, o3."OwnedReferenceLeaf" AS c0, o3.ordinality
+        SELECT j."Id", o3."Date", o3."Enum", o3."Enums", o3."Fraction", o3."Id" AS "Id0", o3."NullableEnum", o3."NullableEnums", o3."OwnedCollectionLeaf" AS c, o3."OwnedReferenceLeaf" AS c0, o3.ordinality
         FROM ROWS FROM (jsonb_to_recordset(o2."OwnedCollectionBranch") AS (
             "Date" timestamp without time zone,
             "Enum" integer,
             "Enums" integer[],
             "Fraction" numeric(18,2),
+            "Id" integer,
             "NullableEnum" integer,
             "NullableEnums" integer[],
             "OwnedCollectionLeaf" jsonb,
@@ -1475,7 +1593,7 @@ LEFT JOIN LATERAL (
     ) AS o5 ON TRUE
 ) AS s ON TRUE
 LEFT JOIN "JsonEntitiesBasicForCollection" AS j0 ON j."Id" = j0."ParentId"
-ORDER BY j."Id" NULLS FIRST, o4.ordinality NULLS FIRST, o1."Name" NULLS FIRST, o1."Names" NULLS FIRST, o1."Number" NULLS FIRST, o1."Numbers" NULLS FIRST, s.ordinality NULLS FIRST, s.ordinality0 NULLS FIRST
+ORDER BY j."Id" NULLS FIRST, o4.ordinality NULLS FIRST, o1."Id0" NULLS FIRST, o1."Name" NULLS FIRST, o1."Names" NULLS FIRST, o1."Number" NULLS FIRST, o1."Numbers" NULLS FIRST, s.ordinality NULLS FIRST, s.ordinality0 NULLS FIRST
 """);
     }
 
@@ -1485,15 +1603,16 @@ ORDER BY j."Id" NULLS FIRST, o4.ordinality NULLS FIRST, o1."Name" NULLS FIRST, o
 
         AssertSql(
             """
-SELECT j."Id", o0."Id", o0."Date", o0."Enum", o0."Enums", o0."Fraction", o0."NullableEnum", o0."NullableEnums", o0.c, o0.c0, j0."Id", j0."Name", j0."ParentId"
+SELECT j."Id", o0."Id", o0."Date", o0."Enum", o0."Enums", o0."Fraction", o0."Id0", o0."NullableEnum", o0."NullableEnums", o0.c, o0.c0, j0."Id", j0."Name", j0."ParentId"
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
-    SELECT DISTINCT j."Id", o."Date", o."Enum", o."Enums", o."Fraction", o."NullableEnum", o."NullableEnums", o."OwnedCollectionLeaf" AS c, o."OwnedReferenceLeaf" AS c0
+    SELECT DISTINCT j."Id", o."Date", o."Enum", o."Enums", o."Fraction", o."Id" AS "Id0", o."NullableEnum", o."NullableEnums", o."OwnedCollectionLeaf" AS c, o."OwnedReferenceLeaf" AS c0
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedReferenceRoot" -> 'OwnedCollectionBranch') AS (
         "Date" timestamp without time zone,
         "Enum" integer,
         "Enums" integer[],
         "Fraction" numeric(18,2),
+        "Id" integer,
         "NullableEnum" integer,
         "NullableEnums" integer[],
         "OwnedCollectionLeaf" jsonb,
@@ -1501,7 +1620,7 @@ LEFT JOIN LATERAL (
     )) WITH ORDINALITY AS o
 ) AS o0 ON TRUE
 LEFT JOIN "JsonEntitiesBasicForCollection" AS j0 ON j."Id" = j0."ParentId"
-ORDER BY j."Id" NULLS FIRST, o0."Date" NULLS FIRST, o0."Enum" NULLS FIRST, o0."Enums" NULLS FIRST, o0."Fraction" NULLS FIRST, o0."NullableEnum" NULLS FIRST, o0."NullableEnums" NULLS FIRST
+ORDER BY j."Id" NULLS FIRST, o0."Date" NULLS FIRST, o0."Enum" NULLS FIRST, o0."Enums" NULLS FIRST, o0."Fraction" NULLS FIRST, o0."Id0" NULLS FIRST, o0."NullableEnum" NULLS FIRST, o0."NullableEnums" NULLS FIRST
 """);
     }
 
@@ -1528,9 +1647,10 @@ ORDER BY j."Id" NULLS FIRST, o0."SomethingSomething" NULLS FIRST
 
         AssertSql(
             """
-SELECT j."Id", o."Name", o."Names", o."Number", o."Numbers", o."OwnedCollectionBranch", o."OwnedReferenceBranch"
+SELECT j."Id", o."Id", o."Name", o."Names", o."Number", o."Numbers", o."OwnedCollectionBranch", o."OwnedReferenceBranch"
 FROM "JsonEntitiesBasic" AS j
 JOIN LATERAL ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
+    "Id" integer,
     "Name" text,
     "Names" text[],
     "Number" integer,
@@ -1547,13 +1667,14 @@ JOIN LATERAL ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
 
         AssertSql(
             """
-SELECT j."Id", o."Date", o."Enum", o."Enums", o."Fraction", o."NullableEnum", o."NullableEnums", o."OwnedCollectionLeaf", o."OwnedReferenceLeaf"
+SELECT j."Id", o."Date", o."Enum", o."Enums", o."Fraction", o."Id", o."NullableEnum", o."NullableEnums", o."OwnedCollectionLeaf", o."OwnedReferenceLeaf"
 FROM "JsonEntitiesBasic" AS j
 JOIN LATERAL ROWS FROM (jsonb_to_recordset(j."OwnedReferenceRoot" -> 'OwnedCollectionBranch') AS (
     "Date" timestamp without time zone,
     "Enum" integer,
     "Enums" integer[],
     "Fraction" numeric(18,2),
+    "Id" integer,
     "NullableEnum" integer,
     "NullableEnums" integer[],
     "OwnedCollectionLeaf" jsonb,
@@ -1566,7 +1687,12 @@ JOIN LATERAL ROWS FROM (jsonb_to_recordset(j."OwnedReferenceRoot" -> 'OwnedColle
     {
         await base.Json_collection_of_primitives_SelectMany(async);
 
-        AssertSql("");
+        AssertSql(
+            """
+SELECT n.value
+FROM "JsonEntitiesBasic" AS j
+JOIN LATERAL unnest((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elements_text(j."OwnedReferenceRoot" -> 'Names') WITH ORDINALITY AS t(element) ORDER BY ordinality))) AS n(value) ON TRUE
+""");
     }
 
     public override async Task Json_collection_of_primitives_index_used_in_predicate(bool async)
@@ -1632,6 +1758,7 @@ SELECT j."Id", (
         "Enum" integer,
         "Enums" integer[],
         "Fraction" numeric(18,2),
+        "Id" integer,
         "NullableEnum" integer,
         "NullableEnums" integer[],
         "OwnedCollectionLeaf" jsonb,
@@ -1705,6 +1832,7 @@ FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
     SELECT j."Id", 1 AS c
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
+        "Id" integer,
         "Name" text,
         "Names" text[],
         "Number" integer,
@@ -2267,7 +2395,7 @@ ORDER BY j."Id" NULLS FIRST, j0."Id" NULLS FIRST
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 """);
     }
@@ -2300,7 +2428,7 @@ FROM "JsonEntitiesAllTypes" AS j
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE CAST(j."Reference" ->> 'TestBoolean' AS boolean)
 """);
@@ -2312,7 +2440,7 @@ WHERE CAST(j."Reference" ->> 'TestBoolean' AS boolean)
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE NOT (CAST(j."Reference" ->> 'TestBoolean' AS boolean))
 """);
@@ -2346,7 +2474,7 @@ FROM "JsonEntitiesAllTypes" AS j
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (j."Reference" ->> 'TestDefaultString') <> 'MyDefaultStringInReference1' OR (j."Reference" ->> 'TestDefaultString') IS NULL
 """);
@@ -2358,7 +2486,7 @@ WHERE (j."Reference" ->> 'TestDefaultString') <> 'MyDefaultStringInReference1' O
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (j."Reference" ->> 'TestMaxLengthString') <> 'Foo' OR (j."Reference" ->> 'TestMaxLengthString') IS NULL
 """);
@@ -2370,7 +2498,7 @@ WHERE (j."Reference" ->> 'TestMaxLengthString') <> 'Foo' OR (j."Reference" ->> '
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE CASE
     WHEN NOT (CAST(j."Reference" ->> 'TestBoolean' AS boolean)) THEN j."Reference" ->> 'TestMaxLengthString'
@@ -2385,9 +2513,21 @@ END = 'MyDefaultStringInReference1'
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestByte' AS smallint)) <> 3 OR (CAST(j."Reference" ->> 'TestByte' AS smallint)) IS NULL
+""");
+    }
+
+    public override async Task Json_predicate_on_byte_array(bool async)
+    {
+        await base.Json_predicate_on_byte_array(async);
+
+        AssertSql(
+            """
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+FROM "JsonEntitiesAllTypes" AS j
+WHERE (decode(j."Reference" ->> 'TestByteArray', 'base64')) <> BYTEA E'\\x010203' OR (decode(j."Reference" ->> 'TestByteArray', 'base64')) IS NULL
 """);
     }
 
@@ -2397,7 +2537,7 @@ WHERE (CAST(j."Reference" ->> 'TestByte' AS smallint)) <> 3 OR (CAST(j."Referenc
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestCharacter' AS character(1))) <> 'z' OR (CAST(j."Reference" ->> 'TestCharacter' AS character(1))) IS NULL
 """);
@@ -2409,7 +2549,7 @@ WHERE (CAST(j."Reference" ->> 'TestCharacter' AS character(1))) <> 'z' OR (CAST(
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestDateTime' AS timestamp without time zone)) <> TIMESTAMP '2000-01-03T00:00:00' OR (CAST(j."Reference" ->> 'TestDateTime' AS timestamp without time zone)) IS NULL
 """);
@@ -2421,7 +2561,7 @@ WHERE (CAST(j."Reference" ->> 'TestDateTime' AS timestamp without time zone)) <>
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestDateTimeOffset' AS timestamp with time zone)) <> TIMESTAMPTZ '2000-01-04T00:00:00+03:02' OR (CAST(j."Reference" ->> 'TestDateTimeOffset' AS timestamp with time zone)) IS NULL
 """);
@@ -2433,7 +2573,7 @@ WHERE (CAST(j."Reference" ->> 'TestDateTimeOffset' AS timestamp with time zone))
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestDecimal' AS numeric(18,3))) <> 1.35 OR (CAST(j."Reference" ->> 'TestDecimal' AS numeric(18,3))) IS NULL
 """);
@@ -2445,7 +2585,7 @@ WHERE (CAST(j."Reference" ->> 'TestDecimal' AS numeric(18,3))) <> 1.35 OR (CAST(
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestDouble' AS double precision)) <> 33.25 OR (CAST(j."Reference" ->> 'TestDouble' AS double precision)) IS NULL
 """);
@@ -2457,7 +2597,7 @@ WHERE (CAST(j."Reference" ->> 'TestDouble' AS double precision)) <> 33.25 OR (CA
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestEnum' AS integer)) <> 2 OR (CAST(j."Reference" ->> 'TestEnum' AS integer)) IS NULL
 """);
@@ -2469,7 +2609,7 @@ WHERE (CAST(j."Reference" ->> 'TestEnum' AS integer)) <> 2 OR (CAST(j."Reference
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestEnumWithIntConverter' AS integer)) <> -3 OR (CAST(j."Reference" ->> 'TestEnumWithIntConverter' AS integer)) IS NULL
 """);
@@ -2481,7 +2621,7 @@ WHERE (CAST(j."Reference" ->> 'TestEnumWithIntConverter' AS integer)) <> -3 OR (
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestGuid' AS uuid)) <> '00000000-0000-0000-0000-000000000000' OR (CAST(j."Reference" ->> 'TestGuid' AS uuid)) IS NULL
 """);
@@ -2493,7 +2633,7 @@ WHERE (CAST(j."Reference" ->> 'TestGuid' AS uuid)) <> '00000000-0000-0000-0000-0
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestInt16' AS smallint)) <> 3 OR (CAST(j."Reference" ->> 'TestInt16' AS smallint)) IS NULL
 """);
@@ -2505,7 +2645,7 @@ WHERE (CAST(j."Reference" ->> 'TestInt16' AS smallint)) <> 3 OR (CAST(j."Referen
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestInt32' AS integer)) <> 33 OR (CAST(j."Reference" ->> 'TestInt32' AS integer)) IS NULL
 """);
@@ -2517,7 +2657,7 @@ WHERE (CAST(j."Reference" ->> 'TestInt32' AS integer)) <> 33 OR (CAST(j."Referen
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestInt64' AS bigint)) <> 333 OR (CAST(j."Reference" ->> 'TestInt64' AS bigint)) IS NULL
 """);
@@ -2529,7 +2669,7 @@ WHERE (CAST(j."Reference" ->> 'TestInt64' AS bigint)) <> 333 OR (CAST(j."Referen
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestNullableEnum' AS integer)) <> -1 OR (CAST(j."Reference" ->> 'TestNullableEnum' AS integer)) IS NULL
 """);
@@ -2541,7 +2681,7 @@ WHERE (CAST(j."Reference" ->> 'TestNullableEnum' AS integer)) <> -1 OR (CAST(j."
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestNullableEnum' AS integer)) IS NOT NULL
 """);
@@ -2553,7 +2693,7 @@ WHERE (CAST(j."Reference" ->> 'TestNullableEnum' AS integer)) IS NOT NULL
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestNullableEnumWithIntConverter' AS integer)) <> 2 OR (CAST(j."Reference" ->> 'TestNullableEnumWithIntConverter' AS integer)) IS NULL
 """);
@@ -2565,7 +2705,7 @@ WHERE (CAST(j."Reference" ->> 'TestNullableEnumWithIntConverter' AS integer)) <>
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestNullableEnumWithIntConverter' AS integer)) IS NOT NULL
 """);
@@ -2577,7 +2717,7 @@ WHERE (CAST(j."Reference" ->> 'TestNullableEnumWithIntConverter' AS integer)) IS
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (j."Reference" ->> 'TestNullableEnumWithConverterThatHandlesNulls') <> 'One' OR (j."Reference" ->> 'TestNullableEnumWithConverterThatHandlesNulls') IS NULL
 """);
@@ -2599,7 +2739,7 @@ x
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestNullableInt32' AS integer)) <> 100 OR (CAST(j."Reference" ->> 'TestNullableInt32' AS integer)) IS NULL
 """);
@@ -2611,7 +2751,7 @@ WHERE (CAST(j."Reference" ->> 'TestNullableInt32' AS integer)) <> 100 OR (CAST(j
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestNullableInt32' AS integer)) IS NOT NULL
 """);
@@ -2623,7 +2763,7 @@ WHERE (CAST(j."Reference" ->> 'TestNullableInt32' AS integer)) IS NOT NULL
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestSignedByte' AS smallint)) <> 100 OR (CAST(j."Reference" ->> 'TestSignedByte' AS smallint)) IS NULL
 """);
@@ -2635,7 +2775,7 @@ WHERE (CAST(j."Reference" ->> 'TestSignedByte' AS smallint)) <> 100 OR (CAST(j."
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestSingle' AS real)) <> 10.4 OR (CAST(j."Reference" ->> 'TestSingle' AS real)) IS NULL
 """);
@@ -2647,7 +2787,7 @@ WHERE (CAST(j."Reference" ->> 'TestSingle' AS real)) <> 10.4 OR (CAST(j."Referen
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestTimeSpan' AS interval)) <> INTERVAL '03:02:00' OR (CAST(j."Reference" ->> 'TestTimeSpan' AS interval)) IS NULL
 """);
@@ -2659,7 +2799,7 @@ WHERE (CAST(j."Reference" ->> 'TestTimeSpan' AS interval)) <> INTERVAL '03:02:00
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestDateOnly' AS date)) <> DATE '0003-02-01' OR (CAST(j."Reference" ->> 'TestDateOnly' AS date)) IS NULL
 """);
@@ -2671,7 +2811,7 @@ WHERE (CAST(j."Reference" ->> 'TestDateOnly' AS date)) <> DATE '0003-02-01' OR (
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestTimeOnly' AS time without time zone)) <> TIME '03:02:00' OR (CAST(j."Reference" ->> 'TestTimeOnly' AS time without time zone)) IS NULL
 """);
@@ -2683,7 +2823,7 @@ WHERE (CAST(j."Reference" ->> 'TestTimeOnly' AS time without time zone)) <> TIME
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestUnsignedInt16' AS integer)) <> 100 OR (CAST(j."Reference" ->> 'TestUnsignedInt16' AS integer)) IS NULL
 """);
@@ -2695,7 +2835,7 @@ WHERE (CAST(j."Reference" ->> 'TestUnsignedInt16' AS integer)) <> 100 OR (CAST(j
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestUnsignedInt32' AS bigint)) <> 1000 OR (CAST(j."Reference" ->> 'TestUnsignedInt32' AS bigint)) IS NULL
 """);
@@ -2707,7 +2847,7 @@ WHERE (CAST(j."Reference" ->> 'TestUnsignedInt32' AS bigint)) <> 1000 OR (CAST(j
 
         AssertSql(
             """
-SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestGuidCollection", j."TestInt32Collection", j."TestInt64Collection", j."TestMaxLengthStringCollection", j."TestNullableEnumWithConverterThatHandlesNullsCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
+SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
 WHERE (CAST(j."Reference" ->> 'TestUnsignedInt64' AS numeric(20,0))) <> 10000.0 OR (CAST(j."Reference" ->> 'TestUnsignedInt64' AS numeric(20,0))) IS NULL
 """);
@@ -2821,8 +2961,6 @@ WHERE (CAST(j."Reference" ->> 'StringYNConvertedToBool' AS boolean)) = FALSE
 """);
     }
 
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
     public override async Task FromSql_on_entity_with_json_basic(bool async)
     {
         await base.FromSql_on_entity_with_json_basic(async);
@@ -2836,8 +2974,6 @@ FROM (
 """);
     }
 
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
     public override async Task FromSql_on_entity_with_json_project_json_reference(bool async)
     {
         await base.FromSql_on_entity_with_json_project_json_reference(async);
@@ -2851,8 +2987,6 @@ FROM (
 """);
     }
 
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
     public override async Task FromSql_on_entity_with_json_project_json_collection(bool async)
     {
         await base.FromSql_on_entity_with_json_project_json_collection(async);
@@ -2866,8 +3000,6 @@ FROM (
 """);
     }
 
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
     public override async Task FromSql_on_entity_with_json_inheritance_on_base(bool async)
     {
         await base.FromSql_on_entity_with_json_inheritance_on_base(async);
@@ -2881,8 +3013,6 @@ FROM (
 """);
     }
 
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
     public override async Task FromSql_on_entity_with_json_inheritance_on_derived(bool async)
     {
         await base.FromSql_on_entity_with_json_inheritance_on_derived(async);
@@ -2897,8 +3027,6 @@ WHERE m."Discriminator" = 'JsonEntityInheritanceDerived'
 """);
     }
 
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
     public override async Task FromSql_on_entity_with_json_inheritance_project_reference_on_base(bool async)
     {
         await base.FromSql_on_entity_with_json_inheritance_project_reference_on_base(async);
@@ -2913,8 +3041,6 @@ ORDER BY m."Id" NULLS FIRST
 """);
     }
 
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
     public override async Task FromSql_on_entity_with_json_inheritance_project_reference_on_derived(bool async)
     {
         await base.FromSql_on_entity_with_json_inheritance_project_reference_on_derived(async);
@@ -2930,6 +3056,336 @@ ORDER BY m."Id" NULLS FIRST
 """);
     }
 
+    public override async Task Json_projection_using_queryable_methods_on_top_of_JSON_collection_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_using_queryable_methods_on_top_of_JSON_collection_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task Json_nested_collection_anonymous_projection_in_projection_NoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_nested_collection_anonymous_projection_in_projection_NoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task Json_projection_nested_collection_and_element_using_parameter_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_nested_collection_and_element_using_parameter_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task Json_projection_nested_collection_and_element_using_parameter_AsNoTrackingWithIdentityResolution2(bool async)
+    {
+        await base.Json_projection_nested_collection_and_element_using_parameter_AsNoTrackingWithIdentityResolution2(async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task
+        Json_projection_second_element_through_collection_element_parameter_different_values_projected_before_owner_nested_AsNoTrackingWithIdentityResolution(
+            bool async)
+    {
+        await base
+            .Json_projection_second_element_through_collection_element_parameter_different_values_projected_before_owner_nested_AsNoTrackingWithIdentityResolution(
+                async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task
+        Json_projection_second_element_through_collection_element_parameter_projected_before_owner_nested_AsNoTrackingWithIdentityResolution(
+            bool async)
+    {
+        await base
+            .Json_projection_second_element_through_collection_element_parameter_projected_before_owner_nested_AsNoTrackingWithIdentityResolution(
+                async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task
+        Json_projection_second_element_through_collection_element_parameter_projected_before_owner_nested_AsNoTrackingWithIdentityResolution2(
+            bool async)
+    {
+        await base
+            .Json_projection_second_element_through_collection_element_parameter_projected_before_owner_nested_AsNoTrackingWithIdentityResolution2(
+                async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task
+        Json_projection_second_element_through_collection_element_parameter_projected_after_owner_nested_AsNoTrackingWithIdentityResolution(
+            bool async)
+    {
+        await base
+            .Json_projection_second_element_through_collection_element_parameter_projected_after_owner_nested_AsNoTrackingWithIdentityResolution(
+                async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task
+        Json_projection_second_element_through_collection_element_constant_projected_before_owner_nested_AsNoTrackingWithIdentityResolution(
+            bool async)
+    {
+        await base
+            .Json_projection_second_element_through_collection_element_constant_projected_before_owner_nested_AsNoTrackingWithIdentityResolution(
+                async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task Json_branch_collection_distinct_and_other_collection_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_branch_collection_distinct_and_other_collection_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task Json_collection_SelectMany_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_collection_SelectMany_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task Json_projection_deduplication_with_collection_indexer_in_target_AsNoTrackingWithIdentityResolution(
+        bool async)
+    {
+        await base.Json_projection_deduplication_with_collection_indexer_in_target_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task Json_projection_nested_collection_and_element_wrong_order_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_nested_collection_and_element_wrong_order_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task Json_projection_second_element_projected_before_entire_collection_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_second_element_projected_before_entire_collection_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task Json_projection_second_element_projected_before_owner_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_second_element_projected_before_owner_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task Json_projection_second_element_projected_before_owner_nested_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_second_element_projected_before_owner_nested_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+);
+    }
+
+    public override async Task Json_projection_collection_element_and_reference_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_collection_element_and_reference_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,1}', j."OwnedReferenceRoot" -> 'OwnedReferenceBranch'
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
+    public override async Task Json_projection_nothing_interesting_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_nothing_interesting_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT j."Id", j."Name"
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
+    public override async Task Json_projection_owner_entity_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_owner_entity_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
+    public override async Task Json_nested_collection_anonymous_projection_of_primitives_in_projection_NoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_nested_collection_anonymous_projection_of_primitives_in_projection_NoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT j."Id", s.ordinality, s.c, s.c0, s.c1, s.c2, s.ordinality0
+FROM "JsonEntitiesBasic" AS j
+LEFT JOIN LATERAL (
+    SELECT o.ordinality, o0."Date" AS c, o0."Enum" AS c0, o0."Enums" AS c1, o0."Fraction" AS c2, o0.ordinality AS ordinality0
+    FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS ("OwnedCollectionBranch" jsonb)) WITH ORDINALITY AS o
+    LEFT JOIN LATERAL ROWS FROM (jsonb_to_recordset(o."OwnedCollectionBranch") AS (
+        "Date" timestamp without time zone,
+        "Enum" integer,
+        "Enums" integer[],
+        "Fraction" numeric(18,2),
+        "Id" integer
+    )) WITH ORDINALITY AS o0 ON TRUE
+) AS s ON TRUE
+ORDER BY j."Id" NULLS FIRST, s.ordinality NULLS FIRST
+""");
+    }
+
+    public override async Task Json_projection_second_element_through_collection_element_constant_projected_after_owner_nested_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_second_element_through_collection_element_constant_projected_after_owner_nested_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0,OwnedCollectionLeaf}', j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0,OwnedCollectionLeaf,1}'
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
+    public override async Task Json_projection_reference_collection_and_collection_element_nested_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_reference_collection_and_collection_element_nested_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0,OwnedReferenceLeaf}', j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0,OwnedCollectionLeaf}', j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0,OwnedCollectionLeaf,1}'
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
+    public override async Task
+        Json_projection_second_element_through_collection_element_parameter_correctly_projected_after_owner_nested_AsNoTrackingWithIdentityResolution(
+            bool async)
+    {
+        await base
+            .Json_projection_second_element_through_collection_element_parameter_correctly_projected_after_owner_nested_AsNoTrackingWithIdentityResolution(
+                async);
+
+        AssertSql(
+            """
+@__prm_0='1'
+
+SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0,OwnedCollectionLeaf}', j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',0,'OwnedCollectionLeaf',@__prm_0]::text[], @__prm_0
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
+    public override async Task
+        Json_projection_only_second_element_through_collection_element_constant_projected_nested_AsNoTrackingWithIdentityResolution(
+            bool async)
+    {
+        await base
+            .Json_projection_only_second_element_through_collection_element_constant_projected_nested_AsNoTrackingWithIdentityResolution(
+                async);
+
+        AssertSql(
+            """
+SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0,OwnedCollectionLeaf,1}'
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
+    public override async Task Json_projection_only_second_element_through_collection_element_parameter_projected_nested_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_only_second_element_through_collection_element_parameter_projected_nested_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+@__prm1_0='0'
+@__prm2_1='1'
+
+SELECT j."Id", j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',@__prm1_0,'OwnedCollectionLeaf',@__prm2_1]::text[], @__prm1_0, @__prm2_1
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
+    public override async Task Json_projection_second_element_through_collection_element_constant_different_values_projected_before_owner_nested_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_second_element_through_collection_element_constant_different_values_projected_before_owner_nested_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0,OwnedCollectionLeaf,1}', j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,1,OwnedCollectionLeaf}'
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
+    public override async Task Json_projection_nested_collection_and_element_correct_order_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_nested_collection_and_element_correct_order_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0,OwnedCollectionLeaf}', j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0,OwnedCollectionLeaf,1}'
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
+    public override async Task Json_projection_nested_collection_element_using_parameter_and_the_owner_in_correct_order_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_nested_collection_element_using_parameter_and_the_owner_in_correct_order_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+@__prm_0='0'
+
+SELECT j."Id", j."OwnedReferenceRoot", j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',@__prm_0,'OwnedCollectionLeaf',1]::text[], @__prm_0
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
+    public override async Task Json_projection_second_element_projected_before_owner_as_well_as_root_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_second_element_projected_before_owner_as_well_as_root_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,1}', j."OwnedReferenceRoot", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
+    public override async Task Json_projection_second_element_projected_before_owner_nested_as_well_as_root_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Json_projection_second_element_projected_before_owner_nested_as_well_as_root_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedCollectionLeaf,1}', j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedCollectionLeaf}', j."OwnedReferenceRoot" -> 'OwnedReferenceBranch', j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
+
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());
@@ -2937,12 +3393,55 @@ ORDER BY m."Id" NULLS FIRST
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-    public class JsonQueryNpgsqlFixture : JsonQueryFixtureBase
+    public class JsonQueryNpgsqlFixture : JsonQueryRelationalFixture, IQueryFixtureBase
     {
         protected override ITestStoreFactory TestStoreFactory
             => NpgsqlTestStoreFactory.Instance;
 
         private JsonQueryData _expectedData;
+        private readonly IReadOnlyDictionary<Type, object> _entityAsserters;
+
+        public JsonQueryNpgsqlFixture()
+        {
+            var entityAsserters = base.EntityAsserters.ToDictionary();
+
+            entityAsserters[typeof(JsonEntityAllTypes)] = (object e, object a) =>
+            {
+                Assert.Equal(e == null, a == null);
+                if (a != null)
+                {
+                    var ee = (JsonEntityAllTypes)e;
+                    var aa = (JsonEntityAllTypes)a;
+
+                    Assert.Equal(ee.Id, aa.Id);
+
+                    AssertAllTypes(ee.Reference, aa.Reference);
+
+                    Assert.Equal(ee.Collection?.Count ?? 0, aa.Collection?.Count ?? 0);
+                    for (var i = 0; i < ee.Collection.Count; i++)
+                    {
+                        AssertAllTypes(ee.Collection[i], aa.Collection[i]);
+                    }
+                }
+            };
+
+            entityAsserters[typeof(JsonOwnedAllTypes)] = (object e, object a) =>
+            {
+                Assert.Equal(e == null, a == null);
+                if (a != null)
+                {
+                    var ee = (JsonOwnedAllTypes)e;
+                    var aa = (JsonOwnedAllTypes)a;
+
+                    AssertAllTypes(ee, aa);
+                }
+            };
+
+            _entityAsserters = entityAsserters;
+        }
+
+        IReadOnlyDictionary<Type, object> IQueryFixtureBase.EntityAsserters
+            => _entityAsserters;
 
         protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
         {
@@ -2978,6 +3477,77 @@ ORDER BY m."Id" NULLS FIRST
                     b.Ignore(j => j.TestDoubleCollection);
                     b.Ignore(j => j.TestInt16Collection);
                 });
+
+            // These use collection types which are unsupported for arrays at the Npgsql level - we currently only support List/array.
+            modelBuilder.Entity<JsonEntityAllTypes>(
+                b =>
+                {
+                    b.Ignore(j => j.TestInt64Collection);
+                    b.Ignore(j => j.TestGuidCollection);
+                });
+
+            // Ignore nested collections - these aren't supported on PostgreSQL (no arrays of arrays).
+            // TODO: Remove these after syncing to 9.0.0-rc.1, and extending from the relational test base and fixture
+            modelBuilder.Entity<JsonEntityAllTypes>(
+                b =>
+                {
+                    b.Ignore(j => j.TestDefaultStringCollectionCollection);
+                    b.Ignore(j => j.TestMaxLengthStringCollectionCollection);
+
+                    b.Ignore(j => j.TestInt16CollectionCollection);
+                    b.Ignore(j => j.TestInt32CollectionCollection);
+                    b.Ignore(j => j.TestInt64CollectionCollection);
+                    b.Ignore(j => j.TestDoubleCollectionCollection);
+                    b.Ignore(j => j.TestSingleCollectionCollection);
+                    b.Ignore(j => j.TestCharacterCollectionCollection);
+                    b.Ignore(j => j.TestBooleanCollectionCollection);
+
+                    b.Ignore(j => j.TestNullableInt32CollectionCollection);
+                    b.Ignore(j => j.TestNullableEnumCollectionCollection);
+                    b.Ignore(j => j.TestNullableEnumWithIntConverterCollectionCollection);
+                    b.Ignore(j => j.TestNullableEnumWithConverterThatHandlesNullsCollection);
+                });
+
+            modelBuilder.Entity<JsonEntityAllTypes>().OwnsOne(
+                x => x.Reference, b =>
+                {
+                    b.Ignore(j => j.TestDefaultStringCollectionCollection);
+                    b.Ignore(j => j.TestMaxLengthStringCollectionCollection);
+
+                    b.Ignore(j => j.TestInt16CollectionCollection);
+                    b.Ignore(j => j.TestInt32CollectionCollection);
+                    b.Ignore(j => j.TestInt64CollectionCollection);
+                    b.Ignore(j => j.TestDoubleCollectionCollection);
+                    b.Ignore(j => j.TestSingleCollectionCollection);
+                    b.Ignore(j => j.TestBooleanCollectionCollection);
+                    b.Ignore(j => j.TestCharacterCollectionCollection);
+
+                    b.Ignore(j => j.TestNullableInt32CollectionCollection);
+                    b.Ignore(j => j.TestNullableEnumCollectionCollection);
+                    b.Ignore(j => j.TestNullableEnumWithIntConverterCollectionCollection);
+                    b.Ignore(j => j.TestNullableEnumWithConverterThatHandlesNullsCollection);
+                });
+
+            modelBuilder.Entity<JsonEntityAllTypes>().OwnsMany(
+                x => x.Collection, b =>
+                {
+                    b.Ignore(j => j.TestDefaultStringCollectionCollection);
+                    b.Ignore(j => j.TestMaxLengthStringCollectionCollection);
+
+                    b.Ignore(j => j.TestInt16CollectionCollection);
+                    b.Ignore(j => j.TestInt32CollectionCollection);
+                    b.Ignore(j => j.TestInt64CollectionCollection);
+                    b.Ignore(j => j.TestDoubleCollectionCollection);
+                    b.Ignore(j => j.TestSingleCollectionCollection);
+                    b.Ignore(j => j.TestBooleanCollectionCollection);
+                    b.Ignore(j => j.TestBooleanCollectionCollection);
+                    b.Ignore(j => j.TestCharacterCollectionCollection);
+
+                    b.Ignore(j => j.TestNullableInt32CollectionCollection);
+                    b.Ignore(j => j.TestNullableEnumCollectionCollection);
+                    b.Ignore(j => j.TestNullableEnumWithIntConverterCollectionCollection);
+                    b.Ignore(j => j.TestNullableEnumWithConverterThatHandlesNullsCollection);
+                });
         }
 
         public override ISetSource GetExpectedData()
@@ -3009,7 +3579,7 @@ ORDER BY m."Id" NULLS FIRST
             return _expectedData;
         }
 
-        protected override void Seed(JsonQueryContext context)
+        protected override async Task SeedAsync(JsonQueryContext context)
         {
             // The test data contains DateTimeOffsets with various offsets, which we don't support. Change these to UTC.
             // Also chop sub-microsecond precision which PostgreSQL does not support.
@@ -3053,7 +3623,66 @@ ORDER BY m."Id" NULLS FIRST
                     dto => new DateTimeOffset(dto.Ticks - (dto.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero)).ToList();
             }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
+        }
+
+        public static new void AssertAllTypes(JsonOwnedAllTypes expected, JsonOwnedAllTypes actual)
+        {
+            Assert.Equal(expected.TestDefaultString, actual.TestDefaultString);
+            Assert.Equal(expected.TestMaxLengthString, actual.TestMaxLengthString);
+            Assert.Equal(expected.TestBoolean, actual.TestBoolean);
+            Assert.Equal(expected.TestCharacter, actual.TestCharacter);
+            Assert.Equal(expected.TestDateTime, actual.TestDateTime);
+            Assert.Equal(expected.TestDateTimeOffset, actual.TestDateTimeOffset);
+            Assert.Equal(expected.TestDouble, actual.TestDouble);
+            Assert.Equal(expected.TestGuid, actual.TestGuid);
+            Assert.Equal(expected.TestInt16, actual.TestInt16);
+            Assert.Equal(expected.TestInt32, actual.TestInt32);
+            Assert.Equal(expected.TestInt64, actual.TestInt64);
+            Assert.Equal(expected.TestSignedByte, actual.TestSignedByte);
+            Assert.Equal(expected.TestSingle, actual.TestSingle);
+            Assert.Equal(expected.TestTimeSpan, actual.TestTimeSpan);
+            Assert.Equal(expected.TestDateOnly, actual.TestDateOnly);
+            Assert.Equal(expected.TestTimeOnly, actual.TestTimeOnly);
+            Assert.Equal(expected.TestUnsignedInt16, actual.TestUnsignedInt16);
+            Assert.Equal(expected.TestUnsignedInt32, actual.TestUnsignedInt32);
+            Assert.Equal(expected.TestUnsignedInt64, actual.TestUnsignedInt64);
+            Assert.Equal(expected.TestNullableInt32, actual.TestNullableInt32);
+            Assert.Equal(expected.TestEnum, actual.TestEnum);
+            Assert.Equal(expected.TestEnumWithIntConverter, actual.TestEnumWithIntConverter);
+            Assert.Equal(expected.TestNullableEnum, actual.TestNullableEnum);
+            Assert.Equal(expected.TestNullableEnumWithIntConverter, actual.TestNullableEnumWithIntConverter);
+            Assert.Equal(expected.TestNullableEnumWithConverterThatHandlesNulls, actual.TestNullableEnumWithConverterThatHandlesNulls);
+
+            AssertPrimitiveCollection(expected.TestDefaultStringCollection, actual.TestDefaultStringCollection);
+            AssertPrimitiveCollection(expected.TestMaxLengthStringCollection, actual.TestMaxLengthStringCollection);
+            AssertPrimitiveCollection(expected.TestBooleanCollection, actual.TestBooleanCollection);
+            AssertPrimitiveCollection(expected.TestCharacterCollection, actual.TestCharacterCollection);
+            AssertPrimitiveCollection(expected.TestDateTimeCollection, actual.TestDateTimeCollection);
+            AssertPrimitiveCollection(expected.TestDateTimeOffsetCollection, actual.TestDateTimeOffsetCollection);
+            AssertPrimitiveCollection(expected.TestDoubleCollection, actual.TestDoubleCollection);
+            AssertPrimitiveCollection(expected.TestGuidCollection, actual.TestGuidCollection);
+            AssertPrimitiveCollection((IList<short>)expected.TestInt16Collection, (IList<short>)actual.TestInt16Collection);
+            AssertPrimitiveCollection(expected.TestInt32Collection, actual.TestInt32Collection);
+            AssertPrimitiveCollection(expected.TestInt64Collection, actual.TestInt64Collection);
+            AssertPrimitiveCollection(expected.TestSignedByteCollection, actual.TestSignedByteCollection);
+            AssertPrimitiveCollection(expected.TestSingleCollection, actual.TestSingleCollection);
+            AssertPrimitiveCollection(expected.TestTimeSpanCollection, actual.TestTimeSpanCollection);
+            AssertPrimitiveCollection(expected.TestDateOnlyCollection, actual.TestDateOnlyCollection);
+            AssertPrimitiveCollection(expected.TestTimeOnlyCollection, actual.TestTimeOnlyCollection);
+            AssertPrimitiveCollection(expected.TestUnsignedInt16Collection, actual.TestUnsignedInt16Collection);
+            AssertPrimitiveCollection(expected.TestUnsignedInt32Collection, actual.TestUnsignedInt32Collection);
+            AssertPrimitiveCollection(expected.TestUnsignedInt64Collection, actual.TestUnsignedInt64Collection);
+            AssertPrimitiveCollection(expected.TestNullableInt32Collection, actual.TestNullableInt32Collection);
+            AssertPrimitiveCollection(expected.TestEnumCollection, actual.TestEnumCollection);
+            AssertPrimitiveCollection(expected.TestEnumWithIntConverterCollection, actual.TestEnumWithIntConverterCollection);
+            AssertPrimitiveCollection(expected.TestNullableEnumCollection, actual.TestNullableEnumCollection);
+            AssertPrimitiveCollection(
+                expected.TestNullableEnumWithIntConverterCollection, actual.TestNullableEnumWithIntConverterCollection);
+
+            // AssertPrimitiveCollection(
+            //     expected.TestNullableEnumWithConverterThatHandlesNullsCollection,
+            //     actual.TestNullableEnumWithConverterThatHandlesNullsCollection);
         }
     }
 }

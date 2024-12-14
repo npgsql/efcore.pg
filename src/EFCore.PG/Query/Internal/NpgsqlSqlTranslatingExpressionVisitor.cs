@@ -83,6 +83,65 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    protected override Expression VisitConditional(ConditionalExpression conditionalExpression)
+    {
+        var test = Visit(conditionalExpression.Test);
+        var ifTrue = Visit(conditionalExpression.IfTrue);
+        var ifFalse = Visit(conditionalExpression.IfFalse);
+
+        if (TranslationFailed(conditionalExpression.Test, test, out var sqlTest)
+            || TranslationFailed(conditionalExpression.IfTrue, ifTrue, out var sqlIfTrue)
+            || TranslationFailed(conditionalExpression.IfFalse, ifFalse, out var sqlIfFalse))
+        {
+            return QueryCompilationContext.NotTranslatedExpression;
+        }
+
+        // Translate:
+        // a == b ? null : a -> NULLIF(a, b)
+        // a != b ? a : null -> NULLIF(a, b)
+        if (sqlTest is SqlBinaryExpression binary && sqlIfTrue is not null && sqlIfFalse is not null)
+        {
+            switch (binary.OperatorType)
+            {
+                case ExpressionType.Equal
+                    when ifTrue is SqlConstantExpression { Value: null } && TryTranslateToNullIf(sqlIfFalse, out var nullIfTranslation):
+                case ExpressionType.NotEqual
+                    when ifFalse is SqlConstantExpression { Value: null } && TryTranslateToNullIf(sqlIfTrue, out nullIfTranslation):
+                    return nullIfTranslation;
+            }
+        }
+
+        return _sqlExpressionFactory.Case([new CaseWhenClause(sqlTest!, sqlIfTrue!)], sqlIfFalse);
+
+        bool TryTranslateToNullIf(SqlExpression conditionalResult, [NotNullWhen(true)] out Expression? nullIfTranslation)
+        {
+            var (left, right) = (binary.Left, binary.Right);
+
+            if (left.Equals(conditionalResult))
+            {
+                nullIfTranslation = _sqlExpressionFactory.Function(
+                    "NULLIF", [left, right], true, [false, false], left.Type, left.TypeMapping);
+                return true;
+            }
+
+            if (right.Equals(conditionalResult))
+            {
+                nullIfTranslation = _sqlExpressionFactory.Function(
+                    "NULLIF", [right, left], true, [false, false], right.Type, right.TypeMapping);
+                return true;
+            }
+
+            nullIfTranslation = null;
+            return false;
+        }
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     protected override Expression VisitUnary(UnaryExpression unaryExpression)
     {
         switch (unaryExpression.NodeType)
@@ -100,7 +159,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                 {
                     return _sqlExpressionFactory.Function(
                         "length",
-                        new[] { sqlOperand },
+                        [sqlOperand],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[1],
                         typeof(int));
@@ -195,8 +254,8 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
 
                 return PgFunctionExpression.CreateWithNamedArguments(
                     "make_interval",
-                    new[] { subtraction },
-                    new[] { "days" },
+                    [subtraction],
+                    ["days"],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     builtIn: true,
@@ -218,21 +277,39 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
 
         var translation = base.VisitBinary(binaryExpression);
 
-        // A somewhat hacky workaround for #2942.
-        // When an optional owned JSON entity is compared to null, we get WHERE (x -> y) IS NULL.
-        // The -> operator (returning jsonb) is used rather than ->> (returning text), since an entity type is being extracted, and further
-        // JSON operations may need to be composed. However, when the value extracted is a JSON null, a non-NULL jsonb value is returned,
-        // and comparing that to relational NULL returns false.
-        // Pattern-match this and force the use of ->> by changing the mapping to be a scalar rather than an entity type.
-        if (translation is SqlUnaryExpression
+        switch (translation)
+        {
+            // Optimize (x - c) - (y - c) to x - y.
+            // This is particularly useful for DateOnly.DayNumber - DateOnly.DayNumber, which is the way to express DateOnly subtraction
+            // (the subtraction operator isn't defined over DateOnly in .NET). The translation of x.DayNumber is x - DATE '0001-01-01',
+            // so the below is a useful simplification.
+            // TODO: As this is a generic mathematical simplification, we should move it to a generic optimization phase in EF Core.
+            case SqlBinaryExpression
+            {
+                OperatorType: ExpressionType.Subtract,
+                Left: SqlBinaryExpression { OperatorType: ExpressionType.Subtract, Left: var left1, Right: var right1 },
+                Right: SqlBinaryExpression { OperatorType: ExpressionType.Subtract, Left: var left2, Right: var right2 }
+            } originalBinary when right1.Equals(right2):
+            {
+                return new SqlBinaryExpression(ExpressionType.Subtract, left1, left2, originalBinary.Type, originalBinary.TypeMapping);
+            }
+
+            // A somewhat hacky workaround for #2942.
+            // When an optional owned JSON entity is compared to null, we get WHERE (x -> y) IS NULL.
+            // The -> operator (returning jsonb) is used rather than ->> (returning text), since an entity type is being extracted, and
+            // further JSON operations may need to be composed. However, when the value extracted is a JSON null, a non-NULL jsonb value is
+            // returned, and comparing that to relational NULL returns false.
+            // Pattern-match this and force the use of ->> by changing the mapping to be a scalar rather than an entity type.
+            case SqlUnaryExpression
             {
                 OperatorType: ExpressionType.Equal or ExpressionType.NotEqual,
                 Operand: JsonScalarExpression { TypeMapping: NpgsqlOwnedJsonTypeMapping } operand
-            } unary)
-        {
-            return unary.Update(
-                new JsonScalarExpression(
-                    operand.Json, operand.Path, operand.Type, _typeMappingSource.FindMapping("text"), operand.IsNullable));
+            } unary:
+            {
+                return unary.Update(
+                    new JsonScalarExpression(
+                        operand.Json, operand.Path, operand.Type, _typeMappingSource.FindMapping("text"), operand.IsNullable));
+            }
         }
 
         return translation;
@@ -346,11 +423,13 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                     rewrittenArguments.Add(_sqlExpressionFactory.Constant("UTC"));
                 }
 
-                return kind == DateTimeKind.Utc
-                    ? _sqlExpressionFactory.Function(
-                        "make_timestamptz", rewrittenArguments, nullable: true, TrueArrays[8], typeof(DateTime), _timestampTzMapping)
-                    : _sqlExpressionFactory.Function(
-                        "make_timestamp", rewrittenArguments, nullable: true, TrueArrays[7], typeof(DateTime), _timestampMapping);
+                return _sqlExpressionFactory.Function(
+                    kind == DateTimeKind.Utc ? "make_timestamptz" : "make_timestamp",
+                    rewrittenArguments,
+                    nullable: true,
+                    TrueArrays[rewrittenArguments.Count],
+                    typeof(DateTime),
+                    kind == DateTimeKind.Utc ? _timestampTzMapping : _timestampMapping);
             }
         }
 
@@ -411,7 +490,9 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                 // simple LIKE
                 translation = patternConstant.Value switch
                 {
-                    null => _sqlExpressionFactory.Like(translatedInstance, _sqlExpressionFactory.Constant(null, stringTypeMapping)),
+                    null => _sqlExpressionFactory.Like(
+                        translatedInstance,
+                        _sqlExpressionFactory.Constant(null, typeof(string), stringTypeMapping)),
 
                     // In .NET, all strings start with/end with/contain the empty string, but SQL LIKE return false for empty patterns.
                     // Return % which always matches instead.
@@ -473,13 +554,12 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                         translation =
                             _sqlExpressionFactory.Function(
                                 methodType is StartsEndsWithContains.StartsWith ? "left" : "right",
-                                new[]
-                                {
+                                [
                                     translatedInstance,
                                     _sqlExpressionFactory.Function(
-                                        "length", new[] { translatedPattern }, nullable: true,
-                                        argumentsPropagateNullability: new[] { true }, typeof(int))
-                                }, nullable: true, argumentsPropagateNullability: new[] { true, true }, typeof(string),
+                                        "length", [translatedPattern], nullable: true,
+                                        argumentsPropagateNullability: [true], typeof(int))
+                                ], nullable: true, argumentsPropagateNullability: [true, true], typeof(string),
                                 stringTypeMapping);
 
                         // LEFT/RIGHT of a citext return a text, so for non-default text mappings we apply an explicit cast.
@@ -509,8 +589,8 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                                     _sqlExpressionFactory.IsNotNull(translatedPattern),
                                     _sqlExpressionFactory.GreaterThan(
                                         _sqlExpressionFactory.Function(
-                                            "strpos", new[] { translatedInstance, translatedPattern }, nullable: true,
-                                            argumentsPropagateNullability: new[] { true, true }, typeof(int)),
+                                            "strpos", [translatedInstance, translatedPattern], nullable: true,
+                                            argumentsPropagateNullability: [true, true], typeof(int)),
                                         _sqlExpressionFactory.Constant(0))));
                         break;
 
@@ -522,7 +602,13 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         }
     }
 
-    private static string? ConstructLikePatternParameter(
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public static string? ConstructLikePatternParameter(
         QueryContext queryContext,
         string baseParameterName,
         StartsEndsWithContains methodType)
@@ -545,10 +631,36 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
             _ => throw new UnreachableException()
         };
 
-    private enum StartsEndsWithContains
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public enum StartsEndsWithContains
     {
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         StartsWith,
+
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         EndsWith,
+
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         Contains
     }
 
@@ -573,6 +685,44 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     }
 
     #endregion StartsWith/EndsWith/Contains
+
+    #region GREATEST/LEAST
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public override SqlExpression GenerateGreatest(IReadOnlyList<SqlExpression> expressions, Type resultType)
+    {
+        // Docs: https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
+        var resultTypeMapping = ExpressionExtensions.InferTypeMapping(expressions);
+
+        // If one or more arguments aren't NULL, then NULL arguments are ignored during comparison.
+        // If all arguments are NULL, then GREATEST returns NULL.
+        return _sqlExpressionFactory.Function(
+            "GREATEST", expressions, nullable: true, Enumerable.Repeat(false, expressions.Count), resultType, resultTypeMapping);
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public override SqlExpression GenerateLeast(IReadOnlyList<SqlExpression> expressions, Type resultType)
+    {
+        // Docs: https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
+        var resultTypeMapping = ExpressionExtensions.InferTypeMapping(expressions);
+
+        // If one or more arguments aren't NULL, then NULL arguments are ignored during comparison.
+        // If all arguments are NULL, then LEAST returns NULL.
+        return _sqlExpressionFactory.Function(
+            "LEAST", expressions, nullable: true, Enumerable.Repeat(false, expressions.Count), resultType, resultTypeMapping);
+    }
+
+    #endregion GREATEST/LEAST
 
     #region Copied from RelationalSqlTranslatingExpressionVisitor
 

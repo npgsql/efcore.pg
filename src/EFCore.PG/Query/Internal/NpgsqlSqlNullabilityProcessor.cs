@@ -11,14 +11,15 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
     /// <summary>
-    ///     Creates a new instance of the <see cref="NpgsqlSqlNullabilityProcessor" /> class.
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    /// <param name="dependencies">Parameter object containing dependencies for this class.</param>
-    /// <param name="useRelationalNulls">A bool value indicating whether relational null semantics are in use.</param>
     public NpgsqlSqlNullabilityProcessor(
         RelationalParameterBasedSqlProcessorDependencies dependencies,
-        bool useRelationalNulls)
-        : base(dependencies, useRelationalNulls)
+        RelationalParameterBasedSqlProcessorParameters parameters)
+        : base(dependencies, parameters)
     {
         _sqlExpressionFactory = dependencies.SqlExpressionFactory;
     }
@@ -29,144 +30,170 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         bool allowOptimizedExpansion,
         out bool nullable)
     {
-        if (sqlBinaryExpression is not
+        return sqlBinaryExpression switch
+        {
             {
                 OperatorType: ExpressionType.Equal or ExpressionType.NotEqual,
                 Left: PgRowValueExpression leftRowValue,
                 Right: PgRowValueExpression rightRowValue
-            })
-        {
-            return base.VisitSqlBinary(sqlBinaryExpression, allowOptimizedExpansion, out nullable);
-        }
-
-        // Equality checks between row values require some special null semantics compensation.
-        // Row value equality/inequality works the same as regular equals/non-equals; this means that it's fine as long as we're comparing
-        // non-nullable values (no need to compensate), but for nullable values, we need to compensate. We go over the value pairs, and
-        // extract out pairs that require compensation to an expanded, non-value-tuple expression (regular equality null semantics).
-        // Note that PostgreSQL does have DISTINCT FROM/NOT DISTINCT FROM which would have been perfect here, but those still don't use
-        // indexes.
-        // Note that we don't do compensation for comparisons (e.g. greater than) since these are expressed via EF.Functions, which
-        // correspond directly to SQL constructs.
-        // The PG docs around this are in https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON
-
-        Check.DebugAssert(leftRowValue.Values.Count == rightRowValue.Values.Count, "left.Values.Count == right.Values.Count");
-        var count = leftRowValue.Values.Count;
-
-        var operatorType = sqlBinaryExpression.OperatorType;
-
-        SqlExpression? expandedExpression = null;
-        List<SqlExpression>? visitedLeftValues = null;
-        List<SqlExpression>? visitedRightValues = null;
-
-        for (var i = 0; i < count; i++)
-        {
-            // Visit the left value, populating visitedLeftValues only if we haven't yet switched to an expanded expression, and only if
-            // the visitation actually changed something, and
-            var leftValue = leftRowValue.Values[i];
-            var rightValue = rightRowValue.Values[i];
-            var visitedRightValue = Visit(rightRowValue.Values[i], out var rightNullable);
-            var visitedLeftValue = Visit(leftRowValue.Values[i], out var leftNullable);
-
-            if (!leftNullable && !rightNullable
-                || allowOptimizedExpansion && (!leftNullable || !rightNullable))
-            {
-                // The comparison for this value pair doesn't require expansion and can remain in the row value (so continue below).
-                // But if the visitation above changed a value, construct a list to hold the visited values.
-                if (visitedLeftValue != leftValue && visitedLeftValues is null)
-                {
-                    visitedLeftValues = SliceToList(leftRowValue.Values, count, i);
-                }
-
-                if (visitedLeftValues is not null)
-                {
-                    visitedLeftValues.Add(visitedLeftValue);
-                }
-
-                if (visitedRightValue != rightValue && visitedRightValues is null)
-                {
-                    visitedRightValues = SliceToList(rightRowValue.Values, count, i);
-                }
-
-                if (visitedRightValues is not null)
-                {
-                    visitedRightValues.Add(visitedRightValue);
-                }
-
-                continue;
             }
+            => VisitRowValueComparison(sqlBinaryExpression.OperatorType, leftRowValue, rightRowValue, out nullable),
 
-            // If we're here, the value pair requires null semantics compensation. We build a binary expression around the pair and visit
-            // that (that adds the compensation). We then chain all such expressions together with AND.
-            var valueBinaryExpression = Visit(
-                _sqlExpressionFactory.MakeBinary(operatorType, visitedLeftValue, visitedRightValue, null)!, allowOptimizedExpansion, out _);
-
-            if (expandedExpression is null)
-            {
-                // visitedLeft/RightValues will contain all pairs that can remain in the row value (since they don't require compensation)
-                visitedLeftValues = SliceToList(leftRowValue.Values, count, i);
-                visitedRightValues = SliceToList(rightRowValue.Values, count, i);
-
-                expandedExpression = valueBinaryExpression;
-            }
-            else
-            {
-                expandedExpression = _sqlExpressionFactory.AndAlso(expandedExpression, valueBinaryExpression);
-            }
-        }
-
-        nullable = false;
-
-        if (expandedExpression is null)
-        {
-            // No pairs required compensation, so they all stay in the row value.
-            // Either return the original binary expression (if no value visitation changed anything), or construct a new one over the
-            // visited values.
-            return visitedLeftValues is null && visitedRightValues is null
-                ? sqlBinaryExpression
-                : _sqlExpressionFactory.MakeBinary(
-                    operatorType,
-                    visitedLeftValues is null
-                        ? leftRowValue
-                        : new PgRowValueExpression(visitedLeftValues, leftRowValue.Type, leftRowValue.TypeMapping),
-                    visitedRightValues is null
-                        ? rightRowValue
-                        : new PgRowValueExpression(visitedRightValues, leftRowValue.Type, leftRowValue.TypeMapping),
-                    null)!;
-        }
-
-        Check.DebugAssert(visitedLeftValues is not null, "visitedLeftValues is not null");
-        Check.DebugAssert(visitedRightValues is not null, "visitedRightValues is not null");
-
-        // Some pairs required compensation. Combine the pairs which didn't (in visitedLeft/RightValues) with expandedExpression
-        // (which contains the logic for those that did).
-        return visitedLeftValues.Count switch
-        {
-            0 => expandedExpression,
-            1 => _sqlExpressionFactory.AndAlso(
-                _sqlExpressionFactory.MakeBinary(operatorType, visitedLeftValues[0], visitedRightValues[0], null)!,
-                expandedExpression),
-            // Technically the CLR type and type mappings are incorrect, as we're truncating the row values.
-            // But that shouldn't matter.
-            _ => _sqlExpressionFactory.AndAlso(
-                _sqlExpressionFactory.MakeBinary(
-                    sqlBinaryExpression.OperatorType,
-                    new PgRowValueExpression(visitedLeftValues, leftRowValue.Type, leftRowValue.TypeMapping),
-                    new PgRowValueExpression(visitedRightValues, rightRowValue.Type, rightRowValue.TypeMapping),
-                    null)!,
-                expandedExpression)
+            _ => base.VisitSqlBinary(sqlBinaryExpression, allowOptimizedExpansion, out nullable)
         };
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static List<SqlExpression> SliceToList(IReadOnlyList<SqlExpression> source, int capacity, int count)
+        SqlExpression VisitRowValueComparison(
+            ExpressionType operatorType,
+            PgRowValueExpression leftRowValue,
+            PgRowValueExpression rightRowValue,
+            out bool nullable)
         {
-            var list = new List<SqlExpression>(capacity);
+            // Equality checks between row values require some special null semantics compensation.
+            // Row value equality/inequality works the same as regular equals/non-equals; this means that it's fine as long as we're
+            // comparing non-nullable values (no need to compensate), but for nullable values, we need to compensate. We go over the value
+            // pairs, and extract out pairs that require compensation to an expanded, non-value-tuple expression (regular equality null
+            // semantics). Note that PostgreSQL does have DISTINCT FROM/NOT DISTINCT FROM which would have been perfect here, but those
+            // still don't use indexes.
+            // Note that we don't do compensation for comparisons (e.g. greater than) since these are expressed via EF.Functions, which
+            // correspond directly to SQL constructs.
+            // The PG docs around this are in https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON
+
+            Check.DebugAssert(leftRowValue.Values.Count == rightRowValue.Values.Count, "left.Values.Count == right.Values.Count");
+            var count = leftRowValue.Values.Count;
+
+            SqlExpression? expandedExpression = null;
+            List<SqlExpression>? visitedLeftValues = null;
+            List<SqlExpression>? visitedRightValues = null;
 
             for (var i = 0; i < count; i++)
             {
-                list.Add(source[i]);
+                // Visit the left value, populating visitedLeftValues only if we haven't yet switched to an expanded expression, and only if
+                // the visitation actually changed something
+                var leftValue = leftRowValue.Values[i];
+                var rightValue = rightRowValue.Values[i];
+                var visitedLeftValue = Visit(leftRowValue.Values[i], out var leftNullable);
+                var visitedRightValue = Visit(rightRowValue.Values[i], out var rightNullable);
+
+                // If both sides are non-nullable, no null expansion is required; the same is true if we're doing equality in optimized
+                // mode, and only one side is nullable (WHERE (NonNullable1, NonNullable2) = (NonNullable3, Nullable4)).
+                if (!leftNullable && !rightNullable
+                    || allowOptimizedExpansion && operatorType is ExpressionType.Equal && (!leftNullable || !rightNullable))
+                {
+                    // The comparison for this value pair doesn't require expansion and can remain in the row value (so continue below).
+                    // But if the visitation above changed a value, construct a list to hold the visited values.
+                    if (visitedLeftValue != leftValue && visitedLeftValues is null)
+                    {
+                        visitedLeftValues = SliceToList(leftRowValue.Values, count, i);
+                    }
+
+                    visitedLeftValues?.Add(visitedLeftValue);
+
+                    if (visitedRightValue != rightValue && visitedRightValues is null)
+                    {
+                        visitedRightValues = SliceToList(rightRowValue.Values, count, i);
+                    }
+
+                    visitedRightValues?.Add(visitedRightValue);
+
+                    continue;
+                }
+
+                // If we're here, the value pair requires null semantics compensation. We build a binary expression around the pair and
+                // visit that (that adds the compensation). We then chain all such expressions together with AND.
+                var valueBinaryExpression = Visit(
+                    _sqlExpressionFactory.MakeBinary(
+                        operatorType, visitedLeftValue, visitedRightValue, typeMapping: null, existingExpression: sqlBinaryExpression)!,
+                    allowOptimizedExpansion,
+                    out _);
+
+                if (expandedExpression is null)
+                {
+                    // visitedLeft/RightValues will contain all pairs that can remain in the row value (since they don't require
+                    // compensation)
+                    visitedLeftValues = SliceToList(leftRowValue.Values, count, i);
+                    visitedRightValues = SliceToList(rightRowValue.Values, count, i);
+
+                    expandedExpression = valueBinaryExpression;
+                }
+                else
+                {
+                    expandedExpression = operatorType switch
+                    {
+                        ExpressionType.Equal => _sqlExpressionFactory.AndAlso(expandedExpression, valueBinaryExpression),
+                        ExpressionType.NotEqual => _sqlExpressionFactory.OrElse(expandedExpression, valueBinaryExpression),
+                        _ => throw new UnreachableException()
+                    };
+                }
             }
 
-            return list;
+            // TODO: This is wrong, need to properly calculate this: #3250
+            nullable = false;
+
+            if (expandedExpression is null)
+            {
+                // No pairs required compensation, so they all stay in the row value.
+                // Either return the original binary expression (if no value visitation changed anything), or construct a new one over the
+                // visited values.
+                return visitedLeftValues is null && visitedRightValues is null
+                    ? sqlBinaryExpression
+                    : _sqlExpressionFactory.MakeBinary(
+                        operatorType,
+                        visitedLeftValues is null
+                            ? leftRowValue
+                            : new PgRowValueExpression(visitedLeftValues, leftRowValue.Type, leftRowValue.TypeMapping),
+                        visitedRightValues is null
+                            ? rightRowValue
+                            : new PgRowValueExpression(visitedRightValues, leftRowValue.Type, leftRowValue.TypeMapping),
+                        typeMapping: null,
+                        existingExpression: sqlBinaryExpression)!;
+            }
+
+            Check.DebugAssert(visitedLeftValues is not null, "visitedLeftValues is not null");
+            Check.DebugAssert(visitedRightValues is not null, "visitedRightValues is not null");
+
+            // All pairs required compensation - none are left in the row value comparison. Just return the expanded expression.
+            if (visitedLeftValues.Count is 0)
+            {
+                return expandedExpression;
+            }
+
+            // Some pairs required compensation; we're going to return a combined expression of the unexpanded pairs (which didn't require
+            // compensation) and of the expanded expression.
+            // If there's only one unexpanded pair left, that's a special case that doesn't require row values (just a regular pair
+            // comparison). Otherwise create the new row comparison expression for the unexpanded pairs.
+            var unexpandedExpression = visitedLeftValues.Count is 1
+                ? _sqlExpressionFactory.MakeBinary(operatorType, visitedLeftValues[0], visitedRightValues[0], typeMapping: null)!
+                : _sqlExpressionFactory.MakeBinary(
+                    operatorType,
+                    new PgRowValueExpression(visitedLeftValues, leftRowValue.Type, leftRowValue.TypeMapping),
+                    new PgRowValueExpression(visitedRightValues, rightRowValue.Type, rightRowValue.TypeMapping),
+                    typeMapping: null)!;
+
+            // Technically the CLR type and type mappings are incorrect, as we're truncating the row values.
+            // But that shouldn't matter.
+            return _sqlExpressionFactory.MakeBinary(
+                operatorType: operatorType switch
+                {
+                    ExpressionType.Equal => ExpressionType.AndAlso,
+                    ExpressionType.NotEqual => ExpressionType.OrElse,
+                    _ => throw new UnreachableException()
+                },
+                unexpandedExpression,
+                expandedExpression,
+                typeMapping: null)!;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static List<SqlExpression> SliceToList(IReadOnlyList<SqlExpression> source, int capacity, int count)
+            {
+                var list = new List<SqlExpression>(capacity);
+
+                for (var i = 0; i < count; i++)
+                {
+                    list.Add(source[i]);
+                }
+
+                return list;
+            }
         }
     }
 
@@ -261,7 +288,7 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
                 _sqlExpressionFactory.IsNotNull(
                     _sqlExpressionFactory.Function(
                         "array_position",
-                        new[] { array, _sqlExpressionFactory.Constant(null, item.TypeMapping) },
+                        [array, _sqlExpressionFactory.Constant(null, item.Type, item.TypeMapping)],
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[2],
                         typeof(int)))));
@@ -514,13 +541,10 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
                 result = _sqlExpressionFactory.AndAlso(result, GenerateNotNullCheck(escapeChar));
             }
 
+            // TODO: This revisits the operand; ideally we'd call ProcessNullNotNull directly but that's private
             SqlExpression GenerateNotNullCheck(SqlExpression operand)
-                => OptimizeNonNullableNotExpression(
-                    _sqlExpressionFactory.Not(
-                        VisitSqlUnary(
-                            _sqlExpressionFactory.IsNull(operand),
-                            allowOptimizedExpansion: false,
-                            out _)));
+                => _sqlExpressionFactory.Not(
+                    Visit(_sqlExpressionFactory.IsNull(operand), allowOptimizedExpansion, out _));
         }
 
         return result;

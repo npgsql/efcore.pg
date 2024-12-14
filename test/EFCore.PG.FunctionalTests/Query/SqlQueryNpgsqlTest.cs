@@ -1,4 +1,5 @@
 ﻿using System.Data.Common;
+using Xunit.Sdk;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
@@ -39,6 +40,12 @@ SELECT "Region", "PostalCode", "Phone", "Fax", "CustomerID", "Country", "Contact
 SELECT "Region", "PostalCode", "PostalCode" AS "Foo", "Phone", "Fax", "CustomerID", "Country", "ContactTitle", "ContactName", "CompanyName", "City", "Address" FROM "Customers"
 """);
     }
+
+    // The test attempts to project out a column with the wrong case; this works on other databases, and fails when EF tries to materialize.
+    // But in PG this fails at the database since PG is case-sensitive and the column does not exist.
+    public override Task SqlQueryRaw_queryable_simple_different_cased_columns_and_not_enough_columns_throws(bool async)
+        => Assert.ThrowsAsync<ThrowsException>(
+            () => base.SqlQueryRaw_queryable_simple_different_cased_columns_and_not_enough_columns_throws(async));
 
     public override async Task SqlQueryRaw_queryable_composed(bool async)
     {

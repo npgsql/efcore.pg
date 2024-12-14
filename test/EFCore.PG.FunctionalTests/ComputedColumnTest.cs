@@ -3,7 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
 [MinimumPostgresVersion(12, 0)]
-public class ComputedColumnTest : IDisposable
+public class ComputedColumnTest : IAsyncLifetime
 {
     [ConditionalFact]
     public void Can_use_computed_columns()
@@ -63,11 +63,15 @@ public class ComputedColumnTest : IDisposable
         {
             modelBuilder.Entity<Entity>()
                 .Property(e => e.P4)
-                .HasComputedColumnSql(@"""P1"" + ""P2""", stored: true);
+                .HasComputedColumnSql("""
+                    "P1" + "P2"
+                    """, stored: true);
 
             modelBuilder.Entity<Entity>()
                 .Property(e => e.P5)
-                .HasComputedColumnSql(@"""P1"" + ""P3""", stored: true);
+                .HasComputedColumnSql("""
+                    "P1" + "P3"
+                    """, stored: true);
         }
     }
 
@@ -109,7 +113,9 @@ public class ComputedColumnTest : IDisposable
         protected override void OnModelCreating(ModelBuilder modelBuilder)
             => modelBuilder.Entity<EnumItem>()
                 .Property(entity => entity.CalculatedFlagEnum)
-                .HasComputedColumnSql(@"""FlagEnum"" | ""OptionalFlagEnum""", stored: true);
+                .HasComputedColumnSql("""
+                    "FlagEnum" | "OptionalFlagEnum"
+                    """, stored: true);
     }
 
     [ConditionalFact]
@@ -128,8 +134,11 @@ public class ComputedColumnTest : IDisposable
         Assert.Equal(FlagEnum.AValue | FlagEnum.BValue, entity.CalculatedFlagEnum);
     }
 
-    protected NpgsqlTestStore TestStore { get; } = NpgsqlTestStore.CreateInitialized("ComputedColumnTest");
+    protected NpgsqlTestStore TestStore { get; private set; }
 
-    public virtual void Dispose()
-        => TestStore.Dispose();
+    public async Task InitializeAsync()
+        => TestStore = await NpgsqlTestStore.CreateInitializedAsync("ComputedColumnTest");
+
+    public async Task DisposeAsync()
+        => await TestStore.DisposeAsync();
 }

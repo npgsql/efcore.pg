@@ -11,7 +11,7 @@ on:
   pull_request:
 
 env:
-  dotnet_sdk_version: '8.0.100'
+  dotnet_sdk_version: '9.0.100'
   postgis_version: 3
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
@@ -23,11 +23,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, windows-2022]
-        pg_major: [16, 15, 14, 13, 12]
+        pg_major: [17, 16, 15, 14, 13, 12]
         config: [Release]
         include:
           - os: ubuntu-22.04
-            pg_major: 16
+            pg_major: 17
             config: Debug
 #          - os: ubuntu-22.04
 #            pg_major: 17

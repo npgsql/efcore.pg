@@ -22,18 +22,25 @@ public static class NpgsqlNetTopologySuiteDbContextOptionsBuilderExtensions
         Ordinates handleOrdinates = Ordinates.None,
         bool geographyAsDefault = false)
     {
-        Check.NotNull(optionsBuilder, nameof(optionsBuilder));
-
-        // TODO: Global-only setup at the ADO.NET level for now, optionally allow per-connection?
-#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
-        NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite(
-            coordinateSequenceFactory, precisionModel, handleOrdinates, geographyAsDefault);
-#pragma warning restore CS0618
-
         var coreOptionsBuilder = ((IRelationalDbContextOptionsBuilderInfrastructure)optionsBuilder).OptionsBuilder;
 
         var extension = coreOptionsBuilder.Options.FindExtension<NpgsqlNetTopologySuiteOptionsExtension>()
             ?? new NpgsqlNetTopologySuiteOptionsExtension();
+
+        if (coordinateSequenceFactory is not null)
+        {
+            extension = extension.WithCoordinateSequenceFactory(coordinateSequenceFactory);
+        }
+
+        if (precisionModel is not null)
+        {
+            extension = extension.WithPrecisionModel(precisionModel);
+        }
+
+        if (handleOrdinates is not Ordinates.None)
+        {
+            extension = extension.WithHandleOrdinates(handleOrdinates);
+        }
 
         if (geographyAsDefault)
         {

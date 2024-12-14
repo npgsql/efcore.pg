@@ -7,6 +7,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
     public class MigrationsInfrastructureNpgsqlTest(MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture fixture)
         : MigrationsInfrastructureTestBase<MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture>(fixture)
     {
+        // TODO: Remove once we sync to https://github.com/dotnet/efcore/pull/35106
+        public override void Can_generate_no_migration_script()
+        {
+        }
+
+        // TODO: Remove once we sync to https://github.com/dotnet/efcore/pull/35106
+        public override void Can_generate_migration_from_initial_database_to_initial()
+        {
+        }
+
         public override void Can_get_active_provider()
         {
             base.Can_get_active_provider();
@@ -39,7 +49,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         {
             await using var context = new BloggingContext(
                 Fixture.TestStore.AddProviderOptions(
-                    new DbContextOptionsBuilder().EnableServiceProviderCaching(false)).Options);
+                        new DbContextOptionsBuilder().EnableServiceProviderCaching(false))
+                    .ConfigureWarnings(e => e.Log(RelationalEventId.PendingModelChangesWarning)).Options);
 
             var creator = (NpgsqlDatabaseCreator)context.GetService<IRelationalDatabaseCreator>();
             creator.RetryTimeout = TimeSpan.FromMinutes(10);
@@ -158,6 +169,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             // TODO: Implement
         }
 
+        protected override Task ExecuteSqlAsync(string value)
+            => ((NpgsqlTestStore)Fixture.TestStore).ExecuteNonQueryAsync(value);
+
         public class MigrationsInfrastructureNpgsqlFixture : MigrationsInfrastructureFixtureBase
         {
             protected override ITestStoreFactory TestStoreFactory
@@ -166,21 +180,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             public override MigrationsContext CreateContext()
             {
                 var options = AddOptions(
-                        new DbContextOptionsBuilder()
+                        TestStore.AddProviderOptions(new DbContextOptionsBuilder())
                             .UseNpgsql(
                                 TestStore.ConnectionString, b => b.ApplyConfiguration()
-                                    .CommandTimeout(NpgsqlTestStore.CommandTimeout)
-                                    .SetPostgresVersion(TestEnvironment.PostgresVersion)
-                                    .ReverseNullOrdering()))
-                    .UseInternalServiceProvider(CreateServiceProvider())
+                                    .SetPostgresVersion(TestEnvironment.PostgresVersion)))
+                    .UseInternalServiceProvider(ServiceProvider)
                     .Options;
                 return new MigrationsContext(options);
             }
-
-            private static IServiceProvider CreateServiceProvider()
-                => new ServiceCollection()
-                    .AddEntityFrameworkNpgsql()
-                    .BuildServiceProvider();
         }
     }
 }

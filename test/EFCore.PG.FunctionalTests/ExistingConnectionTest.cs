@@ -20,7 +20,7 @@ public class ExistingConnectionTest
             .AddEntityFrameworkNpgsql()
             .BuildServiceProvider();
 
-        await using (var store = NpgsqlTestStore.GetNorthwindStore())
+        await using (var store = await NpgsqlTestStore.GetNorthwindStoreAsync())
         {
             store.CloseConnection();
 
@@ -85,7 +85,7 @@ public class ExistingConnectionTest
                 b =>
                 {
                     b.HasKey(c => c.CustomerId);
-                    RelationalEntityTypeBuilderExtensions.ToTable((EntityTypeBuilder)b, "Customers");
+                    ((EntityTypeBuilder)b).ToTable("Customers");
                 });
     }
 

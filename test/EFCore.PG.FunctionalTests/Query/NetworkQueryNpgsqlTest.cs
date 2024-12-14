@@ -1458,8 +1458,8 @@ FROM "NetTestEntities" AS n
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        protected override void Seed(NetContext context)
-            => NetContext.Seed(context);
+        protected override Task SeedAsync(NetContext context)
+            => NetContext.SeedAsync(context);
     }
 
     /// <summary>
@@ -1537,7 +1537,7 @@ FROM "NetTestEntities" AS n
             base.OnModelCreating(modelBuilder);
         }
 
-        public static void Seed(NetContext context)
+        public static async Task SeedAsync(NetContext context)
         {
             for (var i = 1; i <= 9; i++)
             {
@@ -1557,7 +1557,7 @@ FROM "NetTestEntities" AS n
                     });
             }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 

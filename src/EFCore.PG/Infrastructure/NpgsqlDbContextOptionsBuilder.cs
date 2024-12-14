@@ -19,6 +19,19 @@ public class NpgsqlDbContextOptionsBuilder
     }
 
     /// <summary>
+    ///     Configures lower-level Npgsql options at the ADO.NET driver level.
+    /// </summary>
+    /// <param name="dataSourceBuilderAction">A lambda to configure Npgsql options on <see cref="NpgsqlDataSourceBuilder" />.</param>
+    /// <remarks>
+    ///     Changes made by <see cref="ConfigureDataSource" /> are untracked; When using <see cref="DbContext.OnConfiguring" />, EF Core
+    ///     will by default resolve the same <see cref="NpgsqlDataSource" /> internally, disregarding differing configuration across calls
+    ///     to <see cref="ConfigureDataSource" />. Either make sure that <see cref="ConfigureDataSource" /> always sets the same
+    ///     configuration, or pass externally-provided, pre-configured data source instances when configuring the provider.
+    /// </remarks>
+    public virtual NpgsqlDbContextOptionsBuilder ConfigureDataSource(Action<NpgsqlDataSourceBuilder> dataSourceBuilderAction)
+        => WithOption(e => e.WithDataSourceConfiguration(dataSourceBuilderAction));
+
+    /// <summary>
     ///     Connect to this database for administrative operations (creating/dropping databases).
     /// </summary>
     /// <param name="dbName">The name of the database for administrative operations.</param>
@@ -47,6 +60,8 @@ public class NpgsqlDbContextOptionsBuilder
     /// <param name="useRedshift">Whether to target Redshift.</param>
     public virtual NpgsqlDbContextOptionsBuilder UseRedshift(bool useRedshift = true)
         => WithOption(e => e.WithRedshift(useRedshift));
+
+    #region MapRange
 
     /// <summary>
     ///     Maps a user-defined PostgreSQL range type for use.
@@ -95,6 +110,39 @@ public class NpgsqlDbContextOptionsBuilder
         string? subtypeName = null)
         => WithOption(e => e.WithUserRangeDefinition(rangeName, schemaName, subtypeClrType, subtypeName));
 
+    #endregion MapRange
+
+    #region MapEnum
+
+    /// <summary>
+    ///     Maps a PostgreSQL enum type for use.
+    /// </summary>
+    /// <param name="enumName">The name of the PostgreSQL enum type to be mapped.</param>
+    /// <param name="schemaName">The name of the PostgreSQL schema in which the range is defined.</param>
+    /// <param name="nameTranslator">The name translator used to map enum value names to PostgreSQL enum values.</param>
+    public virtual NpgsqlDbContextOptionsBuilder MapEnum<T>(
+        string? enumName = null,
+        string? schemaName = null,
+        INpgsqlNameTranslator? nameTranslator = null)
+        where T : struct, Enum
+        => MapEnum(typeof(T), enumName, schemaName, nameTranslator);
+
+    /// <summary>
+    ///     Maps a PostgreSQL enum type for use.
+    /// </summary>
+    /// <param name="clrType">The CLR type of the enum.</param>
+    /// <param name="enumName">The name of the PostgreSQL enum type to be mapped.</param>
+    /// <param name="schemaName">The name of the PostgreSQL schema in which the range is defined.</param>
+    /// <param name="nameTranslator">The name translator used to map enum value names to PostgreSQL enum values.</param>
+    public virtual NpgsqlDbContextOptionsBuilder MapEnum(
+        Type clrType,
+        string? enumName = null,
+        string? schemaName = null,
+        INpgsqlNameTranslator? nameTranslator = null)
+        => WithOption(e => e.WithEnumMapping(clrType, enumName, schemaName, nameTranslator));
+
+    #endregion MapEnum
+
     /// <summary>
     ///     Appends NULLS FIRST to all ORDER BY clauses. This is important for the tests which were written
     ///     for SQL Server. Note that to fully implement null-first ordering indexes also need to be generated
@@ -104,12 +152,13 @@ public class NpgsqlDbContextOptionsBuilder
     internal virtual NpgsqlDbContextOptionsBuilder ReverseNullOrdering(bool reverseNullOrdering = true)
         => WithOption(e => e.WithReverseNullOrdering(reverseNullOrdering));
 
-    #region Authentication
+    #region Authentication (obsolete)
 
     /// <summary>
     ///     Configures the <see cref="DbContext" /> to use the specified <see cref="ProvideClientCertificatesCallback" />.
     /// </summary>
     /// <param name="callback">The callback to use.</param>
+    [Obsolete("Call ConfigureDataSource() and configure the client certificates on the NpgsqlDataSourceBuilder, or pass an externally-built, pre-configured NpgsqlDataSource to UseNpgsql().")]
     public virtual NpgsqlDbContextOptionsBuilder ProvideClientCertificatesCallback(ProvideClientCertificatesCallback? callback)
         => WithOption(e => e.WithProvideClientCertificatesCallback(callback));
 
@@ -117,6 +166,7 @@ public class NpgsqlDbContextOptionsBuilder
     ///     Configures the <see cref="DbContext" /> to use the specified <see cref="RemoteCertificateValidationCallback" />.
     /// </summary>
     /// <param name="callback">The callback to use.</param>
+    [Obsolete("Call ConfigureDataSource() and configure remote certificate validation on the NpgsqlDataSourceBuilder, or pass an externally-built, pre-configured NpgsqlDataSource to UseNpgsql().")]
     public virtual NpgsqlDbContextOptionsBuilder RemoteCertificateValidationCallback(RemoteCertificateValidationCallback? callback)
         => WithOption(e => e.WithRemoteCertificateValidationCallback(callback));
 
@@ -124,12 +174,11 @@ public class NpgsqlDbContextOptionsBuilder
     ///     Configures the <see cref="DbContext" /> to use the specified <see cref="ProvidePasswordCallback" />.
     /// </summary>
     /// <param name="callback">The callback to use.</param>
-#pragma warning disable CS0618 // ProvidePasswordCallback is obsolete
+    [Obsolete("Call ConfigureDataSource() and configure the password callback on the NpgsqlDataSourceBuilder, or pass an externally-built, pre-configured NpgsqlDataSource to UseNpgsql().")]
     public virtual NpgsqlDbContextOptionsBuilder ProvidePasswordCallback(ProvidePasswordCallback? callback)
         => WithOption(e => e.WithProvidePasswordCallback(callback));
-#pragma warning restore CS0618
 
-    #endregion Authentication
+    #endregion Authentication (obsolete)
 
     #region Retrying execution strategy
 

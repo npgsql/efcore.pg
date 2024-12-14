@@ -298,12 +298,12 @@ LIMIT 2
     {
         public DbSet<SomeArrayEntity> SomeEntities { get; set; }
 
-        public static void Seed(CitextQueryContext context)
+        public static async Task SeedAsync(CitextQueryContext context)
         {
             context.SomeEntities.AddRange(
                 new SomeArrayEntity { Id = 1, CaseInsensitiveText = "SomeText" },
                 new SomeArrayEntity { Id = 2, CaseInsensitiveText = "AnotherText" });
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 
@@ -326,7 +326,7 @@ LIMIT 2
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        protected override void Seed(CitextQueryContext context)
-            => CitextQueryContext.Seed(context);
+        protected override Task SeedAsync(CitextQueryContext context)
+            => CitextQueryContext.SeedAsync(context);
     }
 }

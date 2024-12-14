@@ -14,8 +14,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal;
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
 #pragma warning disable EF1001 // Internal EF Core API usage.
-public class NpgsqlCSharpRuntimeAnnotationCodeGenerator : RelationalCSharpRuntimeAnnotationCodeGenerator
+public class NpgsqlCSharpRuntimeAnnotationCodeGenerator
+    : RelationalCSharpRuntimeAnnotationCodeGenerator, ICSharpRuntimeAnnotationCodeGenerator
 {
+    private int _typeMappingNestingCount;
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -42,8 +45,31 @@ public class NpgsqlCSharpRuntimeAnnotationCodeGenerator : RelationalCSharpRuntim
         ValueComparer? keyValueComparer = null,
         ValueComparer? providerValueComparer = null)
     {
-        var result = base.Create(typeMapping, parameters, valueComparer, keyValueComparer, providerValueComparer);
+        _typeMappingNestingCount++;
 
+        try
+        {
+            var result = base.Create(typeMapping, parameters, valueComparer, keyValueComparer, providerValueComparer);
+            AddNpgsqlTypeMappingTweaks(typeMapping, parameters);
+            return result;
+        }
+        finally
+        {
+            _typeMappingNestingCount--;
+        }
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    [EntityFrameworkInternal]
+    protected virtual void AddNpgsqlTypeMappingTweaks(
+        CoreTypeMapping typeMapping,
+        CSharpRuntimeAnnotationCodeGeneratorParameters parameters)
+    {
         var mainBuilder = parameters.MainBuilder;
 
         var npgsqlDbTypeBasedDefaultInstance = typeMapping switch
@@ -57,6 +83,8 @@ public class NpgsqlCSharpRuntimeAnnotationCodeGenerator : RelationalCSharpRuntim
 
         if (npgsqlDbTypeBasedDefaultInstance is not null)
         {
+            CheckElementTypeMapping();
+
             var npgsqlDbType = ((INpgsqlTypeMapping)typeMapping).NpgsqlDbType;
 
             if (npgsqlDbType != npgsqlDbTypeBasedDefaultInstance.NpgsqlDbType)
@@ -82,18 +110,47 @@ public class NpgsqlCSharpRuntimeAnnotationCodeGenerator : RelationalCSharpRuntim
 
         switch (typeMapping)
         {
-#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
             case NpgsqlEnumTypeMapping enumTypeMapping:
-                if (enumTypeMapping.NameTranslator != NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator)
+                CheckElementTypeMapping();
+
+                var code = Dependencies.CSharpHelper;
+                mainBuilder.AppendLine(";");
+
+                mainBuilder.AppendLine(
+                        $"{parameters.TargetName}.TypeMapping = ((NpgsqlEnumTypeMapping){parameters.TargetName}.TypeMapping).Clone(")
+                    .IncrementIndent();
+
+                mainBuilder
+                    .Append("unquotedStoreType: ")
+                    .Append(code.Literal(enumTypeMapping.UnquotedStoreType))
+                    .AppendLine(",")
+                    .AppendLine("labels: new Dictionary<object, string>()")
+                    .AppendLine("{")
+                    .IncrementIndent();
+
+                foreach (var (enumValue, label) in enumTypeMapping.Labels)
                 {
-                    throw new NotSupportedException(
-                        "Mapped enums are only supported in the compiled model if they use the default name translator");
+                    mainBuilder
+                        .Append('[')
+                        .Append(code.UnknownLiteral(enumValue))
+                        .Append(']')
+                        .Append(" = ")
+                        .Append(code.Literal(label))
+                        .AppendLine(",");
                 }
+
+                mainBuilder
+                    .Append("}")
+                    .DecrementIndent()
+                    .Append(")")
+                    .DecrementIndent();
+
                 break;
-#pragma warning restore CS0618
 
             case NpgsqlRangeTypeMapping rangeTypeMapping:
             {
+                CheckElementTypeMapping();
+
                 var defaultInstance = NpgsqlRangeTypeMapping.Default;
 
                 var npgsqlDbTypeDifferent = rangeTypeMapping.NpgsqlDbType != defaultInstance.NpgsqlDbType;
@@ -127,10 +184,16 @@ public class NpgsqlCSharpRuntimeAnnotationCodeGenerator : RelationalCSharpRuntim
 
                 break;
             }
-
         }
 
-        return result;
+        void CheckElementTypeMapping()
+        {
+            if (_typeMappingNestingCount > 1)
+            {
+                throw new NotSupportedException(
+                    $"Non-default Npgsql type mappings ('{typeMapping.GetType().Name}' with store type '{(typeMapping as RelationalTypeMapping)?.StoreType}') aren't currently supported as element type mappings, see https://github.com/npgsql/efcore.pg/issues/3366.");
+            }
+        }
     }
 
     /// <inheritdoc />

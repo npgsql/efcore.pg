@@ -97,7 +97,9 @@ public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => $@"""{Format((OffsetDateTime)value)}""";
+        => $"""
+            "{Format((OffsetDateTime)value)}"
+            """;
 
     private static string Format(OffsetDateTime offsetDateTime)
         => OffsetDateTimePattern.ExtendedIso.Format(offsetDateTime);
@@ -123,6 +125,8 @@ public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
 
     private sealed class JsonOffsetDateTimeReaderWriter : JsonValueReaderWriter<OffsetDateTime>
     {
+        private static readonly PropertyInfo InstanceProperty = typeof(JsonOffsetDateTimeReaderWriter).GetProperty(nameof(Instance))!;
+
         public static JsonOffsetDateTimeReaderWriter Instance { get; } = new();
 
         public override OffsetDateTime FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
@@ -130,5 +134,8 @@ public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
 
         public override void ToJsonTyped(Utf8JsonWriter writer, OffsetDateTime value)
             => writer.WriteStringValue(Format(value));
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }

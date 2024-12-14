@@ -1,4 +1,3 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
@@ -589,11 +588,7 @@ public static class NpgsqlPropertyExtensions
     public static void SetValueGenerationStrategy(
         this IMutableProperty property,
         NpgsqlValueGenerationStrategy? value)
-    {
-        CheckValueGenerationStrategy(property, value);
-
-        property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value);
-    }
+        => property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value);
 
     /// <summary>
     ///     Sets the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property.
@@ -605,13 +600,8 @@ public static class NpgsqlPropertyExtensions
         this IConventionProperty property,
         NpgsqlValueGenerationStrategy? value,
         bool fromDataAnnotation = false)
-    {
-        CheckValueGenerationStrategy(property, value);
-
-        return (NpgsqlValueGenerationStrategy?)property.SetOrRemoveAnnotation(
-                NpgsqlAnnotationNames.ValueGenerationStrategy, value, fromDataAnnotation)
-            ?.Value;
-    }
+        => (NpgsqlValueGenerationStrategy?)property.SetOrRemoveAnnotation(
+            NpgsqlAnnotationNames.ValueGenerationStrategy, value, fromDataAnnotation)?.Value;
 
     /// <summary>
     ///     Sets the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property for a particular table.
@@ -650,11 +640,7 @@ public static class NpgsqlPropertyExtensions
     public static void SetValueGenerationStrategy(
         this IMutableRelationalPropertyOverrides overrides,
         NpgsqlValueGenerationStrategy? value)
-    {
-        CheckValueGenerationStrategy(overrides.Property, value);
-
-        overrides.SetOrRemoveAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value);
-    }
+        => overrides.SetOrRemoveAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value);
 
     /// <summary>
     ///     Sets the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property for a particular table.
@@ -667,37 +653,8 @@ public static class NpgsqlPropertyExtensions
         this IConventionRelationalPropertyOverrides overrides,
         NpgsqlValueGenerationStrategy? value,
         bool fromDataAnnotation = false)
-    {
-        CheckValueGenerationStrategy(overrides.Property, value);
-
-        return (NpgsqlValueGenerationStrategy?)overrides.SetOrRemoveAnnotation(
-                NpgsqlAnnotationNames.ValueGenerationStrategy, value, fromDataAnnotation)
-            ?.Value;
-    }
-
-    private static void CheckValueGenerationStrategy(IReadOnlyProperty property, NpgsqlValueGenerationStrategy? value)
-    {
-        if (value is not null)
-        {
-            var propertyType = property.ClrType;
-
-            if ((value is NpgsqlValueGenerationStrategy.IdentityAlwaysColumn or NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
-                && !IsCompatibleWithValueGeneration(property))
-            {
-                throw new ArgumentException(
-                    NpgsqlStrings.IdentityBadType(
-                        property.Name, property.DeclaringType.DisplayName(), propertyType.ShortDisplayName()));
-            }
-
-            if (value is NpgsqlValueGenerationStrategy.SerialColumn or NpgsqlValueGenerationStrategy.SequenceHiLo
-                && !IsCompatibleWithValueGeneration(property))
-            {
-                throw new ArgumentException(
-                    NpgsqlStrings.SequenceBadType(
-                        property.Name, property.DeclaringType.DisplayName(), propertyType.ShortDisplayName()));
-            }
-        }
-    }
+        => (NpgsqlValueGenerationStrategy?)overrides.SetOrRemoveAnnotation(
+            NpgsqlAnnotationNames.ValueGenerationStrategy, value, fromDataAnnotation)?.Value;
 
     /// <summary>
     ///     Returns the <see cref="ConfigurationSource" /> for the <see cref="NpgsqlValueGenerationStrategy" />.
@@ -1184,23 +1141,6 @@ public static class NpgsqlPropertyExtensions
         => property.FindAnnotation(NpgsqlAnnotationNames.TsVectorConfig)?.GetConfigurationSource();
 
     #endregion Generated tsvector column
-
-    #region Collation
-
-    /// <summary>
-    ///     Returns the collation to be used for the column - including the PostgreSQL-specific default column
-    ///     collation defined at the model level (see
-    ///     <see cref="NpgsqlModelExtensions.SetDefaultColumnCollation(Microsoft.EntityFrameworkCore.Metadata.IMutableModel,string)" />).
-    /// </summary>
-    /// <param name="property"> The property. </param>
-    /// <returns> The collation for the column this property is mapped to. </returns>
-    [Obsolete("Use EF Core's standard model bulk configuration API")]
-    public static string? GetDefaultCollation(this IReadOnlyProperty property)
-        => property.FindTypeMapping() is StringTypeMapping
-            ? property.DeclaringType.Model.GetDefaultColumnCollation()
-            : null;
-
-    #endregion Collation
 
     #region Compression method
 

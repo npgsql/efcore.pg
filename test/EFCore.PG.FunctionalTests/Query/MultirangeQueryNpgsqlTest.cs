@@ -730,8 +730,8 @@ LIMIT 2
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        protected override void Seed(MultirangeContext context)
-            => MultirangeContext.Seed(context);
+        protected override Task SeedAsync(MultirangeContext context)
+            => MultirangeContext.SeedAsync(context);
     }
 
     public class MultirangeTestEntity
@@ -753,7 +753,7 @@ LIMIT 2
     {
         public DbSet<MultirangeTestEntity> TestEntities { get; set; }
 
-        public static void Seed(MultirangeContext context)
+        public static async Task SeedAsync(MultirangeContext context)
         {
             context.TestEntities.AddRange(
                 new MultirangeTestEntity
@@ -789,7 +789,7 @@ LIMIT 2
                     ]
                 });
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 

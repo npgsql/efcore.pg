@@ -94,7 +94,9 @@ public class PeriodIntervalMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => $@"""{GenerateLiteralCore(value)}""";
+        => $"""
+            "{GenerateLiteralCore(value)}"
+            """;
 
     private string GenerateLiteralCore(object value)
         => PeriodPattern.NormalizingIso.Format((Period)value);
@@ -163,6 +165,8 @@ public class PeriodIntervalMapping : NpgsqlTypeMapping
 
     private sealed class JsonPeriodReaderWriter : JsonValueReaderWriter<Period>
     {
+        private static readonly PropertyInfo InstanceProperty = typeof(JsonPeriodReaderWriter).GetProperty(nameof(Instance))!;
+
         public static JsonPeriodReaderWriter Instance { get; } = new();
 
         public override Period FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
@@ -170,5 +174,8 @@ public class PeriodIntervalMapping : NpgsqlTypeMapping
 
         public override void ToJsonTyped(Utf8JsonWriter writer, Period value)
             => writer.WriteStringValue(PeriodPattern.NormalizingIso.Format(value));
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }

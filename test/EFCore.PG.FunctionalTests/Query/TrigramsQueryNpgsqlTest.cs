@@ -31,7 +31,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .Select(x => EF.Functions.TrigramsShow(x.Text))
             .ToArray();
 
-        AssertContainsSql(@"show_trgm(t.""Text"")");
+        AssertContainsSql("""show_trgm(t."Text")""");
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .Select(x => EF.Functions.TrigramsSimilarity(x.Text, "target"))
             .ToArray();
 
-        AssertContainsSql(@"similarity(t.""Text"", 'target')");
+        AssertContainsSql("""similarity(t."Text", 'target')""");
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .Select(x => EF.Functions.TrigramsWordSimilarity(x.Text, "target"))
             .ToArray();
 
-        AssertContainsSql(@"word_similarity(t.""Text"", 'target')");
+        AssertContainsSql("""word_similarity(t."Text", 'target')""");
     }
 
     [ConditionalFact]
@@ -65,7 +65,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .Select(x => EF.Functions.TrigramsStrictWordSimilarity(x.Text, "target"))
             .ToArray();
 
-        AssertContainsSql(@"strict_word_similarity(t.""Text"", 'target')");
+        AssertContainsSql("""strict_word_similarity(t."Text", 'target')""");
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .Select(x => EF.Functions.TrigramsAreSimilar(x.Text, "target"))
             .ToArray();
 
-        AssertContainsSql(@"t.""Text"" % 'target'");
+        AssertContainsSql("""t."Text" % 'target'""");
     }
 
     [Fact]
@@ -87,7 +87,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .Select(x => EF.Functions.TrigramsAreWordSimilar(x.Text, "target"))
             .ToArray();
 
-        AssertContainsSql(@"t.""Text"" <% 'target'");
+        AssertContainsSql("""t."Text" <% 'target'""");
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .Select(x => EF.Functions.TrigramsAreNotWordSimilar(x.Text, "target"))
             .ToArray();
 
-        AssertContainsSql(@"t.""Text"" %> 'target'");
+        AssertContainsSql("""t."Text" %> 'target'""");
     }
 
     [ConditionalFact]
@@ -110,7 +110,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .Select(x => EF.Functions.TrigramsAreStrictWordSimilar(x.Text, "target"))
             .ToArray();
 
-        AssertContainsSql(@"t.""Text"" <<% 'target'");
+        AssertContainsSql("""t."Text" <<% 'target'""");
     }
 
     [ConditionalFact]
@@ -122,7 +122,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .Select(x => EF.Functions.TrigramsAreNotStrictWordSimilar(x.Text, "target"))
             .ToArray();
 
-        AssertContainsSql(@"t.""Text"" %>> 'target'");
+        AssertContainsSql("""t."Text" %>> 'target'""");
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .Select(x => EF.Functions.TrigramsSimilarityDistance(x.Text, "target"))
             .ToArray();
 
-        AssertContainsSql(@"t.""Text"" <-> 'target'");
+        AssertContainsSql("""t."Text" <-> 'target'""");
     }
 
     [Fact]
@@ -144,7 +144,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .Select(x => EF.Functions.TrigramsWordSimilarityDistance(x.Text, "target"))
             .ToArray();
 
-        AssertContainsSql(@"t.""Text"" <<-> 'target'");
+        AssertContainsSql("""t."Text" <<-> 'target'""");
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .Select(x => EF.Functions.TrigramsWordSimilarityDistanceInverted(x.Text, "target"))
             .ToArray();
 
-        AssertContainsSql(@"t.""Text"" <->> 'target'");
+        AssertContainsSql("""t."Text" <->> 'target'""");
     }
 
     [ConditionalFact]
@@ -167,7 +167,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .Select(x => EF.Functions.TrigramsStrictWordSimilarityDistance(x.Text, "target"))
             .ToArray();
 
-        AssertContainsSql(@"t.""Text"" <<<-> 'target'");
+        AssertContainsSql("""t."Text" <<<-> 'target'""");
     }
 
     [ConditionalFact]
@@ -179,7 +179,7 @@ public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.Tri
             .Select(x => EF.Functions.TrigramsStrictWordSimilarityDistanceInverted(x.Text, "target"))
             .ToArray();
 
-        AssertContainsSql(@"t.""Text"" <->>> 'target'");
+        AssertContainsSql("""t."Text" <->>> 'target'""");
     }
 
     [Fact] // #1659
@@ -232,8 +232,8 @@ WHERE 1 - (t."Text" <-> 'query') > 8
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        protected override void Seed(TrigramsContext context)
-            => TrigramsContext.Seed(context);
+        protected override Task SeedAsync(TrigramsContext context)
+            => TrigramsContext.SeedAsync(context);
     }
 
     /// <summary>
@@ -282,7 +282,7 @@ WHERE 1 - (t."Text" <-> 'query') > 8
             base.OnModelCreating(modelBuilder);
         }
 
-        public static void Seed(TrigramsContext context)
+        public static async Task SeedAsync(TrigramsContext context)
         {
             for (var i = 1; i <= 9; i++)
             {
@@ -291,7 +291,7 @@ WHERE 1 - (t."Text" <-> 'query') > 8
                     new TrigramsTestEntity { Id = i, Text = text });
             }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 

@@ -132,10 +132,10 @@ WHERE e."BigInteger" % 2 = 0
     {
         public DbSet<Entity> Entities { get; set; }
 
-        public static void Seed(BigIntegerQueryContext context)
+        public static async Task SeedAsync(BigIntegerQueryContext context)
         {
             context.Entities.AddRange(BigIntegerData.CreateEntities());
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 
@@ -158,8 +158,8 @@ WHERE e."BigInteger" % 2 = 0
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        protected override void Seed(BigIntegerQueryContext context)
-            => BigIntegerQueryContext.Seed(context);
+        protected override Task SeedAsync(BigIntegerQueryContext context)
+            => BigIntegerQueryContext.SeedAsync(context);
 
         public Func<DbContext> GetContextCreator()
             => CreateContext;

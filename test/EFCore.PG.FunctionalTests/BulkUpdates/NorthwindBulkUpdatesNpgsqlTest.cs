@@ -6,7 +6,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.BulkUpdates;
 public class NorthwindBulkUpdatesNpgsqlTest(
     NorthwindBulkUpdatesNpgsqlFixture<NoopModelCustomizer> fixture,
     ITestOutputHelper testOutputHelper)
-    : NorthwindBulkUpdatesTestBase<NorthwindBulkUpdatesNpgsqlFixture<NoopModelCustomizer>>(fixture, testOutputHelper)
+    : NorthwindBulkUpdatesRelationalTestBase<NorthwindBulkUpdatesNpgsqlFixture<NoopModelCustomizer>>(fixture, testOutputHelper)
 {
     public override async Task Delete_Where_TagWith(bool async)
     {
@@ -1375,12 +1375,12 @@ WHERE o1."OrderID" = s."OrderID"
         AssertExecuteUpdateSql(
             """
 UPDATE "Customers" AS c
-SET "City" = date_part('year', (
+SET "City" = COALESCE(date_part('year', (
     SELECT o."OrderDate"
     FROM "Orders" AS o
     WHERE c."CustomerID" = o."CustomerID"
     ORDER BY o."OrderDate" DESC NULLS LAST
-    LIMIT 1))::int::text
+    LIMIT 1))::int::text, '')
 WHERE c."CustomerID" LIKE 'F%'
 """);
     }
@@ -1409,12 +1409,12 @@ WHERE c."CustomerID" LIKE 'F%'
         AssertExecuteUpdateSql(
             """
 UPDATE "Customers" AS c
-SET "City" = date_part('year', (
+SET "City" = COALESCE(date_part('year', (
     SELECT o."OrderDate"
     FROM "Orders" AS o
     WHERE c."CustomerID" = o."CustomerID"
     ORDER BY o."OrderDate" DESC NULLS LAST
-    LIMIT 1))::int::text
+    LIMIT 1))::int::text, '')
 WHERE c."CustomerID" LIKE 'F%'
 """);
     }

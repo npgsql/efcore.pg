@@ -133,18 +133,19 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
             ? null // TODO: Value comparer for multidimensional arrays
             : (ValueComparer?)Activator.CreateInstance(
                 elementType.IsNullableValueType()
-                    ? typeof(NullableValueTypeListComparer<>).MakeGenericType(elementType.UnwrapNullableType())
-                    : elementMapping.Comparer.Type.IsAssignableFrom(elementType)
-                        ? typeof(ListComparer<>).MakeGenericType(elementType)
-                        : typeof(ObjectListComparer<>).MakeGenericType(elementType),
+                    ? typeof(ListOfNullableValueTypesComparer<,>)
+                        .MakeGenericType(typeof(TConcreteCollection), elementType.UnwrapNullableType())
+                    : elementType.IsValueType
+                        ? typeof(ListOfValueTypesComparer<,>).MakeGenericType(typeof(TConcreteCollection), elementType)
+                        : typeof(ListOfReferenceTypesComparer<,>).MakeGenericType(typeof(TConcreteCollection), elementType),
                 elementMapping.Comparer.ToNullableComparer(elementType)!);
 #pragma warning restore EF1001
 
         var elementJsonReaderWriter = elementMapping.JsonValueReaderWriter;
-        if (elementJsonReaderWriter is not null && elementJsonReaderWriter.ValueType != typeof(TElement).UnwrapNullableType())
+        if (elementJsonReaderWriter is not null && !typeof(TElement).UnwrapNullableType().IsAssignableTo(elementJsonReaderWriter.ValueType))
         {
             throw new InvalidOperationException(
-                $"When building an array mapping over '{typeof(TElement).Name}', the JsonValueReaderWriter for element mapping '{elementMapping.GetType().Name}' is incorrect ('{elementMapping.JsonValueReaderWriter?.GetType().Name ?? "<null>"}' instead of '{typeof(TElement).UnwrapNullableType()}').");
+                $"When building an array mapping over '{typeof(TElement).Name}', the JsonValueReaderWriter for element mapping '{elementMapping.GetType().Name}' is incorrect ('{elementJsonReaderWriter.ValueType.GetType().Name}' instead of '{typeof(TElement).UnwrapNullableType()}', the JsonValueReaderWriter is '{elementJsonReaderWriter.GetType().Name}').");
         }
 
         // If there's no JsonValueReaderWriter on the element, we also don't set one on its array (this is for rare edge cases such as
@@ -155,9 +156,11 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
                 ? null
                 : (JsonValueReaderWriter?)Activator.CreateInstance(
                     (elementType.IsNullableValueType()
-                        ? typeof(JsonNullableStructCollectionReaderWriter<,,>)
-                        : typeof(JsonCollectionReaderWriter<,,>))
-                    .MakeGenericType(typeof(TCollection), typeof(TConcreteCollection), elementType.UnwrapNullableType()),
+                        ? typeof(JsonCollectionOfNullableStructsReaderWriter<,>)
+                        : elementType.IsValueType
+                            ? typeof(JsonCollectionOfStructsReaderWriter<,>)
+                            : typeof(JsonCollectionOfReferencesReaderWriter<,>))
+                    .MakeGenericType(typeof(TConcreteCollection), elementType.UnwrapNullableType()),
                     elementJsonReaderWriter);
 
         return new RelationalTypeMappingParameters(
@@ -187,7 +190,7 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
         // Otherwise let the ADO.NET layer infer the PostgreSQL type. We can't always let it infer, otherwise
         // when given a byte[] it will infer byte (but we want smallint[])
         NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Array
-            | (ElementTypeMapping is INpgsqlTypeMapping elementNpgsqlTypeMapping
+            | (ElementTypeMapping is INpgsqlTypeMapping { NpgsqlDbType: not NpgsqlTypes.NpgsqlDbType.Unknown } elementNpgsqlTypeMapping
                 ? elementNpgsqlTypeMapping.NpgsqlDbType
                 : ElementTypeMapping.DbType.HasValue
                     ? new NpgsqlParameter { DbType = ElementTypeMapping.DbType.Value }.NpgsqlDbType
@@ -219,8 +222,10 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
         // In queries which compose non-server-correlated LINQ operators over an array parameter (e.g. Where(b => ids.Skip(1)...) we
         // get an enumerable parameter value that isn't an array/list - but those aren't supported at the Npgsql ADO level.
         // Detect this here and evaluate the enumerable to get a fully materialized List.
+        // Note that when we have a value converter (e.g. for HashSet), we don't want to convert it to a List, since the value converter
+        // expects the original type.
         // TODO: Make Npgsql support IList<> instead of only arrays and List<>
-        if (value is not null && !value.GetType().IsArrayOrGenericList())
+        if (value is not null && Converter is null && !value.GetType().IsArrayOrGenericList())
         {
             switch (value)
             {
@@ -234,7 +239,25 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
             }
         }
 
-        return base.CreateParameter(command, name, value, nullable, direction);
+        var param = base.CreateParameter(command, name, value, nullable, direction);
+        if (param is not NpgsqlParameter npgsqlParameter)
+        {
+            throw new InvalidOperationException(
+                $"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {param.GetType().Name}");
+        }
+
+        // Enums and user-defined ranges require setting NpgsqlParameter.DataTypeName to specify the PostgreSQL type name.
+        // Make this work for arrays over these types as well.
+        switch (ElementTypeMapping)
+        {
+            case NpgsqlEnumTypeMapping enumTypeMapping:
+                npgsqlParameter.DataTypeName = enumTypeMapping.UnquotedStoreType + "[]";
+                break;
+            case NpgsqlRangeTypeMapping { UnquotedStoreType: string unquotedStoreType }:
+                npgsqlParameter.DataTypeName = unquotedStoreType + "[]";
+                break;
+        }
+        return param;
     }
 
     /// <summary>

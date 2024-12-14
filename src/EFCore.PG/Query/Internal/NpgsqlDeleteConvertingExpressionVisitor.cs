@@ -41,7 +41,7 @@ public class NpgsqlDeleteConvertingExpressionVisitor : ExpressionVisitor
         {
             throw new InvalidOperationException(
                 RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                    nameof(RelationalQueryableExtensions.ExecuteDelete)));
+                    nameof(EntityFrameworkQueryableExtensions.ExecuteDelete)));
         }
 
         var fromItems = new List<TableExpressionBase>();
@@ -79,7 +79,7 @@ public class NpgsqlDeleteConvertingExpressionVisitor : ExpressionVisitor
                 default:
                     throw new InvalidOperationException(
                         RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(
-                            nameof(RelationalQueryableExtensions.ExecuteDelete)));
+                            nameof(EntityFrameworkQueryableExtensions.ExecuteDelete)));
             }
         }
 

@@ -130,16 +130,18 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
                 typeof(string),
                 _stringTypeMapping);
 
+            // The PostgreSQL traversal operator always returns text - for these scalar-returning methods, apply a conversion from string.
             return method.Name == nameof(JsonElement.GetString)
                 ? traversalToText
-                : ConvertFromText(traversalToText, method.ReturnType);
+                : _sqlExpressionFactory.Convert(
+                    traversalToText, method.ReturnType, _typeMappingSource.FindMapping(method.ReturnType, _model));
         }
 
         if (method == GetArrayLength)
         {
             return _sqlExpressionFactory.Function(
                 mapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
-                new[] { instance },
+                [instance],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(int));
@@ -151,31 +153,5 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
         }
 
         return null;
-    }
-
-    // The PostgreSQL traversal operator always returns text, so we need to convert to int, bool, etc.
-    private SqlExpression ConvertFromText(SqlExpression expression, Type returnType)
-    {
-        switch (Type.GetTypeCode(returnType))
-        {
-            case TypeCode.Boolean:
-            case TypeCode.Byte:
-            case TypeCode.DateTime:
-            case TypeCode.Decimal:
-            case TypeCode.Double:
-            case TypeCode.Int16:
-            case TypeCode.Int32:
-            case TypeCode.Int64:
-            case TypeCode.SByte:
-            case TypeCode.Single:
-            case TypeCode.UInt16:
-            case TypeCode.UInt32:
-            case TypeCode.UInt64:
-                return _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType, _model));
-            default:
-                return returnType == typeof(Guid)
-                    ? _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType, _model))
-                    : expression;
-        }
     }
 }

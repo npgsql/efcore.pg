@@ -31,11 +31,11 @@ public class NpgsqlStringMemberTranslator : IMemberTranslator
         MemberInfo member,
         Type returnType,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
-        => member.Name == nameof(string.Length) && instance?.Type == typeof(string)
+        => member.Name == nameof(string.Length) && member.DeclaringType == typeof(string)
             ? _sqlExpressionFactory.Convert(
                 _sqlExpressionFactory.Function(
                     "length",
-                    new[] { instance },
+                    [instance!],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(long)),

@@ -626,8 +626,8 @@ LIMIT 2
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        protected override void Seed(RangeContext context)
-            => RangeContext.Seed(context);
+        protected override Task SeedAsync(RangeContext context)
+            => RangeContext.SeedAsync(context);
 
         public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
         {
@@ -662,7 +662,7 @@ LIMIT 2
             => builder.HasPostgresRange("doublerange", "double precision")
                 .HasPostgresRange("test", "Schema_Range", "real");
 
-        public static void Seed(RangeContext context)
+        public static async Task SeedAsync(RangeContext context)
         {
             context.RangeTestEntities.AddRange(
                 new RangeTestEntity
@@ -688,7 +688,7 @@ LIMIT 2
                     UserDefinedRangeWithSchema = new NpgsqlRange<float>(5, 15)
                 });
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 

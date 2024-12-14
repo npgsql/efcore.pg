@@ -1,6 +1,4 @@
-﻿using System.Data.Common;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 /// <summary>
 ///     Represents options for Npgsql that can only be set at the <see cref="IServiceProvider" /> singleton level.
@@ -28,17 +26,12 @@ public interface INpgsqlSingletonOptions : ISingletonOptions
     bool ReverseNullOrderingEnabled { get; }
 
     /// <summary>
-    ///     The data source being used, or <see langword="null" /> if a connection string or connection was provided directly.
+    ///     The collection of enum mappings.
     /// </summary>
-    DbDataSource? DataSource { get; }
+    IReadOnlyList<EnumDefinition> EnumDefinitions { get; }
 
     /// <summary>
     ///     The collection of range mappings.
     /// </summary>
     IReadOnlyList<UserRangeDefinition> UserRangeDefinitions { get; }
-
-    /// <summary>
-    ///     The root service provider for the application, if available. />.
-    /// </summary>
-    IServiceProvider? ApplicationServiceProvider { get; }
 }

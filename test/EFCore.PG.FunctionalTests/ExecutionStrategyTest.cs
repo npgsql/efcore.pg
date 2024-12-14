@@ -80,7 +80,7 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
         {
             var connection = (TestNpgsqlConnection)context.GetService<INpgsqlRelationalConnection>();
 
-            connection.CommitFailures.Enqueue(new bool?[] { realFailure });
+            connection.CommitFailures.Enqueue([realFailure]);
             Fixture.TestSqlLoggerFactory.Clear();
 
             context.Products.Add(new Product());
@@ -99,7 +99,7 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
             }
             else
             {
-                Assert.Empty(Fixture.TestSqlLoggerFactory.Log.Where(l => l.Id == CoreEventId.ExecutionStrategyRetrying));
+                Assert.DoesNotContain(Fixture.TestSqlLoggerFactory.Log, l => l.Id == CoreEventId.ExecutionStrategyRetrying);
             }
 
             Assert.Equal(realFailure ? 3 : 2, connection.OpenCount);
@@ -194,7 +194,7 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
         {
             var connection = (TestNpgsqlConnection)context.GetService<INpgsqlRelationalConnection>();
 
-            connection.CommitFailures.Enqueue(new bool?[] { realFailure });
+            connection.CommitFailures.Enqueue([realFailure]);
             Fixture.TestSqlLoggerFactory.Clear();
 
             context.Products.Add(new Product());
@@ -213,7 +213,7 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
             }
             else
             {
-                Assert.Empty(Fixture.TestSqlLoggerFactory.Log.Where(l => l.Id == CoreEventId.ExecutionStrategyRetrying));
+                Assert.DoesNotContain(Fixture.TestSqlLoggerFactory.Log, l => l.Id == CoreEventId.ExecutionStrategyRetrying);
             }
 
             Assert.Equal(realFailure ? 3 : 2, connection.OpenCount);
@@ -236,7 +236,7 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
 
         using (var context2 = CreateContext())
         {
-            connection.CommitFailures.Enqueue(new bool?[] { realFailure });
+            connection.CommitFailures.Enqueue([realFailure]);
 
             context1.Products.Add(new Product());
             context2.Products.Add(new Product());
@@ -276,7 +276,7 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
         {
             var connection = (TestNpgsqlConnection)context.GetService<INpgsqlRelationalConnection>();
 
-            connection.ExecutionFailures.Enqueue(new bool?[] { null, realFailure });
+            connection.ExecutionFailures.Enqueue([null, realFailure]);
 
             Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
 
@@ -385,7 +385,7 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
         {
             var connection = (TestNpgsqlConnection)context.GetService<INpgsqlRelationalConnection>();
 
-            connection.ExecutionFailures.Enqueue(new bool?[] { true });
+            connection.ExecutionFailures.Enqueue([true]);
 
             Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
 
@@ -441,7 +441,7 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
         {
             var connection = (TestNpgsqlConnection)context.GetService<INpgsqlRelationalConnection>();
 
-            connection.ExecutionFailures.Enqueue(new bool?[] { true });
+            connection.ExecutionFailures.Enqueue([true]);
 
             Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
 
@@ -453,14 +453,16 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
                     list = await new TestNpgsqlRetryingExecutionStrategy(context)
                         .ExecuteAsync(
                             context, (c, ct) => c.Set<Product>().FromSqlRaw(
-                                @"SELECT ""Id"", ""Name""
-                              FROM ""Products""").ToListAsync(ct), null);
+                                """
+                                SELECT "Id", "Name" FROM "Products"
+                                """).ToListAsync(ct), null);
                 }
                 else
                 {
                     list = await context.Set<Product>().FromSqlRaw(
-                        @"SELECT ""Id"", ""Name""
-                              FROM ""Products""").ToListAsync();
+                        """
+                        SELECT "Id", "Name" FROM "Products"
+                        """).ToListAsync();
                 }
             }
             else
@@ -470,14 +472,17 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
                     list = new TestNpgsqlRetryingExecutionStrategy(context)
                         .Execute(
                             context, c => c.Set<Product>().FromSqlRaw(
-                                @"SELECT ""Id"", ""Name""
-                              FROM ""Products""").ToList(), null);
+                                """
+                                    SELECT "Id", "Name"
+                                                                  FROM "Products"
+                                    """).ToList(), null);
                 }
                 else
                 {
                     list = context.Set<Product>().FromSqlRaw(
-                        @"SELECT ""Id"", ""Name""
-                              FROM ""Products""").ToList();
+                        """
+                        SELECT "Id", "Name" FROM "Products"
+                        """).ToList();
                 }
             }
 
@@ -496,7 +501,7 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
         await using var context = CreateContext();
         var connection = (TestNpgsqlConnection)context.GetService<INpgsqlRelationalConnection>();
 
-        connection.OpenFailures.Enqueue(new bool?[] { true });
+        connection.OpenFailures.Enqueue([true]);
 
         Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
 
@@ -549,7 +554,7 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
         await using var context = CreateContext();
         var connection = (TestNpgsqlConnection)context.GetService<INpgsqlRelationalConnection>();
 
-        connection.OpenFailures.Enqueue(new bool?[] { true });
+        connection.OpenFailures.Enqueue([true]);
 
         Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
 
@@ -584,8 +589,8 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
         {
             var connection = (TestNpgsqlConnection)context.GetService<INpgsqlRelationalConnection>();
 
-            connection.ExecutionFailures.Enqueue(new bool?[] { true, null, true, true });
-            connection.CommitFailures.Enqueue(new bool?[] { true, true, true, true });
+            connection.ExecutionFailures.Enqueue([true, null, true, true]);
+            connection.CommitFailures.Enqueue([true, true, true, true]);
 
             context.Products.Add(new Product());
             Assert.Throws<RetryLimitExceededException>(

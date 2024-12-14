@@ -141,4 +141,24 @@ public static class NpgsqlDbFunctionsExtensions
     /// </remarks>
     public static TimeSpan Distance(this DbFunctions _, DateTime a, DateTime b)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Distance)));
+
+    /// <summary>
+    ///     Converts string to date according to the given format.
+    /// </summary>
+    /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+    /// <param name="value">The string to be converted.</param>
+    /// <param name="format">The format of the input date.</param>
+    /// <see href="https://www.postgresql.org/docs/current/functions-formatting.html" />
+    public static DateOnly ToDate(this DbFunctions _, string value, string format)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ToDate)));
+
+    /// <summary>
+    ///     Converts string to time stamp according to the given format.
+    /// </summary>
+    /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+    /// <param name="value">The string to be converted</param>
+    /// <param name="format">The format of the input date</param>
+    /// <see href="https://www.postgresql.org/docs/current/functions-formatting.html" />
+    public static DateTime ToTimestamp(this DbFunctions _, string value, string format)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ToTimestamp)));
 }

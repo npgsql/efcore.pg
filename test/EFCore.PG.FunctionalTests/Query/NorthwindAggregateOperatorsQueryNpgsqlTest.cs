@@ -16,14 +16,33 @@ public class NorthwindAggregateOperatorsQueryNpgsqlTest : NorthwindAggregateOper
     }
 
     // Overriding to add equality tolerance because of floating point precision
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
-    public override Task Average_over_max_subquery_is_client_eval(bool async)
-        => AssertAverage(
+    public override async Task Average_over_max_subquery(bool async)
+    {
+        await AssertAverage(
             async,
             ss => ss.Set<Customer>().OrderBy(c => c.CustomerID).Take(3),
             selector: c => (decimal)c.Orders.Average(o => 5 + o.OrderDetails.Max(od => od.ProductID)),
-            asserter: (a, b) => Assert.Equal(a, b, 15));
+            asserter: (e, a) => Assert.Equal(e, a, 10));
+
+        AssertSql(
+            """
+@__p_0='3'
+
+SELECT avg((
+    SELECT avg(CAST(5 + (
+        SELECT max(o0."ProductID")
+        FROM "Order Details" AS o0
+        WHERE o."OrderID" = o0."OrderID") AS double precision))
+    FROM "Orders" AS o
+    WHERE c0."CustomerID" = o."CustomerID")::numeric)
+FROM (
+    SELECT c."CustomerID"
+    FROM "Customers" AS c
+    ORDER BY c."CustomerID" NULLS FIRST
+    LIMIT @__p_0
+) AS c0
+""");
+    }
 
     public override async Task Contains_with_local_uint_array_closure(bool async)
     {
@@ -91,12 +110,24 @@ WHERE e."EmployeeID" = ANY (@__ids_0)
 
     public override async Task Contains_with_local_enumerable_inline_closure_mix(bool async)
     {
-        // Issue #31776
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            async () =>
-                await base.Contains_with_local_enumerable_inline_closure_mix(async));
+        await base.Contains_with_local_enumerable_inline_closure_mix(async);
 
-        AssertSql();
+        AssertSql(
+            """
+@__p_0={ 'ABCDE', 'ALFKI' } (DbType = Object)
+
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CustomerID" = ANY (array_remove(@__p_0, NULL))
+""",
+            //
+            """
+@__p_0={ 'ABCDE', 'ANATR' } (DbType = Object)
+
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE c."CustomerID" = ANY (array_remove(@__p_0, NULL))
+""");
     }
 
     public override async Task Contains_with_local_non_primitive_list_closure_mix(bool async)

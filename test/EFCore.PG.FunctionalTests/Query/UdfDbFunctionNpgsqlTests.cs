@@ -671,11 +671,11 @@ LIMIT 2
                 .HasParameter("startDate").Metadata.TypeMapping = typeMappingSource.GetMapping("timestamp without time zone");
         }
 
-        protected override void Seed(DbContext context)
+        protected override async Task SeedAsync(DbContext context)
         {
-            base.Seed(context);
+            await base.SeedAsync(context);
 
-            context.Database.ExecuteSqlRaw(
+            await context.Database.ExecuteSqlRawAsync(
                 """
 CREATE FUNCTION "CustomerOrderCount" ("customerId" INTEGER) RETURNS INTEGER
 AS $$ SELECT COUNT("Id")::INTEGER FROM "Orders" WHERE "CustomerId" = $1 $$
@@ -776,7 +776,7 @@ END;
 $$ LANGUAGE PLPGSQL;
 """);
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 

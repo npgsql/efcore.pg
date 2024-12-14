@@ -20,7 +20,7 @@ public class NpgsqlNetTopologySuiteMemberTranslatorPlugin : IMemberTranslatorPlu
         IRelationalTypeMappingSource typeMappingSource,
         ISqlExpressionFactory sqlExpressionFactory)
     {
-        Translators = new IMemberTranslator[] { new NpgsqlGeometryMemberTranslator(sqlExpressionFactory, typeMappingSource), };
+        Translators = [new NpgsqlGeometryMemberTranslator(sqlExpressionFactory, typeMappingSource)];
     }
 
     /// <summary>
@@ -172,7 +172,7 @@ public class NpgsqlGeometryMemberTranslator : IMemberTranslator
             _ => null
         };
 
-        SqlFunctionExpression Function(string name, SqlExpression[] arguments, Type returnType, RelationalTypeMapping? typeMapping = null)
+        SqlExpression Function(string name, SqlExpression[] arguments, Type returnType, RelationalTypeMapping? typeMapping = null)
             => _sqlExpressionFactory.Function(
                 name, arguments,
                 nullable: true, argumentsPropagateNullability: TrueArrays[arguments.Length],

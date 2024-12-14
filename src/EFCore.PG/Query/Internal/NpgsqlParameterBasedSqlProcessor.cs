@@ -16,8 +16,8 @@ public class NpgsqlParameterBasedSqlProcessor : RelationalParameterBasedSqlProce
     /// </summary>
     public NpgsqlParameterBasedSqlProcessor(
         RelationalParameterBasedSqlProcessorDependencies dependencies,
-        bool useRelationalNulls)
-        : base(dependencies, useRelationalNulls)
+        RelationalParameterBasedSqlProcessorParameters parameters)
+        : base(dependencies, parameters)
     {
     }
 
@@ -48,7 +48,7 @@ public class NpgsqlParameterBasedSqlProcessor : RelationalParameterBasedSqlProce
         Check.NotNull(selectExpression, nameof(selectExpression));
         Check.NotNull(parametersValues, nameof(parametersValues));
 
-        return new NpgsqlSqlNullabilityProcessor(Dependencies, UseRelationalNulls).Process(
+        return new NpgsqlSqlNullabilityProcessor(Dependencies, Parameters).Process(
             selectExpression, parametersValues, out canCache);
     }
 }

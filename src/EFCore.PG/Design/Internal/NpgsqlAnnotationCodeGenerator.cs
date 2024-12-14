@@ -105,10 +105,6 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         = typeof(NpgsqlIndexBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlIndexBuilderExtensions.HasOperators), typeof(IndexBuilder), typeof(string[]));
 
-    private static readonly MethodInfo IndexHasSortOrderMethodInfo
-        = typeof(NpgsqlIndexBuilderExtensions).GetRequiredRuntimeMethod(
-            nameof(NpgsqlIndexBuilderExtensions.HasSortOrder), typeof(IndexBuilder), typeof(SortOrder[]));
-
     private static readonly MethodInfo IndexHasNullSortOrderMethodInfo
         = typeof(NpgsqlIndexBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlIndexBuilderExtensions.HasNullSortOrder), typeof(IndexBuilder), typeof(NullSortOrder[]));
@@ -423,8 +419,6 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
                 => new MethodCallCodeFragment(IndexHasMethodMethodInfo, annotation.Value),
             NpgsqlAnnotationNames.IndexOperators
                 => new MethodCallCodeFragment(IndexHasOperatorsMethodInfo, annotation.Value),
-            NpgsqlAnnotationNames.IndexSortOrder
-                => new MethodCallCodeFragment(IndexHasSortOrderMethodInfo, annotation.Value),
             NpgsqlAnnotationNames.IndexNullSortOrder
                 => new MethodCallCodeFragment(IndexHasNullSortOrderMethodInfo, annotation.Value),
             NpgsqlAnnotationNames.IndexInclude

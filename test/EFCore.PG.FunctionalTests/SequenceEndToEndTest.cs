@@ -2,7 +2,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
-public class SequenceEndToEndTest : IDisposable
+public class SequenceEndToEndTest : IAsyncLifetime
 {
     [ConditionalFact]
     public void Can_use_sequence_end_to_end()
@@ -389,8 +389,11 @@ public class SequenceEndToEndTest : IDisposable
         public string Name { get; set; }
     }
 
-    protected NpgsqlTestStore TestStore { get; } = NpgsqlTestStore.CreateInitialized("SequenceEndToEndTest");
+    protected NpgsqlTestStore TestStore { get; private set; }
 
-    public void Dispose()
-        => TestStore.Dispose();
+    public async Task InitializeAsync()
+        => TestStore = await NpgsqlTestStore.CreateInitializedAsync("SequenceEndToEndTest");
+
+    public async Task DisposeAsync()
+        => await TestStore.DisposeAsync();
 }

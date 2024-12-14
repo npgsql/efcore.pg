@@ -137,6 +137,8 @@ public class DurationIntervalMapping : NpgsqlTypeMapping
 
     private sealed class JsonDurationReaderWriter : JsonValueReaderWriter<Duration>
     {
+        private static readonly PropertyInfo InstanceProperty = typeof(JsonDurationReaderWriter).GetProperty(nameof(Instance))!;
+
         public static JsonDurationReaderWriter Instance { get; } = new();
 
         public override Duration FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
@@ -144,5 +146,8 @@ public class DurationIntervalMapping : NpgsqlTypeMapping
 
         public override void ToJsonTyped(Utf8JsonWriter writer, Duration value)
             => writer.WriteStringValue(NpgsqlIntervalTypeMapping.FormatTimeSpanAsInterval(value.ToTimeSpan()));
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }

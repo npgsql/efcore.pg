@@ -10,6 +10,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 /// </summary>
 public sealed class NpgsqlJsonGeometryWktReaderWriter : JsonValueReaderWriter<Geometry>
 {
+    private static readonly PropertyInfo InstanceProperty = typeof(NpgsqlJsonGeometryWktReaderWriter).GetProperty(nameof(Instance))!;
+
     private static readonly WKTReader WktReader = new();
 
     /// <summary>
@@ -27,5 +29,19 @@ public sealed class NpgsqlJsonGeometryWktReaderWriter : JsonValueReaderWriter<Ge
 
     /// <inheritdoc />
     public override void ToJsonTyped(Utf8JsonWriter writer, Geometry value)
-        => writer.WriteStringValue(value.ToText());
+    {
+        var wkt = value.ToText();
+
+        // If the SRID is defined, prefix the WKT with it (SRID=4326;POINT(-44.3 60.1))
+        // Although this is a PostgreSQL extension, NetTopologySuite supports it (see #3236)
+        if (value.SRID > 0)
+        {
+            wkt = $"SRID={value.SRID};{wkt}";
+        }
+
+        writer.WriteStringValue(wkt);
+    }
+
+    /// <inheritdoc />
+    public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
 }

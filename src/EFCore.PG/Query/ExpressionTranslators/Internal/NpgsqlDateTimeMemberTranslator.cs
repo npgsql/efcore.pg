@@ -27,8 +27,8 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
     public NpgsqlDateTimeMemberTranslator(IRelationalTypeMappingSource typeMappingSource, NpgsqlSqlExpressionFactory sqlExpressionFactory)
     {
         _typeMappingSource = typeMappingSource;
-        _timestampMapping = typeMappingSource.FindMapping("timestamp without time zone")!;
-        _timestampTzMapping = typeMappingSource.FindMapping("timestamp with time zone")!;
+        _timestampMapping = typeMappingSource.FindMapping(typeof(DateTime), "timestamp without time zone")!;
+        _timestampTzMapping = typeMappingSource.FindMapping(typeof(DateTime), "timestamp with time zone")!;
         _sqlExpressionFactory = sqlExpressionFactory;
     }
 
@@ -56,6 +56,11 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
             return translated;
         }
 
+        if (declaringType == typeof(DateOnly) && TranslateDateOnly(instance, member) is { } translated2)
+        {
+            return translated2;
+        }
+
         if (member.Name == nameof(DateTime.Date))
         {
             // Note that DateTime.Date returns a DateTime, not a DateOnly (introduced later); so we convert using date_trunc (which returns
@@ -70,7 +75,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
                 case { } when NpgsqlTypeMappingSource.LegacyTimestampBehavior:
                     return _sqlExpressionFactory.Function(
                         "date_trunc",
-                        new[] { _sqlExpressionFactory.Constant("day"), instance },
+                        [_sqlExpressionFactory.Constant("day"), instance],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[2],
                         returnType,
@@ -79,7 +84,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
                 case { TypeMapping: NpgsqlTimestampTzTypeMapping }:
                     return _sqlExpressionFactory.Function(
                         "date_trunc",
-                        new[] { _sqlExpressionFactory.Constant("day"), instance, _sqlExpressionFactory.Constant("UTC") },
+                        [_sqlExpressionFactory.Constant("day"), instance, _sqlExpressionFactory.Constant("UTC")],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[3],
                         returnType,
@@ -112,7 +117,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
 
             nameof(DateTime.Today) => _sqlExpressionFactory.Function(
                 "date_trunc",
-                new[] { _sqlExpressionFactory.Constant("day"), LocalNow() },
+                [_sqlExpressionFactory.Constant("day"), LocalNow()],
                 nullable: false,
                 argumentsPropagateNullability: FalseArrays[2],
                 typeof(DateTime),
@@ -172,7 +177,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
 
         var result = _sqlExpressionFactory.Function(
             "date_part",
-            new[] { _sqlExpressionFactory.Constant(partName), instance },
+            [_sqlExpressionFactory.Constant(partName), instance],
             nullable: true,
             argumentsPropagateNullability: TrueArrays[2],
             typeof(double));
@@ -181,7 +186,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
         {
             result = _sqlExpressionFactory.Function(
                 "floor",
-                new[] { result },
+                [result],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(double));
@@ -190,13 +195,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
         return _sqlExpressionFactory.Convert(result, typeof(int));
     }
 
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public virtual SqlExpression? TranslateDateTimeOffset(SqlExpression instance, MemberInfo member)
+    private SqlExpression? TranslateDateTimeOffset(SqlExpression instance, MemberInfo member)
         => member.Name switch
         {
             // We only support UTC DateTimeOffset, so DateTimeOffset.DateTime is just a matter of converting to timestamp without time zone
@@ -217,11 +216,22 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
             nameof(DateTimeOffset.Date) =>
                 _sqlExpressionFactory.Function(
                     "date_trunc",
-                    new SqlExpression[] { _sqlExpressionFactory.Constant("day"), _sqlExpressionFactory.AtUtc(instance) },
+                    [_sqlExpressionFactory.Constant("day"), _sqlExpressionFactory.AtUtc(instance)],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
                     typeof(DateTime),
                     _timestampMapping),
+
+            _ => null
+        };
+
+    private SqlExpression? TranslateDateOnly(SqlExpression? instance, MemberInfo member)
+        => member.Name switch
+        {
+            // We use fragment rather than a DateOnly constant, since 0001-01-01 gets rendered as -infinity by default.
+            // TODO: Set the right type/type mapping after https://github.com/dotnet/efcore/pull/34995 is merged
+            nameof(DateOnly.DayNumber) when instance is not null
+                => _sqlExpressionFactory.Subtract(instance, _sqlExpressionFactory.Fragment("DATE '0001-01-01'")),
 
             _ => null
         };

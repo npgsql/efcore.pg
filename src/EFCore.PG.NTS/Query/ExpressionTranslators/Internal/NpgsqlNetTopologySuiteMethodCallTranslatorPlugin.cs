@@ -27,7 +27,7 @@ public class NpgsqlNetTopologySuiteMethodCallTranslatorPlugin : IMethodCallTrans
             throw new ArgumentException($"Must be an {nameof(NpgsqlSqlExpressionFactory)}", nameof(sqlExpressionFactory));
         }
 
-        Translators = new IMethodCallTranslator[] { new NpgsqlGeometryMethodTranslator(npgsqlSqlExpressionFactory, typeMappingSource), };
+        Translators = [new NpgsqlGeometryMethodTranslator(npgsqlSqlExpressionFactory, typeMappingSource)];
     }
 
     /// <summary>
@@ -90,7 +90,7 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
         {
             nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Transform) => _sqlExpressionFactory.Function(
                 "ST_Transform",
-                new[] { arguments[1], arguments[2] },
+                [arguments[1], arguments[2]],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[2],
                 method.ReturnType,
@@ -98,7 +98,7 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
 
             nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Force2D) => _sqlExpressionFactory.Function(
                 "ST_Force2D",
-                new[] { arguments[1] },
+                [arguments[1]],
                 nullable: true,
                 TrueArrays[1],
                 method.ReturnType,
@@ -110,9 +110,9 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
                 arguments[2]),
 
             nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Distance) =>
-                TranslateGeometryMethod(arguments[1], method, new[] { arguments[2], arguments[3] }),
+                TranslateGeometryMethod(arguments[1], method, [arguments[2], arguments[3]]),
             nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.IsWithinDistance) =>
-                TranslateGeometryMethod(arguments[1], method, new[] { arguments[2], arguments[3], arguments[4] }),
+                TranslateGeometryMethod(arguments[1], method, [arguments[2], arguments[3], arguments[4]]),
 
             _ => null
         };
@@ -147,7 +147,7 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
         {
             return _sqlExpressionFactory.Function(
                 "ST_GeometryN",
-                new[] { instance, OneBased(arguments[0]) },
+                [instance, OneBased(arguments[0])],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[2],
                 method.ReturnType,
@@ -220,7 +220,7 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
             _ => null
         };
 
-        SqlFunctionExpression Function(string name, SqlExpression[] arguments, Type returnType, RelationalTypeMapping? typeMapping = null)
+        SqlExpression Function(string name, SqlExpression[] arguments, Type returnType, RelationalTypeMapping? typeMapping = null)
             => _sqlExpressionFactory.Function(
                 name, arguments,
                 nullable: true, argumentsPropagateNullability: TrueArrays[arguments.Length],

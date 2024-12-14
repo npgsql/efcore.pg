@@ -48,7 +48,7 @@ FROM "Missions" AS m
 @__end_1='1902-01-03T10:00:00.1234567+00:00' (DbType = DateTime)
 @__dates_2={ '1902-01-02T10:00:00.1234567+00:00' } (DbType = Object)
 
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE @__start_0 <= date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamptz AND m."Timeline" < @__end_1 AND m."Timeline" = ANY (@__dates_2)
 """);
@@ -66,7 +66,7 @@ WHERE @__start_0 <= date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestam
             """
 @__dateTimeOffset_Date_0='0002-03-01T00:00:00.0000000'
 
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamp >= @__dateTimeOffset_Date_0
 """);
@@ -82,7 +82,7 @@ WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamp >= @__dateTi
 
         AssertSql(
             """
-SELECT m."Id", m."CodeName", m."Date", m."Duration", m."Rating", m."Time", m."Timeline"
+SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
 WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC') > TIMESTAMP '0001-01-01T00:00:00'
 """);

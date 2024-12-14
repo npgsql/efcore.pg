@@ -35,16 +35,15 @@ public class NpgsqlMemberTranslatorProvider : RelationalMemberTranslatorProvider
         JsonPocoTranslator = new NpgsqlJsonPocoTranslator(typeMappingSource, sqlExpressionFactory, model);
 
         AddTranslators(
-            new IMemberTranslator[]
-            {
-                new NpgsqlBigIntegerMemberTranslator(sqlExpressionFactory),
+        [
+            new NpgsqlBigIntegerMemberTranslator(sqlExpressionFactory),
                 new NpgsqlDateTimeMemberTranslator(typeMappingSource, sqlExpressionFactory),
                 new NpgsqlJsonDomTranslator(typeMappingSource, sqlExpressionFactory, model),
                 new NpgsqlLTreeTranslator(typeMappingSource, sqlExpressionFactory, model),
                 JsonPocoTranslator,
                 new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory, model, supportsMultiranges),
                 new NpgsqlStringMemberTranslator(sqlExpressionFactory),
-                new NpgsqlTimeSpanMemberTranslator(sqlExpressionFactory),
-            });
+                new NpgsqlTimeSpanMemberTranslator(sqlExpressionFactory)
+        ]);
     }
 }

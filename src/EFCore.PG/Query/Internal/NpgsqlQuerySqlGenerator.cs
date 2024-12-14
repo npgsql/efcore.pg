@@ -131,6 +131,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
             ExpressionType.And when e.Type == typeof(bool) => " AND ",
             ExpressionType.Or when e.Type == typeof(bool) => " OR ",
+
+            // In most databases/languages, the caret (^) is the bitwise XOR operator. But in PostgreSQL the caret is the exponentiation
+            // operator, and hash (#) is used instead.
+            ExpressionType.ExclusiveOr when e.Type == typeof(bool) => " <> ",
+            ExpressionType.ExclusiveOr => " # ",
+
             _ => base.GetOperator(e)
         };
 
@@ -335,7 +341,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                     var table = selectExpression.Tables[i];
                     var joinExpression = table as JoinExpressionBase;
 
-                    if (ReferenceEquals(updateExpression.Table, joinExpression?.Table ?? table))
+                    if (updateExpression.Table.Alias == (joinExpression?.Table.Alias ?? table.Alias))
                     {
                         LiftPredicate(table);
                         continue;
@@ -406,7 +412,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         }
 
         throw new InvalidOperationException(
-            RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(nameof(RelationalQueryableExtensions.ExecuteUpdate)));
+            RelationalStrings.ExecuteOperationWithUnsupportedOperatorInSqlGeneration(nameof(EntityFrameworkQueryableExtensions.ExecuteUpdate)));
     }
 
     /// <summary>
@@ -608,11 +614,29 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 Visit(sqlUnaryExpression.Operand);
                 return sqlUnaryExpression;
 
-            // Not operation on full-text queries
+            // NOT operation on full-text queries
             case ExpressionType.Not when sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof(NpgsqlTsQuery):
                 Sql.Append("!!");
                 Visit(sqlUnaryExpression.Operand);
                 return sqlUnaryExpression;
+
+            // NOT over expression types which have fancy embedded negation
+            case ExpressionType.Not
+                when sqlUnaryExpression.Type == typeof(bool):
+            {
+                switch (sqlUnaryExpression.Operand)
+                {
+                    case PgRegexMatchExpression regexMatch:
+                        VisitRegexMatch(regexMatch, negated: true);
+                        return sqlUnaryExpression;
+
+                    case PgILikeExpression iLike:
+                        VisitILike(iLike, negated: true);
+                        return sqlUnaryExpression;
+                }
+
+                break;
+            }
         }
 
         return base.VisitSqlUnary(sqlUnaryExpression);
@@ -760,6 +784,11 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// </summary>
     protected override void GenerateValues(ValuesExpression valuesExpression)
     {
+        if (valuesExpression.RowValues is null)
+        {
+            throw new UnreachableException();
+        }
+
         if (valuesExpression.RowValues.Count == 0)
         {
             throw new InvalidOperationException(RelationalStrings.EmptyCollectionNotSupportedAsInlineQueryRoot);
@@ -896,16 +925,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
     /// <summary>
-    ///     Visits the children of a <see cref="PgRegexMatchExpression" />.
+    ///     Produces SQL for PostgreSQL regex matching.
     /// </summary>
-    /// <param name="expression">The expression.</param>
-    /// <returns>
-    ///     An <see cref="Expression" />.
-    /// </returns>
     /// <remarks>
     ///     See: http://www.postgresql.org/docs/current/static/functions-matching.html
     /// </remarks>
-    protected virtual Expression VisitRegexMatch(PgRegexMatchExpression expression)
+    protected virtual Expression VisitRegexMatch(PgRegexMatchExpression expression, bool negated = false)
     {
         var options = expression.Options;
 
@@ -913,12 +938,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
         if (options.HasFlag(RegexOptions.IgnoreCase))
         {
-            Sql.Append(" ~* ");
+            Sql.Append(negated ? " !~* " : " ~* ");
             options &= ~RegexOptions.IgnoreCase;
         }
         else
         {
-            Sql.Append(" ~ ");
+            Sql.Append(negated ? " !~ " : " ~ ");
         }
 
         // PG regexps are single-line by default
@@ -962,7 +987,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         }
         else
         {
-            Sql.Append(constantPattern);
+            Sql.Append(constantPattern.Replace("'", "''"));
             Sql.Append("'");
         }
 
@@ -1001,16 +1026,22 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
     /// <summary>
-    ///     Visits the children of an <see cref="PgILikeExpression" />.
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    /// <param name="likeExpression">The expression.</param>
-    /// <returns>
-    ///     An <see cref="Expression" />.
-    /// </returns>
-    protected virtual Expression VisitILike(PgILikeExpression likeExpression)
+    protected virtual Expression VisitILike(PgILikeExpression likeExpression, bool negated = false)
     {
         Visit(likeExpression.Match);
+
+        if (negated)
+        {
+            Sql.Append(" NOT");
+        }
+
         Sql.Append(" ILIKE ");
+
         Visit(likeExpression.Pattern);
 
         if (likeExpression.EscapeChar is not null)
@@ -1088,8 +1119,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                     s => s switch
                     {
                         { PropertyName: string propertyName }
-                            => new SqlConstantExpression(
-                                Expression.Constant(propertyName), _textTypeMapping ??= _typeMappingSource.FindMapping(typeof(string))),
+                            => new SqlConstantExpression(propertyName, _textTypeMapping ??= _typeMappingSource.FindMapping(typeof(string))),
                         { ArrayIndex: SqlExpression arrayIndex } => arrayIndex,
                         _ => throw new UnreachableException()
                     }).ToList());
@@ -1123,7 +1153,8 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         Sql.Append(returnsText ? " #>> " : " #> ");
 
         // Use simplified array literal syntax if all path components are constants for cleaner SQL
-        if (path.All(p => p is SqlConstantExpression))
+        if (path.All(p => p is SqlConstantExpression { Value: var pathSegment }
+                && (pathSegment is not string s || s.All(char.IsAsciiLetterOrDigit))))
         {
             Sql
                 .Append("'{")

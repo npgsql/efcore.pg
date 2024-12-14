@@ -83,7 +83,7 @@ public class NpgsqlDbContextOptionsExtensionsTest
     [ConditionalTheory]
     [InlineData(false)]
     [InlineData(true)]
-    public void Service_collection_extension_method_can_configure_sqlserver_options(bool nullConnectionString)
+    public void Service_collection_extension_method_can_configure_npgsql_options(bool nullConnectionString)
     {
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddNpgsql<ApplicationDbContext>(

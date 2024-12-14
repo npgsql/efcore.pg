@@ -23,8 +23,10 @@ public class NpgsqlMigrationsSqlGeneratorTest() : MigrationsSqlGeneratorTestBase
         Generate(new NpgsqlCreateDatabaseOperation { Name = "Northwind" });
 
         AssertSql(
-            @"CREATE DATABASE ""Northwind"";
-");
+            """
+CREATE DATABASE "Northwind";
+
+""");
     }
 
     [ConditionalFact]

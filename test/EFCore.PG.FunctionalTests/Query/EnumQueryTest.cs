@@ -1,4 +1,5 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
@@ -223,17 +224,12 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
         public DbSet<SomeEnumEntity> SomeEntities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
-            => builder
-                .HasPostgresEnum("mapped_enum", ["happy", "sad"])
-                .HasPostgresEnum<InferredEnum>()
-                .HasPostgresEnum<ByteEnum>()
-                .HasDefaultSchema("test")
-                .HasPostgresEnum<SchemaQualifiedEnum>();
+            => builder.HasDefaultSchema("test");
 
-        public static void Seed(EnumContext context)
+        public static async Task SeedAsync(EnumContext context)
         {
             context.AddRange(EnumData.CreateSomeEnumEntities());
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 
@@ -292,26 +288,31 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
         protected override string StoreName
             => "EnumQueryTest";
 
+        // We instruct the test store to pass a connection string to UseNpgsql() instead of a DbConnection - that's required to allow
+        // EF's UseNodaTime() to function properly and instantiate an NpgsqlDataSource internally.
         protected override ITestStoreFactory TestStoreFactory
-            => NpgsqlTestStoreFactory.Instance;
+            => new NpgsqlTestStoreFactory(useConnectionString: true);
 
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        static EnumFixture()
+        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
         {
-#pragma warning disable CS0618 // NpgsqlConnection.GlobalTypeMapper is obsolete
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<MappedEnum>("test.mapped_enum");
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<InferredEnum>("test.inferred_enum");
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<ByteEnum>("test.byte_enum");
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<SchemaQualifiedEnum>("test.schema_qualified_enum");
-#pragma warning restore CS0618
+            var optionsBuilder = base.AddOptions(builder);
+
+            new NpgsqlDbContextOptionsBuilder(optionsBuilder)
+                .MapEnum<MappedEnum>("mapped_enum", "test")
+                .MapEnum<InferredEnum>("inferred_enum", "test")
+                .MapEnum<ByteEnum>("byte_enum", "test")
+                .MapEnum<SchemaQualifiedEnum>("schema_qualified_enum", "test");
+
+            return optionsBuilder;
         }
 
         private EnumData _expectedData;
 
-        protected override void Seed(EnumContext context)
-            => EnumContext.Seed(context);
+        protected override Task SeedAsync(EnumContext context)
+            => EnumContext.SeedAsync(context);
 
         public Func<DbContext> GetContextCreator()
             => CreateContext;

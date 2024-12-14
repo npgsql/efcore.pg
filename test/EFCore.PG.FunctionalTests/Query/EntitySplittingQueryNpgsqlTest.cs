@@ -449,7 +449,7 @@ LEFT JOIN "OwnedReferencePart3" AS o0 ON l."Id" = o0."LeafEntityId"
             """
 SELECT u."Id", u."BaseValue", u."MiddleValue", u."SiblingValue", u."LeafValue", u."Discriminator", l0."Id", l0."OwnedReference_Id", l0."OwnedReference_OwnedIntValue1", l0."OwnedReference_OwnedIntValue2", o0."OwnedIntValue3", o."OwnedIntValue4", l0."OwnedReference_OwnedStringValue1", l0."OwnedReference_OwnedStringValue2", o0."OwnedStringValue3", o."OwnedStringValue4"
 FROM (
-    SELECT b."Id", b."BaseValue", NULL::int AS "MiddleValue", NULL::int AS "SiblingValue", NULL::int AS "LeafValue", 'BaseEntity' AS "Discriminator"
+    SELECT b."Id", b."BaseValue", NULL AS "MiddleValue", NULL::int AS "SiblingValue", NULL::int AS "LeafValue", 'BaseEntity' AS "Discriminator"
     FROM "BaseEntity" AS b
     UNION ALL
     SELECT m."Id", m."BaseValue", m."MiddleValue", NULL AS "SiblingValue", NULL AS "LeafValue", 'MiddleEntity' AS "Discriminator"
@@ -578,7 +578,7 @@ FROM "SiblingEntity" AS s
             """
 SELECT u."Id", u."BaseValue", u."MiddleValue", u."SiblingValue", u."LeafValue", u."Discriminator", o."BaseEntityId", o."Id", o."OwnedIntValue1", o."OwnedIntValue2", o1."OwnedIntValue3", o0."OwnedIntValue4", o."OwnedStringValue1", o."OwnedStringValue2", o1."OwnedStringValue3", o0."OwnedStringValue4"
 FROM (
-    SELECT b."Id", b."BaseValue", NULL::int AS "MiddleValue", NULL::int AS "SiblingValue", NULL::int AS "LeafValue", 'BaseEntity' AS "Discriminator"
+    SELECT b."Id", b."BaseValue", NULL AS "MiddleValue", NULL::int AS "SiblingValue", NULL::int AS "LeafValue", 'BaseEntity' AS "Discriminator"
     FROM "BaseEntity" AS b
     UNION ALL
     SELECT m."Id", m."BaseValue", m."MiddleValue", NULL AS "SiblingValue", NULL AS "LeafValue", 'MiddleEntity' AS "Discriminator"
@@ -620,7 +620,7 @@ LEFT JOIN "OwnedReferencePart3" AS o1 ON o."BaseEntityId" = o1."BaseEntityId"
             """
 SELECT u."Id", u."BaseValue", u."MiddleValue", u."SiblingValue", u."LeafValue", u."Discriminator", o."MiddleEntityId", o."Id", o."OwnedIntValue1", o."OwnedIntValue2", o1."OwnedIntValue3", o0."OwnedIntValue4", o."OwnedStringValue1", o."OwnedStringValue2", o1."OwnedStringValue3", o0."OwnedStringValue4"
 FROM (
-    SELECT b."Id", b."BaseValue", NULL::int AS "MiddleValue", NULL::int AS "SiblingValue", NULL::int AS "LeafValue", 'BaseEntity' AS "Discriminator"
+    SELECT b."Id", b."BaseValue", NULL AS "MiddleValue", NULL::int AS "SiblingValue", NULL::int AS "LeafValue", 'BaseEntity' AS "Discriminator"
     FROM "BaseEntity" AS b
     UNION ALL
     SELECT m."Id", m."BaseValue", m."MiddleValue", NULL AS "SiblingValue", NULL AS "LeafValue", 'MiddleEntity' AS "Discriminator"
@@ -686,7 +686,7 @@ LEFT JOIN "OwnedReferencePart3" AS o1 ON o."MiddleEntityId" = o1."MiddleEntityId
             """
 SELECT u."Id", u."BaseValue", u."MiddleValue", u."SiblingValue", u."LeafValue", u."Discriminator", s0."BaseEntityId", s0."Id", s0."OwnedIntValue1", s0."OwnedIntValue2", s0."OwnedIntValue3", s0."OwnedIntValue4", s0."OwnedStringValue1", s0."OwnedStringValue2", s0."OwnedStringValue3", s0."OwnedStringValue4"
 FROM (
-    SELECT b."Id", b."BaseValue", NULL::int AS "MiddleValue", NULL::int AS "SiblingValue", NULL::int AS "LeafValue", 'BaseEntity' AS "Discriminator"
+    SELECT b."Id", b."BaseValue", NULL AS "MiddleValue", NULL::int AS "SiblingValue", NULL::int AS "LeafValue", 'BaseEntity' AS "Discriminator"
     FROM "BaseEntity" AS b
     UNION ALL
     SELECT m."Id", m."BaseValue", m."MiddleValue", NULL AS "SiblingValue", NULL AS "LeafValue", 'MiddleEntity' AS "Discriminator"
@@ -732,7 +732,7 @@ ORDER BY u."Id" NULLS FIRST, s0."BaseEntityId" NULLS FIRST
             """
 SELECT u."Id", u."BaseValue", u."MiddleValue", u."SiblingValue", u."LeafValue", u."Discriminator", s0."MiddleEntityId", s0."Id", s0."OwnedIntValue1", s0."OwnedIntValue2", s0."OwnedIntValue3", s0."OwnedIntValue4", s0."OwnedStringValue1", s0."OwnedStringValue2", s0."OwnedStringValue3", s0."OwnedStringValue4"
 FROM (
-    SELECT b."Id", b."BaseValue", NULL::int AS "MiddleValue", NULL::int AS "SiblingValue", NULL::int AS "LeafValue", 'BaseEntity' AS "Discriminator"
+    SELECT b."Id", b."BaseValue", NULL AS "MiddleValue", NULL::int AS "SiblingValue", NULL::int AS "LeafValue", 'BaseEntity' AS "Discriminator"
     FROM "BaseEntity" AS b
     UNION ALL
     SELECT m."Id", m."BaseValue", m."MiddleValue", NULL AS "SiblingValue", NULL AS "LeafValue", 'MiddleEntity' AS "Discriminator"

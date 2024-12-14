@@ -225,11 +225,12 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         => (PgNewArrayExpression)ApplyTypeMapping(new PgNewArrayExpression(expressions, type, typeMapping), typeMapping);
 
     /// <inheritdoc />
-    public override SqlBinaryExpression? MakeBinary(
+    public override SqlExpression? MakeBinary(
         ExpressionType operatorType,
         SqlExpression left,
         SqlExpression right,
-        RelationalTypeMapping? typeMapping)
+        RelationalTypeMapping? typeMapping,
+        SqlExpression? existingExpr = null)
     {
         switch (operatorType)
         {
@@ -268,7 +269,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             }
         }
 
-        return base.MakeBinary(operatorType, left, right, typeMapping);
+        return base.MakeBinary(operatorType, left, right, typeMapping, existingExpr);
     }
 
     /// <summary>
@@ -279,7 +280,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     /// <param name="right">The right operand of binary operation.</param>
     /// <param name="typeMapping">A type mapping to be assigned to the created expression.</param>
     /// <returns>A <see cref="PgBinaryExpression" /> with the given arguments.</returns>
-    public virtual PgBinaryExpression MakePostgresBinary(
+    public virtual SqlExpression MakePostgresBinary(
         PgExpressionType operatorType,
         SqlExpression left,
         SqlExpression right,
@@ -321,7 +322,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     /// <summary>
     ///     Creates a new <see cref="PgBinaryExpression" />, for checking whether one value contains another.
     /// </summary>
-    public virtual PgBinaryExpression Contains(SqlExpression left, SqlExpression right)
+    public virtual SqlExpression Contains(SqlExpression left, SqlExpression right)
     {
         Check.NotNull(left, nameof(left));
         Check.NotNull(right, nameof(right));
@@ -332,7 +333,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     /// <summary>
     ///     Creates a new <see cref="PgBinaryExpression" />, for checking whether one value is contained by another.
     /// </summary>
-    public virtual PgBinaryExpression ContainedBy(SqlExpression left, SqlExpression right)
+    public virtual SqlExpression ContainedBy(SqlExpression left, SqlExpression right)
     {
         Check.NotNull(left, nameof(left));
         Check.NotNull(right, nameof(right));
@@ -343,7 +344,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     /// <summary>
     ///     Creates a new <see cref="PgBinaryExpression" />, for checking whether one value overlaps with another.
     /// </summary>
-    public virtual PgBinaryExpression Overlaps(SqlExpression left, SqlExpression right)
+    public virtual SqlExpression Overlaps(SqlExpression left, SqlExpression right)
     {
         Check.NotNull(left, nameof(left));
         Check.NotNull(right, nameof(right));
@@ -475,6 +476,18 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                     binary.Type,
                     typeMapping ?? _typeMappingSource.FindMapping(binary.Type, "interval"));
             }
+
+            // TODO: This is a hack until https://github.com/dotnet/efcore/pull/34995 is done; the translation of DateOnly.DayNumber
+            // generates a substraction with a fragment, but for now we can't assign a type/type mapping to a fragment.
+            case ExpressionType.Subtract when left.Type == typeof(DateOnly) && right is SqlFragmentExpression:
+            {
+                return new SqlBinaryExpression(
+                    ExpressionType.Subtract,
+                    ApplyDefaultTypeMapping(left),
+                    right,
+                    typeof(int),
+                    _typeMappingSource.FindMapping(typeof(int)));
+            }
         }
 
         // If this is a row value comparison (e.g. (a, b) > (5, 6)), doing type mapping inference on each corresponding pair.
@@ -495,8 +508,19 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             {
                 var updatedElementBinaryExpression = MakeBinary(binary.OperatorType, leftValues[i], rightValues[i], typeMapping: null)!;
 
-                updatedLeftValues[i] = updatedElementBinaryExpression.Left;
-                updatedRightValues[i] = updatedElementBinaryExpression.Right;
+                if (updatedElementBinaryExpression is not SqlBinaryExpression
+                    {
+                        Left: var updatedLeft,
+                        Right: var updatedRight,
+                        OperatorType: var updatedOperatorType
+                    }
+                    || updatedOperatorType != binary.OperatorType)
+                {
+                    throw new UnreachableException("MakeBinary modified binary expression type/operator when doing row value comparison");
+                }
+
+                updatedLeftValues[i] = updatedLeft;
+                updatedRightValues[i] = updatedRight;
             }
 
             // Note that we always return non-constant PostgresRowValueExpression operands, even if the original input was a
@@ -540,7 +564,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
 
                     for (var i = 0; i < v.Length; i++)
                     {
-                        v[i] = Constant(constantTuple[i]);
+                        v[i] = Constant(constantTuple[i], typeof(object));
                     }
 
                     values = v;
@@ -651,7 +675,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         // If a (non-null) type mapping is being applied, it's to the element being indexed.
         // Infer the array's mapping from that.
         var (_, array) = typeMapping is not null
-            ? ApplyTypeMappingsOnItemAndArray(Constant(null, typeMapping), pgArrayIndexExpression.Array)
+            ? ApplyTypeMappingsOnItemAndArray(Constant(null, typeMapping.ClrType, typeMapping), pgArrayIndexExpression.Array)
             : (null, ApplyDefaultTypeMapping(pgArrayIndexExpression.Array));
 
         return new PgArrayIndexExpression(

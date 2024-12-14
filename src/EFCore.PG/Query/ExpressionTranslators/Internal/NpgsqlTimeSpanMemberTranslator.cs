@@ -68,20 +68,20 @@ public class NpgsqlTimeSpanMemberTranslator : IMemberTranslator
             => _sqlExpressionFactory.Convert(
                 _sqlExpressionFactory.Function(
                     "floor",
-                    new[] { value },
+                    [value],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(double)),
                 typeof(int));
 
-        SqlFunctionExpression DatePart(string part, SqlExpression value)
+        SqlExpression DatePart(string part, SqlExpression value)
             => _sqlExpressionFactory.Function(
-                "date_part", new[] { _sqlExpressionFactory.Constant(part), value },
+                "date_part", [_sqlExpressionFactory.Constant(part), value],
                 nullable: true,
                 argumentsPropagateNullability: FalseTrueArray,
                 returnType);
 
-        SqlBinaryExpression TranslateDurationTotalMember(SqlExpression instance, double divisor)
+        SqlExpression TranslateDurationTotalMember(SqlExpression instance, double divisor)
             => _sqlExpressionFactory.Divide(DatePart("epoch", instance), _sqlExpressionFactory.Constant(divisor));
     }
 }

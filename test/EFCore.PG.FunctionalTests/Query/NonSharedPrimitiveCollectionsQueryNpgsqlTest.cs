@@ -1,4 +1,4 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
@@ -57,11 +57,11 @@ public class NonSharedPrimitiveCollectionsQueryNpgsqlTest : NonSharedPrimitiveCo
         // supported).
         var contextFactory = await InitializeAsync<TestContext>(
             mb => mb.Entity<TestEntity>().Property<int[,]>("MultidimensionalArray"),
-            seed: context =>
+            seed: async context =>
             {
                 var entry = context.Add(new TestEntity());
                 entry.Property<int[,]>("MultidimensionalArray").CurrentValue = new[,] { { 1, 2 }, { 3, 4 } };
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             });
 
         await using var context = contextFactory.CreateContext();
@@ -77,9 +77,36 @@ public class NonSharedPrimitiveCollectionsQueryNpgsqlTest : NonSharedPrimitiveCo
 
     public override async Task Column_collection_inside_json_owned_entity()
     {
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => base.Column_collection_inside_json_owned_entity());
+        await base.Column_collection_inside_json_owned_entity();
 
-        Assert.Equal(exception.Message, NpgsqlStrings.Ef7JsonMappingNotSupported);
+        AssertSql(
+            """
+SELECT t."Id", t."Owned"
+FROM "TestOwner" AS t
+WHERE cardinality((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elements_text(t."Owned" -> 'Strings') WITH ORDINALITY AS t(element) ORDER BY ordinality))) = 2
+LIMIT 2
+""",
+            //
+            """
+SELECT t."Id", t."Owned"
+FROM "TestOwner" AS t
+WHERE ((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elements_text(t."Owned" -> 'Strings') WITH ORDINALITY AS t(element) ORDER BY ordinality)))[2] = 'bar'
+LIMIT 2
+""");
+    }
+
+    protected override DbContextOptionsBuilder SetTranslateParameterizedCollectionsToConstants(DbContextOptionsBuilder optionsBuilder)
+    {
+        new NpgsqlDbContextOptionsBuilder(optionsBuilder).TranslateParameterizedCollectionsToConstants();
+
+        return optionsBuilder;
+    }
+
+    protected override DbContextOptionsBuilder SetTranslateParameterizedCollectionsToParameters(DbContextOptionsBuilder optionsBuilder)
+    {
+        new NpgsqlDbContextOptionsBuilder(optionsBuilder).TranslateParameterizedCollectionsToParameters();
+
+        return optionsBuilder;
     }
 
     protected override ITestStoreFactory TestStoreFactory

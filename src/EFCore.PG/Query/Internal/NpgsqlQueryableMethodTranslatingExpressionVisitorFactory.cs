@@ -1,3 +1,5 @@
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 /// <summary>
@@ -8,6 +10,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 /// </summary>
 public class NpgsqlQueryableMethodTranslatingExpressionVisitorFactory : IQueryableMethodTranslatingExpressionVisitorFactory
 {
+    private readonly INpgsqlSingletonOptions _npgsqlSingletonOptions;
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -16,10 +20,12 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitorFactory : IQueryab
     /// </summary>
     public NpgsqlQueryableMethodTranslatingExpressionVisitorFactory(
         QueryableMethodTranslatingExpressionVisitorDependencies dependencies,
-        RelationalQueryableMethodTranslatingExpressionVisitorDependencies relationalDependencies)
+        RelationalQueryableMethodTranslatingExpressionVisitorDependencies relationalDependencies,
+        INpgsqlSingletonOptions npgsqlSingletonOptions)
     {
         Dependencies = dependencies;
         RelationalDependencies = relationalDependencies;
+        _npgsqlSingletonOptions = npgsqlSingletonOptions;
     }
 
     /// <summary>
@@ -48,5 +54,6 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitorFactory : IQueryab
         => new NpgsqlQueryableMethodTranslatingExpressionVisitor(
             Dependencies,
             RelationalDependencies,
-            (RelationalQueryCompilationContext)queryCompilationContext);
+            (RelationalQueryCompilationContext)queryCompilationContext,
+            _npgsqlSingletonOptions);
 }

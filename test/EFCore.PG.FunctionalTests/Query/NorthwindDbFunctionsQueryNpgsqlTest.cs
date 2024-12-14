@@ -117,7 +117,7 @@ WHERE c."ContactName" ILIKE '!%' ESCAPE '!'
             """
 SELECT count(*)::int
 FROM "Customers" AS c
-WHERE NOT (c."ContactName" ILIKE '%M%') OR c."ContactName" IS NULL
+WHERE c."ContactName" NOT ILIKE '%M%' OR c."ContactName" IS NULL
 """);
     }
 
@@ -224,6 +224,34 @@ WHERE string_to_array(c."ContactName", ' ') = ARRAY['Maria','Anders']::text[]
 SELECT count(*)::int
 FROM "Customers" AS c
 WHERE string_to_array(c."ContactName", ' ', 'Maria') = ARRAY[NULL,'Anders']::text[]
+""");
+    }
+
+    [Fact]
+    public void ToDate()
+    {
+        using var context = CreateContext();
+        var count = context.Orders.Count(c => EF.Functions.ToDate(c.OrderDate.ToString(), "YYYY-MM-DD") < new DateOnly(2000, 01, 01));
+        Assert.Equal(830, count);
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "Orders" AS o
+WHERE to_date(COALESCE(o."OrderDate"::text, ''), 'YYYY-MM-DD') < DATE '2000-01-01'
+""");
+    }
+
+    [Fact]
+    public void ToTimestamp()
+    {
+        using var context = CreateContext();
+        var count = context.Orders.Count(c => EF.Functions.ToTimestamp(c.OrderDate.ToString(), "YYYY-MM-DD") < new DateTime(2000, 01, 01, 0,0,0, DateTimeKind.Utc));
+        Assert.Equal(830, count);
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "Orders" AS o
+WHERE to_timestamp(COALESCE(o."OrderDate"::text, ''), 'YYYY-MM-DD') < TIMESTAMPTZ '2000-01-01T00:00:00Z'
 """);
     }
 

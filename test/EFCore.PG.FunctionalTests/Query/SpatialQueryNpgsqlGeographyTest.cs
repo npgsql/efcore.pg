@@ -22,10 +22,10 @@ public class SpatialQueryNpgsqlGeographyTest
     protected override bool AssertDistances
         => false;
 
-    public static IEnumerable<object[]> IsAsyncDataAndUseSpheroid = new[]
-    {
-        [false, false], [false, true], [true, false], new object[] { true, true }
-    };
+    public static IEnumerable<object[]> IsAsyncDataAndUseSpheroid =
+    [
+        [false, false], [false, true], [true, false], [true, true]
+    ];
 
     public override async Task Area(bool async)
     {

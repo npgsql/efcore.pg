@@ -1,5 +1,4 @@
-﻿using System.Data.Common;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
@@ -45,7 +44,7 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual DbDataSource? DataSource { get; private set; }
+    public IReadOnlyList<EnumDefinition> EnumDefinitions { get; private set; }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -61,16 +60,9 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual IServiceProvider? ApplicationServiceProvider { get; private set; }
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
     public NpgsqlSingletonOptions()
     {
+        EnumDefinitions = [];
         UserRangeDefinitions = [];
     }
 
@@ -78,20 +70,13 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
     public virtual void Initialize(IDbContextOptions options)
     {
         var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
-        var coreOptions = options.FindExtension<CoreOptionsExtension>() ?? new CoreOptionsExtension();
 
         PostgresVersion = npgsqlOptions.PostgresVersion;
         IsPostgresVersionSet = npgsqlOptions.IsPostgresVersionSet;
         UseRedshift = npgsqlOptions.UseRedshift;
         ReverseNullOrderingEnabled = npgsqlOptions.ReverseNullOrdering;
+        EnumDefinitions = npgsqlOptions.EnumDefinitions;
         UserRangeDefinitions = npgsqlOptions.UserRangeDefinitions;
-
-        // TODO: Remove after https://github.com/dotnet/efcore/pull/29950
-        ApplicationServiceProvider = coreOptions.ApplicationServiceProvider;
-
-        DataSource = npgsqlOptions.DataSource ?? (npgsqlOptions.ConnectionString is null && npgsqlOptions.Connection is null
-            ? coreOptions.ApplicationServiceProvider?.GetService<NpgsqlDataSource>()
-            : null);
     }
 
     /// <inheritdoc />
@@ -123,10 +108,12 @@ public class NpgsqlSingletonOptions : INpgsqlSingletonOptions
                     nameof(DbContextOptionsBuilder.UseInternalServiceProvider)));
         }
 
-        if (npgsqlOptions.DataSource is not null && !ReferenceEquals(DataSource, npgsqlOptions.DataSource))
+        if (!EnumDefinitions.SequenceEqual(npgsqlOptions.EnumDefinitions))
         {
             throw new InvalidOperationException(
-                NpgsqlStrings.TwoDataSourcesInSameServiceProvider(nameof(DbContextOptionsBuilder.UseInternalServiceProvider)));
+                CoreStrings.SingletonOptionChanged(
+                    nameof(NpgsqlDbContextOptionsBuilder.MapEnum),
+                    nameof(DbContextOptionsBuilder.UseInternalServiceProvider)));
         }
 
         if (!UserRangeDefinitions.SequenceEqual(npgsqlOptions.UserRangeDefinitions))

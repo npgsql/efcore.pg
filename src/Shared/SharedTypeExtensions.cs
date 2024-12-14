@@ -1,8 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 
-#nullable enable
-
 // ReSharper disable once CheckNamespace
 namespace System;
 

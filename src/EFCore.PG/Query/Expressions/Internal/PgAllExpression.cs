@@ -8,6 +8,8 @@
 /// </remarks>
 public class PgAllExpression : SqlExpression, IEquatable<PgAllExpression>
 {
+    private static ConstructorInfo? _quotingConstructor;
+
     /// <inheritdoc />
     public override Type Type
         => typeof(bool);
@@ -62,6 +64,16 @@ public class PgAllExpression : SqlExpression, IEquatable<PgAllExpression>
         => item != Item || array != Array
             ? new PgAllExpression(item, array, OperatorType, TypeMapping)
             : this;
+
+    /// <inheritdoc />
+    public override Expression Quote()
+        => New(
+            _quotingConstructor ??= typeof(PgAllExpression).GetConstructor(
+                [typeof(SqlExpression), typeof(SqlExpression), typeof(PgAllOperatorType), typeof(RelationalTypeMapping)])!,
+            Item.Quote(),
+            Array.Quote(),
+            Constant(OperatorType),
+            RelationalExpressionQuotingUtilities.QuoteTypeMapping(TypeMapping));
 
     /// <inheritdoc />
     protected override Expression VisitChildren(ExpressionVisitor visitor)

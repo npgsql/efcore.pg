@@ -8,6 +8,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 /// </remarks>
 public class PgArraySliceExpression : SqlExpression, IEquatable<PgArraySliceExpression>
 {
+    private static ConstructorInfo? _quotingConstructor;
+
     /// <summary>
     ///     The array being sliced.
     /// </summary>
@@ -71,6 +73,18 @@ public class PgArraySliceExpression : SqlExpression, IEquatable<PgArraySliceExpr
         => array == Array && lowerBound == LowerBound && upperBound == UpperBound
             ? this
             : new PgArraySliceExpression(array, lowerBound, upperBound, IsNullable, Type, TypeMapping);
+
+    /// <inheritdoc />
+    public override Expression Quote()
+        => New(
+            _quotingConstructor ??= typeof(PgArraySliceExpression).GetConstructor(
+                [typeof(SqlExpression), typeof(SqlExpression), typeof(SqlExpression), typeof(bool), typeof(Type), typeof(RelationalTypeMapping)])!,
+            Array.Quote(),
+            RelationalExpressionQuotingUtilities.QuoteOrNull(LowerBound),
+            RelationalExpressionQuotingUtilities.QuoteOrNull(UpperBound),
+            Constant(IsNullable),
+            Constant(Type),
+            RelationalExpressionQuotingUtilities.QuoteTypeMapping(TypeMapping));
 
     /// <inheritdoc />
     protected override Expression VisitChildren(ExpressionVisitor visitor)

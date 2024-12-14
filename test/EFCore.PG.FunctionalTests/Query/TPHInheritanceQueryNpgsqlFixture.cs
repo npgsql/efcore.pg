@@ -12,6 +12,8 @@ public class TPHInheritanceQueryNpgsqlFixture : TPHInheritanceQueryFixture
     {
         base.OnModelCreating(modelBuilder, context);
 
-        modelBuilder.Entity<AnimalQuery>().HasNoKey().ToSqlQuery(@"SELECT * FROM ""Animals""");
+        modelBuilder.Entity<AnimalQuery>().HasNoKey().ToSqlQuery("""
+            SELECT * FROM "Animals"
+            """);
     }
 }

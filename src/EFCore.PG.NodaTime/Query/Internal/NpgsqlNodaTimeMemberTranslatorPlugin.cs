@@ -21,10 +21,10 @@ public class NpgsqlNodaTimeMemberTranslatorPlugin : IMemberTranslatorPlugin
         IRelationalTypeMappingSource typeMappingSource,
         ISqlExpressionFactory sqlExpressionFactory)
     {
-        Translators = new IMemberTranslator[]
-        {
-            new NpgsqlNodaTimeMemberTranslator(typeMappingSource, (NpgsqlSqlExpressionFactory)sqlExpressionFactory),
-        };
+        Translators =
+        [
+            new NpgsqlNodaTimeMemberTranslator(typeMappingSource, (NpgsqlSqlExpressionFactory)sqlExpressionFactory)
+        ];
     }
 
     /// <summary>
@@ -175,7 +175,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
             _ => null,
         };
 
-        SqlBinaryExpression TranslateDurationTotalMember(SqlExpression instance, double divisor)
+        SqlExpression TranslateDurationTotalMember(SqlExpression instance, double divisor)
             => _sqlExpressionFactory.Divide(GetDatePartExpressionDouble(instance, "epoch"), _sqlExpressionFactory.Constant(divisor));
     }
 
@@ -196,7 +196,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
             return _sqlExpressionFactory.Not(
                 _sqlExpressionFactory.Function(
                     "lower_inf",
-                    new[] { instance },
+                    [instance],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(bool)));
@@ -207,7 +207,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
             return _sqlExpressionFactory.Not(
                 _sqlExpressionFactory.Function(
                     "upper_inf",
-                    new[] { instance },
+                    [instance],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(bool)));
@@ -223,7 +223,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
         SqlExpression Lower()
             => _sqlExpressionFactory.Function(
                 "lower",
-                new[] { instance },
+                [instance],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(Interval),
@@ -232,7 +232,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
         SqlExpression Upper()
             => _sqlExpressionFactory.Function(
                 "upper",
-                new[] { instance },
+                [instance],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(Interval),
@@ -270,7 +270,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
         SqlExpression Lower()
             => _sqlExpressionFactory.Function(
                 "lower",
-                new[] { instance },
+                [instance],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(LocalDate),
@@ -279,7 +279,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
         SqlExpression Upper()
             => _sqlExpressionFactory.Function(
                 "upper",
-                new[] { instance },
+                [instance],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(LocalDate),
@@ -304,7 +304,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
             "DayOfWeek" when GetDatePartExpression(instance, "dow", true) is var getValueExpression
                 => _sqlExpressionFactory.Case(
                     getValueExpression,
-                    new[] { new CaseWhenClause(_sqlExpressionFactory.Constant(0), _sqlExpressionFactory.Constant(7)) },
+                    [new CaseWhenClause(_sqlExpressionFactory.Constant(0), _sqlExpressionFactory.Constant(7))],
                     getValueExpression),
 
             // PG allows converting a timestamp directly to date, truncating the time; but given a timestamptz, it performs a time zone
@@ -350,7 +350,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
     {
         var result = _sqlExpressionFactory.Function(
             "date_part",
-            new[] { _sqlExpressionFactory.Constant(partName), instance },
+            [_sqlExpressionFactory.Constant(partName), instance],
             nullable: true,
             argumentsPropagateNullability: TrueArrays[2],
             typeof(double));
@@ -359,7 +359,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
         {
             result = _sqlExpressionFactory.Function(
                 "floor",
-                new[] { result },
+                [result],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(double));

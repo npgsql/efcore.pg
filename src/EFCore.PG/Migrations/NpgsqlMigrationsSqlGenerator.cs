@@ -84,7 +84,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                                         NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
                                         or NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
                                         or NpgsqlValueGenerationStrategy.SerialColumn))
-                        ?? Enumerable.Empty<IColumn>())
+                        ?? [])
                 .Distinct()
                 .ToArray();
 
@@ -116,12 +116,14 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 //    e.g. negative values seeded)
                 builder
                     .AppendLine(
-                        @$"{selectOrPerform} setval(
+                        $"""
+{selectOrPerform} setval(
     pg_get_serial_sequence('{table}', '{unquotedColumn}'),
     GREATEST(
         (SELECT MAX({column}) FROM {table}) + 1,
         nextval(pg_get_serial_sequence('{table}', '{unquotedColumn}'))),
-    false);");
+    false);
+""");
             }
 
             builder.EndCommand();
@@ -827,25 +829,6 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
 
         builder.Append(operation.IsCyclic ? " CYCLE" : " NO CYCLE");
-
-        if (!operation.IsCached)
-        {
-            // The base implementation appends NO CACHE, which isn't supported by PG
-            builder
-                .Append(" CACHE 1");
-        }
-        else if (operation.CacheSize != null)
-        {
-            builder
-                .Append(" CACHE ")
-                .Append(intTypeMapping.GenerateSqlLiteral(operation.CacheSize.Value));
-        }
-        else if (forAlter)
-        {
-            // The base implementation just appends CACHE, which isn't supported by PG
-            builder
-                .Append(" CACHE 1");
-        }
     }
 
     /// <inheritdoc />
@@ -964,7 +947,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     }
 
     /// <inheritdoc />
-    protected override void IndexOptions(CreateIndexOperation operation, IModel? model, MigrationCommandListBuilder builder)
+    protected override void IndexOptions(MigrationOperation operation, IModel? model, MigrationCommandListBuilder builder)
     {
         if (_postgresVersion.AtLeast(11) && operation[NpgsqlAnnotationNames.IndexInclude] is string[] { Length: > 0 } includeColumns)
         {
@@ -1262,9 +1245,9 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             GenerateDropEnum(enumTypeToDrop, model, builder);
         }
 
-        foreach (var (newEnum, oldEnum) in operation.GetPostgresEnums()
+        foreach (var (newEnum, oldEnum) in operation.GetPostgresEnums().OrderBy(e => e.Schema).ThenBy(e => e.Name)
                      .Join(
-                         operation.GetOldPostgresEnums(),
+                         operation.GetOldPostgresEnums().OrderBy(e => e.Schema).ThenBy(e => e.Name),
                          e => new { e.Name, e.Schema },
                          e => new { e.Name, e.Schema },
                          (ne, oe) => (New: ne, Old: oe)))
@@ -2213,11 +2196,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                     "json" => string.Join(
                         " || ", columnGroup.Select(
                             c =>
-                                $@"json_to_tsvector({tsVectorConfigLiteral}, {JsonColumn(c)}, '""all""')")),
+                                $"""json_to_tsvector({tsVectorConfigLiteral}, {JsonColumn(c)}, '"all"')""")),
                     "jsonb" => string.Join(
                         " || ", columnGroup.Select(
                             c =>
-                                $@"jsonb_to_tsvector({tsVectorConfigLiteral}, {JsonColumn(c)}, '""all""')")),
+                                $"""jsonb_to_tsvector({tsVectorConfigLiteral}, {JsonColumn(c)}, '"all"')""")),
                     "null" => throw new InvalidOperationException(
                         $"Column or index {columnOrIndexName} refers to unknown column in tsvector definition"),
                     _ => throw new ArgumentOutOfRangeException()

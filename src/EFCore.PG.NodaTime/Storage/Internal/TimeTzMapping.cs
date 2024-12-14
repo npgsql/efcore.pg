@@ -111,7 +111,9 @@ public class TimeTzMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => $@"""{Pattern.Format((OffsetTime)value)}""";
+        => $"""
+            "{Pattern.Format((OffsetTime)value)}"
+            """;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -150,6 +152,8 @@ public class TimeTzMapping : NpgsqlTypeMapping
 
     private sealed class JsonOffsetTimeReaderWriter : JsonValueReaderWriter<OffsetTime>
     {
+        private static readonly PropertyInfo InstanceProperty = typeof(JsonOffsetTimeReaderWriter).GetProperty(nameof(Instance))!;
+
         public static JsonOffsetTimeReaderWriter Instance { get; } = new();
 
         public override OffsetTime FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
@@ -157,5 +161,8 @@ public class TimeTzMapping : NpgsqlTypeMapping
 
         public override void ToJsonTyped(Utf8JsonWriter writer, OffsetTime value)
             => writer.WriteStringValue(Pattern.Format(value));
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }

@@ -23,10 +23,10 @@ public class NpgsqlNodaTimeMethodCallTranslatorPlugin : IMethodCallTranslatorPlu
         IRelationalTypeMappingSource typeMappingSource,
         ISqlExpressionFactory sqlExpressionFactory)
     {
-        Translators = new IMethodCallTranslator[]
-        {
-            new NpgsqlNodaTimeMethodCallTranslator(typeMappingSource, (NpgsqlSqlExpressionFactory)sqlExpressionFactory),
-        };
+        Translators =
+        [
+            new NpgsqlNodaTimeMethodCallTranslator(typeMappingSource, (NpgsqlSqlExpressionFactory)sqlExpressionFactory)
+        ];
     }
 
     /// <summary>
@@ -336,8 +336,8 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
         static PgFunctionExpression IntervalPart(string datePart, SqlExpression parameter)
             => PgFunctionExpression.CreateWithNamedArguments(
                 "make_interval",
-                new[] { parameter },
-                new[] { datePart },
+                [parameter],
+                [datePart],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 builtIn: true,

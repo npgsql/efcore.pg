@@ -91,6 +91,8 @@ public class NpgsqlPgLsnTypeMapping : NpgsqlTypeMapping
     /// </summary>
     public sealed class JsonLogSequenceNumberReaderWriter : JsonValueReaderWriter<NpgsqlLogSequenceNumber>
     {
+        private static readonly PropertyInfo InstanceProperty = typeof(JsonLogSequenceNumberReaderWriter).GetProperty(nameof(Instance))!;
+
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
         ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -120,5 +122,8 @@ public class NpgsqlPgLsnTypeMapping : NpgsqlTypeMapping
         /// </summary>
         public override void ToJsonTyped(Utf8JsonWriter writer, NpgsqlLogSequenceNumber value)
             => writer.WriteStringValue(value.ToString());
+
+        /// <inheritdoc />
+        public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
     }
 }

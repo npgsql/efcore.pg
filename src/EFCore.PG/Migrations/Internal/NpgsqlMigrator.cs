@@ -36,10 +36,14 @@ public class NpgsqlMigrator : Migrator
         IModelRuntimeInitializer modelRuntimeInitializer,
         IDiagnosticsLogger<DbLoggerCategory.Migrations> logger,
         IRelationalCommandDiagnosticsLogger commandLogger,
-        IDatabaseProvider databaseProvider)
+        IDatabaseProvider databaseProvider,
+        IMigrationsModelDiffer migrationsModelDiffer,
+        IDesignTimeModel designTimeModel,
+        IDbContextOptions contextOptions,
+        IExecutionStrategy executionStrategy)
         : base(migrationsAssembly, historyRepository, databaseCreator, migrationsSqlGenerator, rawSqlCommandBuilder,
             migrationCommandExecutor, connection, sqlGenerationHelper, currentContext, modelRuntimeInitializer, logger,
-            commandLogger, databaseProvider)
+            commandLogger, databaseProvider, migrationsModelDiffer, designTimeModel, contextOptions, executionStrategy)
     {
         _historyRepository = historyRepository;
         _connection = connection;
@@ -51,7 +55,7 @@ public class NpgsqlMigrator : Migrator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override void Migrate(string? targetMigration = null)
+    public override void Migrate(string? targetMigration)
     {
         var appliedMigrations = _historyRepository.GetAppliedMigrations();
 
@@ -60,17 +64,15 @@ public class NpgsqlMigrator : Migrator
         PopulateMigrations(
             appliedMigrations.Select(t => t.MigrationId),
             targetMigration,
-            out var migrationsToApply,
-            out var migrationsToRevert,
-            out _);
+            out var migratorData);
 
-        if (migrationsToRevert.Count + migrationsToApply.Count == 0)
+        if (migratorData.RevertedMigrations.Count + migratorData.AppliedMigrations.Count == 0)
         {
             return;
         }
 
         // If a PostgreSQL extension, enum or range was added, we want Npgsql to reload all types at the ADO.NET level.
-        var migrations = migrationsToApply.Count > 0 ? migrationsToApply : migrationsToRevert;
+        var migrations = migratorData.AppliedMigrations.Count > 0 ? migratorData.AppliedMigrations : migratorData.RevertedMigrations;
         var reloadTypes = migrations
             .SelectMany(m => m.UpOperations)
             .OfType<AlterDatabaseOperation>()
@@ -78,14 +80,14 @@ public class NpgsqlMigrator : Migrator
 
         if (reloadTypes && _connection.DbConnection is NpgsqlConnection npgsqlConnection)
         {
-            npgsqlConnection.Open();
+            _connection.Open();
             try
             {
                 npgsqlConnection.ReloadTypes();
             }
             catch
             {
-                npgsqlConnection.Close();
+                _connection.Close();
             }
         }
     }
@@ -96,9 +98,7 @@ public class NpgsqlMigrator : Migrator
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override async Task MigrateAsync(
-        string? targetMigration = null,
-        CancellationToken cancellationToken = default)
+    public override async Task MigrateAsync(string? targetMigration, CancellationToken cancellationToken = default)
     {
         var appliedMigrations = await _historyRepository.GetAppliedMigrationsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -107,17 +107,15 @@ public class NpgsqlMigrator : Migrator
         PopulateMigrations(
             appliedMigrations.Select(t => t.MigrationId),
             targetMigration,
-            out var migrationsToApply,
-            out var migrationsToRevert,
-            out _);
+            out var migratorData);
 
-        if (migrationsToRevert.Count + migrationsToApply.Count == 0)
+        if (migratorData.RevertedMigrations.Count + migratorData.AppliedMigrations.Count == 0)
         {
             return;
         }
 
         // If a PostgreSQL extension, enum or range was added, we want Npgsql to reload all types at the ADO.NET level.
-        var migrations = migrationsToApply.Count > 0 ? migrationsToApply : migrationsToRevert;
+        var migrations = migratorData.AppliedMigrations.Count > 0 ? migratorData.AppliedMigrations : migratorData.RevertedMigrations;
         var reloadTypes = migrations
             .SelectMany(m => m.UpOperations)
             .OfType<AlterDatabaseOperation>()
@@ -125,14 +123,14 @@ public class NpgsqlMigrator : Migrator
 
         if (reloadTypes && _connection.DbConnection is NpgsqlConnection npgsqlConnection)
         {
-            await npgsqlConnection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await _connection.OpenAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                await npgsqlConnection.ReloadTypesAsync().ConfigureAwait(false);
+                await npgsqlConnection.ReloadTypesAsync(cancellationToken).ConfigureAwait(false);
             }
             catch
             {
-                await npgsqlConnection.CloseAsync().ConfigureAwait(false);
+                await _connection.CloseAsync().ConfigureAwait(false);
             }
         }
     }

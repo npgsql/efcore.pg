@@ -29,7 +29,6 @@ public class NorthwindWhereQueryNpgsqlTest : NorthwindWhereQueryRelationalTestBa
             """
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
 FROM "Employees" AS e
-WHERE date_trunc('day', now()::timestamp) = date_trunc('day', now()::timestamp)
 """);
     }
 
@@ -172,15 +171,19 @@ WHERE date_part('second', o."OrderDate")::int = 0
 
     public override async Task Where_bitwise_xor(bool async)
     {
-        // Cannot eval 'where (([c].CustomerID == \"ALFKI\") ^ True)'. Issue #16645.
-        await AssertTranslationFailed(() => base.Where_bitwise_xor(async));
+        await base.Where_bitwise_xor(async);
 
-        AssertSql();
+        AssertSql(
+            """
+SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+FROM "Customers" AS c
+WHERE (c."CustomerID" = 'ALFKI') <> TRUE
+""");
     }
 
     public override async Task Where_compare_constructed_equal(bool async)
     {
-        //  Anonymous type to constant comparison. Issue #14672.
+        // Anonymous type to constant comparison. Issue #14672.
         await AssertTranslationFailed(() => base.Where_compare_constructed_equal(async));
 
         AssertSql();
@@ -481,10 +484,29 @@ WHERE (c."City", c."CustomerID") = ('Buenos Aires', 'OCEAN')
     {
         await using var ctx = CreateContext();
 
+        // Everything is non-nullable, so we use the nicer row value comparison syntax
+        _ = await ctx.Customers
+            .Where(c => !ValueTuple.Create(c.CustomerID, c.CustomerID).Equals(ValueTuple.Create("OCEAN", "OCEAN")))
+            .CountAsync();
+
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "Customers" AS c
+WHERE (c."CustomerID", c."CustomerID") <> ('OCEAN', 'OCEAN')
+""");
+    }
+
+    [ConditionalFact]
+    public async Task Row_value_not_equals_with_nullable()
+    {
+        await using var ctx = CreateContext();
+
         _ = await ctx.Customers
             .Where(c => !ValueTuple.Create(c.City, c.CustomerID).Equals(ValueTuple.Create("Buenos Aires", "OCEAN")))
             .CountAsync();
 
+        // City is nullable, so we must extract that comparison out of the row value
         AssertSql(
             """
 SELECT count(*)::int
