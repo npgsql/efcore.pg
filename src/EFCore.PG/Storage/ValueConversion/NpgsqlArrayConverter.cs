@@ -108,10 +108,13 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
 
         var input = Parameter(typeof(TInput), "input");
         var convertedInput = input;
-        var mutableOutput = typeof(TConcreteOutput) is { IsGenericType: true } generic
-            && generic.GetGenericTypeDefinition() == typeof(FrozenSet<>)
+
+        var outputIsImmutable = typeof(TConcreteOutput) is { IsGenericType: true } generic
+            && generic == typeof(FrozenSet<>).MakeGenericType(outputElementType);
+        var mutableOutput = outputIsImmutable
                 ? typeof(HashSet<>).MakeGenericType(outputElementType)
                 : typeof(TConcreteOutput);
+
         var output = Parameter(mutableOutput, "result");
 
         var lengthVariable = Variable(typeof(int), "length");
@@ -288,22 +291,14 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
                     Call(enumeratorVariable, typeof(IDisposable).GetMethod(nameof(IDisposable.Dispose))!)));
         }
 
-        if (typeof(TConcreteOutput) == typeof(FrozenSet<>).MakeGenericType(outputElementType))
-        {
-            // return output.ToFrozenSet(null);
-            expressions.Add(
-                Call(
+        expressions.Add(
+            outputIsImmutable
+                ? Call(
                     typeof(FrozenSet), nameof(FrozenSet.ToFrozenSet),
                     [outputElementType],
                     output,
-                    Constant(null, typeof(IEqualityComparer<>).MakeGenericType(outputElementType))));
-        }
-        else
-        {
-            // return output;
-            expressions.Add(output);
-        }
-
+                    Constant(null, typeof(IEqualityComparer<>).MakeGenericType(outputElementType)))
+                : output);
 
         return Lambda<Func<TInput, TOutput>>(
             // First, check if the given array value is null and return null immediately if so
