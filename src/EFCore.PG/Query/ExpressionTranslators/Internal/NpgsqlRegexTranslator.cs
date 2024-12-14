@@ -132,32 +132,26 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
             return null;
         }
 
+
+        List<SqlExpression> passingArguments = [
+            _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
+            _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping),
+            _sqlExpressionFactory.ApplyTypeMapping(replacement, typeMapping)
+        ];
+
+
         var translatedOptions = TranslateOptions(options);
 
-        if (translatedOptions.Length is 0)
+        if (translatedOptions.Length is not 0)
         {
-            return _sqlExpressionFactory.Function("regexp_replace",
-                [
-                    _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
-                    _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping),
-                    _sqlExpressionFactory.ApplyTypeMapping(replacement, typeMapping)
-                ],
-                nullable: true,
-                [true, true, true],
-                typeof(string),
-                _typeMappingSource.FindMapping(typeof(string)));
+            passingArguments.Add(_sqlExpressionFactory.Constant(translatedOptions));
         }
 
         return _sqlExpressionFactory.Function(
             "regexp_replace",
-            [
-                _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
-                _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping),
-                _sqlExpressionFactory.ApplyTypeMapping(replacement, typeMapping),
-                _sqlExpressionFactory.Constant(translatedOptions)
-            ],
+            passingArguments,
             nullable: true,
-            [true, true, true, true],
+            Enumerable.Repeat(true, passingArguments.Count),
             typeof(string),
             _typeMappingSource.FindMapping(typeof(string)));
     }
@@ -195,33 +189,27 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
             return null;
         }
 
+        List<SqlExpression> passingArguments = [
+            _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
+            _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping)
+        ];
+
         var translatedOptions = TranslateOptions(options);
 
-        if (translatedOptions.Length is 0)
+        if (translatedOptions.Length is not 0)
         {
-            return _sqlExpressionFactory.Function(
-                "regexp_count",
-                [
-                    _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
-                    _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping)
-                ],
-                nullable: true,
-                [true, true],
-                typeof(int?),
-                _typeMappingSource.FindMapping(typeof(int)));
+            passingArguments.AddRange([
+                //starting position has to be set to use the options in postgres
+                _sqlExpressionFactory.Constant(1),
+                _sqlExpressionFactory.Constant(translatedOptions)
+            ]);
         }
 
         return _sqlExpressionFactory.Function(
             "regexp_count",
-            [
-                _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
-                _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping),
-                //starting position has to be set to use the options in postgres
-                _sqlExpressionFactory.Constant(1),
-                _sqlExpressionFactory.Constant(translatedOptions)
-            ],
+            passingArguments,
             nullable: true,
-            [true, true, true, true],
+            Enumerable.Repeat(true, passingArguments.Count),
             typeof(int?),
             _typeMappingSource.FindMapping(typeof(int)));
     }
@@ -233,14 +221,18 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
             return string.Empty;
         }
 
-        var result = string.Empty;
+        string? result;
 
         if (options.HasFlag(RegexOptions.Multiline))
         {
-            result += "n";
+            result = "n";
         }else if(!options.HasFlag(RegexOptions.Singleline))
         {
-            result += "p";
+            result = "p";
+        }
+        else
+        {
+            result = string.Empty;
         }
 
         if (options.HasFlag(RegexOptions.IgnoreCase))
