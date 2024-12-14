@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
@@ -76,26 +77,11 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
         var (input, pattern) = (arguments[0], arguments[1]);
         var typeMapping = ExpressionExtensions.InferTypeMapping(input, pattern);
 
-        RegexOptions options;
-
-        if (method == IsMatch)
-        {
-            options = RegexOptions.None;
-        }
-        else if (arguments[2] is SqlConstantExpression { Value: RegexOptions regexOptions })
-        {
-            options = regexOptions;
-        }
-        else
-        {
-            return null; // We don't support non-constant regex options
-        }
-
-        return (options & UnsupportedRegexOptions) == 0
+        return TryGetRegexOptions(arguments, 2, out var regexOptions)
             ? _sqlExpressionFactory.RegexMatch(
                 _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
                 _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping),
-                options)
+                regexOptions.Value)
             : null;
     }
 
@@ -112,26 +98,10 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
         var (input, pattern, replacement) = (arguments[0], arguments[1], arguments[2]);
         var typeMapping = ExpressionExtensions.InferTypeMapping(input, pattern, replacement);
 
-        RegexOptions options;
-
-        if (method == Replace)
-        {
-            options = RegexOptions.None;
-        }
-        else if (arguments[3] is SqlConstantExpression { Value: RegexOptions regexOptions })
-        {
-            options = regexOptions;
-        }
-        else
-        {
-            return null; // We don't support non-constant regex options
-        }
-
-        if ((options & UnsupportedRegexOptions) != 0)
+        if (!TryGetRegexOptions(arguments, 3, out var regexOptions))
         {
             return null;
         }
-
 
         List<SqlExpression> passingArguments = [
             _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
@@ -139,8 +109,7 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
             _sqlExpressionFactory.ApplyTypeMapping(replacement, typeMapping)
         ];
 
-
-        var translatedOptions = TranslateOptions(options);
+        var translatedOptions = TranslateOptions(regexOptions.Value);
 
         if (translatedOptions.Length is not 0)
         {
@@ -169,22 +138,7 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
         var (input, pattern) = (arguments[0], arguments[1]);
         var typeMapping = ExpressionExtensions.InferTypeMapping(input, pattern);
 
-        RegexOptions options;
-
-        if (method == Count)
-        {
-            options = RegexOptions.None;
-        }
-        else if (arguments[2] is SqlConstantExpression { Value: RegexOptions regexOptions })
-        {
-            options = regexOptions;
-        }
-        else
-        {
-            return null; // We don't support non-constant regex options
-        }
-
-        if ((options & UnsupportedRegexOptions) != 0)
+        if (!TryGetRegexOptions(arguments, 2, out var regexOptions))
         {
             return null;
         }
@@ -194,7 +148,7 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
             _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping)
         ];
 
-        var translatedOptions = TranslateOptions(options);
+        var translatedOptions = TranslateOptions(regexOptions.Value);
 
         if (translatedOptions.Length is not 0)
         {
@@ -212,6 +166,29 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
             Enumerable.Repeat(true, passingArguments.Count),
             typeof(int?),
             _typeMappingSource.FindMapping(typeof(int)));
+    }
+
+    private static bool TryGetRegexOptions(
+        IReadOnlyList<SqlExpression> arguments,
+        int minArguments,
+        [NotNullWhen(true)] out RegexOptions? options)
+    {
+        if (arguments.Count == minArguments)
+        {
+            options = RegexOptions.None;
+        }
+        else if (arguments[minArguments] is SqlConstantExpression { Value: RegexOptions regexOptions }
+                 && (regexOptions & UnsupportedRegexOptions) is 0)
+        {
+            options = regexOptions;
+        }
+        else
+        {
+            options = null;
+            return false;
+        }
+
+        return true;
     }
 
     private static string TranslateOptions(RegexOptions options)
