@@ -111,11 +111,11 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
 
         var outputIsImmutable = typeof(TConcreteOutput) is { IsGenericType: true } generic
             && generic == typeof(FrozenSet<>).MakeGenericType(outputElementType);
-        var mutableOutput = outputIsImmutable
+        var mutableOutputType = outputIsImmutable
                 ? typeof(HashSet<>).MakeGenericType(outputElementType)
                 : typeof(TConcreteOutput);
 
-        var output = Parameter(mutableOutput, "result");
+        var output = Parameter(mutableOutputType, "result");
 
         var lengthVariable = Variable(typeof(int), "length");
 
@@ -194,11 +194,11 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
             // Allocate an output array or list
             // var result = new int[length];
             Assign(
-                output, mutableOutput.IsArray
+                output, mutableOutputType.IsArray
                     ? NewArrayBounds(outputElementType, lengthVariable)
-                    : mutableOutput.GetConstructor([typeof(int)]) is ConstructorInfo ctorWithLength
+                    : mutableOutputType.GetConstructor([typeof(int)]) is ConstructorInfo ctorWithLength
                         ? New(ctorWithLength, lengthVariable)
-                        : New(mutableOutput.GetConstructor([])!))
+                        : New(mutableOutputType.GetConstructor([])!))
         ]);
 
         if (indexer is not null)
@@ -218,7 +218,7 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
                     condition: LessThan(counter, lengthVariable),
                     increment: AddAssign(counter, Constant(1)),
                     loopContent:
-                    mutableOutput.IsArray
+                    mutableOutputType.IsArray
                         ? Assign(
                             ArrayAccess(output, counter),
                             elementConversionExpression is null
@@ -226,7 +226,7 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
                                 : Invoke(elementConversionExpression, indexer(counter)))
                         : Call(
                             output,
-                            mutableOutput.GetMethod("Add", [outputElementType])!,
+                            mutableOutputType.GetMethod("Add", [outputElementType])!,
                             elementConversionExpression is null
                                 ? indexer(counter)
                                 : Invoke(elementConversionExpression, indexer(counter)))));
@@ -265,7 +265,7 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
                     IfThenElse(
                         Equal(Call(enumeratorVariable, typeof(IEnumerator).GetMethod(nameof(IEnumerator.MoveNext))!), Constant(true)),
                         Block(
-                            mutableOutput.IsArray
+                            mutableOutputType.IsArray
                                 // output[counter] = enumerator.Current;
                                 ? Assign(
                                     ArrayAccess(output, counterVariable),
@@ -275,7 +275,7 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
                                 // output.Add(enumerator.Current);
                                 : Call(
                                     output,
-                                    mutableOutput.GetMethod("Add", [outputElementType])!,
+                                    mutableOutputType.GetMethod("Add", [outputElementType])!,
                                     elementConversionExpression is null
                                         ? Property(enumeratorVariable, "Current")
                                         : Invoke(elementConversionExpression, Property(enumeratorVariable, "Current"))),
