@@ -137,29 +137,27 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
         if (translatedOptions.Length is 0)
         {
             return _sqlExpressionFactory.Function("regexp_replace",
-                new[]
-                {
+                [
                     _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
                     _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping),
                     _sqlExpressionFactory.ApplyTypeMapping(replacement, typeMapping)
-                },
+                ],
                 nullable: true,
-                new[] { true, true, true},
+                [true, true, true],
                 typeof(string),
                 _typeMappingSource.FindMapping(typeof(string)));
         }
 
         return _sqlExpressionFactory.Function(
             "regexp_replace",
-            new[]
-            {
+            [
                 _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
                 _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping),
                 _sqlExpressionFactory.ApplyTypeMapping(replacement, typeMapping),
                 _sqlExpressionFactory.Constant(translatedOptions)
-            },
+            ],
             nullable: true,
-            new[] { true, true, true, true },
+            [true, true, true, true],
             typeof(string),
             _typeMappingSource.FindMapping(typeof(string)));
     }
@@ -203,29 +201,27 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
         {
             return _sqlExpressionFactory.Function(
                 "regexp_count",
-                new[]
-                {
+                [
                     _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
                     _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping)
-                },
+                ],
                 nullable: true,
-                new[] { true, true },
+                [true, true],
                 typeof(int?),
                 _typeMappingSource.FindMapping(typeof(int)));
         }
 
         return _sqlExpressionFactory.Function(
             "regexp_count",
-            new[]
-            {
+            [
                 _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
                 _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping),
                 //starting position has to be set to use the options in postgres
                 _sqlExpressionFactory.Constant(1),
                 _sqlExpressionFactory.Constant(translatedOptions)
-            },
+            ],
             nullable: true,
-            new[] { true, true, true, true },
+            [true, true, true, true],
             typeof(int?),
             _typeMappingSource.FindMapping(typeof(int)));
     }
