@@ -49,11 +49,11 @@ FROM "Orders" AS o
 
         AssertSql(
             """
-@__myDatetime_0='1998-05-04T00:00:00.0000000'
+@myDatetime='1998-05-04T00:00:00.0000000'
 
 SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
 FROM "Orders" AS o
-WHERE date_trunc('day', o."OrderDate") = @__myDatetime_0
+WHERE date_trunc('day', o."OrderDate") = @myDatetime
 """);
     }
 
@@ -331,11 +331,11 @@ WHERE (o."CustomerID", o."OrderID") > ('ALFKI', 10702)
 
         AssertSql(
             """
-@__city1_0='Buenos Aires'
+@city1='Buenos Aires'
 
 SELECT count(*)::int
 FROM "Customers" AS c
-WHERE (c."City", c."CustomerID") > (@__city1_0, 'OCEAN')
+WHERE (c."City", c."CustomerID") > (@city1, 'OCEAN')
 """);
     }
 
@@ -355,11 +355,11 @@ WHERE (c."City", c."CustomerID") > (@__city1_0, 'OCEAN')
 
         AssertSql(
             """
-@__city1_0='Buenos Aires'
+@city1='Buenos Aires'
 
 SELECT count(*)::int
 FROM "Customers" AS c
-WHERE (c."City", c."CustomerID") > (@__city1_0, 'OCEAN')
+WHERE (c."City", c."CustomerID") > (@city1, 'OCEAN')
 """);
     }
 

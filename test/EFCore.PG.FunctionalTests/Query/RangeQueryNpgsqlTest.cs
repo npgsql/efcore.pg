@@ -48,11 +48,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__range_0='[8,13]' (DbType = Object)
+@range='[8,13]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE r."IntRange" @> @__range_0
+WHERE r."IntRange" @> @range
 LIMIT 2
 """);
     }
@@ -67,11 +67,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__range_0='[8,13]' (DbType = Object)
+@range='[8,13]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE @__range_0 <@ r."IntRange"
+WHERE @range <@ r."IntRange"
 LIMIT 2
 """);
     }
@@ -86,11 +86,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__range_0='[1,10]' (DbType = Object)
+@range='[1,10]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE r."IntRange" = @__range_0
+WHERE r."IntRange" = @range
 LIMIT 2
 """);
     }
@@ -105,11 +105,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__range_0='[1,10]' (DbType = Object)
+@range='[1,10]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE r."IntRange" = @__range_0
+WHERE r."IntRange" = @range
 LIMIT 2
 """);
     }
@@ -124,11 +124,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__range_0='[-5,4]' (DbType = Object)
+@range='[-5,4]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE r."IntRange" && @__range_0
+WHERE r."IntRange" && @range
 LIMIT 2
 """);
     }
@@ -143,11 +143,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__range_0='[11,15]' (DbType = Object)
+@range='[11,15]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE r."IntRange" << @__range_0
+WHERE r."IntRange" << @range
 LIMIT 2
 """);
     }
@@ -162,11 +162,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__range_0='[0,4]' (DbType = Object)
+@range='[0,4]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE r."IntRange" >> @__range_0
+WHERE r."IntRange" >> @range
 LIMIT 2
 """);
     }
@@ -181,11 +181,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__range_0='[2,20]' (DbType = Object)
+@range='[2,20]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE @__range_0 &> r."IntRange"
+WHERE @range &> r."IntRange"
 LIMIT 2
 """);
     }
@@ -200,11 +200,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__range_0='[1,13]' (DbType = Object)
+@range='[1,13]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE @__range_0 &< r."IntRange"
+WHERE @range &< r."IntRange"
 LIMIT 2
 """);
     }
@@ -219,11 +219,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__range_0='[2,4]' (DbType = Object)
+@range='[2,4]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE @__range_0 -|- r."IntRange"
+WHERE @range -|- r."IntRange"
 LIMIT 2
 """);
     }
@@ -238,11 +238,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__range_0='[-2,7]' (DbType = Object)
+@range='[-2,7]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE r."IntRange" + @__range_0 = '[-2,10]'::int4range
+WHERE r."IntRange" + @range = '[-2,10]'::int4range
 LIMIT 2
 """);
     }
@@ -284,11 +284,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__range_0='[-2,3]' (DbType = Object)
+@range='[-2,3]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE r."IntRange" * @__range_0 = '[1,3]'::int4range
+WHERE r."IntRange" * @range = '[1,3]'::int4range
 LIMIT 2
 """);
     }
@@ -330,11 +330,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__range_0='[1,2]' (DbType = Object)
+@range='[1,2]' (DbType = Object)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE r."IntRange" - @__range_0 = '[3,10]'::int4range
+WHERE r."IntRange" - @range = '[3,10]'::int4range
 LIMIT 2
 """);
     }
@@ -497,11 +497,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__p_0='3'
+@p='3'
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE r."LongRange" @> @__p_0
+WHERE r."LongRange" @> @p
 LIMIT 2
 """);
     }
@@ -516,11 +516,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__p_0='3'
+@p='3'
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE r."DecimalRange" @> @__p_0
+WHERE r."DecimalRange" @> @p
 LIMIT 2
 """);
     }
@@ -535,11 +535,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__value_0='01/03/2020' (DbType = Date)
+@value='01/03/2020' (DbType = Date)
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE r."DateOnlyDateRange" @> @__value_0
+WHERE r."DateOnlyDateRange" @> @value
 LIMIT 2
 """);
     }
@@ -554,11 +554,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__value_0='2020-01-03T00:00:00.0000000'
+@value='2020-01-03T00:00:00.0000000'
 
 SELECT r."Id", r."DateOnlyDateRange", r."DateTimeDateRange", r."DecimalRange", r."IntRange", r."LongRange", r."UserDefinedRange", r."UserDefinedRangeWithSchema"
 FROM "RangeTestEntities" AS r
-WHERE r."DateTimeDateRange" @> @__value_0
+WHERE r."DateTimeDateRange" @> @value
 LIMIT 2
 """);
     }

@@ -51,11 +51,11 @@ WHERE l."LTree" = 'Top.Science'
         Assert.Equal(1, count);
         AssertSql(
             """
-@__p_0='Top.Science' (Nullable = false) (DbType = Object)
+@p='Top.Science' (Nullable = false) (DbType = Object)
 
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
-WHERE l."LTree" = @__p_0
+WHERE l."LTree" = @p
 """);
     }
 
@@ -177,11 +177,11 @@ WHERE l."LTree" ~ CAST('*.Astrophysics.' || l."Id"::text AS lquery)
 
         AssertSql(
             """
-@__lqueries_0={ '*.Astrophysics', '*.Geology' } (DbType = Object)
+@lqueries={ '*.Astrophysics', '*.Geology' } (DbType = Object)
 
 SELECT l."Id", l."LTree", l."LTreeAsString", l."LTrees", l."SomeString"
 FROM "LTreeEntities" AS l
-WHERE l."LTree" ? @__lqueries_0
+WHERE l."LTree" ? @lqueries
 LIMIT 2
 """);
     }
@@ -227,11 +227,11 @@ LIMIT 2
         Assert.Equal(4, count);
         AssertSql(
             """
-@__ltrees_0={ 'Top.Science', 'Top.Art' } (DbType = Object)
+@ltrees={ 'Top.Science', 'Top.Art' } (DbType = Object)
 
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
-WHERE @__ltrees_0 @> l."LTree"
+WHERE @ltrees @> l."LTree"
 """);
     }
 
@@ -245,11 +245,11 @@ WHERE @__ltrees_0 @> l."LTree"
         Assert.Equal(3, count);
         AssertSql(
             """
-@__ltrees_0={ 'Top.Science.Astronomy', 'Top.Art' } (DbType = Object)
+@ltrees={ 'Top.Science.Astronomy', 'Top.Art' } (DbType = Object)
 
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
-WHERE @__ltrees_0 <@ l."LTree"
+WHERE @ltrees <@ l."LTree"
 """);
     }
 
@@ -263,11 +263,11 @@ WHERE @__ltrees_0 <@ l."LTree"
 
         AssertSql(
             """
-@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
+@ltrees={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
 
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
-WHERE @__ltrees_0 ~ '*.Astrophysics'
+WHERE @ltrees ~ '*.Astrophysics'
 """);
     }
 
@@ -282,11 +282,11 @@ WHERE @__ltrees_0 ~ '*.Astrophysics'
 
         AssertSql(
             """
-@__lqueries_0={ '*.Astrophysics', '*.Geology' } (DbType = Object)
+@lqueries={ '*.Astrophysics', '*.Geology' } (DbType = Object)
 
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
-WHERE l."LTrees" ? @__lqueries_0
+WHERE l."LTrees" ? @lqueries
 """);
     }
 
@@ -316,11 +316,11 @@ WHERE l."LTrees" @ 'Astro*'
         Assert.Equal(4, count);
         AssertSql(
             """
-@__ltrees_0={ 'Top.Science', 'Top.Hobbies' } (DbType = Object)
+@ltrees={ 'Top.Science', 'Top.Hobbies' } (DbType = Object)
 
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
-WHERE @__ltrees_0 ?@> l."LTree" = 'Top.Science'
+WHERE @ltrees ?@> l."LTree" = 'Top.Science'
 """);
     }
 
@@ -335,11 +335,11 @@ WHERE @__ltrees_0 ?@> l."LTree" = 'Top.Science'
         Assert.Equal(3, count);
         AssertSql(
             """
-@__ltrees_0={ 'Top.Science.Astronomy', 'Top.Hobbies.Amateurs_Astronomy' } (DbType = Object)
+@ltrees={ 'Top.Science.Astronomy', 'Top.Hobbies.Amateurs_Astronomy' } (DbType = Object)
 
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
-WHERE @__ltrees_0 ?<@ l."LTree" = 'Top.Science.Astronomy'
+WHERE @ltrees ?<@ l."LTree" = 'Top.Science.Astronomy'
 """);
     }
 
@@ -354,11 +354,11 @@ WHERE @__ltrees_0 ?<@ l."LTree" = 'Top.Science.Astronomy'
 
         AssertSql(
             """
-@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
+@ltrees={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
 
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
-WHERE @__ltrees_0 ?~ '*.Astrophysics' = 'Top.Science.Astronomy.Astrophysics'
+WHERE @ltrees ?~ '*.Astrophysics' = 'Top.Science.Astronomy.Astrophysics'
 """);
     }
 
@@ -372,11 +372,11 @@ WHERE @__ltrees_0 ?~ '*.Astrophysics' = 'Top.Science.Astronomy.Astrophysics'
 
         AssertSql(
             """
-@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
+@ltrees={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
 
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
-WHERE @__ltrees_0 ?@ 'Astro*' = 'Top.Science.Astronomy.Astrophysics'
+WHERE @ltrees ?@ 'Astro*' = 'Top.Science.Astronomy.Astrophysics'
 """);
     }
 

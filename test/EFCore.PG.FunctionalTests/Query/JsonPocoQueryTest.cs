@@ -64,20 +64,20 @@ WHERE j."Customer" = '{"Name":"Test customer","Age":80,"ID":"00000000-0000-0000-
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE j."Id" = @__p_0
+WHERE j."Id" = @p
 LIMIT 1
 """,
             //
             """
-@__expected_0='Npgsql.EntityFrameworkCore.PostgreSQL.Query.JsonPocoQueryTest+Customer' (DbType = Object)
+@expected='Npgsql.EntityFrameworkCore.PostgreSQL.Query.JsonPocoQueryTest+Customer' (DbType = Object)
 
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE j."Customer" = @__expected_0
+WHERE j."Customer" = @expected
 LIMIT 2
 """);
     }
@@ -186,11 +186,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__p_0='1990-03-03T17:10:15.0000000Z' (DbType = DateTime)
+@p='1990-03-03T17:10:15.0000000Z' (DbType = DateTime)
 
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer" #>> '{VariousTypes,DateTime}' AS timestamp with time zone) = @__p_0
+WHERE CAST(j."Customer" #>> '{VariousTypes,DateTime}' AS timestamp with time zone) = @p
 LIMIT 2
 """);
     }
@@ -207,11 +207,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__p_0='1990-03-03T17:10:15.0000000+00:00' (DbType = DateTime)
+@p='1990-03-03T17:10:15.0000000+00:00' (DbType = DateTime)
 
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer" #>> '{VariousTypes,DateTimeOffset}' AS timestamp with time zone) = @__p_0
+WHERE CAST(j."Customer" #>> '{VariousTypes,DateTimeOffset}' AS timestamp with time zone) = @p
 LIMIT 2
 """);
     }
@@ -356,11 +356,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__i_0='1'
+@i='1'
 
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer" #>> ARRAY['Statistics','Nested','IntArray',@__i_0]::text[] AS integer) = 4
+WHERE CAST(j."Customer" #>> ARRAY['Statistics','Nested','IntArray',@i]::text[] AS integer) = 4
 LIMIT 2
 """);
     }
@@ -507,11 +507,11 @@ LIMIT 2
         Assert.Equal(1, count);
         AssertSql(
             """
-@__element_1='{"Name": "Joe", "Age": 25}' (DbType = Object)
+@element='{"Name": "Joe", "Age": 25}' (DbType = Object)
 
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."Customer" @> @__element_1
+WHERE j."Customer" @> @element
 """);
     }
 
@@ -544,11 +544,11 @@ WHERE j."Customer" @> '{"Name": "Joe", "Age": 25}'
         Assert.Equal(1, count);
         AssertSql(
             """
-@__someJson_1='{"Name": "Joe", "Age": 25}' (DbType = Object)
+@someJson='{"Name": "Joe", "Age": 25}' (DbType = Object)
 
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."Customer" @> @__someJson_1
+WHERE j."Customer" @> @someJson
 """);
     }
 
@@ -564,11 +564,11 @@ WHERE j."Customer" @> @__someJson_1
         Assert.Equal(1, count);
         AssertSql(
             """
-@__element_1='{"Name": "Joe", "Age": 25}' (DbType = Object)
+@element='{"Name": "Joe", "Age": 25}' (DbType = Object)
 
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE @__element_1 <@ j."Customer"
+WHERE @element <@ j."Customer"
 """);
     }
 
@@ -601,11 +601,11 @@ WHERE '{"Name": "Joe", "Age": 25}' <@ j."Customer"
         Assert.Equal(1, count);
         AssertSql(
             """
-@__someJson_1='{"Name": "Joe", "Age": 25}' (DbType = Object)
+@someJson='{"Name": "Joe", "Age": 25}' (DbType = Object)
 
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE @__someJson_1 <@ j."Customer"
+WHERE @someJson <@ j."Customer"
 """);
     }
 

@@ -30,11 +30,11 @@ WHERE s."IntList"[1] = 3
 
         AssertSql(
             """
-@__x_0='0'
+@x='0'
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."IntList"[@__x_0 + 1] = 3
+WHERE s."IntList"[@x + 1] = 3
 """);
     }
 
@@ -108,11 +108,11 @@ WHERE FALSE
 
         AssertSql(
             """
-@__arr_0={ '3', '4' } (DbType = Object)
+@arr={ '3', '4' } (DbType = Object)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."IntList" = @__arr_0
+WHERE s."IntList" = @arr
 """);
     }
 
@@ -134,11 +134,11 @@ WHERE s."IntList" = ARRAY[3,4]::integer[]
 
         AssertSql(
             """
-@__arr_0={ '3', '4', NULL } (DbType = Object)
+@arr={ '3', '4', NULL } (DbType = Object)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."NullableIntList" = @__arr_0
+WHERE s."NullableIntList" = @arr
 """);
     }
 
@@ -188,11 +188,11 @@ WHERE s."IntList" @> ARRAY[3]::integer[]
 
         AssertSql(
             """
-@__p_0='3'
+@p='3'
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."IntList" @> ARRAY[@__p_0]::integer[]
+WHERE s."IntList" @> ARRAY[@p]::integer[]
 """);
     }
 
@@ -276,11 +276,11 @@ WHERE s."NullableText" IN ('foo', 'xxx')
 
         AssertSql(
             """
-@__array_0={ 'foo', 'xxx' } (DbType = Object)
+@array={ 'foo', 'xxx' } (DbType = Object)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."NullableText" = ANY (@__array_0) OR (s."NullableText" IS NULL AND array_position(@__array_0, NULL) IS NOT NULL)
+WHERE s."NullableText" = ANY (@array) OR (s."NullableText" IS NULL AND array_position(@array, NULL) IS NOT NULL)
 """);
     }
 
@@ -294,11 +294,11 @@ WHERE s."NullableText" = ANY (@__array_0) OR (s."NullableText" IS NULL AND array
 
         AssertSql(
             """
-@__array_0={ '1' } (DbType = Object)
+@array={ '1' } (DbType = Object)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."Id" = ANY (@__array_0)
+WHERE s."Id" = ANY (@array)
 """);
     }
 
@@ -317,11 +317,11 @@ WHERE s."Id" = ANY (@__array_0)
 
         AssertSql(
             """
-@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
+@array={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT count(*)::int
 FROM "SomeEntities" AS s
-WHERE s."NonNullableText" = ANY (@__array_0)
+WHERE s."NonNullableText" = ANY (@array)
 """);
     }
 
@@ -340,11 +340,11 @@ WHERE s."NonNullableText" = ANY (@__array_0)
 
         AssertSql(
             """
-@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
+@array={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT count(*)::int
 FROM "SomeEntities" AS s
-WHERE NOT (s."NonNullableText" = ANY (@__array_0) AND s."NonNullableText" = ANY (@__array_0) IS NOT NULL)
+WHERE NOT (s."NonNullableText" = ANY (@array) AND s."NonNullableText" = ANY (@array) IS NOT NULL)
 """);
     }
 
@@ -363,11 +363,11 @@ WHERE NOT (s."NonNullableText" = ANY (@__array_0) AND s."NonNullableText" = ANY 
 
         AssertSql(
             """
-@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
+@array={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT count(*)::int
 FROM "SomeEntities" AS s
-WHERE s."NullableText" = ANY (@__array_0) OR (s."NullableText" IS NULL AND array_position(@__array_0, NULL) IS NOT NULL)
+WHERE s."NullableText" = ANY (@array) OR (s."NullableText" IS NULL AND array_position(@array, NULL) IS NOT NULL)
 """);
     }
 
@@ -386,11 +386,11 @@ WHERE s."NullableText" = ANY (@__array_0) OR (s."NullableText" IS NULL AND array
 
         AssertSql(
             """
-@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
+@array={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT count(*)::int
 FROM "SomeEntities" AS s
-WHERE NOT (s."NullableText" = ANY (@__array_0) AND s."NullableText" = ANY (@__array_0) IS NOT NULL) AND (s."NullableText" IS NOT NULL OR array_position(@__array_0, NULL) IS NULL)
+WHERE NOT (s."NullableText" = ANY (@array) AND s."NullableText" = ANY (@array) IS NOT NULL) AND (s."NullableText" IS NOT NULL OR array_position(@array, NULL) IS NULL)
 """);
     }
 
@@ -404,11 +404,11 @@ WHERE NOT (s."NullableText" = ANY (@__array_0) AND s."NullableText" = ANY (@__ar
 
         AssertSql(
             """
-@__values_0={ '1', '999' } (DbType = Object)
+@values={ '1', '999' } (DbType = Object)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."Id"::text = ANY (@__values_0)
+WHERE s."Id"::text = ANY (@values)
 """);
     }
 
@@ -422,11 +422,11 @@ WHERE s."Id"::text = ANY (@__values_0)
 
         AssertSql(
             """
-@__values_0={ '20' } (DbType = Object)
+@values={ '20' } (DbType = Object)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."Byte" = ANY (@__values_0)
+WHERE s."Byte" = ANY (@values)
 """);
     }
 
@@ -440,11 +440,11 @@ WHERE s."Byte" = ANY (@__values_0)
 
         AssertSql(
             """
-@__array_0={ '-2', '-3' } (DbType = Object)
+@array={ '-2', '-3' } (DbType = Object)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."EnumConvertedToInt" = ANY (@__array_0)
+WHERE s."EnumConvertedToInt" = ANY (@array)
 """);
     }
 
@@ -458,11 +458,11 @@ WHERE s."EnumConvertedToInt" = ANY (@__array_0)
 
         AssertSql(
             """
-@__array_0={ 'Two', 'Three' } (DbType = Object)
+@array={ 'Two', 'Three' } (DbType = Object)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."EnumConvertedToString" = ANY (@__array_0)
+WHERE s."EnumConvertedToString" = ANY (@array)
 """);
     }
 
@@ -476,11 +476,11 @@ WHERE s."EnumConvertedToString" = ANY (@__array_0)
 
         AssertSql(
             """
-@__array_0={ 'Two', 'Three' } (DbType = Object)
+@array={ 'Two', 'Three' } (DbType = Object)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."NullableEnumConvertedToString" = ANY (@__array_0) OR (s."NullableEnumConvertedToString" IS NULL AND array_position(@__array_0, NULL) IS NOT NULL)
+WHERE s."NullableEnumConvertedToString" = ANY (@array) OR (s."NullableEnumConvertedToString" IS NULL AND array_position(@array, NULL) IS NOT NULL)
 """);
     }
 
@@ -494,11 +494,11 @@ WHERE s."NullableEnumConvertedToString" = ANY (@__array_0) OR (s."NullableEnumCo
 
         AssertSql(
             """
-@__array_0={ 'Two', 'Three' } (DbType = Object)
+@array={ 'Two', 'Three' } (DbType = Object)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."NullableEnumConvertedToStringWithNonNullableLambda" = ANY (@__array_0) OR (s."NullableEnumConvertedToStringWithNonNullableLambda" IS NULL AND array_position(@__array_0, NULL) IS NOT NULL)
+WHERE s."NullableEnumConvertedToStringWithNonNullableLambda" = ANY (@array) OR (s."NullableEnumConvertedToStringWithNonNullableLambda" IS NULL AND array_position(@array, NULL) IS NOT NULL)
 """);
     }
 
@@ -512,11 +512,11 @@ WHERE s."NullableEnumConvertedToStringWithNonNullableLambda" = ANY (@__array_0) 
 
         AssertSql(
             """
-@__item_0='Eight' (Nullable = false)
+@item='Eight' (Nullable = false)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."ValueConvertedListOfEnum" @> ARRAY[@__item_0]::text[]
+WHERE s."ValueConvertedListOfEnum" @> ARRAY[@item]::text[]
 """);
     }
 
@@ -544,11 +544,11 @@ WHERE s."ValueConvertedListOfEnum" @> ARRAY['Eight']::text[]
 
         AssertSql(
             """
-@__p_0={ 'Eight', 'Nine' } (DbType = Object)
+@p={ 'Eight', 'Nine' } (DbType = Object)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."ValueConvertedListOfEnum" <@ @__p_0
+WHERE s."ValueConvertedListOfEnum" <@ @p
 """);
     }
 
@@ -703,11 +703,11 @@ WHERE s."NullableText" ILIKE ANY (ARRAY['a%','b%','c%']::text[])
 
         AssertSql(
             """
-@__patternsActual_1={ 'a%', 'b%', 'c%' } (DbType = Object)
+@patternsActual={ 'a%', 'b%', 'c%' } (DbType = Object)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."NullableText" LIKE ANY (@__patternsActual_1)
+WHERE s."NullableText" LIKE ANY (@patternsActual)
 """);
     }
 
@@ -763,11 +763,11 @@ WHERE ARRAY[2,3]::integer[] && s."IntList"
 
         AssertSql(
             """
-@__ints_0={ '2', '3' } (DbType = Object)
+@ints={ '2', '3' } (DbType = Object)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."IntList" && @__ints_0
+WHERE s."IntList" && @ints
 """);
     }
 
@@ -777,11 +777,11 @@ WHERE s."IntList" && @__ints_0
 
         AssertSql(
             """
-@__ints_0={ '2', '3' } (DbType = Object)
+@ints={ '2', '3' } (DbType = Object)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."IntList" && @__ints_0
+WHERE s."IntList" && @ints
 """);
     }
 
@@ -795,11 +795,11 @@ WHERE s."IntList" && @__ints_0
 
         AssertSql(
             """
-@__array_0={ 'Eight' } (DbType = Object)
+@array={ 'Eight' } (DbType = Object)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."ValueConvertedListOfEnum" && @__array_0
+WHERE s."ValueConvertedListOfEnum" && @array
 """);
     }
 

@@ -20,11 +20,11 @@ public class PrecompiledQueryNpgsqlTest(
 
         AssertSql(
             """
-@__id_0='3'
+@id='3'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
-WHERE b."Id" > @__id_0
+WHERE b."Id" > @id
 """);
     }
 
@@ -48,10 +48,10 @@ FROM "Blogs" AS b
 
         AssertSql(
             """
-@__yes_0='yes'
+@yes='yes'
 
 SELECT CASE
-    WHEN b."Id" = 2 THEN @__yes_0
+    WHEN b."Id" = 2 THEN @yes
     ELSE 'no'
 END
 FROM "Blogs" AS b
@@ -129,11 +129,11 @@ WHERE b."Name" IS NOT NULL AND left(b."Name", length(b."Name")) = b."Name"
 
         AssertSql(
             """
-@__pattern_0_startswith='foo%'
+@pattern_startswith='foo%'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
-WHERE b."Name" LIKE @__pattern_0_startswith
+WHERE b."Name" LIKE @pattern_startswith
 """);
     }
 
@@ -207,9 +207,9 @@ FROM "Blogs" AS b
 
         AssertSql(
             """
-@__id_0='8'
+@id='8'
 
-SELECT @__id_0 AS "Id", b."Name"
+SELECT @id AS "Id", b."Name"
 FROM "Blogs" AS b
 """);
     }
@@ -242,9 +242,9 @@ FROM "Blogs" AS b
 
         AssertSql(
             """
-@__i_0='8'
+@i='8'
 
-SELECT ARRAY[b."Id",b."Id" + @__i_0]::integer[]
+SELECT ARRAY[b."Id",b."Id" + @i]::integer[]
 FROM "Blogs" AS b
 """);
     }
@@ -601,18 +601,18 @@ FROM "Blogs" AS b
 
         AssertSql(
             """
-@__p_0='8'
+@p='8'
 
-SELECT @__p_0 IN (
+SELECT @p IN (
     SELECT b."Id"
     FROM "Blogs" AS b
 )
 """,
             //
             """
-@__p_0='7'
+@p='7'
 
-SELECT @__p_0 IN (
+SELECT @p IN (
     SELECT b."Id"
     FROM "Blogs" AS b
 )
@@ -625,18 +625,18 @@ SELECT @__p_0 IN (
 
         AssertSql(
             """
-@__p_0='8'
+@p='8'
 
-SELECT @__p_0 IN (
+SELECT @p IN (
     SELECT b."Id"
     FROM "Blogs" AS b
 )
 """,
             //
             """
-@__p_0='7'
+@p='7'
 
-SELECT @__p_0 IN (
+SELECT @p IN (
     SELECT b."Id"
     FROM "Blogs" AS b
 )
@@ -683,21 +683,21 @@ WHERE b."Id" > 8
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """,
             //
             """
-@__p_0='3'
+@p='3'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """);
     }
 
@@ -707,21 +707,21 @@ LIMIT 1 OFFSET @__p_0
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """,
             //
             """
-@__p_0='3'
+@p='3'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """);
     }
 
@@ -731,21 +731,21 @@ LIMIT 1 OFFSET @__p_0
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """,
             //
             """
-@__p_0='3'
+@p='3'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """);
     }
 
@@ -755,21 +755,21 @@ LIMIT 1 OFFSET @__p_0
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """,
             //
             """
-@__p_0='3'
+@p='3'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """);
     }
 
@@ -1372,10 +1372,10 @@ FROM "Blogs" AS b
 
         AssertSql(
             """
-@__suffix_0='Suffix'
+@suffix='Suffix'
 
 UPDATE "Blogs" AS b
-SET "Name" = COALESCE(b."Name", '') || @__suffix_0
+SET "Name" = COALESCE(b."Name", '') || @suffix
 WHERE b."Id" > 8
 """,
             //
@@ -1392,10 +1392,10 @@ WHERE b."Id" = 9 AND b."Name" = 'Blog2Suffix'
 
         AssertSql(
             """
-@__suffix_0='Suffix'
+@suffix='Suffix'
 
 UPDATE "Blogs" AS b
-SET "Name" = COALESCE(b."Name", '') || @__suffix_0
+SET "Name" = COALESCE(b."Name", '') || @suffix
 WHERE b."Id" > 8
 """,
             //
@@ -1591,11 +1591,11 @@ WHERE (
 
         AssertSql(
             """
-@__ids_0={ '1', '2', '3' } (DbType = Object)
+@ids={ '1', '2', '3' } (DbType = Object)
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
-WHERE b."Id" = ANY (@__ids_0)
+WHERE b."Id" = ANY (@ids)
 """);
     }
 
@@ -1778,12 +1778,12 @@ ORDER BY b."Name" NULLS FIRST
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Name" NULLS FIRST
-OFFSET @__p_0
+OFFSET @p
 """);
     }
 
@@ -1793,12 +1793,12 @@ OFFSET @__p_0
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Name" NULLS FIRST
-LIMIT @__p_0
+LIMIT @p
 """);
     }
 
@@ -1819,12 +1819,12 @@ FROM "Blogs" AS b
 
         AssertSql(
             """
-@__yes_0='yes'
-@__no_1='no'
+@yes='yes'
+@no='no'
 
 SELECT CASE
-    WHEN b."Id" = 3 THEN @__yes_0
-    ELSE @__no_1
+    WHEN b."Id" = 3 THEN @yes
+    ELSE @no
 END
 FROM "Blogs" AS b
 """);
@@ -1832,20 +1832,18 @@ FROM "Blogs" AS b
 
     public override async Task Two_captured_variables_in_different_lambdas()
     {
-        //Throws because the base startswith is uses a different case "Blog" vs "blog" and postgresql LIKE is case sensitive unlike SQL Server
-        //Base test fixed upstream for later versions
-        await Assert.ThrowsAsync<InvalidOperationException>(() => base.Two_captured_variables_in_different_lambdas());
+        await base.Two_captured_variables_in_different_lambdas();
 
-//        AssertSql(
-//            """
-//@__starts_0_startswith='Blog%'
-//@__ends_1_endswith='%2'
-//
-//SELECT b."Id", b."Name", b."Json"
-//FROM "Blogs" AS b
-//WHERE b."Name" LIKE @__starts_0_startswith AND b."Name" LIKE @__ends_1_endswith
-//LIMIT 2
-//""");
+        AssertSql(
+            """
+@starts_startswith='Blog%'
+@ends_endswith='%2'
+
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+WHERE b."Name" LIKE @starts_startswith AND b."Name" LIKE @ends_endswith
+LIMIT 2
+""");
     }
 
     public override async Task Same_captured_variable_twice_in_same_lambda()
@@ -1854,12 +1852,12 @@ FROM "Blogs" AS b
 
         AssertSql(
             """
-@__foo_0_startswith='X%'
-@__foo_0_endswith='%X'
+@foo_startswith='X%'
+@foo_endswith='%X'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
-WHERE b."Name" LIKE @__foo_0_startswith AND b."Name" LIKE @__foo_0_endswith
+WHERE b."Name" LIKE @foo_startswith AND b."Name" LIKE @foo_endswith
 """);
     }
 
@@ -1869,12 +1867,12 @@ WHERE b."Name" LIKE @__foo_0_startswith AND b."Name" LIKE @__foo_0_endswith
 
         AssertSql(
             """
-@__foo_0_startswith='X%'
-@__foo_0_endswith='%X'
+@foo_startswith='X%'
+@foo_endswith='%X'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
-WHERE b."Name" LIKE @__foo_0_startswith AND b."Name" LIKE @__foo_0_endswith
+WHERE b."Name" LIKE @foo_startswith AND b."Name" LIKE @foo_endswith
 """);
     }
 
@@ -1929,20 +1927,20 @@ ORDER BY b."Name" NULLS FIRST
 
         AssertSql(
             """
-@__id1_0='8'
-@__id2_1='9'
+@id1='8'
+@id2='9'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
-WHERE b."Id" = @__id1_0 OR b."Id" = @__id2_1
+WHERE b."Id" = @id1 OR b."Id" = @id2
 """,
             //
             """
-@__id1_0='8'
+@id1='8'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
-WHERE b."Id" = @__id1_0
+WHERE b."Id" = @id1
 LIMIT 2
 """);
     }

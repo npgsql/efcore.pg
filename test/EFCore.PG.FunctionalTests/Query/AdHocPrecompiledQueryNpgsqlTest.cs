@@ -27,11 +27,11 @@ WHERE j."IntList"[j."Id" + 1] = 2
 
         AssertSql(
             """
-@__id_0='1'
+@id='1'
 
 SELECT j."Id", j."IntList", j."JsonThing"
 FROM "JsonEntities" AS j
-WHERE j."IntList"[@__id_0 + 1] = 2
+WHERE j."IntList"[@id + 1] = 2
 """);
     }
 

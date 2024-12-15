@@ -48,13 +48,13 @@ FROM "Missions" AS m
 
         AssertSql(
             """
-@__start_0='1902-01-01T10:00:00.1234567+00:00' (DbType = DateTime)
-@__end_1='1902-01-03T10:00:00.1234567+00:00' (DbType = DateTime)
-@__dates_2={ '1902-01-02T10:00:00.1234567+00:00' } (DbType = Object)
+@start='1902-01-01T10:00:00.1234567+00:00' (DbType = DateTime)
+@end='1902-01-03T10:00:00.1234567+00:00' (DbType = DateTime)
+@dates={ '1902-01-02T10:00:00.1234567+00:00' } (DbType = Object)
 
 SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE @__start_0 <= date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamptz AND m."Timeline" < @__end_1 AND m."Timeline" = ANY (@__dates_2)
+WHERE @start <= date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamptz AND m."Timeline" < @end AND m."Timeline" = ANY (@dates)
 """);
     }
 
@@ -68,11 +68,11 @@ WHERE @__start_0 <= date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestam
 
         AssertSql(
             """
-@__dateTimeOffset_Date_0='0002-03-01T00:00:00.0000000'
+@dateTimeOffset_Date='0002-03-01T00:00:00.0000000'
 
 SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamp >= @__dateTimeOffset_Date_0
+WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamp >= @dateTimeOffset_Date
 """);
     }
 
@@ -118,6 +118,25 @@ WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC') > TIMESTAMP '0001-01-01
 
     public override Task Where_TimeOnly_Millisecond(bool async)
         => Task.CompletedTask; // Translation not implemented
+
+    // TODO: #3406
+    public override Task Where_datetimeoffset_microsecond_component(bool async)
+        => AssertTranslationFailed(() => base.Where_datetimeoffset_microsecond_component(async));
+
+    public override Task Where_datetimeoffset_nanosecond_component(bool async)
+        => AssertTranslationFailed(() => base.Where_datetimeoffset_nanosecond_component(async));
+
+    public override Task Where_timespan_microsecond_component(bool async)
+        => AssertTranslationFailed(() => base.Where_timespan_microsecond_component(async));
+
+    public override Task Where_timespan_nanosecond_component(bool async)
+        => AssertTranslationFailed(() => base.Where_timespan_nanosecond_component(async));
+
+    public override Task Where_timeonly_microsecond_component(bool async)
+        => AssertTranslationFailed(() => base.Where_timeonly_microsecond_component(async));
+
+    public override Task Where_timeonly_nanosecond_component(bool async)
+        => AssertTranslationFailed(() => base.Where_timeonly_nanosecond_component(async));
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

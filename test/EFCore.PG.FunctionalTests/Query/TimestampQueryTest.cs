@@ -120,7 +120,7 @@ WHERE e."TimestampDateTime" = TIMESTAMP '1998-04-12T15:26:38'
             """
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE e."TimestampDateTime" = @__dateTime_0
+WHERE e."TimestampDateTime" = @dateTime
 """,
             Fixture.TestSqlLoggerFactory.SqlStatements.Single());
     }
@@ -139,11 +139,11 @@ WHERE e."TimestampDateTime" = @__dateTime_0
 
         AssertSql(
             """
-@__dateTime_0='1998-04-12T15:26:38.0000000'
+@dateTime='1998-04-12T15:26:38.0000000'
 
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE e."TimestampDateTime" = @__dateTime_0
+WHERE e."TimestampDateTime" = @dateTime
 """);
     }
 
@@ -197,11 +197,11 @@ WHERE e."TimestamptzDateTime" = TIMESTAMPTZ '1998-04-12T13:26:38Z'
 
         AssertSql(
             """
-@__dateTime_0='1998-04-12T13:26:38.0000000Z' (DbType = DateTime)
+@dateTime='1998-04-12T13:26:38.0000000Z' (DbType = DateTime)
 
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE e."TimestamptzDateTime" = @__dateTime_0
+WHERE e."TimestamptzDateTime" = @dateTime
 """);
     }
 
@@ -317,11 +317,11 @@ WHERE e."TimestamptzDateTime"::timestamp = e."TimestampDateTime"
 
         AssertSql(
             """
-@__myDatetime_0='2015-04-10T00:00:00.0000000'
+@myDatetime='2015-04-10T00:00:00.0000000'
 
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE now()::timestamp <> @__myDatetime_0
+WHERE now()::timestamp <> @myDatetime
 """);
     }
 
@@ -337,11 +337,11 @@ WHERE now()::timestamp <> @__myDatetime_0
 
         AssertSql(
             """
-@__myDatetime_0='2015-04-10T00:00:00.0000000Z' (DbType = DateTime)
+@myDatetime='2015-04-10T00:00:00.0000000Z' (DbType = DateTime)
 
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE now() <> @__myDatetime_0
+WHERE now() <> @myDatetime
 """);
     }
 

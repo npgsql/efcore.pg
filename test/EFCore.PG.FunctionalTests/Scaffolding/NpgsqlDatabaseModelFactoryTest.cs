@@ -412,28 +412,28 @@ CREATE TABLE "db2"."DependentTable" (
                 // ReSharper disable once PossibleNullReferenceException
                 Assert.Equal("db2", sequence.Schema);
 
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "QuotedTableName"));
-                Assert.DoesNotContain(dbModel.Tables, t => t.Schema == "db.2" && t.Name == "Table.With.Dot");
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "SimpleTableName"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "db.2" && t.Name == "JustTableName"));
+                Assert.Single(dbModel.Tables, t => t is { Schema: "db.2", Name: "QuotedTableName" });
+                Assert.DoesNotContain(dbModel.Tables, t => t is { Schema: "db.2", Name: "Table.With.Dot" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "db.2", Name: "SimpleTableName" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "db.2", Name: "JustTableName" });
 
-                Assert.DoesNotContain(dbModel.Tables, t => t.Schema == "public" && t.Name == "QuotedTableName");
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "public" && t.Name == "Table.With.Dot"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "public" && t.Name == "SimpleTableName"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "public" && t.Name == "JustTableName"));
+                Assert.DoesNotContain(dbModel.Tables, t => t is { Schema: "public", Name: "QuotedTableName" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "public", Name: "Table.With.Dot" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "public", Name: "SimpleTableName" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "public", Name: "JustTableName" });
 
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "db2" && t.Name == "QuotedTableName"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "db2" && t.Name == "Table.With.Dot"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "db2" && t.Name == "SimpleTableName"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "db2" && t.Name == "JustTableName"));
+                Assert.Single(dbModel.Tables, t => t is { Schema: "db2", Name: "QuotedTableName" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "db2", Name: "Table.With.Dot" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "db2", Name: "SimpleTableName" });
+                Assert.Single(dbModel.Tables, t => t is { Schema: "db2", Name: "JustTableName" });
 
-                var principalTable = Assert.Single(dbModel.Tables.Where(t => t.Schema == "db2" && t.Name == "PrincipalTable"));
+                var principalTable = Assert.Single(dbModel.Tables, t => t is { Schema: "db2", Name: "PrincipalTable" });
                 // ReSharper disable once PossibleNullReferenceException
                 Assert.NotNull(principalTable.PrimaryKey);
                 Assert.Single(principalTable.UniqueConstraints);
                 Assert.Single(principalTable.Indexes);
 
-                var dependentTable = Assert.Single(dbModel.Tables.Where(t => t.Schema == "db2" && t.Name == "DependentTable"));
+                var dependentTable = Assert.Single(dbModel.Tables, t => t is { Schema: "db2", Name: "DependentTable" });
                 // ReSharper disable once PossibleNullReferenceException
                 Assert.Single(dependentTable.ForeignKeys);
             },
@@ -486,8 +486,8 @@ CREATE TABLE "Blogs" (
                         Assert.Equal("Blogs", c.Table.Name);
                     });
 
-                Assert.Single(table.Columns.Where(c => c.Name == "Id"));
-                Assert.Single(table.Columns.Where(c => c.Name == "Name"));
+                Assert.Single(table.Columns, c => c.Name == "Id");
+                Assert.Single(table.Columns, c => c.Name == "Name");
             },
             """
                 DROP TABLE "Blogs"
@@ -514,8 +514,8 @@ CREATE VIEW "BlogsView" AS SELECT 100::int AS "Id", ''::text AS "Name";
                         Assert.Equal("BlogsView", c.Table.Name);
                     });
 
-                Assert.Single(table.Columns.Where(c => c.Name == "Id"));
-                Assert.Single(table.Columns.Where(c => c.Name == "Name"));
+                Assert.Single(table.Columns, c => c.Name == "Id");
+                Assert.Single(table.Columns, c => c.Name == "Name");
             },
             """DROP VIEW "BlogsView";""");
 
@@ -540,8 +540,8 @@ CREATE MATERIALIZED VIEW "BlogsView" AS SELECT 100::int AS "Id", ''::text AS "Na
                         Assert.Equal("BlogsView", c.Table.Name);
                     });
 
-                Assert.Single(table.Columns.Where(c => c.Name == "Id"));
-                Assert.Single(table.Columns.Where(c => c.Name == "Name"));
+                Assert.Single(table.Columns, c => c.Name == "Id");
+                Assert.Single(table.Columns, c => c.Name == "Name");
             },
             """DROP MATERIALIZED VIEW "BlogsView";""");
 
@@ -633,8 +633,8 @@ CREATE INDEX "IX_INDEX" on "IndexTable" ("IndexProperty");
                         Assert.Equal("IndexTable", c.Table.Name);
                     });
 
-                Assert.Single(table.Indexes.Where(c => c.Name == "IX_NAME"));
-                Assert.Single(table.Indexes.Where(c => c.Name == "IX_INDEX"));
+                Assert.Single(table.Indexes, c => c.Name == "IX_NAME");
+                Assert.Single(table.Indexes, c => c.Name == "IX_INDEX");
             },
             """
                 DROP TABLE "IndexTable"
@@ -717,13 +717,13 @@ CREATE TABLE domains (
             [],
             dbModel =>
             {
-                var textDomainColumn = Assert.Single(dbModel.Tables.Single().Columns.Where(c => c.Name == "text_domain"));
+                var textDomainColumn = Assert.Single(dbModel.Tables.Single().Columns, c => c.Name == "text_domain");
                 Assert.Equal("text", textDomainColumn?.StoreType);
 
-                var charDomainColumn = Assert.Single(dbModel.Tables.Single().Columns.Where(c => c.Name == "char_domain"));
+                var charDomainColumn = Assert.Single(dbModel.Tables.Single().Columns, c => c.Name == "char_domain");
                 Assert.Equal("character(3)", charDomainColumn?.StoreType);
 
-                var nonDomainColumn = Assert.Single(dbModel.Tables.Single().Columns.Where(c => c.Name == "id"));
+                var nonDomainColumn = Assert.Single(dbModel.Tables.Single().Columns, c => c.Name == "id");
                 Assert.Equal("integer", nonDomainColumn?.StoreType);
             },
             """
@@ -1383,7 +1383,7 @@ CREATE TABLE "DependentTable" (
 
                 Assert.Equal(2, foreignKeys.Count);
 
-                var principalFk = Assert.Single(foreignKeys.Where(f => f.PrincipalTable.Name == "PrincipalTable"));
+                var principalFk = Assert.Single(foreignKeys, f => f.PrincipalTable.Name == "PrincipalTable");
 
                 // ReSharper disable once PossibleNullReferenceException
                 Assert.Equal("public", principalFk.Table.Schema);
@@ -1394,7 +1394,7 @@ CREATE TABLE "DependentTable" (
                 Assert.Equal(["Id"], principalFk.PrincipalColumns.Select(ic => ic.Name).ToList());
                 Assert.Equal(ReferentialAction.Cascade, principalFk.OnDelete);
 
-                var anotherPrincipalFk = Assert.Single(foreignKeys.Where(f => f.PrincipalTable.Name == "AnotherPrincipalTable"));
+                var anotherPrincipalFk = Assert.Single(foreignKeys, f => f.PrincipalTable.Name == "AnotherPrincipalTable");
 
                 // ReSharper disable once PossibleNullReferenceException
                 Assert.Equal("public", anotherPrincipalFk.Table.Schema);
@@ -1554,7 +1554,7 @@ CREATE TABLE "Blank" ("Id" int)
             {
                 Assert.Empty(dbModel.Tables);
 
-                var (_, Id, Message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log.Where(t => t.Level == LogLevel.Warning));
+                var (_, Id, Message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log, t => t.Level == LogLevel.Warning);
 
                 Assert.Equal(NpgsqlResources.LogMissingSchema(new TestLogger<NpgsqlLoggingDefinitions>()).EventId, Id);
                 Assert.Equal(
@@ -1576,7 +1576,7 @@ CREATE TABLE "Blank" ("Id" int)
             {
                 Assert.Empty(dbModel.Tables);
 
-                var (_, Id, Message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log.Where(t => t.Level == LogLevel.Warning));
+                var (_, Id, Message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log, t => t.Level == LogLevel.Warning);
 
                 Assert.Equal(NpgsqlResources.LogMissingTable(new TestLogger<NpgsqlLoggingDefinitions>()).EventId, Id);
                 Assert.Equal(
@@ -1604,7 +1604,7 @@ CREATE TABLE "DependentTable" (
             [],
             _ =>
             {
-                var (_, Id, Message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log.Where(t => t.Level == LogLevel.Warning));
+                var (_, Id, Message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log, t => t.Level == LogLevel.Warning);
 
                 Assert.Equal(NpgsqlResources.LogPrincipalTableNotInSelectionSet(new TestLogger<NpgsqlLoggingDefinitions>()).EventId, Id);
                 Assert.Equal(
@@ -1671,7 +1671,7 @@ CREATE TABLE "NonSerialSequence" ("Id" integer PRIMARY KEY DEFAULT nextval('"Som
                 // with a DefaultValue. This is consistent with the SqlServer scaffolding behavior.
                 Assert.Null(column.ValueGenerated);
 
-                Assert.Single(dbModel.Sequences.Where(s => s.Name == "SomeSequence"));
+                Assert.Single(dbModel.Sequences, s => s.Name == "SomeSequence");
             },
             """
 DROP TABLE "NonSerialSequence";

@@ -43,6 +43,8 @@ public class GearsOfWarQueryNpgsqlFixture : GearsOfWarQueryRelationalFixture
             {
                 mission.Timeline = new DateTimeOffset(
                     mission.Timeline.Ticks - (mission.Timeline.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
+                mission.Duration = new TimeSpan(
+                    mission.Duration.Ticks - (mission.Duration.Ticks % (TimeSpan.TicksPerMillisecond / 1000)));
             }
         }
 
@@ -70,6 +72,8 @@ public class GearsOfWarQueryNpgsqlFixture : GearsOfWarQueryRelationalFixture
         {
             mission.Timeline = new DateTimeOffset(
                 mission.Timeline.Ticks - (mission.Timeline.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
+            mission.Duration = new TimeSpan(
+                mission.Duration.Ticks - (mission.Duration.Ticks % (TimeSpan.TicksPerMillisecond / 1000)));
         }
 
         GearsOfWarData.WireUp(

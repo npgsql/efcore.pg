@@ -266,6 +266,36 @@ LIMIT 2
         public TimeSpan Interval { get; set; }
     }
 
+    #region 34960
+
+    // These tests use a model with a non-UTC DateTime, which isn't supported in PG's timestamp with time zone
+
+    public override Task Project_entity_with_json_null_values()
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_entity_with_json_null_values());
+
+    public override Task Try_project_collection_but_JSON_is_entity()
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Try_project_collection_but_JSON_is_entity());
+
+    public override Task Try_project_reference_but_JSON_is_collection()
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Try_project_reference_but_JSON_is_collection());
+
+    #endregion 34960
+
+    #region 34293
+
+    // These tests use a model with a non-UTC DateTime, which isn't supported in PG's timestamp with time zone
+
+    public override Task Project_entity_with_optional_json_entity_owned_by_required_json()
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_entity_with_optional_json_entity_owned_by_required_json());
+
+    public override Task Project_required_json_entity()
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_required_json_entity());
+
+    public override Task Project_optional_json_entity_owned_by_required_json_entity()
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_optional_json_entity_owned_by_required_json_entity());
+
+    #endregion 34293
+
     protected void AssertSql(params string[] expected)
         => TestSqlLoggerFactory.AssertBaseline(expected);
 }
