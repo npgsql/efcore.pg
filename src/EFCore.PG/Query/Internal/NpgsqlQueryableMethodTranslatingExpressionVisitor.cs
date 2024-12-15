@@ -1096,46 +1096,18 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected override bool IsValidSelectExpressionForExecuteDelete(
-        SelectExpression selectExpression,
-        StructuralTypeShaperExpression shaper,
-        [NotNullWhen(true)] out TableExpression? tableExpression)
-    {
+    protected override bool IsValidSelectExpressionForExecuteDelete(SelectExpression selectExpression)
         // The default relational behavior is to allow only single-table expressions, and the only permitted feature is a predicate.
         // Here we extend this to also inner joins to tables, which we generate via the PostgreSQL-specific USING construct.
-        if (selectExpression is
-            {
-                Orderings: [],
-                Offset: null,
-                Limit: null,
-                GroupBy: [],
-                Having: null
-            })
+        => selectExpression is
         {
-            TableExpressionBase? table = null;
-            if (selectExpression.Tables.Count == 1)
-            {
-                table = selectExpression.Tables[0];
-            }
-            else if (selectExpression.Tables.All(t => t is TableExpression or InnerJoinExpression))
-            {
-                var projectionBindingExpression = (ProjectionBindingExpression)shaper.ValueBufferExpression;
-                var entityProjectionExpression =
-                    (StructuralTypeProjectionExpression)selectExpression.GetProjection(projectionBindingExpression);
-                var column = entityProjectionExpression.BindProperty(shaper.StructuralType.GetProperties().First());
-                table = selectExpression.Tables.Select(t => t.UnwrapJoin()).Single(t => t.Alias == column.TableAlias);
-            }
-
-            if (table is TableExpression te)
-            {
-                tableExpression = te;
-                return true;
-            }
+            Orderings: [],
+            Offset: null,
+            Limit: null,
+            GroupBy: [],
+            Having: null
         }
-
-        tableExpression = null;
-        return false;
-    }
+        && selectExpression.Tables[0] is TableExpression && selectExpression.Tables.Skip(1).All(t => t is InnerJoinExpression);
 
     // PostgreSQL unnest is guaranteed to return output rows in the same order as its input array,
     // https://www.postgresql.org/docs/current/functions-array.html.

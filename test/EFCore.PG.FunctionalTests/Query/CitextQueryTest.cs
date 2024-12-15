@@ -44,11 +44,11 @@ LIMIT 2
         Assert.Equal(1, result.Id);
         AssertSql(
             """
-@__param_0_startswith='some%'
+@param_startswith='some%'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" LIKE @__param_0_startswith
+WHERE s."CaseInsensitiveText" LIKE @param_startswith
 LIMIT 2
 """);
     }
@@ -63,11 +63,11 @@ LIMIT 2
         Assert.Equal(1, result.Id);
         AssertSql(
             """
-@__param_0='SomeTextWithExtraStuff'
+@param='SomeTextWithExtraStuff'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" IS NOT NULL AND left(@__param_0, length(s."CaseInsensitiveText"))::citext = s."CaseInsensitiveText"
+WHERE s."CaseInsensitiveText" IS NOT NULL AND left(@param, length(s."CaseInsensitiveText"))::citext = s."CaseInsensitiveText"
 LIMIT 2
 """);
     }
@@ -98,11 +98,11 @@ LIMIT 2
         Assert.Equal(1, result.Id);
         AssertSql(
             """
-@__param_0_endswith='%sometext'
+@param_endswith='%sometext'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" LIKE @__param_0_endswith
+WHERE s."CaseInsensitiveText" LIKE @param_endswith
 LIMIT 2
 """);
     }
@@ -117,11 +117,11 @@ LIMIT 2
         Assert.Equal(1, result.Id);
         AssertSql(
             """
-@__param_0='ExtraStuffThenSomeText'
+@param='ExtraStuffThenSomeText'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" IS NOT NULL AND right(@__param_0, length(s."CaseInsensitiveText"))::citext = s."CaseInsensitiveText"
+WHERE s."CaseInsensitiveText" IS NOT NULL AND right(@param, length(s."CaseInsensitiveText"))::citext = s."CaseInsensitiveText"
 LIMIT 2
 """);
     }
@@ -152,11 +152,11 @@ LIMIT 2
         Assert.Equal(1, result.Id);
         AssertSql(
             """
-@__param_0_contains='%ometex%'
+@param_contains='%ometex%'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" LIKE @__param_0_contains
+WHERE s."CaseInsensitiveText" LIKE @param_contains
 LIMIT 2
 """);
     }
@@ -171,11 +171,11 @@ LIMIT 2
         Assert.Equal(1, result.Id);
         AssertSql(
             """
-@__param_0='ExtraSometextExtra'
+@param='ExtraSometextExtra'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" IS NOT NULL AND strpos(@__param_0, s."CaseInsensitiveText") > 0
+WHERE s."CaseInsensitiveText" IS NOT NULL AND strpos(@param, s."CaseInsensitiveText") > 0
 LIMIT 2
 """);
     }
@@ -206,11 +206,11 @@ LIMIT 2
         Assert.Equal(1, result.Id);
         AssertSql(
             """
-@__param_0='ometex'
+@param='ometex'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE strpos(s."CaseInsensitiveText", @__param_0) - 1 = 1
+WHERE strpos(s."CaseInsensitiveText", @param) - 1 = 1
 LIMIT 2
 """);
     }
@@ -225,11 +225,11 @@ LIMIT 2
         Assert.Equal(1, result.Id);
         AssertSql(
             """
-@__param_0='ExtraSometextExtra'
+@param='ExtraSometextExtra'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE strpos(@__param_0, s."CaseInsensitiveText") - 1 = 5
+WHERE strpos(@param, s."CaseInsensitiveText") - 1 = 5
 LIMIT 2
 """);
     }
@@ -260,11 +260,11 @@ LIMIT 2
         Assert.Equal(1, result.Id);
         AssertSql(
             """
-@__param_0='Te'
+@param='Te'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE replace(s."CaseInsensitiveText", @__param_0, 'Ne') = 'SomeNext'
+WHERE replace(s."CaseInsensitiveText", @param, 'Ne') = 'SomeNext'
 LIMIT 2
 """);
     }
@@ -279,11 +279,11 @@ LIMIT 2
         Assert.Equal(1, result.Id);
         AssertSql(
             """
-@__param_0='ExtraSometextExtra'
+@param='ExtraSometextExtra'
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE replace(@__param_0, s."CaseInsensitiveText", 'NewStuff') = 'ExtraNewStuffExtra'
+WHERE replace(@param, s."CaseInsensitiveText", 'NewStuff') = 'ExtraNewStuffExtra'
 LIMIT 2
 """);
     }

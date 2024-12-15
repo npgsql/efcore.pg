@@ -76,11 +76,11 @@ WHERE s."SchemaQualifiedEnum" = 'Happy (PgName)'::test.schema_qualified_enum
 
         AssertSql(
             """
-@__sad_0='Sad' (DbType = Object)
+@sad='Sad' (DbType = Object)
 
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
-WHERE s."MappedEnum" = @__sad_0
+WHERE s."MappedEnum" = @sad
 """);
     }
 
@@ -97,11 +97,11 @@ WHERE s."MappedEnum" = @__sad_0
 
         AssertSql(
             """
-@__sad_0='1'
+@sad='1'
 
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
-WHERE s."UnmappedEnum" = @__sad_0
+WHERE s."UnmappedEnum" = @sad
 """);
     }
 
@@ -118,11 +118,11 @@ WHERE s."UnmappedEnum" = @__sad_0
 
         AssertSql(
             """
-@__sad_0='1'
+@sad='1'
 
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
-WHERE s."UnmappedEnum" = @__sad_0
+WHERE s."UnmappedEnum" = @sad
 """);
     }
 
@@ -139,11 +139,11 @@ WHERE s."UnmappedEnum" = @__sad_0
 
         AssertSql(
             """
-@__sad_0='Sad' (DbType = Object)
+@sad='Sad' (DbType = Object)
 
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
-WHERE s."MappedEnum" = @__sad_0
+WHERE s."MappedEnum" = @sad
 """);
     }
 
@@ -179,11 +179,11 @@ WHERE s."MappedEnum"::text LIKE '%sa%'
 
         AssertSql(
             """
-@__values_0='0x01' (DbType = Object)
+@values='0x01' (DbType = Object)
 
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
-WHERE s."ByteEnum" = ANY (@__values_0)
+WHERE s."ByteEnum" = ANY (@values)
 """);
     }
 
@@ -200,11 +200,11 @@ WHERE s."ByteEnum" = ANY (@__values_0)
 
         AssertSql(
             """
-@__values_0='0x01' (DbType = Object)
+@values='0x01' (DbType = Object)
 
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
 FROM test."SomeEntities" AS s
-WHERE s."UnmappedByteEnum" = ANY (@__values_0)
+WHERE s."UnmappedByteEnum" = ANY (@values)
 """);
     }
 

@@ -113,10 +113,10 @@ FROM "PolygonEntity" AS p
 
         AssertSql(
             $"""
-@__point_1='POINT (0 1)' (DbType = Object)
-@__useSpheroid_2='{useSpheroid}'
+@point='POINT (0 1)' (DbType = Object)
+@useSpheroid='{useSpheroid}'
 
-SELECT p."Id", ST_Distance(p."Point", @__point_1, @__useSpheroid_2) AS "Distance"
+SELECT p."Id", ST_Distance(p."Point", @point, @useSpheroid) AS "Distance"
 FROM "PointEntity" AS p
 """);
     }
@@ -141,9 +141,9 @@ FROM "PointEntity" AS p
 
         AssertSql(
             """
-@__point_1='POINT (0 1)' (DbType = Object)
+@point='POINT (0 1)' (DbType = Object)
 
-SELECT p."Id", p."Point" <-> @__point_1 AS "Distance"
+SELECT p."Id", p."Point" <-> @point AS "Distance"
 FROM "PointEntity" AS p
 """);
     }
@@ -173,9 +173,9 @@ FROM "PointEntity" AS p
 
         AssertSql(
             """
-@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
+@polygon='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
 
-SELECT p."Id", ST_Intersection(p."Polygon", @__polygon_0) AS "Intersection"
+SELECT p."Id", ST_Intersection(p."Polygon", @polygon) AS "Intersection"
 FROM "PolygonEntity" AS p
 """);
     }
@@ -186,9 +186,9 @@ FROM "PolygonEntity" AS p
 
         AssertSql(
             """
-@__lineString_0='LINESTRING (0.5 -0.5, 0.5 0.5)' (DbType = Object)
+@lineString='LINESTRING (0.5 -0.5, 0.5 0.5)' (DbType = Object)
 
-SELECT l."Id", ST_Intersects(l."LineString", @__lineString_0) AS "Intersects"
+SELECT l."Id", ST_Intersects(l."LineString", @lineString) AS "Intersects"
 FROM "LineStringEntity" AS l
 """);
     }
@@ -199,9 +199,9 @@ FROM "LineStringEntity" AS l
 
         AssertSql(
             """
-@__point_0='POINT (0 1)' (DbType = Object)
+@point='POINT (0 1)' (DbType = Object)
 
-SELECT p."Id", ST_DWithin(p."Point", @__point_0, 1.0) AS "IsWithinDistance"
+SELECT p."Id", ST_DWithin(p."Point", @point, 1.0) AS "IsWithinDistance"
 FROM "PointEntity" AS p
 """);
     }
@@ -235,10 +235,10 @@ FROM "PointEntity" AS p
 
         AssertSql(
             $"""
-@__point_1='POINT (0 1)' (DbType = Object)
-@__useSpheroid_2='{useSpheroid}'
+@point='POINT (0 1)' (DbType = Object)
+@useSpheroid='{useSpheroid}'
 
-SELECT p."Id", ST_DWithin(p."Point", @__point_1, 1.0, @__useSpheroid_2) AS "IsWithinDistance"
+SELECT p."Id", ST_DWithin(p."Point", @point, 1.0, @useSpheroid) AS "IsWithinDistance"
 FROM "PointEntity" AS p
 """);
     }

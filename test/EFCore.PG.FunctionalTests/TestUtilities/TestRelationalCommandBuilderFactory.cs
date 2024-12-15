@@ -51,6 +51,13 @@ public class TestRelationalCommandBuilderFactory(RelationalCommandBuilderDepende
             return this;
         }
 
+        public IRelationalCommandBuilder Append(FormattableString value)
+        {
+            Instance.Append(value);
+
+            return this;
+        }
+
         public IRelationalCommandBuilder AppendLine()
         {
             Instance.AppendLine();

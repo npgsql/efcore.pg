@@ -41,12 +41,12 @@ public class NetworkQueryNpgsqlTest : IClassFixture<NetworkQueryNpgsqlTest.Netwo
 
         AssertSql(
             """
-@__cidr_2='0.0.0.0/0' (DbType = Object)
-@__p_1='0.0.0.0/0' (DbType = Object)
+@cidr='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Cidr" = @__cidr_2
+SELECT n."Cidr" = @cidr
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" >>= @__p_1
+WHERE n."Cidr" >>= @p
 """);
     }
 
@@ -164,11 +164,11 @@ WHERE n."Inet" < INET '192.168.1.7'
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" < @__p_1
+WHERE n."Cidr" < @p
 """);
     }
 
@@ -229,11 +229,11 @@ WHERE n."Inet" <= INET '192.168.1.7'
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" <= @__p_1
+WHERE n."Cidr" <= @p
 """);
     }
 
@@ -295,11 +295,11 @@ WHERE n."Inet" >= INET '192.168.1.7'
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" >= @__p_1
+WHERE n."Cidr" >= @p
 """);
     }
 
@@ -362,11 +362,11 @@ WHERE n."Inet" > INET '192.168.1.7'
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" > @__p_1
+WHERE n."Cidr" > @p
 """);
     }
 
@@ -417,11 +417,11 @@ WHERE n."Macaddr8" > MACADDR8 '08002B0102030407'
 
         AssertSql(
             """
-@__p_1='0.0.0.0' (DbType = Object)
+@p='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Inet" << @__p_1
+WHERE n."Inet" << @p
 """);
     }
 
@@ -436,11 +436,11 @@ WHERE n."Inet" << @__p_1
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Inet" << @__p_1
+WHERE n."Inet" << @p
 """);
     }
 
@@ -455,11 +455,11 @@ WHERE n."Inet" << @__p_1
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" << @__p_1
+WHERE n."Cidr" << @p
 """);
     }
 
@@ -474,11 +474,11 @@ WHERE n."Cidr" << @__p_1
 
         AssertSql(
             """
-@__p_1='0.0.0.0' (DbType = Object)
+@p='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Inet" <<= @__p_1
+WHERE n."Inet" <<= @p
 """);
     }
 
@@ -493,11 +493,11 @@ WHERE n."Inet" <<= @__p_1
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Inet" <<= @__p_1
+WHERE n."Inet" <<= @p
 """);
     }
 
@@ -512,11 +512,11 @@ WHERE n."Inet" <<= @__p_1
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" <<= @__p_1
+WHERE n."Cidr" <<= @p
 """);
     }
 
@@ -531,11 +531,11 @@ WHERE n."Cidr" <<= @__p_1
 
         AssertSql(
             """
-@__p_1='0.0.0.0' (DbType = Object)
+@p='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Inet" >> @__p_1
+WHERE n."Inet" >> @p
 """);
     }
 
@@ -550,11 +550,11 @@ WHERE n."Inet" >> @__p_1
 
         AssertSql(
             """
-@__p_1='0.0.0.0' (DbType = Object)
+@p='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" >> @__p_1
+WHERE n."Cidr" >> @p
 """);
     }
 
@@ -569,11 +569,11 @@ WHERE n."Cidr" >> @__p_1
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" >> @__p_1
+WHERE n."Cidr" >> @p
 """);
     }
 
@@ -588,11 +588,11 @@ WHERE n."Cidr" >> @__p_1
 
         AssertSql(
             """
-@__p_1='0.0.0.0' (DbType = Object)
+@p='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Inet" >>= @__p_1
+WHERE n."Inet" >>= @p
 """);
     }
 
@@ -607,11 +607,11 @@ WHERE n."Inet" >>= @__p_1
 
         AssertSql(
             """
-@__p_1='0.0.0.0' (DbType = Object)
+@p='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" >>= @__p_1
+WHERE n."Cidr" >>= @p
 """);
     }
 
@@ -626,11 +626,11 @@ WHERE n."Cidr" >>= @__p_1
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" >>= @__p_1
+WHERE n."Cidr" >>= @p
 """);
     }
 
@@ -645,11 +645,11 @@ WHERE n."Cidr" >>= @__p_1
 
         AssertSql(
             """
-@__p_1='0.0.0.0' (DbType = Object)
+@p='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Inet" && @__p_1
+WHERE n."Inet" && @p
 """);
     }
 
@@ -664,11 +664,11 @@ WHERE n."Inet" && @__p_1
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Inet" && @__p_1
+WHERE n."Inet" && @p
 """);
     }
 
@@ -683,11 +683,11 @@ WHERE n."Inet" && @__p_1
 
         AssertSql(
             """
-@__p_1='0.0.0.0' (DbType = Object)
+@p='0.0.0.0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" && @__p_1
+WHERE n."Cidr" && @p
 """);
     }
 
@@ -702,11 +702,11 @@ WHERE n."Cidr" && @__p_1
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
 SELECT n."Id", n."Cidr", n."Inet", n."Macaddr", n."Macaddr8", n."TextInet", n."TextMacaddr"
 FROM "NetTestEntities" AS n
-WHERE n."Cidr" && @__p_1
+WHERE n."Cidr" && @p
 """);
     }
 
@@ -785,11 +785,11 @@ FROM "NetTestEntities" AS n
         Assert.Equal(0, count);
         AssertSql(
             """
-@__p_1='0.0.0.0' (DbType = Object)
+@p='0.0.0.0' (DbType = Object)
 
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
-WHERE n."Inet" = n."Inet" & @__p_1 OR n."Inet" IS NULL
+WHERE n."Inet" = n."Inet" & @p OR n."Inet" IS NULL
 """);
     }
 
@@ -804,9 +804,9 @@ WHERE n."Inet" = n."Inet" & @__p_1 OR n."Inet" IS NULL
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Cidr" & @__p_1
+SELECT n."Cidr" & @p
 FROM "NetTestEntities" AS n
 """);
     }
@@ -822,9 +822,9 @@ FROM "NetTestEntities" AS n
 
         AssertSql(
             """
-@__macaddr_1='000000000000' (DbType = Object)
+@macaddr='000000000000' (DbType = Object)
 
-SELECT n."Macaddr" & @__macaddr_1
+SELECT n."Macaddr" & @macaddr
 FROM "NetTestEntities" AS n
 """);
     }
@@ -856,9 +856,9 @@ FROM "NetTestEntities" AS n
 
         AssertSql(
             """
-@__p_1='0.0.0.0' (DbType = Object)
+@p='0.0.0.0' (DbType = Object)
 
-SELECT n."Inet" | @__p_1
+SELECT n."Inet" | @p
 FROM "NetTestEntities" AS n
 """);
     }
@@ -874,9 +874,9 @@ FROM "NetTestEntities" AS n
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Cidr" | @__p_1
+SELECT n."Cidr" | @p
 FROM "NetTestEntities" AS n
 """);
     }
@@ -892,9 +892,9 @@ FROM "NetTestEntities" AS n
 
         AssertSql(
             """
-@__macaddr_1='000000000000' (DbType = Object)
+@macaddr='000000000000' (DbType = Object)
 
-SELECT n."Macaddr" | @__macaddr_1
+SELECT n."Macaddr" | @macaddr
 FROM "NetTestEntities" AS n
 """);
     }
@@ -992,9 +992,9 @@ FROM "NetTestEntities" AS n
 
         AssertSql(
             """
-@__p_1='0.0.0.0' (DbType = Object)
+@p='0.0.0.0' (DbType = Object)
 
-SELECT n."Inet" - @__p_1
+SELECT n."Inet" - @p
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1010,9 +1010,9 @@ FROM "NetTestEntities" AS n
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
-SELECT n."Cidr" - @__p_1
+SELECT n."Cidr" - @p
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1332,9 +1332,9 @@ FROM "NetTestEntities" AS n
 
         AssertSql(
             """
-@__p_1='0.0.0.0' (DbType = Object)
+@p='0.0.0.0' (DbType = Object)
 
-SELECT inet_same_family(n."Inet", @__p_1)
+SELECT inet_same_family(n."Inet", @p)
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1350,9 +1350,9 @@ FROM "NetTestEntities" AS n
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
-SELECT inet_same_family(n."Cidr", @__p_1)
+SELECT inet_same_family(n."Cidr", @p)
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1368,9 +1368,9 @@ FROM "NetTestEntities" AS n
 
         AssertSql(
             """
-@__p_1='0.0.0.0' (DbType = Object)
+@p='0.0.0.0' (DbType = Object)
 
-SELECT inet_merge(n."Inet", @__p_1)
+SELECT inet_merge(n."Inet", @p)
 FROM "NetTestEntities" AS n
 """);
     }
@@ -1386,9 +1386,9 @@ FROM "NetTestEntities" AS n
 
         AssertSql(
             """
-@__p_1='0.0.0.0/0' (DbType = Object)
+@p='0.0.0.0/0' (DbType = Object)
 
-SELECT inet_merge(n."Cidr", @__p_1)
+SELECT inet_merge(n."Cidr", @p)
 FROM "NetTestEntities" AS n
 """);
     }

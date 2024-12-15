@@ -378,7 +378,7 @@ WHERE (CAST(j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,Fraction}' AS nume
 
         AssertSql(
             """
-@__p_0='3'
+@p='3'
 
 SELECT length(j1.c)::int
 FROM (
@@ -387,7 +387,7 @@ FROM (
         SELECT j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,OwnedReferenceLeaf,SomethingSomething}' AS c
         FROM "JsonEntitiesBasic" AS j
         ORDER BY j."Id" NULLS FIRST
-        LIMIT @__p_0
+        LIMIT @p
     ) AS j0
 ) AS j1
 """);
@@ -399,7 +399,7 @@ FROM (
 
         AssertSql(
             """
-@__p_0='10'
+@p='10'
 
 SELECT j1.c -> 'OwnedReferenceBranch', j1."Id"
 FROM (
@@ -408,7 +408,7 @@ FROM (
         SELECT j."OwnedReferenceRoot" AS c, j."Id"
         FROM "JsonEntitiesBasic" AS j
         ORDER BY j."Id" NULLS FIRST
-        LIMIT @__p_0
+        LIMIT @p
     ) AS j0
 ) AS j1
 """);
@@ -467,7 +467,7 @@ FROM (
 
         AssertSql(
             """
-@__p_0='10'
+@p='10'
 
 SELECT j3.c -> 'OwnedReferenceLeaf', j3."Id"
 FROM (
@@ -480,11 +480,11 @@ FROM (
                 SELECT j."OwnedReferenceRoot" AS c, j."Id"
                 FROM "JsonEntitiesBasic" AS j
                 ORDER BY j."Id" NULLS FIRST
-                LIMIT @__p_0
+                LIMIT @p
             ) AS j0
         ) AS j1
         ORDER BY j1.c0 ->> 'Name' NULLS FIRST
-        LIMIT @__p_0
+        LIMIT @p
     ) AS j2
 ) AS j3
 """);
@@ -496,7 +496,7 @@ FROM (
 
         AssertSql(
             """
-@__p_0='10'
+@p='10'
 
 SELECT j3.c -> 'OwnedCollectionLeaf', j3."Id"
 FROM (
@@ -509,11 +509,11 @@ FROM (
                 SELECT j."OwnedReferenceRoot" AS c, j."Id"
                 FROM "JsonEntitiesBasic" AS j
                 ORDER BY j."Id" NULLS FIRST
-                LIMIT @__p_0
+                LIMIT @p
             ) AS j0
         ) AS j1
         ORDER BY j1.c0 ->> 'Name' NULLS FIRST
-        LIMIT @__p_0
+        LIMIT @p
     ) AS j2
 ) AS j3
 """);
@@ -525,7 +525,7 @@ FROM (
 
         AssertSql(
             """
-@__p_0='10'
+@p='10'
 
 SELECT j1.c ->> 'SomethingSomething'
 FROM (
@@ -534,7 +534,7 @@ FROM (
         SELECT j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}' AS c, j."Id"
         FROM "JsonEntitiesBasic" AS j
         ORDER BY j."Id" NULLS FIRST
-        LIMIT @__p_0
+        LIMIT @p
     ) AS j0
 ) AS j1
 """);
@@ -877,9 +877,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='0'
+@prm='0'
 
-SELECT j."OwnedCollectionRoot" -> @__prm_0, j."Id", @__prm_0
+SELECT j."OwnedCollectionRoot" -> @prm, j."Id", @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -959,9 +959,9 @@ ORDER BY j."Id" NULLS FIRST
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@__prm_0]::text[], j."Id", @__prm_0
+SELECT j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@prm]::text[], j."Id", @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -972,9 +972,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT CAST(j."OwnedCollectionRoot" #>> ARRAY[0,'OwnedCollectionBranch',@__prm_0,'Date']::text[] AS timestamp without time zone)
+SELECT CAST(j."OwnedCollectionRoot" #>> ARRAY[0,'OwnedCollectionBranch',@prm,'Date']::text[] AS timestamp without time zone)
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -985,9 +985,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@__prm_0,'OwnedReferenceLeaf']::text[], j."Id", @__prm_0
+SELECT j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@prm,'OwnedReferenceLeaf']::text[], j."Id", @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -998,9 +998,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@__prm_0,'OwnedCollectionLeaf']::text[], j."Id", @__prm_0
+SELECT j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@prm,'OwnedCollectionLeaf']::text[], j."Id", @prm
 FROM "JsonEntitiesBasic" AS j
 ORDER BY j."Id" NULLS FIRST
 """);
@@ -1012,9 +1012,9 @@ ORDER BY j."Id" NULLS FIRST
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@__prm_0,'OwnedCollectionLeaf']::text[], @__prm_0
+SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@prm,'OwnedCollectionLeaf']::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1037,11 +1037,11 @@ WHERE (j."OwnedCollectionRoot" #>> '{0,Name}') <> 'Foo' OR (j."OwnedCollectionRo
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
 SELECT j."Id"
 FROM "JsonEntitiesBasic" AS j
-WHERE (j."OwnedCollectionRoot" #>> ARRAY[@__prm_0,'Name']::text[]) <> 'Foo' OR (j."OwnedCollectionRoot" #>> ARRAY[@__prm_0,'Name']::text[]) IS NULL
+WHERE (j."OwnedCollectionRoot" #>> ARRAY[@prm,'Name']::text[]) <> 'Foo' OR (j."OwnedCollectionRoot" #>> ARRAY[@prm,'Name']::text[]) IS NULL
 """);
     }
 
@@ -1104,11 +1104,11 @@ WHERE (j."OwnedCollectionRoot" #>> '{1,Name}') <> 'Foo' OR (j."OwnedCollectionRo
 
         AssertSql(
             """
-@__prm_0='0'
+@prm='0'
 
 SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
 FROM "JsonEntitiesBasic" AS j
-WHERE (j."OwnedCollectionRoot" #>> ARRAY[1,'OwnedCollectionBranch',@__prm_0,'OwnedCollectionLeaf',j."Id" - 1,'SomethingSomething']::text[]) = 'e1_c2_c1_c1'
+WHERE (j."OwnedCollectionRoot" #>> ARRAY[1,'OwnedCollectionBranch',@prm,'OwnedCollectionLeaf',j."Id" - 1,'SomethingSomething']::text[]) = 'e1_c2_c1_c1'
 """);
     }
 
@@ -1749,11 +1749,11 @@ WHERE 'e1_r1' = ANY ((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elemen
 
         AssertSql(
             """
-@__prm_0='0'
+@prm='0'
 
 SELECT j."Id", (
     SELECT 'Foo'
-    FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedCollectionBranch']::text[]) AS (
+    FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedCollectionBranch']::text[]) AS (
         "Date" timestamp without time zone,
         "Enum" integer,
         "Enums" integer[],
@@ -1775,9 +1775,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='0'
+@prm='0'
 
-SELECT j."OwnedCollectionRoot" #>> ARRAY[@__prm_0 + j."Id",'OwnedCollectionBranch',0,'OwnedReferenceLeaf','SomethingSomething']::text[]
+SELECT j."OwnedCollectionRoot" #>> ARRAY[@prm + j."Id",'OwnedCollectionBranch',0,'OwnedReferenceLeaf','SomethingSomething']::text[]
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1862,9 +1862,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,1}', j."OwnedReferenceRoot", j."OwnedReferenceRoot" #> ARRAY['OwnedReferenceBranch','OwnedCollectionLeaf',@__prm_0]::text[], @__prm_0
+SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,1}', j."OwnedReferenceRoot", j."OwnedReferenceRoot" #> ARRAY['OwnedReferenceBranch','OwnedCollectionLeaf',@prm]::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1875,9 +1875,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',0,'OwnedCollectionLeaf',@__prm_0]::text[], j."Id", @__prm_0, j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',@__prm_0]::text[], j."OwnedReferenceRoot" -> 'OwnedCollectionBranch', j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0}'
+SELECT j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',0,'OwnedCollectionLeaf',@prm]::text[], j."Id", @prm, j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',@prm]::text[], j."OwnedReferenceRoot" -> 'OwnedCollectionBranch', j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0}'
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1910,9 +1910,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" -> @__prm_0, @__prm_0
+SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" -> @prm, @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1923,9 +1923,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."OwnedCollectionRoot" -> @__prm_0, @__prm_0
+SELECT j."Id", j."OwnedCollectionRoot" -> @prm, @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1958,9 +1958,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedCollectionBranch']::text[], @__prm_0
+SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedCollectionBranch']::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1971,9 +1971,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedCollectionBranch']::text[], @__prm_0
+SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedCollectionBranch']::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1984,9 +1984,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" #> ARRAY[1,'OwnedCollectionBranch',@__prm_0]::text[], @__prm_0
+SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" #> ARRAY[1,'OwnedCollectionBranch',@prm]::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1997,9 +1997,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[1,'OwnedCollectionBranch',@__prm_0]::text[], @__prm_0
+SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[1,'OwnedCollectionBranch',@prm]::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -2032,9 +2032,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedCollectionBranch',1]::text[], @__prm_0, j."OwnedCollectionRoot" #> '{1,OwnedCollectionBranch,1,OwnedReferenceLeaf}', j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedCollectionBranch',j."Id"]::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',1,'OwnedReferenceLeaf']::text[], j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',j."Id"]::text[]
+SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedCollectionBranch',1]::text[], @prm, j."OwnedCollectionRoot" #> '{1,OwnedCollectionBranch,1,OwnedReferenceLeaf}', j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedCollectionBranch',j."Id"]::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',1,'OwnedReferenceLeaf']::text[], j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',j."Id"]::text[]
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -2045,9 +2045,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedCollectionBranch',1]::text[], @__prm_0, j."OwnedCollectionRoot" #> '{1,OwnedCollectionBranch,1,OwnedReferenceLeaf}', j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedCollectionBranch',j."Id"]::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',1,'OwnedReferenceLeaf']::text[], j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',j."Id"]::text[]
+SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedCollectionBranch',1]::text[], @prm, j."OwnedCollectionRoot" #> '{1,OwnedCollectionBranch,1,OwnedReferenceLeaf}', j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedCollectionBranch',j."Id"]::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',1,'OwnedReferenceLeaf']::text[], j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',j."Id"]::text[]
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -3293,9 +3293,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0,OwnedCollectionLeaf}', j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',0,'OwnedCollectionLeaf',@__prm_0]::text[], @__prm_0
+SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0,OwnedCollectionLeaf}', j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',0,'OwnedCollectionLeaf',@prm]::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -3321,10 +3321,10 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm1_0='0'
-@__prm2_1='1'
+@prm1='0'
+@prm2='1'
 
-SELECT j."Id", j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',@__prm1_0,'OwnedCollectionLeaf',@__prm2_1]::text[], @__prm1_0, @__prm2_1
+SELECT j."Id", j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',@prm1,'OwnedCollectionLeaf',@prm2]::text[], @prm1, @prm2
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -3357,9 +3357,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='0'
+@prm='0'
 
-SELECT j."Id", j."OwnedReferenceRoot", j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',@__prm_0,'OwnedCollectionLeaf',1]::text[], @__prm_0
+SELECT j."Id", j."OwnedReferenceRoot", j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',@prm,'OwnedCollectionLeaf',1]::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
