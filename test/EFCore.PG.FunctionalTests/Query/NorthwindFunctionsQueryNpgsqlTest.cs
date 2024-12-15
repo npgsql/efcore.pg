@@ -292,9 +292,9 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            SELECT regexp_replace(c."CompanyName", '^A', 'B', 'p')
-            FROM "Customers" AS c
-            """
+SELECT regexp_replace(c."CompanyName", '^A', 'B', 'p')
+FROM "Customers" AS c
+"""
         );
     }
 
@@ -311,12 +311,12 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            @__pattern_0='^A'
-            @__replacement_1='B'
+@__pattern_0='^A'
+@__replacement_1='B'
 
-            SELECT regexp_replace(c."CompanyName", @__pattern_0, @__replacement_1, 'p')
-            FROM "Customers" AS c
-            """
+SELECT regexp_replace(c."CompanyName", @__pattern_0, @__replacement_1, 'p')
+FROM "Customers" AS c
+"""
         );
     }
 
@@ -330,9 +330,9 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            SELECT regexp_replace(c."CompanyName", '^A', 'B', 'p')
-            FROM "Customers" AS c
-            """
+SELECT regexp_replace(c."CompanyName", '^A', 'B', 'p')
+FROM "Customers" AS c
+"""
         );
     }
 
@@ -346,9 +346,9 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            SELECT regexp_replace(c."CompanyName", '^a', 'B', 'pi')
-            FROM "Customers" AS c
-            """
+SELECT regexp_replace(c."CompanyName", '^a', 'B', 'pi')
+FROM "Customers" AS c
+"""
         );
     }
 
@@ -362,9 +362,9 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            SELECT regexp_replace(c."CompanyName", '^A', 'B', 'n')
-            FROM "Customers" AS c
-            """
+SELECT regexp_replace(c."CompanyName", '^A', 'B', 'n')
+FROM "Customers" AS c
+"""
         );
     }
 
@@ -378,9 +378,9 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            SELECT regexp_replace(c."CompanyName", '^A', 'B')
-            FROM "Customers" AS c
-            """
+SELECT regexp_replace(c."CompanyName", '^A', 'B')
+FROM "Customers" AS c
+"""
         );
     }
 
@@ -395,9 +395,9 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            SELECT regexp_replace(c."CompanyName", '^a', 'B', 'i')
-            FROM "Customers" AS c
-            """
+SELECT regexp_replace(c."CompanyName", '^a', 'B', 'i')
+FROM "Customers" AS c
+"""
         );
     }
 
@@ -411,9 +411,9 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            SELECT regexp_replace(c."CompanyName", '^ A', 'B', 'px')
-            FROM "Customers" AS c
-            """
+SELECT regexp_replace(c."CompanyName", '^ A', 'B', 'px')
+FROM "Customers" AS c
+"""
         );
     }
 
@@ -434,9 +434,9 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            SELECT regexp_count(c."CompanyName", '^A', 1, 'p')
-            FROM "Customers" AS c
-            """
+SELECT regexp_count(c."CompanyName", '^A', 1, 'p')
+FROM "Customers" AS c
+"""
         );
     }
 
@@ -453,11 +453,11 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            @__pattern_0='^A'
+@__pattern_0='^A'
 
-            SELECT regexp_count(c."CompanyName", @__pattern_0, 1, 'p')
-            FROM "Customers" AS c
-            """
+SELECT regexp_count(c."CompanyName", @__pattern_0, 1, 'p')
+FROM "Customers" AS c
+"""
         );
     }
 
@@ -472,9 +472,9 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            SELECT regexp_count(c."CompanyName", '^A', 1, 'p')
-            FROM "Customers" AS c
-            """
+SELECT regexp_count(c."CompanyName", '^A', 1, 'p')
+FROM "Customers" AS c
+"""
         );
     }
 
@@ -489,9 +489,9 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            SELECT regexp_count(c."CompanyName", '^a', 1, 'pi')
-            FROM "Customers" AS c
-            """
+SELECT regexp_count(c."CompanyName", '^a', 1, 'pi')
+FROM "Customers" AS c
+"""
         );
     }
 
@@ -506,9 +506,9 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            SELECT regexp_count(c."CompanyName", '^A', 1, 'n')
-            FROM "Customers" AS c
-            """
+SELECT regexp_count(c."CompanyName", '^A', 1, 'n')
+FROM "Customers" AS c
+"""
         );
     }
 
@@ -523,9 +523,9 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            SELECT regexp_count(c."CompanyName", '^A')
-            FROM "Customers" AS c
-            """
+SELECT regexp_count(c."CompanyName", '^A')
+FROM "Customers" AS c
+"""
         );
     }
 
@@ -540,9 +540,9 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            SELECT regexp_count(c."CompanyName", '^a', 1, 'i')
-            FROM "Customers" AS c
-            """
+SELECT regexp_count(c."CompanyName", '^a', 1, 'i')
+FROM "Customers" AS c
+"""
         );
     }
 
@@ -557,9 +557,9 @@ WHERE c."CompanyName" ~ '(?px)^ A'
 
         AssertSql(
             """
-            SELECT regexp_count(c."CompanyName", '^ A', 1, 'px')
-            FROM "Customers" AS c
-            """
+SELECT regexp_count(c."CompanyName", '^ A', 1, 'px')
+FROM "Customers" AS c
+"""
         );
     }
 
