@@ -991,10 +991,6 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             Sql.Append("'");
         }
 
-        // Sql.Append(")' || ");
-        // Visit(expression.Pattern);
-        // Sql.Append(")");
-
         return expression;
     }
 
