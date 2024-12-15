@@ -40,6 +40,8 @@ public class TPCGearsOfWarQueryNpgsqlFixture : TPCGearsOfWarQueryRelationalFixtu
             {
                 mission.Timeline = new DateTimeOffset(
                     mission.Timeline.Ticks - (mission.Timeline.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
+                mission.Duration = new TimeSpan(
+                    mission.Duration.Ticks - (mission.Duration.Ticks % (TimeSpan.TicksPerMillisecond / 1000)));
             }
         }
 
@@ -66,10 +68,10 @@ public class TPCGearsOfWarQueryNpgsqlFixture : TPCGearsOfWarQueryRelationalFixtu
 
         foreach (var mission in missions)
         {
-            // var newThing = new DateTimeOffset(orig.Ticks - (orig.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
-
             mission.Timeline = new DateTimeOffset(
                 mission.Timeline.Ticks - (mission.Timeline.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
+            mission.Duration = new TimeSpan(
+                mission.Duration.Ticks - (mission.Duration.Ticks % (TimeSpan.TicksPerMillisecond / 1000)));
         }
 
         GearsOfWarData.WireUp(

@@ -33,11 +33,11 @@ WHERE position(BYTEA E'\\x01' IN s."Banner") > 0
 
         AssertSql(
             """
-@__someByte_0='1' (DbType = Int16)
+@someByte='1' (DbType = Int16)
 
 SELECT s."Id", s."Banner", s."Banner5", s."InternalNumber", s."Name"
 FROM "Squads" AS s
-WHERE position(set_byte(BYTEA E'\\x00', 0, @__someByte_0) IN s."Banner") > 0
+WHERE position(set_byte(BYTEA E'\\x00', 0, @someByte) IN s."Banner") > 0
 """);
     }
 
@@ -71,11 +71,11 @@ WHERE length(s."Banner5") = 5
 
         AssertSql(
             """
-@__p_0='2'
+@p='2'
 
 SELECT s."Id", s."Banner", s."Banner5", s."InternalNumber", s."Name"
 FROM "Squads" AS s
-WHERE length(s."Banner") = @__p_0
+WHERE length(s."Banner") = @p
 """);
     }
 
@@ -85,11 +85,11 @@ WHERE length(s."Banner") = @__p_0
 
         AssertSql(
             """
-@__byteArrayParam='0x2A80'
+@byteArrayParam='0x2A80'
 
 SELECT count(*)::int
 FROM "Squads" AS s
-WHERE length(s."Banner") = length(@__byteArrayParam)
+WHERE length(s."Banner") = length(@byteArrayParam)
 """);
     }
 
@@ -161,11 +161,11 @@ WHERE date_part('hour', m."Timeline" AT TIME ZONE 'UTC')::int = 10
 
         AssertSql(
             """
-@__dateTimeOffset_Date_0='0002-03-01T00:00:00.0000000'
+@dateTimeOffset_Date='0002-03-01T00:00:00.0000000'
 
 SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamp >= @__dateTimeOffset_Date_0
+WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamp >= @dateTimeOffset_Date
 """);
     }
 
@@ -184,13 +184,13 @@ WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamp >= @__dateTi
 
         AssertSql(
             """
-@__start_0='1902-01-01T10:00:00.1234567+00:00' (DbType = DateTime)
-@__end_1='1902-01-03T10:00:00.1234567+00:00' (DbType = DateTime)
-@__dates_2={ '1902-01-02T10:00:00.1234567+00:00' } (DbType = Object)
+@start='1902-01-01T10:00:00.1234567+00:00' (DbType = DateTime)
+@end='1902-01-03T10:00:00.1234567+00:00' (DbType = DateTime)
+@dates={ '1902-01-02T10:00:00.1234567+00:00' } (DbType = Object)
 
 SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE @__start_0 <= date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamptz AND m."Timeline" < @__end_1 AND m."Timeline" = ANY (@__dates_2)
+WHERE @start <= date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamptz AND m."Timeline" < @end AND m."Timeline" = ANY (@dates)
 """);
     }
 
@@ -582,11 +582,11 @@ WHERE m."Date" + 3 = DATE '1990-11-13'
 
         AssertSql(
             """
-@__MinValue_0='01/01/0001' (DbType = Date)
+@MinValue='01/01/0001' (DbType = Date)
 
 SELECT m."Date" + 3
 FROM "Missions" AS m
-WHERE m."Date" <> @__MinValue_0
+WHERE m."Date" <> @MinValue
 """);
     }
 
@@ -603,11 +603,11 @@ WHERE m."Date" <> @__MinValue_0
 
         AssertSql(
             """
-@__MinValue_0='01/01/0001' (DbType = Date)
+@MinValue='01/01/0001' (DbType = Date)
 
 SELECT CAST(m."Date" + INTERVAL '3 months' AS date)
 FROM "Missions" AS m
-WHERE m."Date" <> @__MinValue_0
+WHERE m."Date" <> @MinValue
 """);
     }
 
@@ -624,11 +624,11 @@ WHERE m."Date" <> @__MinValue_0
 
         AssertSql(
             """
-@__MinValue_0='01/01/0001' (DbType = Date)
+@MinValue='01/01/0001' (DbType = Date)
 
 SELECT CAST(m."Date" + INTERVAL '3 years' AS date)
 FROM "Missions" AS m
-WHERE m."Date" <> @__MinValue_0
+WHERE m."Date" <> @MinValue
 """);
     }
 
@@ -786,6 +786,25 @@ WHERE m."Time"::interval = INTERVAL '15:30:10'
     }
 
     #endregion TimeOnly
+
+    // TODO: #3406
+    public override Task Where_datetimeoffset_microsecond_component(bool async)
+        => AssertTranslationFailed(() => base.Where_datetimeoffset_microsecond_component(async));
+
+    public override Task Where_datetimeoffset_nanosecond_component(bool async)
+        => AssertTranslationFailed(() => base.Where_datetimeoffset_nanosecond_component(async));
+
+    public override Task Where_timespan_microsecond_component(bool async)
+        => AssertTranslationFailed(() => base.Where_timespan_microsecond_component(async));
+
+    public override Task Where_timespan_nanosecond_component(bool async)
+        => AssertTranslationFailed(() => base.Where_timespan_nanosecond_component(async));
+
+    public override Task Where_timeonly_microsecond_component(bool async)
+        => AssertTranslationFailed(() => base.Where_timeonly_microsecond_component(async));
+
+    public override Task Where_timeonly_nanosecond_component(bool async)
+        => AssertTranslationFailed(() => base.Where_timeonly_nanosecond_component(async));
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

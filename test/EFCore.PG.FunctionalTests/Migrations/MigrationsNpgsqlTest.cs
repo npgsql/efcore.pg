@@ -1192,7 +1192,7 @@ ALTER TABLE "People" ALTER COLUMN "FirstName" SET DEFAULT '';
             model =>
             {
                 var table = Assert.Single(model.Tables);
-                var column = Assert.Single(table.Columns.Where(c => c.Name == "SomeColumn"));
+                var column = Assert.Single(table.Columns, c => c.Name == "SomeColumn");
                 if (AssertComments)
                 {
                     Assert.Equal("Some comment", column.Comment);
@@ -2301,8 +2301,8 @@ DROP SEQUENCE "People_Id_old_seq";
                 var table = Assert.Single(model.Tables);
                 var index = Assert.Single(table.Indexes);
                 var storageParameter = Assert.Single(
-                    index.GetAnnotations()
-                        .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal)));
+                    index.GetAnnotations(),
+                    a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal));
 
                 Assert.Equal(NpgsqlAnnotationNames.StorageParameterPrefix + "fillfactor", storageParameter.Name);
                 // Storage parameter values always get scaffolded as strings (PG storage is simply 'name=value')

@@ -94,8 +94,8 @@ WHERE a."Discriminator" = 'Kiwi'
 
         AssertSql(
             """
-@__p_1='3'
-@__p_0='0'
+@p0='3'
+@p='0'
 
 DELETE FROM "Animals" AS a
 WHERE a."Id" IN (
@@ -103,7 +103,7 @@ WHERE a."Id" IN (
     FROM "Animals" AS a0
     WHERE a0."Name" = 'Great spotted kiwi'
     ORDER BY a0."Name" NULLS FIRST
-    LIMIT @__p_1 OFFSET @__p_0
+    LIMIT @p0 OFFSET @p
 )
 """);
     }

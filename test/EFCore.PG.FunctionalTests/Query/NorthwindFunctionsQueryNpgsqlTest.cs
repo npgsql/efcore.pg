@@ -53,11 +53,11 @@ WHERE c."Region" IS NULL OR btrim(c."Region", E' \t\n\r') = ''
 
         AssertSql(
             """
-@__foo_0='foo'
+@foo='foo'
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE concat_ws('|', c."CompanyName", @__foo_0, '', 'bar') = 'Around the Horn|foo||bar'
+WHERE concat_ws('|', c."CompanyName", @foo, '', 'bar') = 'Around the Horn|foo||bar'
 """);
     }
 
@@ -140,11 +140,11 @@ WHERE c."CompanyName" ~ '(?p)^A'';foo'
 
         AssertSql(
             """
-@__pattern_0='^A'
+@pattern='^A'
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."CompanyName" ~ ('(?p)' || @__pattern_0)
+WHERE c."CompanyName" ~ ('(?p)' || @pattern)
 """);
     }
 
@@ -311,13 +311,12 @@ FROM "Customers" AS c
 
         AssertSql(
             """
-@__pattern_0='^A'
-@__replacement_1='B'
+@pattern='^A'
+@replacement='B'
 
-SELECT regexp_replace(c."CompanyName", @__pattern_0, @__replacement_1, 'p')
+SELECT regexp_replace(c."CompanyName", @pattern, @replacement, 'p')
 FROM "Customers" AS c
-"""
-        );
+""");
     }
 
     [Theory]
@@ -453,12 +452,11 @@ FROM "Customers" AS c
 
         AssertSql(
             """
-@__pattern_0='^A'
+@pattern='^A'
 
-SELECT regexp_count(c."CompanyName", @__pattern_0, 1, 'p')
+SELECT regexp_count(c."CompanyName", @pattern, 1, 'p')
 FROM "Customers" AS c
-"""
-        );
+""");
     }
 
     [ConditionalTheory]

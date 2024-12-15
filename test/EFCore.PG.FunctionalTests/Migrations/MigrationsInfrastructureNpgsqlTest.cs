@@ -7,22 +7,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
     public class MigrationsInfrastructureNpgsqlTest(MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture fixture)
         : MigrationsInfrastructureTestBase<MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture>(fixture)
     {
-        // TODO: Remove once we sync to https://github.com/dotnet/efcore/pull/35106
-        public override void Can_generate_no_migration_script()
-        {
-        }
-
-        // TODO: Remove once we sync to https://github.com/dotnet/efcore/pull/35106
-        public override void Can_generate_migration_from_initial_database_to_initial()
-        {
-        }
-
         public override void Can_get_active_provider()
         {
             base.Can_get_active_provider();
 
             Assert.Equal("Npgsql.EntityFrameworkCore.PostgreSQL", ActiveProvider);
         }
+
+        // See #3407
+        public override void Can_apply_two_migrations_in_transaction()
+            => Assert.ThrowsAny<Exception>(() => base.Can_apply_two_migrations_in_transaction());
+
+        // See #3407
+        public override Task Can_apply_two_migrations_in_transaction_async()
+            => Assert.ThrowsAnyAsync<Exception>(() => base.Can_apply_two_migrations_in_transaction_async());
+
+        // This tests uses Fixture.CreateEmptyContext(), which does not go through MigrationsInfrastructureNpgsqlFixture.CreateContext()
+        // and therefore does not set the PostgresVersion in the context options. As a result, we try to drop the database with
+        // WITH (FORCE), which is only supported starting with PG 13.
+        [MinimumPostgresVersion(13, 0)]
+        public override Task Can_generate_no_migration_script()
+            => base.Can_generate_no_migration_script();
 
         [ConditionalFact(Skip = "https://github.com/dotnet/efcore/issues/33056")]
         public override void Can_apply_all_migrations()
