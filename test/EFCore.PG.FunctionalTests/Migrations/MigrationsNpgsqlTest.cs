@@ -1147,7 +1147,8 @@ ALTER TABLE "People" ALTER COLUMN "FirstName" SET DEFAULT '';
                     e.Property<int>("Y");
                 }),
             builder => builder.Entity("People").Property<int>("Sum")
-                .HasComputedColumnSql("""
+                .HasComputedColumnSql(
+                    """
                     "X" + "Y"
                     """, stored: true),
             builder => builder.Entity("People").Property<int>("Sum"),
@@ -1671,7 +1672,8 @@ DROP SEQUENCE "People_Id_old_seq";
                 "People", b =>
                 {
                     b.Property<string>("Name");
-                    b.Property<string>("Name2").HasComputedColumnSql("""
+                    b.Property<string>("Name2").HasComputedColumnSql(
+                        """
                         "Name"
                         """, stored: true);
                 }),
@@ -1681,7 +1683,8 @@ DROP SEQUENCE "People_Id_old_seq";
             model =>
             {
                 var computedColumn = Assert.Single(Assert.Single(model.Tables).Columns, c => c.Name == "Name2");
-                Assert.Equal("""
+                Assert.Equal(
+                    """
                     "Name"
                     """, computedColumn.ComputedColumnSql);
                 Assert.Equal(NonDefaultCollation, computedColumn.Collation);
@@ -1938,7 +1941,8 @@ DROP SEQUENCE "People_Id_old_seq";
             _ => { },
             builder => builder.Entity("People").HasIndex("Name")
                 .IncludeProperties("FirstName", "LastName")
-                .HasFilter("""
+                .HasFilter(
+                    """
                     "Name" IS NOT NULL
                     """),
             model =>
@@ -2031,7 +2035,8 @@ DROP SEQUENCE "People_Id_old_seq";
             builder => builder.Entity("People").HasIndex("Name")
                 .IsUnique()
                 .IncludeProperties("FirstName", "LastName")
-                .HasFilter("""
+                .HasFilter(
+                    """
                     "Name" IS NOT NULL
                     """),
             model =>
@@ -2460,6 +2465,60 @@ ALTER TABLE "People" ADD CONSTRAINT "PK_Foo" PRIMARY KEY ("SomeField");
         AssertSql("""ALTER TABLE "People" DROP CONSTRAINT "CK_People_Foo";""");
     }
 
+    [Theory]
+    [InlineData(PostgresMatchStrategy.Simple, "SIMPLE", false)]
+    [InlineData(PostgresMatchStrategy.Partial, "PARTIAL", true)]
+    [InlineData(PostgresMatchStrategy.Full, "FULL", false)]
+    public async Task Add_foreign_key_with_match_strategy(PostgresMatchStrategy strategy, string matchValue, bool throws)
+    {
+        var runningTest = Test(
+            builder =>
+            {
+                builder.Entity(
+                    "Customers", delegate(EntityTypeBuilder e)
+                    {
+                        e.Property<int>("Id");
+                        e.HasKey("Id");
+                        e.Property<int>("AddressId");
+                    });
+                builder.Entity(
+                    "Orders", delegate(EntityTypeBuilder e)
+                    {
+                        e.Property<int>("Id");
+                        e.Property<int>("CustomerId");
+                    });
+            },
+            _ => { },
+            builder =>
+            {
+                builder.Entity("Orders")
+                    .HasOne("Customers")
+                    .WithMany()
+                    .HasForeignKey("CustomerId")
+                    .UsesMatchStrategy(strategy)
+                    .HasConstraintName("FK_Foo");
+            },
+            asserter: null);
+
+        if (throws)
+        {
+            await Assert.ThrowsAsync<PostgresException>(() => runningTest);
+        }
+        else
+        {
+            await runningTest;
+        }
+
+        AssertSql(
+            """
+CREATE INDEX "IX_Orders_CustomerId" ON "Orders" ("CustomerId");
+""",
+            //
+            $"""
+ALTER TABLE "Orders" ADD CONSTRAINT "FK_Foo" FOREIGN KEY ("CustomerId") REFERENCES "Customers" ("Id") MATCH {matchValue} ON DELETE CASCADE;
+""");
+    }
+
     #endregion
 
     #region Sequence
@@ -2726,7 +2785,6 @@ SELECT setval(
     false);
 """);
     }
-
 
     #endregion Data seeding
 
@@ -3224,7 +3282,6 @@ CREATE TABLE "Contacts" (
 
         AssertSql("""ALTER TABLE "Customers" ADD "Numbers" text NOT NULL DEFAULT 'some numbers';""");
     }
-
 
     protected override string NonDefaultCollation
         => "POSIX";

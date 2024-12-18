@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Globalization;
 using System.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
@@ -1446,6 +1447,53 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     }
 
     #endregion Range management
+
+    #region MatchingStrategy management
+
+    /// <inheritdoc />
+    protected override void ForeignKeyConstraint(AddForeignKeyOperation operation, IModel? model, MigrationCommandListBuilder builder)
+    {
+        if (operation.Name != null)
+        {
+            builder.Append("CONSTRAINT ").Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name)).Append(" ");
+        }
+
+        builder.Append("FOREIGN KEY (").Append(ColumnList(operation.Columns)).Append(") REFERENCES ")
+            .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.PrincipalTable, operation.PrincipalSchema));
+        if (operation.PrincipalColumns != null)
+        {
+            builder.Append(" (").Append(ColumnList(operation.PrincipalColumns)).Append(")");
+        }
+
+        if (operation[NpgsqlAnnotationNames.MatchStrategy] is PostgresMatchStrategy matchStrategy)
+        {
+            builder.Append(" MATCH ")
+                .Append(TranslateMatchStrategy(matchStrategy));
+        }
+
+        if (operation.OnUpdate != 0)
+        {
+            builder.Append(" ON UPDATE ");
+            ForeignKeyAction(operation.OnUpdate, builder);
+        }
+
+        if (operation.OnDelete != 0)
+        {
+            builder.Append(" ON DELETE ");
+            ForeignKeyAction(operation.OnDelete, builder);
+        }
+    }
+
+    private static string TranslateMatchStrategy(PostgresMatchStrategy matchStrategy)
+        => matchStrategy switch
+        {
+            PostgresMatchStrategy.Simple => "SIMPLE",
+            PostgresMatchStrategy.Partial => "PARTIAL",
+            PostgresMatchStrategy.Full => "FULL",
+            _ => throw new InvalidEnumArgumentException(nameof(matchStrategy), (int)matchStrategy, typeof(PostgresMatchStrategy))
+        };
+
+    #endregion MatchingStrategy management
 
     /// <inheritdoc />
     protected override void Generate(
