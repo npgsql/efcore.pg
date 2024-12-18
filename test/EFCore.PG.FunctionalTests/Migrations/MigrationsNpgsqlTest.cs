@@ -2510,7 +2510,9 @@ ALTER TABLE "People" ADD CONSTRAINT "PK_Foo" PRIMARY KEY ("SomeField");
         }
 
         AssertSql(
-            """CREATE INDEX "IX_Orders_CustomerId" ON "Orders" ("CustomerId");""",
+            """
+CREATE INDEX "IX_Orders_CustomerId" ON "Orders" ("CustomerId");
+""",
             //
             $"""
 ALTER TABLE "Orders" ADD CONSTRAINT "FK_Foo" FOREIGN KEY ("CustomerId") REFERENCES "Customers" ("Id") MATCH {matchValue} ON DELETE CASCADE;
