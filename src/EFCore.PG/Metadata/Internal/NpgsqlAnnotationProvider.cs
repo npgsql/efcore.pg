@@ -206,7 +206,8 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override IEnumerable<IAnnotation> For(IForeignKeyConstraint foreignKey, bool designTime){
+    public override IEnumerable<IAnnotation> For(IForeignKeyConstraint foreignKey, bool designTime)
+    {
         if (!designTime)
         {
             yield break;
@@ -214,7 +215,7 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
 
         foreach (var item in foreignKey.MappedForeignKeys)
         {
-            if (item.GetMatchStrategy() is {} match)
+            if (item.GetMatchStrategy() is { } match)
             {
                 yield return new Annotation(NpgsqlAnnotationNames.MatchStrategy, match);
             }

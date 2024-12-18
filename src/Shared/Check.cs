@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
 namespace Microsoft.EntityFrameworkCore.Utilities;
@@ -130,8 +129,9 @@ internal static class Check
     public static void DebugFail(string message)
         => throw new Exception($"Check.DebugFail failed: {message}");
 
-    public static void IsDefined<T>(T value,
-        [InvokerParameterName, CallerArgumentExpression(nameof(value))] string? parameterName = null)
+    public static void IsDefined<T>(
+        T value,
+        [InvokerParameterName] string parameterName)
         where T : struct, Enum
     {
         if (!Enum.IsDefined(value))
