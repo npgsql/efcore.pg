@@ -1448,12 +1448,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
     #endregion Range management
 
-
     #region MatchingStrategy management
 
-    
-    /// <inheritdoc/>
-    protected override void ForeignKeyConstraint(AddForeignKeyOperation operation, IModel? model, MigrationCommandListBuilder builder){
+    /// <inheritdoc />
+    protected override void ForeignKeyConstraint(AddForeignKeyOperation operation, IModel? model, MigrationCommandListBuilder builder)
+    {
         if (operation.Name != null)
         {
             builder.Append("CONSTRAINT ").Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name)).Append(" ");
@@ -1470,7 +1469,6 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         {
             builder.Append(" MATCH ")
                 .Append(TranslateMatchStrategy(matchStrategy));
-
         }
 
         if (operation.OnUpdate != 0)
@@ -1486,8 +1484,9 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
-    private string TranslateMatchStrategy(PostgresMatchStrategy matchStrategy)
-        => matchStrategy switch {
+    private static string TranslateMatchStrategy(PostgresMatchStrategy matchStrategy)
+        => matchStrategy switch
+        {
             PostgresMatchStrategy.Simple => "SIMPLE",
             PostgresMatchStrategy.Partial => "PARTIAL",
             PostgresMatchStrategy.Full => "FULL",
