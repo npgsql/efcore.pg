@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests</AssemblyName>
-    <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL</RootNamespace>
+    <RootNamespace>Microsoft.EntityFrameworkCore</RootNamespace>
     <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
