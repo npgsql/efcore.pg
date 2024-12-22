@@ -14,8 +14,6 @@ public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.C
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    #region Tests
-
     [Fact]
     public void Find_in_database()
     {
@@ -144,8 +142,6 @@ public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.C
             Assert.Equal("12345 ", fromDb.Character6);
         }
     }
-
-    #endregion
 
     #region Fixture
 

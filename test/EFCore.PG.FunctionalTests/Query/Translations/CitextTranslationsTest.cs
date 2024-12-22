@@ -1,17 +1,17 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
 /// <summary>
 ///     Tests operations on the PostgreSQL citext type.
 /// </summary>
-public class CitextQueryTest : IClassFixture<CitextQueryTest.CitextQueryFixture>
+public class CitextTranslationsTest : IClassFixture<CitextTranslationsTest.CitextQueryFixture>
 {
     private CitextQueryFixture Fixture { get; }
 
     // ReSharper disable once UnusedParameter.Local
-    public CitextQueryTest(CitextQueryFixture fixture, ITestOutputHelper testOutputHelper)
+    public CitextTranslationsTest(CitextQueryFixture fixture, ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();

@@ -1,12 +1,12 @@
 ﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
-public class EnumQueryTest : QueryTestBase<EnumQueryTest.EnumFixture>
+public class EnumTranslationsTest : QueryTestBase<EnumTranslationsTest.EnumFixture>
 {
     // ReSharper disable once UnusedParameter.Local
-    public EnumQueryTest(EnumFixture fixture, ITestOutputHelper testOutputHelper)
+    public EnumTranslationsTest(EnumFixture fixture, ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();

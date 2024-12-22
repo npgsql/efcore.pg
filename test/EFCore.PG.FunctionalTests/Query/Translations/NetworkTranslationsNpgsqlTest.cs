@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 // ReSharper disable ConvertToConstant.Local
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
 /// <summary>
 ///     Provides unit tests for network address operator and function translations.
@@ -14,12 +14,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 /// <remarks>
 ///     See: https://www.postgresql.org/docs/current/static/functions-net.html
 /// </remarks>
-public class NetworkQueryNpgsqlTest : IClassFixture<NetworkQueryNpgsqlTest.NetworkAddressQueryNpgsqlFixture>
+public class NetworkTranslationsNpgsqlTest : IClassFixture<NetworkTranslationsNpgsqlTest.NetworkAddressQueryNpgsqlFixture>
 {
     private NetworkAddressQueryNpgsqlFixture Fixture { get; }
 
     // ReSharper disable once UnusedParameter.Local
-    public NetworkQueryNpgsqlTest(NetworkAddressQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
+    public NetworkTranslationsNpgsqlTest(NetworkAddressQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();

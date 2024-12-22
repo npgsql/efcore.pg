@@ -9,12 +9,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 // But there's no DateTime mapped to 'timestamp with time zone' (so Utc).
 // This test suite checks this and various PG-specific things.
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
-public class TimestampQueryTest : QueryTestBase<TimestampQueryTest.TimestampQueryFixture>
+public class TimestampTranslationsTest : QueryTestBase<TimestampTranslationsTest.TimestampQueryFixture>
 {
     // ReSharper disable once UnusedParameter.Local
-    public TimestampQueryTest(TimestampQueryFixture fixture, ITestOutputHelper testOutputHelper)
+    public TimestampTranslationsTest(TimestampQueryFixture fixture, ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();

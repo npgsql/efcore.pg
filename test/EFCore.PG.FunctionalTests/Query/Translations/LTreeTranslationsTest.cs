@@ -2,15 +2,15 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
 [MinimumPostgresVersion(13, 0)]
-public class LTreeQueryTest : IClassFixture<LTreeQueryTest.LTreeQueryFixture>
+public class LTreeTranslationsTest : IClassFixture<LTreeTranslationsTest.LTreeQueryFixture>
 {
     private LTreeQueryFixture Fixture { get; }
 
     // ReSharper disable once UnusedParameter.Local
-    public LTreeQueryTest(LTreeQueryFixture fixture, ITestOutputHelper testOutputHelper)
+    public LTreeTranslationsTest(LTreeQueryFixture fixture, ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();

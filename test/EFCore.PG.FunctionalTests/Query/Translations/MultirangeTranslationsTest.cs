@@ -1,15 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
 [MinimumPostgresVersion(14, 0)] // Multiranges were introduced in PostgreSQL 14
-public class MultirangeQueryNpgsqlTest : IClassFixture<MultirangeQueryNpgsqlTest.MultirangeQueryNpgsqlFixture>
+public class MultirangeTranslationsTest : IClassFixture<MultirangeTranslationsTest.MultirangeQueryNpgsqlFixture>
 {
     private MultirangeQueryNpgsqlFixture Fixture { get; }
 
     // ReSharper disable once UnusedParameter.Local
-    public MultirangeQueryNpgsqlTest(MultirangeQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
+    public MultirangeTranslationsTest(MultirangeQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();
