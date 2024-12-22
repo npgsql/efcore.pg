@@ -1,6 +1,6 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
+using Microsoft.EntityFrameworkCore.TestModels.Array;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class ArrayArrayQueryTest(ArrayArrayQueryTest.ArrayArrayQueryFixture fixture, ITestOutputHelper testOutputHelper)
     : ArrayQueryTest<ArrayArrayQueryTest.ArrayArrayQueryFixture>(fixture, testOutputHelper)

@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.TestModels.UpdatesModel;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlTest.UpdatesNpgsqlFixture>
 {

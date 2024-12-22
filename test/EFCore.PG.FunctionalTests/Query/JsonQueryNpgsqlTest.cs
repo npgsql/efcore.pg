@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.JsonQuery;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class JsonQueryNpgsqlTest : JsonQueryRelationalTestBase<JsonQueryNpgsqlTest.JsonQueryNpgsqlFixture>
 {
@@ -902,7 +901,7 @@ FROM "JsonEntitiesBasic" AS j
 
         Assert.Contains(
             CoreStrings.QueryUnableToTranslateMethod(
-                "Microsoft.EntityFrameworkCore.Query.JsonQueryTestBase<Npgsql.EntityFrameworkCore.PostgreSQL.Query.JsonQueryNpgsqlTest+JsonQueryNpgsqlFixture>",
+                "Microsoft.EntityFrameworkCore.Query.JsonQueryTestBase<Microsoft.EntityFrameworkCore.Query.JsonQueryNpgsqlTest+JsonQueryNpgsqlFixture>",
                 "MyMethod"),
             message);
     }
@@ -914,7 +913,7 @@ FROM "JsonEntitiesBasic" AS j
 
         Assert.Contains(
             CoreStrings.QueryUnableToTranslateMethod(
-                "Microsoft.EntityFrameworkCore.Query.JsonQueryTestBase<Npgsql.EntityFrameworkCore.PostgreSQL.Query.JsonQueryNpgsqlTest+JsonQueryNpgsqlFixture>",
+                "Microsoft.EntityFrameworkCore.Query.JsonQueryTestBase<Microsoft.EntityFrameworkCore.Query.JsonQueryNpgsqlTest+JsonQueryNpgsqlFixture>",
                 "MyMethod"),
             message);
     }

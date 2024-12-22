@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Microsoft.EntityFrameworkCore.Query.Translations;
 

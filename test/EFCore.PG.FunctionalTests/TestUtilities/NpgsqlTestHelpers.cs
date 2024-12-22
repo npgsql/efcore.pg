@@ -1,6 +1,6 @@
 ﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 public class NpgsqlTestHelpers : RelationalTestHelpers
 {

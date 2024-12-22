@@ -2,9 +2,8 @@ using Microsoft.EntityFrameworkCore.TestModels.SpatialModel;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 #nullable disable
 

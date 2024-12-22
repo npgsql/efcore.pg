@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.ManyToManyModel;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public class ManyToManyLoadNpgsqlTest(ManyToManyLoadNpgsqlTest.ManyToManyLoadNpgsqlFixture fixture)
     : ManyToManyLoadTestBase<ManyToManyLoadNpgsqlTest.ManyToManyLoadNpgsqlFixture>(fixture)

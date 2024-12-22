@@ -1,8 +1,7 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public abstract class CommandInterceptionNpgsqlTestBase(CommandInterceptionNpgsqlTestBase.InterceptionNpgsqlFixtureBase fixture)
     : CommandInterceptionTestBase(fixture)

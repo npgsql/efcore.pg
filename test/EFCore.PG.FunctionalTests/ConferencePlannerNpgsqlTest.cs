@@ -1,8 +1,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.TestModels.ConferencePlanner;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 #nullable disable
 

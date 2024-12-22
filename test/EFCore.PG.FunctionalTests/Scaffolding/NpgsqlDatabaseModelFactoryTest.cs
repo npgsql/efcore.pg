@@ -6,11 +6,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable StringLiteralTypo
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding;
+namespace Microsoft.EntityFrameworkCore.Scaffolding;
 
 public class NpgsqlDatabaseModelFactoryTest : IClassFixture<NpgsqlDatabaseModelFactoryTest.NpgsqlDatabaseModelFixture>
 {

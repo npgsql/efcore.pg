@@ -1,7 +1,7 @@
 ﻿using System.Data.Common;
 using Xunit.Sdk;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class SqlQueryNpgsqlTest : SqlQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
 {

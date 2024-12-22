@@ -1,8 +1,6 @@
-using Microsoft.EntityFrameworkCore.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 // ReSharper disable InconsistentNaming
 

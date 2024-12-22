@@ -1,7 +1,4 @@
-using Microsoft.EntityFrameworkCore.BulkUpdates;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
+namespace Microsoft.EntityFrameworkCore.BulkUpdates;
 
 public class NonSharedModelBulkUpdatesNpgsqlTest : NonSharedModelBulkUpdatesRelationalTestBase
 {

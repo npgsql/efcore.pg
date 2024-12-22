@@ -1,9 +1,8 @@
 ﻿using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 #nullable disable
 

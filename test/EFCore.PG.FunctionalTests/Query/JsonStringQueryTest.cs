@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class JsonStringQueryTest : IClassFixture<JsonStringQueryTest.JsonStringQueryFixture>
 {

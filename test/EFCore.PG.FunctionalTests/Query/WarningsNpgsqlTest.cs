@@ -1,3 +1,3 @@
-﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+﻿namespace Microsoft.EntityFrameworkCore.Query;
 
 public class WarningsNpgsqlTest(QueryNoClientEvalNpgsqlFixture fixture) : WarningsTestBase<QueryNoClientEvalNpgsqlFixture>(fixture);

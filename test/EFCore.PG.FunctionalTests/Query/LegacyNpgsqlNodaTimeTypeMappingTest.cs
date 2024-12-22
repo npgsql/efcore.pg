@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 #if DEBUG
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
+namespace Microsoft.EntityFrameworkCore.Query
 {
     [Collection("LegacyNodaTimeTest")]
     public class LegacyNpgsqlNodaTimeTypeMappingTest

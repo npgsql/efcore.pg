@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.TestModels.ConcurrencyModel;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 #nullable disable
 

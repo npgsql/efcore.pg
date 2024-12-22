@@ -2,9 +2,8 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
+namespace Microsoft.EntityFrameworkCore.Migrations;
 
 public class MigrationsNpgsqlTest : MigrationsTestBase<MigrationsNpgsqlTest.MigrationsNpgsqlFixture>
 {

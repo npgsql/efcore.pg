@@ -1,6 +1,4 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
+namespace Microsoft.EntityFrameworkCore.Update;
 
 public class NonSharedModelUpdatesNpgsqlTest : NonSharedModelUpdatesTestBase
 {

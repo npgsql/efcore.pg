@@ -1,7 +1,6 @@
-using Microsoft.EntityFrameworkCore.BulkUpdates;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.BulkUpdates;
+namespace Microsoft.EntityFrameworkCore.BulkUpdates;
 
 public class NorthwindBulkUpdatesNpgsqlTest(
     NorthwindBulkUpdatesNpgsqlFixture<NoopModelCustomizer> fixture,

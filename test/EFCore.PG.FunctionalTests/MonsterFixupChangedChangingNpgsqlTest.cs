@@ -1,6 +1,4 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+﻿namespace Microsoft.EntityFrameworkCore;
 
 public class MonsterFixupChangedChangingNpgsqlTest(MonsterFixupChangedChangingNpgsqlTest.MonsterFixupChangedChangingNpgsqlFixture fixture)
     : MonsterFixupTestBase<MonsterFixupChangedChangingNpgsqlTest.MonsterFixupChangedChangingNpgsqlFixture>(fixture)

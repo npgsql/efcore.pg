@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class NorthwindWhereQueryNpgsqlTest : NorthwindWhereQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
 {

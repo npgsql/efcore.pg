@@ -1,10 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 #if DEBUG
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
+namespace Microsoft.EntityFrameworkCore.Query
 {
     // Because we can't play around with the LegacyTimestampBehavior flag at the ADO level (different assembly already compile in
     // RELEASE), this test suite is limited to playing around at the EF Core level only.

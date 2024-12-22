@@ -1,6 +1,4 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class Ef6GroupByNpgsqlTest : Ef6GroupByTestBase<Ef6GroupByNpgsqlTest.Ef6GroupByNpgsqlFixture>
 {

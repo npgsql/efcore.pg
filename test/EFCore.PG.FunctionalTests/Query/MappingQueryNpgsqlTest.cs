@@ -1,6 +1,4 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+﻿namespace Microsoft.EntityFrameworkCore.Query;
 
 // ReSharper disable once UnusedMember.Global
 public class MappingQueryNpgsqlTest : MappingQueryTestBase<MappingQueryNpgsqlTest.MappingQueryNpgsqlFixture>

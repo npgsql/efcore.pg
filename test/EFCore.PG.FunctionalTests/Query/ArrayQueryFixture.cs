@@ -1,7 +1,6 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using Microsoft.EntityFrameworkCore.TestModels.Array;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public abstract class ArrayQueryFixture : SharedStoreFixtureBase<ArrayQueryContext>, IQueryFixtureBase, ITestSqlLoggerFactory
 {
