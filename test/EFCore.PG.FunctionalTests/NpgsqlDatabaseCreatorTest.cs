@@ -7,6 +7,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
+#nullable disable
+
 public class NpgsqlDatabaseCreatorExistsTest : NpgsqlDatabaseCreatorTest
 {
     [ConditionalTheory]

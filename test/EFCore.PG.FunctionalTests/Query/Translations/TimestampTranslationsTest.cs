@@ -897,12 +897,12 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
 
         public DateTimeOffset TimestampDateTimeOffset { get; set; }
 
-        public DateTime[] TimestamptzDateTimeArray { get; set; }
+        public DateTime[]? TimestamptzDateTimeArray { get; set; }
 
         [Column(TypeName = "timestamp without time zone[]")]
-        public DateTime[] TimestampDateTimeArray { get; set; }
+        public DateTime[]? TimestampDateTimeArray { get; set; }
 
-        public DateTimeOffset[] TimestampDateTimeOffsetArray { get; set; }
+        public DateTimeOffset[]? TimestampDateTimeOffsetArray { get; set; }
 
         public NpgsqlRange<DateTime> TimestamptzDateTimeRange { get; set; }
 
@@ -924,7 +924,7 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
 
-        private TimestampData _expectedData;
+        private TimestampData? _expectedData;
 
         protected override Task SeedAsync(TimestampQueryContext context)
             => TimestampQueryContext.SeedAsync(context);
@@ -936,7 +936,7 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
             => _expectedData ??= new TimestampData();
 
         public IReadOnlyDictionary<Type, object> EntitySorters
-            => new Dictionary<Type, Func<object, object>> { { typeof(Entity), e => ((Entity)e)?.Id } }
+            => new Dictionary<Type, Func<object, object?>> { { typeof(Entity), e => ((Entity)e)?.Id } }
                 .ToDictionary(e => e.Key, e => (object)e.Value);
 
         public IReadOnlyDictionary<Type, object> EntityAsserters
@@ -948,7 +948,7 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
                         Assert.Equal(e is null, a is null);
                         if (a is not null)
                         {
-                            var ee = (Entity)e;
+                            var ee = (Entity)e!;
                             var aa = (Entity)a;
 
                             Assert.Equal(ee.Id, aa.Id);

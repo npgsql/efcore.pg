@@ -2,6 +2,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
+#nullable disable
+
 public class SequenceEndToEndTest : IAsyncLifetime
 {
     [ConditionalFact]
@@ -386,10 +388,10 @@ public class SequenceEndToEndTest : IAsyncLifetime
     private class Unicon
     {
         public int? Identifier { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
     }
 
-    protected NpgsqlTestStore TestStore { get; private set; }
+    protected NpgsqlTestStore TestStore { get; private set; } = null!;
 
     public async Task InitializeAsync()
         => TestStore = await NpgsqlTestStore.CreateInitializedAsync("SequenceEndToEndTest");

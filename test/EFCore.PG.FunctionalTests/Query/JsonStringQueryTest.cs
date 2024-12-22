@@ -67,7 +67,7 @@ WHERE j."CustomerJsonb" = '{"Name":"Test customer","Age":80,"IsVip":false,"Stati
     {
         using var ctx = CreateContext();
 
-        var expected = ctx.JsonEntities.Find(1).CustomerJsonb;
+        var expected = ctx.JsonEntities.Find(1)!.CustomerJsonb;
         var actual = ctx.JsonEntities.Single(e => e.CustomerJsonb == expected).CustomerJsonb;
 
         Assert.Equal(actual, expected);
@@ -349,12 +349,12 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
         public int Id { get; set; }
 
         [Column(TypeName = "jsonb")]
-        public string CustomerJsonb { get; set; }
+        public string CustomerJsonb { get; set; } = null!;
 
         [Column(TypeName = "json")]
-        public string CustomerJson { get; set; }
+        public string CustomerJson { get; set; } = null!;
 
-        public string SomeString { get; set; }
+        public string? SomeString { get; set; }
     }
 
     public class JsonStringQueryFixture : SharedStoreFixtureBase<JsonStringQueryContext>

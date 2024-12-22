@@ -73,7 +73,7 @@ WHERE j."CustomerDocument" = '{"Name":"Test customer","Age":80}'
     {
         using var ctx = CreateContext();
 
-        var expected = ctx.JsonbEntities.Find(1).CustomerDocument;
+        var expected = ctx.JsonbEntities.Find(1)!.CustomerDocument;
         var actual = ctx.JsonbEntities.Single(e => e.CustomerDocument == expected).CustomerDocument;
 
         Assert.Equal(actual, expected);
@@ -103,7 +103,7 @@ LIMIT 2
     {
         using var ctx = CreateContext();
 
-        var expected = ctx.JsonbEntities.Find(1).CustomerElement;
+        var expected = ctx.JsonbEntities.Find(1)!.CustomerElement;
         var actual = ctx.JsonbEntities.Single(e => e.CustomerElement.Equals(expected)).CustomerElement;
 
         Assert.Equal(actual, expected);
@@ -374,7 +374,7 @@ LIMIT 2
     {
         using var ctx = CreateContext();
 
-        var x = ctx.JsonbEntities.Single(e => e.CustomerElement.GetProperty("Name").GetString().StartsWith("J"));
+        var x = ctx.JsonbEntities.Single(e => e.CustomerElement.GetProperty("Name").GetString()!.StartsWith("J"));
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
 
@@ -744,7 +744,7 @@ WHERE json_typeof(j."CustomerElement" #> '{Statistics,Visits}') = 'number'
     {
         public int Id { get; set; }
 
-        public JsonDocument CustomerDocument { get; set; }
+        public JsonDocument CustomerDocument { get; set; } = null!;
         public JsonElement CustomerElement { get; set; }
     }
 
@@ -753,7 +753,7 @@ WHERE json_typeof(j."CustomerElement" #> '{Statistics,Visits}') = 'number'
         public int Id { get; set; }
 
         [Column(TypeName = "json")]
-        public JsonDocument CustomerDocument { get; set; }
+        public JsonDocument CustomerDocument { get; set; } = null!;
 
         [Column(TypeName = "json")]
         public JsonElement CustomerElement { get; set; }

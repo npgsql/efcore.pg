@@ -2,6 +2,8 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
+#nullable disable
+
 public class OptimisticConcurrencyBytesNpgsqlTest(F1BytesNpgsqlFixture fixture)
     : OptimisticConcurrencyNpgsqlTestBase<F1BytesNpgsqlFixture, byte[]>(fixture);
 

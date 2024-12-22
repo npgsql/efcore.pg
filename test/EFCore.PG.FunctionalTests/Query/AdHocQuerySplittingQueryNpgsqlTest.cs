@@ -4,6 +4,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
+#nullable disable
+
 public class AdHocQuerySplittingQueryNpgsqlTest : AdHocQuerySplittingQueryTestBase
 {
     protected override DbContextOptionsBuilder SetQuerySplittingBehavior(

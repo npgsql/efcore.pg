@@ -1,8 +1,8 @@
-#nullable enable
-
 using System.Data.Common;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+
+#nullable enable
 
 public class FakeRelationalCommandDiagnosticsLogger
     : FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>, IRelationalCommandDiagnosticsLogger

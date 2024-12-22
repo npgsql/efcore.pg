@@ -235,7 +235,7 @@ WHERE array_position(s."NullableStringArray", NULL) IS NOT NULL
     {
         using var ctx = CreateContext();
 
-        string p = null;
+        string? p = null;
 
         // We incorrectly miss arrays containing non-constant nulls, because detecting those
         // would prevent index use.
@@ -642,7 +642,7 @@ WHERE cardinality(s."IntArray") > 0
             ss => ss.Set<ArrayEntity>()
                 .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.Like(e.NullableText, p))),
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new[] { "a", "b", "c" }.Any(p => e.NullableText.StartsWith(p, StringComparison.Ordinal))));
+                .Where(e => new[] { "a", "b", "c" }.Any(p => e.NullableText!.StartsWith(p, StringComparison.Ordinal))));
 
         AssertSql(
             """
@@ -657,9 +657,9 @@ WHERE s."NullableText" LIKE ANY (ARRAY['a%','b%','c%']::text[])
         await AssertQuery(
             async,
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.ILike(e.NullableText, p))),
+                .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.ILike(e.NullableText!, p))),
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new[] { "a", "b", "c" }.Any(p => e.NullableText.StartsWith(p, StringComparison.OrdinalIgnoreCase))));
+                .Where(e => new[] { "a", "b", "c" }.Any(p => e.NullableText!.StartsWith(p, StringComparison.OrdinalIgnoreCase))));
 
         AssertSql(
             """
@@ -681,7 +681,7 @@ WHERE s."NullableText" ILIKE ANY (ARRAY['a%','b%','c%']::text[])
             ss => ss.Set<ArrayEntity>()
                 .Where(e => patternsActual.Any(p => EF.Functions.Like(e.NullableText, p))),
             ss => ss.Set<ArrayEntity>()
-                .Where(e => patternsExpected.Any(p => e.NullableText.StartsWith(p, StringComparison.Ordinal))));
+                .Where(e => patternsExpected.Any(p => e.NullableText!.StartsWith(p, StringComparison.Ordinal))));
 
         AssertSql(
             """
@@ -700,7 +700,7 @@ WHERE s."NullableText" LIKE ANY (@patternsActual)
             ss => ss.Set<ArrayEntity>()
                 .Where(e => new[] { "b%", "ba%" }.All(p => EF.Functions.Like(e.NullableText, p))),
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new[] { "b", "ba" }.All(p => e.NullableText.StartsWith(p, StringComparison.Ordinal))));
+                .Where(e => new[] { "b", "ba" }.All(p => e.NullableText!.StartsWith(p, StringComparison.Ordinal))));
 
         AssertSql(
             """
@@ -715,9 +715,9 @@ WHERE s."NullableText" LIKE ALL (ARRAY['b%','ba%']::text[])
         await AssertQuery(
             async,
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new[] { "B%", "ba%" }.All(p => EF.Functions.ILike(e.NullableText, p))),
+                .Where(e => new[] { "B%", "ba%" }.All(p => EF.Functions.ILike(e.NullableText!, p))),
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new[] { "B", "ba" }.All(p => e.NullableText.StartsWith(p, StringComparison.OrdinalIgnoreCase))));
+                .Where(e => new[] { "B", "ba" }.All(p => e.NullableText!.StartsWith(p, StringComparison.OrdinalIgnoreCase))));
 
         AssertSql(
             """

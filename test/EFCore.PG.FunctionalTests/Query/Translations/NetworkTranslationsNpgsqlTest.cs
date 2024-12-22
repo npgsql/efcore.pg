@@ -65,7 +65,7 @@ WHERE n."Cidr" >>= @p
             """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
-WHERE n."Inet" = n."TextInet"::inet OR (n."Inet" IS NULL AND n."TextInet" IS NULL)
+WHERE n."Inet" = n."TextInet"::inet
 """);
     }
 
@@ -80,7 +80,7 @@ WHERE n."Inet" = n."TextInet"::inet OR (n."Inet" IS NULL AND n."TextInet" IS NUL
             """
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
-WHERE n."Macaddr" = n."TextMacaddr"::macaddr OR (n."Macaddr" IS NULL AND n."TextMacaddr" IS NULL)
+WHERE n."Macaddr" = n."TextMacaddr"::macaddr
 """);
     }
 
@@ -789,7 +789,7 @@ FROM "NetTestEntities" AS n
 
 SELECT count(*)::int
 FROM "NetTestEntities" AS n
-WHERE n."Inet" = n."Inet" & @p OR n."Inet" IS NULL
+WHERE n."Inet" = n."Inet" & @p
 """);
     }
 
@@ -1477,7 +1477,7 @@ FROM "NetTestEntities" AS n
         /// <summary>
         ///     The network address.
         /// </summary>
-        public IPAddress Inet { get; set; }
+        public IPAddress Inet { get; set; } = null!;
 
         /// <summary>
         ///     The network address.
@@ -1487,23 +1487,23 @@ FROM "NetTestEntities" AS n
         /// <summary>
         ///     The MAC address.
         /// </summary>
-        public PhysicalAddress Macaddr { get; set; }
+        public PhysicalAddress Macaddr { get; set; } = null!;
 
         /// <summary>
         ///     The MAC address.
         /// </summary>
         [Column(TypeName = "macaddr8")]
-        public PhysicalAddress Macaddr8 { get; set; }
+        public PhysicalAddress Macaddr8 { get; set; } = null!;
 
         /// <summary>
         ///     The text form of <see cref="Inet" />.
         /// </summary>
-        public string TextInet { get; set; }
+        public string TextInet { get; set; } = null!;
 
         /// <summary>
         ///     The text form of <see cref="Macaddr" />.
         /// </summary>
-        public string TextMacaddr { get; set; }
+        public string TextMacaddr { get; set; } = null!;
     }
 
     /// <summary>

@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
 
 public class ArrayContainerEntity

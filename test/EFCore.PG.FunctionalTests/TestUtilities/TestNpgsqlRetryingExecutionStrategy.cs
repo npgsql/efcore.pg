@@ -32,7 +32,7 @@ public class TestNpgsqlRetryingExecutionStrategy : NpgsqlRetryingExecutionStrate
     {
     }
 
-    protected override bool ShouldRetryOn(Exception exception)
+    protected override bool ShouldRetryOn(Exception? exception)
     {
         if (base.ShouldRetryOn(exception))
         {

@@ -3,8 +3,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
 
-#nullable enable
-
 [MinimumPostgresVersion(14, 0)]
 public class StoredProcedureUpdateNpgsqlTest : StoredProcedureUpdateTestBase
 {

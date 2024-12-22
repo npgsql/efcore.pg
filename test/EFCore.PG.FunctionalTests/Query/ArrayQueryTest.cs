@@ -377,7 +377,7 @@ public abstract class ArrayQueryTest<TFixture> : QueryTestBase<TFixture>
             async,
             ss => ss.Set<ArrayEntity>().Select(e => new[] { e.NullableText, e.NonNullableText }),
             elementAsserter: Assert.Equal,
-            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
+            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : "");
 
         AssertSql(
             """
@@ -412,7 +412,7 @@ FROM "SomeEntities" AS s
             async,
             ss => ss.Set<ArrayEntity>().Select(e => new[] { e.Varchar10, e.Varchar15 }),
             elementAsserter: Assert.Equal,
-            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
+            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : "");
 
         AssertSql(
             """
@@ -429,7 +429,7 @@ FROM "SomeEntities" AS s
             async,
             ss => ss.Set<ArrayEntity>().Select(e => new[] { e.NonNullableText, e.Varchar15 }),
             elementAsserter: Assert.Equal,
-            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
+            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : "");
 
         AssertSql(
             """
@@ -446,7 +446,7 @@ FROM "SomeEntities" AS s
             async,
             ss => ss.Set<ArrayEntity>().Select(e => new[] { e.Id.ToString(), e.Varchar15 }),
             elementAsserter: Assert.Equal,
-            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
+            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : "");
 
         AssertSql(
             """
@@ -463,7 +463,7 @@ FROM "SomeEntities" AS s
             async,
             ss => ss.Set<ArrayEntity>().Select(e => new[] { e.NonNullableText, e.NullableText ?? "" }),
             elementAsserter: Assert.Equal,
-            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : null);
+            elementSorter: strings => strings != null ? string.Join(separator: "", strings) : "");
 
         AssertSql(
             """

@@ -70,7 +70,9 @@ WHERE m."ContactName" LIKE '%z%'
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
 FROM (
 
-        
+
+""" + "        " + """
+
 
 
     SELECT
@@ -279,7 +281,7 @@ SELECT * FROM "Employees" WHERE "ReportsTo" = @p0 OR ("ReportsTo" IS NULL AND @p
 """);
     }
 
-    public override async Task<string> SqlQueryRaw_queryable_with_parameters_and_closure(bool async)
+    public override async Task<string?> SqlQueryRaw_queryable_with_parameters_and_closure(bool async)
     {
         var queryString = await base.SqlQueryRaw_queryable_with_parameters_and_closure(async);
 

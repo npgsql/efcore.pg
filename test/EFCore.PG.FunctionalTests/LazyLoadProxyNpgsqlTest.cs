@@ -25,7 +25,7 @@ public class LazyLoadProxyNpgsqlTest : LazyLoadProxyTestBase<LazyLoadProxyNpgsql
         => Sql = Fixture.TestSqlLoggerFactory.Sql;
 
     // ReSharper disable once UnusedAutoPropertyAccessor.Local
-    private string Sql { get; set; }
+    private string Sql { get; set; } = null!;
 
     #region Expected JSON override
 

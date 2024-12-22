@@ -737,13 +737,13 @@ LIMIT 2
     public class MultirangeTestEntity
     {
         public int Id { get; set; }
-        public NpgsqlRange<int>[] IntMultirange { get; set; }
-        public NpgsqlRange<long>[] LongMultirange { get; set; }
-        public NpgsqlRange<decimal>[] DecimalMultirange { get; set; }
-        public NpgsqlRange<DateOnly>[] DateOnlyDateMultirange { get; set; }
+        public NpgsqlRange<int>[] IntMultirange { get; set; } = null!;
+        public NpgsqlRange<long>[] LongMultirange { get; set; } = null!;
+        public NpgsqlRange<decimal>[] DecimalMultirange { get; set; } = null!;
+        public NpgsqlRange<DateOnly>[] DateOnlyDateMultirange { get; set; } = null!;
 
         [Column(TypeName = "datemultirange")]
-        public NpgsqlRange<DateTime>[] DateTimeDateMultirange { get; set; }
+        public NpgsqlRange<DateTime>[] DateTimeDateMultirange { get; set; } = null!;
     }
 
     private void AssertSql(params string[] expected)

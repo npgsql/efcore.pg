@@ -192,7 +192,7 @@ public class TrigramsTranslationsTest : IClassFixture<TrigramsTranslationsTest.T
             """
 SELECT t."Id", t."Text"
 FROM "TrigramsTestEntities" AS t
-WHERE (COALESCE(t."Text", '') || ' ' || COALESCE(t."Text", '')) % 'query'
+WHERE (t."Text" || ' ' || t."Text") % 'query'
 """);
     }
 
@@ -247,7 +247,7 @@ WHERE 1 - (t."Text" <-> 'query') > 8
         /// <summary>
         ///     Some text.
         /// </summary>
-        public string Text { get; set; }
+        public string Text { get; set; } = null!;
     }
 
     /// <summary>

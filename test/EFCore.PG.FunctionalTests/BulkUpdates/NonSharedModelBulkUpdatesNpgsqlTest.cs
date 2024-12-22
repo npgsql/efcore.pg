@@ -236,7 +236,7 @@ WHERE o."Id" = 1
     protected class EntityWithPrimitiveCollection
     {
         public int Id { get; set; }
-        public List<string> Tags { get; set; }
+        public List<string> Tags { get; set; } = null!;
     }
 
     public override async Task Delete_with_view_mapping(bool async)

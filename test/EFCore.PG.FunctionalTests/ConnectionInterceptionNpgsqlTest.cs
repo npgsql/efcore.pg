@@ -1,5 +1,6 @@
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
@@ -45,6 +46,7 @@ public abstract class ConnectionInterceptionNpgsqlTestBase(ConnectionInterceptio
 
     public class FakeDbConnection : DbConnection
     {
+        [AllowNull]
         public override string ConnectionString { get; set; }
 
         public override string Database

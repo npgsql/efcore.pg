@@ -2,6 +2,8 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
+#nullable disable
+
 public class NavigationTest(NavigationTestFixture fixture) : IClassFixture<NavigationTestFixture>
 {
     [Fact]

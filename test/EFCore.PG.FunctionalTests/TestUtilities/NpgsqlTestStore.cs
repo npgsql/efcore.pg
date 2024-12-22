@@ -5,8 +5,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-#nullable enable
-
 public class NpgsqlTestStore : RelationalTestStore
 {
     private readonly string? _scriptPath;

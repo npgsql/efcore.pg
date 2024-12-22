@@ -3,6 +3,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
+#nullable disable
+
 public class NpgsqlApiConsistencyTest(NpgsqlApiConsistencyTest.NpgsqlApiConsistencyFixture fixture)
     : ApiConsistencyTestBase<NpgsqlApiConsistencyTest.NpgsqlApiConsistencyFixture>(fixture)
 {

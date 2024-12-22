@@ -13,7 +13,7 @@ public class TwoDatabasesNpgsqlTest(NpgsqlFixture fixture) : TwoDatabasesTestBas
         bool withNullConnectionString = false)
         => withConnectionString
             ? withNullConnectionString
-                ? optionsBuilder.UseNpgsql((string)null)
+                ? optionsBuilder.UseNpgsql((string?)null)
                 : optionsBuilder.UseNpgsql(DummyConnectionString)
             : optionsBuilder.UseNpgsql();
 

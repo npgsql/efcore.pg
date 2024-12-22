@@ -3,6 +3,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
+#nullable disable
+
 public class NpgsqlValueGenerationScenariosTest
 {
     private static readonly string DatabaseName = "NpgsqlValueGenerationScenariosTest";

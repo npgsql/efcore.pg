@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
 public class BadDataJsonDeserializationSqlServerTest : BadDataJsonDeserializationTestBase

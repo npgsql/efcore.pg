@@ -555,9 +555,9 @@ CREATE TABLE "PrimaryKeyTable" ("Id" int PRIMARY KEY);
             [],
             dbModel =>
             {
-                var pk = dbModel.Tables.Single().PrimaryKey;
+                var pk = dbModel.Tables.Single().PrimaryKey!;
 
-                Assert.Equal("public", pk.Table.Schema);
+                Assert.Equal("public", pk.Table!.Schema);
                 Assert.Equal("PrimaryKeyTable", pk.Table.Name);
                 Assert.StartsWith("PrimaryKeyTable_pkey", pk.Name);
                 Assert.Equal(["Id"], pk.Columns.Select(ic => ic.Name).ToList());
@@ -629,7 +629,7 @@ CREATE INDEX "IX_INDEX" on "IndexTable" ("IndexProperty");
                 Assert.All(
                     table.Indexes, c =>
                     {
-                        Assert.Equal("public", c.Table.Schema);
+                        Assert.Equal("public", c.Table!.Schema);
                         Assert.Equal("IndexTable", c.Table.Name);
                     });
 
@@ -1133,9 +1133,9 @@ CREATE TABLE "CompositePrimaryKeyTable" (
             [],
             dbModel =>
             {
-                var pk = dbModel.Tables.Single().PrimaryKey;
+                var pk = dbModel.Tables.Single().PrimaryKey!;
 
-                Assert.Equal("public", pk.Table.Schema);
+                Assert.Equal("public", pk.Table!.Schema);
                 Assert.Equal("CompositePrimaryKeyTable", pk.Table.Name);
                 Assert.Equal(["Id2", "Id1"], pk.Columns.Select(ic => ic.Name).ToList());
             },
@@ -1157,9 +1157,9 @@ CREATE TABLE "PrimaryKeyName" (
             [],
             dbModel =>
             {
-                var pk = dbModel.Tables.Single().PrimaryKey;
+                var pk = dbModel.Tables.Single().PrimaryKey!;
 
-                Assert.Equal("public", pk.Table.Schema);
+                Assert.Equal("public", pk.Table!.Schema);
                 Assert.Equal("PrimaryKeyName", pk.Table.Name);
                 Assert.StartsWith("MyPK", pk.Name);
                 Assert.Equal(["Id2"], pk.Columns.Select(ic => ic.Name).ToList());
@@ -1248,7 +1248,7 @@ CREATE INDEX "IX_COMPOSITE" ON "CompositeIndexTable" ( "Id2", "Id1" );
                 var index = Assert.Single(dbModel.Tables.Single().Indexes);
 
                 // ReSharper disable once PossibleNullReferenceException
-                Assert.Equal("public", index.Table.Schema);
+                Assert.Equal("public", index.Table!.Schema);
                 Assert.Equal("CompositeIndexTable", index.Table.Name);
                 Assert.Equal("IX_COMPOSITE", index.Name);
                 Assert.Equal(["Id2", "Id1"], index.Columns.Select(ic => ic.Name).ToList());
@@ -1275,7 +1275,7 @@ CREATE UNIQUE INDEX "IX_UNIQUE" ON "UniqueIndexTable" ( "Id2" );
                 var index = Assert.Single(dbModel.Tables.Single().Indexes);
 
                 // ReSharper disable once PossibleNullReferenceException
-                Assert.Equal("public", index.Table.Schema);
+                Assert.Equal("public", index.Table!.Schema);
                 Assert.Equal("UniqueIndexTable", index.Table.Name);
                 Assert.Equal("IX_UNIQUE", index.Name);
                 Assert.True(index.IsUnique);
@@ -1304,7 +1304,7 @@ CREATE UNIQUE INDEX "IX_UNIQUE" ON "FilteredIndexTable" ( "Id2" ) WHERE "Id2" > 
                 var index = Assert.Single(dbModel.Tables.Single().Indexes);
 
                 // ReSharper disable once PossibleNullReferenceException
-                Assert.Equal("public", index.Table.Schema);
+                Assert.Equal("public", index.Table!.Schema);
                 Assert.Equal("FilteredIndexTable", index.Table.Name);
                 Assert.Equal("IX_UNIQUE", index.Name);
                 Assert.Equal("""("Id2" > 10)""", index.Filter);
@@ -1644,7 +1644,7 @@ CREATE TABLE my_schema."SerialSequenceInSchema" ("Id" serial PRIMARY KEY);
                     Assert.Null(column.DefaultValueSql);
                     Assert.Equal(
                         NpgsqlValueGenerationStrategy.SerialColumn,
-                        (NpgsqlValueGenerationStrategy)column[NpgsqlAnnotationNames.ValueGenerationStrategy]);
+                        (NpgsqlValueGenerationStrategy?)column[NpgsqlAnnotationNames.ValueGenerationStrategy]);
                 }
             },
             """
@@ -1698,21 +1698,21 @@ CREATE TABLE identity (
                 Assert.Null(idIdentityAlways.DefaultValueSql);
                 Assert.Equal(
                     NpgsqlValueGenerationStrategy.IdentityAlwaysColumn,
-                    (NpgsqlValueGenerationStrategy)idIdentityAlways[NpgsqlAnnotationNames.ValueGenerationStrategy]);
+                    (NpgsqlValueGenerationStrategy?)idIdentityAlways[NpgsqlAnnotationNames.ValueGenerationStrategy]);
 
                 var identityAlways = dbModel.Tables.Single().Columns.Single(c => c.Name == "a");
                 Assert.Equal(ValueGenerated.OnAdd, identityAlways.ValueGenerated);
                 Assert.Null(identityAlways.DefaultValueSql);
                 Assert.Equal(
                     NpgsqlValueGenerationStrategy.IdentityAlwaysColumn,
-                    (NpgsqlValueGenerationStrategy)identityAlways[NpgsqlAnnotationNames.ValueGenerationStrategy]);
+                    (NpgsqlValueGenerationStrategy?)identityAlways[NpgsqlAnnotationNames.ValueGenerationStrategy]);
 
                 var identityByDefault = dbModel.Tables.Single().Columns.Single(c => c.Name == "b");
                 Assert.Equal(ValueGenerated.OnAdd, identityByDefault.ValueGenerated);
                 Assert.Null(identityByDefault.DefaultValueSql);
                 Assert.Equal(
                     NpgsqlValueGenerationStrategy.IdentityByDefaultColumn,
-                    (NpgsqlValueGenerationStrategy)identityByDefault[NpgsqlAnnotationNames.ValueGenerationStrategy]);
+                    (NpgsqlValueGenerationStrategy?)identityByDefault[NpgsqlAnnotationNames.ValueGenerationStrategy]);
             },
             "DROP TABLE identity");
 
@@ -1735,7 +1735,7 @@ CREATE TABLE identity (
                 var withOptions = dbModel.Tables.Single().Columns.Single(c => c.Name == "with_options");
                 Assert.Equal(
                     NpgsqlValueGenerationStrategy.IdentityByDefaultColumn,
-                    (NpgsqlValueGenerationStrategy)withOptions[NpgsqlAnnotationNames.ValueGenerationStrategy]);
+                    (NpgsqlValueGenerationStrategy?)withOptions[NpgsqlAnnotationNames.ValueGenerationStrategy]);
                 Assert.Equal(
                     new IdentitySequenceOptionsData
                     {
@@ -1751,21 +1751,21 @@ CREATE TABLE identity (
                 Assert.Equal("integer", withOptions.StoreType);
                 Assert.Equal(
                     NpgsqlValueGenerationStrategy.IdentityByDefaultColumn,
-                    (NpgsqlValueGenerationStrategy)withoutOptions[NpgsqlAnnotationNames.ValueGenerationStrategy]);
+                    (NpgsqlValueGenerationStrategy?)withoutOptions[NpgsqlAnnotationNames.ValueGenerationStrategy]);
                 Assert.Null(withoutOptions[NpgsqlAnnotationNames.IdentityOptions]);
 
                 var bigintWithoutOptions = dbModel.Tables.Single().Columns.Single(c => c.Name == "bigint_without_options");
                 Assert.Equal("bigint", bigintWithoutOptions.StoreType);
                 Assert.Equal(
                     NpgsqlValueGenerationStrategy.IdentityByDefaultColumn,
-                    (NpgsqlValueGenerationStrategy)bigintWithoutOptions[NpgsqlAnnotationNames.ValueGenerationStrategy]);
+                    (NpgsqlValueGenerationStrategy?)bigintWithoutOptions[NpgsqlAnnotationNames.ValueGenerationStrategy]);
                 Assert.Null(bigintWithoutOptions[NpgsqlAnnotationNames.IdentityOptions]);
 
                 var smallintWithoutOptions = dbModel.Tables.Single().Columns.Single(c => c.Name == "smallint_without_options");
                 Assert.Equal("smallint", smallintWithoutOptions.StoreType);
                 Assert.Equal(
                     NpgsqlValueGenerationStrategy.IdentityByDefaultColumn,
-                    (NpgsqlValueGenerationStrategy)smallintWithoutOptions[NpgsqlAnnotationNames.ValueGenerationStrategy]);
+                    (NpgsqlValueGenerationStrategy?)smallintWithoutOptions[NpgsqlAnnotationNames.ValueGenerationStrategy]);
                 Assert.Null(smallintWithoutOptions[NpgsqlAnnotationNames.IdentityOptions]);
             },
             "DROP TABLE identity");
@@ -1816,7 +1816,7 @@ CREATE INDEX ix_b ON "IndexMethod" (b);
                 Assert.Equal(2, table.Indexes.Count);
 
                 var methodIndex = table.Indexes.Single(i => i.Name == "ix_a");
-                Assert.Equal("hash", methodIndex.FindAnnotation(NpgsqlAnnotationNames.IndexMethod).Value);
+                Assert.Equal("hash", methodIndex[NpgsqlAnnotationNames.IndexMethod]);
 
                 // It's cleaner to always output the index method on the database model,
                 // even when it's btree (the default);
@@ -1846,7 +1846,7 @@ CREATE INDEX ix_without ON "IndexOperators" (a, b);
                 var table = dbModel.Tables.Single();
 
                 var indexWith = table.Indexes.Single(i => i.Name == "ix_with");
-                Assert.Equal(new[] { null, "varchar_pattern_ops" }, indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexOperators).Value);
+                Assert.Equal(new[] { null, "varchar_pattern_ops" }, indexWith[NpgsqlAnnotationNames.IndexOperators]);
 
                 var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
                 Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.IndexOperators));
@@ -1870,7 +1870,7 @@ CREATE INDEX ix_without ON "IndexCollation" (a, b);
                 var table = dbModel.Tables.Single();
 
                 var indexWith = table.Indexes.Single(i => i.Name == "ix_with");
-                Assert.Equal(new[] { null, "POSIX" }, indexWith.FindAnnotation(RelationalAnnotationNames.Collation).Value);
+                Assert.Equal(new[] { null, "POSIX" }, indexWith[RelationalAnnotationNames.Collation]);
 
                 var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
                 Assert.Null(indexWithout.FindAnnotation(RelationalAnnotationNames.Collation));
@@ -1930,7 +1930,7 @@ CREATE INDEX ix_without ON "IndexNullSortOrder" (a, b);
                 var indexWith = table.Indexes.Single(i => i.Name == "ix_with");
                 Assert.Equal(
                     new[] { NullSortOrder.NullsFirst, NullSortOrder.NullsLast },
-                    indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexNullSortOrder).Value);
+                    indexWith[NpgsqlAnnotationNames.IndexNullSortOrder]);
 
                 var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
                 Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.IndexNullSortOrder));
@@ -2194,7 +2194,7 @@ CREATE TABLE column_types (
                     Assert.Equal(column.Name, column.StoreType);
                     Assert.Equal(
                         column.StoreType,
-                        typeMappingSource.FindMapping(column.StoreType).StoreType
+                        typeMappingSource.FindMapping(column.StoreType!)!.StoreType
                     );
                 }
             },
@@ -2220,7 +2220,7 @@ CREATE EXTENSION postgis;
         IEnumerable<string> tables,
         IEnumerable<string> schemas,
         Action<DatabaseModel> asserter,
-        string cleanupSql)
+        string? cleanupSql)
     {
         Fixture.TestStore.ExecuteNonQuery(createSql);
 

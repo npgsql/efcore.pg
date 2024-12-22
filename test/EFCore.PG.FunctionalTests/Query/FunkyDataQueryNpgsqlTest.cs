@@ -40,7 +40,7 @@ public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpg
 
     public class FunkyDataQueryNpgsqlFixture : FunkyDataQueryFixtureBase, ITestSqlLoggerFactory
     {
-        private FunkyDataData _expectedData;
+        private FunkyDataData? _expectedData;
 
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;

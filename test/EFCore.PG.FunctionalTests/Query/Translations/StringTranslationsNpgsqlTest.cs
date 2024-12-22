@@ -2,8 +2,6 @@ using Microsoft.EntityFrameworkCore.TestModels.BasicTypesModel;
 
 namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
-#nullable enable
-
 public class StringTranslationsNpgsqlTest : StringTranslationsRelationalTestBase<BasicTypesQueryNpgsqlFixture>
 {
     public StringTranslationsNpgsqlTest(BasicTypesQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)

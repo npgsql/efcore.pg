@@ -41,10 +41,10 @@ public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.C
             m2.Character6 = update;
             ctx.SaveChanges();
 
-            var item0 = ctx.CharacterTestEntities.Find("12345678").Character6;
+            var item0 = ctx.CharacterTestEntities.Find("12345678")!.Character6;
             Assert.Equal(update, item0);
 
-            var item1 = ctx.CharacterTestEntities.Find("123456  ").Character6;
+            var item1 = ctx.CharacterTestEntities.Find("123456  ")!.Character6;
             Assert.Equal(update, item1);
         }
     }
@@ -62,18 +62,18 @@ public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.C
 
         const string update = "update";
 
-        var m1 = ctx.CharacterTestEntities.Find("12345678");
+        var m1 = ctx.CharacterTestEntities.Find("12345678")!;
         m1.Character6 = update;
         ctx.SaveChanges();
 
-        var m2 = ctx.CharacterTestEntities.Find("123456  ");
+        var m2 = ctx.CharacterTestEntities.Find("123456  ")!;
         m2.Character6 = update;
         ctx.SaveChanges();
 
-        var item0 = ctx.CharacterTestEntities.Find("12345678").Character6;
+        var item0 = ctx.CharacterTestEntities.Find("12345678")!.Character6;
         Assert.Equal(update, item0);
 
-        var item1 = ctx.CharacterTestEntities.Find("123456  ").Character6;
+        var item1 = ctx.CharacterTestEntities.Find("123456  ")!.Character6;
         Assert.Equal(update, item1);
     }
 
@@ -92,11 +92,11 @@ public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.C
         ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "123456  " });
         ctx.SaveChanges();
 
-        var m1 = ctx.CharacterTestEntities.Find("12345678");
+        var m1 = ctx.CharacterTestEntities.Find("12345678")!;
         m1.Character6 = update;
         ctx.SaveChanges();
 
-        var m2 = ctx.CharacterTestEntities.Find("123456  ");
+        var m2 = ctx.CharacterTestEntities.Find("123456  ")!;
         m2.Character6 = update;
         ctx.SaveChanges();
     }
@@ -178,8 +178,8 @@ public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.C
 
     public class CharacterTestEntity
     {
-        public string Character8 { get; set; }
-        public string Character6 { get; set; }
+        public string? Character8 { get; set; }
+        public string? Character6 { get; set; }
     }
 
     public class CharacterContext : PoolableDbContext

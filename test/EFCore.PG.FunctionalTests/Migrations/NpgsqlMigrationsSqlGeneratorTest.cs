@@ -615,7 +615,7 @@ INTERLEAVE IN PARENT my_schema.my_parent (col_a, col_b);
                             Schema = "dbo",
                             Columns = ["First Name"],
                             ColumnTypes = ["foo"],
-                            Values = new object[,] { { null } }
+                            Values = new object?[,] { { null } }
                         })).Message);
 
 #pragma warning restore 618

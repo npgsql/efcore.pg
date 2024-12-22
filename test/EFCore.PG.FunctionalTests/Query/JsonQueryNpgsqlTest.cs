@@ -3398,7 +3398,7 @@ FROM "JsonEntitiesBasic" AS j
         protected override ITestStoreFactory TestStoreFactory
             => NpgsqlTestStoreFactory.Instance;
 
-        private JsonQueryData _expectedData;
+        private JsonQueryData? _expectedData;
         private readonly IReadOnlyDictionary<Type, object> _entityAsserters;
 
         public JsonQueryNpgsqlFixture()
@@ -3407,8 +3407,9 @@ FROM "JsonEntitiesBasic" AS j
 
             entityAsserters[typeof(JsonEntityAllTypes)] = (object e, object a) =>
             {
-                Assert.Equal(e == null, a == null);
-                if (a != null)
+                Assert.Equal(e is null, a is null);
+
+                if (e is not null && a is not null)
                 {
                     var ee = (JsonEntityAllTypes)e;
                     var aa = (JsonEntityAllTypes)a;
@@ -3418,17 +3419,18 @@ FROM "JsonEntitiesBasic" AS j
                     AssertAllTypes(ee.Reference, aa.Reference);
 
                     Assert.Equal(ee.Collection?.Count ?? 0, aa.Collection?.Count ?? 0);
-                    for (var i = 0; i < ee.Collection.Count; i++)
+                    for (var i = 0; i < ee.Collection!.Count; i++)
                     {
-                        AssertAllTypes(ee.Collection[i], aa.Collection[i]);
+                        AssertAllTypes(ee.Collection[i], aa.Collection![i]);
                     }
                 }
             };
 
             entityAsserters[typeof(JsonOwnedAllTypes)] = (object e, object a) =>
             {
-                Assert.Equal(e == null, a == null);
-                if (a != null)
+                Assert.Equal(e is null, a is null);
+
+                if (e is not null && a is not null)
                 {
                     var ee = (JsonOwnedAllTypes)e;
                     var aa = (JsonOwnedAllTypes)a;
