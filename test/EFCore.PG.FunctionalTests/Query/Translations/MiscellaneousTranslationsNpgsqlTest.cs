@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore.TestModels.BasicTypesModel;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Microsoft.EntityFrameworkCore.Query.Translations;
 

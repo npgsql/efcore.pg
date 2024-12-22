@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class NorthwindAggregateOperatorsQueryNpgsqlTest : NorthwindAggregateOperatorsQueryRelationalTestBase<
     NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>

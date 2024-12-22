@@ -2,7 +2,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public class LoggingNpgsqlTest : LoggingRelationalTestBase<NpgsqlDbContextOptionsBuilder, NpgsqlOptionsExtension>
 {

@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.ComplexNavigationsModel;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class ComplexNavigationsSharedTypeQueryNpgsqlFixture : ComplexNavigationsSharedTypeQueryRelationalFixtureBase
 {

@@ -1,4 +1,4 @@
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class MinimumPostgresVersionAttribute(int major, int minor) : Attribute, ITestCondition

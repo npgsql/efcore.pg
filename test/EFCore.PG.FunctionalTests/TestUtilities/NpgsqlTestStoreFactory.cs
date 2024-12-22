@@ -1,4 +1,4 @@
-﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+﻿namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 public class NpgsqlTestStoreFactory(
         string? scriptPath = null,

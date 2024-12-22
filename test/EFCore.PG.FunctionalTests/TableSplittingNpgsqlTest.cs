@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.TestModels.TransportationModel;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 [MinimumPostgresVersion(12, 0)] // Test suite uses computed columns
 public class TableSplittingNpgsqlTest(ITestOutputHelper testOutputHelper) : TableSplittingTestBase(testOutputHelper)

@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 // The EF Core specification test suite has:
 //

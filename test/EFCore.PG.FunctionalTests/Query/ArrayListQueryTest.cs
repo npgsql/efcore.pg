@@ -1,6 +1,7 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
+using Microsoft.EntityFrameworkCore.TestModels.Array;
+using TypeExtensions = Npgsql.EntityFrameworkCore.PostgreSQL.TypeExtensions;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class ArrayListQueryTest : ArrayQueryTest<ArrayListQueryTest.ArrayListQueryFixture>
 {
@@ -995,7 +996,7 @@ WHERE array_to_string(s."StringList", ', ', '') = '3, 4'
             if (node.NodeType == ExpressionType.ArrayIndex)
             {
                 var listExpression = Visit(node.Left);
-                if (listExpression.Type.IsGenericList())
+                if (TypeExtensions.IsGenericList(listExpression.Type))
                 {
                     var getItemMethod = listExpression.Type.GetMethod("get_Item", [typeof(int)])!;
                     return Expression.Call(listExpression, getItemMethod, node.Right);

@@ -1,6 +1,6 @@
 using Xunit.Sdk;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.ModelBuilding;
+namespace Microsoft.EntityFrameworkCore.ModelBuilding;
 
 public class NpgsqlModelBuilderGenericTest : NpgsqlModelBuilderTestBase
 {

@@ -1,6 +1,6 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 public static class NpgsqlDbContextOptionsBuilderExtensions
 {

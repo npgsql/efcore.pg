@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 #nullable disable
 
@@ -128,7 +127,7 @@ WHERE c."ContactName" NOT ILIKE '%M%' OR c."ContactName" IS NULL
     #region Collation
 
     [MinimumPostgresVersion(12, 0)]
-    [PlatformSkipCondition(TestPlatform.Windows, SkipReason = "ICU non-deterministic doesn't seem to work on Windows?")]
+    [PlatformSkipCondition(TestUtilities.Xunit.TestPlatform.Windows, SkipReason = "ICU non-deterministic doesn't seem to work on Windows?")]
     public override async Task Collate_case_insensitive(bool async)
     {
         await base.Collate_case_insensitive(async);

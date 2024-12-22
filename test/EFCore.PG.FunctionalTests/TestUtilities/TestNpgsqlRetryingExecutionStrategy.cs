@@ -1,4 +1,6 @@
-﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL;
+
+namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 public class TestNpgsqlRetryingExecutionStrategy : NpgsqlRetryingExecutionStrategy
 {

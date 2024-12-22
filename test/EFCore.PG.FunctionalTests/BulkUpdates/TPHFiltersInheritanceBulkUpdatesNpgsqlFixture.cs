@@ -1,4 +1,4 @@
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.BulkUpdates;
+namespace Microsoft.EntityFrameworkCore.BulkUpdates;
 
 public class TPHFiltersInheritanceBulkUpdatesNpgsqlFixture : TPHInheritanceBulkUpdatesNpgsqlFixture
 {

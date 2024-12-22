@@ -5,7 +5,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 public class NpgsqlDatabaseCleaner : RelationalDatabaseCleaner
 {

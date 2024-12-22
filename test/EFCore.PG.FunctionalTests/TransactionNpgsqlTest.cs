@@ -1,8 +1,7 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public class TransactionNpgsqlTest(TransactionNpgsqlTest.TransactionNpgsqlFixture fixture)
     : TransactionTestBase<TransactionNpgsqlTest.TransactionNpgsqlFixture>(fixture)

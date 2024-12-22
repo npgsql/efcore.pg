@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using Microsoft.Extensions.Configuration;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 public static class TestEnvironment
 {

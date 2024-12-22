@@ -1,7 +1,6 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
+namespace Microsoft.EntityFrameworkCore.Update;
 
 [MinimumPostgresVersion(14, 0)]
 public class StoredProcedureUpdateNpgsqlTest : StoredProcedureUpdateTestBase

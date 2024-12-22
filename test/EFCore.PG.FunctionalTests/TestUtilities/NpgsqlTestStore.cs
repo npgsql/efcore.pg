@@ -3,7 +3,7 @@ using System.Data.Common;
 using System.Text.RegularExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 public class NpgsqlTestStore : RelationalTestStore
 {

@@ -1,9 +1,8 @@
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public abstract class ConnectionInterceptionNpgsqlTestBase(ConnectionInterceptionNpgsqlTestBase.InterceptionNpgsqlFixtureBase fixture)
     : ConnectionInterceptionTestBase(fixture)

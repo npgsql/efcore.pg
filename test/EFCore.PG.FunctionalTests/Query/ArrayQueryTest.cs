@@ -1,9 +1,9 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
+﻿using Microsoft.EntityFrameworkCore.TestModels.Array;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 
 // ReSharper disable ConvertToConstant.Local
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public abstract class ArrayQueryTest<TFixture> : QueryTestBase<TFixture>
     where TFixture : ArrayQueryFixture, new()

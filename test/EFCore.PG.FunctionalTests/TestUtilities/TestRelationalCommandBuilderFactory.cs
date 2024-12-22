@@ -1,6 +1,6 @@
 using System.Data.Common;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 public class TestRelationalCommandBuilderFactory(RelationalCommandBuilderDependencies dependencies) : IRelationalCommandBuilderFactory
 {

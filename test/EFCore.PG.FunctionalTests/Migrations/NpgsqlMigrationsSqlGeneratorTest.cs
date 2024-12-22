@@ -3,9 +3,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
+namespace Microsoft.EntityFrameworkCore.Migrations;
 
 public class NpgsqlMigrationsSqlGeneratorTest() : MigrationsSqlGeneratorTestBase(
     NpgsqlTestHelpers.Instance,

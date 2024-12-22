@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Northwind;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class NorthwindChangeTrackingQueryNpgsqlTest : NorthwindChangeTrackingQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
 {

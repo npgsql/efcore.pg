@@ -1,5 +1,4 @@
 using System.Numerics;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Microsoft.EntityFrameworkCore.Query.Translations;
 

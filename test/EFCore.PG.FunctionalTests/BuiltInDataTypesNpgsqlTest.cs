@@ -1,9 +1,8 @@
 ﻿using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Net.NetworkInformation;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 #nullable disable
 

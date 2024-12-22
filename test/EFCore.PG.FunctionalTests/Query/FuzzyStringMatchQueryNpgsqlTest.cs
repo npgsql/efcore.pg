@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 /// <summary>
 ///     Provides unit tests for the fuzzystrmatch module function translations.

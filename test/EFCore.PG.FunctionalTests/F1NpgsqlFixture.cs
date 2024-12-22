@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.TestModels.ConcurrencyModel;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public class F1BytesNpgsqlFixture : F1NpgsqlFixtureBase<byte[]>
 {

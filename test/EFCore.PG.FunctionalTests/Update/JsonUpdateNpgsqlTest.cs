@@ -1,8 +1,7 @@
 using Microsoft.EntityFrameworkCore.TestModels.JsonQuery;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit.Sdk;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
+namespace Microsoft.EntityFrameworkCore.Update;
 
 public class JsonUpdateNpgsqlTest : JsonUpdateTestBase<JsonUpdateNpgsqlTest.JsonUpdateNpgsqlFixture>
 {

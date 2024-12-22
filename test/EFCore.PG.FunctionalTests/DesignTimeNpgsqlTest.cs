@@ -1,7 +1,6 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public class DesignTimeNpgsqlTest(DesignTimeNpgsqlTest.DesignTimeNpgsqlFixture fixture)
     : DesignTimeTestBase<DesignTimeNpgsqlTest.DesignTimeNpgsqlFixture>(fixture)

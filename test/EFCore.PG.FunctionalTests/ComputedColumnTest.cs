@@ -1,6 +1,4 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 [MinimumPostgresVersion(12, 0)]
 public class ComputedColumnTest : IAsyncLifetime

@@ -1,6 +1,4 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class ComplexTypeQueryNpgsqlTest : ComplexTypeQueryRelationalTestBase<
     ComplexTypeQueryNpgsqlTest.ComplexTypeQueryNpgsqlFixture>

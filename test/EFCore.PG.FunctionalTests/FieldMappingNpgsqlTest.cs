@@ -1,6 +1,4 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+﻿namespace Microsoft.EntityFrameworkCore;
 
 public class FieldMappingNpgsqlTest(FieldMappingNpgsqlTest.FieldMappingNpgsqlFixture fixture)
     : FieldMappingTestBase<FieldMappingNpgsqlTest.FieldMappingNpgsqlFixture>(fixture)

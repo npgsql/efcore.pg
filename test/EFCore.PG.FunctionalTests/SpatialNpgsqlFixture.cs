@@ -1,7 +1,6 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public class SpatialNpgsqlFixture : SpatialFixtureBase
 {

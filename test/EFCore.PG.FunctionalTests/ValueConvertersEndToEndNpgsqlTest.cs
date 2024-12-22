@@ -1,6 +1,4 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public class ValueConvertersEndToEndNpgsqlTest(ValueConvertersEndToEndNpgsqlTest.ValueConvertersEndToEndNpgsqlFixture fixture)
     : ValueConvertersEndToEndTestBase<ValueConvertersEndToEndNpgsqlTest.ValueConvertersEndToEndNpgsqlFixture>(fixture)

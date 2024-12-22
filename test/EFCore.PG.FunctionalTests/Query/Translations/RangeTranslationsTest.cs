@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 // ReSharper disable InconsistentNaming
 
