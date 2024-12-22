@@ -17,50 +17,6 @@ public class NorthwindFunctionsQueryNpgsqlTest : NorthwindFunctionsQueryRelation
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    public override async Task IsNullOrWhiteSpace_in_predicate(bool async)
-    {
-        await base.IsNullOrWhiteSpace_in_predicate(async);
-
-        AssertSql(
-            """
-SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
-FROM "Customers" AS c
-WHERE c."Region" IS NULL OR btrim(c."Region", E' \t\n\r') = ''
-""");
-    }
-
-    // PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though
-    public override Task Where_math_log_new_base(bool async)
-        => AssertTranslationFailed(() => base.Where_math_log_new_base(async));
-
-    // PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though
-    public override Task Where_mathf_log_new_base(bool async)
-        => AssertTranslationFailed(() => base.Where_mathf_log_new_base(async));
-
-    // PostgreSQL only has round(v, s) over numeric, may be possible to cast back and forth though
-    public override Task Where_mathf_round2(bool async)
-        => AssertTranslationFailed(() => base.Where_mathf_round2(async));
-
-    // Convert on DateTime not yet supported
-    public override Task Convert_ToString(bool async)
-        => AssertTranslationFailed(() => base.Convert_ToString(async));
-
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task String_Join_non_aggregate(bool async)
-    {
-        await base.String_Join_non_aggregate(async);
-
-        AssertSql(
-            """
-@foo='foo'
-
-SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
-FROM "Customers" AS c
-WHERE concat_ws('|', c."CompanyName", @foo, '', 'bar') = 'Around the Horn|foo||bar'
-""");
-    }
-
     #region Substring
 
     [ConditionalTheory]
@@ -570,42 +526,6 @@ FROM "Customers" AS c
 
     #endregion Regex
 
-    #region Guid
-
-    private static string UuidGenerationFunction { get; } = TestEnvironment.PostgresVersion.AtLeast(13)
-        ? "gen_random_uuid"
-        : "uuid_generate_v4";
-
-    public override async Task Where_guid_newguid(bool async)
-    {
-        await base.Where_guid_newguid(async);
-
-        AssertSql(
-            $"""
-SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
-FROM "Customers" AS c
-WHERE {UuidGenerationFunction}() <> '00000000-0000-0000-0000-000000000000'
-""");
-    }
-
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
-    public virtual async Task OrderBy_Guid_NewGuid(bool async)
-    {
-        await AssertQuery(
-            async,
-            ods => ods.Set<OrderDetail>().OrderBy(od => Guid.NewGuid()).Select(x => x));
-
-        AssertSql(
-            $"""
-SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
-FROM "Order Details" AS o
-ORDER BY {UuidGenerationFunction}() NULLS FIRST
-""");
-    }
-
-    #endregion
-
     #region PadLeft, PadRight
 
     [ConditionalTheory]
@@ -683,66 +603,6 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST
     #endregion
 
     #region Aggregate functions
-
-    public override async Task String_Join_over_non_nullable_column(bool async)
-    {
-        await base.String_Join_over_non_nullable_column(async);
-
-        AssertSql(
-            """
-SELECT c."City", COALESCE(string_agg(c."CustomerID", '|'), '') AS "Customers"
-FROM "Customers" AS c
-GROUP BY c."City"
-""");
-    }
-
-    public override async Task String_Join_over_nullable_column(bool async)
-    {
-        await base.String_Join_over_nullable_column(async);
-
-        AssertSql(
-            """
-SELECT c."City", COALESCE(string_agg(COALESCE(c."Region", ''), '|'), '') AS "Regions"
-FROM "Customers" AS c
-GROUP BY c."City"
-""");
-    }
-
-    public override async Task String_Join_with_predicate(bool async)
-    {
-        await base.String_Join_with_predicate(async);
-
-        AssertSql(
-            """
-SELECT c."City", COALESCE(string_agg(c."CustomerID", '|') FILTER (WHERE length(c."ContactName")::int > 10), '') AS "Customers"
-FROM "Customers" AS c
-GROUP BY c."City"
-""");
-    }
-
-    public override async Task String_Join_with_ordering(bool async)
-    {
-        await base.String_Join_with_ordering(async);
-
-        AssertSql(
-            """
-SELECT c."City", COALESCE(string_agg(c."CustomerID", '|' ORDER BY c."CustomerID" DESC NULLS LAST), '') AS "Customers"
-FROM "Customers" AS c
-GROUP BY c."City"
-""");
-    }
-
-    public override async Task String_Concat(bool async)
-    {
-        await base.String_Concat(async);
-
-        AssertSql(
-            """
-SELECT c."City", COALESCE(string_agg(c."CustomerID", ''), '') AS "Customers"
-FROM "Customers" AS c
-GROUP BY c."City"
-""");
-    }
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
@@ -1192,38 +1052,6 @@ FROM "Orders" AS o
     }
 
     #endregion
-
-    #region Unsupported
-
-    // PostgreSQL does not have strpos with starting position
-    public override Task Indexof_with_constant_starting_position(bool async)
-        => AssertTranslationFailed(() => base.Indexof_with_constant_starting_position(async));
-
-    // PostgreSQL does not have strpos with starting position
-    public override Task Indexof_with_parameter_starting_position(bool async)
-        => AssertTranslationFailed(() => base.Indexof_with_parameter_starting_position(async));
-
-    // These tests convert (among other things) to and from boolean, which PostgreSQL
-    // does not support (https://github.com/dotnet/efcore/issues/19606)
-    public override Task Convert_ToBoolean(bool async)
-        => Task.CompletedTask;
-
-    public override Task Convert_ToByte(bool async)
-        => Task.CompletedTask;
-
-    public override Task Convert_ToDecimal(bool async)
-        => Task.CompletedTask;
-
-    public override Task Convert_ToDouble(bool async)
-        => Task.CompletedTask;
-
-    public override Task Convert_ToInt16(bool async)
-        => Task.CompletedTask;
-
-    public override Task Convert_ToInt64(bool async)
-        => Task.CompletedTask;
-
-    #endregion Unsupported
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

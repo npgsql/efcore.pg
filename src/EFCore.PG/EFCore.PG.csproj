@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL</RootNamespace>
-    <TargetFramework>net8.0</TargetFramework>
 
     <Authors>Shay Rojansky;Austin Drenski;Yoh Deadfall;</Authors>
     <Description>PostgreSQL/Npgsql provider for Entity Framework Core.</Description>
