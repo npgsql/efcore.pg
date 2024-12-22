@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
 /// <summary>
 ///     Provides unit tests for the pg_trgm module operator and function translations.
@@ -9,19 +9,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 /// <remarks>
 ///     See: https://www.postgresql.org/docs/current/pgtrgm.html
 /// </remarks>
-public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.TrigramsQueryNpgsqlFixture>
+public class TrigramsTranslationsTest : IClassFixture<TrigramsTranslationsTest.TrigramsQueryNpgsqlFixture>
 {
     private TrigramsQueryNpgsqlFixture Fixture { get; }
 
     // ReSharper disable once UnusedParameter.Local
-    public TrigramsQueryNpgsqlTest(TrigramsQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
+    public TrigramsTranslationsTest(TrigramsQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
-
-    #region FunctionTests
 
     [Fact]
     public void TrigramsShow()
@@ -213,8 +211,6 @@ FROM "TrigramsTestEntities" AS t
 WHERE 1 - (t."Text" <-> 'query') > 8
 """);
     }
-
-    #endregion
 
     #region Fixtures
 

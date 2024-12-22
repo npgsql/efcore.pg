@@ -1,12 +1,12 @@
 using System.Numerics;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
-public class BigIntegerQueryTest : QueryTestBase<BigIntegerQueryTest.BigIntegerQueryFixture>
+public class BigIntegerTranslationsTest : QueryTestBase<BigIntegerTranslationsTest.BigIntegerQueryFixture>
 {
     // ReSharper disable once UnusedParameter.Local
-    public BigIntegerQueryTest(BigIntegerQueryFixture fixture, ITestOutputHelper testOutputHelper)
+    public BigIntegerTranslationsTest(BigIntegerQueryFixture fixture, ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();

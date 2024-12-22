@@ -4,15 +4,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 // ReSharper disable InconsistentNaming
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
 // Note: timestamp range tests are in TimestampQueryTest
-public class RangeQueryNpgsqlTest : IClassFixture<RangeQueryNpgsqlTest.RangeQueryNpgsqlFixture>
+public class RangeTranslationsTest : IClassFixture<RangeTranslationsTest.RangeQueryNpgsqlFixture>
 {
     private RangeQueryNpgsqlFixture Fixture { get; }
 
     // ReSharper disable once UnusedParameter.Local
-    public RangeQueryNpgsqlTest(RangeQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
+    public RangeTranslationsTest(RangeQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();
