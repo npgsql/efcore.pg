@@ -2,8 +2,6 @@ using Xunit.Sdk;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.ModelBuilding;
 
-#nullable enable
-
 public class NpgsqlModelBuilderGenericTest : NpgsqlModelBuilderTestBase
 {
     public class NpgsqlGenericNonRelationship(NpgsqlModelBuilderFixture fixture) : NpgsqlNonRelationship(fixture)

@@ -4,6 +4,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
+#nullable disable
+
 public class ConferencePlannerNpgsqlTest(ConferencePlannerNpgsqlTest.ConferencePlannerNpgsqlFixture fixture)
     : ConferencePlannerTestBase<ConferencePlannerNpgsqlTest.ConferencePlannerNpgsqlFixture>(fixture)
 {

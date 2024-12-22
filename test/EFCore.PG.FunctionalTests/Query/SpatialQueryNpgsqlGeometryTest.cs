@@ -5,6 +5,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
+#nullable disable
+
 [RequiresPostgis]
 public class SpatialQueryNpgsqlGeometryTest
     : SpatialQueryRelationalTestBase<SpatialQueryNpgsqlGeometryTest.SpatialQueryNpgsqlGeometryFixture>

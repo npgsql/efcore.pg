@@ -14,11 +14,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         [Fact]
         public void Timestamp_maps_to_Instant_by_default()
-            => Assert.Same(typeof(Instant), GetMapping("timestamp without time zone").ClrType);
+            => Assert.Same(typeof(Instant), GetMapping("timestamp without time zone")!.ClrType);
 
         [Fact]
         public void Timestamptz_maps_to_Instant_by_default()
-            => Assert.Same(typeof(Instant), GetMapping("timestamp with time zone").ClrType);
+            => Assert.Same(typeof(Instant), GetMapping("timestamp with time zone")!.ClrType);
 
         [Fact]
         public void LocalDateTime_does_not_map_to_timestamptz()
@@ -27,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void GenerateSqlLiteral_returns_instant_literal()
         {
-            var mapping = GetMapping(typeof(Instant));
+            var mapping = GetMapping(typeof(Instant))!;
             Assert.Equal("timestamp without time zone", mapping.StoreType);
 
             var instant = (new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660)).InUtc().ToInstant();
@@ -37,7 +37,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void GenerateSqlLiteral_returns_instant_infinity_literal()
         {
-            var mapping = GetMapping(typeof(Instant));
+            var mapping = GetMapping(typeof(Instant))!;
             Assert.Equal(typeof(Instant), mapping.ClrType);
             Assert.Equal("timestamp without time zone", mapping.StoreType);
 
@@ -48,7 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void GenerateSqlLiteral_returns_instant_range_in_legacy_mode()
         {
-            var mapping = (NpgsqlRangeTypeMapping)GetMapping(typeof(NpgsqlRange<Instant>));
+            var mapping = (NpgsqlRangeTypeMapping)GetMapping(typeof(NpgsqlRange<Instant>))!;
             Assert.Equal("tsrange", mapping.StoreType);
             Assert.Equal("timestamp without time zone", mapping.SubtypeMapping.StoreType);
 
@@ -74,13 +74,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             new NpgsqlSingletonOptions()
         );
 
-        private static RelationalTypeMapping GetMapping(string storeType)
+        private static RelationalTypeMapping? GetMapping(string storeType)
             => Mapper.FindMapping(storeType);
 
-        private static RelationalTypeMapping GetMapping(Type clrType)
+        private static RelationalTypeMapping? GetMapping(Type clrType)
             => Mapper.FindMapping(clrType);
 
-        private static RelationalTypeMapping GetMapping(Type clrType, string storeType)
+        private static RelationalTypeMapping? GetMapping(Type clrType, string storeType)
             => Mapper.FindMapping(clrType, storeType);
 
         private class LegacyNpgsqlNodaTimeTypeMappingFixture : IDisposable

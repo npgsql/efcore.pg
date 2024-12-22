@@ -2,8 +2,6 @@ using Microsoft.EntityFrameworkCore.TestModels.BasicTypesModel;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-#nullable enable
-
 namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
 public class BasicTypesQueryNpgsqlFixture : BasicTypesQueryFixtureBase, ITestSqlLoggerFactory

@@ -3,6 +3,8 @@ using Xunit.Sdk;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
+#nullable disable
+
 public class NorthwindMiscellaneousQueryNpgsqlTest : NorthwindMiscellaneousQueryRelationalTestBase<
     NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
 {

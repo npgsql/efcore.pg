@@ -34,7 +34,7 @@ LIMIT 2
 
     #region Support
 
-    private CompatibilityContext CreateContext(Version postgresVersion = null)
+    private CompatibilityContext CreateContext(Version? postgresVersion = null)
         => Fixture.CreateContext(postgresVersion);
 
     private CompatibilityContext CreateRedshiftContext()
@@ -42,7 +42,7 @@ LIMIT 2
 
     public class CompatibilityQueryNpgsqlFixture : FixtureBase, IDisposable, IAsyncLifetime
     {
-        private TestStore _testStore;
+        private TestStore _testStore = null!;
 
         private const string StoreName = "CompatibilityTest";
         private readonly ListLoggerFactory _listLoggerFactory = NpgsqlTestStoreFactory.Instance.CreateListLoggerFactory(_ => false);
@@ -53,7 +53,7 @@ LIMIT 2
         public virtual CompatibilityContext CreateContext()
             => CreateContext(null);
 
-        public virtual CompatibilityContext CreateContext(Version postgresVersion)
+        public virtual CompatibilityContext CreateContext(Version? postgresVersion)
         {
             var builder = new DbContextOptionsBuilder();
             _testStore.AddProviderOptions(builder);

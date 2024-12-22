@@ -67,7 +67,7 @@ LIMIT 2
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" IS NOT NULL AND left(@param, length(s."CaseInsensitiveText"))::citext = s."CaseInsensitiveText"
+WHERE left(@param, length(s."CaseInsensitiveText"))::citext = s."CaseInsensitiveText"
 LIMIT 2
 """);
     }
@@ -121,7 +121,7 @@ LIMIT 2
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" IS NOT NULL AND right(@param, length(s."CaseInsensitiveText"))::citext = s."CaseInsensitiveText"
+WHERE right(@param, length(s."CaseInsensitiveText"))::citext = s."CaseInsensitiveText"
 LIMIT 2
 """);
     }
@@ -175,7 +175,7 @@ LIMIT 2
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE s."CaseInsensitiveText" IS NOT NULL AND strpos(@param, s."CaseInsensitiveText") > 0
+WHERE strpos(@param, s."CaseInsensitiveText") > 0
 LIMIT 2
 """);
     }
@@ -312,7 +312,7 @@ LIMIT 2
         public int Id { get; set; }
 
         [Column(TypeName = "citext")]
-        public string CaseInsensitiveText { get; set; }
+        public string CaseInsensitiveText { get; set; } = null!;
     }
 
     public class CitextQueryFixture : SharedStoreFixtureBase<CitextQueryContext>

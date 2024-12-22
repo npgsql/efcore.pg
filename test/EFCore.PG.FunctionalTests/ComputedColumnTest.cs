@@ -134,7 +134,7 @@ public class ComputedColumnTest : IAsyncLifetime
         Assert.Equal(FlagEnum.AValue | FlagEnum.BValue, entity.CalculatedFlagEnum);
     }
 
-    protected NpgsqlTestStore TestStore { get; private set; }
+    protected NpgsqlTestStore TestStore { get; private set; } = null!;
 
     public async Task InitializeAsync()
         => TestStore = await NpgsqlTestStore.CreateInitializedAsync("ComputedColumnTest");

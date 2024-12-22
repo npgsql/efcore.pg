@@ -7,6 +7,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 // ReSharper disable InconsistentNaming
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
+#nullable disable
+
 public class BatchingTest(BatchingTest.BatchingTestFixture fixture) : IClassFixture<BatchingTest.BatchingTestFixture>
 {
     protected BatchingTestFixture Fixture { get; } = fixture;

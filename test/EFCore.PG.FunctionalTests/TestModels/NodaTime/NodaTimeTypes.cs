@@ -13,15 +13,15 @@ public class NodaTimeTypes
     public LocalDate LocalDate2 { get; set; }
     public LocalTime LocalTime { get; set; }
     public OffsetTime OffsetTime { get; set; }
-    public Period Period { get; set; }
+    public Period Period { get; set; } = null!;
     public Duration Duration { get; set; }
-    public DateInterval DateInterval { get; set; }
+    public DateInterval DateInterval { get; set; } = null!;
     public NpgsqlRange<LocalDate> LocalDateRange { get; set; }
     public Interval Interval { get; set; }
     public NpgsqlRange<Instant> InstantRange { get; set; }
     public long Long { get; set; }
 
-    public string TimeZoneId { get; set; }
+    public string TimeZoneId { get; set; } = null!;
     // ReSharper restore UnusedAutoPropertyAccessor.Global
 }
 

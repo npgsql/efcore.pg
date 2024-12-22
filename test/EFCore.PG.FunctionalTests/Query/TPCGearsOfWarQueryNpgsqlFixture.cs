@@ -26,7 +26,7 @@ public class TPCGearsOfWarQueryNpgsqlFixture : TPCGearsOfWarQueryRelationalFixtu
         modelBuilder.Entity<City>().Property(g => g.Location).HasColumnType("varchar(100)");
     }
 
-    private GearsOfWarData _expectedData;
+    private GearsOfWarData? _expectedData;
 
     public override ISetSource GetExpectedData()
     {

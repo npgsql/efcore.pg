@@ -147,7 +147,7 @@ WHERE e."BigInteger" % 2 = 0
 
     public class BigIntegerQueryFixture : SharedStoreFixtureBase<BigIntegerQueryContext>, IQueryFixtureBase, ITestSqlLoggerFactory
     {
-        private BigIntegerData _expectedData;
+        private BigIntegerData? _expectedData;
 
         protected override string StoreName
             => "BigIntegerQueryTest";
@@ -168,7 +168,7 @@ WHERE e."BigInteger" % 2 = 0
             => _expectedData ??= new BigIntegerData();
 
         public IReadOnlyDictionary<Type, object> EntitySorters
-            => new Dictionary<Type, Func<object, object>> { { typeof(Entity), e => ((Entity)e)?.Id } }
+            => new Dictionary<Type, Func<object, object?>> { { typeof(Entity), e => ((Entity)e).Id } }
                 .ToDictionary(e => e.Key, e => (object)e.Value);
 
         public IReadOnlyDictionary<Type, object> EntityAsserters
@@ -178,9 +178,10 @@ WHERE e."BigInteger" % 2 = 0
                     typeof(Entity), (e, a) =>
                     {
                         Assert.Equal(e is null, a is null);
+
                         if (a is not null)
                         {
-                            var ee = (Entity)e;
+                            var ee = (Entity)e!;
                             var aa = (Entity)a;
 
                             Assert.Equal(ee.Id, aa.Id);

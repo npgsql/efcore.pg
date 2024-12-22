@@ -6,6 +6,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
+#nullable disable
+
 // ReSharper disable once UnusedMember.Global
 [RequiresPostgis]
 public class SpatialQueryNpgsqlGeographyTest

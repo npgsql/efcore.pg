@@ -93,12 +93,12 @@ public class ExistingConnectionTest
     private class Customer
     {
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
-        public string CustomerId { get; set; }
+        public string CustomerId { get; set; } = null!;
 
         // ReSharper disable once UnusedMember.Local
-        public string CompanyName { get; set; }
+        public string CompanyName { get; set; } = null!;
 
         // ReSharper disable once UnusedMember.Local
-        public string Fax { get; set; }
+        public string Fax { get; set; } = null!;
     }
 }

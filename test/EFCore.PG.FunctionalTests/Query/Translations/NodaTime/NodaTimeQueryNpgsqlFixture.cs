@@ -21,7 +21,7 @@ public class NodaTimeQueryNpgsqlFixture : SharedStoreFixtureBase<NodaTimeContext
     public TestSqlLoggerFactory TestSqlLoggerFactory
         => (TestSqlLoggerFactory)ListLoggerFactory;
 
-    private NodaTimeData _expectedData;
+    private NodaTimeData? _expectedData;
 
     protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
         => base.AddServices(serviceCollection).AddEntityFrameworkNpgsqlNodaTime();
@@ -44,7 +44,7 @@ public class NodaTimeQueryNpgsqlFixture : SharedStoreFixtureBase<NodaTimeContext
         => _expectedData ??= new NodaTimeData();
 
     public IReadOnlyDictionary<Type, object> EntitySorters
-        => new Dictionary<Type, Func<object, object>> { { typeof(NodaTimeTypes), e => ((NodaTimeTypes)e)?.Id } }
+        => new Dictionary<Type, Func<object, object?>> { { typeof(NodaTimeTypes), e => ((NodaTimeTypes)e).Id } }
             .ToDictionary(e => e.Key, e => (object)e.Value);
 
     public IReadOnlyDictionary<Type, object> EntityAsserters
@@ -54,7 +54,7 @@ public class NodaTimeQueryNpgsqlFixture : SharedStoreFixtureBase<NodaTimeContext
                 typeof(NodaTimeTypes), (e, a) =>
                 {
                     Assert.Equal(e is null, a is null);
-                    if (a is not null)
+                    if (e is not null && a is not null)
                     {
                         var ee = (NodaTimeTypes)e;
                         var aa = (NodaTimeTypes)a;

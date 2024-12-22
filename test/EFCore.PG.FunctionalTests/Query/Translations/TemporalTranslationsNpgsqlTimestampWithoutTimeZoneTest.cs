@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.BasicTypesModel;
 using Xunit.Sdk;
 
-#nullable enable
-
 namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
 /// <summary>

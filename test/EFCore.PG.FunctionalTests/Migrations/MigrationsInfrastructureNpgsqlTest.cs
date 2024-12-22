@@ -2,6 +2,8 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
+#nullable disable
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 {
     public class MigrationsInfrastructureNpgsqlTest(MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture fixture)

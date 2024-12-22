@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;

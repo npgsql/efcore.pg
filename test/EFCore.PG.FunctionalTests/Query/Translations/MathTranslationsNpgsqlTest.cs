@@ -1,7 +1,5 @@
 namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
-#nullable enable
-
 public class MathTranslationsNpgsqlTest : MathTranslationsTestBase<BasicTypesQueryNpgsqlFixture>
 {
     public MathTranslationsNpgsqlTest(BasicTypesQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)

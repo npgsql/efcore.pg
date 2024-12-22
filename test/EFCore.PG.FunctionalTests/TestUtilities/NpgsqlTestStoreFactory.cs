@@ -1,7 +1,5 @@
 ﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-#nullable enable
-
 public class NpgsqlTestStoreFactory(
         string? scriptPath = null,
         string? additionalSql = null,

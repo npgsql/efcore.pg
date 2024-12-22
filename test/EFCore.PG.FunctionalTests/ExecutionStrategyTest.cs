@@ -7,6 +7,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 // ReSharper disable AccessToDisposedClosure
 namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
+#nullable disable
+
 public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.ExecutionStrategyFixture>
 {
     public ExecutionStrategyTest(ExecutionStrategyFixture fixture)

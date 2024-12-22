@@ -4,8 +4,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
 
-#nullable enable
-
 public class StoreValueGenerationNpgsqlTest : StoreValueGenerationTestBase<
     StoreValueGenerationNpgsqlTest.StoreValueGenerationNpgsqlFixture>
 {

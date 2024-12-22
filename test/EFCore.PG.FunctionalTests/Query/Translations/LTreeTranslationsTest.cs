@@ -539,14 +539,14 @@ WHERE lca(ARRAY[l."LTree",'Top.Hobbies']::ltree[]) = 'Top'
         public LTree LTree { get; set; }
 
         [Required]
-        public LTree[] LTrees { get; set; }
+        public LTree[] LTrees { get; set; } = null!;
 
         [Required]
         [Column(TypeName = "ltree")]
-        public string LTreeAsString { get; set; }
+        public string LTreeAsString { get; set; } = null!;
 
         [Required]
-        public string SomeString { get; set; }
+        public string SomeString { get; set; } = null!;
     }
 
     public class LTreeQueryFixture : SharedStoreFixtureBase<LTreeQueryContext>

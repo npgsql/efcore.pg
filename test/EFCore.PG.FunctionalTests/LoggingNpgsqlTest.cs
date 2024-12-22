@@ -72,5 +72,5 @@ public class LoggingNpgsqlTest : LoggingRelationalTestBase<NpgsqlDbContextOption
 
     protected override string ProviderVersion
         => typeof(NpgsqlOptionsExtension).Assembly
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion!;
 }

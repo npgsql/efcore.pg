@@ -57,7 +57,7 @@ WHERE j."Customer" = '{"Name":"Test customer","Age":80,"ID":"00000000-0000-0000-
     {
         using var ctx = CreateContext();
 
-        var expected = ctx.JsonbEntities.Find(1).Customer;
+        var expected = ctx.JsonbEntities.Find(1)!.Customer;
         var actual = ctx.JsonbEntities.Single(e => e.Customer == expected).Customer;
 
         Assert.Equal(actual.Name, expected.Name);
@@ -718,7 +718,7 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
                     Customer = CreateCustomer1(),
                     ToplevelArray = ["one", "two", "three"]
                 },
-                new JsonbEntity { Id = 2, Customer = CreateCustomer2() });
+                new JsonbEntity { Id = 2, Customer = CreateCustomer2(), ToplevelArray = [] });
             context.JsonEntities.AddRange(
                 new JsonEntity
                 {
@@ -726,7 +726,7 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
                     Customer = CreateCustomer1(),
                     ToplevelArray = ["one", "two", "three"]
                 },
-                new JsonEntity { Id = 2, Customer = CreateCustomer2() });
+                new JsonEntity { Id = 2, Customer = CreateCustomer2(), ToplevelArray = [] });
 
             await context.SaveChangesAsync();
 
@@ -826,10 +826,10 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
         public int Id { get; set; }
 
         [Column(TypeName = "jsonb")]
-        public Customer Customer { get; set; }
+        public required Customer Customer { get; set; }
 
         [Column(TypeName = "jsonb")]
-        public string[] ToplevelArray { get; set; }
+        public required string[] ToplevelArray { get; set; }
     }
 
     public class JsonEntity
@@ -837,10 +837,10 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
         public int Id { get; set; }
 
         [Column(TypeName = "json")]
-        public Customer Customer { get; set; }
+        public required Customer Customer { get; set; }
 
         [Column(TypeName = "json")]
-        public string[] ToplevelArray { get; set; }
+        public required string[] ToplevelArray { get; set; }
     }
 
     public class JsonPocoQueryFixture : SharedStoreFixtureBase<JsonPocoQueryContext>
@@ -868,43 +868,43 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
 
     public class Customer
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
         public int Age { get; set; }
         public Guid ID { get; set; }
 
         [JsonPropertyName("is_vip")]
         public bool IsVip { get; set; }
 
-        public Statistics Statistics { get; set; }
-        public Order[] Orders { get; set; }
-        public VariousTypes VariousTypes { get; set; }
+        public Statistics Statistics { get; set; } = null!;
+        public Order[] Orders { get; set; } = null!;
+        public VariousTypes VariousTypes { get; set; } = null!;
     }
 
     public class Statistics
     {
         public long Visits { get; set; }
         public int Purchases { get; set; }
-        public NestedStatistics Nested { get; set; }
+        public required NestedStatistics Nested { get; set; }
     }
 
     public class NestedStatistics
     {
         public int SomeProperty { get; set; }
         public int? SomeNullableInt { get; set; }
-        public int[] IntArray { get; set; }
-        public List<int> IntList { get; set; }
+        public int[] IntArray { get; set; } = null!;
+        public List<int> IntList { get; set; } = null!;
         public Guid? SomeNullableGuid { get; set; }
     }
 
     public class Order
     {
         public decimal Price { get; set; }
-        public string ShippingAddress { get; set; }
+        public string ShippingAddress { get; set; } = null!;
     }
 
     public class VariousTypes
     {
-        public string String { get; set; }
+        public string String { get; set; } = null!;
         public int Int16 { get; set; }
         public int Int32 { get; set; }
         public int Int64 { get; set; }

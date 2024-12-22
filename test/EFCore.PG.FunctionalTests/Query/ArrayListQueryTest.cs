@@ -224,13 +224,13 @@ WHERE array_position(s."NullableStringList", NULL) IS NOT NULL
     {
         using var ctx = CreateContext();
 
-        string p = null;
+        string? p = null;
 
         // We incorrectly miss arrays containing non-constant nulls, because detecting those
         // would prevent index use.
         Assert.Equal(
             0,
-            ctx.SomeEntities.Count(e => e.StringList.Contains(p)));
+            ctx.SomeEntities.Count(e => e.StringList.Contains(p!)));
 
         AssertSql(
             """
@@ -272,7 +272,7 @@ WHERE s."NullableText" IN ('foo', 'xxx')
 
         await AssertQuery(
             async,
-            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.NullableText)));
+            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.NullableText!)));
 
         AssertSql(
             """
@@ -306,7 +306,7 @@ WHERE s."Id" = ANY (@array)
     {
         using var ctx = CreateContext();
 
-        var array = new List<string>
+        var array = new List<string?>
         {
             "unknown1",
             "unknown2",
@@ -329,7 +329,7 @@ WHERE s."NonNullableText" = ANY (@array)
     {
         using var ctx = CreateContext();
 
-        var array = new List<string>
+        var array = new List<string?>
         {
             "unknown1",
             "unknown2",
@@ -352,7 +352,7 @@ WHERE NOT (s."NonNullableText" = ANY (@array) AND s."NonNullableText" = ANY (@ar
     {
         using var ctx = CreateContext();
 
-        var array = new List<string>
+        var array = new List<string?>
         {
             "unknown1",
             "unknown2",
@@ -375,14 +375,14 @@ WHERE s."NullableText" = ANY (@array) OR (s."NullableText" IS NULL AND array_pos
     {
         using var ctx = CreateContext();
 
-        var array = new List<string>
+        var array = new List<string?>
         {
             "unknown1",
             "unknown2",
             null
         };
 
-        Assert.Equal(2, ctx.SomeEntities.Count(e => !array.Contains(e.NullableText)));
+        Assert.Equal(2, ctx.SomeEntities.Count(e => !array.Contains(e.NullableText!)));
 
         AssertSql(
             """
@@ -650,7 +650,7 @@ WHERE cardinality(s."IntList") > 0
             ss => ss.Set<ArrayEntity>()
                 .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.Like(e.NullableText, p))),
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new[] { "a", "b", "c" }.Any(p => e.NullableText.StartsWith(p, StringComparison.Ordinal))));
+                .Where(e => new[] { "a", "b", "c" }.Any(p => e.NullableText!.StartsWith(p, StringComparison.Ordinal))));
 
         AssertSql(
             """
@@ -665,9 +665,9 @@ WHERE s."NullableText" LIKE ANY (ARRAY['a%','b%','c%']::text[])
         await AssertQuery(
             async,
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.ILike(e.NullableText, p))),
+                .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.ILike(e.NullableText!, p))),
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new[] { "a", "b", "c" }.Any(p => e.NullableText.StartsWith(p, StringComparison.OrdinalIgnoreCase))));
+                .Where(e => new[] { "a", "b", "c" }.Any(p => e.NullableText!.StartsWith(p, StringComparison.OrdinalIgnoreCase))));
 
         AssertSql(
             """
@@ -699,7 +699,7 @@ WHERE s."NullableText" ILIKE ANY (ARRAY['a%','b%','c%']::text[])
             ss => ss.Set<ArrayEntity>()
                 .Where(e => patternsActual.Any(p => EF.Functions.Like(e.NullableText, p))),
             ss => ss.Set<ArrayEntity>()
-                .Where(e => patternsExpected.Any(p => e.NullableText.StartsWith(p, StringComparison.Ordinal))));
+                .Where(e => patternsExpected.Any(p => e.NullableText!.StartsWith(p, StringComparison.Ordinal))));
 
         AssertSql(
             """
@@ -718,7 +718,7 @@ WHERE s."NullableText" LIKE ANY (@patternsActual)
             ss => ss.Set<ArrayEntity>()
                 .Where(e => new List<string> { "b%", "ba%" }.All(p => EF.Functions.Like(e.NullableText, p))),
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new List<string> { "b", "ba" }.All(p => e.NullableText.StartsWith(p, StringComparison.Ordinal))));
+                .Where(e => new List<string> { "b", "ba" }.All(p => e.NullableText!.StartsWith(p, StringComparison.Ordinal))));
 
         AssertSql(
             """
@@ -733,9 +733,9 @@ WHERE s."NullableText" LIKE ALL (ARRAY['b%','ba%']::text[])
         await AssertQuery(
             async,
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new List<string> { "B%", "ba%" }.All(p => EF.Functions.ILike(e.NullableText, p))),
+                .Where(e => new List<string> { "B%", "ba%" }.All(p => EF.Functions.ILike(e.NullableText!, p))),
             ss => ss.Set<ArrayEntity>()
-                .Where(e => new List<string> { "B", "ba" }.All(p => e.NullableText.StartsWith(p, StringComparison.OrdinalIgnoreCase))));
+                .Where(e => new List<string> { "B", "ba" }.All(p => e.NullableText!.StartsWith(p, StringComparison.OrdinalIgnoreCase))));
 
         AssertSql(
             """
@@ -931,34 +931,34 @@ WHERE array_to_string(s."StringList", ', ', '') = '3, 4'
     private class ArrayToListReplacingExpressionVisitor : ExpressionVisitor
     {
         private static readonly PropertyInfo IntArray
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.IntArray));
+            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.IntArray))!;
 
         private static readonly PropertyInfo NullableIntArray
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.NullableIntArray));
+            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.NullableIntArray))!;
 
         private static readonly PropertyInfo IntList
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.IntList));
+            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.IntList))!;
 
         private static readonly PropertyInfo NullableIntList
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.NullableIntList));
+            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.NullableIntList))!;
 
         private static readonly PropertyInfo StringArray
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.StringArray));
+            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.StringArray))!;
 
         private static readonly PropertyInfo NullableStringArray
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.NullableStringArray));
+            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.NullableStringArray))!;
 
         private static readonly PropertyInfo StringList
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.StringList));
+            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.StringList))!;
 
         private static readonly PropertyInfo NullableStringList
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.NullableStringList));
+            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.NullableStringList))!;
 
         private static readonly PropertyInfo ValueConvertedArrayOfEnum
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.ValueConvertedArrayOfEnum));
+            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.ValueConvertedArrayOfEnum))!;
 
         private static readonly PropertyInfo ValueConvertedListOfEnum
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.ValueConvertedListOfEnum));
+            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.ValueConvertedListOfEnum))!;
 
         protected override Expression VisitMember(MemberExpression node)
         {

@@ -33,7 +33,7 @@ public class FakeDiagnosticsLogger<T> : IDiagnosticsLogger<T>, ILogger
         => true;
 
     public IDisposable BeginScope<TState>(TState state)
-        => null;
+        => null!;
 
     public virtual LoggingDefinitions Definitions { get; } = new TestRelationalLoggingDefinitions();
 

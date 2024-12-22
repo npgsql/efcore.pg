@@ -309,7 +309,7 @@ WHERE s."UnmappedByteEnum" = ANY (@values)
             return optionsBuilder;
         }
 
-        private EnumData _expectedData;
+        private EnumData? _expectedData;
 
         protected override Task SeedAsync(EnumContext context)
             => EnumContext.SeedAsync(context);
@@ -321,7 +321,7 @@ WHERE s."UnmappedByteEnum" = ANY (@values)
             => _expectedData ??= new EnumData();
 
         public IReadOnlyDictionary<Type, object> EntitySorters
-            => new Dictionary<Type, Func<object, object>> { { typeof(SomeEnumEntity), e => ((SomeEnumEntity)e)?.Id } }
+            => new Dictionary<Type, Func<object, object?>> { { typeof(SomeEnumEntity), e => ((SomeEnumEntity)e)?.Id } }
                 .ToDictionary(e => e.Key, e => (object)e.Value);
 
         public IReadOnlyDictionary<Type, object> EntityAsserters
@@ -331,7 +331,8 @@ WHERE s."UnmappedByteEnum" = ANY (@values)
                     typeof(SomeEnumEntity), (e, a) =>
                     {
                         Assert.Equal(e is null, a is null);
-                        if (a is not null)
+
+                        if (e is not null && a is not null)
                         {
                             var ee = (SomeEnumEntity)e;
                             var aa = (SomeEnumEntity)a;

@@ -1,5 +1,3 @@
-#nullable enable
-
 using Microsoft.EntityFrameworkCore.ModelBuilding;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 

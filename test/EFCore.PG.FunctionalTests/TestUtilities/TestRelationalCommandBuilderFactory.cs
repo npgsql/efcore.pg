@@ -129,7 +129,7 @@ public class TestRelationalCommandBuilderFactory(RelationalCommandBuilderDepende
             return result;
         }
 
-        public object ExecuteScalar(RelationalCommandParameterObject parameterObject)
+        public object? ExecuteScalar(RelationalCommandParameterObject parameterObject)
         {
             var connection = parameterObject.Connection;
             var errorNumber = PreExecution(connection);
@@ -144,7 +144,7 @@ public class TestRelationalCommandBuilderFactory(RelationalCommandBuilderDepende
             return result;
         }
 
-        public async Task<object> ExecuteScalarAsync(
+        public async Task<object?> ExecuteScalarAsync(
             RelationalCommandParameterObject parameterObject,
             CancellationToken cancellationToken = default)
         {
@@ -198,9 +198,9 @@ public class TestRelationalCommandBuilderFactory(RelationalCommandBuilderDepende
         public DbCommand CreateDbCommand(RelationalCommandParameterObject parameterObject, Guid commandId, DbCommandMethod commandMethod)
             => throw new NotImplementedException();
 
-        private string PreExecution(IRelationalConnection connection)
+        private string? PreExecution(IRelationalConnection connection)
         {
-            string errorNumber = null;
+            string? errorNumber = null;
             var testConnection = (TestNpgsqlConnection)connection;
 
             testConnection.ExecutionCount++;
