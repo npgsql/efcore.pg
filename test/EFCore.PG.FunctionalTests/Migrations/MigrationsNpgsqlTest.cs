@@ -2895,7 +2895,25 @@ CREATE TYPE some_schema."Mood" AS ENUM ('Happy', 'Sad');
                     l => Assert.Equal("Sad", l));
             });
 
-        AssertSql("""ALTER TYPE "Mood" ADD VALUE 'Angry' BEFORE 'Sad';""");
+        AssertSql("""ALTER TYPE "Mood" ADD VALUE 'Angry' AFTER 'Happy';""");
+    }
+
+    [Fact]
+    public virtual async Task Alter_enum_change_label_ordering_does_nothing()
+    {
+        await Test(
+            builder => builder.HasPostgresEnum("Mood", ["Happy", "Sad"]),
+            builder => builder.HasPostgresEnum("Mood", ["Sad", "Happy"]),
+            model =>
+            {
+                var moodEnum = Assert.Single(model.GetPostgresEnums());
+                Assert.Collection(
+                    moodEnum.Labels,
+                    l => Assert.Equal("Happy", l),
+                    l => Assert.Equal("Sad", l));
+            });
+
+        AssertSql();
     }
 
     [Fact]
