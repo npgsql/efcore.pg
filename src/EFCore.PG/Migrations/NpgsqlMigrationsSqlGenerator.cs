@@ -1266,18 +1266,34 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                     + "https://www.postgresql.org/docs/current/sql-altertype.html)");
             }
 
-            for (var (newPos, oldPos) = (0, 0); newPos < newLabels.Count; newPos++)
+            for (var newPos = 0; newPos < newLabels.Count; newPos++)
             {
                 var newLabel = newLabels[newPos];
-                var oldLabel = oldPos < oldLabels.Count ? oldLabels[oldPos] : null;
-
-                if (newLabel == oldLabel)
+                if (oldLabels.Contains(newLabel))
                 {
-                    oldPos++;
                     continue;
                 }
 
-                GenerateAddEnumLabel(newEnum, newLabel, oldLabel, model, builder);
+                // We add the new label just after the last one we have in the new labels definition (when the last one is new, it will have
+                // just been added).
+                // If the new label happens to be the first one, add it before the first old label. Otherwise, if there are no old labels,
+                // just append the label (no before/after).
+                if (newPos == newLabels.Count - 1)
+                {
+                    GenerateAddEnumLabel(newEnum, newLabel, beforeLabel: null, afterLabel: null, model, builder);
+                }
+                else if (newPos > 0)
+                {
+                    GenerateAddEnumLabel(newEnum, newLabel, beforeLabel: null, afterLabel: newLabels[newPos - 1], model, builder);
+                }
+                else if (oldLabels.Count > 0)
+                {
+                    GenerateAddEnumLabel(newEnum, newLabel, beforeLabel: oldLabels[0], afterLabel: null, model, builder);
+                }
+                else
+                {
+                    GenerateAddEnumLabel(newEnum, newLabel, beforeLabel: null, afterLabel: null, model, builder);
+                }
             }
         }
     }
@@ -1328,9 +1344,15 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         PostgresEnum enumType,
         string addedLabel,
         string? beforeLabel,
+        string? afterLabel,
         IModel? model,
         MigrationCommandListBuilder builder)
     {
+        if (beforeLabel is not null && afterLabel is not null)
+        {
+            throw new UnreachableException("Both beforeLabel and afterLabel can't be specified");
+        }
+
         var schema = enumType.Schema ?? model?.GetDefaultSchema();
 
         builder
@@ -1344,6 +1366,12 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             builder
                 .Append(" BEFORE ")
                 .Append(_stringTypeMapping.GenerateSqlLiteral(beforeLabel));
+        }
+        else if (afterLabel is not null)
+        {
+            builder
+                .Append(" AFTER ")
+                .Append(_stringTypeMapping.GenerateSqlLiteral(afterLabel));
         }
 
         builder.AppendLine(";");
