@@ -135,6 +135,7 @@ public class PgBinaryExpression : SqlExpression
                     PgExpressionType.JsonExists => "?",
                     PgExpressionType.JsonExistsAny => "?|",
                     PgExpressionType.JsonExistsAll => "?&",
+                    PgExpressionType.JsonValueForKeyAsText => "->>",
 
                     PgExpressionType.LTreeMatches
                         when Right.TypeMapping is { StoreType: "lquery" } or NpgsqlArrayTypeMapping
@@ -150,6 +151,14 @@ public class PgBinaryExpression : SqlExpression
                     PgExpressionType.LTreeFirstMatches when Right.TypeMapping?.StoreType == "ltxtquery" => "?@",
 
                     PgExpressionType.Distance => "<->",
+
+                    PgExpressionType.DictionaryContainsAnyKey => "?|",
+                    PgExpressionType.DictionaryContainsAllKeys => "?&",
+
+                    PgExpressionType.DictionaryContainsKey => "?",
+                    PgExpressionType.DictionaryValueForKey => "->",
+                    PgExpressionType.DictionaryConcat => "||",
+                    PgExpressionType.DictionarySubtract => "-",
 
                     _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
                 })
