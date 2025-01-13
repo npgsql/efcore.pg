@@ -215,23 +215,27 @@ internal static class SharedTypeExtensions
             return null;
         }
 
-        var types = GetGenericTypeImplementations(type, interfaceOrBaseType);
+	    var types = GetGenericTypeImplementations(type, interfaceOrBaseType);
 
-        Type? singleImplementation = null;
-        foreach (var implementation in types)
-        {
-            if (singleImplementation is null)
-            {
-                singleImplementation = implementation;
-            }
-            else
-            {
-                singleImplementation = null;
-                break;
-            }
-        }
+	    if (!types.Any())
+    	{	
+            return null;
+    	}
 
-        return singleImplementation?.GenericTypeArguments.FirstOrDefault();
+    	if (type.IsArray)
+    	{
+            var elementType = type.GetElementType();
+            if (elementType != null)
+            {
+                var arrayCompatible = types.FirstOrDefault(t => t.GenericTypeArguments.Contains(elementType));
+                if (arrayCompatible != null)
+                {
+                    return arrayCompatible.GenericTypeArguments.First();
+                }
+            }
+    	}
+
+    	return types.First().GenericTypeArguments.FirstOrDefault();
     }
 
 #nullable disable
