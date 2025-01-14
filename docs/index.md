@@ -142,7 +142,7 @@ builder.Services.AddDbContextPool<BloggingContext>(opt =>
 
 ### Using an external NpgsqlDataSource
 
-If you're using a version of EF prior to 9.0, the above configuration methods aren't available. You can still create an `NpgsqlDataSource` yourself, and then pass it EF's `UseNpgsql()`:
+If you're using a version of EF prior to 9.0, the above configuration methods aren't available. You can still create an NpgsqlDataSource yourself, and then pass it to EF's `UseNpgsql()`:
 
 ```csharp
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("BloggingContext"));
@@ -150,8 +150,14 @@ dataSourceBuilder.MapEnum<Mood>();
 dataSourceBuilder.UseNodaTime();
 var dataSource = dataSourceBuilder.Build();
 
-builder.Services.AddDbContextPool<BloggingContext>(opt => opt.UseNpgsql(dataSource));
+builder.Services.AddDbContextPool<BloggingContext>(opt => opt
+    .UseNpgsql(dataSource, o => o
+        .SetPostgresVersion(13, 0)
+        .UseNodaTime()
+        .MapEnum<Mood>("mood")));
 ```
+
+Note that when using an external NpgsqlDataSource, you need to configure mappings and plugins at both levels yourself - both on the NpgsqlDataSource and at the EF provider level.
 
 ## Using an Existing Database (Database-First)
 
