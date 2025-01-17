@@ -304,6 +304,35 @@ public class NpgsqlTypeMappingSourceTest
         Assert.Same(typeof(List<NpgsqlRange<int>>), mappingDefault.ClrType);
     }
 
+#nullable enable
+    [Theory]
+    [InlineData("integer", "integer", null, null, null, null)]
+    [InlineData("integer[]", "integer[]", null, null, null, null)]
+    [InlineData("foo.bar", "bar", "foo", null, null, null)]
+    [InlineData("foo.bar[]", "foo.bar[]", null, null, null, null)]
+    [InlineData("\"foo\"", "foo", null, null, null, null)]
+    [InlineData("\"fo.o\"", "fo.o", null, null, null, null)]
+    [InlineData("\"foo\".\"bar\"", "bar", "foo", null, null, null)]
+    [InlineData("\"f\"\"oo\"", "f\"oo", null, null, null, null)]
+    [InlineData("character varying", "character varying", null, null, null, null)]
+    [InlineData("with_underscore", "with_underscore", null, null, null, null)]
+    [InlineData("varchar(30)", "varchar", null, 30, null, null)]
+    [InlineData("varchar(30)[]", "varchar(30)[]", null, null, null, null)]
+    [InlineData("numeric(30)", "numeric", null, null, 30, null)]
+    [InlineData("numeric(30,3)", "numeric", null, null, 30, 3)]
+    public void ParseStoreType(string storeTypeName, string expectedName, string? expectedSchema, int? expectedSize, int? expectedPrecision, int? expectedScale)
+    {
+        NpgsqlTypeMappingSource.ParseStoreTypeName(
+            storeTypeName, out var name, out var schema, out var size, out var precision, out var scale);
+
+        Assert.Equal(expectedName, name);
+        Assert.Equal(expectedSchema, schema);
+        Assert.Equal(expectedSize, size);
+        Assert.Equal(expectedPrecision, precision);
+        Assert.Equal(expectedScale, scale);
+    }
+#nullable restore
+
     #region Support
 
     private NpgsqlTypeMappingSource CreateTypeMappingSource(Version postgresVersion = null)
