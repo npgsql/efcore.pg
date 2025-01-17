@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Data;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -771,6 +772,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     {
         var storeType = mappingInfo.StoreTypeName;
         var clrType = mappingInfo.ClrType;
+        string? schema;
+        string name;
 
         if (clrType is not null and not { IsEnum: true, IsClass: false })
         {
@@ -783,20 +786,31 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         if (storeType is null)
         {
             enumDefinition = _enumDefinitions.SingleOrDefault(m => m.ClrType == clrType);
+
+            if (enumDefinition is null)
+            {
+                return null;
+            }
+
+            (name, schema) = (enumDefinition.StoreTypeName, enumDefinition.StoreTypeSchema);
         }
         else
         {
-            // TODO: Not sure what to do about quoting. Is the user expected to configure properties
-            // TODO: with a quoted (schema-qualified) store type or not?
-            var dot = storeType.IndexOf('.');
-            enumDefinition = dot is -1
-                ? _enumDefinitions.SingleOrDefault(m => m.StoreTypeName == storeType)
-                : _enumDefinitions.SingleOrDefault(m => m.StoreTypeName == storeType[(dot + 1)..] && m.StoreTypeSchema == storeType[..dot]);
-        }
+            // If the user is specifying the store type manually, they are not expected to have quotes in the name (e.g. because of upper-
+            // case characters).
+            // However, if we infer an enum array type mapping from an element (e.g. someEnums.Contains(b.SomeEnumColumn)), we get the
+            // element's store type - which for enums is quoted - and add []; so we get e.g. "MyEnum"[]. So we need to support quoted
+            // names here, by parsing the name and stripping the quotes.
+            ParseStoreTypeName(storeType, out name, out schema, out var size, out var precision, out var scale);
 
-        if (enumDefinition is null)
-        {
-            return null;
+            enumDefinition = schema is null
+                ? _enumDefinitions.SingleOrDefault(m => m.StoreTypeName == name)
+                : _enumDefinitions.SingleOrDefault(m => m.StoreTypeName == name && m.StoreTypeSchema == schema);
+
+            if (enumDefinition is null)
+            {
+                return null;
+            }
         }
 
         // We now have an enum definition from the context options.
@@ -805,7 +819,6 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         // 1. The quoted type name is used in migrations, where quoting is needed
         // 2. The unquoted type name is set on NpgsqlParameter.DataTypeName
         //    (though see https://github.com/npgsql/npgsql/issues/5710).
-        var (name, schema) = (enumDefinition.StoreTypeName, enumDefinition.StoreTypeSchema);
         return new NpgsqlEnumTypeMapping(
             _sqlGenerationHelper.DelimitIdentifier(name, schema),
             schema is null ? name : schema + "." + name,
@@ -972,6 +985,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         ref int? precision,
         ref int? scale)
     {
+        // TODO: Reimplement over ParseStoreTypeName below
+
         if (storeTypeName is null)
         {
             return null;
@@ -1055,5 +1070,156 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         }
 
         return new StringBuilder(preParens.Length).Append(preParens).Append(postParens).ToString();
+    }
+
+    internal static void ParseStoreTypeName(
+        string storeTypeName,
+        out string name,
+        out string? schema,
+        out int? size,
+        out int? precision,
+        out int? scale)
+    {
+        var s = storeTypeName.AsSpan().Trim();
+        var i = 0;
+        size = precision = scale = null;
+
+        if (s.EndsWith("[]", StringComparison.Ordinal))
+        {
+            // If this is an array store type, any facets (size, precision...) apply to the element and not to the array (e.g. varchar(32)[]
+            // is an array mapping with Size=null over an element mapping of varchar with Size=32). So just add everything up to the end.
+            // Note that if there's a schema (e.g. foo.varchar(32)[]), we return name=varchar(32), schema=foo.
+            name = s.ToString();
+            schema = null;
+            return;
+        }
+
+        name = ParseNameComponent(s);
+
+        if (i < s.Length && s[i] == '.')
+        {
+            i++;
+            schema = name;
+            name = ParseNameComponent(s);
+        }
+        else
+        {
+            schema = null;
+        }
+
+        s = s[i..];
+
+        if (s.Length == 0 || s[0] != '(')
+        {
+            // No facets
+            return;
+        }
+
+        s = s[1..];
+
+        var closeParen = s.IndexOf(")", StringComparison.Ordinal);
+        if (closeParen == -1)
+        {
+            return;
+        }
+
+        var inParens = s[..closeParen].Trim();
+        // There may be stuff after the closing parentheses (e.g. timestamp(3) with time zone)
+        var postParens = s.Slice(closeParen + 1);
+
+        switch (s.IndexOf(",", StringComparison.Ordinal))
+        {
+            // No comma inside the parentheses, parse the value either as size or precision
+            case -1:
+                if (!int.TryParse(inParens, out var p))
+                {
+                    return;
+                }
+
+                if (NameBasesUsesPrecision(name))
+                {
+                    precision = p;
+                    // scale = 0;
+                }
+                else
+                {
+                    size = p;
+                }
+
+                break;
+
+            case var comma:
+                if (int.TryParse(s[..comma].Trim(), out var parsedPrecision))
+                {
+                    precision = parsedPrecision;
+                }
+                else
+                {
+                    return;
+                }
+
+                if (int.TryParse(s[(comma + 1)..closeParen].Trim(), out var parsedScale))
+                {
+                    scale = parsedScale;
+                }
+                else
+                {
+                    return;
+                }
+
+                break;
+        }
+
+        if (postParens.Length > 0)
+        {
+            // There's stuff after the parentheses (e.g. time(3) with time zone), append to the name
+            name += postParens.ToString();
+        }
+
+        string ParseNameComponent(ReadOnlySpan<char> s)
+        {
+            var inQuotes = false;
+            StringBuilder builder = new();
+
+            if (s[i] == '"')
+            {
+                inQuotes = true;
+                i++;
+            }
+
+            var start = i;
+
+            for (; i < s.Length; i++)
+            {
+                var c = s[i];
+
+                if (inQuotes)
+                {
+                    if (c == '"')
+                    {
+                        if (i + 1 < s.Length && s[i + 1] == '"')
+                        {
+                            builder.Append('"');
+                            i++;
+                            continue;
+                        }
+
+                        i++;
+                        break;
+                    }
+                }
+                else if (!char.IsWhiteSpace(c) && !char.IsAsciiLetterOrDigit(c) && c != '_')
+                {
+                    break;
+                }
+
+                builder.Append(c);
+            }
+
+            var length = i - start;
+            return length == storeTypeName.Length
+                ? storeTypeName
+                : builder.ToString();
+        }
     }
 }
