@@ -39,7 +39,7 @@ public class EnumQueryTest : QueryTestBase<EnumQueryTest.EnumFixture>
 
         AssertSql(
             """
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum", s."UppercaseNamedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."MappedEnum" = 'sad'::test.mapped_enum
 """);
@@ -57,7 +57,7 @@ WHERE s."MappedEnum" = 'sad'::test.mapped_enum
 
         AssertSql(
             """
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum", s."UppercaseNamedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."SchemaQualifiedEnum" = 'Happy (PgName)'::test.schema_qualified_enum
 """);
@@ -78,7 +78,7 @@ WHERE s."SchemaQualifiedEnum" = 'Happy (PgName)'::test.schema_qualified_enum
             """
 @__sad_0='Sad' (DbType = Object)
 
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum", s."UppercaseNamedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."MappedEnum" = @__sad_0
 """);
@@ -99,7 +99,7 @@ WHERE s."MappedEnum" = @__sad_0
             """
 @__sad_0='1'
 
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum", s."UppercaseNamedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."UnmappedEnum" = @__sad_0
 """);
@@ -120,7 +120,7 @@ WHERE s."UnmappedEnum" = @__sad_0
             """
 @__sad_0='1'
 
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum", s."UppercaseNamedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."UnmappedEnum" = @__sad_0
 """);
@@ -141,7 +141,7 @@ WHERE s."UnmappedEnum" = @__sad_0
             """
 @__sad_0='Sad' (DbType = Object)
 
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum", s."UppercaseNamedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."MappedEnum" = @__sad_0
 """);
@@ -160,7 +160,7 @@ WHERE s."MappedEnum" = @__sad_0
 
         AssertSql(
             """
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum", s."UppercaseNamedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."MappedEnum"::text LIKE '%sa%'
 """);
@@ -181,7 +181,7 @@ WHERE s."MappedEnum"::text LIKE '%sa%'
             """
 @__values_0='0x01' (DbType = Object)
 
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum", s."UppercaseNamedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."ByteEnum" = ANY (@__values_0)
 """);
@@ -202,9 +202,30 @@ WHERE s."ByteEnum" = ANY (@__values_0)
             """
 @__values_0='0x01' (DbType = Object)
 
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum"
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum", s."UppercaseNamedEnum"
 FROM test."SomeEntities" AS s
 WHERE s."UnmappedByteEnum" = ANY (@__values_0)
+""");
+    }
+
+    [ConditionalTheory] // #3433
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Where_uppercase_enum_array_contains_enum(bool async)
+    {
+        await using var ctx = CreateContext();
+
+        List<UppercaseNamedEnum> values = [UppercaseNamedEnum.Sad];
+        await AssertQuery(
+            async,
+            ss => ss.Set<SomeEnumEntity>().Where(e => values.Contains(e.UppercaseNamedEnum)));
+
+        AssertSql(
+            """
+@values={ 'Sad' } (DbType = Object)
+
+SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum", s."UppercaseNamedEnum"
+FROM test."SomeEntities" AS s
+WHERE s."UppercaseNamedEnum" = ANY (@values)
 """);
     }
 
@@ -240,6 +261,7 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
         public UnmappedEnum UnmappedEnum { get; set; }
         public InferredEnum InferredEnum { get; set; }
         public SchemaQualifiedEnum SchemaQualifiedEnum { get; set; }
+        public UppercaseNamedEnum UppercaseNamedEnum { get; set; }
         public ByteEnum ByteEnum { get; set; }
         public UnmappedByteEnum UnmappedByteEnum { get; set; }
         public int EnumValue { get; set; }
@@ -266,6 +288,12 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
     public enum SchemaQualifiedEnum
     {
         [PgName("Happy (PgName)")]
+        Happy,
+        Sad
+    }
+
+    public enum UppercaseNamedEnum
+    {
         Happy,
         Sad
     }
@@ -304,7 +332,8 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
                 .MapEnum<MappedEnum>("mapped_enum", "test")
                 .MapEnum<InferredEnum>("inferred_enum", "test")
                 .MapEnum<ByteEnum>("byte_enum", "test")
-                .MapEnum<SchemaQualifiedEnum>("schema_qualified_enum", "test");
+                .MapEnum<SchemaQualifiedEnum>("schema_qualified_enum", "test")
+                .MapEnum<UppercaseNamedEnum>("UpperCaseEnum", "test");
 
             return optionsBuilder;
         }
@@ -341,6 +370,7 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
                             Assert.Equal(ee.UnmappedEnum, aa.UnmappedEnum);
                             Assert.Equal(ee.InferredEnum, aa.InferredEnum);
                             Assert.Equal(ee.SchemaQualifiedEnum, aa.SchemaQualifiedEnum);
+                            Assert.Equal(ee.UppercaseNamedEnum, aa.UppercaseNamedEnum);
                             Assert.Equal(ee.ByteEnum, aa.ByteEnum);
                             Assert.Equal(ee.UnmappedByteEnum, aa.UnmappedByteEnum);
                             Assert.Equal(ee.EnumValue, aa.EnumValue);
@@ -370,6 +400,7 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
                     UnmappedEnum = UnmappedEnum.Happy,
                     InferredEnum = InferredEnum.Happy,
                     SchemaQualifiedEnum = SchemaQualifiedEnum.Happy,
+                    UppercaseNamedEnum = UppercaseNamedEnum.Happy,
                     ByteEnum = ByteEnum.Happy,
                     UnmappedByteEnum = UnmappedByteEnum.Happy,
                     EnumValue = (int)MappedEnum.Happy
@@ -381,6 +412,7 @@ WHERE s."UnmappedByteEnum" = ANY (@__values_0)
                     UnmappedEnum = UnmappedEnum.Sad,
                     InferredEnum = InferredEnum.Sad,
                     SchemaQualifiedEnum = SchemaQualifiedEnum.Sad,
+                    UppercaseNamedEnum = UppercaseNamedEnum.Sad,
                     ByteEnum = ByteEnum.Sad,
                     UnmappedByteEnum = UnmappedByteEnum.Sad,
                     EnumValue = (int)MappedEnum.Sad
