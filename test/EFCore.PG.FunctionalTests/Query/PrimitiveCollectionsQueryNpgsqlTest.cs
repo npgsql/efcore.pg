@@ -528,6 +528,28 @@ WHERE p."Enum" = ANY (@__enums_0)
 """);
     }
 
+    public override async Task Parameter_collection_ImmutableArray_of_ints_Contains_int(bool async)
+    {
+        await base.Parameter_collection_ImmutableArray_of_ints_Contains_int(async);
+
+        AssertSql(
+            """
+@__ints_0={ '10', '999' } (Nullable = false) (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Int" = ANY (@__ints_0)
+""",
+            //
+            """
+@__ints_0={ '10', '999' } (Nullable = false) (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE NOT (p."Int" = ANY (@__ints_0) AND p."Int" = ANY (@__ints_0) IS NOT NULL)
+""");
+    }
+
     public override async Task Parameter_collection_of_ints_Contains_nullable_int(bool async)
     {
         await base.Parameter_collection_of_ints_Contains_nullable_int(async);
