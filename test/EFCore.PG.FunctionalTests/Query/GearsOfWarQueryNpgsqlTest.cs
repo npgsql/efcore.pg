@@ -15,44 +15,6 @@ public class GearsOfWarQueryNpgsqlTest : GearsOfWarQueryRelationalTestBase<Gears
 
     #region Byte array
 
-    public override async Task Byte_array_contains_literal(bool async)
-    {
-        await base.Byte_array_contains_literal(async);
-
-        AssertSql(
-            """
-SELECT s."Id", s."Banner", s."Banner5", s."InternalNumber", s."Name"
-FROM "Squads" AS s
-WHERE position(BYTEA E'\\x01' IN s."Banner") > 0
-""");
-    }
-
-    public override async Task Byte_array_contains_parameter(bool async)
-    {
-        await base.Byte_array_contains_parameter(async);
-
-        AssertSql(
-            """
-@someByte='1' (DbType = Int16)
-
-SELECT s."Id", s."Banner", s."Banner5", s."InternalNumber", s."Name"
-FROM "Squads" AS s
-WHERE position(set_byte(BYTEA E'\\x00', 0, @someByte) IN s."Banner") > 0
-""");
-    }
-
-    public override async Task Byte_array_filter_by_length_literal(bool async)
-    {
-        await base.Byte_array_filter_by_length_literal(async);
-
-        AssertSql(
-            """
-SELECT s."Id", s."Banner", s."Banner5", s."InternalNumber", s."Name"
-FROM "Squads" AS s
-WHERE length(s."Banner") = 2
-""");
-    }
-
     public override async Task Byte_array_filter_by_length_literal_does_not_cast_on_varbinary_n(bool async)
     {
         await base.Byte_array_filter_by_length_literal_does_not_cast_on_varbinary_n(async);
@@ -62,34 +24,6 @@ WHERE length(s."Banner") = 2
 SELECT s."Id", s."Banner", s."Banner5", s."InternalNumber", s."Name"
 FROM "Squads" AS s
 WHERE length(s."Banner5") = 5
-""");
-    }
-
-    public override async Task Byte_array_filter_by_length_parameter(bool async)
-    {
-        await base.Byte_array_filter_by_length_parameter(async);
-
-        AssertSql(
-            """
-@p='2'
-
-SELECT s."Id", s."Banner", s."Banner5", s."InternalNumber", s."Name"
-FROM "Squads" AS s
-WHERE length(s."Banner") = @p
-""");
-    }
-
-    public override void Byte_array_filter_by_length_parameter_compiled()
-    {
-        base.Byte_array_filter_by_length_parameter_compiled();
-
-        AssertSql(
-            """
-@byteArrayParam='0x2A80'
-
-SELECT count(*)::int
-FROM "Squads" AS s
-WHERE length(s."Banner") = length(@byteArrayParam)
 """);
     }
 

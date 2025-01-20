@@ -53,8 +53,10 @@ DELETE FROM "Owner" AS o
 
         AssertSql(
             """
+@p='SomeValue'
+
 UPDATE "OwnedCollection" AS o0
-SET "Value" = 'SomeValue'
+SET "Value" = @p
 FROM "Owner" AS o
 WHERE o."Id" = o0."OwnerId"
 """);
@@ -73,8 +75,10 @@ WHERE o."Id" = o0."OwnerId"
 
         AssertSql(
             """
+@p='SomeValue'
+
 UPDATE "Owner" AS o
-SET "Title" = 'SomeValue'
+SET "Title" = @p
 """);
     }
 
@@ -111,8 +115,10 @@ SET "Title" = COALESCE(o."Title", '') || '_Suffix'
 
         AssertSql(
             """
+@p='NewValue'
+
 UPDATE "Owner" AS o
-SET "Title" = 'NewValue'
+SET "Title" = @p
 FROM "Owner" AS o0
 WHERE o."Id" = o0."Id"
 """);
@@ -125,8 +131,8 @@ WHERE o."Id" = o0."Id"
         AssertSql(
             """
 UPDATE "Owner" AS o
-SET "OwnedReference_Number" = length(o."Title")::int,
-    "Title" = COALESCE(o."OwnedReference_Number"::text, '')
+SET "Title" = COALESCE(o."OwnedReference_Number"::text, ''),
+    "OwnedReference_Number" = length(o."Title")::int
 """);
     }
 
@@ -169,8 +175,8 @@ SET "CreationTimestamp" = TIMESTAMPTZ '2020-01-01T00:00:00Z'
         AssertSql(
             """
 UPDATE "BlogsPart1" AS b0
-SET "Rating" = length(b0."Title")::int,
-    "Title" = b0."Rating"::text
+SET "Title" = b0."Rating"::text,
+    "Rating" = length(b0."Title")::int
 FROM "Blogs" AS b
 WHERE b."Id" = b0."Id"
 """);
@@ -252,8 +258,10 @@ DELETE FROM "Blogs" AS b
 
         AssertSql(
             """
+@p='Updated'
+
 UPDATE "Blogs" AS b
-SET "Data" = 'Updated'
+SET "Data" = @p
 """);
     }
 

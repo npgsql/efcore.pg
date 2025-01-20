@@ -1,198 +1,207 @@
-namespace Microsoft.EntityFrameworkCore.Query.Translations;
+namespace Microsoft.EntityFrameworkCore.Query.Translations.Temporal;
 
-public class OperatorTranslationsNpgsqlTest : OperatorTranslationsTestBase<BasicTypesQueryNpgsqlFixture>
+public class DateOnlyTranslationsNpgsqlTest : DateOnlyTranslationsTestBase<BasicTypesQueryNpgsqlFixture>
 {
-    public OperatorTranslationsNpgsqlTest(BasicTypesQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
+    public DateOnlyTranslationsNpgsqlTest(BasicTypesQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
         Fixture.TestSqlLoggerFactory.Clear();
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    #region Bitwise
-
-    public override async Task Bitwise_or(bool async)
+    public override async Task Year(bool async)
     {
-        await base.Bitwise_or(async);
+        await base.Year(async);
 
         AssertSql(
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."Int"::bigint | b."Long" = 7
-""",
-            //
-            """
-SELECT b."Int"::bigint | b."Long"
-FROM "BasicTypesEntities" AS b
+WHERE date_part('year', b."DateOnly")::int = 1990
 """);
     }
 
-    public override async Task Bitwise_or_over_boolean(bool async)
+    public override async Task Month(bool async)
     {
-        await base.Bitwise_or_over_boolean(async);
+        await base.Month(async);
 
         AssertSql(
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."Int" = 12 OR b."String" = 'Seattle'
-""",
-            //
-            """
-SELECT b."Int" = 12 OR b."String" = 'Seattle'
-FROM "BasicTypesEntities" AS b
+WHERE date_part('month', b."DateOnly")::int = 11
 """);
     }
 
-    public override async Task Bitwise_or_multiple(bool async)
+    public override async Task Day(bool async)
     {
-        await base.Bitwise_or_multiple(async);
+        await base.Day(async);
 
         AssertSql(
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE CAST(b."Int" | b."Short" AS bigint) | b."Long" = 7
+WHERE date_part('day', b."DateOnly")::int = 10
 """);
     }
 
-    public override async Task Bitwise_and(bool async)
+    public override async Task DayOfYear(bool async)
     {
-        await base.Bitwise_and(async);
+        await base.DayOfYear(async);
 
         AssertSql(
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."Int" & b."Short" = 2
-""",
-            //
-            """
-SELECT b."Int" & b."Short"
-FROM "BasicTypesEntities" AS b
+WHERE date_part('doy', b."DateOnly")::int = 314
 """);
     }
 
-    public override async Task Bitwise_and_over_boolean(bool async)
+    public override async Task DayOfWeek(bool async)
     {
-        await base.Bitwise_and_over_boolean(async);
+        await base.DayOfWeek(async);
 
         AssertSql(
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."Int" = 8 AND b."String" = 'Seattle'
-""",
-            //
-            """
-SELECT b."Int" = 8 AND b."String" = 'Seattle'
-FROM "BasicTypesEntities" AS b
+WHERE floor(date_part('dow', b."DateOnly"))::int = 6
 """);
     }
 
-    public override async Task Bitwise_xor(bool async)
+    public override async Task AddYears(bool async)
     {
-        await base.Bitwise_xor(async);
+        await base.AddYears(async);
 
         AssertSql(
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE (b."Int" # b."Short") = 1
-""",
-            //
-            """
-SELECT b."Int" # b."Short"
-FROM "BasicTypesEntities" AS b
+WHERE CAST(b."DateOnly" + INTERVAL '3 years' AS date) = DATE '1993-11-10'
 """);
     }
 
-    public override async Task Bitwise_xor_over_boolean(bool async)
+    public override async Task AddMonths(bool async)
     {
-        await base.Bitwise_xor_over_boolean(async);
+        await base.AddMonths(async);
 
         AssertSql(
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE (b."Int" = b."Short") <> (b."String" = 'Seattle')
+WHERE CAST(b."DateOnly" + INTERVAL '3 months' AS date) = DATE '1991-02-10'
 """);
     }
 
-    public override async Task Bitwise_complement(bool async)
+    public override async Task AddDays(bool async)
     {
-        await base.Bitwise_complement(async);
+        await base.AddDays(async);
 
         AssertSql(
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE ~b."Int" = -9
+WHERE b."DateOnly" + 3 = DATE '1990-11-13'
 """);
     }
 
-    public override async Task Bitwise_and_or_over_boolean(bool async)
+    public override async Task FromDateTime(bool async)
     {
-        await base.Bitwise_and_or_over_boolean(async);
+        await base.FromDateTime(async);
 
         AssertSql(
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE (b."Int" = 12 AND b."Short" = 12) OR b."String" = 'Seattle'
+WHERE CAST(b."DateTime" AT TIME ZONE 'UTC' AS date) = DATE '1998-05-04'
 """);
     }
 
-    public override async Task Bitwise_or_with_logical_or(bool async)
+    public override async Task FromDateTime_compared_to_property(bool async)
     {
-        await base.Bitwise_or_with_logical_or(async);
+        await base.FromDateTime_compared_to_property(async);
 
         AssertSql(
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."Int" = 12 OR b."Short" = 12 OR b."String" = 'Seattle'
+WHERE CAST(b."DateTime" AT TIME ZONE 'UTC' AS date) = b."DateOnly"
 """);
     }
 
-    public override async Task Bitwise_and_with_logical_and(bool async)
+    public override async Task FromDateTime_compared_to_constant_and_parameter(bool async)
     {
-        await base.Bitwise_and_with_logical_and(async);
+        await base.FromDateTime_compared_to_constant_and_parameter(async);
+
+        AssertSql(
+            """
+@dateOnly='10/11/0002' (DbType = Date)
+
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE CAST(b."DateTime" AT TIME ZONE 'UTC' AS date) IN (@dateOnly, DATE '1998-05-04')
+""");
+    }
+
+    public override async Task ToDateTime_property_with_constant_TimeOnly(bool async)
+    {
+        await base.ToDateTime_property_with_constant_TimeOnly(async);
 
         AssertSql(
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."Int" = 8 AND b."Short" = 8 AND b."String" = 'Seattle'
+WHERE b."DateOnly" + TIME '21:05:19.9405' = TIMESTAMP '2020-01-01T21:05:19.9405'
 """);
     }
 
-    public override async Task Bitwise_or_with_logical_and(bool async)
+    public override async Task ToDateTime_property_with_property_TimeOnly(bool async)
     {
-        await base.Bitwise_or_with_logical_and(async);
+        await base.ToDateTime_property_with_property_TimeOnly(async);
 
         AssertSql(
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE (b."Int" = 8 OR b."Short" = 9) AND b."String" = 'Seattle'
+WHERE b."DateOnly" + b."TimeOnly" = TIMESTAMP '2020-01-01T15:30:10'
 """);
     }
 
-    public override async Task Bitwise_and_with_logical_or(bool async)
+    public override async Task ToDateTime_constant_DateTime_with_property_TimeOnly(bool async)
     {
-        await base.Bitwise_and_with_logical_or(async);
+        await base.ToDateTime_constant_DateTime_with_property_TimeOnly(async);
 
         AssertSql(
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE (b."Int" = 12 AND b."Short" = 12) OR b."String" = 'Seattle'
+WHERE DATE '1990-11-10' + b."TimeOnly" = TIMESTAMP '1990-11-10T15:30:10'
 """);
     }
 
-    #endregion Bitwise
+    public override async Task ToDateTime_with_complex_DateTime(bool async)
+    {
+        await base.ToDateTime_with_complex_DateTime(async);
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE CAST(b."DateOnly" + INTERVAL '1 years' AS date) + b."TimeOnly" = TIMESTAMP '2021-01-01T15:30:10'
+""");
+    }
+
+    public override async Task ToDateTime_with_complex_TimeOnly(bool async)
+    {
+        await base.ToDateTime_with_complex_TimeOnly(async);
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."DateOnly" + b."TimeOnly" + INTERVAL '1 hours' = TIMESTAMP '2020-01-01T16:30:10'
+""");
+    }
 
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()

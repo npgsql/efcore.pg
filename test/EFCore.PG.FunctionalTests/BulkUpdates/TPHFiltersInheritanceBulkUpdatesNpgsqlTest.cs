@@ -104,8 +104,10 @@ WHERE a."CountryId" = 1 AND a."Id" IN (
 
         AssertExecuteUpdateSql(
             """
+@p='Animal'
+
 UPDATE "Animals" AS a
-SET "Name" = 'Animal'
+SET "Name" = @p
 WHERE a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
 """);
     }
@@ -116,8 +118,10 @@ WHERE a."CountryId" = 1 AND a."Name" = 'Great spotted kiwi'
 
         AssertExecuteUpdateSql(
             """
+@p='NewBird'
+
 UPDATE "Animals" AS a
-SET "Name" = 'NewBird'
+SET "Name" = @p
 WHERE a."CountryId" = 1 AND a."Discriminator" = 'Kiwi'
 """);
     }
@@ -155,8 +159,10 @@ WHERE a."Id" IN (
 
         AssertExecuteUpdateSql(
             """
+@p='SomeOtherKiwi'
+
 UPDATE "Animals" AS a
-SET "Name" = 'SomeOtherKiwi'
+SET "Name" = @p
 WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1
 """);
     }
@@ -167,8 +173,10 @@ WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1
 
         AssertExecuteUpdateSql(
             """
+@p='0' (DbType = Int16)
+
 UPDATE "Animals" AS a
-SET "FoundOn" = 0
+SET "FoundOn" = @p
 WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1
 """);
     }
@@ -179,9 +187,12 @@ WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1
 
         AssertExecuteUpdateSql(
             """
+@p='Kiwi'
+@p0='0' (DbType = Int16)
+
 UPDATE "Animals" AS a
-SET "FoundOn" = 0,
-    "Name" = 'Kiwi'
+SET "Name" = @p,
+    "FoundOn" = @p0
 WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1
 """);
     }
@@ -192,8 +203,10 @@ WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1
 
         AssertExecuteUpdateSql(
             """
+@p='Monovia'
+
 UPDATE "Countries" AS c
-SET "Name" = 'Monovia'
+SET "Name" = @p
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
@@ -207,8 +220,10 @@ WHERE (
 
         AssertExecuteUpdateSql(
             """
+@p='Monovia'
+
 UPDATE "Countries" AS c
-SET "Name" = 'Monovia'
+SET "Name" = @p
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
