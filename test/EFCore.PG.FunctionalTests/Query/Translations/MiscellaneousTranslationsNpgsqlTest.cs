@@ -114,6 +114,58 @@ WHERE length(b."ByteArray") >= 1 AND get_byte(b."ByteArray", 0)::smallint = 222
 """);
     }
 
+    public override async Task Byte_array_Contains_with_constant(bool async)
+    {
+        await base.Byte_array_Contains_with_constant(async);
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE position(BYTEA E'\\x01' IN b."ByteArray") > 0
+""");
+    }
+
+    public override async Task Byte_array_Contains_with_parameter(bool async)
+    {
+        await base.Byte_array_Contains_with_parameter(async);
+
+        AssertSql(
+            """
+@someByte='1' (DbType = Int16)
+
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE position(set_byte(BYTEA E'\\x00', 0, @someByte) IN b."ByteArray") > 0
+""");
+    }
+
+    public override async Task Byte_array_Contains_with_column(bool async)
+    {
+        await base.Byte_array_Contains_with_column(async);
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE position(set_byte(BYTEA E'\\x00', 0, b."Byte") IN b."ByteArray") > 0
+""");
+    }
+
+    public override async Task Byte_array_SequenceEqual(bool async)
+    {
+        await base.Byte_array_SequenceEqual(async);
+
+        AssertSql(
+            """
+@byteArrayParam='0xDEADBEEF'
+
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."ByteArray" = @byteArrayParam
+""");
+    }
+
     #endregion Byte array
 
     #region Random

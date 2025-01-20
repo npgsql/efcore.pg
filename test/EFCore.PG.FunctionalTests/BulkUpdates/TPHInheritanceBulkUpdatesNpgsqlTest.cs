@@ -68,8 +68,10 @@ WHERE (
 
         AssertExecuteUpdateSql(
             """
+@p='Animal'
+
 UPDATE "Animals" AS a
-SET "Name" = 'Animal'
+SET "Name" = @p
 WHERE a."Name" = 'Great spotted kiwi'
 """);
     }
@@ -80,8 +82,10 @@ WHERE a."Name" = 'Great spotted kiwi'
 
         AssertExecuteUpdateSql(
             """
+@p='NewBird'
+
 UPDATE "Animals" AS a
-SET "Name" = 'NewBird'
+SET "Name" = @p
 WHERE a."Discriminator" = 'Kiwi'
 """);
     }
@@ -165,8 +169,10 @@ WHERE a."Id" IN (
 
         AssertExecuteUpdateSql(
             """
+@p='SomeOtherKiwi'
+
 UPDATE "Animals" AS a
-SET "Name" = 'SomeOtherKiwi'
+SET "Name" = @p
 WHERE a."Discriminator" = 'Kiwi'
 """);
     }
@@ -177,8 +183,10 @@ WHERE a."Discriminator" = 'Kiwi'
 
         AssertExecuteUpdateSql(
             """
+@p='0' (DbType = Int16)
+
 UPDATE "Animals" AS a
-SET "FoundOn" = 0
+SET "FoundOn" = @p
 WHERE a."Discriminator" = 'Kiwi'
 """);
     }
@@ -189,9 +197,12 @@ WHERE a."Discriminator" = 'Kiwi'
 
         AssertExecuteUpdateSql(
             """
+@p='Kiwi'
+@p0='0' (DbType = Int16)
+
 UPDATE "Animals" AS a
-SET "FoundOn" = 0,
-    "Name" = 'Kiwi'
+SET "Name" = @p,
+    "FoundOn" = @p0
 WHERE a."Discriminator" = 'Kiwi'
 """);
     }
@@ -202,8 +213,10 @@ WHERE a."Discriminator" = 'Kiwi'
 
         AssertExecuteUpdateSql(
             """
+@p='Monovia'
+
 UPDATE "Countries" AS c
-SET "Name" = 'Monovia'
+SET "Name" = @p
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
@@ -217,8 +230,10 @@ WHERE (
 
         AssertExecuteUpdateSql(
             """
+@p='Monovia'
+
 UPDATE "Countries" AS c
-SET "Name" = 'Monovia'
+SET "Name" = @p
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
@@ -239,8 +254,10 @@ WHERE (
 
         AssertExecuteUpdateSql(
             """
+@p='0'
+
 UPDATE "Drinks" AS d
-SET "SugarGrams" = 0
+SET "SugarGrams" = @p
 WHERE d."Discriminator" = 1
 """);
     }
@@ -251,8 +268,10 @@ WHERE d."Discriminator" = 1
 
         AssertExecuteUpdateSql(
             """
+@p='0'
+
 UPDATE "Drinks" AS d
-SET "SugarGrams" = 0
+SET "SugarGrams" = @p
 WHERE d."Discriminator" = 1
 """);
     }

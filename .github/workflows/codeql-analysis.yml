@@ -27,7 +27,7 @@ on:
     - cron: '30 22 * * 6'
 
 env:
-  dotnet_sdk_version: '10.0.100-alpha.1.24620.13'
+  dotnet_sdk_version: '10.0.100-alpha.1.25059.31'
 
 jobs:
   analyze:

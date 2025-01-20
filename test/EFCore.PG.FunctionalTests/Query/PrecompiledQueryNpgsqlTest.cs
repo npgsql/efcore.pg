@@ -1365,9 +1365,9 @@ FROM "Blogs" AS b
 """);
     }
 
-    public override async Task Terminating_ExecuteUpdate()
+    public override async Task Terminating_ExecuteUpdate_with_lambda()
     {
-        await base.Terminating_ExecuteUpdate();
+        await base.Terminating_ExecuteUpdate_with_lambda();
 
         AssertSql(
             """
@@ -1385,9 +1385,29 @@ WHERE b."Id" = 9 AND b."Name" = 'Blog2Suffix'
 """);
     }
 
-    public override async Task Terminating_ExecuteUpdateAsync()
+    public override async Task Terminating_ExecuteUpdate_without_lambda()
     {
-        await base.Terminating_ExecuteUpdateAsync();
+        await base.Terminating_ExecuteUpdate_without_lambda();
+
+        AssertSql(
+            """
+@newValue='NewValue'
+
+UPDATE "Blogs" AS b
+SET "Name" = @newValue
+WHERE b."Id" > 8
+""",
+            //
+            """
+SELECT count(*)::int
+FROM "Blogs" AS b
+WHERE b."Id" = 9 AND b."Name" = 'NewValue'
+""");
+    }
+
+    public override async Task Terminating_ExecuteUpdateAsync_with_lambda()
+    {
+        await base.Terminating_ExecuteUpdateAsync_with_lambda();
 
         AssertSql(
             """
@@ -1402,6 +1422,26 @@ WHERE b."Id" > 8
 SELECT count(*)::int
 FROM "Blogs" AS b
 WHERE b."Id" = 9 AND b."Name" = 'Blog2Suffix'
+""");
+    }
+
+    public override async Task Terminating_ExecuteUpdateAsync_without_lambda()
+    {
+        await base.Terminating_ExecuteUpdateAsync_without_lambda();
+
+        AssertSql(
+            """
+@newValue='NewValue'
+
+UPDATE "Blogs" AS b
+SET "Name" = @newValue
+WHERE b."Id" > 8
+""",
+            //
+            """
+SELECT count(*)::int
+FROM "Blogs" AS b
+WHERE b."Id" = 9 AND b."Name" = 'NewValue'
 """);
     }
 

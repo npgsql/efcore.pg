@@ -29,8 +29,10 @@ WHERE c."Name" = 'Monty Elias'
 
         AssertExecuteUpdateSql(
             """
+@p='12345'
+
 UPDATE "Customer" AS c
-SET "ShippingAddress_ZipCode" = 12345
+SET "ShippingAddress_ZipCode" = @p
 WHERE c."ShippingAddress_ZipCode" = 7728
 """);
     }
@@ -41,8 +43,10 @@ WHERE c."ShippingAddress_ZipCode" = 7728
 
         AssertExecuteUpdateSql(
             """
+@p='United States Modified'
+
 UPDATE "Customer" AS c
-SET "ShippingAddress_Country_FullName" = 'United States Modified'
+SET "ShippingAddress_Country_FullName" = @p
 WHERE c."ShippingAddress_Country_Code" = 'US'
 """);
     }
@@ -53,10 +57,12 @@ WHERE c."ShippingAddress_Country_Code" = 'US'
 
         AssertExecuteUpdateSql(
             """
+@p='54321'
+
 UPDATE "Customer" AS c
-SET "BillingAddress_ZipCode" = 54321,
+SET "Name" = c."Name" || 'Modified',
     "ShippingAddress_ZipCode" = c."BillingAddress_ZipCode",
-    "Name" = c."Name" || 'Modified'
+    "BillingAddress_ZipCode" = @p
 WHERE c."ShippingAddress_ZipCode" = 7728
 """);
     }
@@ -67,8 +73,10 @@ WHERE c."ShippingAddress_ZipCode" = 7728
 
         AssertExecuteUpdateSql(
             """
+@p='12345'
+
 UPDATE "Customer" AS c
-SET "ShippingAddress_ZipCode" = 12345
+SET "ShippingAddress_ZipCode" = @p
 """);
     }
 
@@ -78,9 +86,11 @@ SET "ShippingAddress_ZipCode" = 12345
 
         AssertExecuteUpdateSql(
             """
+@p='54321'
+
 UPDATE "Customer" AS c
-SET "BillingAddress_ZipCode" = 54321,
-    "ShippingAddress_ZipCode" = c."BillingAddress_ZipCode"
+SET "ShippingAddress_ZipCode" = c."BillingAddress_ZipCode",
+    "BillingAddress_ZipCode" = @p
 """);
     }
 
@@ -97,20 +107,20 @@ SET "BillingAddress_ZipCode" = 54321,
 
         AssertExecuteUpdateSql(
             """
-@complex_type_newAddress_AddressLine1='New AddressLine1'
-@complex_type_newAddress_AddressLine2='New AddressLine2'
-@complex_type_newAddress_Tags={ 'new_tag1', 'new_tag2' } (DbType = Object)
-@complex_type_newAddress_ZipCode='99999' (Nullable = true)
-@complex_type_newAddress_Code='FR'
-@complex_type_newAddress_FullName='France'
+@complex_type_p_AddressLine1='New AddressLine1'
+@complex_type_p_AddressLine2='New AddressLine2'
+@complex_type_p_Tags={ 'new_tag1', 'new_tag2' } (DbType = Object)
+@complex_type_p_ZipCode='99999' (Nullable = true)
+@complex_type_p_Code='FR'
+@complex_type_p_FullName='France'
 
 UPDATE "Customer" AS c
-SET "ShippingAddress_AddressLine1" = @complex_type_newAddress_AddressLine1,
-    "ShippingAddress_AddressLine2" = @complex_type_newAddress_AddressLine2,
-    "ShippingAddress_Tags" = @complex_type_newAddress_Tags,
-    "ShippingAddress_ZipCode" = @complex_type_newAddress_ZipCode,
-    "ShippingAddress_Country_Code" = @complex_type_newAddress_Code,
-    "ShippingAddress_Country_FullName" = @complex_type_newAddress_FullName
+SET "ShippingAddress_AddressLine1" = @complex_type_p_AddressLine1,
+    "ShippingAddress_AddressLine2" = @complex_type_p_AddressLine2,
+    "ShippingAddress_Tags" = @complex_type_p_Tags,
+    "ShippingAddress_ZipCode" = @complex_type_p_ZipCode,
+    "ShippingAddress_Country_Code" = @complex_type_p_Code,
+    "ShippingAddress_Country_FullName" = @complex_type_p_FullName
 """);
     }
 
@@ -120,12 +130,12 @@ SET "ShippingAddress_AddressLine1" = @complex_type_newAddress_AddressLine1,
 
         AssertExecuteUpdateSql(
             """
-@complex_type_newCountry_Code='FR'
-@complex_type_newCountry_FullName='France'
+@complex_type_p_Code='FR'
+@complex_type_p_FullName='France'
 
 UPDATE "Customer" AS c
-SET "ShippingAddress_Country_Code" = @complex_type_newCountry_Code,
-    "ShippingAddress_Country_FullName" = @complex_type_newCountry_FullName
+SET "ShippingAddress_Country_Code" = @complex_type_p_Code,
+    "ShippingAddress_Country_FullName" = @complex_type_p_FullName
 """);
     }
 
@@ -151,13 +161,20 @@ SET "ShippingAddress_AddressLine1" = c."BillingAddress_AddressLine1",
 
         AssertExecuteUpdateSql(
             """
+@complex_type_p_AddressLine1='New AddressLine1'
+@complex_type_p_AddressLine2='New AddressLine2'
+@complex_type_p_Tags={ 'new_tag1', 'new_tag2' } (DbType = Object)
+@complex_type_p_ZipCode='99999' (Nullable = true)
+@complex_type_p_Code='FR'
+@complex_type_p_FullName='France'
+
 UPDATE "Customer" AS c
-SET "ShippingAddress_AddressLine1" = 'New AddressLine1',
-    "ShippingAddress_AddressLine2" = 'New AddressLine2',
-    "ShippingAddress_Tags" = ARRAY['new_tag1','new_tag2']::text[],
-    "ShippingAddress_ZipCode" = 99999,
-    "ShippingAddress_Country_Code" = 'FR',
-    "ShippingAddress_Country_FullName" = 'France'
+SET "ShippingAddress_AddressLine1" = @complex_type_p_AddressLine1,
+    "ShippingAddress_AddressLine2" = @complex_type_p_AddressLine2,
+    "ShippingAddress_Tags" = @complex_type_p_Tags,
+    "ShippingAddress_ZipCode" = @complex_type_p_ZipCode,
+    "ShippingAddress_Country_Code" = @complex_type_p_Code,
+    "ShippingAddress_Country_FullName" = @complex_type_p_FullName
 """);
     }
 
@@ -208,8 +225,10 @@ WHERE c0."Id" = c1."Id"
 
         AssertExecuteUpdateSql(
             """
+@p={ 'new_tag1', 'new_tag2' } (DbType = Object)
+
 UPDATE "Customer" AS c
-SET "ShippingAddress_Tags" = ARRAY['new_tag1','new_tag2']::text[]
+SET "ShippingAddress_Tags" = @p
 """);
     }
 

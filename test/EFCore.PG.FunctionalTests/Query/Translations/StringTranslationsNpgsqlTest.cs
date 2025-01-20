@@ -90,6 +90,11 @@ WHERE length(b."String")::int = 7
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
 WHERE upper(b."String") = 'SEATTLE'
+""",
+            //
+            """
+SELECT upper(b."String")
+FROM "BasicTypesEntities" AS b
 """);
     }
 
@@ -102,6 +107,11 @@ WHERE upper(b."String") = 'SEATTLE'
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
 WHERE lower(b."String") = 'seattle'
+""",
+            //
+            """
+SELECT lower(b."String")
+FROM "BasicTypesEntities" AS b
 """);
     }
 
@@ -1256,6 +1266,18 @@ WHERE concat_ws('|', b."String", @foo, '', 'bar') = 'Seattle|foo||bar'
     #endregion Join
 
     #region Concatenation
+
+    public override async Task Concat_operator(bool async)
+    {
+        await base.Concat_operator(async);
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."String" || 'Boston' = 'SeattleBoston'
+""");
+    }
 
     public override async Task Concat_aggregate(bool async)
     {

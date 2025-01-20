@@ -61,8 +61,10 @@ public class TPTInheritanceBulkUpdatesNpgsqlTest(
         // TODO: This over-complex SQL would get pruned after https://github.com/dotnet/efcore/issues/31083
         AssertExecuteUpdateSql(
             """
+@p='Animal'
+
 UPDATE "Animals" AS a0
-SET "Name" = 'Animal'
+SET "Name" = @p
 FROM (
     SELECT a."Id"
     FROM "Animals" AS a
@@ -79,8 +81,10 @@ WHERE a0."Id" = s."Id"
         // TODO: This over-complex SQL would get pruned after https://github.com/dotnet/efcore/issues/31083
         AssertExecuteUpdateSql(
             """
+@p='NewBird'
+
 UPDATE "Animals" AS a0
-SET "Name" = 'NewBird'
+SET "Name" = @p
 FROM "Birds" AS b,
     "Kiwi" AS k0,
     (
@@ -120,8 +124,10 @@ WHERE a0."Id" = s."Id" AND a0."Id" = k0."Id" AND a0."Id" = b."Id"
 
         AssertExecuteUpdateSql(
             """
+@p='SomeOtherKiwi'
+
 UPDATE "Animals" AS a
-SET "Name" = 'SomeOtherKiwi'
+SET "Name" = @p
 FROM "Birds" AS b,
     "Kiwi" AS k
 WHERE a."Id" = k."Id" AND a."Id" = b."Id"
@@ -134,8 +140,10 @@ WHERE a."Id" = k."Id" AND a."Id" = b."Id"
 
         AssertExecuteUpdateSql(
             """
+@p='0' (DbType = Int16)
+
 UPDATE "Kiwi" AS k
-SET "FoundOn" = 0
+SET "FoundOn" = @p
 FROM "Animals" AS a
 INNER JOIN "Birds" AS b ON a."Id" = b."Id"
 WHERE a."Id" = k."Id"
@@ -155,8 +163,10 @@ WHERE a."Id" = k."Id"
 
         AssertExecuteUpdateSql(
             """
+@p='Monovia'
+
 UPDATE "Countries" AS c
-SET "Name" = 'Monovia'
+SET "Name" = @p
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
@@ -170,8 +180,10 @@ WHERE (
 
         AssertExecuteUpdateSql(
             """
+@p='Monovia'
+
 UPDATE "Countries" AS c
-SET "Name" = 'Monovia'
+SET "Name" = @p
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
@@ -193,8 +205,10 @@ WHERE (
 
         AssertExecuteUpdateSql(
             """
+@p='0'
+
 UPDATE "Coke" AS c
-SET "SugarGrams" = 0
+SET "SugarGrams" = @p
 FROM "Drinks" AS d
 WHERE d."Id" = c."Id"
 """);
@@ -206,8 +220,10 @@ WHERE d."Id" = c."Id"
 
         AssertExecuteUpdateSql(
             """
+@p='0'
+
 UPDATE "Coke" AS c
-SET "SugarGrams" = 0
+SET "SugarGrams" = @p
 FROM "Drinks" AS d
 WHERE d."Id" = c."Id"
 """);
