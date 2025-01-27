@@ -182,8 +182,8 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
         using (builder.Indent())
         {
-            base.CreateTableColumns(operation, model, builder);
-            base.CreateTableConstraints(operation, model, builder);
+            CreateTableColumns(operation, model, builder);
+            CreateTableConstraints(operation, model, builder);
             builder.AppendLine();
         }
 
