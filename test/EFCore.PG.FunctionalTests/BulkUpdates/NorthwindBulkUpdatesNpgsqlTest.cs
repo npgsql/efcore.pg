@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 
 namespace Microsoft.EntityFrameworkCore.BulkUpdates;
 
+#nullable disable
+
 public class NorthwindBulkUpdatesNpgsqlTest(
     NorthwindBulkUpdatesNpgsqlFixture<NoopModelCustomizer> fixture,
     ITestOutputHelper testOutputHelper)
@@ -615,6 +617,30 @@ WHERE EXISTS (
         ORDER BY o2."OrderID" NULLS FIRST
         LIMIT 100 OFFSET 0
     ) AS o1 ON TRUE
+    WHERE o0."OrderID" < 10276 AND o0."OrderID" = o."OrderID" AND o0."ProductID" = o."ProductID")
+""");
+    }
+
+    public override async Task Delete_with_RightJoin(bool async)
+    {
+        await base.Delete_with_RightJoin(async);
+
+        AssertSql(
+            """
+@p0='100'
+@p='0'
+
+DELETE FROM "Order Details" AS o
+WHERE EXISTS (
+    SELECT 1
+    FROM "Order Details" AS o0
+    RIGHT JOIN (
+        SELECT o2."OrderID"
+        FROM "Orders" AS o2
+        WHERE o2."OrderID" < 10300
+        ORDER BY o2."OrderID" NULLS FIRST
+        LIMIT @p0 OFFSET @p
+    ) AS o1 ON o0."OrderID" = o1."OrderID"
     WHERE o0."OrderID" < 10276 AND o0."OrderID" = o."OrderID" AND o0."ProductID" = o."ProductID")
 """);
     }
@@ -1284,6 +1310,41 @@ FROM (
     WHERE c."CustomerID" LIKE 'F%'
 ) AS s
 WHERE c0."CustomerID" = s."CustomerID"
+""");
+    }
+
+    public override async Task Update_with_RightJoin(bool async)
+    {
+        await AssertUpdate(
+            async,
+            ss => ss.Set<Order>().Where(o => o.OrderID < 10300)
+                .RightJoin(
+                    ss.Set<Customer>().Where(c => c.CustomerID.StartsWith("F")),
+                    o => o.CustomerID,
+                    c => c.CustomerID,
+                    (o, c) => new { Order = o, Customers = c }),
+            e => e.Order,
+            s => s.SetProperty(t => t.Order.OrderDate, new DateTime(2020, 1, 1, 0, 0, 0)),
+            rowsAffectedCount: 2,
+            (b, a) => Assert.All(a, o => Assert.Equal(new DateTime(2020, 1, 1, 0, 0, 0), o.OrderDate)));
+
+        AssertExecuteUpdateSql(
+            """
+@p='2020-01-01T00:00:00.0000000' (Nullable = true)
+
+UPDATE "Orders" AS o0
+SET "OrderDate" = @p
+FROM (
+    SELECT o."OrderID"
+    FROM "Orders" AS o
+    RIGHT JOIN (
+        SELECT c."CustomerID"
+        FROM "Customers" AS c
+        WHERE c."CustomerID" LIKE 'F%'
+    ) AS c0 ON o."CustomerID" = c0."CustomerID"
+    WHERE o."OrderID" < 10300
+) AS s
+WHERE o0."OrderID" = s."OrderID"
 """);
     }
 
