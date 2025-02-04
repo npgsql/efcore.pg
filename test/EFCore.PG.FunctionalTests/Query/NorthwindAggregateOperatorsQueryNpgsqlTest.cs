@@ -67,36 +67,39 @@ WHERE e."EmployeeID" = ANY (@ids)
 """);
     }
 
-    public override async Task Contains_with_local_nullable_uint_array_closure(bool async)
-    {
-        await base.Contains_with_local_nullable_uint_array_closure(async);
-
-        // Note: PostgreSQL doesn't support uint, but value converters make this into bigint
-
-        AssertSql(
-            """
-@ids={ '0', '1' } (DbType = Object)
-
-SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
-FROM "Employees" AS e
-WHERE e."EmployeeID" = ANY (@ids)
-""",
-            //
-            """
-@ids={ '0' } (DbType = Object)
-
-SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
-FROM "Employees" AS e
-WHERE e."EmployeeID" = ANY (@ids)
-""");
-    }
-
-    public override Task Contains_with_local_anonymous_type_array_closure(bool async)
-        // Aggregates. Issue #15937.
-        => AssertTranslationFailed(() => base.Contains_with_local_anonymous_type_array_closure(async));
-
-    public override Task Contains_with_local_tuple_array_closure(bool async)
-        => Assert.ThrowsAsync<InvalidCastException>(() => base.Contains_with_local_tuple_array_closure(async: true));
+// TODO: The base implementations no longer compile since https://github.com/dotnet/runtime/pull/110197 (Contains overload added with
+// optional parameter, not supported in expression trees). #35547 is tracking on the EF side.
+//
+//     public override async Task Contains_with_local_nullable_uint_array_closure(bool async)
+//     {
+//         await base.Contains_with_local_nullable_uint_array_closure(async);
+//
+//         // Note: PostgreSQL doesn't support uint, but value converters make this into bigint
+//
+//         AssertSql(
+//             """
+// @ids={ '0', '1' } (DbType = Object)
+//
+// SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
+// FROM "Employees" AS e
+// WHERE e."EmployeeID" = ANY (@ids)
+// """,
+//             //
+//             """
+// @ids={ '0' } (DbType = Object)
+//
+// SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
+// FROM "Employees" AS e
+// WHERE e."EmployeeID" = ANY (@ids)
+// """);
+//     }
+//
+//     public override Task Contains_with_local_anonymous_type_array_closure(bool async)
+//         // Aggregates. Issue #15937.
+//         => AssertTranslationFailed(() => base.Contains_with_local_anonymous_type_array_closure(async));
+//
+//     public override Task Contains_with_local_tuple_array_closure(bool async)
+//         => Assert.ThrowsAsync<InvalidCastException>(() => base.Contains_with_local_tuple_array_closure(async: true));
 
     public override async Task Contains_with_local_enumerable_inline(bool async)
     {
