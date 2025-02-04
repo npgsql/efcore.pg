@@ -15,4 +15,4 @@ artifacts/
 # Roslyn cache directories
 *.ide/
 TestResult.xml
-
+.dotnet
