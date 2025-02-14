@@ -21,7 +21,7 @@ public class NpgsqlValueGeneratorSelectorTest
         AssertGenerator<TemporaryShortValueGenerator>("NullableShort");
         AssertGenerator<TemporaryByteValueGenerator>("NullableByte");
         AssertGenerator<TemporaryDecimalValueGenerator>("Decimal");
-        AssertGenerator<StringValueGenerator>("String");
+        AssertGenerator<NpgsqlSequentialStringValueGenerator>("String");
         AssertGenerator<NpgsqlSequentialGuidValueGenerator>("Guid");
         AssertGenerator<BinaryValueGenerator>("Binary");
     }
@@ -128,7 +128,7 @@ public class NpgsqlValueGeneratorSelectorTest
         AssertGenerator<NpgsqlSequenceHiLoValueGenerator<int>>("NullableInt", setSequences: true);
         AssertGenerator<NpgsqlSequenceHiLoValueGenerator<long>>("NullableLong", setSequences: true);
         AssertGenerator<NpgsqlSequenceHiLoValueGenerator<short>>("NullableShort", setSequences: true);
-        AssertGenerator<StringValueGenerator>("String", setSequences: true);
+        AssertGenerator<NpgsqlSequentialStringValueGenerator>("String", setSequences: true);
         AssertGenerator<NpgsqlSequentialGuidValueGenerator>("Guid", setSequences: true);
         AssertGenerator<BinaryValueGenerator>("Binary", setSequences: true);
     }
