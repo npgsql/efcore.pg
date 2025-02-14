@@ -101,9 +101,14 @@ public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override ValueGenerator? FindForType(IProperty property, ITypeBase typeBase, Type clrType)
-        => property.ClrType.UnwrapNullableType() == typeof(Guid)
-            ? property.ValueGenerated == ValueGenerated.Never || property.GetDefaultValueSql() is not null
-                ? new TemporaryGuidValueGenerator()
-                : new NpgsqlSequentialGuidValueGenerator()
-            : base.FindForType(property, typeBase, clrType);
+        => property.ClrType.UnwrapNullableType() switch
+        {
+            var t when t == typeof(Guid) && property.ValueGenerated is not ValueGenerated.Never && property.GetDefaultValueSql() is null
+                => new NpgsqlSequentialGuidValueGenerator(),
+
+            var t when t == typeof(string) && property.ValueGenerated is not ValueGenerated.Never && property.GetDefaultValueSql() is null
+                => new NpgsqlSequentialStringValueGenerator(),
+
+            _ => base.FindForType(property, typeBase, clrType)
+        };
 }
