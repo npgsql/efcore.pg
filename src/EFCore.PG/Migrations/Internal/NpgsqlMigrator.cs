@@ -83,7 +83,7 @@ public class NpgsqlMigrator : Migrator
             {
                 npgsqlConnection.ReloadTypes();
             }
-            catch
+            finally
             {
                 _connection.Close();
             }
@@ -130,7 +130,7 @@ public class NpgsqlMigrator : Migrator
             {
                 await npgsqlConnection.ReloadTypesAsync().ConfigureAwait(false);
             }
-            catch
+            finally
             {
                 await _connection.CloseAsync().ConfigureAwait(false);
             }
