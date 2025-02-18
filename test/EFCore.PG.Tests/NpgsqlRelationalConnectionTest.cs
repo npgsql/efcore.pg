@@ -284,6 +284,46 @@ public class NpgsqlRelationalConnectionTest
     }
 
     [Fact]
+    public void Uses_correct_DbDataSource_from_application_service_provider_with_cached_DbContextOptions_extension()
+    {
+        var serviceCollection1 = new ServiceCollection();
+
+        serviceCollection1
+            .AddNpgsqlDataSource("Host=FakeHost1")
+            .AddDbContext<FakeDbContext>(o => o.UseNpgsql());
+
+        using (var serviceProvider1 = serviceCollection1.BuildServiceProvider())
+        {
+            var dataSource1 = serviceProvider1.GetRequiredService<NpgsqlDataSource>();
+
+            Assert.Equal("Host=FakeHost1", dataSource1.ConnectionString);
+
+            var context1 = serviceProvider1.GetRequiredService<FakeDbContext>();
+            var relationalConnection1 = (NpgsqlRelationalConnection)context1.GetService<IRelationalConnection>()!;
+
+            Assert.Same(dataSource1, relationalConnection1.DbDataSource);
+        }
+
+        var serviceCollection2 = new ServiceCollection();
+
+        serviceCollection2
+            .AddNpgsqlDataSource("Host=FakeHost2")
+            .AddDbContext<FakeDbContext>(o => o.UseNpgsql());
+
+        using (var serviceProvider2 = serviceCollection2.BuildServiceProvider())
+        {
+            var dataSource2 = serviceProvider2.GetRequiredService<NpgsqlDataSource>();
+
+            Assert.Equal("Host=FakeHost2", dataSource2.ConnectionString);
+
+            var context2 = serviceProvider2.GetRequiredService<FakeDbContext>();
+            var relationalConnection2 = (NpgsqlRelationalConnection)context2.GetService<IRelationalConnection>()!;
+
+            Assert.Same(dataSource2, relationalConnection2.DbDataSource);
+        }
+    }
+
+    [Fact]
     public void Can_create_master_connection_with_connection_string()
     {
         using var connection = CreateConnection();
