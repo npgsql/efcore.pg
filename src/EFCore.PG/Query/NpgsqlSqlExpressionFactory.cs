@@ -307,6 +307,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case PgExpressionType.JsonExists:
             case PgExpressionType.JsonExistsAny:
             case PgExpressionType.JsonExistsAll:
+            case PgExpressionType.DictionaryContainsKey:
                 returnType = typeof(bool);
                 break;
 
@@ -785,6 +786,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case PgExpressionType.JsonExists:
             case PgExpressionType.JsonExistsAny:
             case PgExpressionType.JsonExistsAll:
+            case PgExpressionType.DictionaryContainsKey:
             {
                 // TODO: For networking, this probably needs to be cleaned up, i.e. we know where the CIDR and INET are
                 // based on operator type?
@@ -835,6 +837,17 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 break;
             }
 
+            case PgExpressionType.DictionaryValueForKey:
+            case PgExpressionType.DictionarySubtract:
+            case PgExpressionType.DictionaryConcat:
+            {
+                return new PgBinaryExpression(
+                    operatorType,
+                    ApplyDefaultTypeMapping(left),
+                    ApplyDefaultTypeMapping(right),
+                    typeMapping!.ClrType,
+                    typeMapping);
+            }
             default:
                 throw new InvalidOperationException(
                     $"Incorrect {nameof(operatorType)} for {nameof(pgBinaryExpression)}: {operatorType}");
