@@ -182,6 +182,36 @@ VALUES(
 """);
     }
 
+    #region BadJsonProperties
+
+    // PostgreSQL stores JSON as jsonb, which doesn't allow badly-formed JSON; so the following tests are irrelevant.
+
+    public override Task Bad_json_properties_duplicated_navigations_tracking()
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_duplicated_navigations_tracking());
+
+    public override Task Bad_json_properties_duplicated_navigations_no_tracking()
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_duplicated_navigations_no_tracking());
+
+    public override Task Bad_json_properties_duplicated_scalars(bool noTracking)
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_duplicated_scalars(noTracking));
+
+    public override Task Bad_json_properties_empty_navigations(bool noTracking)
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_empty_navigations(noTracking));
+
+    public override Task Bad_json_properties_empty_scalars(bool noTracking)
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_empty_scalars(noTracking));
+
+    public override Task Bad_json_properties_null_navigations(bool noTracking)
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_null_navigations(noTracking));
+
+    public override Task Bad_json_properties_null_scalars(bool noTracking)
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_null_scalars(noTracking));
+
+    protected override Task SeedBadJsonProperties(ContextBadJsonProperties ctx)
+        => throw new NotSupportedException("PostgreSQL stores JSON as jsonb, which doesn't allow badly-formed JSON");
+
+    #endregion
+
     [ConditionalTheory, MemberData(nameof(IsAsyncData))]
     public virtual async Task Json_predicate_on_bytea(bool async)
     {
