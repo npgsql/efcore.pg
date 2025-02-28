@@ -141,7 +141,10 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
                             "array_position",
                             [array, item],
                             nullable: true,
-                            TrueArrays[2],
+                            // array_position can return NULL even if both its arguments are non-nullable;
+                            // this is currently the way to express that (see
+                            // https://github.com/dotnet/efcore/pull/33814#issuecomment-2687857927).
+                            FalseArrays[2],
                             arrayOrList.Type),
                         _sqlExpressionFactory.Constant(1)),
                     _sqlExpressionFactory.Constant(-1));
@@ -161,7 +164,10 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
                             "array_position",
                             [array, item, startIndex],
                             nullable: true,
-                            TrueArrays[3],
+                            // array_position can return NULL even if both its arguments are non-nullable;
+                            // this is currently the way to express that (see
+                            // https://github.com/dotnet/efcore/pull/33814#issuecomment-2687857927).
+                            FalseArrays[3],
                             arrayOrList.Type),
                         _sqlExpressionFactory.Constant(1)),
                     _sqlExpressionFactory.Constant(-1));
