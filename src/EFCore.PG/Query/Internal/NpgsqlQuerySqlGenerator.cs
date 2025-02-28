@@ -527,6 +527,11 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
                     PgExpressionType.Distance => "<->",
 
+                    PgExpressionType.DictionaryContainsKey => "?",
+                    PgExpressionType.DictionaryValueForKey => "->",
+                    PgExpressionType.DictionaryConcat => "||",
+                    PgExpressionType.DictionarySubtract => "-",
+
                     _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {binaryExpression.OperatorType}")
                 })
             .Append(" ");
