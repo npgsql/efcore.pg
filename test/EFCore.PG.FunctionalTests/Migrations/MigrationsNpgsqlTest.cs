@@ -1047,6 +1047,30 @@ ALTER TABLE "People" ALTER COLUMN "SomeColumn" TYPE bigint;
 """);
     }
 
+    [Fact]
+    public virtual async Task Alter_column_change_type_preserves_collation()
+    {
+        await Test(
+            builder => builder.Entity("People").Property<int>("Id"),
+            builder => builder.Entity("People").Property<string>("SomeColumn")
+                .HasColumnType("varchar")
+                .UseCollation(NonDefaultCollation),
+            builder => builder.Entity("People").Property<string>("SomeColumn")
+                .HasColumnType("text")
+                .UseCollation(NonDefaultCollation),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var column = Assert.Single(table.Columns, c => c.Name == "SomeColumn");
+                Assert.Equal(NonDefaultCollation, column.Collation);
+            });
+
+        AssertSql(
+            """
+ALTER TABLE "People" ALTER COLUMN "SomeColumn" TYPE text COLLATE "POSIX";
+""");
+    }
+
     public override async Task Alter_column_make_required()
     {
         await base.Alter_column_make_required();

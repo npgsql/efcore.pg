@@ -454,9 +454,15 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 .Append("TYPE ")
                 .Append(type);
 
-            if (newCollation != oldCollation)
+            if (newCollation is not null)
             {
-                builder.Append(" COLLATE ").Append(DelimitIdentifier(newCollation ?? "default"));
+                builder.Append(" COLLATE ").Append(DelimitIdentifier(newCollation));
+            }
+            else if (type == oldType)
+            {
+                // If the type is the same, make it more explicit that we're just resetting the collation to the default
+                // (this isn't really required)
+                builder.Append(" COLLATE ").Append(DelimitIdentifier("default"));
             }
 
             builder.AppendLine(";");
