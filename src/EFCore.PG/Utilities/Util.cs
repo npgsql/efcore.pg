@@ -15,5 +15,10 @@ internal static class Statics
         [true, true, true, true, true, true, true, true]
     ];
 
-    internal static readonly bool[][] FalseArrays = [[], [false], [false, false]];
+    internal static readonly bool[][] FalseArrays = [
+        [],
+        [false],
+        [false, false],
+        [false, false, false]
+    ];
 }
