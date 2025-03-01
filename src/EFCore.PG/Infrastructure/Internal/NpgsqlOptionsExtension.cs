@@ -109,6 +109,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         : base(copyFrom)
     {
         DataSource = copyFrom.DataSource;
+        DataSourceBuilderAction = copyFrom.DataSourceBuilderAction;
         AdminDatabase = copyFrom.AdminDatabase;
         _postgresVersion = copyFrom._postgresVersion;
         UseRedshift = copyFrom.UseRedshift;
