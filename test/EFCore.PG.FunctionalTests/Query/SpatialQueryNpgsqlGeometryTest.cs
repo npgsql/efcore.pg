@@ -371,15 +371,20 @@ FROM "PolygonEntity" AS p
         await AssertQuery(
             async,
             ss => ss.Set<PolygonEntity>().Select(e => new { e.Id, IntersectsBbox = (bool?)EF.Functions.IntersectsBbox(e.Polygon, polygon) }),
-            ss => ss.Set<PolygonEntity>().Select(e => new { e.Id, IntersectsBbox = (e.Polygon == null ? (bool?)false : EF.Functions.IntersectsBbox(e.Polygon, polygon)) }),
-            x => x.Id);
+            ss => ss.Set<PolygonEntity>().Select(e => new { e.Id, IntersectsBbox = (e.Polygon == null ? (bool?)null : e.Polygon.EnvelopeInternal.Intersects(polygon.EnvelopeInternal)) }),
+            elementSorter: e => e.Id,
+            elementAsserter: (e, a) =>
+            {
+                Assert.Equal(e.Id, a.Id);
+                Assert.Equal(e.IntersectsBbox, a.IntersectsBbox);
+            });
 
         AssertSql(
             """
-@__Polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
+@__polygon_1='POLYGON ((0 0, 1 0, 0 1, 0 0))' (DbType = Object)
 
-SELECT l."Id", l."Polygon" && @__Polygon_0 AS "IntersectsBbox"
-FROM "PolygonEntity" AS l
+SELECT p."Id", p."Polygon" && @__polygon_1 AS "IntersectsBbox"
+FROM "PolygonEntity" AS p
 """);
     }
 
