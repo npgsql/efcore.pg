@@ -11,7 +11,6 @@ on:
   pull_request:
 
 env:
-  dotnet_sdk_version: '8.0.406'
   postgis_version: 3
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
@@ -43,9 +42,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: ${{ env.dotnet_sdk_version }}
+        uses: actions/setup-dotnet@v4
 
       - name: Build
         run: dotnet build --configuration Debug
@@ -152,9 +149,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: ${{ env.dotnet_sdk_version }}
+        uses: actions/setup-dotnet@v4
 
       - name: Pack
         run: dotnet pack --configuration Release --property:PackageOutputPath="$PWD/nupkgs" --version-suffix "ci.$(date -u +%Y%m%dT%H%M%S)+sha.${GITHUB_SHA:0:9}" -p:ContinuousIntegrationBuild=true
@@ -186,9 +181,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: ${{ env.dotnet_sdk_version }}
+        uses: actions/setup-dotnet@v4
 
       - name: Pack
         run: dotnet pack --configuration Release --property:PackageOutputPath="$PWD/nupkgs" -p:ContinuousIntegrationBuild=true
