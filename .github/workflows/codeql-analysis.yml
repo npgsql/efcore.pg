@@ -26,9 +26,6 @@ on:
   schedule:
     - cron: '30 22 * * 6'
 
-env:
-  dotnet_sdk_version: '10.0.100-preview.2.25081.1'
-
 jobs:
   analyze:
     name: Analyze
@@ -61,8 +58,6 @@ jobs:
 
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.dotnet_sdk_version }}
 
     - name: Build
       run: dotnet build -c Release
