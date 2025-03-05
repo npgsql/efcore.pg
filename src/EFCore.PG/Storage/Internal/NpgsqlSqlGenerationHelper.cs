@@ -110,4 +110,10 @@ public class NpgsqlSqlGenerationHelper : RelationalSqlGenerationHelper
 
         return false;
     }
+
+    /// <inheritdoc />
+    public override string DelimitJsonPathElement(string pathElement)
+        => !char.IsAsciiLetter(pathElement[0])
+            ? $"\"{EscapeJsonPathElement(pathElement)}\""
+            : base.DelimitJsonPathElement(pathElement);
 }
