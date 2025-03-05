@@ -159,4 +159,28 @@ public enum PgExpressionType
     LTreeFirstMatches, // ?~ or ?@
 
     #endregion LTree
+
+    #region Dictionary
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for accessing a hstore, json or bson value for a given key
+    /// </summary>
+    DictionaryValueForKey, // ->
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for checking if a hstore contains the given key
+    /// </summary>
+    DictionaryContainsKey, // ?
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for subtracting hstore or jsonb values
+    /// </summary>
+    DictionarySubtract, // -
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for concatenating hstores
+    /// </summary>
+    DictionaryConcat, // ||
+
+    #endregion Dictionary
 }
