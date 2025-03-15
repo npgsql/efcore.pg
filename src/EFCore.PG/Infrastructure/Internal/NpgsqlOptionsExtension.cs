@@ -486,11 +486,6 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
                     hashCode.Add(userRangeDefinition);
                 }
 
-                if (Extension.DataSource is not null)
-                {
-                    hashCode.Add(Extension.DataSource.ConnectionString);
-                }
-
                 hashCode.Add(Extension.AdminDatabase);
                 hashCode.Add(Extension.PostgresVersion);
                 hashCode.Add(Extension.UseRedshift);
