@@ -915,12 +915,10 @@ public class NpgsqlTypeMappingTest
 
     [Fact]
     public void GenerateCodeLiteral_returns_json_element_literal()
-        // TODO: https://github.com/dotnet/efcore/issues/32192
-        => Assert.Throws<NotSupportedException>(() => CodeLiteral(JsonDocument.Parse("""{"Name":"Joe","Age":25}""").RootElement));
+        => Assert.Equal(
+            """System.Text.Json.JsonDocument.Parse("{\"Name\":\"Joe\",\"Age\":25}", new System.Text.Json.JsonDocumentOptions()).RootElement""",
+            CodeLiteral(JsonDocument.Parse(@"{""Name"":""Joe"",""Age"":25}").RootElement));
 
-    // Assert.Equal(
-    //     """System.Text.Json.JsonDocument.Parse("{\"Name\":\"Joe\",\"Age\":25}", new System.Text.Json.JsonDocumentOptions()).RootElement""",
-    //     CodeLiteral(JsonDocument.Parse(@"{""Name"":""Joe"",""Age"":25}").RootElement));
     [Fact]
     public void ValueComparer_JsonDocument()
     {

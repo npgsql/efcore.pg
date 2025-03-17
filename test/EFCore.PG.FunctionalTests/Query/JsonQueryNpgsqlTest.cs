@@ -11,28 +11,6 @@ public class JsonQueryNpgsqlTest : JsonQueryRelationalTestBase<JsonQueryNpgsqlTe
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    public override async Task Basic_json_projection_owner_entity(bool async)
-    {
-        await base.Basic_json_projection_owner_entity(async);
-
-        AssertSql(
-            """
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
-    public override async Task Basic_json_projection_owner_entity_NoTracking(bool async)
-    {
-        await base.Basic_json_projection_owner_entity_NoTracking(async);
-
-        AssertSql(
-            """
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
     public override async Task Basic_json_projection_owner_entity_NoTrackingWithIdentityResolution(bool async)
     {
         await base.Basic_json_projection_owner_entity_NoTrackingWithIdentityResolution(async);
@@ -44,28 +22,6 @@ FROM "JsonEntitiesBasic" AS j
 """);
     }
 
-    public override async Task Basic_json_projection_owner_entity_duplicated(bool async)
-    {
-        await base.Basic_json_projection_owner_entity_duplicated(async);
-
-        AssertSql(
-            """
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
-    public override async Task Basic_json_projection_owner_entity_duplicated_NoTracking(bool async)
-    {
-        await base.Basic_json_projection_owner_entity_duplicated_NoTracking(async);
-
-        AssertSql(
-            """
-SELECT j."Id", j."Name", j."OwnedCollection", j."OwnedCollection"
-FROM "JsonEntitiesSingleOwned" AS j
-""");
-    }
-
     public override async Task Basic_json_projection_owner_entity_duplicated_NoTrackingWithIdentityResolution(bool async)
     {
         await base.Basic_json_projection_owner_entity_duplicated_NoTrackingWithIdentityResolution(async);
@@ -74,28 +30,6 @@ FROM "JsonEntitiesSingleOwned" AS j
             """
 SELECT j."Id", j."Name", j."OwnedCollection", j."OwnedCollection"
 FROM "JsonEntitiesSingleOwned" AS j
-""");
-    }
-
-    public override async Task Basic_json_projection_owner_entity_twice(bool async)
-    {
-        await base.Basic_json_projection_owner_entity_twice(async);
-
-        AssertSql(
-            """
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
-    public override async Task Basic_json_projection_owner_entity_twice_NoTracking(bool async)
-    {
-        await base.Basic_json_projection_owner_entity_twice_NoTracking(async);
-
-        AssertSql(
-            """
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
-FROM "JsonEntitiesBasic" AS j
 """);
     }
 
@@ -134,17 +68,6 @@ FROM "JsonEntitiesBasic" AS j
         );
     }
 
-    public override async Task Basic_json_projection_owned_reference_root(bool async)
-    {
-        await base.Basic_json_projection_owned_reference_root(async);
-
-        AssertSql(
-            """
-SELECT j."OwnedReferenceRoot", j."Id"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
     public override async Task Basic_json_projection_owned_reference_root_NoTrackingWithIdentityResolution(bool async)
     {
         await base.Basic_json_projection_owned_reference_root_NoTrackingWithIdentityResolution(async);
@@ -156,18 +79,6 @@ FROM "JsonEntitiesBasic" AS j
 """);
     }
 
-    public override async Task Basic_json_projection_owned_reference_duplicated2(bool async)
-    {
-        await base.Basic_json_projection_owned_reference_duplicated2(async);
-
-        AssertSql(
-            """
-SELECT j."OwnedReferenceRoot", j."Id", j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}', j."OwnedReferenceRoot", j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}'
-FROM "JsonEntitiesBasic" AS j
-ORDER BY j."Id" NULLS FIRST
-""");
-    }
-
     public override async Task Basic_json_projection_owned_reference_duplicated2_NoTrackingWithIdentityResolution(bool async)
     {
         await base.Basic_json_projection_owned_reference_duplicated2_NoTrackingWithIdentityResolution(async);
@@ -175,18 +86,6 @@ ORDER BY j."Id" NULLS FIRST
         AssertSql(
             """
 SELECT j."OwnedReferenceRoot", j."Id", j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}', j."OwnedReferenceRoot", j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}'
-FROM "JsonEntitiesBasic" AS j
-ORDER BY j."Id" NULLS FIRST
-""");
-    }
-
-    public override async Task Basic_json_projection_owned_reference_duplicated(bool async)
-    {
-        await base.Basic_json_projection_owned_reference_duplicated(async);
-
-        AssertSql(
-            """
-SELECT j."OwnedReferenceRoot", j."Id", j."OwnedReferenceRoot" -> 'OwnedReferenceBranch', j."OwnedReferenceRoot", j."OwnedReferenceRoot" -> 'OwnedReferenceBranch'
 FROM "JsonEntitiesBasic" AS j
 ORDER BY j."Id" NULLS FIRST
 """);
@@ -204,17 +103,6 @@ ORDER BY j."Id" NULLS FIRST
 """);
     }
 
-    public override async Task Basic_json_projection_owned_collection_root(bool async)
-    {
-        await base.Basic_json_projection_owned_collection_root(async);
-
-        AssertSql(
-            """
-SELECT j."OwnedCollectionRoot", j."Id"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
     public override async Task Basic_json_projection_owned_collection_root_NoTrackingWithIdentityResolution(bool async)
     {
         await base.Basic_json_projection_owned_collection_root_NoTrackingWithIdentityResolution(async);
@@ -226,17 +114,6 @@ FROM "JsonEntitiesBasic" AS j
 """);
     }
 
-    public override async Task Basic_json_projection_owned_reference_branch(bool async)
-    {
-        await base.Basic_json_projection_owned_reference_branch(async);
-
-        AssertSql(
-            """
-SELECT j."OwnedReferenceRoot" -> 'OwnedReferenceBranch', j."Id"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
     public override async Task Basic_json_projection_owned_reference_branch_NoTrackingWithIdentityResolution(bool async)
     {
         await base.Basic_json_projection_owned_reference_branch_NoTrackingWithIdentityResolution(async);
@@ -244,17 +121,6 @@ FROM "JsonEntitiesBasic" AS j
         AssertSql(
             """
 SELECT j."OwnedReferenceRoot" -> 'OwnedReferenceBranch', j."Id"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
-    public override async Task Basic_json_projection_owned_collection_branch(bool async)
-    {
-        await base.Basic_json_projection_owned_collection_branch(async);
-
-        AssertSql(
-            """
-SELECT j."OwnedReferenceRoot" -> 'OwnedCollectionBranch', j."Id"
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -334,28 +200,6 @@ FROM "JsonEntitiesBasic" AS j
             """
 SELECT j."Id", CAST(j.json_reference_custom_naming ->> '1CustomEnum' AS integer) AS "Enum"
 FROM "JsonEntitiesCustomNaming" AS j
-""");
-    }
-
-    public override async Task Json_projection_with_deduplication(bool async)
-    {
-        await base.Json_projection_with_deduplication(async);
-
-        AssertSql(
-            """
-SELECT j."Id", j."OwnedReferenceRoot" -> 'OwnedReferenceBranch', j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}', j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedCollectionLeaf}', j."OwnedReferenceRoot" -> 'OwnedCollectionBranch', j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,OwnedReferenceLeaf,SomethingSomething}'
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
-    public override async Task Json_projection_with_deduplication_reverse_order(bool async)
-    {
-        await base.Json_projection_with_deduplication_reverse_order(async);
-
-        AssertSql(
-            """
-SELECT j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}', j."Id", j."OwnedReferenceRoot", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
-FROM "JsonEntitiesBasic" AS j
 """);
     }
 
@@ -666,24 +510,6 @@ LEFT JOIN "JsonEntitiesSingleOwned" AS j0 ON j."Id" = j0."Id"
 """);
     }
 
-    public override async Task Project_json_entity_FirstOrDefault_subquery(bool async)
-    {
-        await base.Project_json_entity_FirstOrDefault_subquery(async);
-
-        AssertSql(
-            """
-SELECT j1.c, j1."Id"
-FROM "JsonEntitiesBasic" AS j
-LEFT JOIN LATERAL (
-    SELECT j0."OwnedReferenceRoot" -> 'OwnedReferenceBranch' AS c, j0."Id"
-    FROM "JsonEntitiesBasic" AS j0
-    ORDER BY j0."Id" NULLS FIRST
-    LIMIT 1
-) AS j1 ON TRUE
-ORDER BY j."Id" NULLS FIRST
-""");
-    }
-
     public override async Task Project_json_entity_FirstOrDefault_subquery_with_binding_on_top(bool async)
     {
         await base.Project_json_entity_FirstOrDefault_subquery_with_binding_on_top(async);
@@ -706,60 +532,6 @@ ORDER BY j."Id" NULLS FIRST
 
         AssertSql(
             @"");
-    }
-
-    public override async Task Project_json_entity_FirstOrDefault_subquery_deduplication(bool async)
-    {
-        await base.Project_json_entity_FirstOrDefault_subquery_deduplication(async);
-
-        AssertSql(
-            """
-SELECT j1.c, j1."Id", j1.c0, j1."Id0", j1.c1, j1.c2, j1.c3, j1.c4
-FROM "JsonEntitiesBasic" AS j
-LEFT JOIN LATERAL (
-    SELECT j."OwnedReferenceRoot" -> 'OwnedCollectionBranch' AS c, j."Id", j0."OwnedReferenceRoot" AS c0, j0."Id" AS "Id0", j0."OwnedReferenceRoot" -> 'OwnedReferenceBranch' AS c1, j0."OwnedReferenceRoot" ->> 'Name' AS c2, CAST(j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,Enum}' AS integer) AS c3, 1 AS c4
-    FROM "JsonEntitiesBasic" AS j0
-    ORDER BY j0."Id" NULLS FIRST
-    LIMIT 1
-) AS j1 ON TRUE
-ORDER BY j."Id" NULLS FIRST
-""");
-    }
-
-    public override async Task Project_json_entity_FirstOrDefault_subquery_deduplication_and_outer_reference(bool async)
-    {
-        await base.Project_json_entity_FirstOrDefault_subquery_deduplication_and_outer_reference(async);
-
-        AssertSql(
-            """
-SELECT j1.c, j1."Id", j1.c0, j1."Id0", j1.c1, j1.c2, j1.c3, j1.c4
-FROM "JsonEntitiesBasic" AS j
-LEFT JOIN LATERAL (
-    SELECT j."OwnedReferenceRoot" -> 'OwnedCollectionBranch' AS c, j."Id", j0."OwnedReferenceRoot" AS c0, j0."Id" AS "Id0", j0."OwnedReferenceRoot" -> 'OwnedReferenceBranch' AS c1, j0."OwnedReferenceRoot" ->> 'Name' AS c2, CAST(j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,Enum}' AS integer) AS c3, 1 AS c4
-    FROM "JsonEntitiesBasic" AS j0
-    ORDER BY j0."Id" NULLS FIRST
-    LIMIT 1
-) AS j1 ON TRUE
-ORDER BY j."Id" NULLS FIRST
-""");
-    }
-
-    public override async Task Project_json_entity_FirstOrDefault_subquery_deduplication_outer_reference_and_pruning(bool async)
-    {
-        await base.Project_json_entity_FirstOrDefault_subquery_deduplication_outer_reference_and_pruning(async);
-
-        AssertSql(
-            """
-SELECT j1.c, j1."Id", j1.c0
-FROM "JsonEntitiesBasic" AS j
-LEFT JOIN LATERAL (
-    SELECT j."OwnedReferenceRoot" -> 'OwnedCollectionBranch' AS c, j."Id", 1 AS c0
-    FROM "JsonEntitiesBasic" AS j0
-    ORDER BY j0."Id" NULLS FIRST
-    LIMIT 1
-) AS j1 ON TRUE
-ORDER BY j."Id" NULLS FIRST
-""");
     }
 
     public override async Task Json_entity_with_inheritance_basic_projection(bool async)
@@ -1649,48 +1421,6 @@ LEFT JOIN LATERAL (
 ) AS o0 ON TRUE
 LEFT JOIN "JsonEntitiesBasicForCollection" AS j0 ON j."Id" = j0."ParentId"
 ORDER BY j."Id" NULLS FIRST, o0."SomethingSomething" NULLS FIRST
-""");
-    }
-
-    public override async Task Json_collection_SelectMany(bool async)
-    {
-        await base.Json_collection_SelectMany(async);
-
-        AssertSql(
-            """
-SELECT j."Id", o."Id", o."Name", o."Names", o."Number", o."Numbers", o."OwnedCollectionBranch", o."OwnedReferenceBranch"
-FROM "JsonEntitiesBasic" AS j
-JOIN LATERAL ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
-    "Id" integer,
-    "Name" text,
-    "Names" text[],
-    "Number" integer,
-    "Numbers" integer[],
-    "OwnedCollectionBranch" jsonb,
-    "OwnedReferenceBranch" jsonb
-)) WITH ORDINALITY AS o ON TRUE
-""");
-    }
-
-    public override async Task Json_nested_collection_SelectMany(bool async)
-    {
-        await base.Json_nested_collection_SelectMany(async);
-
-        AssertSql(
-            """
-SELECT j."Id", o."Date", o."Enum", o."Enums", o."Fraction", o."Id", o."NullableEnum", o."NullableEnums", o."OwnedCollectionLeaf", o."OwnedReferenceLeaf"
-FROM "JsonEntitiesBasic" AS j
-JOIN LATERAL ROWS FROM (jsonb_to_recordset(j."OwnedReferenceRoot" -> 'OwnedCollectionBranch') AS (
-    "Date" timestamp without time zone,
-    "Enum" integer,
-    "Enums" integer[],
-    "Fraction" numeric(18,2),
-    "Id" integer,
-    "NullableEnum" integer,
-    "NullableEnums" integer[],
-    "OwnedCollectionLeaf" jsonb,
-    "OwnedReferenceLeaf" jsonb
-)) WITH ORDINALITY AS o ON TRUE
 """);
     }
 

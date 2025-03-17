@@ -1,8 +1,9 @@
-using System.Data.Common;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
 #nullable enable
+
+using System.Data.Common;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+
+namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 public class FakeRelationalCommandDiagnosticsLogger
     : FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>, IRelationalCommandDiagnosticsLogger
@@ -44,6 +45,7 @@ public class FakeRelationalCommandDiagnosticsLogger
     public InterceptionResult<DbDataReader> CommandReaderExecuting(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         Guid commandId,
         Guid connectionId,
@@ -54,6 +56,7 @@ public class FakeRelationalCommandDiagnosticsLogger
     public InterceptionResult<object> CommandScalarExecuting(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         Guid commandId,
         Guid connectionId,
@@ -64,6 +67,7 @@ public class FakeRelationalCommandDiagnosticsLogger
     public InterceptionResult<int> CommandNonQueryExecuting(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         Guid commandId,
         Guid connectionId,
@@ -74,6 +78,7 @@ public class FakeRelationalCommandDiagnosticsLogger
     public ValueTask<InterceptionResult<DbDataReader>> CommandReaderExecutingAsync(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         Guid commandId,
         Guid connectionId,
@@ -85,6 +90,7 @@ public class FakeRelationalCommandDiagnosticsLogger
     public ValueTask<InterceptionResult<object>> CommandScalarExecutingAsync(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         Guid commandId,
         Guid connectionId,
@@ -96,6 +102,7 @@ public class FakeRelationalCommandDiagnosticsLogger
     public ValueTask<InterceptionResult<int>> CommandNonQueryExecutingAsync(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         Guid commandId,
         Guid connectionId,
@@ -107,6 +114,7 @@ public class FakeRelationalCommandDiagnosticsLogger
     public DbDataReader CommandReaderExecuted(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         Guid commandId,
         Guid connectionId,
@@ -119,6 +127,7 @@ public class FakeRelationalCommandDiagnosticsLogger
     public object? CommandScalarExecuted(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         Guid commandId,
         Guid connectionId,
@@ -131,6 +140,7 @@ public class FakeRelationalCommandDiagnosticsLogger
     public int CommandNonQueryExecuted(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         Guid commandId,
         Guid connectionId,
@@ -143,6 +153,7 @@ public class FakeRelationalCommandDiagnosticsLogger
     public ValueTask<DbDataReader> CommandReaderExecutedAsync(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         Guid commandId,
         Guid connectionId,
@@ -156,6 +167,7 @@ public class FakeRelationalCommandDiagnosticsLogger
     public ValueTask<object?> CommandScalarExecutedAsync(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         Guid commandId,
         Guid connectionId,
@@ -169,6 +181,7 @@ public class FakeRelationalCommandDiagnosticsLogger
     public ValueTask<int> CommandNonQueryExecutedAsync(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         Guid commandId,
         Guid connectionId,
@@ -179,9 +192,38 @@ public class FakeRelationalCommandDiagnosticsLogger
         CancellationToken cancellationToken = default)
         => new(methodResult);
 
+    public void CommandException(
+        IRelationalConnection connection,
+        DbCommand command,
+        DbContext? context,
+        DbCommandMethod executeMethod,
+        Guid commandId,
+        Guid connectionId,
+        Exception exception,
+        DateTimeOffset startTime,
+        TimeSpan duration,
+        CommandSource commandSource)
+    {
+    }
+
+    public Task CommandExceptionAsync(
+        IRelationalConnection connection,
+        DbCommand command,
+        DbContext? context,
+        DbCommandMethod executeMethod,
+        Guid commandId,
+        Guid connectionId,
+        Exception exception,
+        DateTimeOffset startTime,
+        TimeSpan duration,
+        CommandSource commandSource,
+        CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
+
     public void CommandError(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         DbCommandMethod executeMethod,
         Guid commandId,
@@ -196,6 +238,7 @@ public class FakeRelationalCommandDiagnosticsLogger
     public Task CommandErrorAsync(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         DbCommandMethod executeMethod,
         Guid commandId,
@@ -210,6 +253,7 @@ public class FakeRelationalCommandDiagnosticsLogger
     public void CommandCanceled(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         DbCommandMethod executeMethod,
         Guid commandId,
@@ -223,6 +267,7 @@ public class FakeRelationalCommandDiagnosticsLogger
     public Task CommandCanceledAsync(
         IRelationalConnection connection,
         DbCommand command,
+        string logCommandText,
         DbContext? context,
         DbCommandMethod executeMethod,
         Guid commandId,

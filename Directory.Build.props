@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest</AnalysisLevel>
-    <NoWarn>NU5105</NoWarn>
+    <NoWarn>$(NoWarn);NU5105</NoWarn> <!-- The package version '1.2.3+semver2.metadata' uses SemVer 2.0.0 or components of SemVer 1.0.0 that are not supported on legacy clients. -->
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)Npgsql.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>

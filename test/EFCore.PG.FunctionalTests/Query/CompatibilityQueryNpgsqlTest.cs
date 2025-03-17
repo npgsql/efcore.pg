@@ -25,7 +25,7 @@ public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgs
             """
 SELECT t."Id", t."SomeInt"
 FROM "TestEntities" AS t
-WHERE t."SomeInt" IN (8, 9)
+WHERE t."SomeInt" IN (?, ?)
 LIMIT 2
 """);
     }

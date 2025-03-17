@@ -42,16 +42,17 @@ public class TestRelationalCommandBuilderFactory(RelationalCommandBuilderDepende
             => new TestRelationalCommand(
                 Dependencies,
                 Instance.ToString(),
+                Instance.ToString(),
                 Parameters);
 
-        public IRelationalCommandBuilder Append(string value)
+        public IRelationalCommandBuilder Append(string value, bool redact = false)
         {
             Instance.Append(value);
 
             return this;
         }
 
-        public IRelationalCommandBuilder Append(FormattableString value)
+        public IRelationalCommandBuilder Append(FormattableString value, bool redact = false)
         {
             Instance.Append(value);
 
@@ -86,13 +87,17 @@ public class TestRelationalCommandBuilderFactory(RelationalCommandBuilderDepende
     private class TestRelationalCommand(
         RelationalCommandBuilderDependencies dependencies,
         string commandText,
+        string logCommandText,
         IReadOnlyList<IRelationalParameter> parameters)
         : IRelationalCommand
     {
-        private readonly RelationalCommand _realRelationalCommand = new(dependencies, commandText, parameters);
+        private readonly RelationalCommand _realRelationalCommand = new(dependencies, commandText, logCommandText, parameters);
 
         public string CommandText
             => _realRelationalCommand.CommandText;
+
+        public string LogCommandText
+            => _realRelationalCommand.LogCommandText;
 
         public IReadOnlyList<IRelationalParameter> Parameters
             => _realRelationalCommand.Parameters;
