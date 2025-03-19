@@ -22,11 +22,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// </summary>
     private readonly bool _reverseNullOrderingEnabled;
 
-    /// <summary>
-    ///     The backend version to target. If null, it means the user hasn't set a compatibility version, and the
-    ///     latest should be targeted.
-    /// </summary>
     private readonly Version _postgresVersion;
+
+    /// <summary>
+    ///     True for PG17 and above (JSON_VALUE, JSON_QUERY)
+    /// </summary>
+    private readonly bool _useNewJsonFunctions;
 
     /// <inheritdoc />
     public NpgsqlQuerySqlGenerator(
@@ -40,6 +41,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         _typeMappingSource = typeMappingSource;
         _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
         _postgresVersion = postgresVersion;
+        _useNewJsonFunctions = postgresVersion >= new Version(17, 0);
     }
 
     /// <summary>
@@ -1057,7 +1059,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// </summary>
     protected override Expression VisitJsonScalar(JsonScalarExpression jsonScalarExpression)
     {
-        // TODO: Stop producing empty JsonScalarExpressions, #30768
+        // TODO: Stop producing empty JsonValueExpressions, #30768
         var path = jsonScalarExpression.Path;
         if (path.Count == 0)
         {
@@ -1065,26 +1067,65 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             return jsonScalarExpression;
         }
 
+        if (_useNewJsonFunctions)
+        {
+            switch (jsonScalarExpression.TypeMapping)
+            {
+                case NpgsqlOwnedJsonTypeMapping:
+                    GenerateJsonValueQuery(isJsonQuery: true, jsonScalarExpression.Json, jsonScalarExpression.Path, returningType: null);
+                    return jsonScalarExpression;
+
+                // Arrays cannot be extracted with JSON_VALUE(), JSON_QUERY() must be used; but we still use the RETURNING clause
+                // to get the value out as a PostgreSQL array rather than as a jsonb.
+                case NpgsqlArrayTypeMapping:
+                    GenerateJsonValueQuery(
+                        isJsonQuery: true, jsonScalarExpression.Json, jsonScalarExpression.Path,
+                        jsonScalarExpression.TypeMapping!.StoreType);
+                    return jsonScalarExpression;
+
+                // Unfortunately, JSON_VALUE() with RETURNING bytea doesn't seem to perform base64 decoding,
+                // see https://www.postgresql.org/message-id/CADT4RqB9y5A58CAxMgWQpKG2QA1pzk3dzAUmNH8bJ9SwMP%3DZnA%40mail.gmail.com
+                // So we manually add decoding.
+                case NpgsqlByteArrayTypeMapping:
+                    Sql.Append("decode(");
+                    GenerateJsonValueQuery(isJsonQuery: false, jsonScalarExpression.Json, jsonScalarExpression.Path, returningType: null);
+                    Sql.Append(", 'base64')");
+                    return jsonScalarExpression;
+
+                // No need for RETURNING for text
+                case { StoreType: "text" }:
+                    GenerateJsonValueQuery(isJsonQuery: false, jsonScalarExpression.Json, jsonScalarExpression.Path, returningType: null);
+                    return jsonScalarExpression;
+
+                default:
+                    GenerateJsonValueQuery(
+                        isJsonQuery: false, jsonScalarExpression.Json, jsonScalarExpression.Path,
+                        jsonScalarExpression.TypeMapping!.StoreType);
+                    return jsonScalarExpression;
+            }
+        }
+
+        // We're targeting a PostgreSQL version under 17, so JSON_VALUE() doesn't exist yet. We need to use the legacy JSON path syntax.
         switch (jsonScalarExpression.TypeMapping)
         {
             // This case is for when a nested JSON entity is being accessed. We want the json/jsonb fragment in this case (not text),
             // so we can perform further JSON operations on it.
             case NpgsqlOwnedJsonTypeMapping:
-                GenerateJsonPath(returnsText: false);
-                break;
+                GenerateLegacyJsonPath(returnsText: false);
+                return jsonScalarExpression;
 
             // No need to cast the output when we expect a string anyway
             case StringTypeMapping:
-                GenerateJsonPath(returnsText: true);
-                break;
+                GenerateLegacyJsonPath(returnsText: true);
+                return jsonScalarExpression;
 
             // bytea requires special handling, since we encode the binary data as base64 inside the JSON, but that requires a special
             // conversion function to be extracted out to a PG bytea.
             case NpgsqlByteArrayTypeMapping:
                 Sql.Append("decode(");
-                GenerateJsonPath(returnsText: true);
+                GenerateLegacyJsonPath(returnsText: true);
                 Sql.Append(", 'base64')");
-                break;
+                return jsonScalarExpression;
 
             // Arrays require special handling; we cannot simply cast a JSON array (as text) to a PG array ([1,2,3] isn't a valid PG array
             // representation). We use jsonb_array_elements_text to extract the array elements as a set, cast them to their PG element type
@@ -1092,23 +1133,92 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             case NpgsqlArrayTypeMapping arrayMapping:
                 Sql.Append("(ARRAY(SELECT CAST(element AS ").Append(arrayMapping.ElementTypeMapping.StoreType)
                     .Append(") FROM jsonb_array_elements_text(");
-                GenerateJsonPath(returnsText: false);
+                GenerateLegacyJsonPath(returnsText: false);
                 Sql.Append(") WITH ORDINALITY AS t(element) ORDER BY ordinality))");
-                break;
+                return jsonScalarExpression;
 
             default:
                 Sql.Append("CAST(");
-                GenerateJsonPath(returnsText: true);
+                GenerateLegacyJsonPath(returnsText: true);
                 Sql.Append(" AS ");
                 Sql.Append(jsonScalarExpression.TypeMapping!.StoreType);
                 Sql.Append(")");
-                break;
+                return jsonScalarExpression;
         }
 
-        return jsonScalarExpression;
+        void GenerateJsonValueQuery(bool isJsonQuery, SqlExpression json, IReadOnlyList<PathSegment> path, string? returningType)
+        {
+            List<(string Name, Expression Expression)>? parameters = null;
+            var unnamedParameterIndex = 0;
 
-        void GenerateJsonPath(bool returnsText)
-            => this.GenerateJsonPath(
+            Sql.Append(isJsonQuery ? "JSON_QUERY(" : "JSON_VALUE(");
+            Visit(json);
+            Sql.Append(", '$");
+
+            foreach (var pathSegment in path)
+            {
+                switch (pathSegment)
+                {
+                    case { PropertyName: string propertyName }:
+                        Sql.Append(".").Append(Dependencies.SqlGenerationHelper.DelimitJsonPathElement(propertyName));
+                        break;
+
+                    case { ArrayIndex: SqlExpression arrayIndex }:
+                        Sql.Append("[");
+
+                        if (arrayIndex is SqlConstantExpression)
+                        {
+                            Visit(arrayIndex);
+                        }
+                        else
+                        {
+                            parameters ??= new();
+                            var parameterName = arrayIndex is SqlParameterExpression p ? p.InvariantName : ("p" + ++unnamedParameterIndex);
+                            parameters.Add((parameterName, arrayIndex));
+                            Sql.Append("$").Append(parameterName);
+                        }
+
+                        Sql.Append("]");
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            Sql.Append("'");
+
+            if (parameters is not null)
+            {
+                Sql.Append(" PASSING ");
+
+                var isFirst = true;
+                foreach (var (name, expression) in parameters)
+                {
+                    if (isFirst)
+                    {
+                        isFirst = false;
+                    }
+                    else
+                    {
+                        Sql.Append(", ");
+                    }
+
+                    Visit(expression);
+                    Sql.Append(" AS ").Append(name);
+                }
+            }
+
+            if (returningType is not null)
+            {
+                Sql.Append(" RETURNING ").Append(returningType);
+            }
+
+            Sql.Append(")");
+        }
+
+        void GenerateLegacyJsonPath(bool returnsText)
+            => this.GenerateLegacyJsonPath(
                 jsonScalarExpression.Json,
                 returnsText: returnsText,
                 jsonScalarExpression.Path.Select(
@@ -1130,11 +1240,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// </returns>
     protected virtual Expression VisitJsonPathTraversal(PgJsonTraversalExpression expression)
     {
-        GenerateJsonPath(expression.Expression, expression.ReturnsText, expression.Path);
+        // TODO: Consider also implementing via JsonValueExpression and using JSON_VALUE?
+        GenerateLegacyJsonPath(expression.Expression, expression.ReturnsText, expression.Path);
         return expression;
     }
 
-    private void GenerateJsonPath(SqlExpression expression, bool returnsText, IReadOnlyList<SqlExpression> path)
+    private void GenerateLegacyJsonPath(SqlExpression expression, bool returnsText, IReadOnlyList<SqlExpression> path)
     {
         Visit(expression);
 
@@ -1450,6 +1561,12 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
             case PgUnknownBinaryExpression:
                 return true;
+
+            // In PG 17 or above, we translate JsonScalarExpression to JSON_VALUE() which does not require parentheses.
+            // Before that, we translate to x ->> y which does.
+            // Note that we also add parentheses when the outer is an index operation, since e.g. JSON_QUERY(...)[0] is invalid.
+            case JsonScalarExpression when outerExpression is not PgArrayIndexExpression and not PgArraySliceExpression:
+                return !_useNewJsonFunctions;
 
             default:
                 return base.RequiresParentheses(outerExpression, innerExpression);
