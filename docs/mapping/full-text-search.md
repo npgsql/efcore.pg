@@ -168,7 +168,7 @@ EF.Functions.PhraseToTsQuery(string)                                        | [p
 EF.Functions.PhraseToTsQuery("english", string)                             | [phraseto_tsquery('english'::regconfig, string)](https://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES)
 EF.Functions.WebSearchToTsQuery(string)                                     | [websearch_to_tsquery(string)](https://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES)
 EF.Functions.WebSearchToTsQuery("english", string)                          | [websearch_to_tsquery('english'::regconfig, string)](https://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES)
-EF.functions.ArrayToTsVector(new[] { "a", "b" })                            | [array_to_tsvector(ARRAY\['a', 'b'\])](https://www.postgresql.org/docs/current/functions-textsearch.html#TEXTSEARCH-FUNCTIONS-TABLE)
+EF.Functions.ArrayToTsVector(new[] { "a", "b" })                            | [array_to_tsvector(ARRAY\['a', 'b'\])](https://www.postgresql.org/docs/current/functions-textsearch.html#TEXTSEARCH-FUNCTIONS-TABLE)
 NpgsqlTsVector.Parse(string)                                                | [CAST(string AS tsvector)](https://www.postgresql.org/docs/current/static/sql-expressions.html#SQL-SYNTAX-TYPE-CASTS)
 NpgsqlTsQuery.Parse(string)                                                 | [CAST(queryString AS tsquery)](https://www.postgresql.org/docs/current/static/sql-expressions.html#SQL-SYNTAX-TYPE-CASTS)
 tsvector.Matches(string)                                                    | [tsvector @@ plainto_tsquery(string)](https://www.postgresql.org/docs/current/static/textsearch-intro.html#TEXTSEARCH-MATCHING)
