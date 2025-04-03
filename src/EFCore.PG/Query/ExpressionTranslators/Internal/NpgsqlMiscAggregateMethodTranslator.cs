@@ -163,6 +163,26 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
                         argumentsPropagateNullability: FalseArrays[2],
                         returnType: method.ReturnType,
                         _typeMappingSource.FindMapping(method.ReturnType, isJsonb ? "jsonb" : "json"));
+
+                case nameof(NpgsqlAggregateDbFunctionsExtensions.BoolAnd):
+                    return _sqlExpressionFactory.AggregateFunction(
+                        "bool_and",
+                        [sqlExpression],
+                        source,
+                        nullable: true,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        returnType: sqlExpression.Type,
+                        sqlExpression.TypeMapping);
+
+                case nameof(NpgsqlAggregateDbFunctionsExtensions.BoolOr):
+                    return _sqlExpressionFactory.AggregateFunction(
+                        "bool_or",
+                        [sqlExpression],
+                        source,
+                        nullable: true,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        returnType: sqlExpression.Type,
+                        sqlExpression.TypeMapping);
             }
         }
 
