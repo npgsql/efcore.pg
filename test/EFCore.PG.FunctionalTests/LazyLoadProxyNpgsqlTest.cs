@@ -1,7 +1,7 @@
 ﻿namespace Microsoft.EntityFrameworkCore;
 
 // ReSharper disable once UnusedMember.Global
-public class LazyLoadProxyNpgsqlTest : LazyLoadProxyTestBase<LazyLoadProxyNpgsqlTest.LoadNpgsqlFixture>
+public class LazyLoadProxyNpgsqlTest : LazyLoadProxyRelationalTestBase<LazyLoadProxyNpgsqlTest.LoadNpgsqlFixture>
 {
     public LazyLoadProxyNpgsqlTest(LoadNpgsqlFixture fixture)
         : base(fixture)
@@ -1491,7 +1491,7 @@ public class LazyLoadProxyNpgsqlTest : LazyLoadProxyTestBase<LazyLoadProxyNpgsql
 
     #endregion Expected JSON override
 
-    public class LoadNpgsqlFixture : LoadFixtureBase
+    public class LoadNpgsqlFixture : LoadRelationalFixtureBase
     {
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();

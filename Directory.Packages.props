@@ -1,7 +1,7 @@
   <Project>
   <PropertyGroup>
-    <EFCoreVersion>10.0.0-preview.2.25163.8</EFCoreVersion>
-    <MicrosoftExtensionsVersion>10.0.0-preview.2.25163.2</MicrosoftExtensionsVersion>
+    <EFCoreVersion>10.0.0-preview.3.25171.6</EFCoreVersion>
+    <MicrosoftExtensionsVersion>10.0.0-preview.3.25171.5</MicrosoftExtensionsVersion>
     <NpgsqlVersion>9.0.3</NpgsqlVersion>
   </PropertyGroup>
 
@@ -26,7 +26,7 @@
     <PackageVersion Include="xunit" Version="2.9.2" />
     <PackageVersion Include="xunit.assert" Version="2.9.2" />
     <PackageVersion Include="xunit.core" Version="2.9.2" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.2" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.3.3" />
   </ItemGroup>
 </Project>
