@@ -219,9 +219,6 @@ EF.Functions.Set7BitMac8(macaddr8)               | [macaddr8_set7bit(macaddr8)](
 
 The below translations provide functionality for determining the similarity of alphanumeric text based on trigram matching, using the [`pg_trgm`](https://www.postgresql.org/docs/current/pgtrgm.html) extension which is bundled with standard PostgreSQL distributions. All the below parameters are strings.
 
-> [!NOTE]
-> Prior to version 6.0, to use these translations, your project must depend on the [Npgsql.EntityFrameworkCore.PostgreSQL.Trigrams](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.Trigrams/) package, and call `UseTrigrams()` in your `OnModelConfiguring`.
-
 .NET                                                              | SQL
 ----------------------------------------------------------------- | --------------------
 EF.Functions.TrigramsShow(s)                                      | show_trgm(s)
@@ -238,6 +235,22 @@ EF.Functions.TrigramsWordSimilarityDistance(s1, s2)               | s1 &lt;&lt;-
 EF.Functions.TrigramsWordSimilarityDistanceInverted(s1, s2)       | s1 &lt;-&gt;&gt; s2
 EF.Functions.TrigramsStrictWordSimilarityDistance(s1, s2)         | s1 &lt;&lt;&lt;-&gt; s2
 EF.Functions.TrigramsStrictWordSimilarityDistanceInverted(s1, s2) | s1 &lt;-&gt;&gt;&gt; s2
+
+## Fuzzy string match functions
+
+The below translations provide functionality for determining similarities and distance between strings, using the [`pg_trgm`](https://www.postgresql.org/docs/current/pgtrgm.html) extension which is bundled with standard PostgreSQL distributions.
+
+.NET                                                                                                   | SQL
+------------------------------------------------------------------------------------------------------ | --------------------
+EF.Functions.FuzzyStringMatchSoundex(text)                                                             | [soundex(text)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-SOUNDEX)
+EF.Functions.FuzzyStringMatchDifference(source, target)                                                | [difference(source, target)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-SOUNDEX)
+EF.Functions.FuzzyStringMatchLevenshtein(source, target)                                               | [levenshtein(source, target)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-LEVENSHTEIN)
+EF.Functions.FuzzyStringMatchLevenshtein(source, target, ins_cost, del_cost, sub_cost)                 | [levenshtein(source, target, ins_cost, del_cost, sub_cost)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-LEVENSHTEIN)
+EF.Functions.FuzzyStringMatchLevenshteinLessEqual(source, target, max_d)                               | [levenshtein(source, target, max_d)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-LEVENSHTEIN)
+EF.Functions.FuzzyStringMatchLevenshteinLessEqual(source, target, ins_cost, del_cost, sub_cost, max_d) | [levenshtein(source, target, ins_cost, del_cost, sub_cost, max_d)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-LEVENSHTEIN)
+EF.Functions.FuzzyStringMatchMetaphone(text, max_output_length)                                        | [metaphone(text, max_output_length)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-METAPHONE)
+EF.Functions.FuzzyStringMatchDoubleMetaphone(text)                                                     | [dmetaphone(text)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-METAPHONE)
+EF.Functions.FuzzyStringMatchDoubleMetaphoneAlt(text)                                                  | [dmetaphone_alt(text)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-METAPHONE)
 
 ## LTree functions
 
