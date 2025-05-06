@@ -33,6 +33,7 @@ public class NpgsqlRuntimeModelConvention : RelationalRuntimeModelConvention
             annotations.Remove(NpgsqlAnnotationNames.DatabaseTemplate);
             annotations.Remove(NpgsqlAnnotationNames.Tablespace);
             annotations.Remove(NpgsqlAnnotationNames.CollationDefinitionPrefix);
+            annotations.Remove(NpgsqlAnnotationNames.Encoding);
 
 #pragma warning disable CS0618
             annotations.Remove(NpgsqlAnnotationNames.DefaultColumnCollation);
