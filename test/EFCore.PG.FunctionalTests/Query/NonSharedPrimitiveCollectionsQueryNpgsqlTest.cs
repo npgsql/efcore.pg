@@ -2,7 +2,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
 namespace Microsoft.EntityFrameworkCore.Query;
 
-public class NonSharedPrimitiveCollectionsQueryNpgsqlTest : NonSharedPrimitiveCollectionsQueryRelationalTestBase
+public class NonSharedPrimitiveCollectionsQueryNpgsqlTest(NonSharedFixture fixture)
+    : NonSharedPrimitiveCollectionsQueryRelationalTestBase(fixture)
 {
     #region Support for specific element types
 

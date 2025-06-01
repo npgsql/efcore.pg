@@ -8,6 +8,9 @@ public class NpgsqlModelBuilderTestBase : RelationalModelBuilderTest
     public abstract class NpgsqlComplexType(NpgsqlModelBuilderFixture fixture)
         : RelationalComplexTypeTestBase(fixture), IClassFixture<NpgsqlModelBuilderFixture>;
 
+    public abstract class NpgsqlComplexCollection(NpgsqlModelBuilderFixture fixture)
+        : RelationalComplexCollectionTestBase(fixture), IClassFixture<NpgsqlModelBuilderFixture>;
+
     public abstract class NpgsqlInheritance(NpgsqlModelBuilderFixture fixture)
         : RelationalInheritanceTestBase(fixture), IClassFixture<NpgsqlModelBuilderFixture>;
 

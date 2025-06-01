@@ -1,18 +1,20 @@
+using Xunit.Sdk;
+
 namespace Microsoft.EntityFrameworkCore.Query;
 
 #nullable disable
 
-public class AdHocJsonQueryNpgsqlTest : AdHocJsonQueryRelationalTestBase
+public class AdHocJsonQueryNpgsqlTest(NonSharedFixture fixture) : AdHocJsonQueryRelationalTestBase(fixture)
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
     protected override async Task Seed29219(DbContext ctx)
     {
-        var entity1 = new MyEntity29219
+        var entity1 = new Context29219.MyEntity
         {
             Id = 1,
-            Reference = new MyJsonEntity29219 { NonNullableScalar = 10, NullableScalar = 11 },
+            Reference = new Context29219.MyJsonEntity { NonNullableScalar = 10, NullableScalar = 11 },
             Collection =
             [
                 new() { NonNullableScalar = 100, NullableScalar = 101 },
@@ -21,10 +23,10 @@ public class AdHocJsonQueryNpgsqlTest : AdHocJsonQueryRelationalTestBase
             ]
         };
 
-        var entity2 = new MyEntity29219
+        var entity2 = new Context29219.MyEntity
         {
             Id = 2,
-            Reference = new MyJsonEntity29219 { NonNullableScalar = 20, NullableScalar = null },
+            Reference = new Context29219.MyJsonEntity { NonNullableScalar = 20, NullableScalar = null },
             Collection = [new() { NonNullableScalar = 1001, NullableScalar = null }]
         };
 
@@ -84,52 +86,6 @@ INSERT INTO "Reviews" ("Rounds", "Id")
 VALUES('[{"RoundNumber":11,"SubRounds":[{"SubRoundNumber":111},{"SubRoundNumber":112}]}]', 1)
 """);
 
-    protected override async Task SeedArrayOfPrimitives(DbContext ctx)
-    {
-        var entity1 = new MyEntityArrayOfPrimitives
-        {
-            Id = 1,
-            Reference = new MyJsonEntityArrayOfPrimitives
-            {
-                IntArray = [1, 2, 3],
-                ListOfString =
-                [
-                    "Foo",
-                    "Bar",
-                    "Baz"
-                ]
-            },
-            Collection =
-            [
-                new() { IntArray = [111, 112, 113], ListOfString = ["Foo11", "Bar11"] },
-                new() { IntArray = [211, 212, 213], ListOfString = ["Foo12", "Bar12"] }
-            ]
-        };
-
-        var entity2 = new MyEntityArrayOfPrimitives
-        {
-            Id = 2,
-            Reference = new MyJsonEntityArrayOfPrimitives
-            {
-                IntArray = [10, 20, 30],
-                ListOfString =
-                [
-                    "A",
-                    "B",
-                    "C"
-                ]
-            },
-            Collection =
-            [
-                new() { IntArray = [110, 120, 130], ListOfString = ["A1", "Z1"] },
-                new() { IntArray = [210, 220, 230], ListOfString = ["A2", "Z2"] }
-            ]
-        };
-
-        ctx.AddRange(entity1, entity2);
-        await ctx.SaveChangesAsync();
-    }
-
     protected override async Task SeedJunkInJson(DbContext ctx)
         => await ctx.Database.ExecuteSqlAsync(
             $$$"""
@@ -186,11 +142,17 @@ VALUES(
 
     // PostgreSQL stores JSON as jsonb, which doesn't allow badly-formed JSON; so the following tests are irrelevant.
 
-    public override Task Bad_json_properties_duplicated_navigations_tracking()
-        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_duplicated_navigations_tracking());
-
-    public override Task Bad_json_properties_duplicated_navigations_no_tracking()
-        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_duplicated_navigations_no_tracking());
+    public override async Task Bad_json_properties_duplicated_navigations(bool noTracking)
+    {
+        if (noTracking)
+        {
+            await Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_duplicated_navigations(noTracking: true));
+        }
+        else
+        {
+            await base.Bad_json_properties_duplicated_navigations(noTracking: false);
+        }
+    }
 
     public override Task Bad_json_properties_duplicated_scalars(bool noTracking)
         => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_duplicated_scalars(noTracking));
@@ -202,10 +164,10 @@ VALUES(
         => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_empty_scalars(noTracking));
 
     public override Task Bad_json_properties_null_navigations(bool noTracking)
-        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_null_navigations(noTracking));
+        => Assert.ThrowsAsync<ThrowsAnyException>(() => base.Bad_json_properties_null_navigations(noTracking));
 
     public override Task Bad_json_properties_null_scalars(bool noTracking)
-        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_null_scalars(noTracking));
+        => Assert.ThrowsAsync<ThrowsAnyException>(() => base.Bad_json_properties_null_scalars(noTracking));
 
     protected override Task SeedBadJsonProperties(ContextBadJsonProperties ctx)
         => throw new NotSupportedException("PostgreSQL stores JSON as jsonb, which doesn't allow badly-formed JSON");
@@ -304,10 +266,10 @@ LIMIT 2
         => Assert.ThrowsAsync<ArgumentException>(() => base.Project_entity_with_json_null_values());
 
     public override Task Try_project_collection_but_JSON_is_entity()
-        => Assert.ThrowsAsync<ArgumentException>(() => base.Try_project_collection_but_JSON_is_entity());
+        => Assert.ThrowsAsync<ThrowsException>(() => base.Try_project_collection_but_JSON_is_entity());
 
     public override Task Try_project_reference_but_JSON_is_collection()
-        => Assert.ThrowsAsync<ArgumentException>(() => base.Try_project_reference_but_JSON_is_collection());
+        => Assert.ThrowsAsync<ThrowsException>(() => base.Try_project_reference_but_JSON_is_collection());
 
     public override Task Project_entity_with_optional_json_entity_owned_by_required_json()
         => Assert.ThrowsAsync<ArgumentException>(() => base.Project_entity_with_optional_json_entity_owned_by_required_json());

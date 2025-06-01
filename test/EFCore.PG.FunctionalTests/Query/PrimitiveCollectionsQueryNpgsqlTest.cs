@@ -2083,6 +2083,21 @@ END = ANY (@strings)
 """);
     }
 
+    public override async Task Values_of_enum_casted_to_underlying_value(bool async)
+    {
+        await base.Values_of_enum_casted_to_underlying_value(async);
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE (
+    SELECT count(*)::int
+    FROM (VALUES (0::int), (1), (2), (3)) AS v("Value")
+    WHERE v."Value" = p."Int") > 0
+""");
+    }
+
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task Array_remove(bool async)

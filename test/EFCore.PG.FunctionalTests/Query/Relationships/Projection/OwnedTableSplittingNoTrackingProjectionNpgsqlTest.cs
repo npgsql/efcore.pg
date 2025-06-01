@@ -81,8 +81,7 @@ public class OwnedTableSplittingNoTrackingProjectionNpgsqlTest
 
     public override async Task SelectMany_required_trunk_reference_branch_collection(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<EqualException>(() => base.SelectMany_required_trunk_reference_branch_collection(async));
+        await base.SelectMany_required_trunk_reference_branch_collection(async);
 
         AssertSql(
             """
@@ -99,8 +98,7 @@ ORDER BY r."Id" NULLS FIRST, r0."RelationshipsRootEntityId" NULLS FIRST, r1."Rel
 
     public override async Task SelectMany_optional_trunk_reference_branch_collection(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<EqualException>(() => base.SelectMany_optional_trunk_reference_branch_collection(async));
+        await base.SelectMany_optional_trunk_reference_branch_collection(async);
 
         AssertSql(
             """

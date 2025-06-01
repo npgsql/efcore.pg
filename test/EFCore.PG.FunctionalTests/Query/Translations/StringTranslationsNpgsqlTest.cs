@@ -131,6 +131,10 @@ WHERE strpos(b."String", 'eattl') - 1 <> -1
 """);
     }
 
+    // TODO: #3547
+    public override Task IndexOf_Char(bool async)
+        => Assert.ThrowsAsync<InvalidCastException>(() => base.IndexOf_Char(async));
+
     public override async Task IndexOf_with_empty_string(bool async)
     {
         await base.IndexOf_with_empty_string(async);
@@ -155,7 +159,20 @@ SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b.
 FROM "BasicTypesEntities" AS b
 WHERE strpos(b."String", @pattern) - 1 = 1
 """);
+    }
 
+    public override async Task IndexOf_with_one_parameter_arg_char(bool async)
+    {
+        await base.IndexOf_with_one_parameter_arg_char(async);
+
+        AssertSql(
+            """
+@pattern='e' (DbType = String)
+
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE strpos(b."String", @pattern) - 1 = 1
+""");
     }
 
     // PostgreSQL does not have strpos with starting position
@@ -163,8 +180,16 @@ WHERE strpos(b."String", @pattern) - 1 = 1
         => AssertTranslationFailed(() => base.IndexOf_with_constant_starting_position(async));
 
     // PostgreSQL does not have strpos with starting position
+    public override Task IndexOf_with_constant_starting_position_char(bool async)
+        => AssertTranslationFailed(() => base.IndexOf_with_constant_starting_position_char(async));
+
+    // PostgreSQL does not have strpos with starting position
     public override Task IndexOf_with_parameter_starting_position(bool async)
         => AssertTranslationFailed(() => base.IndexOf_with_parameter_starting_position(async));
+
+    // PostgreSQL does not have strpos with starting position
+    public override Task IndexOf_with_parameter_starting_position_char(bool async)
+        => AssertTranslationFailed(() => base.IndexOf_with_parameter_starting_position_char(async));
 
     public override async Task IndexOf_after_ToString(bool async)
     {
@@ -205,6 +230,10 @@ FROM "BasicTypesEntities" AS b
 WHERE replace(b."String", 'Sea', 'Rea') = 'Reattle'
 """);
     }
+
+    // TODO: #3547
+    public override Task Replace_Char(bool async)
+        => AssertTranslationFailed(() => base.Replace_Char(async));
 
     public override async Task Replace_with_empty_string(bool async)
     {
@@ -400,6 +429,10 @@ WHERE b."String" LIKE 'Se%'
 """);
     }
 
+    // TODO: #3547
+    public override Task StartsWith_Literal_Char(bool async)
+        => AssertTranslationFailed(() => base.StartsWith_Literal_Char(async));
+
     public override async Task StartsWith_Parameter(bool async)
     {
         await base.StartsWith_Parameter(async);
@@ -413,6 +446,9 @@ FROM "BasicTypesEntities" AS b
 WHERE b."String" LIKE @pattern_startswith
 """);
     }
+
+    public override Task StartsWith_Parameter_Char(bool async)
+        => AssertTranslationFailed(() => base.StartsWith_Parameter_Char(async));
 
     public override async Task StartsWith_Column(bool async)
     {
@@ -463,6 +499,10 @@ WHERE b."String" LIKE '%le'
 """);
     }
 
+    // TODO: #3547
+    public override Task EndsWith_Literal_Char(bool async)
+        => AssertTranslationFailed(() => base.EndsWith_Literal_Char(async));
+
     public override async Task EndsWith_Parameter(bool async)
     {
         await base.EndsWith_Parameter(async);
@@ -476,6 +516,10 @@ FROM "BasicTypesEntities" AS b
 WHERE b."String" LIKE @pattern_endswith
 """);
     }
+
+    // TODO: #3547
+    public override Task EndsWith_Parameter_Char(bool async)
+        => AssertTranslationFailed(() => base.EndsWith_Parameter_Char(async));
 
     public override async Task EndsWith_Column(bool async)
     {
@@ -532,6 +576,10 @@ FROM "BasicTypesEntities" AS b
 WHERE b."String" LIKE '%eattl%'
 """);
     }
+
+    // TODO: #3547
+    public override Task Contains_Literal_Char(bool async)
+        => AssertTranslationFailed(() => base.Contains_Literal_Char(async));
 
     public override async Task Contains_Column(bool async)
     {

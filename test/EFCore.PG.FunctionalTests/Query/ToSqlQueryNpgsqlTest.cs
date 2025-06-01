@@ -1,6 +1,6 @@
 namespace Microsoft.EntityFrameworkCore.Query;
 
-public class ToSqlQuerySqlServerTest : ToSqlQueryTestBase
+public class ToSqlQuerySqlServerTest(NonSharedFixture fixture) : ToSqlQueryTestBase(fixture)
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
