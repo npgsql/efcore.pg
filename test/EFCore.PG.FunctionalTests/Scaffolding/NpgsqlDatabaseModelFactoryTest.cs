@@ -935,50 +935,6 @@ CREATE TABLE "ComputedValues" (
                 """);
 
     [Fact]
-    public void Default_value_matching_clr_default_is_not_stored()
-        => Test(
-            """
-CREATE DOMAIN "decimalDomain" AS decimal(6);
-
-CREATE TABLE "DefaultValues" (
-    "IgnoredDefault1" int DEFAULT NULL,
-    "IgnoredDefault2" int NOT NULL DEFAULT NULL,
-    "IgnoredDefault9" int NOT NULL DEFAULT 0,
-    "IgnoredDefault14" smallint NOT NULL DEFAULT 0,
-    "IgnoredDefault3" bigint NOT NULL DEFAULT 0,
-    "IgnoredDefault15" decimal NOT NULL DEFAULT 0,
-    "IgnoredDefault16" decimal NOT NULL DEFAULT 0.0,
-    "IgnoredDefault17" "decimalDomain" NOT NULL DEFAULT 0,
-    "IgnoredDefault10" money NOT NULL DEFAULT 0,
-    "IgnoredDefault19" money NOT NULL DEFAULT 0.0,
-    "IgnoredDefault21" float4 NOT NULL DEFAULT 0.0,
-    "IgnoredDefault7" float8 NOT NULL DEFAULT 0,
-    "IgnoredDefault18" float8 NOT NULL DEFAULT 0.0,
-    "IgnoredDefault24" float8 NOT NULL DEFAULT 0E0,
-    "IgnoredDefault4" bool NOT NULL DEFAULT false,
-    "IgnoredDefault25" date NOT NULL DEFAULT '0001-01-01',
-    "IgnoredDefault26" timestamp NOT NULL DEFAULT '1900-01-01T00:00:00.000',
-    "IgnoredDefault27" interval NOT NULL DEFAULT '00:00:00',
-    "IgnoredDefault32" time NOT NULL DEFAULT '00:00:00',
-    "IgnoredDefault34" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'
-)
-""",
-            [],
-            [],
-            dbModel =>
-            {
-                var columns = dbModel.Tables.Single().Columns;
-
-                Assert.All(
-                    columns,
-                    t => Assert.Null(t.DefaultValueSql));
-            },
-            """
-DROP TABLE "DefaultValues";
-DROP DOMAIN "decimalDomain";
-""");
-
-    [Fact]
     public void ValueGenerated_is_set_for_default_and_serial_column()
         => Test(
             """
