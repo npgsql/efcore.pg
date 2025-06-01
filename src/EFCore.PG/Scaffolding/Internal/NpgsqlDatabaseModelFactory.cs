@@ -400,7 +400,7 @@ ORDER BY attnum
                 else
                 {
                     column.DefaultValueSql = defaultValueSql;
-                    column.DefaultValue = ParseClrDefault(storeType, defaultValueSql);
+                    column.DefaultValue = ParseClrDefault(systemTypeName, defaultValueSql);
                     AdjustDefaults(column, systemTypeName);
                 }
 
@@ -514,7 +514,7 @@ ORDER BY attnum
 
         while (defaultValueSql.StartsWith('(') && defaultValueSql.EndsWith(')'))
         {
-            defaultValueSql = (defaultValueSql.Substring(1, defaultValueSql.Length - 2)).Trim();
+            defaultValueSql = defaultValueSql.Substring(1, defaultValueSql.Length - 2).Trim();
         }
 
         return dataTypeName switch
@@ -528,6 +528,10 @@ ORDER BY attnum
             "smallint" or "int2" => short.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @short) ? @short : null,
             "integer" or "int" or "int4" => int.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @int) ? @int : null,
             "bigint" or "int8" => long.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @long) ? @long : null,
+
+            "real" or "float4"=> float.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @float) ? @float : null,
+            "double precision" or "float8" => double.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @double) ? @double : null,
+            "numeric" or "decimal" => decimal.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @decimal) ? @decimal : null,
 
             _ => null
         };
