@@ -400,8 +400,7 @@ ORDER BY attnum
                 else
                 {
                     column.DefaultValueSql = defaultValueSql;
-                    column.DefaultValue = ParseClrDefault(systemTypeName, defaultValueSql);
-                    AdjustDefaults(column, systemTypeName);
+                    column.DefaultValue = ParseDefaultValueSql(systemTypeName, defaultValueSql);
                 }
 
                 // Identify IDENTITY columns, as well as SERIAL ones.
@@ -503,7 +502,7 @@ ORDER BY attnum
         }
     }
 
-    private static object? ParseClrDefault(string dataTypeName, string? defaultValueSql)
+    private static object? ParseDefaultValueSql(string systemTypeName, string? defaultValueSql)
     {
         defaultValueSql = defaultValueSql?.Trim();
 
@@ -514,10 +513,10 @@ ORDER BY attnum
 
         while (defaultValueSql.StartsWith('(') && defaultValueSql.EndsWith(')'))
         {
-            defaultValueSql = defaultValueSql.Substring(1, defaultValueSql.Length - 2).Trim();
+            defaultValueSql = defaultValueSql[1..^1].Trim();
         }
 
-        return dataTypeName switch
+        return systemTypeName switch
         {
             "bool" or "boolean" => defaultValueSql switch
             {
@@ -525,11 +524,12 @@ ORDER BY attnum
                 "false" or "no" or "off" or "0" => false,
                 _ => null
             },
+
             "smallint" or "int2" => short.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @short) ? @short : null,
             "integer" or "int" or "int4" => int.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @int) ? @int : null,
             "bigint" or "int8" => long.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @long) ? @long : null,
 
-            "real" or "float4"=> float.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @float) ? @float : null,
+            "real" or "float4" => float.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @float) ? @float : null,
             "double precision" or "float8" => double.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @double) ? @double : null,
             "numeric" or "decimal" => decimal.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @decimal) ? @decimal : null,
 
@@ -1238,55 +1238,7 @@ WHERE
 
     #endregion
 
-    #region Configure default values
-
-    /// <summary>
-    ///     Configures the default value for a column.
-    /// </summary>
-    /// <param name="column">The column to configure.</param>
-    /// <param name="systemTypeName">The type name of the column.</param>
-    private static void AdjustDefaults(DatabaseColumn column, string systemTypeName)
-    {
-        var defaultValue = column.DefaultValueSql;
-        if (defaultValue is null or "(NULL)")
-        {
-            column.DefaultValueSql = null;
-            return;
-        }
-
-        if (column.IsNullable)
-        {
-            return;
-        }
-
-        if (defaultValue == "0")
-        {
-            if (systemTypeName is "float4" or "float8" or "int2" or "int4" or "int8" or "money" or "numeric")
-            {
-                column.DefaultValueSql = null;
-                return;
-            }
-        }
-
-        if (defaultValue is "0.0" or "'0'::numeric")
-        {
-            if (systemTypeName is "numeric" or "float4" or "float8" or "money")
-            {
-                column.DefaultValueSql = null;
-                return;
-            }
-        }
-
-        if (systemTypeName == "bool" && defaultValue == "false"
-            || systemTypeName == "date" && defaultValue == "'0001-01-01'::date"
-            || systemTypeName == "timestamp" && defaultValue == "'1900-01-01 00:00:00'::timestamp without time zone"
-            || systemTypeName == "time" && defaultValue == "'00:00:00'::time without time zone"
-            || systemTypeName == "interval" && defaultValue == "'00:00:00'::interval"
-            || systemTypeName == "uuid" && defaultValue == "'00000000-0000-0000-0000-000000000000'::uuid")
-        {
-            column.DefaultValueSql = null;
-        }
-    }
+    #region SequenceInfo
 
     private static SequenceInfo ReadSequenceInfo(DbDataRecord record, Version postgresVersion)
     {
