@@ -206,6 +206,28 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    public override IEnumerable<IAnnotation> For(IForeignKeyConstraint foreignKey, bool designTime)
+    {
+        if (!designTime)
+        {
+            yield break;
+        }
+
+        foreach (var item in foreignKey.MappedForeignKeys)
+        {
+            if (item.GetMatchStrategy() is { } match)
+            {
+                yield return new Annotation(NpgsqlAnnotationNames.MatchStrategy, match);
+            }
+        }
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override IEnumerable<IAnnotation> For(IRelationalModel model, bool designTime)
     {
         if (!designTime)
