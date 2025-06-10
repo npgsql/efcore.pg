@@ -1,7 +1,7 @@
 namespace Microsoft.EntityFrameworkCore;
 
-public class MaterializationInterceptionNpgsqlTest :
-    MaterializationInterceptionTestBase<MaterializationInterceptionNpgsqlTest.NpgsqlLibraryContext>
+public class MaterializationInterceptionNpgsqlTest(NonSharedFixture fixture) :
+    MaterializationInterceptionTestBase<MaterializationInterceptionNpgsqlTest.NpgsqlLibraryContext>(fixture)
 {
     public class NpgsqlLibraryContext(DbContextOptions options) : LibraryContext(options)
     {

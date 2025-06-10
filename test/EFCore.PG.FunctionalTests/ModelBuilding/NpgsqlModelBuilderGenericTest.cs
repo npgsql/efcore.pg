@@ -22,6 +22,13 @@ public class NpgsqlModelBuilderGenericTest : NpgsqlModelBuilderTestBase
             => new GenericTestModelBuilder(Fixture, configure);
     }
 
+    public class NpgsqlGenericComplexCollection(NpgsqlModelBuilderFixture fixture) : NpgsqlComplexCollection(fixture)
+    {
+        protected override TestModelBuilder CreateModelBuilder(
+            Action<ModelConfigurationBuilder>? configure)
+            => new GenericTestModelBuilder(Fixture, configure);
+    }
+
     public class NpgsqlGenericInheritance(NpgsqlModelBuilderFixture fixture) : NpgsqlInheritance(fixture)
     {
         protected override TestModelBuilder CreateModelBuilder(

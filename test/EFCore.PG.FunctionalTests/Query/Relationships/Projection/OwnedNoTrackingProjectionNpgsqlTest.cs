@@ -25,8 +25,7 @@ public class OwnedNoTrackingProjectionNpgsqlTest
 
     public override async Task Select_branch_required_collection(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<EqualException>(() => base.Select_branch_required_collection(async));
+        await base.Select_branch_required_collection(async);
 
         AssertSql(
             """
@@ -43,8 +42,7 @@ ORDER BY r."Id" NULLS FIRST, s."RelationshipsTrunkEntityRelationshipsRootEntityI
 
     public override async Task Select_branch_optional_collection(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<EqualException>(() => base.Select_branch_optional_collection(async));
+        await base.Select_branch_optional_collection(async);
 
         AssertSql(
             """
@@ -61,8 +59,7 @@ ORDER BY r."Id" NULLS FIRST, s."RelationshipsTrunkEntityRelationshipsRootEntityI
 
     public override async Task Select_multiple_branch_leaf(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<EqualException>(() => base.Select_multiple_branch_leaf(async));
+        await base.Select_multiple_branch_leaf(async);
 
         AssertSql(
             """
@@ -108,8 +105,7 @@ ORDER BY r."Id" NULLS FIRST, r3."Id" NULLS FIRST, s."RelationshipsTrunkEntityRel
 
     public override async Task Select_subquery_root_set_complex_projection_FirstOrDefault_project_reference_to_outer(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<EqualException>(() => base.Select_subquery_root_set_complex_projection_FirstOrDefault_project_reference_to_outer(async));
+        await base.Select_subquery_root_set_complex_projection_FirstOrDefault_project_reference_to_outer(async);
 
         AssertSql(
             """
@@ -156,8 +152,7 @@ ORDER BY r."Id" NULLS FIRST, r0."RelationshipsRootEntityId" NULLS FIRST, r0."Id1
 
     public override async Task SelectMany_required_trunk_reference_branch_collection(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<EqualException>(() => base.SelectMany_required_trunk_reference_branch_collection(async));
+        await base.SelectMany_required_trunk_reference_branch_collection(async);
 
         AssertSql(
             """
@@ -171,8 +166,7 @@ ORDER BY r."Id" NULLS FIRST, r0."RelationshipsTrunkEntityRelationshipsRootEntity
 
     public override async Task SelectMany_optional_trunk_reference_branch_collection(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<EqualException>(() => base.SelectMany_optional_trunk_reference_branch_collection(async));
+        await base.SelectMany_optional_trunk_reference_branch_collection(async);
 
         AssertSql(
             """

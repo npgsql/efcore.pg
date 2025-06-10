@@ -72,8 +72,7 @@ ORDER BY r."Id" NULLS FIRST, t."Id" NULLS FIRST
 
     public override async Task Select_multiple_branch_leaf(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<EqualException>(() => base.Select_multiple_branch_leaf(async));
+        await base.Select_multiple_branch_leaf(async);
 
         AssertSql(
             """

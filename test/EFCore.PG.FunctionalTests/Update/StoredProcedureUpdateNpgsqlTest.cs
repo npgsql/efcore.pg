@@ -3,7 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 namespace Microsoft.EntityFrameworkCore.Update;
 
 [MinimumPostgresVersion(14, 0)]
-public class StoredProcedureUpdateNpgsqlTest : StoredProcedureUpdateTestBase
+public class StoredProcedureUpdateNpgsqlTest(NonSharedFixture fixture) : StoredProcedureUpdateTestBase(fixture)
 {
     public override async Task Insert_with_output_parameter(bool async)
     {

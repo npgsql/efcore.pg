@@ -407,7 +407,8 @@ public class NpgsqlRelationalConnectionTest
                             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                             new NpgsqlSingletonOptions()),
                         new ExceptionDetector(),
-                        new LoggingOptions()))),
+                        new LoggingOptions())),
+                new ExceptionDetector()),
             new NpgsqlDataSourceManager([]),
             dbContextOptions);
     }

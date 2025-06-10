@@ -3,7 +3,8 @@
 namespace Microsoft.EntityFrameworkCore;
 
 [MinimumPostgresVersion(12, 0)] // Test suite uses computed columns
-public class TableSplittingNpgsqlTest(ITestOutputHelper testOutputHelper) : TableSplittingTestBase(testOutputHelper)
+public class TableSplittingNpgsqlTest(NonSharedFixture fixture, ITestOutputHelper testOutputHelper)
+    : TableSplittingTestBase(fixture, testOutputHelper)
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;

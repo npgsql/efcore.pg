@@ -25,8 +25,7 @@ public class OwnedReferenceNoTrackingProjectionNpgsqlTest
 
     public override async Task Select_trunk_optional(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<EqualException>(() => base.Select_trunk_optional(async));
+        await base.Select_trunk_optional(async);
 
         AssertSql(
             """
@@ -51,8 +50,7 @@ ORDER BY r."Id" NULLS FIRST, s."RelationshipsTrunkEntityRelationshipsRootEntityI
 
     public override async Task Select_trunk_required(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<EqualException>(() => base.Select_trunk_required(async));
+        await base.Select_trunk_required(async);
 
         AssertSql(
             """
@@ -73,8 +71,7 @@ ORDER BY r."Id" NULLS FIRST, s."RelationshipsTrunkEntityRelationshipsRootEntityI
 
     public override async Task Select_branch_required_required(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<EqualException>(() => base.Select_branch_required_required(async));
+        await base.Select_branch_required_required(async);
 
         AssertSql(
             """
@@ -87,8 +84,7 @@ ORDER BY r."Id" NULLS FIRST, r0."RelationshipsBranchEntityRelationshipsTrunkEnti
 
     public override async Task Select_branch_required_optional(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<EqualException>(() => base.Select_branch_required_optional(async));
+        await base.Select_branch_required_optional(async);
 
         AssertSql(
             """
@@ -103,8 +99,7 @@ ORDER BY r."Id" NULLS FIRST, r0."RelationshipsBranchEntityRelationshipsTrunkEnti
 
     public override async Task Select_branch_optional_required(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<EqualException>(() => base.Select_branch_optional_required(async));
+        await base.Select_branch_optional_required(async);
 
         AssertSql(
             """
@@ -117,8 +112,7 @@ ORDER BY r."Id" NULLS FIRST, r0."RelationshipsBranchEntityRelationshipsTrunkEnti
 
     public override async Task Select_branch_optional_optional(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<EqualException>(() => base.Select_branch_optional_optional(async));
+        await base.Select_branch_optional_optional(async);
 
         AssertSql(
             """

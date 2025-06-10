@@ -29,8 +29,7 @@ INNER JOIN "TrunkEntities" AS t ON r."RequiredReferenceTrunkId" = t."Id"
 
     public override async Task Include_trunk_optional(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<TargetInvocationException>(() => base.Include_trunk_optional(async));
+        await base.Include_trunk_optional(async);
 
         AssertSql(
             """
@@ -70,8 +69,7 @@ ORDER BY r."Id" NULLS FIRST, t."Id" NULLS FIRST, t0."Id" NULLS FIRST
 
     public override async Task Include_branch_required_required(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<TargetInvocationException>(() => base.Include_branch_required_required(async));
+        await base.Include_branch_required_required(async);
 
         AssertSql(
             """
@@ -98,8 +96,7 @@ ORDER BY r."Id" NULLS FIRST, t."Id" NULLS FIRST
 
     public override async Task Include_branch_optional_optional(bool async)
     {
-        // https://github.com/dotnet/efcore/pull/35942
-        await Assert.ThrowsAsync<TargetInvocationException>(() => base.Include_branch_optional_optional(async));
+        await base.Include_branch_optional_optional(async);
 
         AssertSql(
             """

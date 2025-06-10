@@ -1,6 +1,6 @@
 namespace Microsoft.EntityFrameworkCore.BulkUpdates;
 
-public class NonSharedModelBulkUpdatesNpgsqlTest : NonSharedModelBulkUpdatesRelationalTestBase
+public class NonSharedModelBulkUpdatesNpgsqlTest(NonSharedFixture fixture) : NonSharedModelBulkUpdatesRelationalTestBase(fixture)
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;

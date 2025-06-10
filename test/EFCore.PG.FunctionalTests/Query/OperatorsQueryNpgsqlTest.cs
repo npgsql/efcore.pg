@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.TestModels.Operators;
 
 namespace Microsoft.EntityFrameworkCore.Query;
 
-public class OperatorsQueryNpgsqlTest : OperatorsQueryTestBase
+public class OperatorsQueryNpgsqlTest(NonSharedFixture fixture) : OperatorsQueryTestBase(fixture)
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;

@@ -1,6 +1,6 @@
 namespace Microsoft.EntityFrameworkCore.Query;
 
-public class SharedTypeQueryNpgsqlTest : SharedTypeQueryRelationalTestBase
+public class SharedTypeQueryNpgsqlTest(NonSharedFixture fixture) : SharedTypeQueryRelationalTestBase(fixture)
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
