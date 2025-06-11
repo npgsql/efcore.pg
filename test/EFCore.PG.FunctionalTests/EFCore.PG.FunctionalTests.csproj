@@ -24,11 +24,6 @@
     <PackageReference Include="xunit.core" />
   </ItemGroup>
 
-  <!-- Temporary, remove after sync to latest EF preview -->
-  <ItemGroup>
-    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-h4j7-5rxr-p4wc" />
-  </ItemGroup>
-
   <ItemGroup>
     <None Update="Northwind.sql" CopyToOutputDirectory="PreserveNewest" />
     <None Update="config.json" CopyToOutputDirectory="PreserveNewest" />
