@@ -47,8 +47,6 @@ public class NpgsqlNetTopologySuiteMethodCallTranslatorPlugin : IMethodCallTrans
 /// </summary>
 public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
 {
-    private static readonly MethodInfo _collectionItem = typeof(GeometryCollection).GetRuntimeProperty("Item")!.GetMethod!;
-
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
     private readonly IRelationalTypeMappingSource _typeMappingSource;
 
@@ -77,11 +75,31 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
-        => method.DeclaringType == typeof(NpgsqlNetTopologySuiteDbFunctionsExtensions)
-            ? TranslateDbFunction(method, arguments)
-            : instance is not null && typeof(Geometry).IsAssignableFrom(method.DeclaringType)
-                ? TranslateGeometryMethod(instance, method, arguments)
-                : null;
+        => method.DeclaringType switch
+        {
+            var t when typeof(Geometry).IsAssignableFrom(t) && instance is not null
+                => TranslateGeometryMethod(instance, method, arguments),
+
+            var t when t == typeof(NpgsqlNetTopologySuiteDbFunctionsExtensions)
+                => TranslateDbFunction(method, arguments),
+
+            // This handles the collection indexer (geom_collection[x] -> ST_GeometryN(geom_collection, x + 1))
+            // This is needed as a special case because EF transforms the indexer into a call to Enumerable.ElementAt
+            var t when t == typeof(Enumerable)
+                && method.Name is nameof(Enumerable.ElementAt)
+                && method.ReturnType == typeof(Geometry)
+                && arguments is [var collection, var index]
+                && _typeMappingSource.FindMapping(typeof(Geometry), collection.TypeMapping!.StoreType) is RelationalTypeMapping geometryTypeMapping
+                    => _sqlExpressionFactory.Function(
+                        "ST_GeometryN",
+                        [collection, OneBased(index)],
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[2],
+                        method.ReturnType,
+                        geometryTypeMapping),
+
+            _ => null
+        };
 
     private SqlExpression? TranslateDbFunction(
         MethodInfo method,
@@ -142,17 +160,6 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
         }
 
         arguments = typeMappedArguments;
-
-        if (Equals(method, _collectionItem))
-        {
-            return _sqlExpressionFactory.Function(
-                "ST_GeometryN",
-                [instance, OneBased(arguments[0])],
-                nullable: true,
-                argumentsPropagateNullability: TrueArrays[2],
-                method.ReturnType,
-                _typeMappingSource.FindMapping(typeof(Geometry), instance.TypeMapping!.StoreType));
-        }
 
         return method.Name switch
         {
@@ -226,16 +233,16 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
                 nullable: true, argumentsPropagateNullability: TrueArrays[arguments.Length],
                 returnType, typeMapping);
 
-        // NetTopologySuite uses 0-based indexing, but PostGIS uses 1-based
-        SqlExpression OneBased(SqlExpression arg)
-            => arg is SqlConstantExpression constant
-                ? _sqlExpressionFactory.Constant((int)constant.Value! + 1, constant.TypeMapping)
-                : _sqlExpressionFactory.Add(arg, _sqlExpressionFactory.Constant(1));
-
         RelationalTypeMapping ResultGeometryMapping()
         {
             Debug.Assert(typeof(Geometry).IsAssignableFrom(method.ReturnType));
             return _typeMappingSource.FindMapping(method.ReturnType, storeType)!;
         }
     }
+
+    // NetTopologySuite uses 0-based indexing, but PostGIS uses 1-based
+    private SqlExpression OneBased(SqlExpression arg)
+        => arg is SqlConstantExpression constant
+            ? _sqlExpressionFactory.Constant((int)constant.Value! + 1, constant.TypeMapping)
+            : _sqlExpressionFactory.Add(arg, _sqlExpressionFactory.Constant(1));
 }
