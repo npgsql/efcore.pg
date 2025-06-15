@@ -69,6 +69,18 @@ WHERE floor(date_part('dow', b."DateOnly"))::int = 6
 """);
     }
 
+    public override async Task DayNumber(bool async)
+    {
+        await base.DayNumber(async);
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."DateOnly" - DATE '0001-01-01' = 726780
+""");
+    }
+
     public override async Task AddYears(bool async)
     {
         await base.AddYears(async);
@@ -102,6 +114,20 @@ WHERE CAST(b."DateOnly" + INTERVAL '3 months' AS date) = DATE '1991-02-10'
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
 WHERE b."DateOnly" + 3 = DATE '1990-11-13'
+""");
+    }
+
+    public override async Task DayNumber_subtraction(bool async)
+    {
+        await base.DayNumber_subtraction(async);
+
+        AssertSql(
+            """
+@DayNumber='726775'
+
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE (b."DateOnly" - DATE '0001-01-01') - @DayNumber = 5
 """);
     }
 
