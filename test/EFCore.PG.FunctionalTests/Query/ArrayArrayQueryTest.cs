@@ -287,11 +287,12 @@ WHERE s."NullableText" IN ('foo', 'xxx')
 
         AssertSql(
             """
-@array={ 'foo', 'xxx' } (DbType = Object)
+@array1='foo'
+@array2='xxx'
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."NullableText" = ANY (@array) OR (s."NullableText" IS NULL AND array_position(@array, NULL) IS NOT NULL)
+WHERE s."NullableText" IN (@array1, @array2)
 """);
     }
 
@@ -432,11 +433,12 @@ WHERE s."Byte" = ANY (@values)
 
         AssertSql(
             """
-@array={ '-2', '-3' } (DbType = Object)
+@array1='-2'
+@array2='-3'
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."EnumConvertedToInt" = ANY (@array)
+WHERE s."EnumConvertedToInt" IN (@array1, @array2)
 """);
     }
 
@@ -486,11 +488,12 @@ WHERE s."NullableEnumConvertedToString" = ANY (@array) OR (s."NullableEnumConver
 
         AssertSql(
             """
-@array={ 'Two', 'Three' } (DbType = Object)
+@array1='Two' (Nullable = false)
+@array2='Three' (Nullable = false)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."NullableEnumConvertedToStringWithNonNullableLambda" = ANY (@array) OR (s."NullableEnumConvertedToStringWithNonNullableLambda" IS NULL AND array_position(@array, NULL) IS NOT NULL)
+WHERE s."NullableEnumConvertedToStringWithNonNullableLambda" IN (@array1, @array2)
 """);
     }
 
@@ -536,11 +539,15 @@ WHERE s."ValueConvertedArrayOfEnum" @> ARRAY['Eight']::text[]
 
         AssertSql(
             """
-@p={ 'Eight', 'Nine' } (DbType = Object)
+@p1='Eight' (Nullable = false)
+@p2='Nine' (Nullable = false)
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."ValueConvertedArrayOfEnum" <@ @p
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM unnest(s."ValueConvertedArrayOfEnum") AS v(value)
+    WHERE v.value NOT IN (@p1, @p2))
 """);
     }
 

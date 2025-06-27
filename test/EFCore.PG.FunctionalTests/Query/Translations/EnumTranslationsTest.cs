@@ -178,11 +178,11 @@ WHERE s."MappedEnum"::text LIKE '%sa%'
 
         AssertSql(
             """
-@values='0x01' (DbType = Object)
+@values1='Sad' (DbType = Object)
 
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum", s."UppercaseNamedEnum"
 FROM test."SomeEntities" AS s
-WHERE s."ByteEnum" = ANY (@values)
+WHERE s."ByteEnum" = @values1
 """);
     }
 
@@ -199,11 +199,11 @@ WHERE s."ByteEnum" = ANY (@values)
 
         AssertSql(
             """
-@values='0x01' (DbType = Object)
+@values1='1' (DbType = Int16)
 
 SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum", s."UppercaseNamedEnum"
 FROM test."SomeEntities" AS s
-WHERE s."UnmappedByteEnum" = ANY (@values)
+WHERE s."UnmappedByteEnum" = @values1
 """);
     }
 

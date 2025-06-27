@@ -277,11 +277,12 @@ WHERE s."NullableText" IN ('foo', 'xxx')
 
         AssertSql(
             """
-@array={ 'foo', 'xxx' } (DbType = Object)
+@array1='foo'
+@array2='xxx'
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."NullableText" = ANY (@array) OR (s."NullableText" IS NULL AND array_position(@array, NULL) IS NOT NULL)
+WHERE s."NullableText" IN (@array1, @array2)
 """);
     }
 
@@ -295,11 +296,11 @@ WHERE s."NullableText" = ANY (@array) OR (s."NullableText" IS NULL AND array_pos
 
         AssertSql(
             """
-@array={ '1' } (DbType = Object)
+@array1='1'
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."Id" = ANY (@array)
+WHERE s."Id" = @array1
 """);
     }
 
@@ -364,11 +365,12 @@ WHERE NOT (s."NonNullableText" = ANY (@array) AND s."NonNullableText" = ANY (@ar
 
         AssertSql(
             """
-@array={ 'unknown1', 'unknown2', NULL } (DbType = Object)
+@array1='unknown1'
+@array2='unknown2'
 
 SELECT count(*)::int
 FROM "SomeEntities" AS s
-WHERE s."NullableText" = ANY (@array) OR (s."NullableText" IS NULL AND array_position(@array, NULL) IS NOT NULL)
+WHERE s."NullableText" IN (@array1, @array2) OR s."NullableText" IS NULL
 """);
     }
 
@@ -405,11 +407,12 @@ WHERE NOT (s."NullableText" = ANY (@array) AND s."NullableText" = ANY (@array) I
 
         AssertSql(
             """
-@values={ '1', '999' } (DbType = Object)
+@values1='1'
+@values2='999'
 
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
-WHERE s."Id"::text = ANY (@values)
+WHERE s."Id"::text IN (@values1, @values2)
 """);
     }
 

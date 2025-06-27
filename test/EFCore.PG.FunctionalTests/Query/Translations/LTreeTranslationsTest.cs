@@ -176,11 +176,15 @@ WHERE l."LTree" ~ CAST('*.Astrophysics.' || l."Id"::text AS lquery)
 
         AssertSql(
             """
-@lqueries={ '*.Astrophysics', '*.Geology' } (DbType = Object)
+@lqueries1='*.Astrophysics'
+@lqueries2='*.Geology'
 
 SELECT l."Id", l."LTree", l."LTreeAsString", l."LTrees", l."SomeString"
 FROM "LTreeEntities" AS l
-WHERE l."LTree" ? @lqueries
+WHERE EXISTS (
+    SELECT 1
+    FROM (VALUES (@lqueries1), (@lqueries2)) AS l0("Value")
+    WHERE l."LTree" ~ l0."Value"::lquery)
 LIMIT 2
 """);
     }
@@ -226,11 +230,15 @@ LIMIT 2
         Assert.Equal(4, count);
         AssertSql(
             """
-@ltrees={ 'Top.Science', 'Top.Art' } (DbType = Object)
+@ltrees1='Top.Science' (Nullable = false) (DbType = Object)
+@ltrees2='Top.Art' (Nullable = false) (DbType = Object)
 
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
-WHERE @ltrees @> l."LTree"
+WHERE EXISTS (
+    SELECT 1
+    FROM (VALUES (@ltrees1), (@ltrees2)) AS l0("Value")
+    WHERE l0."Value" @> l."LTree")
 """);
     }
 
@@ -244,11 +252,15 @@ WHERE @ltrees @> l."LTree"
         Assert.Equal(3, count);
         AssertSql(
             """
-@ltrees={ 'Top.Science.Astronomy', 'Top.Art' } (DbType = Object)
+@ltrees1='Top.Science.Astronomy' (Nullable = false) (DbType = Object)
+@ltrees2='Top.Art' (Nullable = false) (DbType = Object)
 
 SELECT count(*)::int
 FROM "LTreeEntities" AS l
-WHERE @ltrees <@ l."LTree"
+WHERE EXISTS (
+    SELECT 1
+    FROM (VALUES (@ltrees1), (@ltrees2)) AS l0("Value")
+    WHERE l0."Value" <@ l."LTree")
 """);
     }
 

@@ -245,11 +245,12 @@ WHERE c."CustomerID" IN ('ALFKI', 'ANATR')
         // (see https://github.com/aspnet/EntityFrameworkCore/issues/17598).
         AssertSql(
             """
-@regions={ 'UK', 'SP' } (DbType = Object)
+@regions1='UK'
+@regions2='SP'
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Region" = ANY (@regions) OR (c."Region" IS NULL AND array_position(@regions, NULL) IS NOT NULL)
+WHERE c."Region" IN (@regions1, @regions2)
 """);
     }
 
@@ -319,11 +320,16 @@ WHERE c."Region" = ANY (@regions) OR (c."Region" IS NULL AND array_position(@reg
 
         AssertSql(
             """
-@collection={ 'A%', 'B%', 'C%' } (DbType = Object)
+@collection1='A%'
+@collection2='B%'
+@collection3='C%'
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" LIKE ANY (@collection)
+WHERE EXISTS (
+    SELECT 1
+    FROM (VALUES (@collection1), (@collection2), (@collection3)) AS c0("Value")
+    WHERE c."Address" LIKE c0."Value" ESCAPE '')
 """);
     }
 
@@ -409,11 +415,16 @@ WHERE NOT (c."Address" LIKE ALL (@collection))
 
         AssertSql(
             """
-@collection={ 'a%', 'b%', 'c%' } (DbType = Object)
+@collection1='a%'
+@collection2='b%'
+@collection3='c%'
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" ILIKE ANY (@collection)
+WHERE EXISTS (
+    SELECT 1
+    FROM (VALUES (@collection1), (@collection2), (@collection3)) AS c0("Value")
+    WHERE c."Address" ILIKE c0."Value" ESCAPE '')
 """);
     }
 

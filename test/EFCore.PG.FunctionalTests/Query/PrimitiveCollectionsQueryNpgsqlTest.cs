@@ -451,14 +451,15 @@ WHERE (
 
         AssertSql(
             """
-@ids={ '2', '999' } (DbType = Object)
+@ids1='2'
+@ids2='999'
 
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
 FROM "PrimitiveCollectionsEntity" AS p
 WHERE (
     SELECT count(*)::int
-    FROM unnest(@ids) AS i(value)
-    WHERE i.value > p."Id") = 1
+    FROM (VALUES (@ids1), (@ids2)) AS i("Value")
+    WHERE i."Value" > p."Id") = 1
 """);
     }
 
@@ -518,11 +519,12 @@ WHERE NOT (p."Int" = ANY (@ints) AND p."Int" = ANY (@ints) IS NOT NULL)
 
         AssertSql(
             """
-@enums={ '0', '3' } (DbType = Object)
+@enums1='0'
+@enums2='3'
 
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
 FROM "PrimitiveCollectionsEntity" AS p
-WHERE p."Enum" = ANY (@enums)
+WHERE p."Enum" IN (@enums1, @enums2)
 """);
     }
 
@@ -556,19 +558,21 @@ WHERE NOT (p."Int" = ANY (@ints) AND p."Int" = ANY (@ints) IS NOT NULL)
 
         AssertSql(
             """
-@ints={ '10', '999' } (DbType = Object)
+@ints1='10'
+@ints2='999'
 
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
 FROM "PrimitiveCollectionsEntity" AS p
-WHERE p."NullableInt" = ANY (@ints) OR (p."NullableInt" IS NULL AND array_position(@ints, NULL) IS NOT NULL)
+WHERE p."NullableInt" IN (@ints1, @ints2)
 """,
             //
             """
-@ints={ '10', '999' } (DbType = Object)
+@ints1='10'
+@ints2='999'
 
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
 FROM "PrimitiveCollectionsEntity" AS p
-WHERE NOT (p."NullableInt" = ANY (@ints) AND p."NullableInt" = ANY (@ints) IS NOT NULL) AND (p."NullableInt" IS NOT NULL OR array_position(@ints, NULL) IS NULL)
+WHERE p."NullableInt" NOT IN (@ints1, @ints2) OR p."NullableInt" IS NULL
 """);
     }
 
@@ -666,19 +670,21 @@ WHERE NOT (p."String" = ANY (@strings) AND p."String" = ANY (@strings) IS NOT NU
 
         AssertSql(
             """
-@strings={ '10', '999' } (DbType = Object)
+@strings1='10'
+@strings2='999'
 
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
 FROM "PrimitiveCollectionsEntity" AS p
-WHERE p."NullableString" = ANY (@strings) OR (p."NullableString" IS NULL AND array_position(@strings, NULL) IS NOT NULL)
+WHERE p."NullableString" IN (@strings1, @strings2)
 """,
             //
             """
-@strings={ '10', '999' } (DbType = Object)
+@strings1='10'
+@strings2='999'
 
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
 FROM "PrimitiveCollectionsEntity" AS p
-WHERE NOT (p."NullableString" = ANY (@strings) AND p."NullableString" = ANY (@strings) IS NOT NULL) AND (p."NullableString" IS NOT NULL OR array_position(@strings, NULL) IS NULL)
+WHERE p."NullableString" NOT IN (@strings1, @strings2) OR p."NullableString" IS NULL
 """);
     }
 

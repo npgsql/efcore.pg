@@ -1793,11 +1793,13 @@ WHERE (
 
         AssertSql(
             """
-@ids={ '1', '2', '3' } (DbType = Object)
+@ids1='1'
+@ids2='2'
+@ids3='3'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
-WHERE b."Id" = ANY (@ids)
+WHERE b."Id" IN (@ids1, @ids2, @ids3)
 """);
     }
 
