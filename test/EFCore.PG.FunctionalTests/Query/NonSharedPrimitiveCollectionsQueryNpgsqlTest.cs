@@ -5,6 +5,13 @@ namespace Microsoft.EntityFrameworkCore.Query;
 public class NonSharedPrimitiveCollectionsQueryNpgsqlTest(NonSharedFixture fixture)
     : NonSharedPrimitiveCollectionsQueryRelationalTestBase(fixture)
 {
+    protected override DbContextOptionsBuilder SetParameterizedCollectionMode(DbContextOptionsBuilder optionsBuilder, ParameterizedCollectionMode parameterizedCollectionMode)
+    {
+        new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseParameterizedCollectionMode(parameterizedCollectionMode);
+
+        return optionsBuilder;
+    }
+
     #region Support for specific element types
 
     // Since we just use arrays for primitive collections, there's no need to test each and every element type; arrays are fully typed
@@ -93,20 +100,6 @@ FROM "TestOwner" AS t
 WHERE ((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elements_text(t."Owned" -> 'Strings') WITH ORDINALITY AS t(element) ORDER BY ordinality)))[2] = 'bar'
 LIMIT 2
 """);
-    }
-
-    protected override DbContextOptionsBuilder SetTranslateParameterizedCollectionsToConstants(DbContextOptionsBuilder optionsBuilder)
-    {
-        new NpgsqlDbContextOptionsBuilder(optionsBuilder).TranslateParameterizedCollectionsToConstants();
-
-        return optionsBuilder;
-    }
-
-    protected override DbContextOptionsBuilder SetTranslateParameterizedCollectionsToParameters(DbContextOptionsBuilder optionsBuilder)
-    {
-        new NpgsqlDbContextOptionsBuilder(optionsBuilder).TranslateParameterizedCollectionsToParameters();
-
-        return optionsBuilder;
     }
 
     protected override ITestStoreFactory TestStoreFactory

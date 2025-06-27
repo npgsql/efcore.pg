@@ -23,9 +23,12 @@ public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgs
 
         AssertSql(
             """
+@numbers1='?' (DbType = Int32)
+@numbers2='?' (DbType = Int32)
+
 SELECT t."Id", t."SomeInt"
 FROM "TestEntities" AS t
-WHERE t."SomeInt" IN (?, ?)
+WHERE t."SomeInt" IN (@numbers1, @numbers2)
 LIMIT 2
 """);
     }

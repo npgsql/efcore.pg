@@ -42,11 +42,11 @@ FROM "Missions" AS m
             """
 @start='1902-01-01T10:00:00.1234567+00:00' (DbType = DateTime)
 @end='1902-01-03T10:00:00.1234567+00:00' (DbType = DateTime)
-@dates={ '1902-01-02T10:00:00.1234567+00:00' } (DbType = Object)
+@dates1='1902-01-02T10:00:00.1234567+00:00' (DbType = DateTime)
 
 SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE @start <= date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamptz AND m."Timeline" < @end AND m."Timeline" = ANY (@dates)
+WHERE @start <= date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamptz AND m."Timeline" < @end AND m."Timeline" = @dates1
 """);
     }
 

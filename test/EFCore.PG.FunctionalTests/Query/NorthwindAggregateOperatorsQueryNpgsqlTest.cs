@@ -51,19 +51,20 @@ FROM (
         // Note: PostgreSQL doesn't support uint, but value converters make this into bigint
         AssertSql(
             """
-@ids={ '0', '1' } (DbType = Object)
+@ids1='0'
+@ids2='1'
 
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
 FROM "Employees" AS e
-WHERE e."EmployeeID" = ANY (@ids)
+WHERE e."EmployeeID" IN (@ids1, @ids2)
 """,
             //
             """
-@ids={ '0' } (DbType = Object)
+@ids1='0'
 
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
 FROM "Employees" AS e
-WHERE e."EmployeeID" = ANY (@ids)
+WHERE e."EmployeeID" = @ids1
 """);
     }
 
@@ -75,19 +76,20 @@ WHERE e."EmployeeID" = ANY (@ids)
 
         AssertSql(
             """
-@ids={ '0', '1' } (DbType = Object)
+@ids1='0'
+@ids2='1'
 
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
 FROM "Employees" AS e
-WHERE e."EmployeeID" = ANY (@ids)
+WHERE e."EmployeeID" IN (@ids1, @ids2)
 """,
             //
             """
-@ids={ '0' } (DbType = Object)
+@ids1='0'
 
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
 FROM "Employees" AS e
-WHERE e."EmployeeID" = ANY (@ids)
+WHERE e."EmployeeID" = @ids1
 """);
     }
 
