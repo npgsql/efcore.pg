@@ -215,12 +215,12 @@ WHERE
         {
             if (async)
             {
-                await unpooledRelationalConnection.OpenAsync(errorsExpected: true, cancellationToken: cancellationToken)
+                await unpooledRelationalConnection.OpenAsync(cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
             }
             else
             {
-                unpooledRelationalConnection.Open(errorsExpected: true);
+                unpooledRelationalConnection.Open();
             }
 
             return true;
