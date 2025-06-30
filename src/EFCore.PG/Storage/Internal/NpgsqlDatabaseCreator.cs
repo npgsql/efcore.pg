@@ -354,7 +354,7 @@ WHERE
             {
                 npgsqlConnection.ReloadTypes();
             }
-            catch
+            finally
             {
                 npgsqlConnection.Close();
             }
@@ -396,7 +396,7 @@ WHERE
             {
                 await npgsqlConnection.ReloadTypesAsync(cancellationToken).ConfigureAwait(false);
             }
-            catch
+            finally
             {
                 await npgsqlConnection.CloseAsync().ConfigureAwait(false);
             }
