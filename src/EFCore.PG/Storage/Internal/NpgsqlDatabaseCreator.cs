@@ -354,7 +354,7 @@ WHERE
             {
                 npgsqlConnection.ReloadTypes();
             }
-            catch
+            finally
             {
                 npgsqlConnection.Close();
             }
