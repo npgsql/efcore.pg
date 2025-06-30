@@ -164,13 +164,46 @@ public class NpgsqlDataSourceManager : IDisposable, IAsyncDisposable
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    /// <param name="disposing"><see langword="true"/> when disposed from Dispose(), false when called from DisposeAsync().</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            if (Interlocked.CompareExchange(ref _isDisposed, 1, 0) == 0)
+            {
+                foreach (var dataSource in _dataSources.Values)
+                {
+                    dataSource.Dispose();
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected virtual async ValueTask DisposeAsyncCore()
     {
         if (Interlocked.CompareExchange(ref _isDisposed, 1, 0) == 0)
         {
             foreach (var dataSource in _dataSources.Values)
             {
-                dataSource.Dispose();
+                await dataSource.DisposeAsync().ConfigureAwait(false);
             }
         }
     }
@@ -183,12 +216,8 @@ public class NpgsqlDataSourceManager : IDisposable, IAsyncDisposable
     /// </summary>
     public async ValueTask DisposeAsync()
     {
-        if (Interlocked.CompareExchange(ref _isDisposed, 1, 0) == 0)
-        {
-            foreach (var dataSource in _dataSources.Values)
-            {
-                await dataSource.DisposeAsync().ConfigureAwait(false);
-            }
-        }
+        await DisposeAsyncCore().ConfigureAwait(false);
+        Dispose(disposing: false);
+        GC.SuppressFinalize(this);
     }
 }
