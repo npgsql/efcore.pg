@@ -653,6 +653,20 @@ public static class NpgsqlModelBuilderExtensions
 
     #endregion
 
+    #region Encoding
+    /// <summary>
+    ///     Specifies the encoding to use when creating a new database for this model.
+    /// </summary>
+    public static ModelBuilder UseDatabaseEncoding(this ModelBuilder modelBuilder, string encoding)
+    {
+        Check.NotNull(modelBuilder, nameof(modelBuilder));
+        Check.NotEmpty(encoding, nameof(encoding));
+
+        modelBuilder.Model.SetDatabaseEncoding(encoding);
+        return modelBuilder;
+    }
+    #endregion
+
     #region Collation management
 
     /// <summary>
