@@ -17,17 +17,21 @@ public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgs
     {
         var ctx = CreateRedshiftContext();
 
-        var numbers = new[] { 8, 9 };
-        var result = await ctx.TestEntities.Where(e => numbers.Contains(e.SomeInt)).SingleAsync();
-        Assert.Equal(1, result.Id);
+        // https://github.com/dotnet/efcore/issues/36311
+        await Assert.ThrowsAsync<UnreachableException>(async () =>
+        {
+            var numbers = new[] { 8, 9 };
+            var result = await ctx.TestEntities.Where(e => numbers.Contains(e.SomeInt)).SingleAsync();
+            Assert.Equal(1, result.Id);
 
-        AssertSql(
-            """
-SELECT t."Id", t."SomeInt"
-FROM "TestEntities" AS t
-WHERE t."SomeInt" IN (?, ?)
-LIMIT 2
-""");
+            AssertSql(
+                """
+    SELECT t."Id", t."SomeInt"
+    FROM "TestEntities" AS t
+    WHERE t."SomeInt" IN (?, ?)
+    LIMIT 2
+    """);
+        });
     }
 
     #region Support

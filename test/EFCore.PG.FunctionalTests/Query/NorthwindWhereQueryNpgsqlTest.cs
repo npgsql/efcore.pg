@@ -13,6 +13,10 @@ public class NorthwindWhereQueryNpgsqlTest : NorthwindWhereQueryRelationalTestBa
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
+    // https://github.com/dotnet/efcore/issues/36311
+    public override Task Where_navigation_contains(bool async)
+        => Assert.ThrowsAsync<UnreachableException>(() => base.Where_navigation_contains(async));
+
     public override async Task Where_compare_constructed_equal(bool async)
     {
         // Anonymous type to constant comparison. Issue #14672.

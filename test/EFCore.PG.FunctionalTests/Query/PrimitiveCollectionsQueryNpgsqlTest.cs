@@ -822,6 +822,24 @@ WHERE (
 """);
     }
 
+    // The following test does nothing since we don't override NumberOfValuesForHugeParameterCollectionTests;
+    // the PG parameter limit is huge (ushort), so we don't need to test it.
+    public override async Task Parameter_collection_Count_with_huge_number_of_values(bool async)
+    {
+        await base.Parameter_collection_Count_with_huge_number_of_values(async);
+
+        AssertSql();
+    }
+
+    // The following test does nothing since we don't override NumberOfValuesForHugeParameterCollectionTests;
+    // the PG parameter limit is huge (ushort), so we don't need to test it.
+    public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values(bool async)
+    {
+        await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values(async);
+
+        AssertSql();
+    }
+
     [ConditionalTheory] // #3012
     [MinimumPostgresVersion(14, 0)] // Multiranges were introduced in PostgreSQL 14
     [MemberData(nameof(IsAsyncData))]

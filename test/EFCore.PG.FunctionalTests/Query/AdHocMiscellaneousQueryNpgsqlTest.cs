@@ -7,9 +7,9 @@ public class AdHocMiscellaneousQueryNpgsqlTest(NonSharedFixture fixture) : AdHoc
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
-    protected override DbContextOptionsBuilder SetTranslateParameterizedCollectionsToConstants(DbContextOptionsBuilder optionsBuilder)
+    protected override DbContextOptionsBuilder SetParameterizedCollectionMode(DbContextOptionsBuilder optionsBuilder, ParameterizedCollectionMode parameterizedCollectionMode)
     {
-        new NpgsqlDbContextOptionsBuilder(optionsBuilder).TranslateParameterizedCollectionsToConstants();
+        new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseParameterizedCollectionMode(parameterizedCollectionMode);
 
         return optionsBuilder;
     }
