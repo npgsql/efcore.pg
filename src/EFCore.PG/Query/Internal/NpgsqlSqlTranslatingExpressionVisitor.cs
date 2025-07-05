@@ -611,7 +611,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         QueryContext queryContext,
         string baseParameterName,
         StartsEndsWithContains methodType)
-        => queryContext.ParameterValues[baseParameterName] switch
+        => queryContext.Parameters[baseParameterName] switch
         {
             null => null,
 

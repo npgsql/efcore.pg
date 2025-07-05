@@ -20,8 +20,4 @@ public class ComplexNavigationsQueryNpgsqlTest : ComplexNavigationsQueryRelation
             CoreStrings.QueryUnableToTranslateMethod(
                 "Microsoft.EntityFrameworkCore.Query.ComplexNavigationsQueryTestBase<Microsoft.EntityFrameworkCore.Query.ComplexNavigationsQueryNpgsqlFixture>",
                 "ClientMethodNullableInt"));
-
-    public override Task Nested_SelectMany_correlated_with_join_table_correctly_translated_to_apply(bool async)
-        => Assert.ThrowsAsync<EqualException>(
-            async () => await base.Nested_SelectMany_correlated_with_join_table_correctly_translated_to_apply(async));
 }
