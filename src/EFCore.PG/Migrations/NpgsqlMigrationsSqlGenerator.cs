@@ -1872,10 +1872,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             throw new NotSupportedException("Computed/generated columns aren't supported in PostgreSQL prior to version 12");
         }
 
-        if (operation.IsStored != true)
+        if (operation.IsStored is not true && _postgresVersion < new Version(18, 0))
         {
             throw new NotSupportedException(
-                "Generated columns currently must be stored, specify 'stored: true' in "
+                "Virtual (non-stored) generated columns are only supported on PostgreSQL 18 and up. " +
+                "On older versions, specify 'stored: true' in "
                 + $"'{nameof(RelationalPropertyBuilderExtensions.HasComputedColumnSql)}' in your context's OnModelCreating.");
         }
 
@@ -1894,7 +1895,12 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         builder
             .Append(" GENERATED ALWAYS AS (")
             .Append(operation.ComputedColumnSql!)
-            .Append(") STORED");
+            .Append(")");
+
+        if (operation.IsStored is true)
+        {
+            builder.Append(" STORED");
+        }
 
         if (!operation.IsNullable)
         {
