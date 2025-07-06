@@ -55,7 +55,7 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
                 LTreeTranslator,
                 new NpgsqlMathTranslator(typeMappingSource, sqlExpressionFactory, model),
                 new NpgsqlNetworkTranslator(typeMappingSource, sqlExpressionFactory, model),
-                new NpgsqlNewGuidTranslator(sqlExpressionFactory, npgsqlOptions.PostgresVersion),
+                new NpgsqlGuidTranslator(sqlExpressionFactory, npgsqlOptions.PostgresVersion),
                 new NpgsqlObjectToStringTranslator(typeMappingSource, sqlExpressionFactory),
                 new NpgsqlRandomTranslator(sqlExpressionFactory),
                 new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory, model, supportsMultiranges),

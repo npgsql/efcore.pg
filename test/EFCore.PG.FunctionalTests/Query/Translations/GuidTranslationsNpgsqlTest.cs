@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore.TestModels.BasicTypesModel;
+
 namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
 public class GuidTranslationsNpgsqlTest : GuidTranslationsTestBase<BasicTypesQueryNpgsqlFixture>
@@ -67,6 +69,34 @@ WHERE gen_random_uuid() <> '00000000-0000-0000-0000-000000000000'
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
 WHERE uuid_generate_v4() <> '00000000-0000-0000-0000-000000000000'
+""");
+        }
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task CreateVersion7(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<BasicTypesEntity>()
+                .Where(od => Guid.CreateVersion7() != default));
+
+        if (TestEnvironment.PostgresVersion >= new Version(18, 0))
+        {
+            AssertSql(
+                """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE uuidv7() <> '00000000-0000-0000-0000-000000000000'
+""");
+        }
+        else
+        {
+            AssertSql(
+                """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
 """);
         }
     }

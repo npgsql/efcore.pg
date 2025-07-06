@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
@@ -10,6 +11,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 /// </summary>
 public class NpgsqlEvaluatableExpressionFilter : RelationalEvaluatableExpressionFilter
 {
+    private readonly Version _postgresVersion;
+
     private static readonly MethodInfo TsQueryParse =
         typeof(NpgsqlTsQuery).GetRuntimeMethod(nameof(NpgsqlTsQuery.Parse), [typeof(string)])!;
 
@@ -24,9 +27,11 @@ public class NpgsqlEvaluatableExpressionFilter : RelationalEvaluatableExpression
     /// </summary>
     public NpgsqlEvaluatableExpressionFilter(
         EvaluatableExpressionFilterDependencies dependencies,
-        RelationalEvaluatableExpressionFilterDependencies relationalDependencies)
+        RelationalEvaluatableExpressionFilterDependencies relationalDependencies,
+        INpgsqlSingletonOptions npgsqlSingletonOptions)
         : base(dependencies, relationalDependencies)
     {
+        _postgresVersion = npgsqlSingletonOptions.PostgresVersion;
     }
 
     /// <summary>
@@ -51,6 +56,8 @@ public class NpgsqlEvaluatableExpressionFilter : RelationalEvaluatableExpression
                     || declaringType == typeof(NpgsqlNetworkDbFunctionsExtensions)
                     || declaringType == typeof(NpgsqlJsonDbFunctionsExtensions)
                     || declaringType == typeof(NpgsqlRangeDbFunctionsExtensions)
+                    // PG18 introduced uuidv7(), so we prevent local evaluation when targeting PG18 or later.
+                    || declaringType == typeof(Guid) && method.Name == nameof(Guid.CreateVersion7) && _postgresVersion.AtLeast(18)
                     // Prevent evaluation of ValueTuple.Create, see NewExpression of ITuple below
                     || declaringType == typeof(ValueTuple) && method.Name == nameof(ValueTuple.Create))
                 {
