@@ -56,14 +56,14 @@ jobs:
 
           # Automated repository configuration
           sudo apt install -y postgresql-common
-          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -v ${{ matrix.pg_major }} -y
           sudo apt-get update -qq
           sudo apt-get install -qq postgresql-${{ matrix.pg_major  }}
 
           # To disable PostGIS for prereleases (because it usually isn't available until late), surround with the following:
-          if [ -z "${{ matrix.pg_prerelease }}" ]; then
+          #if [ -z "${{ matrix.pg_prerelease }}" ]; then
             sudo apt-get install -qq postgresql-${{ matrix.pg_major }}-postgis-${{ env.postgis_version }}
-          fi
+          #fi
 
           sudo sed -i 's/max_connections = 100/max_connections = 200/g' /etc/postgresql/${{ matrix.pg_major }}/main/postgresql.conf
           sudo systemctl restart postgresql
