@@ -1,8 +1,5 @@
 # Value Generation
 
-> [!CAUTION]
-> In 3.0.0, the default value generation strategy has changed from the older SERIAL columns to the newer IDENTITY columns. Read the information below carefully if you are migrating an existing database.
-
 > [!NOTE]
 > It's recommended that you start by reading the general [Entity Framework Core docs on generated properties](https://docs.microsoft.com/en-us/ef/core/modeling/generated-properties).
 
@@ -10,7 +7,7 @@
 
 ### Introduction
 
-Since PostgreSQL 10, the standard way to define auto-incrementing columns is "identity columns". Prior to version 10, "serial columns" were used, which are less SQL-compliant and generally more difficult to manage. For more information on these, [see this blog post](https://blog.2ndquadrant.com/postgresql-10-identity-columns/). Note that since PostgreSQL 10, both support `smallint`, `integer` and `bigint` as their data type.
+The standard way to define auto-incrementing columns is "identity columns"; in older versions of PostgreSQL, "serial columns" were used, which are less SQL-compliant and generally more difficult to manage. For more information on these, [see this blog post](https://blog.2ndquadrant.com/postgresql-10-identity-columns/).
 
 The Npgsql EF Core provider allows you to choose which of the above you want on a property-by-property basis, or globally on your model. The following "value generation strategies" are available:
 
@@ -106,9 +103,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 }
 ```
 
-If you prefer to generate values in the database instead, you can do so by specifying `HasDefaultValueSql` on your property, and call the function to generate the value in the SQL expression. Which function to use depends on your PostgreSQL version:
-
-### [PG 13+](#tab/13)
+If you prefer to generate values in the database instead, you can do so by specifying `HasDefaultValueSql` on your property, and call the function to generate the value in the SQL expression. Starting with PostgreSQL 18, version 7 GUIDs can be generated, which are optimized for database indexes:
 
 ```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -116,19 +111,15 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
     modelBuilder
         .Entity<Blog>()
         .Property(e => e.SomeGuidProperty)
-        .HasDefaultValueSql("gen_random_uuid()");
+        .HasDefaultValueSql("uuidv7()");
 }
 ```
 
-### [Older](#tab/older)
-
-Versions of PostgreSQL prior to 13 don't include any GUID/UUID generation functions, but extensions such as `uuid-ossp` or `pgcrypto` exist to fill thie gap. This can be done by placing the following code in your model's `OnModelCreating`:
+Prior to PostgreSQL 18, you can use an extension such as `pg_uuidv7` to generate version 7 GUIDs, or generate random version 7 GUIDs instead:
 
 ```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
-    modelBuilder.HasPostgresExtension("uuid-ossp");    
-
     modelBuilder
         .Entity<Blog>()
         .Property(e => e.SomeGuidProperty)
@@ -136,7 +127,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 }
 ```
 
-***
+However, note that such version 4 GUIDs perform significantly worse with database indexes.
 
 See [the PostgreSQL docs on UUID for more details](https://www.postgresql.org/docs/current/static/datatype-uuid.html).
 
@@ -174,14 +165,9 @@ CREATE TRIGGER "UpdateTimestamp"
     EXECUTE FUNCTION "Blogs_Update_Timestamp_Function"();
 ```
 
-## Computed Columns
+## Computed (generated) columns
 
-> [!NOTE]
-> This feature works only on PostgreSQL 12 or above.
-
-PostgreSQL 12 added support for [stored generated columns](https://www.postgresql.org/docs/current/ddl-generated-columns.html), and Npgsql feature supports that feature as well:
-
-### [Version 5.0](#tab/efcore5)
+EF computed columns - or generated columns, as they're called in PostgreSQL - are fully supported:
 
 ```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -192,23 +178,6 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 }
 ```
 
-### [Version 3.x](#tab/efcore3)
+The above creates a *stored* generated column, meaning that it's computed when a row is inserted or updated, and take up space on disk just like regular columns. PostgreSQL 18 introduced support for *virtual* generated columns, which are instead calculated when read, and take up no space on disk. Virtual generated columns are the default - simply omit `stored: true` above to create them.
 
-```csharp
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-{
-    modelBuilder.Entity<Person>()
-      .Property(p => p.DisplayName)
-      .HasComputedColumnSql(@"""FirstName"" || ' ' || ""LastName""");
-}
-```
-
-***
-
-This will cause the following migration SQL to be generated:
-
-```sql
-ALTER TABLE ""Person"" ADD ""DisplayName"" text GENERATED ALWAYS AS (""FirstName"" || ' ' || ""LastName"") STORED;
-```
-
-Note that this is a *stored* column - it is computed once when the row is updated, and takes space on disk. Virtual computed columns, which are computed on each select, are not yet supported by PostgreSQL.
+See the [EF documentation](https://learn.microsoft.com/ef/core/modeling/generated-properties#computed-columns) and the [PostgreSQL documentation](https://www.postgresql.org/docs/current/ddl-generated-columns.html) for more information.

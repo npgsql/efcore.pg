@@ -8,7 +8,7 @@ The Npgsql-specific translations are listed below. Some areas, such as [full-tex
 
 .NET                                                          | SQL                                                                                                                     | Notes
 ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | --------
-EF.Functions.Collate(operand, collation)                      | operand COLLATE collation                                                                                               | Added in 5.0
+EF.Functions.Collate(operand, collation)                      | operand COLLATE collation
 EF.Functions.Like(matchExpression, pattern)                   | matchExpression LIKE pattern
 EF.Functions.Like(matchExpression, pattern, escapeCharacter)  | matchExpression LIKE pattern ESCAPE escapeCharacter
 EF.Functions.ILike(matchExpression, pattern)                  | [matchExpression ILIKE pattern](../misc/collations-and-case-sensitivity.md)
@@ -20,9 +20,9 @@ string.IsNullOrWhiteSpace(value)                              | value IS NULL OR
 stringValue.CompareTo(strB)                                   | CASE WHEN stringValue = strB THEN 0 ... END
 stringValue.Contains(value)                                   | stringValue LIKE %value%
 stringValue.EndsWith(value)                                   | stringValue LIKE '%' \|\| value
-stringValue.FirstOrDefault()                                  | substr(stringValue, 1, 1)                                                                                               | Added in 5.0
+stringValue.FirstOrDefault()                                  | substr(stringValue, 1, 1)
 stringValue.IndexOf(value)                                    | strpos(stringValue, value) - 1
-stringValue.LastOrDefault()                                   | substr(stringValue, length(stringValue), 1)                                                                             | Added in 5.0
+stringValue.LastOrDefault()                                   | substr(stringValue, length(stringValue), 1)
 stringValue.Length                                            | length(stringValue)
 stringValue.PadLeft(length)                                   | lpad(stringValue, length)
 stringValue.PadLeft(length, char)                             | lpad(stringValue, length, char)
@@ -42,11 +42,11 @@ stringValue.TrimStart(trimChar)                               | ltrim(stringValu
 EF.Functions.Reverse(value)                                   | reverse(value)
 Regex.IsMatch(stringValue, "^A+")                             | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options)
 Regex.IsMatch(stringValue, "^A+", regexOptions)               | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options)
-string.Join(", ", a, b)                                       | [concat_ws(', ', a, b)](https://www.postgresql.org/docs/current/functions-string.html#FUNCTIONS-STRING-OTHER) | Added in 7.0 (previously array_to_string)
+string.Join(", ", a, b)                                       | [concat_ws(', ', a, b)](https://www.postgresql.org/docs/current/functions-string.html#FUNCTIONS-STRING-OTHER)
 string.Join(", ", array)                                      | [array_to_string(array, ', ', '')](https://www.postgresql.org/docs/current/functions-array.html#ARRAY-FUNCTIONS-TABLE)
-string.Join(", ", agg_strings)                                | [string_agg(agg_strings, ', ')](https://www.postgresql.org/docs/current/functions-aggregate.html#FUNCTIONS-AGGREGATE-TABLE) | Added in 7.0, see [Aggregate functions](#aggregate-functions).
-EF.Functions.StringToArray(s, "\|")                           | [string_agg(s, '\|')](https://www.postgresql.org/docs/current/functions-string.html#FUNCTION-STRING-TO-ARRAY) | Added in 8.0
-EF.Functions.StringToArray(s, "\|", "FOO")                    | [string_agg(s, '\|', 'FOO')](https://www.postgresql.org/docs/current/functions-string.html#FUNCTION-STRING-TO-ARRAY) | Added in 8.0
+string.Join(", ", agg_strings)                                | [string_agg(agg_strings, ', ')](https://www.postgresql.org/docs/current/functions-aggregate.html#FUNCTIONS-AGGREGATE-TABLE) | See [Aggregate functions](#aggregate-functions).
+EF.Functions.StringToArray(s, "\|")                           | [string_agg(s, '\|')](https://www.postgresql.org/docs/current/functions-string.html#FUNCTION-STRING-TO-ARRAY)
+EF.Functions.StringToArray(s, "\|", "FOO")                    | [string_agg(s, '\|', 'FOO')](https://www.postgresql.org/docs/current/functions-string.html#FUNCTION-STRING-TO-ARRAY)
 
 ## Date and time functions
 
@@ -59,12 +59,12 @@ EF.Functions.StringToArray(s, "\|", "FOO")                    | [string_agg(s, '
 
 .NET                                                              | SQL                                                                                                                                    | Notes
 ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------
-DateTime.UtcNow (6.0+)                                            | [now()](https://www.postgresql.org/docs/current/functions-datetime.html)                                                               | See 6.0 release notes
-DateTime.Now (6.0+)                                               | [now()::timestamp](https://www.postgresql.org/docs/current/functions-datetime.html)                                                    | See 6.0 release notes
-DateTime.Today (6.0+)                                             | [date_trunc('day', now()::timestamp)](https://www.postgresql.org/docs/current/functions-datetime.html)                                 | See 6.0 release notes
-DateTime.UtcNow (legacy)                                          | [now() AT TIME ZONE 'UTC'](https://www.postgresql.org/docs/current/functions-datetime.html)                                            | See 6.0 release notes
-DateTime.Now (legacy)                                             | [now()](https://www.postgresql.org/docs/current/functions-datetime.html)                                                               | See 6.0 release notes
-DateTime.Today (legacy)                                           | [date_trunc('day', now())](https://www.postgresql.org/docs/current/functions-datetime.html)                                            | See 6.0 release notes
+DateTime.UtcNow (6.0+)                                            | [now()](https://www.postgresql.org/docs/current/functions-datetime.html)                                                               |
+DateTime.Now (6.0+)                                               | [now()::timestamp](https://www.postgresql.org/docs/current/functions-datetime.html)                                                    |
+DateTime.Today (6.0+)                                             | [date_trunc('day', now()::timestamp)](https://www.postgresql.org/docs/current/functions-datetime.html)                                 |
+DateTime.UtcNow (legacy)                                          | [now() AT TIME ZONE 'UTC'](https://www.postgresql.org/docs/current/functions-datetime.html)                                            |
+DateTime.Now (legacy)                                             | [now()](https://www.postgresql.org/docs/current/functions-datetime.html)                                                               |
+DateTime.Today (legacy)                                           | [date_trunc('day', now())](https://www.postgresql.org/docs/current/functions-datetime.html)                                            |
 dateTime.AddDays(1)                                               | [dateTime + INTERVAL '1 days'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)               |
 dateTime.AddHours(value)                                          | [dateTime + INTERVAL '1 hours'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)              |
 dateTime.AddMinutes(1)                                            | [dateTime + INTERVAL '1 minutes'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)            |
@@ -80,35 +80,35 @@ dateTime.Minute                                                   | [date_part('
 dateTime.Month                                                    | [date_part('month', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                                   |
 dateTime.Second                                                   | [date_part('second', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                                  |
 dateTime.Year                                                     | [date_part('year', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                                    |
-dateTime.ToUniversalTime                                          | [dateTime::timestamptz](https://www.postgresql.org/docs/current/datatype-datetime.html#id-1.5.7.13.18.7)                               | Added in 6.0
-dateTime.ToLocalTime                                              | [dateTime::timestamp](https://www.postgresql.org/docs/current/datatype-datetime.html#id-1.5.7.13.18.7)                                 | Added in 6.0
+dateTime.ToUniversalTime                                          | [dateTime::timestamptz](https://www.postgresql.org/docs/current/datatype-datetime.html#id-1.5.7.13.18.7)                               |
+dateTime.ToLocalTime                                              | [dateTime::timestamp](https://www.postgresql.org/docs/current/datatype-datetime.html#id-1.5.7.13.18.7)                                 |
 dateOnly.DayNumber                                                | [dateOnly - DATE '0001-01-01'](https://www.postgresql.org/docs/current/functions-datetime.html)                                        | Added in 9.0
 DateOnly.FromDayNumber(x)                                         | [DATE '0001-01-01' + x](https://www.postgresql.org/docs/current/functions-datetime.html)                                               | Added in 9.0
 dateOnly1.DayNumber - dateOnly2.DayNumber                         | [dateOnly1 - dateOnly2](https://www.postgresql.org/docs/current/functions-datetime.html)                                               | Added in 9.0
-dateTimeOffset.DateTime                                           | [dateTimeOffset AT TIME ZONE 'UTC'](https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT)    | Added in 6.0
-dateTimeOffset.UtcDateTime                                        | No PG operation (.NET-side conversion from DateTimeOffset to DateTime only)                                                            | Added in 6.0
-dateTimeOffset.LocalDateTime                                      | [dateTimeOffset::timestamp](https://www.postgresql.org/docs/current/datatype-datetime.html#id-1.5.7.13.18.7)                           | Added in 6.0
+dateTimeOffset.DateTime                                           | [dateTimeOffset AT TIME ZONE 'UTC'](https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT)    |
+dateTimeOffset.UtcDateTime                                        | No PG operation (.NET-side conversion from DateTimeOffset to DateTime only)                                                            |
+dateTimeOffset.LocalDateTime                                      | [dateTimeOffset::timestamp](https://www.postgresql.org/docs/current/datatype-datetime.html#id-1.5.7.13.18.7)                           |
 timeSpan.Days                                                     | [floor(date_part('day', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                              |
 timeSpan.Hours                                                    | [floor(date_part('hour', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                             |
 timeSpan.Minutes                                                  | [floor(date_part('minute', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                           |
 timeSpan.Seconds                                                  | [floor(date_part('second', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                           |
 timeSpan.Milliseconds                                             | [floor(date_part('millisecond', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                      |
 timeSpan.Milliseconds                                             | [floor(date_part('millisecond', timeSpan))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                      |
-timeSpan.TotalMilliseconds                                        | [date_part('epoch', interval) / 0.001](https://www.postgresql.org/docs/current/functions-datetime.html)                                | Added in 6.0
-timeSpan.TotalSeconds                                             | [date_part('epoch', interval)](https://www.postgresql.org/docs/current/functions-datetime.html)                                        | Added in 6.0
-timeSpan.TotalMinutes                                             | [date_part('epoch', interval) / 60.0](https://www.postgresql.org/docs/current/functions-datetime.html)                                 | Added in 6.0
-timeSpan.TotalDays                                                | [date_part('epoch', interval) / 86400.0](https://www.postgresql.org/docs/current/functions-datetime.html)                              | Added in 6.0
-timeSpan.TotalHours                                               | [date_part('epoch', interval) / 3600.0](https://www.postgresql.org/docs/current/functions-datetime.html)                               | Added in 6.0
+timeSpan.TotalMilliseconds                                        | [date_part('epoch', interval) / 0.001](https://www.postgresql.org/docs/current/functions-datetime.html)                                |
+timeSpan.TotalSeconds                                             | [date_part('epoch', interval)](https://www.postgresql.org/docs/current/functions-datetime.html)                                        |
+timeSpan.TotalMinutes                                             | [date_part('epoch', interval) / 60.0](https://www.postgresql.org/docs/current/functions-datetime.html)                                 |
+timeSpan.TotalDays                                                | [date_part('epoch', interval) / 86400.0](https://www.postgresql.org/docs/current/functions-datetime.html)                              |
+timeSpan.TotalHours                                               | [date_part('epoch', interval) / 3600.0](https://www.postgresql.org/docs/current/functions-datetime.html)                               |
 dateTime1 - dateTime2                                             | [dateTime1 - dateTime2](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)                      |
-TimeZoneInfo.ConvertTimeBySystemTimeZoneId(utcDateTime, timezone) | [utcDateTime AT TIME ZONE timezone](https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT)    | Added in 6.0, only for timestamptz columns
-TimeZoneInfo.ConvertTimeToUtc(nonUtcDateTime)                     | [nonUtcDateTime::timestamptz](https://www.postgresql.org/docs/current/functions-datetime.html)                                         | Added in 6.0, only for timestamp columns
-DateTime.SpecifyKind(utcDateTime, DateTimeKind.Unspecified)       | [utcDateTime AT TIME ZONE 'UTC'](https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT)       | Added in 6.0, only for timestamptz columns
-DateTime.SpecifyKind(nonUtcDateTime, DateTimeKind.Utc)            | [nonUtcDateTime AT TIME ZONE 'UTC'](https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT)    | Added in 6.0, only for timestamp columns
+TimeZoneInfo.ConvertTimeBySystemTimeZoneId(utcDateTime, timezone) | [utcDateTime AT TIME ZONE timezone](https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT)    | Only for timestamptz columns
+TimeZoneInfo.ConvertTimeToUtc(nonUtcDateTime)                     | [nonUtcDateTime::timestamptz](https://www.postgresql.org/docs/current/functions-datetime.html)                                         | Only for timestamp columns
+DateTime.SpecifyKind(utcDateTime, DateTimeKind.Unspecified)       | [utcDateTime AT TIME ZONE 'UTC'](https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT)       | Only for timestamptz columns
+DateTime.SpecifyKind(nonUtcDateTime, DateTimeKind.Utc)            | [nonUtcDateTime AT TIME ZONE 'UTC'](https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT)    | Only for timestamp columns
 new DateTime(year, month, day)                                    | [make_date(year, month, day)](https://www.postgresql.org/docs/current/functions-datetime.html)                                         |
 new DateTime(y, m, d, h, m, s)                                    | [make_timestamp(y, m, d, h, m, s)](https://www.postgresql.org/docs/current/functions-datetime.html)                                    |
-new DateTime(y, m, d, h, m, s, kind)                              | [make_timestamp or make_timestamptz](https://www.postgresql.org/docs/current/functions-datetime.html), based on `kind`                 | Added in 6.0
-EF.Functions.Sum(timespans)                                       | [sum(timespans)](https://www.postgresql.org/docs/current/functions-aggregate.html#FUNCTIONS-AGGREGATE-TABLE)                           | Added in 7.0, see [Aggregate functions](#aggregate-functions).
-EF.Functions.Average(timespans)                                   | [avg(timespans)](https://www.postgresql.org/docs/current/functions-aggregate.html#FUNCTIONS-AGGREGATE-TABLE)                           | Added in 7.0, see [Aggregate functions](#aggregate-functions).
+new DateTime(y, m, d, h, m, s, kind)                              | [make_timestamp or make_timestamptz](https://www.postgresql.org/docs/current/functions-datetime.html), based on `kind`                 |
+EF.Functions.Sum(timespans)                                       | [sum(timespans)](https://www.postgresql.org/docs/current/functions-aggregate.html#FUNCTIONS-AGGREGATE-TABLE)                           | See [Aggregate functions](#aggregate-functions).
+EF.Functions.Average(timespans)                                   | [avg(timespans)](https://www.postgresql.org/docs/current/functions-aggregate.html#FUNCTIONS-AGGREGATE-TABLE)                           | See [Aggregate functions](#aggregate-functions).
 
 ## Miscellaneous functions
 
@@ -116,7 +116,8 @@ EF.Functions.Average(timespans)                                   | [avg(timespa
 ---------------------------------------- | --------------------
 collection.Contains(item)                | item IN collection
 enumValue.HasFlag(flag)                  | enumValue & flag = flag
-Guid.NewGuid()                           | [uuid_generate_v4()](https://www.postgresql.org/docs/current/uuid-ossp.html), or [gen_random_uuid()](https://www.postgresql.org/docs/current/functions-uuid.html) on PostgreSQL 13 with EF Core 5 and above.
+Guid.CreateVersion7()                    | [uuidv7()](https://www.postgresql.org/docs/current/functions-uuid.html) (added in 10 when targeting PG18, client-evaluated otherwise)
+Guid.NewGuid()                           | [gen_random_uuid()](https://www.postgresql.org/docs/current/functions-uuid.html), or [uuid_generate_v4()](https://www.postgresql.org/docs/current/uuid-ossp.html) from [`uuid-ossp`](https://www.postgresql.org/docs/current/uuid-ossp.html) when targeting pre-PG13
 nullable.GetValueOrDefault()             | coalesce(nullable, 0)
 nullable.GetValueOrDefault(defaultValue) | coalesce(nullable, defaultValue)
 
@@ -124,10 +125,10 @@ nullable.GetValueOrDefault(defaultValue) | coalesce(nullable, defaultValue)
 
 .NET                         | SQL                             | Notes
 ---------------------------- | ------------------------------- | --------
-bytes[i]                     | get_byte(bytes, i)              | Added in 5.0
-bytes.Contains(value)        | position(value IN bytes) > 0    | Added in 5.0
-bytes.Length                 | length(@bytes)                  | Added in 5.0
-bytes1.SequenceEqual(bytes2) | @bytes = @second                | Added in 5.0
+bytes[i]                     | get_byte(bytes, i)              |
+bytes.Contains(value)        | position(value IN bytes) > 0    |
+bytes.Length                 | length(@bytes)                  |
+bytes1.SequenceEqual(bytes2) | @bytes = @second                |
 
 ## Math functions
 
@@ -154,16 +155,13 @@ Math.Sign(value)        | sign(value)::int   |
 Math.Sqrt(d)            | sqrt(d)            |
 Math.Tan(a)             | tan(a)             |
 Math.Truncate(d)        | trunc(d)           |
-EF.Functions.Random()   | random()           | Added in 6.0
+EF.Functions.Random()   | random()           |
 
 See also [Aggregate statistics functions](#aggregate-functions).
 
 ## Row value comparisons
 
 The following allow expressing [comparisons over SQL row values](https://www.postgresql.org/docs/current/functions-comparisons.html#ROW-WISE-COMPARISON). This are particularly useful for implementing efficient pagination, see [the EF Core docs](https://docs.microsoft.com/ef/core/querying/pagination) for more information.
-
-> [!NOTE]
-> All of the below were introduced in version 7.0 of the provider.
 
 .NET                                                                              | SQL
 --------------------------------------------------------------------------------- | ----------------
@@ -175,9 +173,6 @@ ValueTuple.Create(a, b).Equals(ValueTuple.Create(c, d))                         
 !ValueTuple.Create(a, b).Equals(ValueTuple.Create(c, d))                          | (a, b) <> (c, d)
 
 ## Network functions
-
-> [!NOTE]
-> As of Npgsql 8.0, `IPAddress` and `NpgsqlCidr` are implicitly convertible to `NpgsqlInet`, and so can be used with the functions below which accept `inet`.
 
 .NET                                             | SQL
 ------------------------------------------------ | ---
@@ -256,9 +251,6 @@ EF.Functions.FuzzyStringMatchDoubleMetaphoneAlt(text)                           
 
 The below translations are for working with label trees from the PostgreSQL [`ltree`](https://www.postgresql.org/docs/current/ltree.html) extension. Use the <xref:Microsoft.EntityFrameworkCore.LTree> type to represent ltree and invoke methods on it in EF Core LINQ queries.
 
-> [!NOTE]
-> LTree support was introduced in version 6.0 of the provider, and requires PostgreSQL 13 or later.
-
 .NET                                                              | SQL
 ----------------------------------------------------------------- | --------------------
 ltree1.IsAncestorOf(ltree2)                                       | ltree1 @&gt; ltree2
@@ -286,9 +278,6 @@ LTree.LongestCommonAncestor(ltree1, ltree2)                       | lca(index(lt
 ## Aggregate functions
 
 The PostgreSQL aggregate functions are documented [here](https://www.postgresql.org/docs/current/functions-aggregate.html).
-
-> [!NOTE]
-> All the below aggregate functions were added in version 7.0.
 
 | .NET                                                                               | SQL
 | ---------------------------------------------------------------------------------- | --------------------

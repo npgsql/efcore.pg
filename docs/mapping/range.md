@@ -2,7 +2,7 @@
 
 PostgreSQL has the unique feature of supporting [*range data types*](https://www.postgresql.org/docs/current/static/rangetypes.html). Ranges represent a range of numbers, dates or other data types, and allow you to easily query ranges which contain a value, perform set operations (e.g. query ranges which contain other ranges), and other similar operations. The range operations supported by PostgreSQL are listed [in this page](https://www.postgresql.org/docs/current/static/functions-range.html). The Npgsql EF Core provider allows you to seamlessly map PostgreSQL ranges, and even perform operations on them that get translated to SQL for server evaluation.
 
-In addition, PostgreSQL 14 introduced *multiranges*, which are basically sorted arrays of non-overlapping ranges with set-theoretic operations defined over them. Most range operators also work on multiranges, and they have a few functions of their own. Multirange support in the EF Core provider was introduced in version 6.0.0.
+In addition, PostgreSQL 14 introduced *multiranges*, which are basically sorted arrays of non-overlapping ranges with set-theoretic operations defined over them. Most range operators also work on multiranges, and they have a few functions of their own.
 
 ## Ranges
 
@@ -44,9 +44,6 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 This will cause the appropriate [`CREATE TYPE ... AS RANGE`](https://www.postgresql.org/docs/current/static/sql-createtype.html) statement to be generated in your migrations, ensuring that your range is created and ready for use. Note that `HasPostgresRange()` supports additional parameters as supported by PostgreSQL `CREATE TYPE`.
 
 ## Multiranges
-
-> [!NOTE]
-> This feature was introduced in version 6.0
 
 Npgsql maps arrays or lists of `NpgsqlRange<T>` to PostgreSQL multiranges:
 
@@ -99,4 +96,4 @@ range1.Merge(range2)                  | [range_merge(range1, range2)](https://ww
 multirange.Merge()                    | [range_merge(multirange)](https://www.postgresql.org/docs/current/functions-range.html#MULTIRANGE-FUNCTIONS-TABLE)
 ranges.RangeAgg()                     | [range_agg(ranges)](https://www.postgresql.org/docs/current/functions-aggregate.html)
 ranges.RangeIntersectAgg()            | [range_intersect_agg(ranges)](https://www.postgresql.org/docs/current/functions-aggregate.html)
-multiranges.RangeIntersectAgg()       | [range_intersect_agg(multiranges)](https://www.postgresql.org/docs/current/functions-aggregate.html)                | Added in 7.0, See [Aggregate functions](translations.md#aggregate-functions).
+multiranges.RangeIntersectAgg()       | [range_intersect_agg(multiranges)](https://www.postgresql.org/docs/current/functions-aggregate.html)                | See [Aggregate functions](translations.md#aggregate-functions).

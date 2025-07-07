@@ -21,9 +21,6 @@ CREATE INDEX "IX_Blog_Id" ON blogs ("Id") INCLUDE ("Name");
 
 ## Treating nulls as non-distinct
 
-> [!NOTE]
-> This feature was introduced in version 7.0, and is available starting with PostgreSQL 15.
-
 By default, when you create a unique index, PostgreSQL treats null values as distinct; this means that a unique index can contain multiple null values in a column. When creating an index, you can also instruct PostgreSQL that nulls should be treated as *non-distinct*; this causes a unique constraint violation to be raised if a column contains multiple null values:
 
 ```csharp
@@ -91,6 +88,3 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 > [!CAUTION]
 > Do not enable this feature before reading the [PostgreSQL documentation](https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY) and understanding the full implications of concurrent index creation.
-
-> [!NOTE]
-> Prior to version 5.0, `IsCreatedConcurrently` erroneously defaulted to `false` - explicitly pass `true` to configure the index for concurrent creation

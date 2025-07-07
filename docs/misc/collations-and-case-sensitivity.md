@@ -1,18 +1,12 @@
 # Collations and Case Sensitivity
 
-> [!NOTE]
-> This feature is introduced in EF Core 5.0.
->
 > It's recommended that you start by reading [the general Entity Framework Core docs on collations and case sensitivity](https://docs.microsoft.com/ef/core/miscellaneous/collations-and-case-sensitivity).
 
-PostgreSQL is a case-sensitive database by default, but provides various possibilities for performing case-insensitive operations and working with collations. Unfortunately, full collation support is recent and somewhat incomplete, so you may need to carefully review your options below and pick the one which suits you.
+PostgreSQL is a case-sensitive database by default, but provides various possibilities for performing case-insensitive operations and working with collations. Depending on your PostgreSQL version, full collation support may be somewhat incomplete, so you may need to carefully review your options below and pick the one which suits you.
 
 ## PostgreSQL collations
 
-While PostgreSQL has supported collations for a long time, supported was limited to "deterministic" collations, which did not allow for case-insensitive or accent-insensitive operations. PostgreSQL 12 introduced non-deterministic ICU collations, so it is now possible to use collations in a more flexible way. Read more about PostgreSQL collation support [in the documentation](https://www.postgresql.org/docs/current/collation.html).
-
-> [!NOTE]
-> It is not yet possible to use pattern matching operators such as LIKE on columns with a non-deterministic collation.
+PostgreSQL has full support for managing collations, and this is the recommended way for managing textual comparisons and sorting. However, note that ; support for non-deterministic collations - coverting case-insensitivity - was relatively limited in some ways. While recent versions such as PostgreSQL 18 support case-insensitive collations quite well, previous versions did not (for example, it was not possible perform pattern matching via LIKE on columns with a non-deterministic collation). Read more about PostgreSQL collation support [in the documentation](https://www.postgresql.org/docs/current/collation.html).
 
 ### Creating a collation
 
@@ -64,7 +58,7 @@ All columns created with this configuration will automatically have their collat
 
 ## The citext type
 
-The older PostgreSQL method for performing case-insensitive text operations is the `citext` type; it is similar to the `text` type, but operators are functions between `citext` values are implicitly case-insensitive. [The PostgreSQL docs](https://www.postgresql.org/docs/current/citext.html) provide more information on this type.
+The older PostgreSQL method for performing case-insensitive text operations is the `citext` type; it is similar to the `text` type, but operators are functions between `citext` values are implicitly case-insensitive. Use this type only if case-insensitive collations (see above) are insufficient for your purposes. [The PostgreSQL docs](https://www.postgresql.org/docs/current/citext.html) provide more information on this type.
 
 `citext` is available in a PostgreSQL-bundled extension, so you'll first have to install it:
 

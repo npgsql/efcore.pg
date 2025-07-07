@@ -4,7 +4,7 @@
 
 By default, EF Core will map to tables and columns named exactly after your .NET classes and properties, so an entity type named `BlogPost` will be mapped to a PostgreSQL table called `BlogPost`. While there's nothing wrong with that, the PostgreSQL world tends towards snake_case naming instead. In addition, any upper-case letters in unquoted identifiers are automatically converted to lower-case identifiers, so the Npgsql provider generates quotes around all such identifiers.
 
-Starting with 3.0.0, you can use the [EFCore.NamingConventions](https://github.com/efcore/EFCore.NamingConventions) plugin to automatically set all your table and column names to snake_case instead:
+The [EFCore.NamingConventions](https://github.com/efcore/EFCore.NamingConventions) plugin to automatically set all your table and column names to snake_case instead:
 
 ```csharp
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -30,6 +30,8 @@ SELECT c.id, c.full_name
         FROM customers AS c
         WHERE c.full_name = 'John Doe';
 ```
+
+However, note that the EFCore.NamingConventions isn't an official part of EF (or of the PostgreSQL provider), and sometimes lags behind in terms of support.
 
 See the [plugin documentation](https://github.com/efcore/EFCore.NamingConventions) for more details,
 

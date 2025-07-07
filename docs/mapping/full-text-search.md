@@ -34,14 +34,7 @@ public class Product
 }
 ```
 
-Setting up the column to be auto-updated depends on your PostgreSQL version. On PostgreSQL 12 and above, the column can be a simple [generated column](../modeling/generated-properties.md#computed-columns), and version 5.0.0 contains sugar for setting that up. In previous versions, you must manually set up database triggers that update the column instead.
-
-#### [PostgreSQL 12+](#tab/pg12)
-
-> [!NOTE]
-> The below only works on PostgreSQL 12 and version 5.0.0 of the EF Core provider.
-
-The following will set up a generated `tsvector` column, over which you can easily create an index:
+Then, configure the property to be a [stored generated column](../modeling/generated-properties.md#computed-generated-columns): the provider has an API for setting that up:
 
 ```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -56,48 +49,9 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 }
 ```
 
-#### [Older Versions](#tab/pg-lt-12)
+Note that `HasGeneratedTsVectorColumn()` is simply a bit of sugar of EF's standard `HasComputedColumnSql()`; if there's anything you need which isn't covered by `HasGeneratedTsVectorColumn()`, simply use `HasComputedColumnSql()`.
 
-First, modify the `OnModelCreating()` of your context class to add an index as follows:
-
-```csharp
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-{
-    modelBuilder.Entity<Product>()
-        .HasIndex(p => p.SearchVector)
-        .HasMethod("GIN"); // Index method on the search vector (GIN or GIST)
-}
-```
-
-Now generate a migration (`dotnet ef migrations add ....`), and open it with your favorite editor, adding the following:
-
-```csharp
-public partial class CreateProductTable : Migration
-{
-    protected override void Up(MigrationBuilder migrationBuilder)
-    {
-        // Migrations for creation of the column and the index will appear here, all we need to do is set up the trigger to update the column:
-
-        migrationBuilder.Sql(
-            @"CREATE TRIGGER product_search_vector_update BEFORE INSERT OR UPDATE
-              ON ""Products"" FOR EACH ROW EXECUTE PROCEDURE
-              tsvector_update_trigger(""SearchVector"", 'pg_catalog.english', ""Name"", ""Description"");");
-
-        // If you were adding a tsvector to an existing table, you should populate the column using an UPDATE
-        // migrationBuilder.Sql("UPDATE \"Products\" SET \"Name\" = \"Name\";");
-    }
-
-    protected override void Down(MigrationBuilder migrationBuilder)
-    {
-        // Migrations for dropping of the column and the index will appear here, all we need to do is drop the trigger:
-        migrationBuilder.Sql("DROP TRIGGER product_search_vector_update");
-    }
-}
-```
-
-***
-
-Once your auto-updated `tsvector` column is set up, any inserts or updates on the `Products` table will now update the `SearchVector` column and maintain it automatically. You can query it as follows:
+Once your generated `tsvector` column is set up, any inserts or updates on the `Products` table will update the `SearchVector` column and maintain it automatically. You can query it as follows:
 
 ```csharp
 var context = new ProductDbContext();
@@ -108,9 +62,7 @@ var npgsql = context.Products
 
 ### Method 2: Expression index
 
-Version 5.0.0 of the provider includes sugar for defining the appropriate expression index; if you're using an older version, you'll have to define a raw SQL migration yourself.
-
-#### [Version 5.0.0](#tab/v5)
+If you prefer to have an expression index rather than a generated column, use the following API to do so:
 
 ```csharp
 modelBuilder.Entity<Blog>()
@@ -118,23 +70,6 @@ modelBuilder.Entity<Blog>()
     .HasMethod("GIN")
     .IsTsVectorExpressionIndex("english");
 ```
-
-#### [Older Versions](#tab/lt-v5)
-
-Create a migration which will contain the index creation SQL (`dotnet ef migrations add ...`). At this point, open the generated migration with your editor and add the following:
-
-```csharp
-protected override void Up(MigrationBuilder migrationBuilder)
-{
-    migrationBuilder.Sql(@"CREATE INDEX fts_idx ON ""Product"" USING GIN (to_tsvector('english', ""Name"" || ' ' || ""Description""));");
-}
-
-protected override void Down(MigrationBuilder migrationBuilder)
-    migrationBuilder.Sql(@"DROP INDEX fts_idx;");
-}
-```
-
-***
 
 Once the index is created on the `Title` and `Description` columns, you can query as follows:
 
@@ -148,9 +83,9 @@ var npgsql = context.Products
 
 ## Computed column over JSON columns
 
-Starting with 7.0, the provider can also create computed `tsvector` columns over JSON columns. Simply use `HasGeneratedTsVectorColumn()` as shown above, and when applied to JSON columns, the provider will automatically generate [`json_to_tsvector/jsonb_to_tsvector`](https://www.postgresql.org/docs/current/functions-textsearch.html#TEXTSEARCH-FUNCTIONS-TABLE) as appropriate.
+The provider can also create computed `tsvector` columns over JSON columns. Simply use `HasGeneratedTsVectorColumn()` as shown above, and when applied to JSON columns, the provider will automatically generate [`json_to_tsvector/jsonb_to_tsvector`](https://www.postgresql.org/docs/current/functions-textsearch.html#TEXTSEARCH-FUNCTIONS-TABLE) as appropriate.
 
-Note that this will pass the filter `all` to these functions, meaning that all values in the JSON document will be included. To customize the filter - or to create the computed column on older versions of the provider - simply specify the function yourself via [`HasComputedColumnSql`](https://docs.microsoft.com/ef/core/modeling/generated-properties?tabs=data-annotations#computed-columns).
+Note that this will pass the filter `all` to these functions, meaning that all values in the JSON document will be included. To customize the filter - or to create the computed column on older versions of the provider - simply specify the function yourself via [`HasComputedColumnSql`](https://docs.microsoft.com/ef/core/modeling/generated-properties?tabs=data-annotations#computed-generated-columns).
 
 ## Operation translation
 
