@@ -390,17 +390,22 @@ ORDER BY attnum
                     continue;
                 }
 
-                // Default values and PostgreSQL 12 generated columns
+                // Default values and generated columns
                 var defaultValueSql = record.GetValueOrDefault<string>("default");
-                if (record.GetFieldValue<string>("attgenerated") == "s")
+                switch (record.GetFieldValue<string>("attgenerated"))
                 {
-                    column.ComputedColumnSql = defaultValueSql;
-                    column.IsStored = true;
-                }
-                else
-                {
-                    column.DefaultValueSql = defaultValueSql;
-                    column.DefaultValue = ParseDefaultValueSql(systemTypeName, defaultValueSql);
+                    case "v":
+                        column.ComputedColumnSql = defaultValueSql;
+                        column.IsStored = false;
+                        break;
+                    case "s":
+                        column.ComputedColumnSql = defaultValueSql;
+                        column.IsStored = true;
+                        break;
+                    default:
+                        column.DefaultValueSql = defaultValueSql;
+                        column.DefaultValue = ParseDefaultValueSql(systemTypeName, defaultValueSql);
+                        break;
                 }
 
                 // Identify IDENTITY columns, as well as SERIAL ones.
