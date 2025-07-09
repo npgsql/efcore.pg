@@ -205,7 +205,7 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
         var adminNpgsqlOptions = DataSource is not null
             ? npgsqlOptions.WithConnection(((NpgsqlConnection)CreateDbConnection()).CloneWith(adminConnectionString))
             : npgsqlOptions.Connection is not null
-                ? npgsqlOptions.WithConnection(DbConnection.CloneWith(adminConnectionString))
+                ? npgsqlOptions.WithConnection(DbConnection.CloneWith(adminConnectionString), owned: true)
                 : npgsqlOptions.WithConnectionString(adminConnectionString);
 
         var optionsBuilder = new DbContextOptionsBuilder();
@@ -243,7 +243,7 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
 
         var relationalOptions = RelationalOptionsExtension.Extract(Dependencies.ContextOptions)
             .WithConnectionString(null)
-            .WithConnection(clonedDbConnection);
+            .WithConnection(clonedDbConnection, owned: true);
 
         var optionsBuilder = new DbContextOptionsBuilder();
         ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(relationalOptions);
