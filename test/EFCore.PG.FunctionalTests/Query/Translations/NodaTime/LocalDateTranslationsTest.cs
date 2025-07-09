@@ -177,6 +177,38 @@ LIMIT 1
 """);
     }
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task At(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDate.At(new LocalTime(12, 30, 0)) == new LocalDateTime(2018, 4, 20, 12, 30, 0)));
+
+AssertSql(
+"""
+SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
+FROM "NodaTimeTypes" AS n
+WHERE n."LocalDate" + TIME '12:30:00' = TIMESTAMP '2018-04-20T12:30:00'
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task AtMidnight(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<NodaTimeTypes>().Where(t => t.LocalDate.AtMidnight() == new LocalDateTime(2018, 4, 20, 0, 0, 0)));
+
+AssertSql(
+"""
+SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
+FROM "NodaTimeTypes" AS n
+WHERE n."LocalDate" + TIME '00:00:00' = TIMESTAMP '2018-04-20T00:00:00'
+""");
+    }
+
     private NodaTimeContext CreateContext()
         => Fixture.CreateContext();
 
