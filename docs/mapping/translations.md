@@ -53,7 +53,7 @@ EF.Functions.StringToArray(s, "\|", "FOO")                    | [string_agg(s, '
 > [!NOTE]
 > Some of the operations below depend on the concept of a "local time zone" (e.g. `DateTime.Today`). While in .NET this is the machine time zone where .NET is running, the corresponding PostgreSQL translations use the [`TimeZone`](https://www.postgresql.org/docs/current/runtime-config-client.html#GUC-TIMEZONE) connection parameter as the local time zone.
 >
-> Since version 6.0, many of the below DateTime translations are also supported on DateTimeOffset.
+> Many of the below DateTime translations are also supported on `DateTimeOffset`.
 >
 > See also Npgsql's [NodaTime support](/efcore/mapping/nodatime.html), which is a better and safer way of interacting with date/time data.
 
