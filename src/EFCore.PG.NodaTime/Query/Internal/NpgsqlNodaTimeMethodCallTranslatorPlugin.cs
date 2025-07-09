@@ -281,6 +281,27 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
             return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]);
         }
 
+        if (method.DeclaringType == typeof(LocalDate))
+        {
+            return method.Name switch
+            {
+                nameof(LocalDate.At) => new SqlBinaryExpression(
+                    ExpressionType.Add,
+                    _sqlExpressionFactory.ApplyDefaultTypeMapping(instance!),
+                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]),
+                    typeof(LocalDateTime),
+                    _typeMappingSource.FindMapping(typeof(LocalDateTime))),
+
+                nameof(LocalDate.AtMidnight) => new SqlBinaryExpression(
+                    ExpressionType.Add,
+                    _sqlExpressionFactory.ApplyDefaultTypeMapping(instance!),
+                    new SqlConstantExpression(new LocalTime(0, 0, 0), _typeMappingSource.FindMapping(typeof(LocalTime))),
+                    typeof(LocalDateTime),
+                    _typeMappingSource.FindMapping(typeof(LocalDateTime))),
+
+                _ => null
+            };
+        }
         return null;
     }
 
