@@ -1,5 +1,7 @@
+using System.Linq.Expressions;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
@@ -25,7 +27,11 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlJsonTypeMapping(string storeType, Type clrType)
-        : base(storeType, clrType, storeType == "jsonb" ? NpgsqlDbType.Jsonb : NpgsqlDbType.Json)
+        : base(
+            new RelationalTypeMappingParameters(
+                new CoreTypeMappingParameters(clrType, comparer: GetValueComparer(clrType)),
+                storeType),
+            storeType == "jsonb" ? NpgsqlDbType.Jsonb : NpgsqlDbType.Json)
     {
         if (storeType != "json" && storeType != "jsonb")
         {
@@ -98,6 +104,14 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
                 writer.Flush();
                 return $"'{EscapeSqlLiteral(Encoding.UTF8.GetString(stream.ToArray()))}'";
             }
+            case JsonNode node:
+            {
+                using var stream = new MemoryStream();
+                using var writer = new Utf8JsonWriter(stream);
+                node.WriteTo(writer);
+                writer.Flush();
+                return $"'{EscapeSqlLiteral(Encoding.UTF8.GetString(stream.ToArray()))}'";
+            }
             case string s:
                 return $"'{EscapeSqlLiteral(s)}'";
             default: // User POCO
@@ -119,6 +133,8 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
             JsonElement element => Expression.Property(
                 Expression.Call(ParseMethod, Expression.Constant(element.ToString()), DefaultJsonDocumentOptions),
                 nameof(JsonDocument.RootElement)),
+            JsonNode node => Expression.Call(
+                ParseJsonNodeMethod, Expression.Constant(node.ToString())),
             string s => Expression.Constant(s),
             _ => throw new NotSupportedException("Cannot generate code literals for JSON POCOs")
         };
@@ -127,4 +143,80 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
 
     private static readonly MethodInfo ParseMethod =
         typeof(JsonDocument).GetMethod(nameof(JsonDocument.Parse), [typeof(string), typeof(JsonDocumentOptions)])!;
+
+    private static readonly MethodInfo ParseJsonNodeMethod =
+        typeof(JsonNode).GetMethod(nameof(JsonNode.Parse), [typeof(string)])!;
+
+    private static ValueComparer? GetValueComparer(Type clrType)
+    {
+        // JsonNode types are mutable reference types and need custom comparers for change tracking
+        if (clrType == typeof(JsonNode))
+            return new JsonNodeValueComparer();
+        if (clrType == typeof(JsonObject))
+            return new JsonObjectValueComparer();
+        if (clrType == typeof(JsonArray))
+            return new JsonArrayValueComparer();
+        if (clrType == typeof(JsonValue))
+            return new JsonValueValueComparer();
+            
+        // JsonDocument and JsonElement don't need custom comparers
+        // JsonDocument is immutable, JsonElement is a value type
+        return null;
+    }
+
+    private sealed class JsonNodeValueComparer() : ValueComparer<JsonNode>(
+        (l, r) => JsonNodeEquals(l, r),
+        v => v == null ? 0 : JsonNodeHashCode(v),
+        v => CloneJsonNode(v)!)
+    {
+    }
+
+    private sealed class JsonObjectValueComparer() : ValueComparer<JsonObject>(
+        (l, r) => JsonNodeEquals(l, r),
+        v => v == null ? 0 : JsonNodeHashCode(v),
+        v => CloneJsonObject(v)!)
+    {
+    }
+
+    private sealed class JsonArrayValueComparer() : ValueComparer<JsonArray>(
+        (l, r) => JsonNodeEquals(l, r),
+        v => v == null ? 0 : JsonNodeHashCode(v),
+        v => CloneJsonArray(v)!)
+    {
+    }
+
+    private sealed class JsonValueValueComparer() : ValueComparer<JsonValue>(
+        (l, r) => JsonNodeEquals(l, r),
+        v => v == null ? 0 : JsonNodeHashCode(v),
+        v => CloneJsonValue(v)!)
+    {
+    }
+
+    private static bool JsonNodeEquals(JsonNode? left, JsonNode? right)
+    {
+        if (ReferenceEquals(left, right))
+            return true;
+        if (left is null || right is null)
+            return false;
+            
+        return JsonNode.DeepEquals(left, right);
+    }
+
+    private static int JsonNodeHashCode(JsonNode node)
+    {
+        // Use string representation for hash code since JsonNode doesn't provide a reliable GetHashCode
+        return node.ToString().GetHashCode();
+    }
+
+    private static JsonNode? CloneJsonNode(JsonNode? node)
+        => node?.DeepClone();
+
+    private static JsonObject? CloneJsonObject(JsonObject? obj)
+        => obj?.DeepClone().AsObject();
+
+    private static JsonArray? CloneJsonArray(JsonArray? array)
+        => array?.DeepClone().AsArray();
+
+    private static JsonValue? CloneJsonValue(JsonValue? value)
+        => value?.DeepClone().AsValue();
 }

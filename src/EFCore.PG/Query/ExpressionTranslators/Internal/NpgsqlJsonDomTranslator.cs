@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
@@ -22,6 +23,15 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
         nameof(JsonElement.GetArrayLength), Type.EmptyTypes)!;
 
     private static readonly MethodInfo ArrayIndexer = typeof(JsonElement).GetProperties()
+        .Single(p => p.GetIndexParameters().Length == 1 && p.GetIndexParameters()[0].ParameterType == typeof(int))
+        .GetMethod!;
+
+    // JsonNode indexers
+    private static readonly MethodInfo JsonNodeStringIndexer = typeof(JsonNode).GetProperties()
+        .Single(p => p.GetIndexParameters().Length == 1 && p.GetIndexParameters()[0].ParameterType == typeof(string))
+        .GetMethod!;
+
+    private static readonly MethodInfo JsonNodeIntIndexer = typeof(JsonNode).GetProperties()
         .Single(p => p.GetIndexParameters().Length == 1 && p.GetIndexParameters()[0].ParameterType == typeof(int))
         .GetMethod!;
 
@@ -100,11 +110,24 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (method.DeclaringType != typeof(JsonElement) || instance?.TypeMapping is not NpgsqlJsonTypeMapping mapping)
+        // Handle JsonElement methods
+        if (method.DeclaringType == typeof(JsonElement) && instance?.TypeMapping is NpgsqlJsonTypeMapping mapping)
         {
-            return null;
+            return TranslateJsonElement(instance, method, arguments, mapping);
         }
 
+        // Handle JsonNode indexers
+        if ((method.DeclaringType == typeof(JsonNode) || method.DeclaringType == typeof(JsonObject) || method.DeclaringType == typeof(JsonArray))
+            && instance?.TypeMapping is NpgsqlJsonTypeMapping jsonMapping)
+        {
+            return TranslateJsonNode(instance, method, arguments, jsonMapping);
+        }
+
+        return null;
+    }
+
+    private SqlExpression? TranslateJsonElement(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments, NpgsqlJsonTypeMapping mapping)
+    {
         // The root of the JSON expression is a ColumnExpression. We wrap that with an empty traversal
         // expression (col #>> '{}'); subsequent traversals will gradually append the path into that.
         // Note that it's possible to call methods such as GetString() directly on the root, and the
@@ -150,6 +173,25 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
         if (method.Name.StartsWith("TryGet", StringComparison.Ordinal) && arguments.Count == 0)
         {
             throw new InvalidOperationException($"The TryGet* methods on {nameof(JsonElement)} aren't translated yet, use Get* instead.'");
+        }
+
+        return null;
+    }
+
+    private SqlExpression? TranslateJsonNode(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments, NpgsqlJsonTypeMapping mapping)
+    {
+        // Ensure we have a traversal expression
+        instance = instance is ColumnExpression columnExpression
+            ? _sqlExpressionFactory.JsonTraversal(
+                columnExpression, returnsText: false, typeof(string), mapping)
+            : instance;
+
+        // Handle JsonNode indexers (both string and int indexers)
+        if ((method == JsonNodeStringIndexer || method == JsonNodeIntIndexer) && arguments.Count == 1)
+        {
+            return instance is PgJsonTraversalExpression prevPathTraversal
+                ? prevPathTraversal.Append(_sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]))
+                : null;
         }
 
         return null;
