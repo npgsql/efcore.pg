@@ -158,7 +158,7 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
             return new JsonArrayValueComparer();
         if (clrType == typeof(JsonValue))
             return new JsonValueValueComparer();
-            
+
         // JsonDocument and JsonElement don't need custom comparers
         // JsonDocument is immutable, JsonElement is a value type
         return null;
@@ -198,7 +198,7 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
             return true;
         if (left is null || right is null)
             return false;
-            
+
         return JsonNode.DeepEquals(left, right);
     }
 

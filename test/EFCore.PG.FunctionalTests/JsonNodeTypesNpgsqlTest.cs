@@ -82,7 +82,7 @@ public class JsonNodeTypesNpgsqlTest : IClassFixture<JsonNodeTypesNpgsqlTest.Jso
             Id = 102,
             JsonObjectProperty = new JsonObject
             {
-                ["category"] = "movies", 
+                ["category"] = "movies",
                 ["rating"] = 4
             }
         };
