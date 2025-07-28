@@ -2155,6 +2155,28 @@ CREATE TABLE column_types (
             },
             "DROP TABLE column_types");
 
+    [Fact]
+    public void Partition_tables()
+    => Test(
+        """
+DROP TABLE IF EXISTS test_table;
+DROP TABLE IF EXISTS foo;
+CREATE TABLE foo (some_num int UNIQUE);
+CREATE TABLE test_table (
+    partition_id smallint,
+    partition_key integer
+    ) PARTITION BY LIST (partition_key);
+""",
+        [],
+        [],
+        dbModel =>
+        {
+            Assert.Equal(2, dbModel.Tables.Count);
+            Assert.Equal(3, dbModel.Tables.SelectMany(x => x.Columns).Count());
+        },
+        "DROP TABLE test_table;DROP TABLE foo;");
+
+
     [ConditionalFact]
     [RequiresPostgis]
     public void System_tables_are_ignored()

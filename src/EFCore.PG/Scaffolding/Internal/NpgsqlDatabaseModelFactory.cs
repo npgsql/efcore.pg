@@ -201,7 +201,7 @@ FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid=0
 WHERE
-  cls.relkind IN ('r', 'v', 'm', 'f') AND
+  cls.relkind IN ('r', 'v', 'm', 'f', 'p') AND
   ns.nspname NOT IN ({internalSchemas}) AND
   cls.relname <> '{HistoryRepository.DefaultTableName}' AND
   -- Exclude tables which are members of PG extensions
@@ -236,6 +236,7 @@ WHERE
                 {
                     'r' => new DatabaseTable(),
                     'f' => new DatabaseTable(),
+                    'p' => new DatabaseTable(),
                     'v' => new DatabaseView(),
                     'm' => new DatabaseView(),
                     _ => throw new ArgumentOutOfRangeException($"Unknown relkind '{type}' when scaffolding {DisplayName(schema, name)}")
@@ -318,7 +319,7 @@ LEFT JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid = attnu
 LEFT JOIN pg_depend AS dep ON dep.refobjid = cls.oid AND dep.refobjsubid = attr.attnum AND dep.deptype = 'i'
 {(connection.PostgreSqlVersion >= new Version(10, 0) ? "LEFT JOIN pg_sequence AS seq ON seq.seqrelid = dep.objid" : "")}
 WHERE
-  cls.relkind IN ('r', 'v', 'm', 'f') AND
+  cls.relkind IN ('r', 'v', 'm', 'f', 'p') AND
   nspname NOT IN ({internalSchemas}) AND
   attnum > 0 AND
   cls.relname <> '{HistoryRepository.DefaultTableName}' AND
