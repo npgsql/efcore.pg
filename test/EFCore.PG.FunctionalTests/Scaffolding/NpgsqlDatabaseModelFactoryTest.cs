@@ -2177,6 +2177,44 @@ CREATE TABLE test_table (
         "DROP TABLE test_table;DROP TABLE foo;");
 
 
+    [Fact]
+    public void Child_partition_tables_ignored()
+=> Test(
+"""
+    DROP TABLE IF EXISTS test_table;
+    DROP TABLE IF EXISTS foo;
+    CREATE TABLE foo (some_num int UNIQUE);
+
+    CREATE TABLE test_table (
+    partition_id smallint NOT NULL,
+    p_key smallint NOT NULL,
+    test_foreign_key int references foo(some_num),
+    partition_key integer NOT NULL,
+    PRIMARY KEY (p_key, partition_key),
+    CONSTRAINT test_constraint UNIQUE (partition_id, partition_key)
+    ) PARTITION BY LIST (partition_key);
+
+    CREATE INDEX IF NOT EXISTS test_index
+    ON public.test_table USING btree
+    (partition_key ASC NULLS LAST, p_key ASC NULLS LAST, partition_id ASC NULLS LAST)
+    WITH (deduplicate_items=True);
+
+    CREATE TABLE test_table_1 PARTITION OF test_table FOR VALUES IN (1);
+""",
+    [],
+    [],
+    dbModel =>
+    {
+        Assert.Equal(2, dbModel.Tables.Count);
+        Assert.Equal(5, dbModel.Tables.SelectMany(x => x.Columns).Count());
+        Assert.Single(dbModel.Tables.Where(x => x.PrimaryKey != null).Select(x => x.PrimaryKey));
+        Assert.Equal(2, dbModel.Tables.SelectMany(x => x.UniqueConstraints).Count());
+        Assert.Single(dbModel.Tables.SelectMany(x => x.ForeignKeys));
+        Assert.Single(dbModel.Tables.SelectMany(x => x.Indexes));
+    },
+    "DROP TABLE test_table_1;DROP TABLE test_table;DROP TABLE foo;");
+
+
     [ConditionalFact]
     [RequiresPostgis]
     public void System_tables_are_ignored()

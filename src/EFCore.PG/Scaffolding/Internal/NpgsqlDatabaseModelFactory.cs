@@ -204,6 +204,8 @@ WHERE
   cls.relkind IN ('r', 'v', 'm', 'f', 'p') AND
   ns.nspname NOT IN ({internalSchemas}) AND
   cls.relname <> '{HistoryRepository.DefaultTableName}' AND
+  -- Exclude child partitions
+  cls.relispartition <> true AND
   -- Exclude tables which are members of PG extensions
   NOT EXISTS (
     SELECT 1 FROM pg_depend WHERE
@@ -323,6 +325,8 @@ WHERE
   nspname NOT IN ({internalSchemas}) AND
   attnum > 0 AND
   cls.relname <> '{HistoryRepository.DefaultTableName}' AND
+  -- Exclude child partitions
+  cls.relispartition <> true AND
   -- Exclude tables which are members of PG extensions
   NOT EXISTS (
     SELECT 1 FROM pg_depend WHERE
@@ -620,10 +624,12 @@ JOIN pg_index AS idx ON indrelid = cls.oid
 JOIN pg_class AS idxcls ON idxcls.oid = indexrelid
 JOIN pg_am AS am ON am.oid = idxcls.relam
 WHERE
-  cls.relkind = 'r' AND
+  cls.relkind IN ('r','p') AND
   nspname NOT IN ({internalSchemas}) AND
   NOT indisprimary AND
   cls.relname <> '{HistoryRepository.DefaultTableName}' AND
+  -- Exclude child partitions
+  cls.relispartition <> true AND
   -- Exclude tables which are members of PG extensions
   NOT EXISTS (
     SELECT 1 FROM pg_depend WHERE
@@ -829,10 +835,12 @@ JOIN pg_constraint as con ON con.conrelid = cls.oid
 LEFT OUTER JOIN pg_class AS frncls ON frncls.oid = con.confrelid
 LEFT OUTER JOIN pg_namespace as frnns ON frnns.oid = frncls.relnamespace
 WHERE
-  cls.relkind = 'r' AND
+  cls.relkind IN ('r','p') AND
   ns.nspname NOT IN ({internalSchemas}) AND
   con.contype IN ('p', 'f', 'u') AND
   cls.relname <> '{HistoryRepository.DefaultTableName}' AND
+  -- Exclude child partitions
+  cls.relispartition <> true AND
   -- Exclude tables which are members of PG extensions
   NOT EXISTS (
     SELECT 1 FROM pg_depend WHERE
