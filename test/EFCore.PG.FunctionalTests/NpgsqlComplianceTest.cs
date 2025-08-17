@@ -4,6 +4,9 @@ public class NpgsqlComplianceTest : RelationalComplianceTestBase
 {
     protected override ICollection<Type> IgnoredTestBases { get; } = new HashSet<Type>
     {
+        // TODO: Enable for rc.1 (query support for complex collections mapped to JSON)
+        typeof(ComplexCollectionJsonUpdateTestBase<>),
+
         // Not implemented
         typeof(CompiledModelTestBase), typeof(CompiledModelRelationalTestBase), // #3087
         typeof(FromSqlSprocQueryTestBase<>),

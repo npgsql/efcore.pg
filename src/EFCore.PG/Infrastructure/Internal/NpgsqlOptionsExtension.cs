@@ -11,7 +11,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 public class NpgsqlOptionsExtension : RelationalOptionsExtension
 {
     private DbContextOptionsExtensionInfo? _info;
-    private ParameterizedCollectionMode? _parameterizedCollectionMode;
+    private ParameterTranslationMode? _parameterizedCollectionMode;
 
     private readonly List<UserRangeDefinition> _userRangeDefinitions;
     private readonly List<EnumDefinition> _enumDefinitions;
@@ -27,8 +27,8 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override ParameterizedCollectionMode ParameterizedCollectionMode
-        => _parameterizedCollectionMode ?? ParameterizedCollectionMode.Parameter;
+    public override ParameterTranslationMode ParameterizedCollectionMode
+        => _parameterizedCollectionMode ?? ParameterTranslationMode.Parameter;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -148,7 +148,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
 
     // We need to override WithUseParameterizedCollectionMode since we override ParameterizedCollectionMode above
     /// <inheritdoc />
-    public override RelationalOptionsExtension WithUseParameterizedCollectionMode(ParameterizedCollectionMode parameterizedCollectionMode)
+    public override RelationalOptionsExtension WithUseParameterizedCollectionMode(ParameterTranslationMode parameterizedCollectionMode)
     {
         var clone = (NpgsqlOptionsExtension)Clone();
 

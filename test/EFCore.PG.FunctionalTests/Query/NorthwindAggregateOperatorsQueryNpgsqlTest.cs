@@ -15,22 +15,6 @@ public class NorthwindAggregateOperatorsQueryNpgsqlTest : NorthwindAggregateOper
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    // https://github.com/dotnet/efcore/issues/36311
-    public override Task Contains_with_parameter_list_value_type_id(bool async)
-        => Assert.ThrowsAsync<UnreachableException>(() => base.Contains_with_parameter_list_value_type_id(async));
-
-    // https://github.com/dotnet/efcore/issues/36311
-    public override Task IReadOnlySet_Contains_with_parameter(bool async)
-        => Assert.ThrowsAsync<UnreachableException>(() => base.IReadOnlySet_Contains_with_parameter(async));
-
-    // https://github.com/dotnet/efcore/issues/36311
-    public override Task List_Contains_with_parameter_list(bool async)
-        => Assert.ThrowsAsync<UnreachableException>(() => base.List_Contains_with_parameter_list(async));
-
-    // https://github.com/dotnet/efcore/issues/36311
-    public override Task IImmutableSet_Contains_with_parameter(bool async)
-        => Assert.ThrowsAsync<UnreachableException>(() => base.IImmutableSet_Contains_with_parameter(async));
-
     // Overriding to add equality tolerance because of floating point precision
     public override async Task Average_over_max_subquery(bool async)
     {

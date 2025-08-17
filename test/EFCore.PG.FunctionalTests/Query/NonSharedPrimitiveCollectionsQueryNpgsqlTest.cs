@@ -5,7 +5,7 @@ namespace Microsoft.EntityFrameworkCore.Query;
 public class NonSharedPrimitiveCollectionsQueryNpgsqlTest(NonSharedFixture fixture)
     : NonSharedPrimitiveCollectionsQueryRelationalTestBase(fixture)
 {
-    protected override DbContextOptionsBuilder SetParameterizedCollectionMode(DbContextOptionsBuilder optionsBuilder, ParameterizedCollectionMode parameterizedCollectionMode)
+    protected override DbContextOptionsBuilder SetParameterizedCollectionMode(DbContextOptionsBuilder optionsBuilder, ParameterTranslationMode parameterizedCollectionMode)
     {
         new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseParameterizedCollectionMode(parameterizedCollectionMode);
 
