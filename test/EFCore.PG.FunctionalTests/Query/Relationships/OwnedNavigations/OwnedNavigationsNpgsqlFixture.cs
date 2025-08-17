@@ -1,10 +1,10 @@
-﻿namespace Microsoft.EntityFrameworkCore.Query.Relationships.OwnedNavigations;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
-public class OwnedNavigationsNpgsqlFixture : OwnedNavigationsRelationalFixtureBase, ITestSqlLoggerFactory
+namespace Microsoft.EntityFrameworkCore.Query.Relationships.OwnedNavigations;
+
+public class OwnedNavigationsNpgsqlFixture : OwnedNavigationsRelationalFixtureBase
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
-
-    public TestSqlLoggerFactory TestSqlLoggerFactory
-        => (TestSqlLoggerFactory)ListLoggerFactory;
 }

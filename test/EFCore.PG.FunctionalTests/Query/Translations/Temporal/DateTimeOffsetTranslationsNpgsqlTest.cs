@@ -12,12 +12,12 @@ public class DateTimeOffsetTranslationsNpgsqlTest : DateTimeOffsetTranslationsTe
     }
 
     // Not supported by design (DateTimeOffset with non-zero offset)
-    public override Task Now(bool async)
-        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Now(async));
+    public override Task Now()
+        => Assert.ThrowsAsync<InvalidOperationException>(() => base.Now());
 
-    public override async Task UtcNow(bool async)
+    public override async Task UtcNow()
     {
-        await base.UtcNow(async);
+        await base.UtcNow();
 
         AssertSql(
             """
@@ -29,12 +29,12 @@ WHERE b."DateTimeOffset" <> now()
 
     // The test compares with new DateTimeOffset().Date, which Npgsql sends as -infinity, causing a discrepancy with the client behavior
     // which uses 1/1/1:0:0:0
-    public override Task Date(bool async)
-        => Assert.ThrowsAsync<EqualException>(() => base.Date(async));
+    public override Task Date()
+        => Assert.ThrowsAsync<EqualException>(() => base.Date());
 
-    public override async Task Year(bool async)
+    public override async Task Year()
     {
-        await base.Year(async);
+        await base.Year();
 
         AssertSql(
             """
@@ -44,9 +44,9 @@ WHERE date_part('year', b."DateTimeOffset" AT TIME ZONE 'UTC')::int = 1998
 """);
     }
 
-    public override async Task Month(bool async)
+    public override async Task Month()
     {
-        await base.Month(async);
+        await base.Month();
 
         AssertSql(
             """
@@ -56,9 +56,9 @@ WHERE date_part('month', b."DateTimeOffset" AT TIME ZONE 'UTC')::int = 5
 """);
     }
 
-    public override async Task DayOfYear(bool async)
+    public override async Task DayOfYear()
     {
-        await base.DayOfYear(async);
+        await base.DayOfYear();
 
         AssertSql(
             """
@@ -68,9 +68,9 @@ WHERE date_part('doy', b."DateTimeOffset" AT TIME ZONE 'UTC')::int = 124
 """);
     }
 
-    public override async Task Day(bool async)
+    public override async Task Day()
     {
-        await base.Day(async);
+        await base.Day();
 
         AssertSql(
             """
@@ -80,9 +80,9 @@ WHERE date_part('day', b."DateTimeOffset" AT TIME ZONE 'UTC')::int = 4
 """);
     }
 
-    public override async Task Hour(bool async)
+    public override async Task Hour()
     {
-        await base.Hour(async);
+        await base.Hour();
 
         AssertSql(
             """
@@ -92,9 +92,9 @@ WHERE date_part('hour', b."DateTimeOffset" AT TIME ZONE 'UTC')::int = 15
 """);
     }
 
-    public override async Task Minute(bool async)
+    public override async Task Minute()
     {
-        await base.Minute(async);
+        await base.Minute();
 
         AssertSql(
             """
@@ -104,9 +104,9 @@ WHERE date_part('minute', b."DateTimeOffset" AT TIME ZONE 'UTC')::int = 30
 """);
     }
 
-    public override async Task Second(bool async)
+    public override async Task Second()
     {
-        await base.Second(async);
+        await base.Second();
 
         AssertSql(
             """
@@ -117,20 +117,20 @@ WHERE date_part('second', b."DateTimeOffset" AT TIME ZONE 'UTC')::int = 10
     }
 
     // SQL translation not implemented, too annoying
-    public override Task Millisecond(bool async)
-        => AssertTranslationFailed(() => base.Millisecond(async));
+    public override Task Millisecond()
+        => AssertTranslationFailed(() => base.Millisecond());
 
     // TODO: #3406
-    public override Task Microsecond(bool async)
-        => AssertTranslationFailed(() => base.Microsecond(async));
+    public override Task Microsecond()
+        => AssertTranslationFailed(() => base.Microsecond());
 
     // TODO: #3406
-    public override Task Nanosecond(bool async)
-        => AssertTranslationFailed(() => base.Nanosecond(async));
+    public override Task Nanosecond()
+        => AssertTranslationFailed(() => base.Nanosecond());
 
-    public override async Task TimeOfDay(bool async)
+    public override async Task TimeOfDay()
     {
-        await base.TimeOfDay(async);
+        await base.TimeOfDay();
 
         AssertSql(
             """
@@ -139,9 +139,9 @@ FROM "BasicTypesEntities" AS b
 """);
     }
 
-    public override async Task AddYears(bool async)
+    public override async Task AddYears()
     {
-        await base.AddYears(async);
+        await base.AddYears();
 
         AssertSql(
             """
@@ -150,9 +150,9 @@ FROM "BasicTypesEntities" AS b
 """);
     }
 
-    public override async Task AddMonths(bool async)
+    public override async Task AddMonths()
     {
-        await base.AddMonths(async);
+        await base.AddMonths();
 
         AssertSql(
             """
@@ -161,9 +161,9 @@ FROM "BasicTypesEntities" AS b
 """);
     }
 
-    public override async Task AddDays(bool async)
+    public override async Task AddDays()
     {
-        await base.AddDays(async);
+        await base.AddDays();
 
         AssertSql(
             """
@@ -172,9 +172,9 @@ FROM "BasicTypesEntities" AS b
 """);
     }
 
-    public override async Task AddHours(bool async)
+    public override async Task AddHours()
     {
-        await base.AddHours(async);
+        await base.AddHours();
 
         AssertSql(
             """
@@ -183,9 +183,9 @@ FROM "BasicTypesEntities" AS b
 """);
     }
 
-    public override async Task AddMinutes(bool async)
+    public override async Task AddMinutes()
     {
-        await base.AddMinutes(async);
+        await base.AddMinutes();
 
         AssertSql(
             """
@@ -194,9 +194,9 @@ FROM "BasicTypesEntities" AS b
 """);
     }
 
-    public override async Task AddSeconds(bool async)
+    public override async Task AddSeconds()
     {
-        await base.AddSeconds(async);
+        await base.AddSeconds();
 
         AssertSql(
             """
@@ -205,9 +205,9 @@ FROM "BasicTypesEntities" AS b
 """);
     }
 
-    public override async Task AddMilliseconds(bool async)
+    public override async Task AddMilliseconds()
     {
-        await base.AddMilliseconds(async);
+        await base.AddMilliseconds();
 
         AssertSql(
             """
@@ -216,15 +216,15 @@ FROM "BasicTypesEntities" AS b
 """);
     }
 
-    public override Task ToUnixTimeMilliseconds(bool async)
-        => AssertTranslationFailed(() => base.ToUnixTimeMilliseconds(async));
+    public override Task ToUnixTimeMilliseconds()
+        => AssertTranslationFailed(() => base.ToUnixTimeMilliseconds());
 
-    public override Task ToUnixTimeSecond(bool async)
-        => AssertTranslationFailed(() => base.ToUnixTimeSecond(async));
+    public override Task ToUnixTimeSecond()
+        => AssertTranslationFailed(() => base.ToUnixTimeSecond());
 
-    public override async Task Milliseconds_parameter_and_constant(bool async)
+    public override async Task Milliseconds_parameter_and_constant()
     {
-        await base.Milliseconds_parameter_and_constant(async);
+        await base.Milliseconds_parameter_and_constant();
 
         AssertSql(
             """

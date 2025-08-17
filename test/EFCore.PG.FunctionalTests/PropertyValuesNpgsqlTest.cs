@@ -1,9 +1,9 @@
 ﻿namespace Microsoft.EntityFrameworkCore;
 
 public class PropertyValuesNpgsqlTest(PropertyValuesNpgsqlTest.PropertyValuesNpgsqlFixture fixture)
-    : PropertyValuesTestBase<PropertyValuesNpgsqlTest.PropertyValuesNpgsqlFixture>(fixture)
+    : PropertyValuesRelationalTestBase<PropertyValuesNpgsqlTest.PropertyValuesNpgsqlFixture>(fixture)
 {
-    public class PropertyValuesNpgsqlFixture : PropertyValuesFixtureBase
+    public class PropertyValuesNpgsqlFixture : PropertyValuesRelationalFixture
     {
         protected override string StoreName { get; } = "PropertyValues";
 

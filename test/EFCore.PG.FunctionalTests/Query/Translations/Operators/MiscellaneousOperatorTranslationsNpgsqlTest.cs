@@ -9,9 +9,9 @@ public class MiscellaneousOperatorTranslationsNpgsqlTest : MiscellaneousOperator
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    public override async Task Conditional(bool async)
+    public override async Task Conditional()
     {
-        await base.Conditional(async);
+        await base.Conditional();
 
         AssertSql(
             """
@@ -24,9 +24,9 @@ END = 'Seattle'
 """);
     }
 
-    public override async Task Coalesce(bool async)
+    public override async Task Coalesce()
     {
-        await base.Coalesce(async);
+        await base.Coalesce();
 
         AssertSql(
             """

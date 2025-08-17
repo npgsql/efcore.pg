@@ -1,4 +1,4 @@
-.DS_Store
+0.DS_Store
 *.resources
 *.suo
 *.user
@@ -16,3 +16,4 @@ artifacts/
 *.ide/
 TestResult.xml
 .dotnet
+.vscode/
