@@ -88,8 +88,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     private readonly NpgsqlStringTypeMapping _jsonpath = new("jsonpath", NpgsqlDbType.JsonPath);
 
     // JSON mappings - EF owned entity support
-    private readonly NpgsqlOwnedJsonTypeMapping _jsonbOwned = new("jsonb");
-    private readonly NpgsqlOwnedJsonTypeMapping _jsonOwned = new("json");
+    private readonly NpgsqlStructuralJsonTypeMapping _jsonbOwned = new("jsonb");
+    private readonly NpgsqlStructuralJsonTypeMapping _jsonOwned = new("json");
 
     // JSON mappings - older string/weakly-typed support
     private readonly NpgsqlJsonTypeMapping _jsonbString = new("jsonb", typeof(string));

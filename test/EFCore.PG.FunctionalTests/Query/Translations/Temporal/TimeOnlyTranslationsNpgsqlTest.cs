@@ -11,9 +11,9 @@ public class TimeOnlyTranslationsNpgsqlTest : TimeOnlyTranslationsTestBase<Basic
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    public override async Task Hour(bool async)
+    public override async Task Hour()
     {
-        await base.Hour(async);
+        await base.Hour();
 
         AssertSql(
             """
@@ -23,9 +23,9 @@ WHERE date_part('hour', b."TimeOnly")::int = 15
 """);
     }
 
-    public override async Task Minute(bool async)
+    public override async Task Minute()
     {
-        await base.Minute(async);
+        await base.Minute();
 
         AssertSql(
             """
@@ -35,9 +35,9 @@ WHERE date_part('minute', b."TimeOnly")::int = 30
 """);
     }
 
-    public override async Task Second(bool async)
+    public override async Task Second()
     {
-        await base.Second(async);
+        await base.Second();
 
         AssertSql(
             """
@@ -48,20 +48,20 @@ WHERE date_part('second', b."TimeOnly")::int = 10
     }
 
     // Translation not yet implemented
-    public override Task Millisecond(bool async)
-        => AssertTranslationFailed(() => base.Millisecond(async));
+    public override Task Millisecond()
+        => AssertTranslationFailed(() => base.Millisecond());
 
     // Translation not yet implemented
-    public override Task Microsecond(bool async)
-        => AssertTranslationFailed(() => base.Millisecond(async));
+    public override Task Microsecond()
+        => AssertTranslationFailed(() => base.Millisecond());
 
     // Probably not relevant for PostgreSQL, which supports microsecond precision only
-    public override Task Nanosecond(bool async)
-        => AssertTranslationFailed(() => base.Millisecond(async));
+    public override Task Nanosecond()
+        => AssertTranslationFailed(() => base.Millisecond());
 
-    public override async Task AddHours(bool async)
+    public override async Task AddHours()
     {
-        await base.AddHours(async);
+        await base.AddHours();
 
         AssertSql(
             """
@@ -71,9 +71,9 @@ WHERE b."TimeOnly" + INTERVAL '3 hours' = TIME '18:30:10'
 """);
     }
 
-    public override async Task AddMinutes(bool async)
+    public override async Task AddMinutes()
     {
-        await base.AddMinutes(async);
+        await base.AddMinutes();
 
         AssertSql(
             """
@@ -83,9 +83,9 @@ WHERE b."TimeOnly" + INTERVAL '3 mins' = TIME '15:33:10'
 """);
     }
 
-    public override async Task Add_TimeSpan(bool async)
+    public override async Task Add_TimeSpan()
     {
-        await base.Add_TimeSpan(async);
+        await base.Add_TimeSpan();
 
         AssertSql(
             """
@@ -95,9 +95,9 @@ WHERE b."TimeOnly" + INTERVAL '03:00:00' = TIME '18:30:10'
 """);
     }
 
-    public override async Task IsBetween(bool async)
+    public override async Task IsBetween()
     {
-        await base.IsBetween(async);
+        await base.IsBetween();
 
         AssertSql(
             """
@@ -107,9 +107,9 @@ WHERE b."TimeOnly" >= TIME '14:00:00' AND b."TimeOnly" < TIME '16:00:00'
 """);
     }
 
-    public override async Task Subtract(bool async)
+    public override async Task Subtract()
     {
-        await base.Subtract(async);
+        await base.Subtract();
 
         AssertSql(
             """
@@ -119,9 +119,9 @@ WHERE b."TimeOnly" - TIME '03:00:00' = INTERVAL '12:30:10'
 """);
     }
 
-    public override async Task FromDateTime_compared_to_property(bool async)
+    public override async Task FromDateTime_compared_to_property()
     {
-        await base.FromDateTime_compared_to_property(async);
+        await base.FromDateTime_compared_to_property();
 
         AssertSql(
             """
@@ -131,9 +131,9 @@ WHERE CAST(b."DateTime" AT TIME ZONE 'UTC' AS time without time zone) = b."TimeO
 """);
     }
 
-    public override async Task FromDateTime_compared_to_parameter(bool async)
+    public override async Task FromDateTime_compared_to_parameter()
     {
-        await base.FromDateTime_compared_to_parameter(async);
+        await base.FromDateTime_compared_to_parameter();
 
         AssertSql(
             """
@@ -145,9 +145,9 @@ WHERE CAST(b."DateTime" AT TIME ZONE 'UTC' AS time without time zone) = @time
 """);
     }
 
-    public override async Task FromDateTime_compared_to_constant(bool async)
+    public override async Task FromDateTime_compared_to_constant()
     {
-        await base.FromDateTime_compared_to_constant(async);
+        await base.FromDateTime_compared_to_constant();
 
         AssertSql(
             """
@@ -157,9 +157,9 @@ WHERE CAST(b."DateTime" AT TIME ZONE 'UTC' AS time without time zone) = TIME '15
 """);
     }
 
-    public override async Task FromTimeSpan_compared_to_property(bool async)
+    public override async Task FromTimeSpan_compared_to_property()
     {
-        await base.FromTimeSpan_compared_to_property(async);
+        await base.FromTimeSpan_compared_to_property();
 
         AssertSql(
             """
@@ -169,9 +169,9 @@ WHERE b."TimeSpan"::time without time zone < b."TimeOnly"
 """);
     }
 
-    public override async Task FromTimeSpan_compared_to_parameter(bool async)
+    public override async Task FromTimeSpan_compared_to_parameter()
     {
-        await base.FromTimeSpan_compared_to_parameter(async);
+        await base.FromTimeSpan_compared_to_parameter();
 
         AssertSql(
             """
@@ -183,11 +183,10 @@ WHERE b."TimeSpan"::time without time zone = @time
 """);
     }
 
-    public override async Task Order_by_FromTimeSpan(bool async)
+    public override async Task Order_by_FromTimeSpan()
     {
         // TODO: Base implementation is non-deterministic, remove this override once that's fixed on the EF side.
         await AssertQuery(
-            async,
             ss => ss.Set<BasicTypesEntity>().OrderBy(x => TimeOnly.FromTimeSpan(x.TimeSpan)).ThenBy(x => x.Id),
             assertOrder: true);
 

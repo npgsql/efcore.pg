@@ -9,9 +9,9 @@ public class TimeSpanTranslationsNpgsqlTest : TimeSpanTranslationsTestBase<Basic
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    public override async Task Hours(bool async)
+    public override async Task Hours()
     {
-        await base.Hours(async);
+        await base.Hours();
 
         AssertSql(
             """
@@ -21,9 +21,9 @@ WHERE floor(date_part('hour', b."TimeSpan"))::int = 3
 """);
     }
 
-    public override async Task Minutes(bool async)
+    public override async Task Minutes()
     {
-        await base.Minutes(async);
+        await base.Minutes();
 
         AssertSql(
             """
@@ -33,9 +33,9 @@ WHERE floor(date_part('minute', b."TimeSpan"))::int = 4
 """);
     }
 
-    public override async Task Seconds(bool async)
+    public override async Task Seconds()
     {
-        await base.Seconds(async);
+        await base.Seconds();
 
         AssertSql(
             """
@@ -45,9 +45,9 @@ WHERE floor(date_part('second', b."TimeSpan"))::int = 5
 """);
     }
 
-    public override async Task Milliseconds(bool async)
+    public override async Task Milliseconds()
     {
-        await base.Milliseconds(async);
+        await base.Milliseconds();
 
         AssertSql(
             """
@@ -57,11 +57,11 @@ WHERE floor(date_part('millisecond', b."TimeSpan"))::int % 1000 = 678
 """);
     }
 
-    public override Task Microseconds(bool async)
-        => AssertTranslationFailed(() => base.Microseconds(async));
+    public override Task Microseconds()
+        => AssertTranslationFailed(() => base.Microseconds());
 
-    public override Task Nanoseconds(bool async)
-        => AssertTranslationFailed(() => base.Nanoseconds(async));
+    public override Task Nanoseconds()
+        => AssertTranslationFailed(() => base.Nanoseconds());
 
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()

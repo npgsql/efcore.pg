@@ -5,11 +5,11 @@ using System.Text.Json;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-///     Supports the standard EF JSON support, which relies on owned entity modeling.
+///     Supports the standard EF JSON support, which relies on owned entity or complex type modeling.
 ///     See <see cref="NpgsqlJsonTypeMapping" /> for the older Npgsql-specific support, which allows mapping json/jsonb to text, to e.g.
 ///     <see cref="JsonElement" /> (weakly-typed mapping) or to arbitrary POCOs (but without them being modeled).
 /// </summary>
-public class NpgsqlOwnedJsonTypeMapping : JsonTypeMapping
+public class NpgsqlStructuralJsonTypeMapping : JsonTypeMapping
 {
     /// <summary>
     ///     The database type used by Npgsql (<see cref="NpgsqlDbType.Json" /> or <see cref="NpgsqlDbType.Jsonb" />.
@@ -34,7 +34,7 @@ public class NpgsqlOwnedJsonTypeMapping : JsonTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlOwnedJsonTypeMapping(string storeType)
+    public NpgsqlStructuralJsonTypeMapping(string storeType)
         : base(storeType, typeof(JsonElement), dbType: null)
     {
         NpgsqlDbType = storeType switch
@@ -74,7 +74,7 @@ public class NpgsqlOwnedJsonTypeMapping : JsonTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected NpgsqlOwnedJsonTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
+    protected NpgsqlStructuralJsonTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
         : base(parameters)
     {
         NpgsqlDbType = npgsqlDbType;
@@ -91,7 +91,7 @@ public class NpgsqlOwnedJsonTypeMapping : JsonTypeMapping
         if (parameter is not NpgsqlParameter npgsqlParameter)
         {
             throw new InvalidOperationException(
-                $"Npgsql-specific type mapping {nameof(NpgsqlOwnedJsonTypeMapping)} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+                $"Npgsql-specific type mapping {nameof(NpgsqlStructuralJsonTypeMapping)} being used with non-Npgsql parameter type {parameter.GetType().Name}");
         }
 
         base.ConfigureParameter(parameter);
@@ -114,7 +114,7 @@ public class NpgsqlOwnedJsonTypeMapping : JsonTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
-        => $"'{EscapeSqlLiteral(JsonSerializer.Serialize(value))}'";
+        => $"'{EscapeSqlLiteral((string)value)}'";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -123,5 +123,5 @@ public class NpgsqlOwnedJsonTypeMapping : JsonTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-        => new NpgsqlOwnedJsonTypeMapping(parameters, NpgsqlDbType);
+        => new NpgsqlStructuralJsonTypeMapping(parameters, NpgsqlDbType);
 }

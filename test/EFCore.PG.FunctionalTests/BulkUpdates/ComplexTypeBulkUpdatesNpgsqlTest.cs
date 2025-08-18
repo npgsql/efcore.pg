@@ -232,6 +232,54 @@ SET "ShippingAddress_Tags" = @p
 """);
     }
 
+    public override async Task Update_complex_type_to_null(bool async)
+    {
+        await base.Update_complex_type_to_null(async);
+
+        AssertExecuteUpdateSql(
+            """
+UPDATE "Customer" AS c
+SET "OptionalAddress_AddressLine1" = NULL,
+    "OptionalAddress_AddressLine2" = NULL,
+    "OptionalAddress_Tags" = NULL,
+    "OptionalAddress_ZipCode" = NULL,
+    "OptionalAddress_Country_Code" = NULL,
+    "OptionalAddress_Country_FullName" = NULL
+""");
+    }
+
+    public override async Task Update_complex_type_to_null_lambda(bool async)
+    {
+        await base.Update_complex_type_to_null_lambda(async);
+
+        AssertExecuteUpdateSql(
+            """
+UPDATE "Customer" AS c
+SET "OptionalAddress_AddressLine1" = NULL,
+    "OptionalAddress_AddressLine2" = NULL,
+    "OptionalAddress_Tags" = NULL,
+    "OptionalAddress_ZipCode" = NULL,
+    "OptionalAddress_Country_Code" = NULL,
+    "OptionalAddress_Country_FullName" = NULL
+""");
+    }
+
+    public override async Task Update_complex_type_to_null_parameter(bool async)
+    {
+        await base.Update_complex_type_to_null_parameter(async);
+
+        AssertExecuteUpdateSql(
+            """
+UPDATE "Customer" AS c
+SET "OptionalAddress_AddressLine1" = NULL,
+    "OptionalAddress_AddressLine2" = NULL,
+    "OptionalAddress_Tags" = NULL,
+    "OptionalAddress_ZipCode" = NULL,
+    "OptionalAddress_Country_Code" = NULL,
+    "OptionalAddress_Country_FullName" = NULL
+""");
+    }
+
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());

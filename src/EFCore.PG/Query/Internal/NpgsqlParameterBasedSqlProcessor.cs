@@ -27,9 +27,9 @@ public class NpgsqlParameterBasedSqlProcessor : RelationalParameterBasedSqlProce
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override Expression Process(Expression queryExpression, CacheSafeParameterFacade parametersFacade)
+    public override Expression Process(Expression queryExpression, ParametersCacheDecorator parametersDecorator)
     {
-        queryExpression = base.Process(queryExpression, parametersFacade);
+        queryExpression = base.Process(queryExpression, parametersDecorator);
 
         queryExpression = new NpgsqlDeleteConvertingExpressionVisitor().Process(queryExpression);
 
@@ -37,6 +37,6 @@ public class NpgsqlParameterBasedSqlProcessor : RelationalParameterBasedSqlProce
     }
 
     /// <inheritdoc />
-    protected override Expression ProcessSqlNullability(Expression selectExpression, CacheSafeParameterFacade parametersFacade)
-        => new NpgsqlSqlNullabilityProcessor(Dependencies, Parameters).Process(selectExpression, parametersFacade);
+    protected override Expression ProcessSqlNullability(Expression selectExpression, ParametersCacheDecorator parametersDecorator)
+        => new NpgsqlSqlNullabilityProcessor(Dependencies, Parameters).Process(selectExpression, parametersDecorator);
 }

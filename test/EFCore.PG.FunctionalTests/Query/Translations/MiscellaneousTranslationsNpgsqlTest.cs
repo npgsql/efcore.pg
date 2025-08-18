@@ -13,9 +13,9 @@ public class MiscellaneousTranslationsNpgsqlTest : MiscellaneousTranslationsRela
 
     #region Random
 
-    public override async Task Random_on_EF_Functions(bool async)
+    public override async Task Random_on_EF_Functions()
     {
-        await base.Random_on_EF_Functions(async);
+        await base.Random_on_EF_Functions();
 
         AssertSql(
             """
@@ -25,44 +25,44 @@ WHERE random() >= 0.0 AND random() < 1.0
 """);
     }
 
-    public override async Task Random_Shared_Next_with_no_args(bool async)
+    public override async Task Random_Shared_Next_with_no_args()
     {
-        await base.Random_Shared_Next_with_no_args(async);
+        await base.Random_Shared_Next_with_no_args();
 
         AssertSql();
     }
 
-    public override async Task Random_Shared_Next_with_one_arg(bool async)
+    public override async Task Random_Shared_Next_with_one_arg()
     {
-        await base.Random_Shared_Next_with_one_arg(async);
+        await base.Random_Shared_Next_with_one_arg();
 
         AssertSql();
     }
 
-    public override async Task Random_Shared_Next_with_two_args(bool async)
+    public override async Task Random_Shared_Next_with_two_args()
     {
-        await base.Random_Shared_Next_with_two_args(async);
+        await base.Random_Shared_Next_with_two_args();
 
         AssertSql();
     }
 
-    public override async Task Random_new_Next_with_no_args(bool async)
+    public override async Task Random_new_Next_with_no_args()
     {
-        await base.Random_new_Next_with_no_args(async);
+        await base.Random_new_Next_with_no_args();
 
         AssertSql();
     }
 
-    public override async Task Random_new_Next_with_one_arg(bool async)
+    public override async Task Random_new_Next_with_one_arg()
     {
-        await base.Random_new_Next_with_one_arg(async);
+        await base.Random_new_Next_with_one_arg();
 
         AssertSql();
     }
 
-    public override async Task Random_new_Next_with_two_args(bool async)
+    public override async Task Random_new_Next_with_two_args()
     {
-        await base.Random_new_Next_with_two_args(async);
+        await base.Random_new_Next_with_two_args();
 
         AssertSql();
     }
@@ -74,39 +74,39 @@ WHERE random() >= 0.0 AND random() < 1.0
     // These tests convert (among other things) to and from boolean, which PostgreSQL
     // does not support (https://github.com/dotnet/efcore/issues/19606)
 
-    public override async Task Convert_ToBoolean(bool async)
+    public override async Task Convert_ToBoolean()
     {
-        var exception = await Assert.ThrowsAsync<PostgresException>(() => base.Convert_ToBoolean(async));
+        var exception = await Assert.ThrowsAsync<PostgresException>(() => base.Convert_ToBoolean());
         Assert.Equal("42846", exception.SqlState);
     }
 
-    public override async Task Convert_ToByte(bool async)
+    public override async Task Convert_ToByte()
     {
-        var exception = await Assert.ThrowsAsync<PostgresException>(() => base.Convert_ToByte(async));
+        var exception = await Assert.ThrowsAsync<PostgresException>(() => base.Convert_ToByte());
         Assert.Equal("42846", exception.SqlState);
     }
 
-    public override async Task Convert_ToDecimal(bool async)
+    public override async Task Convert_ToDecimal()
     {
-        var exception = await Assert.ThrowsAsync<PostgresException>(() => base.Convert_ToDecimal(async));
+        var exception = await Assert.ThrowsAsync<PostgresException>(() => base.Convert_ToDecimal());
         Assert.Equal("42846", exception.SqlState);
     }
 
-    public override async Task Convert_ToDouble(bool async)
+    public override async Task Convert_ToDouble()
     {
-        var exception = await Assert.ThrowsAsync<PostgresException>(() => base.Convert_ToDouble(async));
+        var exception = await Assert.ThrowsAsync<PostgresException>(() => base.Convert_ToDouble());
         Assert.Equal("42846", exception.SqlState);
     }
 
-    public override async Task Convert_ToInt16(bool async)
+    public override async Task Convert_ToInt16()
     {
-        var exception = await Assert.ThrowsAsync<PostgresException>(() => base.Convert_ToInt16(async));
+        var exception = await Assert.ThrowsAsync<PostgresException>(() => base.Convert_ToInt16());
         Assert.Equal("42846", exception.SqlState);
     }
 
-    public override async Task Convert_ToInt32(bool async)
+    public override async Task Convert_ToInt32()
     {
-        await base.Convert_ToInt32(async);
+        await base.Convert_ToInt32();
 
 AssertSql(
 """
@@ -170,23 +170,23 @@ WHERE b."Int"::int = 12
 """);
     }
 
-    public override async Task Convert_ToInt64(bool async)
+    public override async Task Convert_ToInt64()
     {
-        var exception = await Assert.ThrowsAsync<PostgresException>(() => base.Convert_ToInt64(async));
+        var exception = await Assert.ThrowsAsync<PostgresException>(() => base.Convert_ToInt64());
         Assert.Equal("42846", exception.SqlState);
     }
 
     // Convert on DateTime not yet supported
-    public override Task Convert_ToString(bool async)
-        => AssertTranslationFailed(() => base.Convert_ToString(async));
+    public override Task Convert_ToString()
+        => AssertTranslationFailed(() => base.Convert_ToString());
 
     #endregion Convert
 
     #region Compare
 
-    public override async Task Int_Compare_to_simple_zero(bool async)
+    public override async Task Int_Compare_to_simple_zero()
     {
-        await base.Int_Compare_to_simple_zero(async);
+        await base.Int_Compare_to_simple_zero();
 
 AssertSql(
     """
@@ -238,7 +238,7 @@ WHERE b."Int" <= @orderId
 """);
     }
 
-    public override async Task DateTime_Compare_to_simple_zero(bool async, bool compareTo)
+    public override async Task DateTime_Compare_to_simple_zero(bool compareTo)
     {
         // The base test implementation uses an Unspecified DateTime, which isn't supported with PostgreSQL timestamptz
         var dateTime = new DateTime(1998, 5, 4, 15, 30, 10, DateTimeKind.Utc);
@@ -246,53 +246,41 @@ WHERE b."Int" <= @orderId
         if (compareTo)
         {
             await AssertQuery(
-                async,
                 ss => ss.Set<BasicTypesEntity>().Where(c => c.DateTime.CompareTo(dateTime) == 0));
 
             await AssertQuery(
-                async,
                 ss => ss.Set<BasicTypesEntity>().Where(c => 0 != c.DateTime.CompareTo(dateTime)));
 
             await AssertQuery(
-                async,
                 ss => ss.Set<BasicTypesEntity>().Where(c => c.DateTime.CompareTo(dateTime) > 0));
 
             await AssertQuery(
-                async,
                 ss => ss.Set<BasicTypesEntity>().Where(c => 0 >= c.DateTime.CompareTo(dateTime)));
 
             await AssertQuery(
-                async,
                 ss => ss.Set<BasicTypesEntity>().Where(c => 0 < c.DateTime.CompareTo(dateTime)));
 
             await AssertQuery(
-                async,
                 ss => ss.Set<BasicTypesEntity>().Where(c => c.DateTime.CompareTo(dateTime) <= 0));
         }
         else
         {
             await AssertQuery(
-                async,
                 ss => ss.Set<BasicTypesEntity>().Where(c => DateTime.Compare(c.DateTime, dateTime) == 0));
 
             await AssertQuery(
-                async,
                 ss => ss.Set<BasicTypesEntity>().Where(c => 0 != DateTime.Compare(c.DateTime, dateTime)));
 
             await AssertQuery(
-                async,
                 ss => ss.Set<BasicTypesEntity>().Where(c => DateTime.Compare(c.DateTime, dateTime) > 0));
 
             await AssertQuery(
-                async,
                 ss => ss.Set<BasicTypesEntity>().Where(c => 0 >= DateTime.Compare(c.DateTime, dateTime)));
 
             await AssertQuery(
-                async,
                 ss => ss.Set<BasicTypesEntity>().Where(c => 0 < DateTime.Compare(c.DateTime, dateTime)));
 
             await AssertQuery(
-                async,
                 ss => ss.Set<BasicTypesEntity>().Where(c => DateTime.Compare(c.DateTime, dateTime) <= 0));
         }
 
@@ -346,9 +334,9 @@ WHERE b."DateTime" <= @dateTime
 """);
     }
 
-    public override async Task TimeSpan_Compare_to_simple_zero(bool async, bool compareTo)
+    public override async Task TimeSpan_Compare_to_simple_zero(bool compareTo)
     {
-        await base.TimeSpan_Compare_to_simple_zero(async, compareTo);
+        await base.TimeSpan_Compare_to_simple_zero(compareTo);
 
         AssertSql(
             """

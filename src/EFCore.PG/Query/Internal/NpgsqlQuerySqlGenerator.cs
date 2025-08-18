@@ -1069,7 +1069,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         {
             // This case is for when a nested JSON entity is being accessed. We want the json/jsonb fragment in this case (not text),
             // so we can perform further JSON operations on it.
-            case NpgsqlOwnedJsonTypeMapping:
+            case NpgsqlStructuralJsonTypeMapping:
                 GenerateJsonPath(returnsText: false);
                 break;
 

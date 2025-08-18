@@ -199,14 +199,14 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         };
 
         var jsonTypeMapping = jsonQueryExpression.JsonColumn.TypeMapping!;
-        Check.DebugAssert(jsonTypeMapping is NpgsqlOwnedJsonTypeMapping, "JSON column has a non-JSON mapping");
+        Check.DebugAssert(jsonTypeMapping is NpgsqlStructuralJsonTypeMapping, "JSON column has a non-JSON mapping");
 
         // We now add all of projected entity's the properties and navigations into the jsonb_to_recordset's AS clause, which defines the
         // names and types of columns to come out of the JSON fragments.
         var columnInfos = new List<PgTableValuedFunctionExpression.ColumnInfo>();
 
         // We're only interested in properties which actually exist in the JSON, filter out uninteresting shadow keys
-        foreach (var property in GetAllPropertiesInHierarchy(jsonQueryExpression.EntityType))
+        foreach (var property in jsonQueryExpression.StructuralType.GetPropertiesInHierarchy())
         {
             if (property.GetJsonPropertyName() is string jsonPropertyName)
             {
@@ -218,18 +218,37 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             }
         }
 
-        // Navigations represent nested JSON owned entities, which we also add to the AS clause, but with the JSON type.
-        foreach (var navigation in GetAllNavigationsInHierarchy(jsonQueryExpression.EntityType)
-                     .Where(
-                         n => n.ForeignKey.IsOwnership
-                             && n.TargetEntityType.IsMappedToJson()
-                             && n.ForeignKey.PrincipalToDependent == n))
+        switch (jsonQueryExpression.StructuralType)
         {
-            var jsonNavigationName = navigation.TargetEntityType.GetJsonPropertyName();
-            Check.DebugAssert(jsonNavigationName is not null, $"No JSON property name for navigation {navigation.Name}");
+            case IEntityType entityType:
+                foreach (var navigation in entityType.GetNavigationsInHierarchy()
+                    .Where(n => n.ForeignKey.IsOwnership
+                        && n.TargetEntityType.IsMappedToJson()
+                        && n.ForeignKey.PrincipalToDependent == n))
+                {
+                    var jsonNavigationName = navigation.TargetEntityType.GetJsonPropertyName();
+                    Check.DebugAssert(jsonNavigationName is not null, $"No JSON property name for navigation {navigation.Name}");
 
-            columnInfos.Add(
-                new PgTableValuedFunctionExpression.ColumnInfo { Name = jsonNavigationName, TypeMapping = jsonTypeMapping });
+                    columnInfos.Add(
+                        new PgTableValuedFunctionExpression.ColumnInfo { Name = jsonNavigationName, TypeMapping = jsonTypeMapping });
+                }
+
+                break;
+
+            case IComplexType complexType:
+                foreach (var complexProperty in complexType.GetComplexProperties())
+                {
+                    var jsonPropertyName = complexProperty.ComplexType.GetJsonPropertyName();
+                    Check.DebugAssert(jsonPropertyName is not null, $"No JSON property name for complex property {complexProperty.Name}");
+
+                    columnInfos.Add(
+                        new PgTableValuedFunctionExpression.ColumnInfo { Name = jsonPropertyName, TypeMapping = jsonTypeMapping });
+                }
+
+                break;
+
+            default:
+                throw new UnreachableException();
         }
 
         // json_to_recordset requires the nested JSON document - it does not accept a path within a containing JSON document (like SQL
@@ -254,21 +273,12 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         return new ShapedQueryExpression(
             selectExpression,
             new RelationalStructuralTypeShaperExpression(
-                jsonQueryExpression.EntityType,
+                jsonQueryExpression.StructuralType,
                 new ProjectionBindingExpression(
                     selectExpression,
                     new ProjectionMember(),
                     typeof(ValueBuffer)),
                 false));
-
-        // TODO: Move these to IEntityType?
-        static IEnumerable<IProperty> GetAllPropertiesInHierarchy(IEntityType entityType)
-            => entityType.GetAllBaseTypes().Concat(entityType.GetDerivedTypesInclusive())
-                .SelectMany(t => t.GetDeclaredProperties());
-
-        static IEnumerable<INavigation> GetAllNavigationsInHierarchy(IEntityType entityType)
-            => entityType.GetAllBaseTypes().Concat(entityType.GetDerivedTypesInclusive())
-                .SelectMany(t => t.GetDeclaredNavigations());
     }
 
     /// <summary>

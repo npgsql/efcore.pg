@@ -3125,6 +3125,9 @@ CREATE TABLE "Contacts" (
     "MyComplex_Prop" text,
     "MyComplex_MyNestedComplex_Bar" timestamp with time zone,
     "MyComplex_MyNestedComplex_Foo" integer,
+    "MyComplex_Nested_Bar" timestamp with time zone,
+    "MyComplex_Nested_Foo" integer,
+    "NestedCollection" jsonb,
     CONSTRAINT "PK_Contacts" PRIMARY KEY ("Id")
 );
 """);
