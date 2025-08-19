@@ -178,6 +178,31 @@ public class NpgsqlQueryableAggregateMethodTranslator : IAggregateMethodCallTran
                         argumentsPropagateNullability: FalseArrays[1],
                         sumInputType,
                         sumSqlExpression.TypeMapping);
+
+                case nameof(Queryable.Any)
+                    when (methodInfo == QueryableMethods.AnyWithoutPredicate
+                        || methodInfo == QueryableMethods.AnyWithPredicate)
+                    && source.Selector is SqlExpression anySqlExpression:
+                    return _sqlExpressionFactory.AggregateFunction(
+                        "bool_any",
+                        [anySqlExpression],
+                        source,
+                        nullable: true,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        anySqlExpression.Type,
+                        anySqlExpression.TypeMapping);
+
+                case nameof(Queryable.All)
+                    when (methodInfo == QueryableMethods.All)
+                    && source.Selector is SqlExpression allSqlExpression:
+                    return _sqlExpressionFactory.AggregateFunction(
+                        "bool_all",
+                        [allSqlExpression],
+                        source,
+                        nullable: true,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        allSqlExpression.Type,
+                        allSqlExpression.TypeMapping);
             }
         }
 
