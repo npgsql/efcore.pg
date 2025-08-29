@@ -185,11 +185,13 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
             // Allocate an output array or list
             // var result = new int[length];
             Assign(
-                output, typeof(TConcreteOutput).IsArray
-                    ? NewArrayBounds(outputElementType, lengthVariable)
-                    : typeof(TConcreteOutput).GetConstructor([typeof(int)]) is ConstructorInfo ctorWithLength
-                        ? New(ctorWithLength, lengthVariable)
-                        : New(typeof(TConcreteOutput).GetConstructor([])!))
+                output,
+                typeof(TConcreteOutput) switch
+                {
+                    var t when t.IsArray => NewArrayBounds(outputElementType, lengthVariable),
+                    var t when typeof(TConcreteOutput).GetConstructor([typeof(int)]) is ConstructorInfo ctorWithLength => New(ctorWithLength, lengthVariable),
+                    _ => New(typeof(TConcreteOutput))
+                })
         ]);
 
         if (indexer is not null)
@@ -285,13 +287,21 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
         // return output;
         expressions.Add(output);
 
-        return Lambda<Func<TInput, TOutput>>(
-            // First, check if the given array value is null and return null immediately if so
-            Condition(
-                ReferenceEqual(input, Constant(null)),
-                Constant(null, typeof(TOutput)),
-                Block(typeof(TOutput), variables, expressions)),
-            input);
+        Expression body = Block(typeof(TOutput), variables, expressions);
+
+        // If the input type is a reference type, first check if the input array is null and return null
+        // (or default for output value type) if so, bypassing all of the logic above.
+        if (!typeof(TInput).IsValueType)
+        {
+            body = Condition(
+                ReferenceEqual(input, Constant(null, typeof(TInput))),
+                typeof(TOutput).IsValueType
+                    ? New(typeof(TConcreteOutput))
+                    : Constant(null, typeof(TOutput)),
+                body);
+        }
+
+        return Lambda<Func<TInput, TOutput>>(body, input);
     }
 
     private static Expression ForLoop(
