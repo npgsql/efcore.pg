@@ -122,7 +122,8 @@ LIMIT 2
 
         AssertSql(
             """
-@multirange={ '[0,5]', '[7,10]' } (DbType = Object)
+@multirange={ '[0,5]'
+'[7,10]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
 FROM "TestEntities" AS t
@@ -145,7 +146,8 @@ LIMIT 2
 
         AssertSql(
             """
-@multirange={ '[0,5]', '[7,10]' } (DbType = Object)
+@multirange={ '[0,5]'
+'[7,10]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
 FROM "TestEntities" AS t
@@ -168,7 +170,8 @@ LIMIT 2
 
         AssertSql(
             """
-@multirange={ '[-3,0]', '[100,101]' } (DbType = Object)
+@multirange={ '[-3,0]'
+'[100,101]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
 FROM "TestEntities" AS t
@@ -214,7 +217,8 @@ LIMIT 2
 
         AssertSql(
             """
-@multirange={ '[11,13]', '[15,16]' } (DbType = Object)
+@multirange={ '[11,13]'
+'[15,16]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
 FROM "TestEntities" AS t
@@ -260,7 +264,8 @@ LIMIT 2
 
         AssertSql(
             """
-@multirange={ '[-10,-7]', '[-5,3]' } (DbType = Object)
+@multirange={ '[-10,-7]'
+'[-5,3]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
 FROM "TestEntities" AS t
@@ -306,7 +311,8 @@ LIMIT 2
 
         AssertSql(
             """
-@multirange={ '[2,7]', '[13,18]' } (DbType = Object)
+@multirange={ '[2,7]'
+'[13,18]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
 FROM "TestEntities" AS t
@@ -352,7 +358,8 @@ LIMIT 2
 
         AssertSql(
             """
-@multirange={ '[-5,-3]', '[13,18]' } (DbType = Object)
+@multirange={ '[-5,-3]'
+'[13,18]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
 FROM "TestEntities" AS t
@@ -398,7 +405,8 @@ LIMIT 2
 
         AssertSql(
             """
-@multirange={ '[-5,-4]', '[-2,-1]' } (DbType = Object)
+@multirange={ '[-5,-4]'
+'[-2,-1]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
 FROM "TestEntities" AS t
@@ -467,7 +475,8 @@ LIMIT 2
 
         AssertSql(
             """
-@multirange={ '[-5,1]', '[9,13]' } (DbType = Object)
+@multirange={ '[-5,1]'
+'[9,13]' } (DbType = Object)
 
 SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."DecimalMultirange", t."IntMultirange", t."LongMultirange"
 FROM "TestEntities" AS t

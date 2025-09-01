@@ -205,7 +205,8 @@ WHERE c."ShippingAddress_AddressLine1" = '804 S. Lakeshore Road' AND c."Shipping
         AssertSql(
             """
 @entity_equality_address_AddressLine1='804 S. Lakeshore Road'
-@entity_equality_address_Tags={ 'foo', 'bar' } (DbType = Object)
+@entity_equality_address_Tags={ 'foo'
+'bar' } (DbType = Object)
 @entity_equality_address_ZipCode='38654' (Nullable = true)
 @entity_equality_address_Country_Code='US'
 @entity_equality_address_Country_FullName='United States'
@@ -230,7 +231,8 @@ WHERE c."ShippingAddress_AddressLine1" = @entity_equality_address_AddressLine1 A
         AssertSql(
             """
 @entity_equality_address_AddressLine1='804 S. Lakeshore Road'
-@entity_equality_address_Tags={ 'foo', 'bar' } (DbType = Object)
+@entity_equality_address_Tags={ 'foo'
+'bar' } (DbType = Object)
 @entity_equality_address_ZipCode='38654' (Nullable = true)
 @entity_equality_address_Country_Code='US'
 @entity_equality_address_Country_FullName='United States'

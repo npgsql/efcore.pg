@@ -109,7 +109,8 @@ SET "ShippingAddress_ZipCode" = c."BillingAddress_ZipCode",
             """
 @complex_type_p_AddressLine1='New AddressLine1'
 @complex_type_p_AddressLine2='New AddressLine2'
-@complex_type_p_Tags={ 'new_tag1', 'new_tag2' } (DbType = Object)
+@complex_type_p_Tags={ 'new_tag1'
+'new_tag2' } (DbType = Object)
 @complex_type_p_ZipCode='99999' (Nullable = true)
 @complex_type_p_Code='FR'
 @complex_type_p_FullName='France'
@@ -163,7 +164,8 @@ SET "ShippingAddress_AddressLine1" = c."BillingAddress_AddressLine1",
             """
 @complex_type_p_AddressLine1='New AddressLine1'
 @complex_type_p_AddressLine2='New AddressLine2'
-@complex_type_p_Tags={ 'new_tag1', 'new_tag2' } (DbType = Object)
+@complex_type_p_Tags={ 'new_tag1'
+'new_tag2' } (DbType = Object)
 @complex_type_p_ZipCode='99999' (Nullable = true)
 @complex_type_p_Code='FR'
 @complex_type_p_FullName='France'
@@ -225,7 +227,8 @@ WHERE c0."Id" = c1."Id"
 
         AssertExecuteUpdateSql(
             """
-@p={ 'new_tag1', 'new_tag2' } (DbType = Object)
+@p={ 'new_tag1'
+'new_tag2' } (DbType = Object)
 
 UPDATE "Customer" AS c
 SET "ShippingAddress_Tags" = @p

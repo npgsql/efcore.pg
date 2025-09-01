@@ -1793,7 +1793,9 @@ WHERE (
 
         AssertSql(
             """
-@ids={ '1', '2', '3' } (DbType = Object)
+@ids={ '1'
+'2'
+'3' } (DbType = Object)
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b

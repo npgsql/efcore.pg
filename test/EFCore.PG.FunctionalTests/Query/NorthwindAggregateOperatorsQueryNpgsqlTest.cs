@@ -51,7 +51,8 @@ FROM (
         // Note: PostgreSQL doesn't support uint, but value converters make this into bigint
         AssertSql(
             """
-@ids={ '0', '1' } (DbType = Object)
+@ids={ '0'
+'1' } (DbType = Object)
 
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
 FROM "Employees" AS e
@@ -75,7 +76,8 @@ WHERE e."EmployeeID" = ANY (@ids)
 
         AssertSql(
             """
-@ids={ '0', '1' } (DbType = Object)
+@ids={ '0'
+'1' } (DbType = Object)
 
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
 FROM "Employees" AS e
@@ -114,7 +116,8 @@ WHERE e."EmployeeID" = ANY (@ids)
 
         AssertSql(
             """
-@p={ 'ABCDE', 'ALFKI' } (DbType = Object)
+@p={ 'ABCDE'
+'ALFKI' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
@@ -122,7 +125,8 @@ WHERE c."CustomerID" = ANY (array_remove(@p, NULL))
 """,
             //
             """
-@p={ 'ABCDE', 'ANATR' } (DbType = Object)
+@p={ 'ABCDE'
+'ANATR' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
@@ -136,7 +140,8 @@ WHERE c."CustomerID" = ANY (array_remove(@p, NULL))
 
         AssertSql(
             """
-@Select={ 'ABCDE', 'ALFKI' } (DbType = Object)
+@Select={ 'ABCDE'
+'ALFKI' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
@@ -150,7 +155,8 @@ WHERE c."CustomerID" = ANY (@Select)
 
         AssertSql(
             """
-@Select={ 'ABCDE', 'ALFKI' } (DbType = Object)
+@Select={ 'ABCDE'
+'ALFKI' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
@@ -158,7 +164,8 @@ WHERE c."CustomerID" = ANY (@Select)
 """,
             //
             """
-@Select={ 'ABCDE', 'ANATR' } (DbType = Object)
+@Select={ 'ABCDE'
+'ANATR' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
