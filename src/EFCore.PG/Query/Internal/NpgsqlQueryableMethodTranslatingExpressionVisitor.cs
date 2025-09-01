@@ -1046,6 +1046,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                     [{ Expression: ColumnExpression { Name: "ordinality", TableAlias: var orderingTableAlias } }]
                 && orderingTableAlias == unnest.Alias);
 
+    #region ExecuteUpdate
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -1099,6 +1101,119 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
 
         return true;
     }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected override bool TrySerializeScalarToJson(
+        JsonScalarExpression target,
+        SqlExpression value,
+        [NotNullWhen(true)] out SqlExpression? jsonValue)
+    {
+        var jsonTypeMapping = ((ColumnExpression)target.Json).TypeMapping!;
+
+        if (
+            // The base implementation doesn't handle serializing arbitrary SQL expressions to JSON, since that's
+            // database-specific. In PostgreSQL we simply do this by wrapping any expression in to_jsonb().
+            !base.TrySerializeScalarToJson(target, value, out jsonValue)
+            // In addition, for string, numeric and bool, the base implementation simply returns the value as-is, since most databases allow
+            // passing these native types directly to their JSON partial update function. In PostgreSQL, jsonb_set() always requires jsonb,
+            // so we wrap those expression with to_jsonb() as well.
+            || jsonValue.TypeMapping?.StoreType is not "jsonb" and not "json")
+        {
+            switch (value.TypeMapping!.StoreType)
+            {
+                case "jsonb" or "json":
+                    jsonValue = value;
+                    return true;
+
+                case "bytea":
+                    value = _sqlExpressionFactory.Function(
+                        "encode",
+                        [value, _sqlExpressionFactory.Constant("base64")],
+                        nullable: true,
+                        argumentsPropagateNullability: [true, true],
+                        typeof(string),
+                        _typeMappingSource.FindMapping(typeof(string))!
+                    );
+                    break;
+            }
+
+            jsonValue = _sqlExpressionFactory.Function(
+                jsonTypeMapping.StoreType switch
+                {
+                    "jsonb" => "to_jsonb",
+                    "json" => "to_json",
+                    _ => throw new UnreachableException()
+                },
+                // Make sure PG interprets constant values correctly by adding explicit typing based on the target property's type mapping.
+                // Note that we can only be here for scalar properties, for structural types we always already get a jsonb/json value
+                // and don't need to add to_jsonb/to_json.
+                [value is SqlConstantExpression ? _sqlExpressionFactory.Convert(value, target.Type, target.TypeMapping) : value],
+                nullable: true,
+                argumentsPropagateNullability: [true],
+                typeof(string),
+                jsonTypeMapping);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected override SqlExpression? GenerateJsonPartialUpdateSetter(
+        Expression target,
+        SqlExpression value,
+        ref SqlExpression? existingSetterValue)
+    {
+        var (jsonColumn, path) = target switch
+        {
+            JsonScalarExpression j => ((ColumnExpression)j.Json, j.Path),
+            JsonQueryExpression j => (j.JsonColumn, j.Path),
+
+            _ => throw new UnreachableException(),
+        };
+
+        var jsonSet = _sqlExpressionFactory.Function(
+            jsonColumn.TypeMapping?.StoreType switch
+            {
+                "jsonb" => "jsonb_set",
+                "json" => "json_set",
+                _ => throw new UnreachableException()
+            },
+            arguments:
+            [
+                existingSetterValue ?? jsonColumn,
+                // Hack: Rendering of JSONPATH strings happens in value generation. We can have a special expression for modify to hold the
+                // IReadOnlyList<PathSegment> (just like Json{Scalar,Query}Expression), but instead we do the slight hack of packaging it
+                // as a constant argument; it will be unpacked and handled in SQL generation.
+                _sqlExpressionFactory.Constant(path, RelationalTypeMapping.NullMapping),
+                value
+            ],
+            nullable: true,
+            argumentsPropagateNullability: [true, true, true],
+            typeof(string),
+            jsonColumn.TypeMapping);
+
+        if (existingSetterValue is null)
+        {
+            return jsonSet;
+        }
+        else
+        {
+            existingSetterValue = jsonSet;
+            return null;
+        }
+    }
+
+    #endregion ExecuteUpdate
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
