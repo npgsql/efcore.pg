@@ -160,6 +160,23 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
     /// <summary>
+    ///     Generates SQL for a constant.
+    /// </summary>
+    /// <param name="sqlConstantExpression">The <see cref="SqlConstantExpression" /> for which to generate SQL.</param>
+    protected override Expression VisitSqlConstant(SqlConstantExpression sqlConstantExpression)
+    {
+        // Certain JSON functions (e.g. jsonb_set()) accept a JSONPATH argument - this is (currently) flown here as a
+        // SqlConstantExpression over IReadOnlyList<PathSegment>. Render that to a string here.
+        if (sqlConstantExpression is { Value: IReadOnlyList<PathSegment> path })
+        {
+            GenerateJsonPath(ConvertJsonPathSegments(path));
+            return sqlConstantExpression;
+        }
+
+        return base.VisitSqlConstant(sqlConstantExpression);
+    }
+
+    /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
@@ -1058,31 +1075,33 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     protected override Expression VisitJsonScalar(JsonScalarExpression jsonScalarExpression)
     {
         // TODO: Stop producing empty JsonScalarExpressions, #30768
-        var path = jsonScalarExpression.Path;
-        if (path.Count == 0)
+        var segmentsPath = jsonScalarExpression.Path;
+        if (segmentsPath.Count == 0)
         {
             Visit(jsonScalarExpression.Json);
             return jsonScalarExpression;
         }
+
+        var path = ConvertJsonPathSegments(segmentsPath);
 
         switch (jsonScalarExpression.TypeMapping)
         {
             // This case is for when a nested JSON entity is being accessed. We want the json/jsonb fragment in this case (not text),
             // so we can perform further JSON operations on it.
             case NpgsqlStructuralJsonTypeMapping:
-                GenerateJsonPath(returnsText: false);
+                GenerateJsonPath(jsonScalarExpression.Json, returnsText: false, path);
                 break;
 
             // No need to cast the output when we expect a string anyway
             case StringTypeMapping:
-                GenerateJsonPath(returnsText: true);
+                GenerateJsonPath(jsonScalarExpression.Json, returnsText: true, path);
                 break;
 
             // bytea requires special handling, since we encode the binary data as base64 inside the JSON, but that requires a special
             // conversion function to be extracted out to a PG bytea.
             case NpgsqlByteArrayTypeMapping:
                 Sql.Append("decode(");
-                GenerateJsonPath(returnsText: true);
+                GenerateJsonPath(jsonScalarExpression.Json, returnsText: true, path);
                 Sql.Append(", 'base64')");
                 break;
 
@@ -1092,13 +1111,13 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             case NpgsqlArrayTypeMapping arrayMapping:
                 Sql.Append("(ARRAY(SELECT CAST(element AS ").Append(arrayMapping.ElementTypeMapping.StoreType)
                     .Append(") FROM jsonb_array_elements_text(");
-                GenerateJsonPath(returnsText: false);
+                GenerateJsonPath(jsonScalarExpression.Json, returnsText: false, path);
                 Sql.Append(") WITH ORDINALITY AS t(element) ORDER BY ordinality))");
                 break;
 
             default:
                 Sql.Append("CAST(");
-                GenerateJsonPath(returnsText: true);
+                GenerateJsonPath(jsonScalarExpression.Json, returnsText: true, path);
                 Sql.Append(" AS ");
                 Sql.Append(jsonScalarExpression.TypeMapping!.StoreType);
                 Sql.Append(")");
@@ -1106,19 +1125,6 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         }
 
         return jsonScalarExpression;
-
-        void GenerateJsonPath(bool returnsText)
-            => this.GenerateJsonPath(
-                jsonScalarExpression.Json,
-                returnsText: returnsText,
-                jsonScalarExpression.Path.Select(
-                    s => s switch
-                    {
-                        { PropertyName: string propertyName }
-                            => new SqlConstantExpression(propertyName, _textTypeMapping ??= _typeMappingSource.FindMapping(typeof(string))),
-                        { ArrayIndex: SqlExpression arrayIndex } => arrayIndex,
-                        _ => throw new UnreachableException()
-                    }).ToList());
     }
 
     /// <summary>
@@ -1148,6 +1154,11 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         // Multiple path components
         Sql.Append(returnsText ? " #>> " : " #> ");
 
+        GenerateJsonPath(path);
+    }
+
+    private void GenerateJsonPath(IReadOnlyList<SqlExpression> path)
+    {
         // Use simplified array literal syntax if all path components are constants for cleaner SQL
         if (path.All(p => p is SqlConstantExpression { Value: var pathSegment }
                 && (pathSegment is not string s || s.All(char.IsAsciiLetterOrDigit))))
@@ -1172,6 +1183,23 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             Sql.Append("]::text[]");
         }
     }
+
+    /// <summary>
+    ///     Converts the standard EF <see cref="IReadOnlyList{PathSegment}" /> to an <see cref="IReadOnlyList{SqlExpression}" />
+    ///     (the EF built-in <see cref="JsonScalarExpression" /> and <see cref="JsonQueryExpression" /> don't support non-constant
+    ///     property names, but we do via the Npgsql-specific JSON DOM support).
+    /// </summary>
+    private IReadOnlyList<SqlExpression> ConvertJsonPathSegments(IReadOnlyList<PathSegment> path)
+        => path
+            .Select(
+                s => s switch
+                {
+                    { PropertyName: string propertyName }
+                        => new SqlConstantExpression(propertyName, _textTypeMapping ??= _typeMappingSource.FindMapping(typeof(string))),
+                    { ArrayIndex: SqlExpression arrayIndex } => arrayIndex,
+                    _ => throw new UnreachableException()
+                })
+            .ToList();
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
