@@ -1,21 +1,43 @@
 using Microsoft.EntityFrameworkCore.TestModels.Array;
-using TypeExtensions = Npgsql.EntityFrameworkCore.PostgreSQL.TypeExtensions;
 
 namespace Microsoft.EntityFrameworkCore.Query;
 
-public class ArrayListQueryTest : ArrayQueryTest<ArrayListQueryTest.ArrayListQueryFixture>
+public class ArrayListQueryTest : QueryTestBase<ArrayListQueryTest.ArrayListQueryFixture>
 {
     public ArrayListQueryTest(ArrayListQueryFixture fixture, ITestOutputHelper testOutputHelper)
-        : base(fixture, testOutputHelper)
+        : base(fixture)
     {
+        Fixture.TestSqlLoggerFactory.Clear();
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
+    #region Roundtrip
+
+    [ConditionalFact]
+    public virtual void Roundtrip()
+    {
+        using var ctx = CreateContext();
+        var x = ctx.SomeEntities.Single(e => e.Id == 1);
+
+        Assert.Equal([3, 4], x.IntArray);
+        Assert.Equal([3, 4], x.IntList);
+        Assert.Equal([3, 4, null], x.NullableIntArray);
+        Assert.Equal(
+        [
+            3,
+            4,
+            null
+        ], x.NullableIntList);
+    }
+
+    #endregion
+
     #region Indexers
 
-    public override async Task Index_with_constant(bool async)
+    [ConditionalFact]
+    public virtual async Task Index_with_constant()
     {
-        await base.Index_with_constant(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.IntList[0] == 3));
 
         AssertSql(
             """
@@ -25,9 +47,11 @@ WHERE s."IntList"[1] = 3
 """);
     }
 
-    public override async Task Index_with_parameter(bool async)
+    [ConditionalFact]
+    public virtual async Task Index_with_parameter()
     {
-        await base.Index_with_parameter(async);
+        var x = 0;
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.IntList[x] == 3));
 
         AssertSql(
             """
@@ -39,9 +63,10 @@ WHERE s."IntList"[@x + 1] = 3
 """);
     }
 
-    public override async Task Nullable_index_with_constant(bool async)
+    [ConditionalFact]
+    public virtual async Task Nullable_index_with_constant()
     {
-        await base.Nullable_index_with_constant(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.NullableIntList[0] == 3));
 
         AssertSql(
             """
@@ -51,9 +76,10 @@ WHERE s."NullableIntList"[1] = 3
 """);
     }
 
-    public override async Task Nullable_value_array_index_compare_to_null(bool async)
+    [ConditionalFact]
+    public virtual async Task Nullable_value_array_index_compare_to_null()
     {
-        await base.Nullable_value_array_index_compare_to_null(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.NullableIntList[2] == null));
 
         AssertSql(
             """
@@ -63,9 +89,11 @@ WHERE s."NullableIntList"[3] IS NULL
 """);
     }
 
-    public override async Task Non_nullable_value_array_index_compare_to_null(bool async)
+#pragma warning disable CS0472
+    [ConditionalFact]
+    public virtual async Task Non_nullable_value_array_index_compare_to_null()
     {
-        await base.Non_nullable_value_array_index_compare_to_null(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.IntList[1] == null), assertEmpty: true);
 
         AssertSql(
             """
@@ -74,10 +102,12 @@ FROM "SomeEntities" AS s
 WHERE FALSE
 """);
     }
+#pragma warning restore CS0472
 
-    public override async Task Nullable_reference_array_index_compare_to_null(bool async)
+    [ConditionalFact]
+    public virtual async Task Nullable_reference_array_index_compare_to_null()
     {
-        await base.Nullable_reference_array_index_compare_to_null(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.NullableStringList[2] == null));
 
         AssertSql(
             """
@@ -87,9 +117,10 @@ WHERE s."NullableStringList"[3] IS NULL
 """);
     }
 
-    public override async Task Non_nullable_reference_array_index_compare_to_null(bool async)
+    [ConditionalFact]
+    public virtual async Task Non_nullable_reference_array_index_compare_to_null()
     {
-        await base.Non_nullable_reference_array_index_compare_to_null(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.StringList[1] == null),  assertEmpty: true);
 
         AssertSql(
             """
@@ -103,9 +134,11 @@ WHERE FALSE
 
     #region SequenceEqual
 
-    public override async Task SequenceEqual_with_parameter(bool async)
+    [ConditionalFact]
+    public virtual async Task SequenceEqual_with_parameter()
     {
-        await base.SequenceEqual_with_parameter(async);
+        var arr = new[] { 3, 4 };
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.IntList.SequenceEqual(arr)));
 
         AssertSql(
             """
@@ -117,21 +150,24 @@ WHERE s."IntList" = @arr
 """);
     }
 
-    public override async Task SequenceEqual_with_array_literal(bool async)
-    {
-        await base.SequenceEqual_with_array_literal(async);
+//     [ConditionalFact]
+//     public virtual async Task SequenceEqual_with_array_literal()
+//     {
+//         await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.IntList.SequenceEqual(new[] { 3, 4 })));
 
-        AssertSql(
-            """
-SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
-FROM "SomeEntities" AS s
-WHERE s."IntList" = ARRAY[3,4]::integer[]
-""");
-    }
+//         AssertSql(
+//             """
+// SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+// FROM "SomeEntities" AS s
+// WHERE s."IntList" = ARRAY[3,4]::integer[]
+// """);
+//     }
 
-    public override async Task SequenceEqual_over_nullable_with_parameter(bool async)
+    [ConditionalFact]
+    public virtual async Task SequenceEqual_over_nullable_with_parameter()
     {
-        await base.SequenceEqual_over_nullable_with_parameter(async);
+        var arr = new int?[] { 3, 4, null };
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.NullableIntList.SequenceEqual(arr)));
 
         AssertSql(
             """
@@ -147,9 +183,10 @@ WHERE s."NullableIntList" = @arr
 
     #region Containment
 
-    public override async Task Array_column_Any_equality_operator(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_column_Any_equality_operator()
     {
-        await base.Array_column_Any_equality_operator(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.StringList.Any(p => p == "3")));
 
         AssertSql(
             """
@@ -159,9 +196,10 @@ WHERE s."StringList" @> ARRAY['3']::text[]
 """);
     }
 
-    public override async Task Array_column_Any_Equals(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_column_Any_Equals()
     {
-        await base.Array_column_Any_Equals(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.StringList.Any(p => "3".Equals(p))));
 
         AssertSql(
             """
@@ -171,9 +209,10 @@ WHERE s."StringList" @> ARRAY['3']::text[]
 """);
     }
 
-    public override async Task Array_column_Contains_literal_item(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_column_Contains_literal_item()
     {
-        await base.Array_column_Contains_literal_item(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.IntList.Contains(3)));
 
         AssertSql(
             """
@@ -183,9 +222,12 @@ WHERE s."IntList" @> ARRAY[3]::integer[]
 """);
     }
 
-    public override async Task Array_column_Contains_parameter_item(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_column_Contains_parameter_item()
     {
-        await base.Array_column_Contains_parameter_item(async);
+        var p = 3;
+
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.IntList.Contains(p)));
 
         AssertSql(
             """
@@ -197,9 +239,10 @@ WHERE s."IntList" @> ARRAY[@p]::integer[]
 """);
     }
 
-    public override async Task Array_column_Contains_column_item(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_column_Contains_column_item()
     {
-        await base.Array_column_Contains_column_item(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.IntList.Contains(e.Id + 2)));
 
         AssertSql(
             """
@@ -209,9 +252,10 @@ WHERE s."IntList" @> ARRAY[s."Id" + 2]::integer[]
 """);
     }
 
-    public override async Task Array_column_Contains_null_constant(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_column_Contains_null_constant()
     {
-        await base.Array_column_Contains_null_constant(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.NullableStringList.Contains(null)));
 
         AssertSql(
             """
@@ -221,7 +265,7 @@ WHERE array_position(s."NullableStringList", NULL) IS NOT NULL
 """);
     }
 
-    public override void Array_column_Contains_null_parameter_does_not_work()
+    public void Array_column_Contains_null_parameter_does_not_work()
     {
         using var ctx = CreateContext();
 
@@ -241,9 +285,10 @@ WHERE s."StringList" @> ARRAY[NULL]::text[]
 """);
     }
 
-    public override async Task Nullable_array_column_Contains_literal_item(bool async)
+    [ConditionalFact]
+    public virtual async Task Nullable_array_column_Contains_literal_item()
     {
-        await base.Nullable_array_column_Contains_literal_item(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.NullableIntList.Contains(3)));
 
         AssertSql(
             """
@@ -253,11 +298,10 @@ WHERE s."NullableIntList" @> ARRAY[3]::integer[]
 """);
     }
 
-    public override async Task Array_constant_Contains_column(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_constant_Contains_column()
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => new[] { "foo", "xxx" }.Contains(e.NullableText)));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => new[] { "foo", "xxx" }.Contains(e.NullableText)));
 
         AssertSql(
             """
@@ -267,13 +311,12 @@ WHERE s."NullableText" IN ('foo', 'xxx')
 """);
     }
 
-    public override async Task Array_param_Contains_nullable_column(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_param_Contains_nullable_column()
     {
         var array = new List<string> { "foo", "xxx" };
 
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.NullableText!)));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.NullableText!)));
 
         AssertSql(
             """
@@ -285,13 +328,12 @@ WHERE s."NullableText" = ANY (@array) OR (s."NullableText" IS NULL AND array_pos
 """);
     }
 
-    public override async Task Array_param_Contains_non_nullable_column(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_param_Contains_non_nullable_column()
     {
         var array = new List<int> { 1 };
 
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.Id)));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.Id)));
 
         AssertSql(
             """
@@ -303,7 +345,7 @@ WHERE s."Id" = ANY (@array)
 """);
     }
 
-    public override void Array_param_with_null_Contains_non_nullable_not_found()
+    public void Array_param_with_null_Contains_non_nullable_not_found()
     {
         using var ctx = CreateContext();
 
@@ -326,7 +368,7 @@ WHERE s."NonNullableText" = ANY (@array)
 """);
     }
 
-    public override void Array_param_with_null_Contains_non_nullable_not_found_negated()
+    public void Array_param_with_null_Contains_non_nullable_not_found_negated()
     {
         using var ctx = CreateContext();
 
@@ -349,7 +391,7 @@ WHERE NOT (s."NonNullableText" = ANY (@array) AND s."NonNullableText" = ANY (@ar
 """);
     }
 
-    public override void Array_param_with_null_Contains_nullable_not_found()
+    public void Array_param_with_null_Contains_nullable_not_found()
     {
         using var ctx = CreateContext();
 
@@ -372,7 +414,7 @@ WHERE s."NullableText" = ANY (@array) OR (s."NullableText" IS NULL AND array_pos
 """);
     }
 
-    public override void Array_param_with_null_Contains_nullable_not_found_negated()
+    public void Array_param_with_null_Contains_nullable_not_found_negated()
     {
         using var ctx = CreateContext();
 
@@ -395,13 +437,12 @@ WHERE NOT (s."NullableText" = ANY (@array) AND s."NullableText" = ANY (@array) I
 """);
     }
 
-    public override async Task Array_param_Contains_column_with_ToString(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_param_Contains_column_with_ToString()
     {
         var values = new List<string> { "1", "999" };
 
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => values.Contains(e.Id.ToString())));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => values.Contains(e.Id.ToString())));
 
         AssertSql(
             """
@@ -413,13 +454,12 @@ WHERE s."Id"::text = ANY (@values)
 """);
     }
 
-    public override async Task Byte_array_parameter_contains_column(bool async)
+    [ConditionalFact]
+    public virtual async Task Byte_array_parameter_contains_column()
     {
         var values = new List<byte> { 20 };
 
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => values.Contains(e.Byte)));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => values.Contains(e.Byte)));
 
         AssertSql(
             """
@@ -431,13 +471,12 @@ WHERE s."Byte" = ANY (@values)
 """);
     }
 
-    public override async Task Array_param_Contains_value_converted_column_enum_to_int(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_param_Contains_value_converted_column_enum_to_int()
     {
         var array = new List<SomeEnum> { SomeEnum.Two, SomeEnum.Three };
 
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.EnumConvertedToInt)));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.EnumConvertedToInt)));
 
         AssertSql(
             """
@@ -449,13 +488,12 @@ WHERE s."EnumConvertedToInt" = ANY (@array)
 """);
     }
 
-    public override async Task Array_param_Contains_value_converted_column_enum_to_string(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_param_Contains_value_converted_column_enum_to_string()
     {
         var array = new List<SomeEnum> { SomeEnum.Two, SomeEnum.Three };
 
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.EnumConvertedToString)));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.EnumConvertedToString)));
 
         AssertSql(
             """
@@ -467,13 +505,12 @@ WHERE s."EnumConvertedToString" = ANY (@array)
 """);
     }
 
-    public override async Task Array_param_Contains_value_converted_column_nullable_enum_to_string(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_param_Contains_value_converted_column_nullable_enum_to_string()
     {
         var array = new List<SomeEnum?> { SomeEnum.Two, SomeEnum.Three };
 
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.NullableEnumConvertedToString)));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.NullableEnumConvertedToString)));
 
         AssertSql(
             """
@@ -485,13 +522,12 @@ WHERE s."NullableEnumConvertedToString" = ANY (@array) OR (s."NullableEnumConver
 """);
     }
 
-    public override async Task Array_param_Contains_value_converted_column_nullable_enum_to_string_with_non_nullable_lambda(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_param_Contains_value_converted_column_nullable_enum_to_string_with_non_nullable_lambda()
     {
         var array = new List<SomeEnum?> { SomeEnum.Two, SomeEnum.Three };
 
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.NullableEnumConvertedToStringWithNonNullableLambda)));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.NullableEnumConvertedToStringWithNonNullableLambda)));
 
         AssertSql(
             """
@@ -503,13 +539,12 @@ WHERE s."NullableEnumConvertedToStringWithNonNullableLambda" = ANY (@array) OR (
 """);
     }
 
-    public override async Task Array_column_Contains_value_converted_param(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_column_Contains_value_converted_param()
     {
         var item = SomeEnum.Eight;
 
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedListOfEnum.Contains(item)));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedListOfEnum.Contains(item)));
 
         AssertSql(
             """
@@ -521,11 +556,10 @@ WHERE s."ValueConvertedListOfEnum" @> ARRAY[@item]::text[]
 """);
     }
 
-    public override async Task Array_column_Contains_value_converted_constant(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_column_Contains_value_converted_constant()
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedListOfEnum.Contains(SomeEnum.Eight)));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedListOfEnum.Contains(SomeEnum.Eight)));
 
         AssertSql(
             """
@@ -535,13 +569,12 @@ WHERE s."ValueConvertedListOfEnum" @> ARRAY['Eight']::text[]
 """);
     }
 
-    public override async Task Array_param_Contains_value_converted_array_column(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_param_Contains_value_converted_array_column()
     {
         var p = new List<SomeEnum> { SomeEnum.Eight, SomeEnum.Nine };
 
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArrayOfEnum.All(x => p.Contains(x))));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedListOfEnum.All(x => p.Contains(x))));
 
         AssertSql(
             """
@@ -553,9 +586,10 @@ WHERE s."ValueConvertedListOfEnum" <@ @p
 """);
     }
 
-    public override async Task IList_column_contains_constant(bool async)
+    [ConditionalFact]
+    public virtual async Task IList_column_contains_constant()
     {
-        await base.IList_column_contains_constant(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(a => a.IList.Contains(10)));
 
         AssertSql(
             """
@@ -565,9 +599,10 @@ WHERE s."IList" @> ARRAY[10]::integer[]
 """);
     }
 
-    public override async Task Array_column_Contains_in_scalar_subquery(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_column_Contains_in_scalar_subquery()
     {
-        await base.Array_column_Contains_in_scalar_subquery(async);
+        await AssertQuery(ss => ss.Set<ArrayContainerEntity>().Where(c => c.ArrayEntities.OrderBy(e => e.Id).First().NullableIntList.Contains(3)));
 
         AssertSql(
             """
@@ -586,11 +621,10 @@ WHERE 3 = ANY ((
 
     #region Length/Count
 
-    public override async Task Array_Length(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_Length()
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.IntList.Count == 2));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.IntList.Count == 2));
 
         AssertSql(
             """
@@ -600,11 +634,10 @@ WHERE cardinality(s."IntList") = 2
 """);
     }
 
-    public override async Task Nullable_array_Length(bool async)
+    [ConditionalFact]
+    public virtual async Task Nullable_array_Length()
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.NullableIntList.Count == 3));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.NullableIntList.Count == 3));
 
         AssertSql(
             """
@@ -614,11 +647,10 @@ WHERE cardinality(s."NullableIntList") = 3
 """);
     }
 
-    public override async Task Array_Length_on_EF_Property(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_Length_on_EF_Property()
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => EF.Property<List<int>>(e, nameof(ArrayEntity.IntList)).Count == 2));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => EF.Property<List<int>>(e, nameof(ArrayEntity.IntList)).Count == 2));
 
         AssertSql(
             """
@@ -632,9 +664,10 @@ WHERE cardinality(s."IntList") = 2
 
     #region Any/All
 
-    public override async Task Any_no_predicate(bool async)
+    [ConditionalFact]
+    public virtual async Task Any_no_predicate()
     {
-        await base.Any_no_predicate(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.IntList.Any()));
 
         AssertSql(
             """
@@ -644,11 +677,10 @@ WHERE cardinality(s."IntList") > 0
 """);
     }
 
-    public override async Task Any_like(bool async)
+    [ConditionalFact]
+    public virtual async Task Any_like()
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>()
+        await AssertQuery(ss => ss.Set<ArrayEntity>()
                 .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.Like(e.NullableText, p))),
             ss => ss.Set<ArrayEntity>()
                 .Where(e => new[] { "a", "b", "c" }.Any(p => e.NullableText!.StartsWith(p, StringComparison.Ordinal))));
@@ -661,11 +693,10 @@ WHERE s."NullableText" LIKE ANY (ARRAY['a%','b%','c%']::text[])
 """);
     }
 
-    public override async Task Any_ilike(bool async)
+    [ConditionalFact]
+    public virtual async Task Any_ilike()
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>()
+        await AssertQuery(ss => ss.Set<ArrayEntity>()
                 .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.ILike(e.NullableText!, p))),
             ss => ss.Set<ArrayEntity>()
                 .Where(e => new[] { "a", "b", "c" }.Any(p => e.NullableText!.StartsWith(p, StringComparison.OrdinalIgnoreCase))));
@@ -678,7 +709,8 @@ WHERE s."NullableText" ILIKE ANY (ARRAY['a%','b%','c%']::text[])
 """);
     }
 
-    public override async Task Any_like_anonymous(bool async)
+    [ConditionalFact]
+    public virtual async Task Any_like_anonymous()
     {
         await using var ctx = CreateContext();
 
@@ -695,9 +727,7 @@ WHERE s."NullableText" ILIKE ANY (ARRAY['a%','b%','c%']::text[])
             "c"
         };
 
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>()
+        await AssertQuery(ss => ss.Set<ArrayEntity>()
                 .Where(e => patternsActual.Any(p => EF.Functions.Like(e.NullableText, p))),
             ss => ss.Set<ArrayEntity>()
                 .Where(e => patternsExpected.Any(p => e.NullableText!.StartsWith(p, StringComparison.Ordinal))));
@@ -712,11 +742,10 @@ WHERE s."NullableText" LIKE ANY (@patternsActual)
 """);
     }
 
-    public override async Task All_like(bool async)
+    [ConditionalFact]
+    public virtual async Task All_like()
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>()
+        await AssertQuery(ss => ss.Set<ArrayEntity>()
                 .Where(e => new List<string> { "b%", "ba%" }.All(p => EF.Functions.Like(e.NullableText, p))),
             ss => ss.Set<ArrayEntity>()
                 .Where(e => new List<string> { "b", "ba" }.All(p => e.NullableText!.StartsWith(p, StringComparison.Ordinal))));
@@ -729,11 +758,10 @@ WHERE s."NullableText" LIKE ALL (ARRAY['b%','ba%']::text[])
 """);
     }
 
-    public override async Task All_ilike(bool async)
+    [ConditionalFact]
+    public virtual async Task All_ilike()
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>()
+        await AssertQuery(ss => ss.Set<ArrayEntity>()
                 .Where(e => new List<string> { "B%", "ba%" }.All(p => EF.Functions.ILike(e.NullableText!, p))),
             ss => ss.Set<ArrayEntity>()
                 .Where(e => new List<string> { "B", "ba" }.All(p => e.NullableText!.StartsWith(p, StringComparison.OrdinalIgnoreCase))));
@@ -746,9 +774,10 @@ WHERE s."NullableText" ILIKE ALL (ARRAY['B%','ba%']::text[])
 """);
     }
 
-    public override async Task Any_Contains_on_constant_array(bool async)
+    [ConditionalFact]
+    public virtual async Task Any_Contains_on_constant_array()
     {
-        await base.Any_Contains_on_constant_array(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => new[] { 2, 3 }.Any(p => e.IntList.Contains(p))));
 
         AssertSql(
             """
@@ -758,9 +787,11 @@ WHERE ARRAY[2,3]::integer[] && s."IntList"
 """);
     }
 
-    public override async Task Any_Contains_between_column_and_List(bool async)
+    [ConditionalFact]
+    public virtual async Task Any_Contains_between_column_and_List()
     {
-        await base.Any_Contains_between_column_and_List(async);
+        var ints = new List<int> { 2, 3 };
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.IntList.Any(i => ints.Contains(i))));
 
         AssertSql(
             """
@@ -772,9 +803,11 @@ WHERE s."IntList" && @ints
 """);
     }
 
-    public override async Task Any_Contains_between_column_and_array(bool async)
+    [ConditionalFact]
+    public virtual async Task Any_Contains_between_column_and_array()
     {
-        await base.Any_Contains_between_column_and_array(async);
+        var ints = new[] { 2, 3 };
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.IntList.Any(i => ints.Contains(i))));
 
         AssertSql(
             """
@@ -786,13 +819,12 @@ WHERE s."IntList" && @ints
 """);
     }
 
-    public override async Task Any_Contains_between_column_and_other_type(bool async)
+    [ConditionalFact]
+    public virtual async Task Any_Contains_between_column_and_other_type()
     {
         var array = new[] { SomeEnum.Eight };
 
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedListOfEnum.Any(i => array.Contains(i))));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedListOfEnum.Any(i => array.Contains(i))));
 
         AssertSql(
             """
@@ -804,9 +836,10 @@ WHERE s."ValueConvertedListOfEnum" && @array
 """);
     }
 
-    public override async Task All_Contains(bool async)
+    [ConditionalFact]
+    public virtual async Task All_Contains()
     {
-        await base.All_Contains(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => new[] { 5, 6 }.All(p => e.IntList.Contains(p))));
 
         AssertSql(
             """
@@ -820,9 +853,10 @@ WHERE ARRAY[5,6]::integer[] <@ s."IntList"
 
     #region Other translations
 
-    public override async Task Append(bool async)
-        // TODO: https://github.com/dotnet/efcore/issues/30669
-        => await AssertTranslationFailed(() => base.Append(async));
+    // TODO: https://github.com/dotnet/efcore/issues/30669
+    // [ConditionalFact]
+    // public virtual async Task Append()
+    // {
 
     //         await base.Append(async);
     //
@@ -832,25 +866,25 @@ WHERE ARRAY[5,6]::integer[] <@ s."IntList"
     // FROM "SomeEntities" AS s
     // WHERE array_append(s."IntList", 5) = ARRAY[3,4,5]::integer[]
     // """);
-    public override async Task Concat(bool async)
-    {
-        await base.Concat(async);
 
-        AssertSql(
-            """
-SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
-FROM "SomeEntities" AS s
-WHERE array_cat(s."IntList", ARRAY[5,6]::integer[]) = ARRAY[3,4,5,6]::integer[]
-""");
-    }
+//     [ConditionalFact]
+//     public virtual async Task Concat()
+//     {
+//         await AssertQuery(ss => ss.Set<ArrayEntity>()
+//                 .Where(e => e.IntList.Concat(new[] { 5, 6 }).SequenceEqual(new[] { 3, 4, 5, 6 })));
 
-    [Theory]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task Array_IndexOf1(bool async)
+//         AssertSql(
+//             """
+// SELECT s."Id", s."ArrayContainerEntityId", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IntArray", s."IntList", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArray", s."ValueConvertedList", s."Varchar10", s."Varchar15"
+// FROM "SomeEntities" AS s
+// WHERE array_cat(s."IntList", ARRAY[5,6]::integer[]) = ARRAY[3,4,5,6]::integer[]
+// """);
+//     }
+
+    [ConditionalFact]
+    public virtual async Task Array_IndexOf1()
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.IntList.IndexOf(6) == 1));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.IntList.IndexOf(6) == 1));
 
         AssertSql(
             """
@@ -860,13 +894,10 @@ WHERE COALESCE(array_position(s."IntList", 6) - 1, -1) = 1
 """);
     }
 
-    [Theory]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task Array_IndexOf2(bool async)
+    [ConditionalFact]
+    public virtual async Task Array_IndexOf2()
     {
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>().Where(e => e.IntList.IndexOf(6, 1) == 1));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.IntList.IndexOf(6, 1) == 1));
 
         AssertSql(
             """
@@ -877,9 +908,10 @@ WHERE COALESCE(array_position(s."IntList", 6, 2) - 1, -1) = 1
     }
 
     // Note: see NorthwindFunctionsQueryNpgsqlTest.String_Join_non_aggregate for regular use without an array column/parameter
-    public override async Task String_Join_with_array_of_int_column(bool async)
+    [ConditionalFact]
+    public virtual async Task String_Join_with_array_of_int_column()
     {
-        await base.String_Join_with_array_of_int_column(async);
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => string.Join(", ", e.IntList) == "3, 4"));
 
         AssertSql(
             """
@@ -889,14 +921,12 @@ WHERE array_to_string(s."IntList", ', ', '') = '3, 4'
 """);
     }
 
-    public override async Task String_Join_with_array_of_string_column(bool async)
+    [ConditionalFact]
+    public virtual async Task String_Join_with_array_of_string_column()
     {
         // This is not in ArrayQueryTest because string.Join uses another overload for string[] than for List<string> and thus
         // ArrayToListReplacingExpressionVisitor won't work.
-        await AssertQuery(
-            async,
-            ss => ss.Set<ArrayEntity>()
-                .Where(e => string.Join(", ", e.StringList) == "3, 4"));
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => string.Join(", ", e.StringList) == "3, 4"));
 
         AssertSql(
             """
@@ -906,104 +936,27 @@ WHERE array_to_string(s."StringList", ', ', '') = '3, 4'
 """);
     }
 
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task String_Join_disallow_non_array_type_mapped_parameter(bool async)
+    [ConditionalFact]
+    public virtual async Task String_Join_disallow_non_array_type_mapped_parameter()
     {
         // This is not in ArrayQueryTest because string.Join uses another overload for string[] than for List<string> and thus
         // ArrayToListReplacingExpressionVisitor won't work.
         await AssertTranslationFailed(() => AssertQuery(
-            async,
             ss => ss.Set<ArrayEntity>()
                 .Where(e => string.Join(", ", e.ListOfStringConvertedToDelimitedString) == "3, 4")));
     }
 
     #endregion Other translations
 
+    protected void AssertSql(params string[] expected)
+        => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
+
+    protected ArrayQueryContext CreateContext()
+        => Fixture.CreateContext();
+
     public class ArrayListQueryFixture : ArrayQueryFixture
     {
         protected override string StoreName
             => "ArrayListTest";
-    }
-
-    protected override Expression RewriteServerQueryExpression(Expression serverQueryExpression)
-        => new ArrayToListReplacingExpressionVisitor().Visit(serverQueryExpression);
-
-    private class ArrayToListReplacingExpressionVisitor : ExpressionVisitor
-    {
-        private static readonly PropertyInfo IntArray
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.IntArray))!;
-
-        private static readonly PropertyInfo NullableIntArray
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.NullableIntArray))!;
-
-        private static readonly PropertyInfo IntList
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.IntList))!;
-
-        private static readonly PropertyInfo NullableIntList
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.NullableIntList))!;
-
-        private static readonly PropertyInfo StringArray
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.StringArray))!;
-
-        private static readonly PropertyInfo NullableStringArray
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.NullableStringArray))!;
-
-        private static readonly PropertyInfo StringList
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.StringList))!;
-
-        private static readonly PropertyInfo NullableStringList
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.NullableStringList))!;
-
-        private static readonly PropertyInfo ValueConvertedArrayOfEnum
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.ValueConvertedArrayOfEnum))!;
-
-        private static readonly PropertyInfo ValueConvertedListOfEnum
-            = typeof(ArrayEntity).GetProperty(nameof(ArrayEntity.ValueConvertedListOfEnum))!;
-
-        protected override Expression VisitMember(MemberExpression node)
-        {
-            if (node.Member == IntArray)
-            {
-                return Expression.MakeMemberAccess(node.Expression, IntList);
-            }
-
-            if (node.Member == NullableIntArray)
-            {
-                return Expression.MakeMemberAccess(node.Expression, NullableIntList);
-            }
-
-            if (node.Member == StringArray)
-            {
-                return Expression.MakeMemberAccess(node.Expression, StringList);
-            }
-
-            if (node.Member == NullableStringArray)
-            {
-                return Expression.MakeMemberAccess(node.Expression, NullableStringList);
-            }
-
-            if (node.Member == ValueConvertedArrayOfEnum)
-            {
-                return Expression.MakeMemberAccess(node.Expression, ValueConvertedListOfEnum);
-            }
-
-            return node;
-        }
-
-        protected override Expression VisitBinary(BinaryExpression node)
-        {
-            if (node.NodeType == ExpressionType.ArrayIndex)
-            {
-                var listExpression = Visit(node.Left);
-                if (TypeExtensions.IsGenericList(listExpression.Type))
-                {
-                    var getItemMethod = listExpression.Type.GetMethod("get_Item", [typeof(int)])!;
-                    return Expression.Call(listExpression, getItemMethod, node.Right);
-                }
-            }
-
-            return base.VisitBinary(node);
-        }
     }
 }
