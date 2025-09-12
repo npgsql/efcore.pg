@@ -151,6 +151,11 @@ public class PgBinaryExpression : SqlExpression
 
                     PgExpressionType.Distance => "<->",
 
+                    PgExpressionType.DictionaryContainsKey => "?",
+                    PgExpressionType.DictionaryValueForKey => "->",
+                    PgExpressionType.DictionaryConcat => "||",
+                    PgExpressionType.DictionarySubtract => "-",
+
                     _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
                 })
             .Append(" ");
