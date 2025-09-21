@@ -19,6 +19,7 @@ WHERE (
     FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
         "Id" integer,
         "Int" integer,
+        "Ints" integer[],
         "Name" text,
         "String" text,
         "NestedCollection" jsonb,
@@ -41,6 +42,7 @@ WHERE (
     FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
         "Id" integer,
         "Int" integer,
+        "Ints" integer[],
         "Name" text,
         "String" text
     )) WITH ORDINALITY AS r0
@@ -61,6 +63,7 @@ WHERE (
     FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
         "Id" integer,
         "Int" integer,
+        "Ints" integer[],
         "Name" text,
         "String" text
     )) WITH ORDINALITY AS r0
@@ -82,10 +85,11 @@ FROM "RootEntity" AS r
 WHERE (
     SELECT count(*)::int
     FROM (
-        SELECT DISTINCT r."Id", r0."Id" AS "Id0", r0."Int", r0."Name", r0."String", r0."NestedCollection" AS c, r0."OptionalNested" AS c0, r0."RequiredNested" AS c1
+        SELECT DISTINCT r."Id", r0."Id" AS "Id0", r0."Int", r0."Ints", r0."Name", r0."String", r0."NestedCollection" AS c, r0."OptionalNested" AS c0, r0."RequiredNested" AS c1
         FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
             "Id" integer,
             "Int" integer,
+            "Ints" integer[],
             "Name" text,
             "String" text,
             "NestedCollection" jsonb,
@@ -104,13 +108,14 @@ WHERE (
         {
             AssertSql(
                 """
-SELECT r."Id", r1."Id", r1."Id0", r1."Int", r1."Name", r1."String", r1.c, r1.c0, r1.c1
+SELECT r."Id", r1."Id", r1."Id0", r1."Int", r1."Ints", r1."Name", r1."String", r1.c, r1.c0, r1.c1
 FROM "RootEntity" AS r
 LEFT JOIN LATERAL (
-    SELECT DISTINCT r."Id", r0."Id" AS "Id0", r0."Int", r0."Name", r0."String", r0."NestedCollection" AS c, r0."OptionalNested" AS c0, r0."RequiredNested" AS c1
+    SELECT DISTINCT r."Id", r0."Id" AS "Id0", r0."Int", r0."Ints", r0."Name", r0."String", r0."NestedCollection" AS c, r0."OptionalNested" AS c0, r0."RequiredNested" AS c1
     FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
         "Id" integer,
         "Int" integer,
+        "Ints" integer[],
         "Name" text,
         "String" text,
         "NestedCollection" jsonb,
@@ -118,7 +123,7 @@ LEFT JOIN LATERAL (
         "RequiredNested" jsonb
     )) WITH ORDINALITY AS r0
 ) AS r1 ON TRUE
-ORDER BY r."Id" NULLS FIRST, r1."Id0" NULLS FIRST, r1."Int" NULLS FIRST, r1."Name" NULLS FIRST
+ORDER BY r."Id" NULLS FIRST, r1."Id0" NULLS FIRST, r1."Int" NULLS FIRST, r1."Ints" NULLS FIRST, r1."Name" NULLS FIRST
 """);
         }
     }
@@ -207,10 +212,11 @@ FROM "RootEntity" AS r
 WHERE 16 IN (
     SELECT COALESCE(sum(r1."Int"), 0)::int
     FROM (
-        SELECT r0."Id" AS "Id0", r0."Int", r0."Name", r0."String", r0."String" AS "Key"
+        SELECT r0."Id" AS "Id0", r0."Int", r0."Ints", r0."Name", r0."String", r0."String" AS "Key"
         FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
             "Id" integer,
             "Int" integer,
+            "Ints" integer[],
             "Name" text,
             "String" text
         )) WITH ORDINALITY AS r0
@@ -234,6 +240,7 @@ SELECT (
         FROM ROWS FROM (jsonb_to_recordset(r0."NestedCollection") AS (
             "Id" integer,
             "Int" integer,
+            "Ints" integer[],
             "Name" text,
             "String" text
         )) WITH ORDINALITY AS n)), 0)::int

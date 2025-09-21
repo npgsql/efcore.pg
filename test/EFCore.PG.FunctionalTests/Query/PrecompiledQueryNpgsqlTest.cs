@@ -1793,13 +1793,13 @@ WHERE (
 
         AssertSql(
             """
-@ids={ '1'
+@p={ '1'
 '2'
 '3' } (DbType = Object)
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
-WHERE b."Id" = ANY (@ids)
+WHERE b."Id" = ANY (@p)
 """);
     }
 

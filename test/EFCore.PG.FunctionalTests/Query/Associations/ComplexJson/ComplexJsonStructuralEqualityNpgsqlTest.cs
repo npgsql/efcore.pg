@@ -90,7 +90,7 @@ WHERE (r."RequiredRelated" ->> 'OptionalNested') IS NULL
             """
 SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
 FROM "RootEntity" AS r
-WHERE (r."RequiredRelated" -> 'RequiredNested') = '{"Id":1000,"Int":8,"Name":"Root1_RequiredRelated_RequiredNested","String":"foo"}'
+WHERE (r."RequiredRelated" -> 'RequiredNested') = '{"Id":1000,"Int":8,"Ints":[1,2,3],"Name":"Root1_RequiredRelated_RequiredNested","String":"foo"}'
 """);
     }
 
@@ -128,7 +128,7 @@ WHERE (r."RequiredRelated" -> 'NestedCollection') = (r."OptionalRelated" -> 'Nes
             """
 SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
 FROM "RootEntity" AS r
-WHERE (r."RequiredRelated" -> 'NestedCollection') = '[{"Id":1002,"Int":8,"Name":"Root1_RequiredRelated_NestedCollection_1","String":"foo"},{"Id":1003,"Int":8,"Name":"Root1_RequiredRelated_NestedCollection_2","String":"foo"}]'
+WHERE (r."RequiredRelated" -> 'NestedCollection') = '[{"Id":1002,"Int":8,"Ints":[1,2,3],"Name":"Root1_RequiredRelated_NestedCollection_1","String":"foo"},{"Id":1003,"Int":8,"Ints":[1,2,3],"Name":"Root1_RequiredRelated_NestedCollection_2","String":"foo"}]'
 """);
     }
 
@@ -164,10 +164,11 @@ WHERE EXISTS (
     FROM ROWS FROM (jsonb_to_recordset(r."RequiredRelated" -> 'NestedCollection') AS (
         "Id" integer,
         "Int" integer,
+        "Ints" integer[],
         "Name" text,
         "String" text
     )) WITH ORDINALITY AS n
-    WHERE n."Id" = 1002 AND n."Int" = 8 AND n."Name" = 'Root1_RequiredRelated_NestedCollection_1' AND n."String" = 'foo')
+    WHERE n."Id" = 1002 AND n."Int" = 8 AND n."Ints" = ARRAY[1,2,3]::integer[] AND n."Name" = 'Root1_RequiredRelated_NestedCollection_1' AND n."String" = 'foo')
 """);
     }
 
@@ -182,6 +183,7 @@ WHERE EXISTS (
             """
 @entity_equality_nested_Id='?' (DbType = Int32)
 @entity_equality_nested_Int='?' (DbType = Int32)
+@entity_equality_nested_Ints='?' (DbType = Object)
 @entity_equality_nested_Name='?'
 @entity_equality_nested_String='?'
 
@@ -192,10 +194,11 @@ WHERE EXISTS (
     FROM ROWS FROM (jsonb_to_recordset(r."RequiredRelated" -> 'NestedCollection') AS (
         "Id" integer,
         "Int" integer,
+        "Ints" integer[],
         "Name" text,
         "String" text
     )) WITH ORDINALITY AS n
-    WHERE n."Id" = @entity_equality_nested_Id AND n."Int" = @entity_equality_nested_Int AND n."Name" = @entity_equality_nested_Name AND n."String" = @entity_equality_nested_String)
+    WHERE n."Id" = @entity_equality_nested_Id AND n."Int" = @entity_equality_nested_Int AND n."Ints" = @entity_equality_nested_Ints AND n."Name" = @entity_equality_nested_Name AND n."String" = @entity_equality_nested_String)
 """);
     }
 
@@ -208,6 +211,7 @@ WHERE EXISTS (
 @get_Item_Int='?' (DbType = Int32)
 @entity_equality_get_Item_Id='?' (DbType = Int32)
 @entity_equality_get_Item_Int='?' (DbType = Int32)
+@entity_equality_get_Item_Ints='?' (DbType = Object)
 @entity_equality_get_Item_Name='?'
 @entity_equality_get_Item_String='?'
 
@@ -218,10 +222,11 @@ WHERE EXISTS (
     FROM ROWS FROM (jsonb_to_recordset(r."RequiredRelated" -> 'NestedCollection') AS (
         "Id" integer,
         "Int" integer,
+        "Ints" integer[],
         "Name" text,
         "String" text
     )) WITH ORDINALITY AS n
-    WHERE n."Int" > @get_Item_Int AND n."Id" = @entity_equality_get_Item_Id AND n."Int" = @entity_equality_get_Item_Int AND n."Name" = @entity_equality_get_Item_Name AND n."String" = @entity_equality_get_Item_String)
+    WHERE n."Int" > @get_Item_Int AND n."Id" = @entity_equality_get_Item_Id AND n."Int" = @entity_equality_get_Item_Int AND n."Ints" = @entity_equality_get_Item_Ints AND n."Name" = @entity_equality_get_Item_Name AND n."String" = @entity_equality_get_Item_String)
 """);
     }
 
@@ -234,6 +239,7 @@ WHERE EXISTS (
 @get_Item_Id='?' (DbType = Int32)
 @entity_equality_get_Item_Id='?' (DbType = Int32)
 @entity_equality_get_Item_Int='?' (DbType = Int32)
+@entity_equality_get_Item_Ints='?' (DbType = Object)
 @entity_equality_get_Item_Name='?'
 @entity_equality_get_Item_String='?'
 @entity_equality_get_Item_NestedCollection='?' (DbType = Object)
@@ -247,13 +253,14 @@ WHERE EXISTS (
     FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
         "Id" integer,
         "Int" integer,
+        "Ints" integer[],
         "Name" text,
         "String" text,
         "NestedCollection" jsonb,
         "OptionalNested" jsonb,
         "RequiredNested" jsonb
     )) WITH ORDINALITY AS r0
-    WHERE r0."Id" > @get_Item_Id AND r0."Id" = @entity_equality_get_Item_Id AND r0."Int" = @entity_equality_get_Item_Int AND r0."Name" = @entity_equality_get_Item_Name AND r0."String" = @entity_equality_get_Item_String AND (r0."NestedCollection") = @entity_equality_get_Item_NestedCollection AND (r0."OptionalNested") = @entity_equality_get_Item_OptionalNested AND (r0."RequiredNested") = @entity_equality_get_Item_RequiredNested)
+    WHERE r0."Id" > @get_Item_Id AND r0."Id" = @entity_equality_get_Item_Id AND r0."Int" = @entity_equality_get_Item_Int AND r0."Ints" = @entity_equality_get_Item_Ints AND r0."Name" = @entity_equality_get_Item_Name AND r0."String" = @entity_equality_get_Item_String AND (r0."NestedCollection") = @entity_equality_get_Item_NestedCollection AND (r0."OptionalNested") = @entity_equality_get_Item_OptionalNested AND (r0."RequiredNested") = @entity_equality_get_Item_RequiredNested)
 """);
     }
 
