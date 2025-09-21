@@ -16,6 +16,7 @@ WHERE (
     FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
         "Id" integer,
         "Int" integer,
+        "Ints" integer[],
         "Name" text,
         "String" text,
         "NestedCollection" jsonb,
@@ -72,10 +73,11 @@ FROM "RootEntity" AS r
 WHERE (
     SELECT count(*)::int
     FROM (
-        SELECT DISTINCT r0."Id", r0."Int", r0."Name", r0."String", r0."NestedCollection" AS c, r0."OptionalNested" AS c0, r0."RequiredNested" AS c1
+        SELECT DISTINCT r0."Id", r0."Int", r0."Ints", r0."Name", r0."String", r0."NestedCollection" AS c, r0."OptionalNested" AS c0, r0."RequiredNested" AS c1
         FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
             "Id" integer,
             "Int" integer,
+            "Ints" integer[],
             "Name" text,
             "String" text,
             "NestedCollection" jsonb,

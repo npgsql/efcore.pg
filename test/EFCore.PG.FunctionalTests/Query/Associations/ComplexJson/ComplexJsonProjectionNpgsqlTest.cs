@@ -191,11 +191,12 @@ ORDER BY r."Id" NULLS FIRST
 
         AssertSql(
             """
-SELECT r0."Id", r0."Int", r0."Name", r0."String", r0."NestedCollection", r0."OptionalNested", r0."RequiredNested"
+SELECT r0."Id", r0."Int", r0."Ints", r0."Name", r0."String", r0."NestedCollection", r0."OptionalNested", r0."RequiredNested"
 FROM "RootEntity" AS r
 JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
     "Id" integer,
     "Int" integer,
+    "Ints" integer[],
     "Name" text,
     "String" text,
     "NestedCollection" jsonb,
@@ -211,11 +212,12 @@ JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
 
         AssertSql(
             """
-SELECT n."Id", n."Int", n."Name", n."String"
+SELECT n."Id", n."Int", n."Ints", n."Name", n."String"
 FROM "RootEntity" AS r
 JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."RequiredRelated" -> 'NestedCollection') AS (
     "Id" integer,
     "Int" integer,
+    "Ints" integer[],
     "Name" text,
     "String" text
 )) WITH ORDINALITY AS n ON TRUE
@@ -228,11 +230,12 @@ JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."RequiredRelated" -> 'NestedCollect
 
         AssertSql(
             """
-SELECT n."Id", n."Int", n."Name", n."String"
+SELECT n."Id", n."Int", n."Ints", n."Name", n."String"
 FROM "RootEntity" AS r
 JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."OptionalRelated" -> 'NestedCollection') AS (
     "Id" integer,
     "Int" integer,
+    "Ints" integer[],
     "Name" text,
     "String" text
 )) WITH ORDINALITY AS n ON TRUE
