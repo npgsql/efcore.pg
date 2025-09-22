@@ -196,7 +196,7 @@ FROM "RootEntity" AS r
 JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
     "Id" integer,
     "Int" integer,
-    "Ints" integer[],
+    "Ints" jsonb,
     "Name" text,
     "String" text,
     "NestedCollection" jsonb,
@@ -217,7 +217,7 @@ FROM "RootEntity" AS r
 JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."RequiredRelated" -> 'NestedCollection') AS (
     "Id" integer,
     "Int" integer,
-    "Ints" integer[],
+    "Ints" jsonb,
     "Name" text,
     "String" text
 )) WITH ORDINALITY AS n ON TRUE
@@ -235,7 +235,7 @@ FROM "RootEntity" AS r
 JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."OptionalRelated" -> 'NestedCollection') AS (
     "Id" integer,
     "Int" integer,
-    "Ints" integer[],
+    "Ints" jsonb,
     "Name" text,
     "String" text
 )) WITH ORDINALITY AS n ON TRUE

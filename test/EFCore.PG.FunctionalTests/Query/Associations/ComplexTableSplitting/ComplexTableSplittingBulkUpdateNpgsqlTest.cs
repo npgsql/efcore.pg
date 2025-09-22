@@ -425,7 +425,8 @@ SET "RequiredRelated_OptionalNested_Ints" = r."RequiredRelated_RequiredNested_In
 
     public override async Task Update_inside_primitive_collection()
     {
-        await base.Update_inside_primitive_collection();
+        // #3622, Support updating an element in an array with ExecuteUpdate
+        await Assert.ThrowsAsync<InvalidOperationException>(() => base.Update_inside_primitive_collection());
 
         AssertExecuteUpdateSql();
     }

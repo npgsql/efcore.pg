@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
@@ -24,8 +25,13 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlJsonTypeMapping(string storeType, Type clrType)
-        : base(storeType, clrType, storeType == "jsonb" ? NpgsqlDbType.Jsonb : NpgsqlDbType.Json)
+    public NpgsqlJsonTypeMapping(string storeType, Type clrType, CoreTypeMapping? elementTypeMapping = null)
+        : base(
+            storeType,
+            clrType,
+            storeType == "jsonb" ? NpgsqlDbType.Jsonb : NpgsqlDbType.Json,
+            jsonValueReaderWriter: JsonStringReaderWriter.Instance,
+            elementTypeMapping: elementTypeMapping)
     {
         if (storeType != "json" && storeType != "jsonb")
         {

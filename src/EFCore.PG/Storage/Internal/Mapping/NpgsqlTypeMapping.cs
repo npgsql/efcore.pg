@@ -20,8 +20,20 @@ public abstract class NpgsqlTypeMapping : RelationalTypeMapping, INpgsqlTypeMapp
     /// <param name="clrType">The CLR type to map.</param>
     /// <param name="npgsqlDbType">The database type used by Npgsql.</param>
     /// <param name="jsonValueReaderWriter">Handles reading and writing JSON values for instances of the mapped type.</param>
-    public NpgsqlTypeMapping(string storeType, Type clrType, NpgsqlDbType npgsqlDbType, JsonValueReaderWriter? jsonValueReaderWriter = null)
-        : base(storeType, clrType, jsonValueReaderWriter: jsonValueReaderWriter)
+    /// <param name="elementTypeMapping">If this type mapping represents a primitive collection, this holds the element's type mapping.</param>
+    public NpgsqlTypeMapping(
+        string storeType,
+        Type clrType,
+        NpgsqlDbType npgsqlDbType,
+        JsonValueReaderWriter? jsonValueReaderWriter = null,
+        CoreTypeMapping? elementTypeMapping = null)
+        : base(
+            new RelationalTypeMappingParameters(
+                new CoreTypeMappingParameters(
+                    clrType,
+                    jsonValueReaderWriter: jsonValueReaderWriter,
+                    elementMapping: elementTypeMapping),
+                storeType))
     {
         NpgsqlDbType = npgsqlDbType;
     }

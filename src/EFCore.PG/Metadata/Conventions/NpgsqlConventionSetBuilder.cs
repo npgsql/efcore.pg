@@ -1,4 +1,5 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 
@@ -17,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 /// </remarks>
 public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
 {
-    private readonly IRelationalTypeMappingSource _typeMappingSource;
+    private readonly NpgsqlTypeMappingSource _typeMappingSource;
     private readonly Version _postgresVersion;
     private readonly IReadOnlyList<EnumDefinition> _enumDefinitions;
 
@@ -35,7 +36,7 @@ public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
         INpgsqlSingletonOptions npgsqlSingletonOptions)
         : base(dependencies, relationalDependencies)
     {
-        _typeMappingSource = typeMappingSource;
+        _typeMappingSource = (NpgsqlTypeMappingSource)typeMappingSource;
         _postgresVersion = npgsqlSingletonOptions.PostgresVersion;
         _enumDefinitions = npgsqlSingletonOptions.EnumDefinitions;
     }

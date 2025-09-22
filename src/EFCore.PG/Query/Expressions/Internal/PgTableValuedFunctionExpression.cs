@@ -55,7 +55,7 @@ public class PgTableValuedFunctionExpression : TableValuedFunctionExpression, IE
         string alias,
         string name,
         IReadOnlyList<SqlExpression> arguments,
-        IReadOnlyList<ColumnInfo>? columnInfos,
+        IReadOnlyList<ColumnInfo>? columnInfos = null,
         bool withOrdinality = true)
         : base(alias, name, schema: null, builtIn: true, arguments)
     {

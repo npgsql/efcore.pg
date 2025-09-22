@@ -320,7 +320,7 @@ LIMIT 2
             """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE j."ToplevelArray" ->> 1 = 'two'
+WHERE (j."ToplevelArray" ->> 1) = 'two'
 LIMIT 2
 """);
     }

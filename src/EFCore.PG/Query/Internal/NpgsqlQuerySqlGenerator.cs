@@ -1086,9 +1086,16 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
         switch (jsonScalarExpression.TypeMapping)
         {
-            // This case is for when a nested JSON entity is being accessed. We want the json/jsonb fragment in this case (not text),
-            // so we can perform further JSON operations on it.
+            // Nested JSON structural type. We want the json/jsonb fragment in this case (not text), so we can perform further JSON
+            // operations on it.
             case NpgsqlStructuralJsonTypeMapping:
+                GenerateJsonPath(jsonScalarExpression.Json, returnsText: false, path);
+                break;
+
+            // Scalar collection mapped to JSON (either because it's nested within a JSON document, or because the user explicitly
+            // opted for this rather than the default PG array mapping).
+            case NpgsqlJsonTypeMapping typeMapping:
+                Check.DebugAssert(typeMapping.ElementTypeMapping is not null);
                 GenerateJsonPath(jsonScalarExpression.Json, returnsText: false, path);
                 break;
 
@@ -1105,15 +1112,10 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 Sql.Append(", 'base64')");
                 break;
 
-            // Arrays require special handling; we cannot simply cast a JSON array (as text) to a PG array ([1,2,3] isn't a valid PG array
-            // representation). We use jsonb_array_elements_text to extract the array elements as a set, cast them to their PG element type
-            // and then build an array from that.
-            case NpgsqlArrayTypeMapping arrayMapping:
-                Sql.Append("(ARRAY(SELECT CAST(element AS ").Append(arrayMapping.ElementTypeMapping.StoreType)
-                    .Append(") FROM jsonb_array_elements_text(");
-                GenerateJsonPath(jsonScalarExpression.Json, returnsText: false, path);
-                Sql.Append(") WITH ORDINALITY AS t(element) ORDER BY ordinality))");
-                break;
+            // We should never have an NpgsqlArrayTypeMapping within a JSON document; scalar collections should be represented as an
+            // NpgsqlJsonTypeMapping with the appropriate ElementTypeMapping, just like in other providers.
+            case NpgsqlArrayTypeMapping:
+                throw new UnreachableException();
 
             default:
                 Sql.Append("CAST(");

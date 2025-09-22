@@ -19,7 +19,7 @@ WHERE (
     FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
         "Id" integer,
         "Int" integer,
-        "Ints" integer[],
+        "Ints" jsonb,
         "Name" text,
         "String" text,
         "NestedCollection" jsonb,
@@ -42,7 +42,7 @@ WHERE (
     FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
         "Id" integer,
         "Int" integer,
-        "Ints" integer[],
+        "Ints" jsonb,
         "Name" text,
         "String" text
     )) WITH ORDINALITY AS r0
@@ -63,7 +63,7 @@ WHERE (
     FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
         "Id" integer,
         "Int" integer,
-        "Ints" integer[],
+        "Ints" jsonb,
         "Name" text,
         "String" text
     )) WITH ORDINALITY AS r0
@@ -89,7 +89,7 @@ WHERE (
         FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
             "Id" integer,
             "Int" integer,
-            "Ints" integer[],
+            "Ints" jsonb,
             "Name" text,
             "String" text,
             "NestedCollection" jsonb,
@@ -115,7 +115,7 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
         "Id" integer,
         "Int" integer,
-        "Ints" integer[],
+        "Ints" jsonb,
         "Name" text,
         "String" text,
         "NestedCollection" jsonb,
@@ -216,7 +216,7 @@ WHERE 16 IN (
         FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
             "Id" integer,
             "Int" integer,
-            "Ints" integer[],
+            "Ints" jsonb,
             "Name" text,
             "String" text
         )) WITH ORDINALITY AS r0
@@ -240,7 +240,7 @@ SELECT (
         FROM ROWS FROM (jsonb_to_recordset(r0."NestedCollection") AS (
             "Id" integer,
             "Int" integer,
-            "Ints" integer[],
+            "Ints" jsonb,
             "Name" text,
             "String" text
         )) WITH ORDINALITY AS n)), 0)::int

@@ -35,7 +35,7 @@ public class NpgsqlStructuralJsonTypeMapping : JsonTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlStructuralJsonTypeMapping(string storeType)
-        : base(storeType, typeof(JsonElement), dbType: null)
+        : base(storeType, typeof(JsonTypePlaceholder), dbType: null)
     {
         NpgsqlDbType = storeType switch
         {
