@@ -294,7 +294,7 @@ WHERE (r."OptionalRelated") IS NOT NULL
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{Ints}', to_jsonb(ARRAY[1,2,4]::integer[]::integer[]))
+SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{Ints}', '[1,2,4]')
 """);
     }
 
@@ -307,7 +307,7 @@ SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{Ints}', to_jsonb(ARRAY[
 @ints='?' (DbType = Object)
 
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{Ints}', to_jsonb(@ints))
+SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{Ints}', @ints)
 """);
     }
 
@@ -318,7 +318,7 @@ SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{Ints}', to_jsonb(@ints)
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{OptionalNested,Ints}', to_jsonb((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_text(r."RequiredRelated" #> '{RequiredNested,Ints}') WITH ORDINALITY AS t(element) ORDER BY ordinality))))
+SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{OptionalNested,Ints}', r."RequiredRelated" #> '{RequiredNested,Ints}')
 """);
     }
 
@@ -326,7 +326,14 @@ SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{OptionalNested,Ints}', 
     {
         await base.Update_inside_primitive_collection();
 
-        AssertExecuteUpdateSql();
+        AssertExecuteUpdateSql(
+            """
+@p='?' (DbType = Int32)
+
+UPDATE "RootEntity" AS r
+SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{Ints,1}', to_jsonb(@p))
+WHERE jsonb_array_length(r."RequiredRelated" -> 'Ints') >= 2
+""");
     }
 
     #endregion Update primitive collection

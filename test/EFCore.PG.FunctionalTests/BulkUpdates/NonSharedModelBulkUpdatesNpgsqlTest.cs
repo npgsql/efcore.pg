@@ -212,7 +212,7 @@ WHERE o."Id" = 1
 """);
     }
 
-    [ConditionalTheory] // #3001
+    [ConditionalTheory] // #3622
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task Update_with_primitive_collection_in_value_selector(bool async)
     {
@@ -223,12 +223,12 @@ WHERE o."Id" = 1
                 await ctx.SaveChangesAsync();
             });
 
-        await AssertUpdate(
+        await Assert.ThrowsAsync<InvalidOperationException>(() => AssertUpdate(
             async,
             contextFactory.CreateContext,
             ss => ss.EntitiesWithPrimitiveCollection,
             s => s.SetProperty(x => x.Tags, x => x.Tags.Append("another_tag")),
-            rowsAffectedCount: 1);
+            rowsAffectedCount: 1));
     }
 
     protected class Context3001(DbContextOptions options) : DbContext(options)

@@ -116,47 +116,103 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         // a special case for geometry collections, where we use
         SelectExpression selectExpression;
 
-#pragma warning disable EF1001 // SelectExpression constructors are currently internal
         // TODO: Parameters have no type mapping. We can check whether the expression type is one of the NTS geometry collection types,
         // though in a perfect world we'd actually infer this. In other words, when the type mapping of the element is inferred further on,
         // we'd replace the unnest expression with ST_Dump. We could even have a special expression type which means "indeterminate, must be
         // inferred".
-        if (sqlExpression.TypeMapping is { StoreTypeNameBase: "geometry" or "geography" })
+#pragma warning disable EF1001 // SelectExpression constructors are pubternal
+        switch (sqlExpression.TypeMapping)
         {
-            // TODO: For geometry collection support (not yet supported), see #2850.
-            selectExpression = new SelectExpression(
-                [new TableValuedFunctionExpression(tableAlias, "ST_Dump", [sqlExpression])],
-                new ColumnExpression("geom", tableAlias, elementClrType.UnwrapNullableType(), elementTypeMapping, isElementNullable),
-                identifier: [], // TODO
-                _queryCompilationContext.SqlAliasManager);
-        }
-        else
-        {
-            // Note that for unnest we have a special expression type extending TableValuedFunctionExpression, adding the ability to provide
-            // an explicit column name for its output (SELECT * FROM unnest(array) AS f(foo)).
-            // This is necessary since when the column name isn't explicitly specified, it is automatically identical to the table alias
-            // (f above); since the table alias may get uniquified by EF, this would break queries.
+            case { StoreTypeNameBase: "geometry" or "geography" }:
+            {
+                // TODO: For geometry collection support (not yet supported), see #2850.
+                selectExpression = new SelectExpression(
+                    [new TableValuedFunctionExpression(tableAlias, "ST_Dump", [sqlExpression])],
+                    new ColumnExpression("geom", tableAlias, elementClrType.UnwrapNullableType(), elementTypeMapping, isElementNullable),
+                    identifier: [], // TODO
+                    _queryCompilationContext.SqlAliasManager);
+                break;
+            }
 
-            // TODO: When we have metadata to determine if the element is nullable, pass that here to SelectExpression
+            // Scalar/primitive collection mapped to a PostgreSQL array (typical and default case)
+            case NpgsqlArrayTypeMapping or NpgsqlMultirangeTypeMapping or null:
+            {
+                // Note that for unnest we have a special expression type extending TableValuedFunctionExpression, adding the ability to provide
+                // an explicit column name for its output (SELECT * FROM unnest(array) AS f(foo)).
+                // This is necessary since when the column name isn't explicitly specified, it is automatically identical to the table alias
+                // (f above); since the table alias may get uniquified by EF, this would break queries.
 
-            // Note also that with PostgreSQL unnest, the output ordering is guaranteed to be the same as the input array. However, we still
-            // need to add an explicit ordering on the ordinality column, since once the unnest is joined into a select, its "natural"
-            // orderings is lost and an explicit ordering is needed again (see #3207).
-            var (ordinalityColumn, ordinalityComparer) = GenerateOrdinalityIdentifier(tableAlias);
-            selectExpression = new SelectExpression(
-                [new PgUnnestExpression(tableAlias, sqlExpression, "value")],
-                new ColumnExpression(
-                    "value",
+                // TODO: When we have metadata to determine if the element is nullable, pass that here to SelectExpression
+
+                // Note also that with PostgreSQL unnest, the output ordering is guaranteed to be the same as the input array. However, we still
+                // need to add an explicit ordering on the ordinality column, since once the unnest is joined into a select, its "natural"
+                // orderings is lost and an explicit ordering is needed again (see #3207).
+                var (ordinalityColumn, ordinalityComparer) = GenerateOrdinalityIdentifier(tableAlias);
+                selectExpression = new SelectExpression(
+                    [new PgUnnestExpression(tableAlias, sqlExpression, "value")],
+                    new ColumnExpression(
+                        "value",
+                        tableAlias,
+                        elementClrType.UnwrapNullableType(),
+                        elementTypeMapping,
+                        isElementNullable),
+                    identifier: [(ordinalityColumn, ordinalityComparer)],
+                    _queryCompilationContext.SqlAliasManager);
+
+                selectExpression.AppendOrdering(new OrderingExpression(ordinalityColumn, ascending: true));
+                break;
+            }
+
+            // Scalar/primitive collection mapped to a JSON array, like in other providers.
+            // Happens for scalar collections nested within JSON documents, or if the user explicitly mapped to JSON instead of
+            // the default PG array.
+            // Translate to SELECT element::int FROM jsonb_array_elements_text(...) WITH ORDINALITY
+            case NpgsqlJsonTypeMapping { ElementTypeMapping: not null, StoreType: var storeType }:
+            {
+                var (ordinalityColumn, ordinalityComparer) = GenerateOrdinalityIdentifier(tableAlias);
+
+                SqlExpression elementProjection = new ColumnExpression(
+                    "element",
                     tableAlias,
-                    elementClrType.UnwrapNullableType(),
-                    elementTypeMapping,
-                    isElementNullable),
-                identifier: [(ordinalityColumn, ordinalityComparer)],
-                _queryCompilationContext.SqlAliasManager);
+                    typeof(string),
+                    _typeMappingSource.FindMapping(typeof(string)),
+                    isElementNullable);
 
-            selectExpression.AppendOrdering(new OrderingExpression(ordinalityColumn, ascending: true));
+                // If the projected type is anything other than a text, apply a cast (jsonb_array_elements_text returns text)
+                if (!elementTypeMapping!.StoreType.Equals("text", StringComparison.OrdinalIgnoreCase))
+                {
+                    elementProjection = _sqlExpressionFactory.Convert(
+                        elementProjection,
+                        elementClrType.UnwrapNullableType(),
+                        elementTypeMapping);
+                }
+
+                selectExpression = new SelectExpression(
+                    [
+                        new PgTableValuedFunctionExpression(
+                            tableAlias,
+                            storeType switch
+                            {
+                                "jsonb" => "jsonb_array_elements_text",
+                                "json" => "json_array_elements_text",
+                                _ => throw new UnreachableException()
+                            },
+                            [sqlExpression],
+                            columnInfos: [new("element")],
+                            withOrdinality: true)
+                    ],
+                    elementProjection,
+                    identifier: [(ordinalityColumn, ordinalityComparer)],
+                    _queryCompilationContext.SqlAliasManager);
+
+                selectExpression.AppendOrdering(new OrderingExpression(ordinalityColumn, ascending: true));
+                break;
+            }
+
+            default:
+                throw new UnreachableException();
         }
-#pragma warning restore EF1001
+#pragma warning restore EF1001 // SelectExpression constructors are pubternal
 
         Expression shaperExpression = new ProjectionBindingExpression(
             selectExpression, new ProjectionMember(), elementClrType.MakeNullable());
@@ -290,7 +346,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     protected override ShapedQueryExpression? TranslateAll(ShapedQueryExpression source, LambdaExpression predicate)
     {
         if ((source.TryExtractArray(out var array, ignoreOrderings: true)
-            || source.TryConvertValuesToArray(out array, ignoreOrderings: true))
+            || source.TryConvertToArray(out array, ignoreOrderings: true))
             && source.QueryExpression is SelectExpression { Tables: [{ Alias: var tableAlias }] }
             && TranslateLambdaExpression(source, predicate) is { } translatedPredicate)
         {
@@ -364,177 +420,200 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     /// </summary>
     protected override ShapedQueryExpression? TranslateAny(ShapedQueryExpression source, LambdaExpression? predicate)
     {
-        if ((source.TryExtractArray(out var array, ignoreOrderings: true)
-                || source.TryConvertValuesToArray(out array, ignoreOrderings: true))
-            && source.QueryExpression is SelectExpression { Tables: [{ Alias: var tableAlias }] })
+        if (source.QueryExpression is SelectExpression { Tables: [{ Alias: var tableAlias }] })
         {
-            // Pattern match: x.Array.Any()
-            // Translation: cardinality(x.array) > 0 instead of EXISTS (SELECT 1 FROM FROM unnest(x.Array))
-            if (predicate is null)
+            // Pattern match: x.JsonArray.Any()
+            // Translation: jsonb_array_length(x.json_array) > 0 instead of EXISTS (SELECT 1 FROM FROM jsonb_array_elements(x.Array))
+            if (predicate is null && source.TryExtractJsonArray(out var jsonArray, out _, out _, ignoreOrderings: true))
             {
                 return BuildSimplifiedShapedQuery(
                     source,
                     _sqlExpressionFactory.GreaterThan(
                         _sqlExpressionFactory.Function(
-                            "cardinality",
-                            [array],
+                            jsonArray.TypeMapping!.StoreType switch
+                            {
+                                "jsonb" => "jsonb_array_length",
+                                "json" => "json_array_length",
+                                _ => throw new UnreachableException()
+                            },
+                            [jsonArray],
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[1],
                             typeof(int)),
                         _sqlExpressionFactory.Constant(0)));
             }
 
-            if (TranslateLambdaExpression(source, predicate) is not SqlExpression translatedPredicate)
+            if (source.TryExtractArray(out var array, ignoreOrderings: true)
+                || source.TryConvertToArray(out array, ignoreOrderings: true))
             {
-                return null;
-            }
+                // Pattern match: x.Array.Any()
+                // Translation: cardinality(x.array) > 0 instead of EXISTS (SELECT 1 FROM FROM unnest(x.Array))
+                if (predicate is null)
+                {
+                    return BuildSimplifiedShapedQuery(
+                        source,
+                        _sqlExpressionFactory.GreaterThan(
+                            _sqlExpressionFactory.Function(
+                                "cardinality",
+                                [array],
+                                nullable: true,
+                                argumentsPropagateNullability: TrueArrays[1],
+                                typeof(int)),
+                            _sqlExpressionFactory.Constant(0)));
+                }
 
-            switch (translatedPredicate)
-            {
-                // Pattern match: new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p))
-                // Translation: s.SomeText LIKE ANY (ARRAY['a','b','c'])
-                case LikeExpression
+                if (TranslateLambdaExpression(source, predicate) is not SqlExpression translatedPredicate)
+                {
+                    return null;
+                }
+
+                switch (translatedPredicate)
+                {
+                    // Pattern match: new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p))
+                    // Translation: s.SomeText LIKE ANY (ARRAY['a','b','c'])
+                    case LikeExpression
                     {
                         Match: var match,
                         Pattern: ColumnExpression pattern,
                         EscapeChar: SqlConstantExpression { Value: "" }
                     }
-                    when pattern.TableAlias == tableAlias:
-                {
-                    return BuildSimplifiedShapedQuery(
-                        source, _sqlExpressionFactory.Any(match, array, PgAnyOperatorType.Like));
-                }
+                        when pattern.TableAlias == tableAlias:
+                    {
+                        return BuildSimplifiedShapedQuery(
+                            source, _sqlExpressionFactory.Any(match, array, PgAnyOperatorType.Like));
+                    }
 
-                // Pattern match: new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p))
-                // Translation: s.SomeText LIKE ANY (ARRAY['a','b','c'])
-                case PgILikeExpression
+                    // Pattern match: new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p))
+                    // Translation: s.SomeText LIKE ANY (ARRAY['a','b','c'])
+                    case PgILikeExpression
                     {
                         Match: var match,
                         Pattern: ColumnExpression pattern,
                         EscapeChar: SqlConstantExpression { Value: "" }
                     }
-                    when pattern.TableAlias == tableAlias:
-                {
-                    return BuildSimplifiedShapedQuery(
-                        source, _sqlExpressionFactory.Any(match, array, PgAnyOperatorType.ILike));
-                }
+                        when pattern.TableAlias == tableAlias:
+                    {
+                        return BuildSimplifiedShapedQuery(
+                            source, _sqlExpressionFactory.Any(match, array, PgAnyOperatorType.ILike));
+                    }
 
-                // Array overlap over non-column
-                // Pattern match: e.SomeArray.Any(p => ints.Contains(p))
-                // Translation: @ints && s.SomeArray
-                case PgAnyExpression
+                    // Array overlap over non-column
+                    // Pattern match: e.SomeArray.Any(p => ints.Contains(p))
+                    // Translation: @ints && s.SomeArray
+                    case PgAnyExpression
                     {
                         Item: ColumnExpression sourceColumn,
                         Array: var otherArray
                     }
-                    when sourceColumn.TableAlias == tableAlias:
-                {
-                    return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.Overlaps(array, otherArray));
-                }
+                        when sourceColumn.TableAlias == tableAlias:
+                    {
+                        return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.Overlaps(array, otherArray));
+                    }
 
-                // Array overlap over column
-                // Pattern match: new[] { 4, 5 }.Any(p => e.SomeArray.Contains(p))
-                // Translation: s.SomeArray && ARRAY[4, 5]
-                case PgBinaryExpression
+                    // Array overlap over column
+                    // Pattern match: new[] { 4, 5 }.Any(p => e.SomeArray.Contains(p))
+                    // Translation: s.SomeArray && ARRAY[4, 5]
+                    case PgBinaryExpression
                     {
                         OperatorType: PgExpressionType.Contains,
                         Left: var otherArray,
                         Right: PgNewArrayExpression { Expressions: [ColumnExpression sourceColumn] }
                     }
-                    when sourceColumn.TableAlias == tableAlias:
-                {
-                    return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.Overlaps(array, otherArray));
-                }
+                        when sourceColumn.TableAlias == tableAlias:
+                    {
+                        return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.Overlaps(array, otherArray));
+                    }
 
-                #region LTree translations
+                    #region LTree translations
 
-                // Pattern match: new[] { "q1", "q2" }.Any(q => e.SomeLTree.MatchesLQuery(q))
-                // Translation: s.SomeLTree ? ARRAY['q1','q2']
-                case PgBinaryExpression
+                    // Pattern match: new[] { "q1", "q2" }.Any(q => e.SomeLTree.MatchesLQuery(q))
+                    // Translation: s.SomeLTree ? ARRAY['q1','q2']
+                    case PgBinaryExpression
                     {
                         OperatorType: PgExpressionType.LTreeMatches,
                         Left: var ltree,
                         Right: SqlUnaryExpression { OperatorType: ExpressionType.Convert, Operand: ColumnExpression lqueryColumn }
                     }
-                    when lqueryColumn.TableAlias == tableAlias:
-                {
-                    return BuildSimplifiedShapedQuery(
-                        source,
-                        new PgBinaryExpression(
-                            PgExpressionType.LTreeMatchesAny,
-                            ltree,
-                            _sqlExpressionFactory.ApplyTypeMapping(array, _typeMappingSource.FindMapping("lquery[]")),
-                            typeof(bool),
-                            typeMapping: _typeMappingSource.FindMapping(typeof(bool))));
-                }
+                        when lqueryColumn.TableAlias == tableAlias:
+                    {
+                        return BuildSimplifiedShapedQuery(
+                            source,
+                            new PgBinaryExpression(
+                                PgExpressionType.LTreeMatchesAny,
+                                ltree,
+                                _sqlExpressionFactory.ApplyTypeMapping(array, _typeMappingSource.FindMapping("lquery[]")),
+                                typeof(bool),
+                                typeMapping: _typeMappingSource.FindMapping(typeof(bool))));
+                    }
 
-                // Pattern match: new[] { "t1", "t2" }.Any(t => t.IsAncestorOf(e.SomeLTree))
-                // Translation: ARRAY['t1','t2'] @> s.SomeLTree
-                // Pattern match: new[] { "t1", "t2" }.Any(t => t.IsDescendantOf(e.SomeLTree))
-                // Translation: ARRAY['t1','t2'] <@ s.SomeLTree
-                case PgBinaryExpression
+                    // Pattern match: new[] { "t1", "t2" }.Any(t => t.IsAncestorOf(e.SomeLTree))
+                    // Translation: ARRAY['t1','t2'] @> s.SomeLTree
+                    // Pattern match: new[] { "t1", "t2" }.Any(t => t.IsDescendantOf(e.SomeLTree))
+                    // Translation: ARRAY['t1','t2'] <@ s.SomeLTree
+                    case PgBinaryExpression
                     {
                         OperatorType: (PgExpressionType.Contains or PgExpressionType.ContainedBy) and var operatorType,
                         Left: ColumnExpression ltreeColumn,
                         // Contains/ContainedBy can happen for non-LTree types too, so check that
                         Right: { TypeMapping: NpgsqlLTreeTypeMapping } ltree
                     }
-                    when ltreeColumn.TableAlias == tableAlias:
-                {
-                    return BuildSimplifiedShapedQuery(
-                        source,
-                        new PgBinaryExpression(
-                            operatorType,
-                            _sqlExpressionFactory.ApplyDefaultTypeMapping(array),
-                            ltree,
-                            typeof(bool),
-                            typeMapping: _typeMappingSource.FindMapping(typeof(bool))));
-                }
+                        when ltreeColumn.TableAlias == tableAlias:
+                    {
+                        return BuildSimplifiedShapedQuery(
+                            source,
+                            new PgBinaryExpression(
+                                operatorType,
+                                _sqlExpressionFactory.ApplyDefaultTypeMapping(array),
+                                ltree,
+                                typeof(bool),
+                                typeMapping: _typeMappingSource.FindMapping(typeof(bool))));
+                    }
 
-                // Pattern match: new[] { "t1", "t2" }.Any(t => t.MatchesLQuery(lquery))
-                // Translation: ARRAY['t1','t2'] ~ lquery
-                // Pattern match: new[] { "t1", "t2" }.Any(t => t.MatchesLTxtQuery(ltxtquery))
-                // Translation: ARRAY['t1','t2'] @ ltxtquery
-                case PgBinaryExpression
+                    // Pattern match: new[] { "t1", "t2" }.Any(t => t.MatchesLQuery(lquery))
+                    // Translation: ARRAY['t1','t2'] ~ lquery
+                    // Pattern match: new[] { "t1", "t2" }.Any(t => t.MatchesLTxtQuery(ltxtquery))
+                    // Translation: ARRAY['t1','t2'] @ ltxtquery
+                    case PgBinaryExpression
                     {
                         OperatorType: PgExpressionType.LTreeMatches,
                         Left: ColumnExpression ltreeColumn,
                         Right: var lquery
                     }
-                    when ltreeColumn.TableAlias == tableAlias:
-                {
-                    return BuildSimplifiedShapedQuery(
-                        source,
-                        new PgBinaryExpression(
-                            PgExpressionType.LTreeMatches,
-                            _sqlExpressionFactory.ApplyDefaultTypeMapping(array),
-                            lquery,
-                            typeof(bool),
-                            typeMapping: _typeMappingSource.FindMapping(typeof(bool))));
-                }
+                        when ltreeColumn.TableAlias == tableAlias:
+                    {
+                        return BuildSimplifiedShapedQuery(
+                            source,
+                            new PgBinaryExpression(
+                                PgExpressionType.LTreeMatches,
+                                _sqlExpressionFactory.ApplyDefaultTypeMapping(array),
+                                lquery,
+                                typeof(bool),
+                                typeMapping: _typeMappingSource.FindMapping(typeof(bool))));
+                    }
 
-                // Any within Any (i.e. intersection)
-                // Pattern match: ltrees.Any(t => lqueries.Any(q => t.MatchesLQuery(q)))
-                // Translate: ltrees ? lqueries
-                case PgBinaryExpression
+                    // Any within Any (i.e. intersection)
+                    // Pattern match: ltrees.Any(t => lqueries.Any(q => t.MatchesLQuery(q)))
+                    // Translate: ltrees ? lqueries
+                    case PgBinaryExpression
                     {
                         OperatorType: PgExpressionType.LTreeMatchesAny,
                         Left: ColumnExpression ltreeColumn,
                         Right: var lqueries
                     }
-                    when ltreeColumn.TableAlias == tableAlias:
-                {
-                    return BuildSimplifiedShapedQuery(
-                        source,
-                        new PgBinaryExpression(
-                            PgExpressionType.LTreeMatchesAny,
-                            _sqlExpressionFactory.ApplyDefaultTypeMapping(array),
-                            lqueries,
-                            typeof(bool),
-                            typeMapping: _typeMappingSource.FindMapping(typeof(bool))));
-                }
+                        when ltreeColumn.TableAlias == tableAlias:
+                    {
+                        return BuildSimplifiedShapedQuery(
+                            source,
+                            new PgBinaryExpression(
+                                PgExpressionType.LTreeMatchesAny,
+                                _sqlExpressionFactory.ApplyDefaultTypeMapping(array),
+                                lqueries,
+                                typeof(bool),
+                                typeMapping: _typeMappingSource.FindMapping(typeof(bool))));
+                    }
 
-                #endregion LTree translations
+                    #endregion LTree translations
+                }
             }
         }
 
@@ -590,69 +669,96 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     /// </summary>
     protected override ShapedQueryExpression? TranslateContains(ShapedQueryExpression source, Expression item)
     {
-        // Note that most other simplifications convert ValuesExpression to unnest over array constructor, but we avoid doing that
-        // here for Contains, since the relational translation for ValuesExpression is better.
-        if (source.TryExtractArray(out var array, ignoreOrderings: true)
-            && TranslateExpression(item, applyDefaultTypeMapping: false) is SqlExpression translatedItem)
+        switch (source)
         {
-            (translatedItem, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(translatedItem, array);
-
-            // We special-case null constant item and use array_position instead, since it does
-            // nulls correctly (but doesn't use indexes).
-            // TODO: Better just translate to ANY and handle in nullability processing?
-            // TODO: once lambda-based caching is implemented, move this to NpgsqlSqlNullabilityProcessor
-            // (https://github.com/dotnet/efcore/issues/17598) and do for parameters as well.
-            if (translatedItem is SqlConstantExpression { Value: null })
+            // Contains over array, e.g. x = ANY(y.Array), or y.Array @> ARRAY[x]
+            // Note that most other simplifications convert ValuesExpression to unnest over array constructor, but we avoid doing that
+            // here for Contains, since the relational translation for ValuesExpression is better.
+            case var _ when source.TryExtractArray(out var array, ignoreOrderings: true)
+                && TranslateExpression(item, applyDefaultTypeMapping: false) is SqlExpression translatedItem:
             {
-                return BuildSimplifiedShapedQuery(
-                    source,
-                    _sqlExpressionFactory.IsNotNull(
-                        _sqlExpressionFactory.Function(
-                            "array_position",
-                            [array, translatedItem],
-                            nullable: true,
-                            argumentsPropagateNullability: FalseArrays[2],
-                            typeof(int))));
+                (translatedItem, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(translatedItem, array);
+
+                // We special-case null constant item and use array_position instead, since it does
+                // nulls correctly (but doesn't use indexes).
+                // TODO: Better just translate to ANY and handle in nullability processing?
+                // TODO: once lambda-based caching is implemented, move this to NpgsqlSqlNullabilityProcessor
+                // (https://github.com/dotnet/efcore/issues/17598) and do for parameters as well.
+                if (translatedItem is SqlConstantExpression { Value: null })
+                {
+                    return BuildSimplifiedShapedQuery(
+                        source,
+                        _sqlExpressionFactory.IsNotNull(
+                            _sqlExpressionFactory.Function(
+                                "array_position",
+                                [array, translatedItem],
+                                nullable: true,
+                                argumentsPropagateNullability: FalseArrays[2],
+                                typeof(int))));
+                }
+
+                return array switch
+                {
+                    // For array columns which have a GIN index, we translate to array containment (with @>) which uses that index.
+                    ColumnExpression { Column: IColumn column }
+                        when column.Table.Indexes
+                            .Any(i =>
+                                i.Columns.Count > 0
+                                && i.Columns[0] == column
+                                && i.MappedIndexes.Any(mi => mi.GetMethod()?.Equals("GIN", StringComparison.OrdinalIgnoreCase) == true))
+                        => BuildSimplifiedShapedQuery(
+                            source,
+                            _sqlExpressionFactory.Contains(
+                                array,
+                                _sqlExpressionFactory.NewArrayOrConstant([translatedItem], array.Type, array.TypeMapping))),
+
+                    // For constant arrays (new[] { 1, 2, 3 }) or inline arrays (new[] { 1, param, 3 }), don't do anything PG-specific for since
+                    // the general EF Core mechanism is fine for that case: item IN (1, 2, 3).
+                    SqlConstantExpression or PgNewArrayExpression
+                        => base.TranslateContains(source, item),
+
+                    // Similar to ParameterExpression below, but when a bare subquery is present inside ANY(), PostgreSQL just compares
+                    // against each of its resulting rows (just like IN). To "extract" the array result of the scalar subquery, we need
+                    // to add an explicit cast (see #1803).
+                    ScalarSubqueryExpression subqueryExpression
+                        => BuildSimplifiedShapedQuery(
+                            source,
+                            _sqlExpressionFactory.Any(
+                                translatedItem,
+                                _sqlExpressionFactory.Convert(
+                                    subqueryExpression, subqueryExpression.Type, subqueryExpression.TypeMapping),
+                                PgAnyOperatorType.Equal)),
+
+                    // For ParameterExpression, and for all other cases - e.g. array returned from some function -
+                    // translate to e.SomeText = ANY (@p). This is superior to the general solution which will expand
+                    // parameters to constants, since non-PG SQL does not support arrays.
+                    // Note that this will allow indexes on the item to be used.
+                    _ => BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.Any(translatedItem, array, PgAnyOperatorType.Equal))
+                };
             }
 
-            return array switch
+            // Contains over JSON array: array ? 'foo' for text, array @> item for bool/numeric
+            case var _ when source.TryExtractJsonArray(out var array, out _, out var isElementNullable, ignoreOrderings: true)
+                && TranslateExpression(item, applyDefaultTypeMapping: false) is SqlExpression translatedItem:
             {
-                // For array columns which have a GIN index, we translate to array containment (with @>) which uses that index.
-                ColumnExpression { Column: IColumn column }
-                    when column.Table.Indexes
-                        .Any(i =>
-                            i.Columns.Count > 0
-                            && i.Columns[0] == column
-                            && i.MappedIndexes.Any(mi => mi.GetMethod()?.Equals("GIN", StringComparison.OrdinalIgnoreCase) == true))
-                    => BuildSimplifiedShapedQuery(
-                        source,
-                        _sqlExpressionFactory.Contains(
-                            array,
-                            _sqlExpressionFactory.NewArrayOrConstant([translatedItem], array.Type, array.TypeMapping))),
+                (translatedItem, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(translatedItem, array);
 
-                // For constant arrays (new[] { 1, 2, 3 }) or inline arrays (new[] { 1, param, 3 }), don't do anything PG-specific for since
-                // the general EF Core mechanism is fine for that case: item IN (1, 2, 3).
-                SqlConstantExpression or PgNewArrayExpression
-                    => base.TranslateContains(source, item),
-
-                // Similar to ParameterExpression below, but when a bare subquery is present inside ANY(), PostgreSQL just compares
-                // against each of its resulting rows (just like IN). To "extract" the array result of the scalar subquery, we need
-                // to add an explicit cast (see #1803).
-                ScalarSubqueryExpression subqueryExpression
-                    => BuildSimplifiedShapedQuery(
-                        source,
-                        _sqlExpressionFactory.Any(
-                            translatedItem,
-                            _sqlExpressionFactory.Convert(
-                                subqueryExpression, subqueryExpression.Type, subqueryExpression.TypeMapping),
-                            PgAnyOperatorType.Equal)),
-
-                // For ParameterExpression, and for all other cases - e.g. array returned from some function -
-                // translate to e.SomeText = ANY (@p). This is superior to the general solution which will expand
-                // parameters to constants, since non-PG SQL does not support arrays.
-                // Note that this will allow indexes on the item to be used.
-                _ => BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.Any(translatedItem, array, PgAnyOperatorType.Equal))
-            };
+                // TODO: Null semantics - need to coalesce NULL on the item side to 'null'::jsonb.
+                // TODO: For constant/parameter, use JsonValueReaderWriter to produce the JSON value client-side
+                return BuildSimplifiedShapedQuery(
+                    source,
+                    _sqlExpressionFactory.Contains(
+                        array,
+                        _sqlExpressionFactory.Function(
+                            "to_jsonb",
+                            [translatedItem is SqlConstantExpression { Value: string }
+                                ? _sqlExpressionFactory.Convert(translatedItem, typeof(string), _typeMappingSource.FindMapping(typeof(string)))
+                                : translatedItem],
+                            nullable: true,
+                            argumentsPropagateNullability: TrueArrays[1],
+                            typeof(string),
+                            _typeMappingSource.FindMapping("jsonb"))));
+            }
         }
 
         return base.TranslateContains(source, item);
@@ -667,22 +773,51 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     protected override ShapedQueryExpression? TranslateCount(ShapedQueryExpression source, LambdaExpression? predicate)
     {
         // Simplify x.Array.Count() => cardinality(x.Array) instead of SELECT COUNT(*) FROM unnest(x.Array)
-        if (predicate is null && source.TryExtractArray(out var array, ignoreOrderings: true))
+        if (predicate is null)
         {
-            var translation = _sqlExpressionFactory.Function(
-                "cardinality",
-                [array],
-                nullable: true,
-                argumentsPropagateNullability: TrueArrays[1],
-                typeof(int));
+            switch (source)
+            {
+                case var _ when source.TryExtractArray(out var array, ignoreOrderings: true):
+                {
+                    var translation = _sqlExpressionFactory.Function(
+                        "cardinality",
+                        [array],
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(int));
 
 #pragma warning disable EF1001 // SelectExpression constructors are currently internal
-            return source.Update(
-                new SelectExpression(translation, _queryCompilationContext.SqlAliasManager),
-                Expression.Convert(
-                    new ProjectionBindingExpression(source.QueryExpression, new ProjectionMember(), typeof(int?)),
-                    typeof(int)));
+                    return source.Update(
+                        new SelectExpression(translation, _queryCompilationContext.SqlAliasManager),
+                        Expression.Convert(
+                            new ProjectionBindingExpression(source.QueryExpression, new ProjectionMember(), typeof(int?)),
+                            typeof(int)));
 #pragma warning restore EF1001
+                }
+
+                case var _ when source.TryExtractJsonArray(out var jsonArray, out _, out _, ignoreOrderings: true):
+                {
+                    var translation = _sqlExpressionFactory.Function(
+                        jsonArray.TypeMapping!.StoreType switch
+                        {
+                            "jsonb" => "jsonb_array_length",
+                            "json" => "json_array_length",
+                            _ => throw new UnreachableException()
+                        },
+                        [jsonArray],
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(int));
+
+#pragma warning disable EF1001 // SelectExpression constructors are currently internal
+                    return source.Update(
+                        new SelectExpression(translation, _queryCompilationContext.SqlAliasManager),
+                        Expression.Convert(
+                            new ProjectionBindingExpression(source.QueryExpression, new ProjectionMember(), typeof(int?)),
+                            typeof(int)));
+#pragma warning restore EF1001
+                }
+            }
         }
 
         return base.TranslateCount(source, predicate);
@@ -748,21 +883,41 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         Expression index,
         bool returnDefault)
     {
-        // Simplify x.Array[1] => x.Array[1] (using the PG array subscript operator) instead of a subquery with LIMIT/OFFSET
-        // Note that we have unnest over multiranges, not just arrays - but multiranges don't support subscripting/slicing.
-        if (!returnDefault
-            && source.TryExtractArray(out var array, out var projectedColumn)
-            && TranslateExpression(index) is { } translatedIndex)
+        if (!returnDefault && TranslateExpression(index) is { } translatedIndex)
         {
-            // Note that PostgreSQL arrays are 1-based, so adjust the index.
-#pragma warning disable EF1001 // SelectExpression constructors are currently internal
-            return source.UpdateQueryExpression(
-                new SelectExpression(
-                    _sqlExpressionFactory.ArrayIndex(
-                        array,
-                        GenerateOneBasedIndexExpression(translatedIndex), projectedColumn.IsNullable),
-                _queryCompilationContext.SqlAliasManager));
-#pragma warning restore EF1001
+#pragma warning disable EF1001 // SelectExpression constructors are pubternal
+            switch (source)
+            {
+                // Simplify x.Array[1] => x.Array[1] (using the PG array subscript operator) instead of a subquery with LIMIT/OFFSET
+                // Note that we have unnest over multiranges, not just arrays - but multiranges don't support subscripting/slicing.
+                case var _ when source.TryExtractArray(out var array, out var projectedColumn):
+                {
+                    return source.UpdateQueryExpression(
+                        new SelectExpression(
+                            _sqlExpressionFactory.ArrayIndex(
+                                array,
+                                // Note that PostgreSQL arrays are 1-based, so adjust the index.
+                                GenerateOneBasedIndexExpression(translatedIndex), projectedColumn.IsNullable),
+                        _queryCompilationContext.SqlAliasManager));
+                }
+
+                case var _ when source.TryExtractJsonArray(out var jsonArray, out var projectedElement, out var isElementNullable):
+                {
+                    var (json, path) = jsonArray is JsonScalarExpression innerJsonScalarExpression
+                        ? (innerJsonScalarExpression.Json, innerJsonScalarExpression.Path.Append(new(translatedIndex)).ToArray())
+                        : (jsonArray, [new(translatedIndex)]);
+
+                    var translation = new JsonScalarExpression(
+                        json,
+                        path,
+                        projectedElement.Type,
+                        projectedElement.TypeMapping,
+                        isElementNullable);
+
+                    return source.UpdateQueryExpression(new SelectExpression(translation, _queryCompilationContext.SqlAliasManager));
+                }
+            }
+#pragma warning restore EF1001 // SelectExpression constructors are pubternal
         }
 
         return base.TranslateElementAtOrDefault(source, index, returnDefault);
@@ -784,7 +939,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         // Note that preprocessing normalizes FirstOrDefault(predicate) to Where(predicate).FirstOrDefault(), so the source's
         // select expression should already contain our predicate.
         if ((source.TryExtractArray(out var array, ignorePredicate: true)
-                || source.TryConvertValuesToArray(out array, ignorePredicate: true))
+                || source.TryConvertToArray(out array, ignorePredicate: true))
             && source.QueryExpression is SelectExpression { Tables: [{ Alias: var tableAlias }], Predicate: var translatedPredicate }
             && translatedPredicate is null ^ predicate is null)
         {

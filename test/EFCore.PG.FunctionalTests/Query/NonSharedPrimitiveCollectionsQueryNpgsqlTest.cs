@@ -90,14 +90,14 @@ public class NonSharedPrimitiveCollectionsQueryNpgsqlTest(NonSharedFixture fixtu
             """
 SELECT t."Id", t."Owned"
 FROM "TestOwner" AS t
-WHERE cardinality((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elements_text(t."Owned" -> 'Strings') WITH ORDINALITY AS t(element) ORDER BY ordinality))) = 2
+WHERE jsonb_array_length(t."Owned" -> 'Strings') = 2
 LIMIT 2
 """,
             //
             """
 SELECT t."Id", t."Owned"
 FROM "TestOwner" AS t
-WHERE ((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elements_text(t."Owned" -> 'Strings') WITH ORDINALITY AS t(element) ORDER BY ordinality)))[2] = 'bar'
+WHERE (t."Owned" #>> '{Strings,1}') = 'bar'
 LIMIT 2
 """);
     }

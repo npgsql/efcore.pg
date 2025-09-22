@@ -1004,11 +1004,11 @@ WHERE (
         FROM ROWS FROM (jsonb_to_recordset(j."OwnedReferenceRoot" -> 'OwnedCollectionBranch') AS (
             "Date" timestamp without time zone,
             "Enum" integer,
-            "Enums" integer[],
+            "Enums" jsonb,
             "Fraction" numeric(18,2),
             "Id" integer,
             "NullableEnum" integer,
-            "NullableEnums" integer[],
+            "NullableEnums" jsonb,
             "OwnedCollectionLeaf" jsonb,
             "OwnedReferenceLeaf" jsonb
         )) WITH ORDINALITY AS o
@@ -1033,11 +1033,11 @@ WHERE EXISTS (
         FROM ROWS FROM (jsonb_to_recordset(o."OwnedCollectionBranch") AS (
             "Date" timestamp without time zone,
             "Enum" integer,
-            "Enums" integer[],
+            "Enums" jsonb,
             "Fraction" numeric(18,2),
             "Id" integer,
             "NullableEnum" integer,
-            "NullableEnums" integer[],
+            "NullableEnums" jsonb,
             "OwnedCollectionLeaf" jsonb,
             "OwnedReferenceLeaf" jsonb
         )) WITH ORDINALITY AS o0) = 2)
@@ -1055,9 +1055,9 @@ SELECT (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[],
+        "Numbers" jsonb,
         "OwnedCollectionBranch" jsonb,
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o)
@@ -1117,9 +1117,9 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[]
+        "Numbers" jsonb
     )) WITH ORDINALITY AS o
     WHERE o."Name" = 'Foo'
 ) AS o0 ON TRUE
@@ -1140,9 +1140,9 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[],
+        "Numbers" jsonb,
         "OwnedCollectionBranch" jsonb,
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o
@@ -1168,11 +1168,11 @@ LEFT JOIN LATERAL (
         FROM ROWS FROM (jsonb_to_recordset(o."OwnedCollectionBranch") AS (
             "Date" timestamp without time zone,
             "Enum" integer,
-            "Enums" integer[],
+            "Enums" jsonb,
             "Fraction" numeric(18,2),
             "Id" integer,
             "NullableEnum" integer,
-            "NullableEnums" integer[],
+            "NullableEnums" jsonb,
             "OwnedCollectionLeaf" jsonb,
             "OwnedReferenceLeaf" jsonb
         )) WITH ORDINALITY AS o0
@@ -1197,7 +1197,7 @@ LEFT JOIN LATERAL (
     LEFT JOIN LATERAL ROWS FROM (jsonb_to_recordset(o."OwnedCollectionBranch") AS (
         "Date" timestamp without time zone,
         "Enum" integer,
-        "Enums" integer[],
+        "Enums" jsonb,
         "Fraction" numeric(18,2),
         "Id" integer,
         "OwnedCollectionLeaf" jsonb,
@@ -1221,9 +1221,9 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[],
+        "Numbers" jsonb,
         "OwnedCollectionBranch" jsonb,
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o
@@ -1247,9 +1247,9 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[],
+        "Numbers" jsonb,
         "OwnedCollectionBranch" jsonb,
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o
@@ -1296,9 +1296,9 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[],
+        "Numbers" jsonb,
         "OwnedCollectionBranch" jsonb,
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o
@@ -1349,9 +1349,9 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[],
+        "Numbers" jsonb,
         "OwnedCollectionBranch" jsonb,
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o0
@@ -1364,11 +1364,11 @@ LEFT JOIN LATERAL (
         FROM ROWS FROM (jsonb_to_recordset(o2."OwnedCollectionBranch") AS (
             "Date" timestamp without time zone,
             "Enum" integer,
-            "Enums" integer[],
+            "Enums" jsonb,
             "Fraction" numeric(18,2),
             "Id" integer,
             "NullableEnum" integer,
-            "NullableEnums" integer[],
+            "NullableEnums" jsonb,
             "OwnedCollectionLeaf" jsonb,
             "OwnedReferenceLeaf" jsonb
         )) WITH ORDINALITY AS o3
@@ -1393,11 +1393,11 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedReferenceRoot" -> 'OwnedCollectionBranch') AS (
         "Date" timestamp without time zone,
         "Enum" integer,
-        "Enums" integer[],
+        "Enums" jsonb,
         "Fraction" numeric(18,2),
         "Id" integer,
         "NullableEnum" integer,
-        "NullableEnums" integer[],
+        "NullableEnums" jsonb,
         "OwnedCollectionLeaf" jsonb,
         "OwnedReferenceLeaf" jsonb
     )) WITH ORDINALITY AS o
@@ -1430,9 +1430,9 @@ ORDER BY j."Id" NULLS FIRST, o0."SomethingSomething" NULLS FIRST
 
         AssertSql(
             """
-SELECT n.value
+SELECT n.element
 FROM "JsonEntitiesBasic" AS j
-JOIN LATERAL unnest((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elements_text(j."OwnedReferenceRoot" -> 'Names') WITH ORDINALITY AS t(element) ORDER BY ordinality))) AS n(value) ON TRUE
+JOIN LATERAL jsonb_array_elements_text(j."OwnedReferenceRoot" -> 'Names') WITH ORDINALITY AS n(element) ON TRUE
 """);
     }
 
@@ -1444,7 +1444,7 @@ JOIN LATERAL unnest((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_element
             """
 SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
 FROM "JsonEntitiesBasic" AS j
-WHERE ((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elements_text(j."OwnedReferenceRoot" -> 'Names') WITH ORDINALITY AS t(element) ORDER BY ordinality)))[1] = 'e1_r1'
+WHERE (j."OwnedReferenceRoot" #>> '{Names,0}') = 'e1_r1'
 """);
     }
 
@@ -1454,7 +1454,7 @@ WHERE ((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elements_text(j."Own
 
         AssertSql(
             """
-SELECT ((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_text(j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,Enums}') WITH ORDINALITY AS t(element) ORDER BY ordinality)))[1]
+SELECT CAST(j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,Enums,0}' AS integer)
 FROM "JsonEntitiesBasic" AS j
 ORDER BY j."Id" NULLS FIRST
 """);
@@ -1468,7 +1468,7 @@ ORDER BY j."Id" NULLS FIRST
             """
 SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
 FROM "JsonEntitiesBasic" AS j
-ORDER BY ((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_text(j."OwnedReferenceRoot" -> 'Numbers') WITH ORDINALITY AS t(element) ORDER BY ordinality)))[1] NULLS FIRST
+ORDER BY CAST(j."OwnedReferenceRoot" #>> '{Numbers,0}' AS integer) NULLS FIRST
 """);
     }
 
@@ -1480,7 +1480,7 @@ ORDER BY ((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_text(
             """
 SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
 FROM "JsonEntitiesBasic" AS j
-WHERE 'e1_r1' = ANY ((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elements_text(j."OwnedReferenceRoot" -> 'Names') WITH ORDINALITY AS t(element) ORDER BY ordinality)))
+WHERE (j."OwnedReferenceRoot" -> 'Names') @> to_jsonb('e1_r1'::text)
 """);
     }
 
@@ -1497,11 +1497,11 @@ SELECT j."Id", (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedCollectionBranch']::text[]) AS (
         "Date" timestamp without time zone,
         "Enum" integer,
-        "Enums" integer[],
+        "Enums" jsonb,
         "Fraction" numeric(18,2),
         "Id" integer,
         "NullableEnum" integer,
-        "NullableEnums" integer[],
+        "NullableEnums" jsonb,
         "OwnedCollectionLeaf" jsonb,
         "OwnedReferenceLeaf" jsonb
     )) WITH ORDINALITY AS o
@@ -1575,9 +1575,9 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[],
+        "Numbers" jsonb,
         "OwnedCollectionBranch" jsonb,
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o
@@ -2993,7 +2993,7 @@ LEFT JOIN LATERAL (
     LEFT JOIN LATERAL ROWS FROM (jsonb_to_recordset(o."OwnedCollectionBranch") AS (
         "Date" timestamp without time zone,
         "Enum" integer,
-        "Enums" integer[],
+        "Enums" jsonb,
         "Fraction" numeric(18,2),
         "Id" integer
     )) WITH ORDINALITY AS o0 ON TRUE

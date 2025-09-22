@@ -11,7 +11,7 @@ public class ComplexJsonPrimitiveCollectionNpgsqlTest(ComplexJsonNpgsqlFixture f
             """
 SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
 FROM "RootEntity" AS r
-WHERE cardinality((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_text(r."RequiredRelated" -> 'Ints') WITH ORDINALITY AS t(element) ORDER BY ordinality))) = 3
+WHERE jsonb_array_length(r."RequiredRelated" -> 'Ints') = 3
 """);
     }
 
@@ -23,7 +23,7 @@ WHERE cardinality((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elemen
             """
 SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
 FROM "RootEntity" AS r
-WHERE ((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_text(r."RequiredRelated" -> 'Ints') WITH ORDINALITY AS t(element) ORDER BY ordinality)))[1] = 1
+WHERE (CAST(r."RequiredRelated" #>> '{Ints,0}' AS integer)) = 1
 """);
     }
 
@@ -35,7 +35,7 @@ WHERE ((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_text(r."
             """
 SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
 FROM "RootEntity" AS r
-WHERE 3 = ANY ((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_text(r."RequiredRelated" -> 'Ints') WITH ORDINALITY AS t(element) ORDER BY ordinality)))
+WHERE (r."RequiredRelated" -> 'Ints') @> to_jsonb(3)
 """);
     }
 
@@ -47,7 +47,7 @@ WHERE 3 = ANY ((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_
             """
 SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
 FROM "RootEntity" AS r
-WHERE 2 = ANY ((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_text(r."RequiredRelated" -> 'Ints') WITH ORDINALITY AS t(element) ORDER BY ordinality)))
+WHERE (r."RequiredRelated" -> 'Ints') @> to_jsonb(2)
 """);
     }
 
@@ -59,7 +59,7 @@ WHERE 2 = ANY ((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_
             """
 SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
 FROM "RootEntity" AS r
-WHERE cardinality((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_text(r."RequiredRelated" #> '{RequiredNested,Ints}') WITH ORDINALITY AS t(element) ORDER BY ordinality))) = 3
+WHERE jsonb_array_length(r."RequiredRelated" #> '{RequiredNested,Ints}') = 3
 """);
     }
 
@@ -70,12 +70,12 @@ WHERE cardinality((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elemen
         AssertSql(
             """
 SELECT (
-    SELECT COALESCE(sum(i0.value), 0)::int
-    FROM unnest((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_text(r."RequiredRelated" -> 'Ints') WITH ORDINALITY AS t(element) ORDER BY ordinality))) AS i0(value))
+    SELECT COALESCE(sum(i0.element::int), 0)::int
+    FROM jsonb_array_elements_text(r."RequiredRelated" -> 'Ints') WITH ORDINALITY AS i0(element))
 FROM "RootEntity" AS r
 WHERE (
-    SELECT COALESCE(sum(i.value), 0)::int
-    FROM unnest((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_text(r."RequiredRelated" -> 'Ints') WITH ORDINALITY AS t(element) ORDER BY ordinality))) AS i(value)) >= 6
+    SELECT COALESCE(sum(i.element::int), 0)::int
+    FROM jsonb_array_elements_text(r."RequiredRelated" -> 'Ints') WITH ORDINALITY AS i(element)) >= 6
 """);
     }
 

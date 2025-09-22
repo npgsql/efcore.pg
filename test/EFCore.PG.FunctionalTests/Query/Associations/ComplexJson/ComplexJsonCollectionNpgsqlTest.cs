@@ -16,7 +16,7 @@ WHERE (
     FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
         "Id" integer,
         "Int" integer,
-        "Ints" integer[],
+        "Ints" jsonb,
         "Name" text,
         "String" text,
         "NestedCollection" jsonb,
@@ -77,7 +77,7 @@ WHERE (
         FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
             "Id" integer,
             "Int" integer,
-            "Ints" integer[],
+            "Ints" jsonb,
             "Name" text,
             "String" text,
             "NestedCollection" jsonb,

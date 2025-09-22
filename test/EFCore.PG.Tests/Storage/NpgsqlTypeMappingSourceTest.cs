@@ -231,6 +231,17 @@ public class NpgsqlTypeMappingSourceTest
         Assert.Equal(NpgsqlDbType.Char, parameter.NpgsqlDbType);
     }
 
+    #region Array
+
+    [Fact]
+    public void Primitive_collection()
+    {
+        var mapping = CreateTypeMappingSource().FindMapping(typeof(int[]));
+        Assert.IsType<NpgsqlArrayTypeMapping>(mapping, exactMatch: false);
+        Assert.Equal("integer[]", mapping.StoreType);
+        Assert.Same(typeof(int[]), mapping.ClrType);
+    }
+
     [Fact]
     public void Array_over_type_mapping_with_value_converter_by_clr_type_array()
         => Array_over_type_mapping_with_value_converter(CreateTypeMappingSource().FindMapping(typeof(LTree[])), typeof(LTree[]));
@@ -268,6 +279,35 @@ public class NpgsqlTypeMappingSourceTest
             s => Assert.Equal("bar", s));
     }
 
+    #endregion Array
+
+    #region JSON
+
+    [Fact]
+    public void Json_structural()
+    {
+        var mapping = CreateTypeMappingSource().FindMapping(typeof(JsonTypePlaceholder));
+        Assert.Equal("jsonb", mapping.StoreType);
+        Assert.Same(typeof(JsonTypePlaceholder), mapping.ClrType);
+    }
+
+    [Fact]
+    public void Json_primitive_collection()
+    {
+        var mapping = CreateTypeMappingSource().FindMapping(typeof(int[]), "jsonb");
+        Assert.Equal("jsonb", mapping.StoreType);
+        Assert.Same(typeof(IEnumerable<int>), mapping.ClrType);
+
+        var elementMapping = (RelationalTypeMapping)mapping.ElementTypeMapping;
+        Assert.NotNull(elementMapping);
+        Assert.Equal("integer", elementMapping.StoreType);
+        Assert.Same(typeof(int), elementMapping.ClrType);
+    }
+
+    #endregion JSON
+
+    #region Multirange
+
     [Fact]
     public void Multirange_by_clr_type_across_pg_versions()
     {
@@ -303,6 +343,8 @@ public class NpgsqlTypeMappingSourceTest
         // Once 14 is made the default version, this stuff can be removed.
         Assert.Same(typeof(List<NpgsqlRange<int>>), mappingDefault.ClrType);
     }
+
+    #endregion Multirange
 
 #nullable enable
     [Theory]
