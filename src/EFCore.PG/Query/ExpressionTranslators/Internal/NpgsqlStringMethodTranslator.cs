@@ -326,13 +326,15 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                     ? [instance!, arguments[0]]
                     : new[] { instance!, arguments[0], arguments[1] };
 
-            return _sqlExpressionFactory.Function(
+            var padFunc = _sqlExpressionFactory.Function(
                 method == PadLeft || method == PadLeftWithChar ? "lpad" : "rpad",
                 args,
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[args.Length],
                 instance!.Type,
                 instance.TypeMapping);
+            var lengthFunc = _sqlExpressionFactory.Function("length", [instance], true, [true], typeof(int));
+            return _sqlExpressionFactory.Case([new CaseWhenClause(_sqlExpressionFactory.MakeBinary(ExpressionType.GreaterThanOrEqual, lengthFunc, arguments[0], null)!, instance)], padFunc);
         }
 
         if (method.DeclaringType == typeof(string)
