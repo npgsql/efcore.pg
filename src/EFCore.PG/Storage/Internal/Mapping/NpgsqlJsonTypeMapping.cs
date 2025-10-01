@@ -5,9 +5,11 @@ using Microsoft.EntityFrameworkCore.Storage.Json;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
-///     Supports the older Npgsql-specific JSON mapping, allowing mapping json/jsonb to text, to e.g.
+///     Represents scalars within a JSON document that maintain their json/jsonb type (rather than being extracted out as e.g. text/int).
+///     Also supports the older Npgsql-specific JSON mapping, allowing mapping json/jsonb to text, to e.g.
 ///     <see cref="JsonElement" /> (weakly-typed mapping) or to arbitrary POCOs (but without them being modeled).
-///     For the standard EF JSON support, which relies on owned entity modeling, see <see cref="NpgsqlStructuralJsonTypeMapping" />.
+///     Note that for structural types mapped via the standard EF complex/owned mapping, we use
+///     <see cref="NpgsqlStructuralJsonTypeMapping" />.
 /// </summary>
 public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
 {

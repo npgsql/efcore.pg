@@ -80,7 +80,7 @@ SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(30.0::dou
         AssertSql(
             """
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(CAST(j."JsonContainer" ->> 'OtherValue' AS double precision)))
+SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', j."JsonContainer" -> 'OtherValue')
 """);
     }
 

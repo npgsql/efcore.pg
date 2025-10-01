@@ -1301,6 +1301,27 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                     break;
             }
 
+            // We now have a scalar value expression that needs to be passed to jsonb_set(), but jsonb_set() requires a json/jsonb
+            // argument, not e.g. text or int. So we need to wrap the argument in to_jsonb/to_json.
+            // Note that for structural types we always already get a jsonb/json value and have already exited above (no need for
+            // to_jsonb/to_json).
+
+            // One exception is if the value expression happens to be a JsonScalarExpression (e.g. copy scalar property from within
+            // one JSON document into another). For that case, rather than do to_jsonb(x.JsonbDoc ->> 'SomeProperty') - which extracts
+            // a jsonb property as text only to reconvert it back to jsonb - we just change the type mapping on the JsonScalarExpression
+            // to json/jsonb, in order to generate x.JsonbDoc -> 'SomeProperty' (no text extraction).
+            if (value is JsonScalarExpression jsonScalarValue
+                && jsonScalarValue.Json.TypeMapping?.StoreType == jsonTypeMapping.StoreType)
+            {
+                jsonValue = new JsonScalarExpression(
+                    jsonScalarValue.Json,
+                    jsonScalarValue.Path,
+                    jsonScalarValue.Type,
+                    jsonTypeMapping,
+                    jsonScalarValue.IsNullable);
+                return true;
+            }
+
             jsonValue = _sqlExpressionFactory.Function(
                 jsonTypeMapping.StoreType switch
                 {

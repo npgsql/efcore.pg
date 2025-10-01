@@ -1092,8 +1092,10 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 GenerateJsonPath(jsonScalarExpression.Json, returnsText: false, path);
                 break;
 
-            // Scalar collection mapped to JSON (either because it's nested within a JSON document, or because the user explicitly
-            // opted for this rather than the default PG array mapping).
+            // A scalar to be extracted out as JSON (and not as e.g. text/int).
+            // This happens for scalar collection mapped to JSON (either because it's nested within a JSON document,
+            // or because the user explicitly opted for this rather than the default PG array mapping), or when we copy a scalar JSON
+            // property from one document to another via ExecuteUpdate.
             case NpgsqlJsonTypeMapping typeMapping:
                 Check.DebugAssert(typeMapping.ElementTypeMapping is not null);
                 GenerateJsonPath(jsonScalarExpression.Json, returnsText: false, path);
