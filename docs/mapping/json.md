@@ -57,13 +57,13 @@ With string mapping, the EF Core provider will save and load properties to datab
 
 If your column JSON contains documents with a stable schema, you can map them to your own .NET types (or POCOs); EF will use System.Text.Json APIs under the hood to serialize instances of your types to JSON documents before sending them to the database, and to deserialize documents coming back from the database. This effectively allows mapping an arbitrary .NET type - or object graph - to a single column in the database.
 
-EF 7.0 introduced the "JSON Columns" feature, which maps a database JSON column via EF's "owned entity" mapping concept, using `ToJson()`. In this approach, EF fully models the types within the JSON document - just like it models regular tables and columns - and uses that information to perform better queries and updates. Full support for ToJson has been added to version 8.0 of the Npgsql EF provider.
+As of EF 10, the recommended way to map .NET types to JSON in the database is via complex types ([see EF release notes](https://learn.microsoft.com/en-us/ef/core/what-is-new/ef-core-10.0/whatsnew#json)). In this mode, EF is fully aware of the structure of your JSON document - just like it's aware of your tables and columns - and provides powerful, rich querying and updating capabilities. Prior to EF 10, similar modeling was available via the "owned entity" concept, but this modeling created several issues ([see here for more details](https://learn.microsoft.com/en-us/ef/core/what-is-new/ef-core-10.0/whatsnew#json)). If you're using EF 10 or above, complex types are the recommended way to map .NET types.
 
-As an alternative, prior to version 8.0, the Npgsql EF provider has supported JSON POCO mapping by simply delegating serialization/deserialization to System.Text.Json; in this model, EF itself model the contents of the JSON document, and cannot take that structure into account for queries and updates. This approach can now be considered deprecated as it allows for less powerful mapping and supports less query types; using ToJson() is now the recommended way to map POCOs to JSON.
+As an 3rd alternative, prior to version 8.0, the Npgsql EF provider has supported JSON POCO mapping by simply delegating serialization/deserialization to System.Text.Json; in this mode, EF itself is oblivious to the contents of the JSON document, and cannot take that structure into account for queries and updates. This approach can now be considered deprecated as it allows for less powerful mapping and supports less query types; using complex types with `ToJson()` is now the recommended way to map POCOs to JSON.
 
-### ToJson (owned entity mapping)
+### EF modeling with ToJson (recommended)
 
-Npgsql's support for `ToJson()` is fully aligned with the general EF support; see the [EF documentation for more information](https://learn.microsoft.com/ef/core/what-is-new/ef-core-7.0/whatsnew#json-columns).
+Npgsql's support for `ToJson()` is fully aligned with the general EF support; see the [EF documentation for more information](https://learn.microsoft.com/ef/core/what-is-new/ef-core-10.0/whatsnew#json).
 
 To get you started quickly, assume that we have the following Customer type, with a Details property that we want to map to a single JSON column in the database:
 
@@ -90,6 +90,18 @@ public class Order // Part of the JSON column
 
 To instruct EF to map CustomerDetails - and within it, Order - to a JSON column, configure it as follows:
 
+#### [Complex types (EF10+)](#tab/complex-types)
+
+```csharp
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Customer>()
+        .ComplexProperty(c => c.Details, d => d.ToJson());
+}
+```
+
+#### [Owned entities](#tab/owned entities)
+
 ```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
@@ -101,6 +113,8 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
         });
 }
 ```
+
+***
 
 At this point you can interact with the Customer just like you would normally, and EF will seamlessly serialize and deserialize it to a JSON column in the database. You can also perform LINQ queries which reference properties inside the JSON document, and these will get translated to SQL.
 
@@ -134,7 +148,7 @@ public class Order       // Part of the JSON column
 }
 ```
 
-### [Fluent API](#tab/fluent-api)
+#### [Fluent API](#tab/fluent-api)
 
 ```csharp
 class MyContext : DbContext
