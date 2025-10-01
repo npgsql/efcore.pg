@@ -364,7 +364,7 @@ SET "RequiredRelated" = jsonb_set(jsonb_set(r."RequiredRelated", '{String}', to_
 
 UPDATE "RootEntity" AS r
 SET "Name" = r."Name" || 'Modified',
-    "RequiredRelated" = jsonb_set(r."RequiredRelated", '{String}', to_jsonb(r."OptionalRelated" ->> 'String')),
+    "RequiredRelated" = jsonb_set(r."RequiredRelated", '{String}', r."OptionalRelated" -> 'String'),
     "OptionalRelated" = jsonb_set(r."OptionalRelated", '{RequiredNested,String}', to_jsonb(@p))
 WHERE (r."OptionalRelated") IS NOT NULL
 """);
@@ -379,7 +379,7 @@ WHERE (r."OptionalRelated") IS NOT NULL
 @p='?'
 
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{String}', to_jsonb(r."OptionalRelated" ->> 'String')),
+SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{String}', r."OptionalRelated" -> 'String'),
     "OptionalRelated" = jsonb_set(r."OptionalRelated", '{String}', to_jsonb(@p))
 WHERE (r."OptionalRelated") IS NOT NULL
 """);
