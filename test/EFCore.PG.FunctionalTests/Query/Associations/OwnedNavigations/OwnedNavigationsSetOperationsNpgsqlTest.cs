@@ -8,29 +8,29 @@ public class OwnedNavigationsSetOperationsNpgsqlTest(
     ITestOutputHelper testOutputHelper)
     : OwnedNavigationsSetOperationsRelationalTestBase<OwnedNavigationsNpgsqlFixture>(fixture, testOutputHelper)
 {
-    public override async Task On_related()
+    public override async Task Over_associate_collections()
     {
-        await base.On_related();
+        await base.Over_associate_collections();
 
         AssertSql(
             """
-SELECT r."Id", r."Name", o."RootEntityId", o."Id", o."Int", o."Ints", o."Name", o."String", o0."RelatedTypeRootEntityId", o1."RelatedTypeRootEntityId", r2."RootEntityId", r3."RelatedTypeRootEntityId", r4."RelatedTypeRootEntityId", o2."RelatedTypeRootEntityId", o2."Id", o2."Int", o2."Ints", o2."Name", o2."String", o0."Id", o0."Int", o0."Ints", o0."Name", o0."String", o1."Id", o1."Int", o1."Ints", o1."Name", o1."String", s."RootEntityId", s."Id", s."Int", s."Ints", s."Name", s."String", s."RelatedTypeRootEntityId", s."RelatedTypeId", s."RelatedTypeRootEntityId0", s."RelatedTypeId0", s."RelatedTypeRootEntityId1", s."RelatedTypeId1", s."Id0", s."Int0", s."Ints0", s."Name0", s."String0", s."Id1", s."Int1", s."Ints1", s."Name1", s."String1", s."Id2", s."Int2", s."Ints2", s."Name2", s."String2", r2."Id", r2."Int", r2."Ints", r2."Name", r2."String", r9."RelatedTypeRootEntityId", r9."Id", r9."Int", r9."Ints", r9."Name", r9."String", r3."Id", r3."Int", r3."Ints", r3."Name", r3."String", r4."Id", r4."Int", r4."Ints", r4."Name", r4."String"
+SELECT r."Id", r."Name", o."RootEntityId", o0."AssociateTypeRootEntityId", o1."AssociateTypeRootEntityId", r2."RootEntityId", r3."AssociateTypeRootEntityId", r4."AssociateTypeRootEntityId", s."RootEntityId", s."Id", s."Int", s."Ints", s."Name", s."String", s."AssociateTypeRootEntityId", s."AssociateTypeId", s."AssociateTypeRootEntityId0", s."AssociateTypeId0", s."AssociateTypeRootEntityId1", s."AssociateTypeId1", s."Id0", s."Int0", s."Ints0", s."Name0", s."String0", s."Id1", s."Int1", s."Ints1", s."Name1", s."String1", s."Id2", s."Int2", s."Ints2", s."Name2", s."String2", o."Id", o."Int", o."Ints", o."Name", o."String", o2."AssociateTypeRootEntityId", o2."Id", o2."Int", o2."Ints", o2."Name", o2."String", o0."Id", o0."Int", o0."Ints", o0."Name", o0."String", o1."Id", o1."Int", o1."Ints", o1."Name", o1."String", r2."Id", r2."Int", r2."Ints", r2."Name", r2."String", r9."AssociateTypeRootEntityId", r9."Id", r9."Int", r9."Ints", r9."Name", r9."String", r3."Id", r3."Int", r3."Ints", r3."Name", r3."String", r4."Id", r4."Int", r4."Ints", r4."Name", r4."String"
 FROM "RootEntity" AS r
 LEFT JOIN "OptionalRelated" AS o ON r."Id" = o."RootEntityId"
-LEFT JOIN "OptionalRelated_OptionalNested" AS o0 ON o."RootEntityId" = o0."RelatedTypeRootEntityId"
-LEFT JOIN "OptionalRelated_RequiredNested" AS o1 ON o."RootEntityId" = o1."RelatedTypeRootEntityId"
+LEFT JOIN "OptionalRelated_OptionalNested" AS o0 ON o."RootEntityId" = o0."AssociateTypeRootEntityId"
+LEFT JOIN "OptionalRelated_RequiredNested" AS o1 ON o."RootEntityId" = o1."AssociateTypeRootEntityId"
 LEFT JOIN "RequiredRelated" AS r2 ON r."Id" = r2."RootEntityId"
-LEFT JOIN "RequiredRelated_OptionalNested" AS r3 ON r2."RootEntityId" = r3."RelatedTypeRootEntityId"
-LEFT JOIN "RequiredRelated_RequiredNested" AS r4 ON r2."RootEntityId" = r4."RelatedTypeRootEntityId"
-LEFT JOIN "OptionalRelated_NestedCollection" AS o2 ON o."RootEntityId" = o2."RelatedTypeRootEntityId"
+LEFT JOIN "RequiredRelated_OptionalNested" AS r3 ON r2."RootEntityId" = r3."AssociateTypeRootEntityId"
+LEFT JOIN "RequiredRelated_RequiredNested" AS r4 ON r2."RootEntityId" = r4."AssociateTypeRootEntityId"
 LEFT JOIN (
-    SELECT r5."RootEntityId", r5."Id", r5."Int", r5."Ints", r5."Name", r5."String", r6."RelatedTypeRootEntityId", r6."RelatedTypeId", r7."RelatedTypeRootEntityId" AS "RelatedTypeRootEntityId0", r7."RelatedTypeId" AS "RelatedTypeId0", r8."RelatedTypeRootEntityId" AS "RelatedTypeRootEntityId1", r8."RelatedTypeId" AS "RelatedTypeId1", r8."Id" AS "Id0", r8."Int" AS "Int0", r8."Ints" AS "Ints0", r8."Name" AS "Name0", r8."String" AS "String0", r6."Id" AS "Id1", r6."Int" AS "Int1", r6."Ints" AS "Ints1", r6."Name" AS "Name1", r6."String" AS "String1", r7."Id" AS "Id2", r7."Int" AS "Int2", r7."Ints" AS "Ints2", r7."Name" AS "Name2", r7."String" AS "String2"
+    SELECT r5."RootEntityId", r5."Id", r5."Int", r5."Ints", r5."Name", r5."String", r6."AssociateTypeRootEntityId", r6."AssociateTypeId", r7."AssociateTypeRootEntityId" AS "AssociateTypeRootEntityId0", r7."AssociateTypeId" AS "AssociateTypeId0", r8."AssociateTypeRootEntityId" AS "AssociateTypeRootEntityId1", r8."AssociateTypeId" AS "AssociateTypeId1", r8."Id" AS "Id0", r8."Int" AS "Int0", r8."Ints" AS "Ints0", r8."Name" AS "Name0", r8."String" AS "String0", r6."Id" AS "Id1", r6."Int" AS "Int1", r6."Ints" AS "Ints1", r6."Name" AS "Name1", r6."String" AS "String1", r7."Id" AS "Id2", r7."Int" AS "Int2", r7."Ints" AS "Ints2", r7."Name" AS "Name2", r7."String" AS "String2"
     FROM "RelatedCollection" AS r5
-    LEFT JOIN "RelatedCollection_OptionalNested" AS r6 ON r5."RootEntityId" = r6."RelatedTypeRootEntityId" AND r5."Id" = r6."RelatedTypeId"
-    LEFT JOIN "RelatedCollection_RequiredNested" AS r7 ON r5."RootEntityId" = r7."RelatedTypeRootEntityId" AND r5."Id" = r7."RelatedTypeId"
-    LEFT JOIN "RelatedCollection_NestedCollection" AS r8 ON r5."RootEntityId" = r8."RelatedTypeRootEntityId" AND r5."Id" = r8."RelatedTypeId"
+    LEFT JOIN "RelatedCollection_OptionalNested" AS r6 ON r5."RootEntityId" = r6."AssociateTypeRootEntityId" AND r5."Id" = r6."AssociateTypeId"
+    LEFT JOIN "RelatedCollection_RequiredNested" AS r7 ON r5."RootEntityId" = r7."AssociateTypeRootEntityId" AND r5."Id" = r7."AssociateTypeId"
+    LEFT JOIN "RelatedCollection_NestedCollection" AS r8 ON r5."RootEntityId" = r8."AssociateTypeRootEntityId" AND r5."Id" = r8."AssociateTypeId"
 ) AS s ON r."Id" = s."RootEntityId"
-LEFT JOIN "RequiredRelated_NestedCollection" AS r9 ON r2."RootEntityId" = r9."RelatedTypeRootEntityId"
+LEFT JOIN "OptionalRelated_NestedCollection" AS o2 ON o."RootEntityId" = o2."AssociateTypeRootEntityId"
+LEFT JOIN "RequiredRelated_NestedCollection" AS r9 ON r2."RootEntityId" = r9."AssociateTypeRootEntityId"
 WHERE (
     SELECT count(*)::int
     FROM (
@@ -42,16 +42,16 @@ WHERE (
         FROM "RelatedCollection" AS r1
         WHERE r."Id" = r1."RootEntityId" AND r1."String" = 'foo'
     ) AS u) = 4
-ORDER BY r."Id" NULLS FIRST, o."RootEntityId" NULLS FIRST, o0."RelatedTypeRootEntityId" NULLS FIRST, o1."RelatedTypeRootEntityId" NULLS FIRST, r2."RootEntityId" NULLS FIRST, r3."RelatedTypeRootEntityId" NULLS FIRST, r4."RelatedTypeRootEntityId" NULLS FIRST, o2."RelatedTypeRootEntityId" NULLS FIRST, o2."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."RelatedTypeRootEntityId" NULLS FIRST, s."RelatedTypeId" NULLS FIRST, s."RelatedTypeRootEntityId0" NULLS FIRST, s."RelatedTypeId0" NULLS FIRST, s."RelatedTypeRootEntityId1" NULLS FIRST, s."RelatedTypeId1" NULLS FIRST, s."Id0" NULLS FIRST, r9."RelatedTypeRootEntityId" NULLS FIRST
+ORDER BY r."Id" NULLS FIRST, o."RootEntityId" NULLS FIRST, o0."AssociateTypeRootEntityId" NULLS FIRST, o1."AssociateTypeRootEntityId" NULLS FIRST, r2."RootEntityId" NULLS FIRST, r3."AssociateTypeRootEntityId" NULLS FIRST, r4."AssociateTypeRootEntityId" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."AssociateTypeRootEntityId0" NULLS FIRST, s."AssociateTypeId0" NULLS FIRST, s."AssociateTypeRootEntityId1" NULLS FIRST, s."AssociateTypeId1" NULLS FIRST, s."Id0" NULLS FIRST, o2."AssociateTypeRootEntityId" NULLS FIRST, o2."Id" NULLS FIRST, r9."AssociateTypeRootEntityId" NULLS FIRST
 """);
     }
 
-    public override Task On_related_projected(QueryTrackingBehavior queryTrackingBehavior)
-        => Assert.ThrowsAnyAsync<Exception>(() => base.On_related_projected(queryTrackingBehavior));
+    public override Task Over_associate_collection_projected(QueryTrackingBehavior queryTrackingBehavior)
+        => Assert.ThrowsAnyAsync<Exception>(() => base.Over_associate_collection_projected(queryTrackingBehavior));
 
-    public override async Task On_related_Select_nested_with_aggregates(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Over_assocate_collection_Select_nested_with_aggregates_projected(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.On_related_Select_nested_with_aggregates(queryTrackingBehavior);
+        await base.Over_assocate_collection_Select_nested_with_aggregates_projected(queryTrackingBehavior);
 
         AssertSql(
             """
@@ -59,7 +59,7 @@ SELECT (
     SELECT COALESCE(sum((
         SELECT COALESCE(sum(r2."Int"), 0)::int
         FROM "RelatedCollection_NestedCollection" AS r2
-        WHERE u."RootEntityId" = r2."RelatedTypeRootEntityId" AND u."Id" = r2."RelatedTypeId")), 0)::int
+        WHERE u."RootEntityId" = r2."AssociateTypeRootEntityId" AND u."Id" = r2."AssociateTypeId")), 0)::int
     FROM (
         SELECT r0."RootEntityId", r0."Id"
         FROM "RelatedCollection" AS r0
@@ -73,41 +73,41 @@ FROM "RootEntity" AS r
 """);
     }
 
-    public override async Task On_nested()
+    public override async Task Over_nested_associate_collection()
     {
-        await base.On_nested();
+        await base.Over_nested_associate_collection();
 
         AssertSql(
             """
-SELECT r."Id", r."Name", o."RootEntityId", o."Id", o."Int", o."Ints", o."Name", o."String", r0."RootEntityId", o0."RelatedTypeRootEntityId", o1."RelatedTypeRootEntityId", r3."RelatedTypeRootEntityId", r4."RelatedTypeRootEntityId", o2."RelatedTypeRootEntityId", o2."Id", o2."Int", o2."Ints", o2."Name", o2."String", o0."Id", o0."Int", o0."Ints", o0."Name", o0."String", o1."Id", o1."Int", o1."Ints", o1."Name", o1."String", s."RootEntityId", s."Id", s."Int", s."Ints", s."Name", s."String", s."RelatedTypeRootEntityId", s."RelatedTypeId", s."RelatedTypeRootEntityId0", s."RelatedTypeId0", s."RelatedTypeRootEntityId1", s."RelatedTypeId1", s."Id0", s."Int0", s."Ints0", s."Name0", s."String0", s."Id1", s."Int1", s."Ints1", s."Name1", s."String1", s."Id2", s."Int2", s."Ints2", s."Name2", s."String2", r0."Id", r0."Int", r0."Ints", r0."Name", r0."String", r9."RelatedTypeRootEntityId", r9."Id", r9."Int", r9."Ints", r9."Name", r9."String", r3."Id", r3."Int", r3."Ints", r3."Name", r3."String", r4."Id", r4."Int", r4."Ints", r4."Name", r4."String"
+SELECT r."Id", r."Name", r0."RootEntityId", o."RootEntityId", o0."AssociateTypeRootEntityId", o1."AssociateTypeRootEntityId", r3."AssociateTypeRootEntityId", r4."AssociateTypeRootEntityId", s."RootEntityId", s."Id", s."Int", s."Ints", s."Name", s."String", s."AssociateTypeRootEntityId", s."AssociateTypeId", s."AssociateTypeRootEntityId0", s."AssociateTypeId0", s."AssociateTypeRootEntityId1", s."AssociateTypeId1", s."Id0", s."Int0", s."Ints0", s."Name0", s."String0", s."Id1", s."Int1", s."Ints1", s."Name1", s."String1", s."Id2", s."Int2", s."Ints2", s."Name2", s."String2", o."Id", o."Int", o."Ints", o."Name", o."String", o2."AssociateTypeRootEntityId", o2."Id", o2."Int", o2."Ints", o2."Name", o2."String", o0."Id", o0."Int", o0."Ints", o0."Name", o0."String", o1."Id", o1."Int", o1."Ints", o1."Name", o1."String", r0."Id", r0."Int", r0."Ints", r0."Name", r0."String", r9."AssociateTypeRootEntityId", r9."Id", r9."Int", r9."Ints", r9."Name", r9."String", r3."Id", r3."Int", r3."Ints", r3."Name", r3."String", r4."Id", r4."Int", r4."Ints", r4."Name", r4."String"
 FROM "RootEntity" AS r
 LEFT JOIN "RequiredRelated" AS r0 ON r."Id" = r0."RootEntityId"
 LEFT JOIN "OptionalRelated" AS o ON r."Id" = o."RootEntityId"
-LEFT JOIN "OptionalRelated_OptionalNested" AS o0 ON o."RootEntityId" = o0."RelatedTypeRootEntityId"
-LEFT JOIN "OptionalRelated_RequiredNested" AS o1 ON o."RootEntityId" = o1."RelatedTypeRootEntityId"
-LEFT JOIN "RequiredRelated_OptionalNested" AS r3 ON r0."RootEntityId" = r3."RelatedTypeRootEntityId"
-LEFT JOIN "RequiredRelated_RequiredNested" AS r4 ON r0."RootEntityId" = r4."RelatedTypeRootEntityId"
-LEFT JOIN "OptionalRelated_NestedCollection" AS o2 ON o."RootEntityId" = o2."RelatedTypeRootEntityId"
+LEFT JOIN "OptionalRelated_OptionalNested" AS o0 ON o."RootEntityId" = o0."AssociateTypeRootEntityId"
+LEFT JOIN "OptionalRelated_RequiredNested" AS o1 ON o."RootEntityId" = o1."AssociateTypeRootEntityId"
+LEFT JOIN "RequiredRelated_OptionalNested" AS r3 ON r0."RootEntityId" = r3."AssociateTypeRootEntityId"
+LEFT JOIN "RequiredRelated_RequiredNested" AS r4 ON r0."RootEntityId" = r4."AssociateTypeRootEntityId"
 LEFT JOIN (
-    SELECT r5."RootEntityId", r5."Id", r5."Int", r5."Ints", r5."Name", r5."String", r6."RelatedTypeRootEntityId", r6."RelatedTypeId", r7."RelatedTypeRootEntityId" AS "RelatedTypeRootEntityId0", r7."RelatedTypeId" AS "RelatedTypeId0", r8."RelatedTypeRootEntityId" AS "RelatedTypeRootEntityId1", r8."RelatedTypeId" AS "RelatedTypeId1", r8."Id" AS "Id0", r8."Int" AS "Int0", r8."Ints" AS "Ints0", r8."Name" AS "Name0", r8."String" AS "String0", r6."Id" AS "Id1", r6."Int" AS "Int1", r6."Ints" AS "Ints1", r6."Name" AS "Name1", r6."String" AS "String1", r7."Id" AS "Id2", r7."Int" AS "Int2", r7."Ints" AS "Ints2", r7."Name" AS "Name2", r7."String" AS "String2"
+    SELECT r5."RootEntityId", r5."Id", r5."Int", r5."Ints", r5."Name", r5."String", r6."AssociateTypeRootEntityId", r6."AssociateTypeId", r7."AssociateTypeRootEntityId" AS "AssociateTypeRootEntityId0", r7."AssociateTypeId" AS "AssociateTypeId0", r8."AssociateTypeRootEntityId" AS "AssociateTypeRootEntityId1", r8."AssociateTypeId" AS "AssociateTypeId1", r8."Id" AS "Id0", r8."Int" AS "Int0", r8."Ints" AS "Ints0", r8."Name" AS "Name0", r8."String" AS "String0", r6."Id" AS "Id1", r6."Int" AS "Int1", r6."Ints" AS "Ints1", r6."Name" AS "Name1", r6."String" AS "String1", r7."Id" AS "Id2", r7."Int" AS "Int2", r7."Ints" AS "Ints2", r7."Name" AS "Name2", r7."String" AS "String2"
     FROM "RelatedCollection" AS r5
-    LEFT JOIN "RelatedCollection_OptionalNested" AS r6 ON r5."RootEntityId" = r6."RelatedTypeRootEntityId" AND r5."Id" = r6."RelatedTypeId"
-    LEFT JOIN "RelatedCollection_RequiredNested" AS r7 ON r5."RootEntityId" = r7."RelatedTypeRootEntityId" AND r5."Id" = r7."RelatedTypeId"
-    LEFT JOIN "RelatedCollection_NestedCollection" AS r8 ON r5."RootEntityId" = r8."RelatedTypeRootEntityId" AND r5."Id" = r8."RelatedTypeId"
+    LEFT JOIN "RelatedCollection_OptionalNested" AS r6 ON r5."RootEntityId" = r6."AssociateTypeRootEntityId" AND r5."Id" = r6."AssociateTypeId"
+    LEFT JOIN "RelatedCollection_RequiredNested" AS r7 ON r5."RootEntityId" = r7."AssociateTypeRootEntityId" AND r5."Id" = r7."AssociateTypeId"
+    LEFT JOIN "RelatedCollection_NestedCollection" AS r8 ON r5."RootEntityId" = r8."AssociateTypeRootEntityId" AND r5."Id" = r8."AssociateTypeId"
 ) AS s ON r."Id" = s."RootEntityId"
-LEFT JOIN "RequiredRelated_NestedCollection" AS r9 ON r0."RootEntityId" = r9."RelatedTypeRootEntityId"
+LEFT JOIN "OptionalRelated_NestedCollection" AS o2 ON o."RootEntityId" = o2."AssociateTypeRootEntityId"
+LEFT JOIN "RequiredRelated_NestedCollection" AS r9 ON r0."RootEntityId" = r9."AssociateTypeRootEntityId"
 WHERE (
     SELECT count(*)::int
     FROM (
         SELECT 1
         FROM "RequiredRelated_NestedCollection" AS r1
-        WHERE r0."RootEntityId" = r1."RelatedTypeRootEntityId" AND r1."Int" = 8
+        WHERE r0."RootEntityId" = r1."AssociateTypeRootEntityId" AND r1."Int" = 8
         UNION ALL
         SELECT 1
         FROM "RequiredRelated_NestedCollection" AS r2
-        WHERE r0."RootEntityId" = r2."RelatedTypeRootEntityId" AND r2."String" = 'foo'
+        WHERE r0."RootEntityId" = r2."AssociateTypeRootEntityId" AND r2."String" = 'foo'
     ) AS u) = 4
-ORDER BY r."Id" NULLS FIRST, r0."RootEntityId" NULLS FIRST, o."RootEntityId" NULLS FIRST, o0."RelatedTypeRootEntityId" NULLS FIRST, o1."RelatedTypeRootEntityId" NULLS FIRST, r3."RelatedTypeRootEntityId" NULLS FIRST, r4."RelatedTypeRootEntityId" NULLS FIRST, o2."RelatedTypeRootEntityId" NULLS FIRST, o2."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."RelatedTypeRootEntityId" NULLS FIRST, s."RelatedTypeId" NULLS FIRST, s."RelatedTypeRootEntityId0" NULLS FIRST, s."RelatedTypeId0" NULLS FIRST, s."RelatedTypeRootEntityId1" NULLS FIRST, s."RelatedTypeId1" NULLS FIRST, s."Id0" NULLS FIRST, r9."RelatedTypeRootEntityId" NULLS FIRST
+ORDER BY r."Id" NULLS FIRST, r0."RootEntityId" NULLS FIRST, o."RootEntityId" NULLS FIRST, o0."AssociateTypeRootEntityId" NULLS FIRST, o1."AssociateTypeRootEntityId" NULLS FIRST, r3."AssociateTypeRootEntityId" NULLS FIRST, r4."AssociateTypeRootEntityId" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."AssociateTypeRootEntityId0" NULLS FIRST, s."AssociateTypeId0" NULLS FIRST, s."AssociateTypeRootEntityId1" NULLS FIRST, s."AssociateTypeId1" NULLS FIRST, s."Id0" NULLS FIRST, o2."AssociateTypeRootEntityId" NULLS FIRST, o2."Id" NULLS FIRST, r9."AssociateTypeRootEntityId" NULLS FIRST
 """);
     }
 
@@ -115,7 +115,8 @@ ORDER BY r."Id" NULLS FIRST, r0."RootEntityId" NULLS FIRST, o."RootEntityId" NUL
     {
         await base.Over_different_collection_properties();
 
-        AssertSql();
+        AssertSql(
+);
     }
 
     [ConditionalFact]

@@ -10,39 +10,39 @@ public class OwnedJsonMiscellaneousNpgsqlTest(
 {
     #region Simple filters
 
-    public override async Task Where_related_property()
+    public override async Task Where_on_associate_scalar_property()
     {
-        await base.Where_related_property();
+        await base.Where_on_associate_scalar_property();
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (CAST(r."RequiredRelated" ->> 'Int' AS integer)) = 8
+WHERE (CAST(r."RequiredAssociate" ->> 'Int' AS integer)) = 8
 """);
     }
 
-    public override async Task Where_optional_related_property()
+    public override async Task Where_on_optional_associate_scalar_property()
     {
-        await base.Where_optional_related_property();
+        await base.Where_on_optional_associate_scalar_property();
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (CAST(r."OptionalRelated" ->> 'Int' AS integer)) = 8
+WHERE (CAST(r."OptionalAssociate" ->> 'Int' AS integer)) = 8
 """);
     }
 
-    public override async Task Where_nested_related_property()
+    public override async Task Where_on_nested_associate_scalar_property()
     {
-        await base.Where_nested_related_property();
+        await base.Where_on_nested_associate_scalar_property();
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (CAST(r."RequiredRelated" #>> '{RequiredNested,Int}' AS integer)) = 8
+WHERE (CAST(r."RequiredAssociate" #>> '{RequiredNestedAssociate,Int}' AS integer)) = 8
 """);
     }
 

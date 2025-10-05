@@ -9,9 +9,9 @@ public class OwnedJsonPrimitiveCollectionNpgsqlTest(OwnedJsonNpgsqlFixture fixtu
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE jsonb_array_length(r."RequiredRelated" -> 'Ints') = 3
+WHERE jsonb_array_length(r."RequiredAssociate" -> 'Ints') = 3
 """);
     }
 
@@ -21,9 +21,9 @@ WHERE jsonb_array_length(r."RequiredRelated" -> 'Ints') = 3
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (CAST(r."RequiredRelated" #>> '{Ints,0}' AS integer)) = 1
+WHERE (CAST(r."RequiredAssociate" #>> '{Ints,0}' AS integer)) = 1
 """);
     }
 
@@ -33,9 +33,9 @@ WHERE (CAST(r."RequiredRelated" #>> '{Ints,0}' AS integer)) = 1
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (r."RequiredRelated" -> 'Ints') @> to_jsonb(3)
+WHERE (r."RequiredAssociate" -> 'Ints') @> to_jsonb(3)
 """);
     }
 
@@ -45,9 +45,9 @@ WHERE (r."RequiredRelated" -> 'Ints') @> to_jsonb(3)
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (r."RequiredRelated" -> 'Ints') @> to_jsonb(2)
+WHERE (r."RequiredAssociate" -> 'Ints') @> to_jsonb(2)
 """);
     }
 
@@ -57,9 +57,9 @@ WHERE (r."RequiredRelated" -> 'Ints') @> to_jsonb(2)
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE jsonb_array_length(r."RequiredRelated" #> '{RequiredNested,Ints}') = 3
+WHERE jsonb_array_length(r."RequiredAssociate" #> '{RequiredNestedAssociate,Ints}') = 3
 """);
     }
 
@@ -71,11 +71,11 @@ WHERE jsonb_array_length(r."RequiredRelated" #> '{RequiredNested,Ints}') = 3
             """
 SELECT (
     SELECT COALESCE(sum(i0.element::int), 0)::int
-    FROM jsonb_array_elements_text(r."RequiredRelated" -> 'Ints') WITH ORDINALITY AS i0(element))
+    FROM jsonb_array_elements_text(r."RequiredAssociate" -> 'Ints') WITH ORDINALITY AS i0(element))
 FROM "RootEntity" AS r
 WHERE (
     SELECT COALESCE(sum(i.element::int), 0)::int
-    FROM jsonb_array_elements_text(r."RequiredRelated" -> 'Ints') WITH ORDINALITY AS i(element)) >= 6
+    FROM jsonb_array_elements_text(r."RequiredAssociate" -> 'Ints') WITH ORDINALITY AS i(element)) >= 6
 """);
     }
 

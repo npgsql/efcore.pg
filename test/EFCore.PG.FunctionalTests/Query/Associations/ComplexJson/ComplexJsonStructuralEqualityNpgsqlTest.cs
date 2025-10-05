@@ -10,27 +10,27 @@ public class ComplexJsonStructuralEqualityNpgsqlTest(ComplexJsonNpgsqlFixture fi
     // IS NULL operator").
     // So we find comparisons that involve the json type, and apply a conversion to string (nvarchar(max)) to both sides.
 
-    public override async Task Two_related()
+    public override async Task Two_associates()
     {
-        await base.Two_related();
+        await base.Two_associates();
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (r."RequiredRelated") = (r."OptionalRelated")
+WHERE (r."RequiredAssociate") = (r."OptionalAssociate")
 """);
     }
 
-    public override async Task Two_nested()
+    public override async Task Two_nested_associates()
     {
-        await base.Two_nested();
+        await base.Two_nested_associates();
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (r."RequiredRelated" -> 'RequiredNested') = (r."OptionalRelated" -> 'RequiredNested')
+WHERE (r."RequiredAssociate" -> 'RequiredNestedAssociate') = (r."OptionalAssociate" -> 'RequiredNestedAssociate')
 """);
     }
 
@@ -40,71 +40,71 @@ WHERE (r."RequiredRelated" -> 'RequiredNested') = (r."OptionalRelated" -> 'Requi
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (r."RequiredRelated") <> (r."OptionalRelated") OR (r."OptionalRelated") IS NULL
+WHERE (r."RequiredAssociate") <> (r."OptionalAssociate") OR (r."OptionalAssociate") IS NULL
 """);
     }
 
-    public override async Task Related_with_inline_null()
+    public override async Task Associate_with_inline_null()
     {
-        await base.Related_with_inline_null();
+        await base.Associate_with_inline_null();
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (r."OptionalRelated") IS NULL
+WHERE (r."OptionalAssociate") IS NULL
 """);
     }
 
-    public override async Task Related_with_parameter_null()
+    public override async Task Associate_with_parameter_null()
     {
-        await base.Related_with_parameter_null();
+        await base.Associate_with_parameter_null();
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (r."OptionalRelated") IS NULL
+WHERE (r."OptionalAssociate") IS NULL
 """);
     }
 
-    public override async Task Nested_with_inline_null()
+    public override async Task Nested_associate_with_inline_null()
     {
-        await base.Nested_with_inline_null();
+        await base.Nested_associate_with_inline_null();
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (r."RequiredRelated" ->> 'OptionalNested') IS NULL
+WHERE (r."RequiredAssociate" ->> 'OptionalNestedAssociate') IS NULL
 """);
     }
 
-    public override async Task Nested_with_inline()
+    public override async Task Nested_associate_with_inline()
     {
-        await base.Nested_with_inline();
+        await base.Nested_associate_with_inline();
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (r."RequiredRelated" -> 'RequiredNested') = '{"Id":1000,"Int":8,"Ints":[1,2,3],"Name":"Root1_RequiredRelated_RequiredNested","String":"foo"}'
+WHERE (r."RequiredAssociate" -> 'RequiredNestedAssociate') = '{"Id":1000,"Int":8,"Ints":[1,2,3],"Name":"Root1_RequiredAssociate_RequiredNestedAssociate","String":"foo"}'
 """);
     }
 
-    public override async Task Nested_with_parameter()
+    public override async Task Nested_associate_with_parameter()
     {
-        await base.Nested_with_parameter();
+        await base.Nested_associate_with_parameter();
 
         AssertSql(
             """
 @entity_equality_nested='?' (DbType = Object)
 
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (r."RequiredRelated" -> 'RequiredNested') = @entity_equality_nested
+WHERE (r."RequiredAssociate" -> 'RequiredNestedAssociate') = @entity_equality_nested
 """);
     }
 
@@ -114,9 +114,9 @@ WHERE (r."RequiredRelated" -> 'RequiredNested') = @entity_equality_nested
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (r."RequiredRelated" -> 'NestedCollection') = (r."OptionalRelated" -> 'NestedCollection')
+WHERE (r."RequiredAssociate" -> 'NestedCollection') = (r."OptionalAssociate" -> 'NestedCollection')
 """);
     }
 
@@ -126,9 +126,9 @@ WHERE (r."RequiredRelated" -> 'NestedCollection') = (r."OptionalRelated" -> 'Nes
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (r."RequiredRelated" -> 'NestedCollection') = '[{"Id":1002,"Int":8,"Ints":[1,2,3],"Name":"Root1_RequiredRelated_NestedCollection_1","String":"foo"},{"Id":1003,"Int":8,"Ints":[1,2,3],"Name":"Root1_RequiredRelated_NestedCollection_2","String":"foo"}]'
+WHERE (r."RequiredAssociate" -> 'NestedCollection') = '[{"Id":1002,"Int":8,"Ints":[1,2,3],"Name":"Root1_RequiredAssociate_NestedCollection_1","String":"foo"},{"Id":1003,"Int":8,"Ints":[1,2,3],"Name":"Root1_RequiredAssociate_NestedCollection_2","String":"foo"}]'
 """);
     }
 
@@ -140,9 +140,9 @@ WHERE (r."RequiredRelated" -> 'NestedCollection') = '[{"Id":1002,"Int":8,"Ints":
             """
 @entity_equality_nestedCollection='?' (DbType = Object)
 
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (r."RequiredRelated" -> 'NestedCollection') = @entity_equality_nestedCollection
+WHERE (r."RequiredAssociate" -> 'NestedCollection') = @entity_equality_nestedCollection
 """);
     }
 
@@ -160,18 +160,18 @@ WHERE (r."RequiredRelated" -> 'NestedCollection') = @entity_equality_nestedColle
             // elements down to their columns and doing column-by-column comparison. See #32576.
             AssertSql(
                 """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
 WHERE EXISTS (
     SELECT 1
-    FROM ROWS FROM (jsonb_to_recordset(r."RequiredRelated" -> 'NestedCollection') AS (
+    FROM ROWS FROM (jsonb_to_recordset(r."RequiredAssociate" -> 'NestedCollection') AS (
         "Id" integer,
         "Int" integer,
         "Ints" jsonb,
         "Name" text,
         "String" text
     )) WITH ORDINALITY AS n
-    WHERE n."Id" = 1002 AND n."Int" = 8 AND n."Ints" = '[1,2,3]' AND n."Name" = 'Root1_RequiredRelated_NestedCollection_1' AND n."String" = 'foo')
+    WHERE n."Id" = 1002 AND n."Int" = 8 AND n."Ints" = '[1,2,3]' AND n."Name" = 'Root1_RequiredAssociate_NestedCollection_1' AND n."String" = 'foo')
 """);
         });
     }
@@ -194,11 +194,11 @@ WHERE EXISTS (
 @entity_equality_nested_Name='?'
 @entity_equality_nested_String='?'
 
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
 WHERE EXISTS (
     SELECT 1
-    FROM ROWS FROM (jsonb_to_recordset(r."RequiredRelated" -> 'NestedCollection') AS (
+    FROM ROWS FROM (jsonb_to_recordset(r."RequiredAssociate" -> 'NestedCollection') AS (
         "Id" integer,
         "Int" integer,
         "Ints" jsonb,
@@ -226,11 +226,11 @@ WHERE EXISTS (
 @entity_equality_get_Item_Name='?'
 @entity_equality_get_Item_String='?'
 
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
 WHERE EXISTS (
     SELECT 1
-    FROM ROWS FROM (jsonb_to_recordset(r."RequiredRelated" -> 'NestedCollection') AS (
+    FROM ROWS FROM (jsonb_to_recordset(r."RequiredAssociate" -> 'NestedCollection') AS (
         "Id" integer,
         "Int" integer,
         "Ints" jsonb,
@@ -258,24 +258,24 @@ WHERE EXISTS (
 @entity_equality_get_Item_Name='?'
 @entity_equality_get_Item_String='?'
 @entity_equality_get_Item_NestedCollection='?' (DbType = Object)
-@entity_equality_get_Item_OptionalNested='?' (DbType = Object)
-@entity_equality_get_Item_RequiredNested='?' (DbType = Object)
+@entity_equality_get_Item_OptionalNestedAssociate='?' (DbType = Object)
+@entity_equality_get_Item_RequiredNestedAssociate='?' (DbType = Object)
 
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
 WHERE EXISTS (
     SELECT 1
-    FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
+    FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS (
         "Id" integer,
         "Int" integer,
         "Ints" jsonb,
         "Name" text,
         "String" text,
         "NestedCollection" jsonb,
-        "OptionalNested" jsonb,
-        "RequiredNested" jsonb
-    )) WITH ORDINALITY AS r0
-    WHERE r0."Id" > @get_Item_Id AND r0."Id" = @entity_equality_get_Item_Id AND r0."Int" = @entity_equality_get_Item_Int AND r0."Ints" = @entity_equality_get_Item_Ints AND r0."Name" = @entity_equality_get_Item_Name AND r0."String" = @entity_equality_get_Item_String AND (r0."NestedCollection") = @entity_equality_get_Item_NestedCollection AND (r0."OptionalNested") = @entity_equality_get_Item_OptionalNested AND (r0."RequiredNested") = @entity_equality_get_Item_RequiredNested)
+        "OptionalNestedAssociate" jsonb,
+        "RequiredNestedAssociate" jsonb
+    )) WITH ORDINALITY AS a
+    WHERE a."Id" > @get_Item_Id AND a."Id" = @entity_equality_get_Item_Id AND a."Int" = @entity_equality_get_Item_Int AND a."Ints" = @entity_equality_get_Item_Ints AND a."Name" = @entity_equality_get_Item_Name AND a."String" = @entity_equality_get_Item_String AND (a."NestedCollection") = @entity_equality_get_Item_NestedCollection AND (a."OptionalNestedAssociate") = @entity_equality_get_Item_OptionalNestedAssociate AND (a."RequiredNestedAssociate") = @entity_equality_get_Item_RequiredNestedAssociate)
 """);
         });
     }
@@ -290,9 +290,9 @@ WHERE EXISTS (
 
         AssertSql(
             """
-SELECT v."Id", v."Name", v."OptionalRelated", v."RelatedCollection", v."RequiredRelated"
+SELECT v."Id", v."Name", v."AssociateCollection", v."OptionalAssociate", v."RequiredAssociate"
 FROM "ValueRootEntity" AS v
-WHERE (v."OptionalRelated") IS NULL
+WHERE (v."OptionalAssociate") IS NULL
 """);
     }
 

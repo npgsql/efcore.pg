@@ -9,9 +9,9 @@ public class ComplexTableSplittingPrimitiveCollectionNpgsqlTest(ComplexTableSpli
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated_Id", r."OptionalRelated_Int", r."OptionalRelated_Ints", r."OptionalRelated_Name", r."OptionalRelated_String", r."OptionalRelated_OptionalNested_Id", r."OptionalRelated_OptionalNested_Int", r."OptionalRelated_OptionalNested_Ints", r."OptionalRelated_OptionalNested_Name", r."OptionalRelated_OptionalNested_String", r."OptionalRelated_RequiredNested_Id", r."OptionalRelated_RequiredNested_Int", r."OptionalRelated_RequiredNested_Ints", r."OptionalRelated_RequiredNested_Name", r."OptionalRelated_RequiredNested_String", r."RequiredRelated_Id", r."RequiredRelated_Int", r."RequiredRelated_Ints", r."RequiredRelated_Name", r."RequiredRelated_String", r."RequiredRelated_OptionalNested_Id", r."RequiredRelated_OptionalNested_Int", r."RequiredRelated_OptionalNested_Ints", r."RequiredRelated_OptionalNested_Name", r."RequiredRelated_OptionalNested_String", r."RequiredRelated_RequiredNested_Id", r."RequiredRelated_RequiredNested_Int", r."RequiredRelated_RequiredNested_Ints", r."RequiredRelated_RequiredNested_Name", r."RequiredRelated_RequiredNested_String"
+SELECT r."Id", r."Name", r."OptionalAssociate_Id", r."OptionalAssociate_Int", r."OptionalAssociate_Ints", r."OptionalAssociate_Name", r."OptionalAssociate_String", r."OptionalAssociate_OptionalNestedAssociate_Id", r."OptionalAssociate_OptionalNestedAssociate_Int", r."OptionalAssociate_OptionalNestedAssociate_Ints", r."OptionalAssociate_OptionalNestedAssociate_Name", r."OptionalAssociate_OptionalNestedAssociate_String", r."OptionalAssociate_RequiredNestedAssociate_Id", r."OptionalAssociate_RequiredNestedAssociate_Int", r."OptionalAssociate_RequiredNestedAssociate_Ints", r."OptionalAssociate_RequiredNestedAssociate_Name", r."OptionalAssociate_RequiredNestedAssociate_String", r."RequiredAssociate_Id", r."RequiredAssociate_Int", r."RequiredAssociate_Ints", r."RequiredAssociate_Name", r."RequiredAssociate_String", r."RequiredAssociate_OptionalNestedAssociate_Id", r."RequiredAssociate_OptionalNestedAssociate_Int", r."RequiredAssociate_OptionalNestedAssociate_Ints", r."RequiredAssociate_OptionalNestedAssociate_Name", r."RequiredAssociate_OptionalNestedAssociate_String", r."RequiredAssociate_RequiredNestedAssociate_Id", r."RequiredAssociate_RequiredNestedAssociate_Int", r."RequiredAssociate_RequiredNestedAssociate_Ints", r."RequiredAssociate_RequiredNestedAssociate_Name", r."RequiredAssociate_RequiredNestedAssociate_String"
 FROM "RootEntity" AS r
-WHERE cardinality(r."RequiredRelated_Ints") = 3
+WHERE cardinality(r."RequiredAssociate_Ints") = 3
 """);
     }
 
@@ -21,9 +21,9 @@ WHERE cardinality(r."RequiredRelated_Ints") = 3
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated_Id", r."OptionalRelated_Int", r."OptionalRelated_Ints", r."OptionalRelated_Name", r."OptionalRelated_String", r."OptionalRelated_OptionalNested_Id", r."OptionalRelated_OptionalNested_Int", r."OptionalRelated_OptionalNested_Ints", r."OptionalRelated_OptionalNested_Name", r."OptionalRelated_OptionalNested_String", r."OptionalRelated_RequiredNested_Id", r."OptionalRelated_RequiredNested_Int", r."OptionalRelated_RequiredNested_Ints", r."OptionalRelated_RequiredNested_Name", r."OptionalRelated_RequiredNested_String", r."RequiredRelated_Id", r."RequiredRelated_Int", r."RequiredRelated_Ints", r."RequiredRelated_Name", r."RequiredRelated_String", r."RequiredRelated_OptionalNested_Id", r."RequiredRelated_OptionalNested_Int", r."RequiredRelated_OptionalNested_Ints", r."RequiredRelated_OptionalNested_Name", r."RequiredRelated_OptionalNested_String", r."RequiredRelated_RequiredNested_Id", r."RequiredRelated_RequiredNested_Int", r."RequiredRelated_RequiredNested_Ints", r."RequiredRelated_RequiredNested_Name", r."RequiredRelated_RequiredNested_String"
+SELECT r."Id", r."Name", r."OptionalAssociate_Id", r."OptionalAssociate_Int", r."OptionalAssociate_Ints", r."OptionalAssociate_Name", r."OptionalAssociate_String", r."OptionalAssociate_OptionalNestedAssociate_Id", r."OptionalAssociate_OptionalNestedAssociate_Int", r."OptionalAssociate_OptionalNestedAssociate_Ints", r."OptionalAssociate_OptionalNestedAssociate_Name", r."OptionalAssociate_OptionalNestedAssociate_String", r."OptionalAssociate_RequiredNestedAssociate_Id", r."OptionalAssociate_RequiredNestedAssociate_Int", r."OptionalAssociate_RequiredNestedAssociate_Ints", r."OptionalAssociate_RequiredNestedAssociate_Name", r."OptionalAssociate_RequiredNestedAssociate_String", r."RequiredAssociate_Id", r."RequiredAssociate_Int", r."RequiredAssociate_Ints", r."RequiredAssociate_Name", r."RequiredAssociate_String", r."RequiredAssociate_OptionalNestedAssociate_Id", r."RequiredAssociate_OptionalNestedAssociate_Int", r."RequiredAssociate_OptionalNestedAssociate_Ints", r."RequiredAssociate_OptionalNestedAssociate_Name", r."RequiredAssociate_OptionalNestedAssociate_String", r."RequiredAssociate_RequiredNestedAssociate_Id", r."RequiredAssociate_RequiredNestedAssociate_Int", r."RequiredAssociate_RequiredNestedAssociate_Ints", r."RequiredAssociate_RequiredNestedAssociate_Name", r."RequiredAssociate_RequiredNestedAssociate_String"
 FROM "RootEntity" AS r
-WHERE r."RequiredRelated_Ints"[1] = 1
+WHERE r."RequiredAssociate_Ints"[1] = 1
 """);
     }
 
@@ -33,9 +33,9 @@ WHERE r."RequiredRelated_Ints"[1] = 1
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated_Id", r."OptionalRelated_Int", r."OptionalRelated_Ints", r."OptionalRelated_Name", r."OptionalRelated_String", r."OptionalRelated_OptionalNested_Id", r."OptionalRelated_OptionalNested_Int", r."OptionalRelated_OptionalNested_Ints", r."OptionalRelated_OptionalNested_Name", r."OptionalRelated_OptionalNested_String", r."OptionalRelated_RequiredNested_Id", r."OptionalRelated_RequiredNested_Int", r."OptionalRelated_RequiredNested_Ints", r."OptionalRelated_RequiredNested_Name", r."OptionalRelated_RequiredNested_String", r."RequiredRelated_Id", r."RequiredRelated_Int", r."RequiredRelated_Ints", r."RequiredRelated_Name", r."RequiredRelated_String", r."RequiredRelated_OptionalNested_Id", r."RequiredRelated_OptionalNested_Int", r."RequiredRelated_OptionalNested_Ints", r."RequiredRelated_OptionalNested_Name", r."RequiredRelated_OptionalNested_String", r."RequiredRelated_RequiredNested_Id", r."RequiredRelated_RequiredNested_Int", r."RequiredRelated_RequiredNested_Ints", r."RequiredRelated_RequiredNested_Name", r."RequiredRelated_RequiredNested_String"
+SELECT r."Id", r."Name", r."OptionalAssociate_Id", r."OptionalAssociate_Int", r."OptionalAssociate_Ints", r."OptionalAssociate_Name", r."OptionalAssociate_String", r."OptionalAssociate_OptionalNestedAssociate_Id", r."OptionalAssociate_OptionalNestedAssociate_Int", r."OptionalAssociate_OptionalNestedAssociate_Ints", r."OptionalAssociate_OptionalNestedAssociate_Name", r."OptionalAssociate_OptionalNestedAssociate_String", r."OptionalAssociate_RequiredNestedAssociate_Id", r."OptionalAssociate_RequiredNestedAssociate_Int", r."OptionalAssociate_RequiredNestedAssociate_Ints", r."OptionalAssociate_RequiredNestedAssociate_Name", r."OptionalAssociate_RequiredNestedAssociate_String", r."RequiredAssociate_Id", r."RequiredAssociate_Int", r."RequiredAssociate_Ints", r."RequiredAssociate_Name", r."RequiredAssociate_String", r."RequiredAssociate_OptionalNestedAssociate_Id", r."RequiredAssociate_OptionalNestedAssociate_Int", r."RequiredAssociate_OptionalNestedAssociate_Ints", r."RequiredAssociate_OptionalNestedAssociate_Name", r."RequiredAssociate_OptionalNestedAssociate_String", r."RequiredAssociate_RequiredNestedAssociate_Id", r."RequiredAssociate_RequiredNestedAssociate_Int", r."RequiredAssociate_RequiredNestedAssociate_Ints", r."RequiredAssociate_RequiredNestedAssociate_Name", r."RequiredAssociate_RequiredNestedAssociate_String"
 FROM "RootEntity" AS r
-WHERE 3 = ANY (r."RequiredRelated_Ints")
+WHERE 3 = ANY (r."RequiredAssociate_Ints")
 """);
     }
 
@@ -45,9 +45,9 @@ WHERE 3 = ANY (r."RequiredRelated_Ints")
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated_Id", r."OptionalRelated_Int", r."OptionalRelated_Ints", r."OptionalRelated_Name", r."OptionalRelated_String", r."OptionalRelated_OptionalNested_Id", r."OptionalRelated_OptionalNested_Int", r."OptionalRelated_OptionalNested_Ints", r."OptionalRelated_OptionalNested_Name", r."OptionalRelated_OptionalNested_String", r."OptionalRelated_RequiredNested_Id", r."OptionalRelated_RequiredNested_Int", r."OptionalRelated_RequiredNested_Ints", r."OptionalRelated_RequiredNested_Name", r."OptionalRelated_RequiredNested_String", r."RequiredRelated_Id", r."RequiredRelated_Int", r."RequiredRelated_Ints", r."RequiredRelated_Name", r."RequiredRelated_String", r."RequiredRelated_OptionalNested_Id", r."RequiredRelated_OptionalNested_Int", r."RequiredRelated_OptionalNested_Ints", r."RequiredRelated_OptionalNested_Name", r."RequiredRelated_OptionalNested_String", r."RequiredRelated_RequiredNested_Id", r."RequiredRelated_RequiredNested_Int", r."RequiredRelated_RequiredNested_Ints", r."RequiredRelated_RequiredNested_Name", r."RequiredRelated_RequiredNested_String"
+SELECT r."Id", r."Name", r."OptionalAssociate_Id", r."OptionalAssociate_Int", r."OptionalAssociate_Ints", r."OptionalAssociate_Name", r."OptionalAssociate_String", r."OptionalAssociate_OptionalNestedAssociate_Id", r."OptionalAssociate_OptionalNestedAssociate_Int", r."OptionalAssociate_OptionalNestedAssociate_Ints", r."OptionalAssociate_OptionalNestedAssociate_Name", r."OptionalAssociate_OptionalNestedAssociate_String", r."OptionalAssociate_RequiredNestedAssociate_Id", r."OptionalAssociate_RequiredNestedAssociate_Int", r."OptionalAssociate_RequiredNestedAssociate_Ints", r."OptionalAssociate_RequiredNestedAssociate_Name", r."OptionalAssociate_RequiredNestedAssociate_String", r."RequiredAssociate_Id", r."RequiredAssociate_Int", r."RequiredAssociate_Ints", r."RequiredAssociate_Name", r."RequiredAssociate_String", r."RequiredAssociate_OptionalNestedAssociate_Id", r."RequiredAssociate_OptionalNestedAssociate_Int", r."RequiredAssociate_OptionalNestedAssociate_Ints", r."RequiredAssociate_OptionalNestedAssociate_Name", r."RequiredAssociate_OptionalNestedAssociate_String", r."RequiredAssociate_RequiredNestedAssociate_Id", r."RequiredAssociate_RequiredNestedAssociate_Int", r."RequiredAssociate_RequiredNestedAssociate_Ints", r."RequiredAssociate_RequiredNestedAssociate_Name", r."RequiredAssociate_RequiredNestedAssociate_String"
 FROM "RootEntity" AS r
-WHERE 2 = ANY (r."RequiredRelated_Ints")
+WHERE 2 = ANY (r."RequiredAssociate_Ints")
 """);
     }
 
@@ -57,9 +57,9 @@ WHERE 2 = ANY (r."RequiredRelated_Ints")
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated_Id", r."OptionalRelated_Int", r."OptionalRelated_Ints", r."OptionalRelated_Name", r."OptionalRelated_String", r."OptionalRelated_OptionalNested_Id", r."OptionalRelated_OptionalNested_Int", r."OptionalRelated_OptionalNested_Ints", r."OptionalRelated_OptionalNested_Name", r."OptionalRelated_OptionalNested_String", r."OptionalRelated_RequiredNested_Id", r."OptionalRelated_RequiredNested_Int", r."OptionalRelated_RequiredNested_Ints", r."OptionalRelated_RequiredNested_Name", r."OptionalRelated_RequiredNested_String", r."RequiredRelated_Id", r."RequiredRelated_Int", r."RequiredRelated_Ints", r."RequiredRelated_Name", r."RequiredRelated_String", r."RequiredRelated_OptionalNested_Id", r."RequiredRelated_OptionalNested_Int", r."RequiredRelated_OptionalNested_Ints", r."RequiredRelated_OptionalNested_Name", r."RequiredRelated_OptionalNested_String", r."RequiredRelated_RequiredNested_Id", r."RequiredRelated_RequiredNested_Int", r."RequiredRelated_RequiredNested_Ints", r."RequiredRelated_RequiredNested_Name", r."RequiredRelated_RequiredNested_String"
+SELECT r."Id", r."Name", r."OptionalAssociate_Id", r."OptionalAssociate_Int", r."OptionalAssociate_Ints", r."OptionalAssociate_Name", r."OptionalAssociate_String", r."OptionalAssociate_OptionalNestedAssociate_Id", r."OptionalAssociate_OptionalNestedAssociate_Int", r."OptionalAssociate_OptionalNestedAssociate_Ints", r."OptionalAssociate_OptionalNestedAssociate_Name", r."OptionalAssociate_OptionalNestedAssociate_String", r."OptionalAssociate_RequiredNestedAssociate_Id", r."OptionalAssociate_RequiredNestedAssociate_Int", r."OptionalAssociate_RequiredNestedAssociate_Ints", r."OptionalAssociate_RequiredNestedAssociate_Name", r."OptionalAssociate_RequiredNestedAssociate_String", r."RequiredAssociate_Id", r."RequiredAssociate_Int", r."RequiredAssociate_Ints", r."RequiredAssociate_Name", r."RequiredAssociate_String", r."RequiredAssociate_OptionalNestedAssociate_Id", r."RequiredAssociate_OptionalNestedAssociate_Int", r."RequiredAssociate_OptionalNestedAssociate_Ints", r."RequiredAssociate_OptionalNestedAssociate_Name", r."RequiredAssociate_OptionalNestedAssociate_String", r."RequiredAssociate_RequiredNestedAssociate_Id", r."RequiredAssociate_RequiredNestedAssociate_Int", r."RequiredAssociate_RequiredNestedAssociate_Ints", r."RequiredAssociate_RequiredNestedAssociate_Name", r."RequiredAssociate_RequiredNestedAssociate_String"
 FROM "RootEntity" AS r
-WHERE cardinality(r."RequiredRelated_RequiredNested_Ints") = 3
+WHERE cardinality(r."RequiredAssociate_RequiredNestedAssociate_Ints") = 3
 """);
     }
 
@@ -71,11 +71,11 @@ WHERE cardinality(r."RequiredRelated_RequiredNested_Ints") = 3
             """
 SELECT (
     SELECT COALESCE(sum(r1.value), 0)::int
-    FROM unnest(r."RequiredRelated_Ints") AS r1(value))
+    FROM unnest(r."RequiredAssociate_Ints") AS r1(value))
 FROM "RootEntity" AS r
 WHERE (
     SELECT COALESCE(sum(r0.value), 0)::int
-    FROM unnest(r."RequiredRelated_Ints") AS r0(value)) >= 6
+    FROM unnest(r."RequiredAssociate_Ints") AS r0(value)) >= 6
 """);
     }
 

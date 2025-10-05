@@ -20,16 +20,16 @@ WHERE r."Name" = @deletableEntity_Name
 """);
     }
 
-    public override async Task Delete_required_association()
+    public override async Task Delete_required_associate()
     {
-        await base.Delete_required_association();
+        await base.Delete_required_associate();
 
         AssertSql();
     }
 
-    public override async Task Delete_optional_association()
+    public override async Task Delete_optional_associate()
     {
-        await base.Delete_optional_association();
+        await base.Delete_optional_associate();
 
         AssertSql();
     }
@@ -38,60 +38,67 @@ WHERE r."Name" = @deletableEntity_Name
 
     #region Update properties
 
-    public override async Task Update_property_inside_association()
+    public override async Task Update_property_inside_associate()
     {
-        await base.Update_property_inside_association();
+        await base.Update_property_inside_associate();
 
         AssertExecuteUpdateSql(
             """
 @p='?'
 
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{String}', to_jsonb(@p))
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{String}', to_jsonb(@p))
 """);
     }
 
-    public override async Task Update_property_inside_association_with_special_chars()
+    public override async Task Update_property_inside_associate_with_special_chars()
     {
-        await base.Update_property_inside_association_with_special_chars();
+        await base.Update_property_inside_associate_with_special_chars();
 
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{String}', to_jsonb('{ Some other/JSON:like text though it [isn''t]: ממש ממש לאéèéè }'::text))
-WHERE (r."RequiredRelated" ->> 'String') = '{ this may/look:like JSON but it [isn''t]: ממש ממש לאéèéè }'
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{String}', to_jsonb('{ Some other/JSON:like text though it [isn''t]: ממש ממש לאéèéè }'::text))
+WHERE (r."RequiredAssociate" ->> 'String') = '{ this may/look:like JSON but it [isn''t]: ממש ממש לאéèéè }'
 """);
     }
 
-    public override async Task Update_property_inside_nested()
+    public override async Task Update_property_inside_nested_associate()
     {
-        await base.Update_property_inside_nested();
-
-        AssertExecuteUpdateSql(
-            """
-@p='?'
-
-UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{RequiredNested,String}', to_jsonb(@p))
-""");
-    }
-
-    public override async Task Update_property_on_projected_association()
-    {
-        await base.Update_property_on_projected_association();
+        await base.Update_property_inside_nested_associate();
 
         AssertExecuteUpdateSql(
             """
 @p='?'
 
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{String}', to_jsonb(@p))
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{RequiredNestedAssociate,String}', to_jsonb(@p))
 """);
     }
 
-    public override async Task Update_property_on_projected_association_with_OrderBy_Skip()
+    public override async Task Update_property_on_projected_associate()
     {
-        await base.Update_property_on_projected_association_with_OrderBy_Skip();
+        await base.Update_property_on_projected_associate();
+
+        AssertExecuteUpdateSql(
+            """
+@p='?'
+
+UPDATE "RootEntity" AS r
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{String}', to_jsonb(@p))
+""");
+    }
+
+    public override async Task Update_property_on_projected_associate_with_OrderBy_Skip()
+    {
+        await base.Update_property_on_projected_associate_with_OrderBy_Skip();
+
+        AssertExecuteUpdateSql();
+    }
+
+    public override async Task Update_associate_with_null_required_property()
+    {
+        await base.Update_associate_with_null_required_property();
 
         AssertExecuteUpdateSql();
     }
@@ -100,120 +107,127 @@ SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{String}', to_jsonb(@p))
 
     #region Update association
 
-    public override async Task Update_association_to_parameter()
+    public override async Task Update_associate_to_parameter()
     {
-        await base.Update_association_to_parameter();
+        await base.Update_associate_to_parameter();
 
         AssertExecuteUpdateSql(
             """
 @complex_type_p='?' (DbType = Object)
 
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = @complex_type_p
+SET "RequiredAssociate" = @complex_type_p
 """);
     }
 
-    public override async Task Update_nested_association_to_parameter()
+    public override async Task Update_nested_associate_to_parameter()
     {
-        await base.Update_nested_association_to_parameter();
+        await base.Update_nested_associate_to_parameter();
 
         AssertExecuteUpdateSql(
             """
 @complex_type_p='?' (DbType = Object)
 
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{RequiredNested}', @complex_type_p)
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{RequiredNestedAssociate}', @complex_type_p)
 """);
     }
 
-    public override async Task Update_association_to_another_association()
+    public override async Task Update_associate_to_another_associate()
     {
-        await base.Update_association_to_another_association();
+        await base.Update_associate_to_another_associate();
 
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "OptionalRelated" = r."RequiredRelated"
+SET "OptionalAssociate" = r."RequiredAssociate"
 """);
     }
 
-    public override async Task Update_nested_association_to_another_nested_association()
+    public override async Task Update_nested_associate_to_another_nested_associate()
     {
-        await base.Update_nested_association_to_another_nested_association();
+        await base.Update_nested_associate_to_another_nested_associate();
 
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{OptionalNested}', r."RequiredRelated" -> 'RequiredNested')
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{OptionalNestedAssociate}', r."RequiredAssociate" -> 'RequiredNestedAssociate')
 """);
     }
 
-    public override async Task Update_association_to_inline()
+    public override async Task Update_associate_to_inline()
     {
-        await base.Update_association_to_inline();
+        await base.Update_associate_to_inline();
 
         AssertExecuteUpdateSql(
             """
 @complex_type_p='?' (DbType = Object)
 
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = @complex_type_p
+SET "RequiredAssociate" = @complex_type_p
 """);
     }
 
-    public override async Task Update_association_to_inline_with_lambda()
+    public override async Task Update_associate_to_inline_with_lambda()
     {
-        await base.Update_association_to_inline_with_lambda();
+        await base.Update_associate_to_inline_with_lambda();
 
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = '{"Id":1000,"Int":70,"Ints":[1,2,4],"Name":"Updated related name","String":"Updated related string","NestedCollection":[],"OptionalNested":null,"RequiredNested":{"Id":1000,"Int":80,"Ints":[1,2,4],"Name":"Updated nested name","String":"Updated nested string"}}'
+SET "RequiredAssociate" = '{"Id":1000,"Int":70,"Ints":[1,2,4],"Name":"Updated associate name","String":"Updated associate string","NestedCollection":[],"OptionalNestedAssociate":null,"RequiredNestedAssociate":{"Id":1000,"Int":80,"Ints":[1,2,4],"Name":"Updated nested name","String":"Updated nested string"}}'
 """);
     }
 
-    public override async Task Update_nested_association_to_inline_with_lambda()
+    public override async Task Update_nested_associate_to_inline_with_lambda()
     {
-        await base.Update_nested_association_to_inline_with_lambda();
+        await base.Update_nested_associate_to_inline_with_lambda();
 
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{RequiredNested}', '{"Id":1000,"Int":80,"Ints":[1,2,4],"Name":"Updated nested name","String":"Updated nested string"}')
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{RequiredNestedAssociate}', '{"Id":1000,"Int":80,"Ints":[1,2,4],"Name":"Updated nested name","String":"Updated nested string"}')
 """);
     }
 
-    public override async Task Update_association_to_null()
+    public override async Task Update_associate_to_null()
     {
-        await base.Update_association_to_null();
+        await base.Update_associate_to_null();
 
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "OptionalRelated" = NULL
+SET "OptionalAssociate" = NULL
 """);
     }
 
-    public override async Task Update_association_to_null_with_lambda()
+    public override async Task Update_associate_to_null_with_lambda()
     {
-        await base.Update_association_to_null_with_lambda();
+        await base.Update_associate_to_null_with_lambda();
 
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "OptionalRelated" = NULL
+SET "OptionalAssociate" = NULL
 """);
     }
 
-    public override async Task Update_association_to_null_parameter()
+    public override async Task Update_associate_to_null_parameter()
     {
-        await base.Update_association_to_null_parameter();
+        await base.Update_associate_to_null_parameter();
 
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "OptionalRelated" = NULL
+SET "OptionalAssociate" = NULL
 """);
+    }
+
+    public override async Task Update_required_nested_associate_to_null()
+    {
+        await base.Update_required_nested_associate_to_null();
+
+        AssertExecuteUpdateSql();
     }
 
     #endregion Update association
@@ -229,7 +243,7 @@ SET "OptionalRelated" = NULL
 @complex_type_p='?' (DbType = Object)
 
 UPDATE "RootEntity" AS r
-SET "RelatedCollection" = @complex_type_p
+SET "AssociateCollection" = @complex_type_p
 """);
     }
 
@@ -242,7 +256,7 @@ SET "RelatedCollection" = @complex_type_p
 @complex_type_p='?' (DbType = Object)
 
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{NestedCollection}', @complex_type_p)
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{NestedCollection}', @complex_type_p)
 """);
     }
 
@@ -253,7 +267,7 @@ SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{NestedCollection}', @co
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{NestedCollection}', '[{"Id":1000,"Int":80,"Ints":[1,2,4],"Name":"Updated nested name1","String":"Updated nested string1"},{"Id":1001,"Int":81,"Ints":[1,2,4],"Name":"Updated nested name2","String":"Updated nested string2"}]')
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{NestedCollection}', '[{"Id":1000,"Int":80,"Ints":[1,2,4],"Name":"Updated nested name1","String":"Updated nested string1"},{"Id":1001,"Int":81,"Ints":[1,2,4],"Name":"Updated nested name2","String":"Updated nested string2"}]')
 """);
     }
 
@@ -264,8 +278,8 @@ SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{NestedCollection}', '[{
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{NestedCollection}', r."OptionalRelated" -> 'NestedCollection')
-WHERE (r."OptionalRelated") IS NOT NULL
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{NestedCollection}', r."OptionalAssociate" -> 'NestedCollection')
+WHERE (r."OptionalAssociate") IS NOT NULL
 """);
     }
 
@@ -294,7 +308,7 @@ WHERE (r."OptionalRelated") IS NOT NULL
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{Ints}', '[1,2,4]')
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{Ints}', '[1,2,4]')
 """);
     }
 
@@ -307,7 +321,7 @@ SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{Ints}', '[1,2,4]')
 @ints='?' (DbType = Object)
 
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{Ints}', @ints)
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{Ints}', @ints)
 """);
     }
 
@@ -318,7 +332,7 @@ SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{Ints}', @ints)
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{OptionalNested,Ints}', r."RequiredRelated" #> '{RequiredNested,Ints}')
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{OptionalNestedAssociate,Ints}', r."RequiredAssociate" #> '{RequiredNestedAssociate,Ints}')
 """);
     }
 
@@ -331,8 +345,8 @@ SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{OptionalNested,Ints}', 
 @p='?' (DbType = Int32)
 
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{Ints,1}', to_jsonb(@p))
-WHERE jsonb_array_length(r."RequiredRelated" -> 'Ints') >= 2
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{Ints,1}', to_jsonb(@p))
+WHERE jsonb_array_length(r."RequiredAssociate" -> 'Ints') >= 2
 """);
     }
 
@@ -340,9 +354,9 @@ WHERE jsonb_array_length(r."RequiredRelated" -> 'Ints') >= 2
 
     #region Multiple updates
 
-    public override async Task Update_multiple_properties_inside_same_association()
+    public override async Task Update_multiple_properties_inside_same_associate()
     {
-        await base.Update_multiple_properties_inside_same_association();
+        await base.Update_multiple_properties_inside_same_associate();
 
         AssertExecuteUpdateSql(
             """
@@ -350,13 +364,13 @@ WHERE jsonb_array_length(r."RequiredRelated" -> 'Ints') >= 2
 @p0='?' (DbType = Int32)
 
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(jsonb_set(r."RequiredRelated", '{String}', to_jsonb(@p)), '{Int}', to_jsonb(@p0))
+SET "RequiredAssociate" = jsonb_set(jsonb_set(r."RequiredAssociate", '{String}', to_jsonb(@p)), '{Int}', to_jsonb(@p0))
 """);
     }
 
-    public override async Task Update_multiple_properties_inside_associations_and_on_entity_type()
+    public override async Task Update_multiple_properties_inside_associates_and_on_entity_type()
     {
-        await base.Update_multiple_properties_inside_associations_and_on_entity_type();
+        await base.Update_multiple_properties_inside_associates_and_on_entity_type();
 
         AssertExecuteUpdateSql(
             """
@@ -364,24 +378,24 @@ SET "RequiredRelated" = jsonb_set(jsonb_set(r."RequiredRelated", '{String}', to_
 
 UPDATE "RootEntity" AS r
 SET "Name" = r."Name" || 'Modified',
-    "RequiredRelated" = jsonb_set(r."RequiredRelated", '{String}', r."OptionalRelated" -> 'String'),
-    "OptionalRelated" = jsonb_set(r."OptionalRelated", '{RequiredNested,String}', to_jsonb(@p))
-WHERE (r."OptionalRelated") IS NOT NULL
+    "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{String}', r."OptionalAssociate" -> 'String'),
+    "OptionalAssociate" = jsonb_set(r."OptionalAssociate", '{RequiredNestedAssociate,String}', to_jsonb(@p))
+WHERE (r."OptionalAssociate") IS NOT NULL
 """);
     }
 
-    public override async Task Update_multiple_projected_associations_via_anonymous_type()
+    public override async Task Update_multiple_projected_associates_via_anonymous_type()
     {
-        await base.Update_multiple_projected_associations_via_anonymous_type();
+        await base.Update_multiple_projected_associates_via_anonymous_type();
 
         AssertExecuteUpdateSql(
             """
 @p='?'
 
 UPDATE "RootEntity" AS r
-SET "RequiredRelated" = jsonb_set(r."RequiredRelated", '{String}', r."OptionalRelated" -> 'String'),
-    "OptionalRelated" = jsonb_set(r."OptionalRelated", '{String}', to_jsonb(@p))
-WHERE (r."OptionalRelated") IS NOT NULL
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{String}', r."OptionalAssociate" -> 'String'),
+    "OptionalAssociate" = jsonb_set(r."OptionalAssociate", '{String}', to_jsonb(@p))
+WHERE (r."OptionalAssociate") IS NOT NULL
 """);
     }
 
