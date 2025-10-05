@@ -12,236 +12,261 @@ public class OwnedJsonProjectionNpgsqlTest(OwnedJsonNpgsqlFixture fixture, ITest
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
 """);
     }
 
-    #region Simple properties
+    #region Scalar properties
 
-    public override async Task Select_property_on_required_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_scalar_property_on_required_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_property_on_required_related(queryTrackingBehavior);
+        await base.Select_scalar_property_on_required_associate(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT r."RequiredRelated" ->> 'String'
+SELECT r."RequiredAssociate" ->> 'String'
 FROM "RootEntity" AS r
 """);
     }
 
-    public override async Task Select_property_on_optional_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_property_on_optional_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_property_on_optional_related(queryTrackingBehavior);
+        await base.Select_property_on_optional_associate(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT r."OptionalRelated" ->> 'String'
+SELECT r."OptionalAssociate" ->> 'String'
 FROM "RootEntity" AS r
 """);
     }
 
-    public override async Task Select_value_type_property_on_null_related_throws(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_value_type_property_on_null_associate_throws(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_value_type_property_on_null_related_throws(queryTrackingBehavior);
+        await base.Select_value_type_property_on_null_associate_throws(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT CAST(r."OptionalRelated" ->> 'Int' AS integer)
+SELECT CAST(r."OptionalAssociate" ->> 'Int' AS integer)
 FROM "RootEntity" AS r
 """);
     }
 
-    public override async Task Select_nullable_value_type_property_on_null_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_nullable_value_type_property_on_null_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_nullable_value_type_property_on_null_related(queryTrackingBehavior);
+        await base.Select_nullable_value_type_property_on_null_associate(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT CAST(r."OptionalRelated" ->> 'Int' AS integer)
+SELECT CAST(r."OptionalAssociate" ->> 'Int' AS integer)
 FROM "RootEntity" AS r
 """);
     }
 
-    #endregion Simple properties
+    #endregion Scalar properties
 
-    #region Non-collection
+    #region Structural properties
 
-    public override async Task Select_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_related(queryTrackingBehavior);
+        await base.Select_associate(queryTrackingBehavior);
 
         if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
         {
             AssertSql(
                 """
-SELECT r."RequiredRelated", r."Id"
-FROM "RootEntity" AS r
-""");
-        }
-    }
-
-    public override async Task Select_optional_related(QueryTrackingBehavior queryTrackingBehavior)
-    {
-        await base.Select_optional_related(queryTrackingBehavior);
-
-        if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
-        {
-            AssertSql(
-                """
-SELECT r."OptionalRelated", r."Id"
+SELECT r."RequiredAssociate", r."Id"
 FROM "RootEntity" AS r
 """);
         }
     }
 
-    public override async Task Select_required_nested_on_required_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_optional_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_required_nested_on_required_related(queryTrackingBehavior);
+        await base.Select_optional_associate(queryTrackingBehavior);
 
         if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
         {
             AssertSql(
                 """
-SELECT r."RequiredRelated" -> 'RequiredNested', r."Id"
+SELECT r."OptionalAssociate", r."Id"
 FROM "RootEntity" AS r
 """);
         }
     }
 
-    public override async Task Select_optional_nested_on_required_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_required_nested_on_required_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_optional_nested_on_required_related(queryTrackingBehavior);
+        await base.Select_required_nested_on_required_associate(queryTrackingBehavior);
 
         if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
         {
             AssertSql(
                 """
-SELECT r."RequiredRelated" -> 'OptionalNested', r."Id"
+SELECT r."RequiredAssociate" -> 'RequiredNestedAssociate', r."Id"
 FROM "RootEntity" AS r
 """);
         }
     }
 
-    public override async Task Select_required_nested_on_optional_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_optional_nested_on_required_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_required_nested_on_optional_related(queryTrackingBehavior);
+        await base.Select_optional_nested_on_required_associate(queryTrackingBehavior);
 
         if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
         {
             AssertSql(
                 """
-SELECT r."OptionalRelated" -> 'RequiredNested', r."Id"
+SELECT r."RequiredAssociate" -> 'OptionalNestedAssociate', r."Id"
 FROM "RootEntity" AS r
 """);
         }
     }
 
-    public override async Task Select_optional_nested_on_optional_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_required_nested_on_optional_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_optional_nested_on_optional_related(queryTrackingBehavior);
+        await base.Select_required_nested_on_optional_associate(queryTrackingBehavior);
 
         if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
         {
             AssertSql(
                 """
-SELECT r."OptionalRelated" -> 'OptionalNested', r."Id"
+SELECT r."OptionalAssociate" -> 'RequiredNestedAssociate', r."Id"
 FROM "RootEntity" AS r
 """);
         }
     }
 
-    public override async Task Select_required_related_via_optional_navigation(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_optional_nested_on_optional_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_required_related_via_optional_navigation(queryTrackingBehavior);
+        await base.Select_optional_nested_on_optional_associate(queryTrackingBehavior);
 
         if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
         {
             AssertSql(
                 """
-SELECT r0."RequiredRelated", r0."Id"
+SELECT r."OptionalAssociate" -> 'OptionalNestedAssociate', r."Id"
+FROM "RootEntity" AS r
+""");
+        }
+    }
+
+    public override async Task Select_required_associate_via_optional_navigation(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.Select_required_associate_via_optional_navigation(queryTrackingBehavior);
+
+        if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
+        {
+            AssertSql(
+                """
+SELECT r0."RequiredAssociate", r0."Id"
 FROM "RootReferencingEntity" AS r
 LEFT JOIN "RootEntity" AS r0 ON r."RootEntityId" = r0."Id"
 """);
         }
     }
 
-    #endregion Non-collection
+    public override async Task Select_unmapped_associate_scalar_property(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.Select_unmapped_associate_scalar_property(queryTrackingBehavior);
+
+        if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
+        {
+            AssertSql(
+                """
+SELECT r."RequiredAssociate", r."Id"
+FROM "RootEntity" AS r
+""");
+        }
+    }
+
+    public override async Task Select_untranslatable_method_on_associate_scalar_property(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.Select_untranslatable_method_on_associate_scalar_property(queryTrackingBehavior);
+
+        AssertSql(
+            """
+SELECT CAST(r."RequiredAssociate" ->> 'Int' AS integer)
+FROM "RootEntity" AS r
+""");
+    }
+
+    #endregion Structural properties
 
     #region Collection
 
-    public override async Task Select_related_collection(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_associate_collection(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_related_collection(queryTrackingBehavior);
+        await base.Select_associate_collection(queryTrackingBehavior);
 
         if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
         {
             AssertSql(
                 """
-SELECT r."RelatedCollection", r."Id"
+SELECT r."AssociateCollection", r."Id"
 FROM "RootEntity" AS r
 ORDER BY r."Id" NULLS FIRST
 """);
         }
     }
 
-    public override async Task Select_nested_collection_on_required_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_nested_collection_on_required_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_nested_collection_on_required_related(queryTrackingBehavior);
+        await base.Select_nested_collection_on_required_associate(queryTrackingBehavior);
 
         if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
         {
             AssertSql(
                 """
-SELECT r."RequiredRelated" -> 'NestedCollection', r."Id"
+SELECT r."RequiredAssociate" -> 'NestedCollection', r."Id"
 FROM "RootEntity" AS r
 ORDER BY r."Id" NULLS FIRST
 """);
         }
     }
 
-    public override async Task Select_nested_collection_on_optional_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_nested_collection_on_optional_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_nested_collection_on_optional_related(queryTrackingBehavior);
+        await base.Select_nested_collection_on_optional_associate(queryTrackingBehavior);
 
         if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
         {
             AssertSql(
                 """
-SELECT r."OptionalRelated" -> 'NestedCollection', r."Id"
+SELECT r."OptionalAssociate" -> 'NestedCollection', r."Id"
 FROM "RootEntity" AS r
 ORDER BY r."Id" NULLS FIRST
 """);
         }
     }
 
-    public override async Task SelectMany_related_collection(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task SelectMany_associate_collection(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.SelectMany_related_collection(queryTrackingBehavior);
+        await base.SelectMany_associate_collection(queryTrackingBehavior);
 
         if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
         {
             AssertSql(
                 """
-SELECT r."Id", r0."Id", r0."Int", r0."Ints", r0."Name", r0."String", r0."NestedCollection", r0."OptionalNested", r0."RequiredNested"
+SELECT r."Id", a."Id", a."Int", a."Ints", a."Name", a."String", a."NestedCollection", a."OptionalNestedAssociate", a."RequiredNestedAssociate"
 FROM "RootEntity" AS r
-JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
+JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS (
     "Id" integer,
     "Int" integer,
     "Ints" jsonb,
     "Name" text,
     "String" text,
     "NestedCollection" jsonb,
-    "OptionalNested" jsonb,
-    "RequiredNested" jsonb
-)) WITH ORDINALITY AS r0 ON TRUE
+    "OptionalNestedAssociate" jsonb,
+    "RequiredNestedAssociate" jsonb
+)) WITH ORDINALITY AS a ON TRUE
 """);
         }
     }
 
-    public override async Task SelectMany_nested_collection_on_required_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task SelectMany_nested_collection_on_required_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.SelectMany_nested_collection_on_required_related(queryTrackingBehavior);
+        await base.SelectMany_nested_collection_on_required_associate(queryTrackingBehavior);
 
         if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
         {
@@ -249,7 +274,7 @@ JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
                 """
 SELECT r."Id", n."Id", n."Int", n."Ints", n."Name", n."String"
 FROM "RootEntity" AS r
-JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."RequiredRelated" -> 'NestedCollection') AS (
+JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."RequiredAssociate" -> 'NestedCollection') AS (
     "Id" integer,
     "Int" integer,
     "Ints" jsonb,
@@ -260,9 +285,9 @@ JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."RequiredRelated" -> 'NestedCollect
         }
     }
 
-    public override async Task SelectMany_nested_collection_on_optional_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task SelectMany_nested_collection_on_optional_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.SelectMany_nested_collection_on_optional_related(queryTrackingBehavior);
+        await base.SelectMany_nested_collection_on_optional_associate(queryTrackingBehavior);
 
         if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
         {
@@ -270,7 +295,7 @@ JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."RequiredRelated" -> 'NestedCollect
                 """
 SELECT r."Id", n."Id", n."Int", n."Ints", n."Name", n."String"
 FROM "RootEntity" AS r
-JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."OptionalRelated" -> 'NestedCollection') AS (
+JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."OptionalAssociate" -> 'NestedCollection') AS (
     "Id" integer,
     "Int" integer,
     "Ints" jsonb,
@@ -291,7 +316,7 @@ JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."OptionalRelated" -> 'NestedCollect
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
 """);
     }
@@ -311,7 +336,7 @@ FROM "RootEntity" AS r
 SELECT r1.c, r1."Id"
 FROM "RootEntity" AS r
 LEFT JOIN LATERAL (
-    SELECT r0."RequiredRelated" -> 'RequiredNested' AS c, r0."Id"
+    SELECT r0."RequiredAssociate" -> 'RequiredNestedAssociate' AS c, r0."Id"
     FROM "RootEntity" AS r0
     ORDER BY r0."Id" NULLS FIRST
     LIMIT 1
@@ -331,7 +356,7 @@ LEFT JOIN LATERAL (
 SELECT r1.c, r1."Id"
 FROM "RootEntity" AS r
 LEFT JOIN LATERAL (
-    SELECT r0."OptionalRelated" -> 'RequiredNested' AS c, r0."Id"
+    SELECT r0."OptionalAssociate" -> 'RequiredNestedAssociate' AS c, r0."Id"
     FROM "RootEntity" AS r0
     ORDER BY r0."Id" NULLS FIRST
     LIMIT 1

@@ -8,195 +8,234 @@ public class ComplexTableSplittingProjectionNpgsqlTest(
     ITestOutputHelper testOutputHelper)
     : ComplexTableSplittingProjectionRelationalTestBase<ComplexTableSplittingNpgsqlFixture>(fixture, testOutputHelper)
 {
-    public override async Task Select_related_collection(QueryTrackingBehavior queryTrackingBehavior)
-    {
-        await base.Select_related_collection(queryTrackingBehavior);
-
-        AssertSql(
-            """
-SELECT r."Id", r."Name", r."OptionalRelated_Id", r."OptionalRelated_Int", r."OptionalRelated_Ints", r."OptionalRelated_Name", r."OptionalRelated_String", r."OptionalRelated_OptionalNested_Id", r."OptionalRelated_OptionalNested_Int", r."OptionalRelated_OptionalNested_Ints", r."OptionalRelated_OptionalNested_Name", r."OptionalRelated_OptionalNested_String", r."OptionalRelated_RequiredNested_Id", r."OptionalRelated_RequiredNested_Int", r."OptionalRelated_RequiredNested_Ints", r."OptionalRelated_RequiredNested_Name", r."OptionalRelated_RequiredNested_String", r."RequiredRelated_Id", r."RequiredRelated_Int", r."RequiredRelated_Ints", r."RequiredRelated_Name", r."RequiredRelated_String", r."RequiredRelated_OptionalNested_Id", r."RequiredRelated_OptionalNested_Int", r."RequiredRelated_OptionalNested_Ints", r."RequiredRelated_OptionalNested_Name", r."RequiredRelated_OptionalNested_String", r."RequiredRelated_RequiredNested_Id", r."RequiredRelated_RequiredNested_Int", r."RequiredRelated_RequiredNested_Ints", r."RequiredRelated_RequiredNested_Name", r."RequiredRelated_RequiredNested_String"
-FROM "RootEntity" AS r
-ORDER BY r."Id" NULLS FIRST
-""");
-    }
-
-    public override async Task Select_nested_collection_on_required_related(QueryTrackingBehavior queryTrackingBehavior)
-    {
-        await base.Select_nested_collection_on_required_related(queryTrackingBehavior);
-
-        AssertSql(
-            """
-SELECT r."Id", r."Name", r."OptionalRelated_Id", r."OptionalRelated_Int", r."OptionalRelated_Ints", r."OptionalRelated_Name", r."OptionalRelated_String", r."OptionalRelated_OptionalNested_Id", r."OptionalRelated_OptionalNested_Int", r."OptionalRelated_OptionalNested_Ints", r."OptionalRelated_OptionalNested_Name", r."OptionalRelated_OptionalNested_String", r."OptionalRelated_RequiredNested_Id", r."OptionalRelated_RequiredNested_Int", r."OptionalRelated_RequiredNested_Ints", r."OptionalRelated_RequiredNested_Name", r."OptionalRelated_RequiredNested_String", r."RequiredRelated_Id", r."RequiredRelated_Int", r."RequiredRelated_Ints", r."RequiredRelated_Name", r."RequiredRelated_String", r."RequiredRelated_OptionalNested_Id", r."RequiredRelated_OptionalNested_Int", r."RequiredRelated_OptionalNested_Ints", r."RequiredRelated_OptionalNested_Name", r."RequiredRelated_OptionalNested_String", r."RequiredRelated_RequiredNested_Id", r."RequiredRelated_RequiredNested_Int", r."RequiredRelated_RequiredNested_Ints", r."RequiredRelated_RequiredNested_Name", r."RequiredRelated_RequiredNested_String"
-FROM "RootEntity" AS r
-ORDER BY r."Id" NULLS FIRST
-""");
-    }
-
     public override async Task Select_root(QueryTrackingBehavior queryTrackingBehavior)
     {
         await base.Select_root(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated_Id", r."OptionalRelated_Int", r."OptionalRelated_Ints", r."OptionalRelated_Name", r."OptionalRelated_String", r."OptionalRelated_OptionalNested_Id", r."OptionalRelated_OptionalNested_Int", r."OptionalRelated_OptionalNested_Ints", r."OptionalRelated_OptionalNested_Name", r."OptionalRelated_OptionalNested_String", r."OptionalRelated_RequiredNested_Id", r."OptionalRelated_RequiredNested_Int", r."OptionalRelated_RequiredNested_Ints", r."OptionalRelated_RequiredNested_Name", r."OptionalRelated_RequiredNested_String", r."RequiredRelated_Id", r."RequiredRelated_Int", r."RequiredRelated_Ints", r."RequiredRelated_Name", r."RequiredRelated_String", r."RequiredRelated_OptionalNested_Id", r."RequiredRelated_OptionalNested_Int", r."RequiredRelated_OptionalNested_Ints", r."RequiredRelated_OptionalNested_Name", r."RequiredRelated_OptionalNested_String", r."RequiredRelated_RequiredNested_Id", r."RequiredRelated_RequiredNested_Int", r."RequiredRelated_RequiredNested_Ints", r."RequiredRelated_RequiredNested_Name", r."RequiredRelated_RequiredNested_String"
+SELECT r."Id", r."Name", r."OptionalAssociate_Id", r."OptionalAssociate_Int", r."OptionalAssociate_Ints", r."OptionalAssociate_Name", r."OptionalAssociate_String", r."OptionalAssociate_OptionalNestedAssociate_Id", r."OptionalAssociate_OptionalNestedAssociate_Int", r."OptionalAssociate_OptionalNestedAssociate_Ints", r."OptionalAssociate_OptionalNestedAssociate_Name", r."OptionalAssociate_OptionalNestedAssociate_String", r."OptionalAssociate_RequiredNestedAssociate_Id", r."OptionalAssociate_RequiredNestedAssociate_Int", r."OptionalAssociate_RequiredNestedAssociate_Ints", r."OptionalAssociate_RequiredNestedAssociate_Name", r."OptionalAssociate_RequiredNestedAssociate_String", r."RequiredAssociate_Id", r."RequiredAssociate_Int", r."RequiredAssociate_Ints", r."RequiredAssociate_Name", r."RequiredAssociate_String", r."RequiredAssociate_OptionalNestedAssociate_Id", r."RequiredAssociate_OptionalNestedAssociate_Int", r."RequiredAssociate_OptionalNestedAssociate_Ints", r."RequiredAssociate_OptionalNestedAssociate_Name", r."RequiredAssociate_OptionalNestedAssociate_String", r."RequiredAssociate_RequiredNestedAssociate_Id", r."RequiredAssociate_RequiredNestedAssociate_Int", r."RequiredAssociate_RequiredNestedAssociate_Ints", r."RequiredAssociate_RequiredNestedAssociate_Name", r."RequiredAssociate_RequiredNestedAssociate_String"
 FROM "RootEntity" AS r
 """);
     }
 
-    public override async Task Select_property_on_required_related(QueryTrackingBehavior queryTrackingBehavior)
+    #region Scalar properties
+
+    public override async Task Select_scalar_property_on_required_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_property_on_required_related(queryTrackingBehavior);
+        await base.Select_scalar_property_on_required_associate(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT r."RequiredRelated_String"
+SELECT r."RequiredAssociate_String"
 FROM "RootEntity" AS r
 """);
     }
 
-    public override async Task Select_property_on_optional_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_property_on_optional_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_property_on_optional_related(queryTrackingBehavior);
+        await base.Select_property_on_optional_associate(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT r."OptionalRelated_String"
+SELECT r."OptionalAssociate_String"
 FROM "RootEntity" AS r
 """);
     }
 
-    public override async Task Select_value_type_property_on_null_related_throws(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_value_type_property_on_null_associate_throws(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_value_type_property_on_null_related_throws(queryTrackingBehavior);
+        await base.Select_value_type_property_on_null_associate_throws(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT r."OptionalRelated_Int"
+SELECT r."OptionalAssociate_Int"
 FROM "RootEntity" AS r
 """);
     }
 
-    public override async Task Select_nullable_value_type_property_on_null_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_nullable_value_type_property_on_null_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_nullable_value_type_property_on_null_related(queryTrackingBehavior);
+        await base.Select_nullable_value_type_property_on_null_associate(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT r."OptionalRelated_Int"
+SELECT r."OptionalAssociate_Int"
 FROM "RootEntity" AS r
 """);
     }
 
-    public override async Task Select_related(QueryTrackingBehavior queryTrackingBehavior)
+    #endregion Scalar properties
+
+    #region Structural properties
+
+    public override async Task Select_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_related(queryTrackingBehavior);
+        await base.Select_associate(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT r."RequiredRelated_Id", r."RequiredRelated_Int", r."RequiredRelated_Ints", r."RequiredRelated_Name", r."RequiredRelated_String", r."RequiredRelated_OptionalNested_Id", r."RequiredRelated_OptionalNested_Int", r."RequiredRelated_OptionalNested_Ints", r."RequiredRelated_OptionalNested_Name", r."RequiredRelated_OptionalNested_String", r."RequiredRelated_RequiredNested_Id", r."RequiredRelated_RequiredNested_Int", r."RequiredRelated_RequiredNested_Ints", r."RequiredRelated_RequiredNested_Name", r."RequiredRelated_RequiredNested_String"
+SELECT r."RequiredAssociate_Id", r."RequiredAssociate_Int", r."RequiredAssociate_Ints", r."RequiredAssociate_Name", r."RequiredAssociate_String", r."RequiredAssociate_OptionalNestedAssociate_Id", r."RequiredAssociate_OptionalNestedAssociate_Int", r."RequiredAssociate_OptionalNestedAssociate_Ints", r."RequiredAssociate_OptionalNestedAssociate_Name", r."RequiredAssociate_OptionalNestedAssociate_String", r."RequiredAssociate_RequiredNestedAssociate_Id", r."RequiredAssociate_RequiredNestedAssociate_Int", r."RequiredAssociate_RequiredNestedAssociate_Ints", r."RequiredAssociate_RequiredNestedAssociate_Name", r."RequiredAssociate_RequiredNestedAssociate_String"
 FROM "RootEntity" AS r
 """);
     }
 
-    public override async Task Select_optional_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_optional_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_optional_related(queryTrackingBehavior);
+        await base.Select_optional_associate(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT r."OptionalRelated_Id", r."OptionalRelated_Int", r."OptionalRelated_Ints", r."OptionalRelated_Name", r."OptionalRelated_String", r."OptionalRelated_OptionalNested_Id", r."OptionalRelated_OptionalNested_Int", r."OptionalRelated_OptionalNested_Ints", r."OptionalRelated_OptionalNested_Name", r."OptionalRelated_OptionalNested_String", r."OptionalRelated_RequiredNested_Id", r."OptionalRelated_RequiredNested_Int", r."OptionalRelated_RequiredNested_Ints", r."OptionalRelated_RequiredNested_Name", r."OptionalRelated_RequiredNested_String"
+SELECT r."OptionalAssociate_Id", r."OptionalAssociate_Int", r."OptionalAssociate_Ints", r."OptionalAssociate_Name", r."OptionalAssociate_String", r."OptionalAssociate_OptionalNestedAssociate_Id", r."OptionalAssociate_OptionalNestedAssociate_Int", r."OptionalAssociate_OptionalNestedAssociate_Ints", r."OptionalAssociate_OptionalNestedAssociate_Name", r."OptionalAssociate_OptionalNestedAssociate_String", r."OptionalAssociate_RequiredNestedAssociate_Id", r."OptionalAssociate_RequiredNestedAssociate_Int", r."OptionalAssociate_RequiredNestedAssociate_Ints", r."OptionalAssociate_RequiredNestedAssociate_Name", r."OptionalAssociate_RequiredNestedAssociate_String"
 FROM "RootEntity" AS r
 """);
     }
 
-    public override async Task Select_required_nested_on_required_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_required_nested_on_required_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_required_nested_on_required_related(queryTrackingBehavior);
+        await base.Select_required_nested_on_required_associate(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT r."RequiredRelated_RequiredNested_Id", r."RequiredRelated_RequiredNested_Int", r."RequiredRelated_RequiredNested_Ints", r."RequiredRelated_RequiredNested_Name", r."RequiredRelated_RequiredNested_String"
+SELECT r."RequiredAssociate_RequiredNestedAssociate_Id", r."RequiredAssociate_RequiredNestedAssociate_Int", r."RequiredAssociate_RequiredNestedAssociate_Ints", r."RequiredAssociate_RequiredNestedAssociate_Name", r."RequiredAssociate_RequiredNestedAssociate_String"
 FROM "RootEntity" AS r
 """);
     }
 
-    public override async Task Select_optional_nested_on_required_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_optional_nested_on_required_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_optional_nested_on_required_related(queryTrackingBehavior);
+        await base.Select_optional_nested_on_required_associate(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT r."RequiredRelated_OptionalNested_Id", r."RequiredRelated_OptionalNested_Int", r."RequiredRelated_OptionalNested_Ints", r."RequiredRelated_OptionalNested_Name", r."RequiredRelated_OptionalNested_String"
+SELECT r."RequiredAssociate_OptionalNestedAssociate_Id", r."RequiredAssociate_OptionalNestedAssociate_Int", r."RequiredAssociate_OptionalNestedAssociate_Ints", r."RequiredAssociate_OptionalNestedAssociate_Name", r."RequiredAssociate_OptionalNestedAssociate_String"
 FROM "RootEntity" AS r
 """);
     }
 
-    public override async Task Select_required_nested_on_optional_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_required_nested_on_optional_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_required_nested_on_optional_related(queryTrackingBehavior);
+        await base.Select_required_nested_on_optional_associate(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT r."OptionalRelated_RequiredNested_Id", r."OptionalRelated_RequiredNested_Int", r."OptionalRelated_RequiredNested_Ints", r."OptionalRelated_RequiredNested_Name", r."OptionalRelated_RequiredNested_String"
+SELECT r."OptionalAssociate_RequiredNestedAssociate_Id", r."OptionalAssociate_RequiredNestedAssociate_Int", r."OptionalAssociate_RequiredNestedAssociate_Ints", r."OptionalAssociate_RequiredNestedAssociate_Name", r."OptionalAssociate_RequiredNestedAssociate_String"
 FROM "RootEntity" AS r
 """);
     }
 
-    public override async Task Select_optional_nested_on_optional_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_optional_nested_on_optional_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_optional_nested_on_optional_related(queryTrackingBehavior);
+        await base.Select_optional_nested_on_optional_associate(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT r."OptionalRelated_OptionalNested_Id", r."OptionalRelated_OptionalNested_Int", r."OptionalRelated_OptionalNested_Ints", r."OptionalRelated_OptionalNested_Name", r."OptionalRelated_OptionalNested_String"
+SELECT r."OptionalAssociate_OptionalNestedAssociate_Id", r."OptionalAssociate_OptionalNestedAssociate_Int", r."OptionalAssociate_OptionalNestedAssociate_Ints", r."OptionalAssociate_OptionalNestedAssociate_Name", r."OptionalAssociate_OptionalNestedAssociate_String"
 FROM "RootEntity" AS r
 """);
     }
 
-    public override async Task Select_required_related_via_optional_navigation(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_required_associate_via_optional_navigation(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_required_related_via_optional_navigation(queryTrackingBehavior);
+        await base.Select_required_associate_via_optional_navigation(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT r0."RequiredRelated_Id", r0."RequiredRelated_Int", r0."RequiredRelated_Ints", r0."RequiredRelated_Name", r0."RequiredRelated_String", r0."RequiredRelated_OptionalNested_Id", r0."RequiredRelated_OptionalNested_Int", r0."RequiredRelated_OptionalNested_Ints", r0."RequiredRelated_OptionalNested_Name", r0."RequiredRelated_OptionalNested_String", r0."RequiredRelated_RequiredNested_Id", r0."RequiredRelated_RequiredNested_Int", r0."RequiredRelated_RequiredNested_Ints", r0."RequiredRelated_RequiredNested_Name", r0."RequiredRelated_RequiredNested_String"
+SELECT r0."RequiredAssociate_Id", r0."RequiredAssociate_Int", r0."RequiredAssociate_Ints", r0."RequiredAssociate_Name", r0."RequiredAssociate_String", r0."RequiredAssociate_OptionalNestedAssociate_Id", r0."RequiredAssociate_OptionalNestedAssociate_Int", r0."RequiredAssociate_OptionalNestedAssociate_Ints", r0."RequiredAssociate_OptionalNestedAssociate_Name", r0."RequiredAssociate_OptionalNestedAssociate_String", r0."RequiredAssociate_RequiredNestedAssociate_Id", r0."RequiredAssociate_RequiredNestedAssociate_Int", r0."RequiredAssociate_RequiredNestedAssociate_Ints", r0."RequiredAssociate_RequiredNestedAssociate_Name", r0."RequiredAssociate_RequiredNestedAssociate_String"
 FROM "RootReferencingEntity" AS r
 LEFT JOIN "RootEntity" AS r0 ON r."RootEntityId" = r0."Id"
 """);
     }
 
-    public override async Task Select_nested_collection_on_optional_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_unmapped_associate_scalar_property(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.Select_nested_collection_on_optional_related(queryTrackingBehavior);
+        await base.Select_unmapped_associate_scalar_property(queryTrackingBehavior);
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated_Id", r."OptionalRelated_Int", r."OptionalRelated_Ints", r."OptionalRelated_Name", r."OptionalRelated_String", r."OptionalRelated_OptionalNested_Id", r."OptionalRelated_OptionalNested_Int", r."OptionalRelated_OptionalNested_Ints", r."OptionalRelated_OptionalNested_Name", r."OptionalRelated_OptionalNested_String", r."OptionalRelated_RequiredNested_Id", r."OptionalRelated_RequiredNested_Int", r."OptionalRelated_RequiredNested_Ints", r."OptionalRelated_RequiredNested_Name", r."OptionalRelated_RequiredNested_String", r."RequiredRelated_Id", r."RequiredRelated_Int", r."RequiredRelated_Ints", r."RequiredRelated_Name", r."RequiredRelated_String", r."RequiredRelated_OptionalNested_Id", r."RequiredRelated_OptionalNested_Int", r."RequiredRelated_OptionalNested_Ints", r."RequiredRelated_OptionalNested_Name", r."RequiredRelated_OptionalNested_String", r."RequiredRelated_RequiredNested_Id", r."RequiredRelated_RequiredNested_Int", r."RequiredRelated_RequiredNested_Ints", r."RequiredRelated_RequiredNested_Name", r."RequiredRelated_RequiredNested_String"
+SELECT r."Id", r."Name", r."OptionalAssociate_Id", r."OptionalAssociate_Int", r."OptionalAssociate_Ints", r."OptionalAssociate_Name", r."OptionalAssociate_String", r."OptionalAssociate_OptionalNestedAssociate_Id", r."OptionalAssociate_OptionalNestedAssociate_Int", r."OptionalAssociate_OptionalNestedAssociate_Ints", r."OptionalAssociate_OptionalNestedAssociate_Name", r."OptionalAssociate_OptionalNestedAssociate_String", r."OptionalAssociate_RequiredNestedAssociate_Id", r."OptionalAssociate_RequiredNestedAssociate_Int", r."OptionalAssociate_RequiredNestedAssociate_Ints", r."OptionalAssociate_RequiredNestedAssociate_Name", r."OptionalAssociate_RequiredNestedAssociate_String", r."RequiredAssociate_Id", r."RequiredAssociate_Int", r."RequiredAssociate_Ints", r."RequiredAssociate_Name", r."RequiredAssociate_String", r."RequiredAssociate_OptionalNestedAssociate_Id", r."RequiredAssociate_OptionalNestedAssociate_Int", r."RequiredAssociate_OptionalNestedAssociate_Ints", r."RequiredAssociate_OptionalNestedAssociate_Name", r."RequiredAssociate_OptionalNestedAssociate_String", r."RequiredAssociate_RequiredNestedAssociate_Id", r."RequiredAssociate_RequiredNestedAssociate_Int", r."RequiredAssociate_RequiredNestedAssociate_Ints", r."RequiredAssociate_RequiredNestedAssociate_Name", r."RequiredAssociate_RequiredNestedAssociate_String"
+FROM "RootEntity" AS r
+""");
+    }
+
+    public override async Task Select_untranslatable_method_on_associate_scalar_property(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.Select_untranslatable_method_on_associate_scalar_property(queryTrackingBehavior);
+
+        AssertSql(
+            """
+SELECT r."RequiredAssociate_Int"
+FROM "RootEntity" AS r
+""");
+    }
+
+    #endregion Structural properties
+
+    #region Structural collection properties
+
+    public override async Task Select_associate_collection(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.Select_associate_collection(queryTrackingBehavior);
+
+        AssertSql(
+            """
+SELECT r."Id", r."Name", r."OptionalAssociate_Id", r."OptionalAssociate_Int", r."OptionalAssociate_Ints", r."OptionalAssociate_Name", r."OptionalAssociate_String", r."OptionalAssociate_OptionalNestedAssociate_Id", r."OptionalAssociate_OptionalNestedAssociate_Int", r."OptionalAssociate_OptionalNestedAssociate_Ints", r."OptionalAssociate_OptionalNestedAssociate_Name", r."OptionalAssociate_OptionalNestedAssociate_String", r."OptionalAssociate_RequiredNestedAssociate_Id", r."OptionalAssociate_RequiredNestedAssociate_Int", r."OptionalAssociate_RequiredNestedAssociate_Ints", r."OptionalAssociate_RequiredNestedAssociate_Name", r."OptionalAssociate_RequiredNestedAssociate_String", r."RequiredAssociate_Id", r."RequiredAssociate_Int", r."RequiredAssociate_Ints", r."RequiredAssociate_Name", r."RequiredAssociate_String", r."RequiredAssociate_OptionalNestedAssociate_Id", r."RequiredAssociate_OptionalNestedAssociate_Int", r."RequiredAssociate_OptionalNestedAssociate_Ints", r."RequiredAssociate_OptionalNestedAssociate_Name", r."RequiredAssociate_OptionalNestedAssociate_String", r."RequiredAssociate_RequiredNestedAssociate_Id", r."RequiredAssociate_RequiredNestedAssociate_Int", r."RequiredAssociate_RequiredNestedAssociate_Ints", r."RequiredAssociate_RequiredNestedAssociate_Name", r."RequiredAssociate_RequiredNestedAssociate_String"
 FROM "RootEntity" AS r
 ORDER BY r."Id" NULLS FIRST
 """);
     }
 
-    public override async Task SelectMany_related_collection(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_nested_collection_on_required_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.SelectMany_related_collection(queryTrackingBehavior);
+        await base.Select_nested_collection_on_required_associate(queryTrackingBehavior);
 
-        AssertSql();
+        AssertSql(
+            """
+SELECT r."Id", r."Name", r."OptionalAssociate_Id", r."OptionalAssociate_Int", r."OptionalAssociate_Ints", r."OptionalAssociate_Name", r."OptionalAssociate_String", r."OptionalAssociate_OptionalNestedAssociate_Id", r."OptionalAssociate_OptionalNestedAssociate_Int", r."OptionalAssociate_OptionalNestedAssociate_Ints", r."OptionalAssociate_OptionalNestedAssociate_Name", r."OptionalAssociate_OptionalNestedAssociate_String", r."OptionalAssociate_RequiredNestedAssociate_Id", r."OptionalAssociate_RequiredNestedAssociate_Int", r."OptionalAssociate_RequiredNestedAssociate_Ints", r."OptionalAssociate_RequiredNestedAssociate_Name", r."OptionalAssociate_RequiredNestedAssociate_String", r."RequiredAssociate_Id", r."RequiredAssociate_Int", r."RequiredAssociate_Ints", r."RequiredAssociate_Name", r."RequiredAssociate_String", r."RequiredAssociate_OptionalNestedAssociate_Id", r."RequiredAssociate_OptionalNestedAssociate_Int", r."RequiredAssociate_OptionalNestedAssociate_Ints", r."RequiredAssociate_OptionalNestedAssociate_Name", r."RequiredAssociate_OptionalNestedAssociate_String", r."RequiredAssociate_RequiredNestedAssociate_Id", r."RequiredAssociate_RequiredNestedAssociate_Int", r."RequiredAssociate_RequiredNestedAssociate_Ints", r."RequiredAssociate_RequiredNestedAssociate_Name", r."RequiredAssociate_RequiredNestedAssociate_String"
+FROM "RootEntity" AS r
+ORDER BY r."Id" NULLS FIRST
+""");
     }
 
-    public override async Task SelectMany_nested_collection_on_required_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task Select_nested_collection_on_optional_associate(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.SelectMany_nested_collection_on_required_related(queryTrackingBehavior);
+        await base.Select_nested_collection_on_optional_associate(queryTrackingBehavior);
 
-        AssertSql();
+        AssertSql(
+            """
+SELECT r."Id", r."Name", r."OptionalAssociate_Id", r."OptionalAssociate_Int", r."OptionalAssociate_Ints", r."OptionalAssociate_Name", r."OptionalAssociate_String", r."OptionalAssociate_OptionalNestedAssociate_Id", r."OptionalAssociate_OptionalNestedAssociate_Int", r."OptionalAssociate_OptionalNestedAssociate_Ints", r."OptionalAssociate_OptionalNestedAssociate_Name", r."OptionalAssociate_OptionalNestedAssociate_String", r."OptionalAssociate_RequiredNestedAssociate_Id", r."OptionalAssociate_RequiredNestedAssociate_Int", r."OptionalAssociate_RequiredNestedAssociate_Ints", r."OptionalAssociate_RequiredNestedAssociate_Name", r."OptionalAssociate_RequiredNestedAssociate_String", r."RequiredAssociate_Id", r."RequiredAssociate_Int", r."RequiredAssociate_Ints", r."RequiredAssociate_Name", r."RequiredAssociate_String", r."RequiredAssociate_OptionalNestedAssociate_Id", r."RequiredAssociate_OptionalNestedAssociate_Int", r."RequiredAssociate_OptionalNestedAssociate_Ints", r."RequiredAssociate_OptionalNestedAssociate_Name", r."RequiredAssociate_OptionalNestedAssociate_String", r."RequiredAssociate_RequiredNestedAssociate_Id", r."RequiredAssociate_RequiredNestedAssociate_Int", r."RequiredAssociate_RequiredNestedAssociate_Ints", r."RequiredAssociate_RequiredNestedAssociate_Name", r."RequiredAssociate_RequiredNestedAssociate_String"
+FROM "RootEntity" AS r
+ORDER BY r."Id" NULLS FIRST
+""");
     }
 
-    public override async Task SelectMany_nested_collection_on_optional_related(QueryTrackingBehavior queryTrackingBehavior)
+    public override async Task SelectMany_associate_collection(QueryTrackingBehavior queryTrackingBehavior)
     {
-        await base.SelectMany_nested_collection_on_optional_related(queryTrackingBehavior);
+        await base.SelectMany_associate_collection(queryTrackingBehavior);
 
-        AssertSql();
+        AssertSql(
+);
     }
+
+    public override async Task SelectMany_nested_collection_on_required_associate(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.SelectMany_nested_collection_on_required_associate(queryTrackingBehavior);
+
+        AssertSql(
+);
+    }
+
+    public override async Task SelectMany_nested_collection_on_optional_associate(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.SelectMany_nested_collection_on_optional_associate(queryTrackingBehavior);
+
+        AssertSql(
+);
+    }
+
+    #endregion Structural collection properties
+
+    #region Multiple
 
     public override async Task Select_root_duplicated(QueryTrackingBehavior queryTrackingBehavior)
     {
@@ -204,10 +243,14 @@ ORDER BY r."Id" NULLS FIRST
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated_Id", r."OptionalRelated_Int", r."OptionalRelated_Ints", r."OptionalRelated_Name", r."OptionalRelated_String", r."OptionalRelated_OptionalNested_Id", r."OptionalRelated_OptionalNested_Int", r."OptionalRelated_OptionalNested_Ints", r."OptionalRelated_OptionalNested_Name", r."OptionalRelated_OptionalNested_String", r."OptionalRelated_RequiredNested_Id", r."OptionalRelated_RequiredNested_Int", r."OptionalRelated_RequiredNested_Ints", r."OptionalRelated_RequiredNested_Name", r."OptionalRelated_RequiredNested_String", r."RequiredRelated_Id", r."RequiredRelated_Int", r."RequiredRelated_Ints", r."RequiredRelated_Name", r."RequiredRelated_String", r."RequiredRelated_OptionalNested_Id", r."RequiredRelated_OptionalNested_Int", r."RequiredRelated_OptionalNested_Ints", r."RequiredRelated_OptionalNested_Name", r."RequiredRelated_OptionalNested_String", r."RequiredRelated_RequiredNested_Id", r."RequiredRelated_RequiredNested_Int", r."RequiredRelated_RequiredNested_Ints", r."RequiredRelated_RequiredNested_Name", r."RequiredRelated_RequiredNested_String"
+SELECT r."Id", r."Name", r."OptionalAssociate_Id", r."OptionalAssociate_Int", r."OptionalAssociate_Ints", r."OptionalAssociate_Name", r."OptionalAssociate_String", r."OptionalAssociate_OptionalNestedAssociate_Id", r."OptionalAssociate_OptionalNestedAssociate_Int", r."OptionalAssociate_OptionalNestedAssociate_Ints", r."OptionalAssociate_OptionalNestedAssociate_Name", r."OptionalAssociate_OptionalNestedAssociate_String", r."OptionalAssociate_RequiredNestedAssociate_Id", r."OptionalAssociate_RequiredNestedAssociate_Int", r."OptionalAssociate_RequiredNestedAssociate_Ints", r."OptionalAssociate_RequiredNestedAssociate_Name", r."OptionalAssociate_RequiredNestedAssociate_String", r."RequiredAssociate_Id", r."RequiredAssociate_Int", r."RequiredAssociate_Ints", r."RequiredAssociate_Name", r."RequiredAssociate_String", r."RequiredAssociate_OptionalNestedAssociate_Id", r."RequiredAssociate_OptionalNestedAssociate_Int", r."RequiredAssociate_OptionalNestedAssociate_Ints", r."RequiredAssociate_OptionalNestedAssociate_Name", r."RequiredAssociate_OptionalNestedAssociate_String", r."RequiredAssociate_RequiredNestedAssociate_Id", r."RequiredAssociate_RequiredNestedAssociate_Int", r."RequiredAssociate_RequiredNestedAssociate_Ints", r."RequiredAssociate_RequiredNestedAssociate_Name", r."RequiredAssociate_RequiredNestedAssociate_String"
 FROM "RootEntity" AS r
 """);
     }
+
+    #endregion Multiple
+
+    #region Subquery
 
     public override async Task Select_subquery_required_related_FirstOrDefault(QueryTrackingBehavior queryTrackingBehavior)
     {
@@ -215,10 +258,10 @@ FROM "RootEntity" AS r
 
         AssertSql(
             """
-SELECT r1."RequiredRelated_RequiredNested_Id", r1."RequiredRelated_RequiredNested_Int", r1."RequiredRelated_RequiredNested_Ints", r1."RequiredRelated_RequiredNested_Name", r1."RequiredRelated_RequiredNested_String"
+SELECT r1."RequiredAssociate_RequiredNestedAssociate_Id", r1."RequiredAssociate_RequiredNestedAssociate_Int", r1."RequiredAssociate_RequiredNestedAssociate_Ints", r1."RequiredAssociate_RequiredNestedAssociate_Name", r1."RequiredAssociate_RequiredNestedAssociate_String"
 FROM "RootEntity" AS r
 LEFT JOIN LATERAL (
-    SELECT r0."RequiredRelated_RequiredNested_Id", r0."RequiredRelated_RequiredNested_Int", r0."RequiredRelated_RequiredNested_Ints", r0."RequiredRelated_RequiredNested_Name", r0."RequiredRelated_RequiredNested_String"
+    SELECT r0."RequiredAssociate_RequiredNestedAssociate_Id", r0."RequiredAssociate_RequiredNestedAssociate_Int", r0."RequiredAssociate_RequiredNestedAssociate_Ints", r0."RequiredAssociate_RequiredNestedAssociate_Name", r0."RequiredAssociate_RequiredNestedAssociate_String"
     FROM "RootEntity" AS r0
     ORDER BY r0."Id" NULLS FIRST
     LIMIT 1
@@ -232,16 +275,18 @@ LEFT JOIN LATERAL (
 
         AssertSql(
             """
-SELECT r1."OptionalRelated_RequiredNested_Id", r1."OptionalRelated_RequiredNested_Int", r1."OptionalRelated_RequiredNested_Ints", r1."OptionalRelated_RequiredNested_Name", r1."OptionalRelated_RequiredNested_String"
+SELECT r1."OptionalAssociate_RequiredNestedAssociate_Id", r1."OptionalAssociate_RequiredNestedAssociate_Int", r1."OptionalAssociate_RequiredNestedAssociate_Ints", r1."OptionalAssociate_RequiredNestedAssociate_Name", r1."OptionalAssociate_RequiredNestedAssociate_String"
 FROM "RootEntity" AS r
 LEFT JOIN LATERAL (
-    SELECT r0."OptionalRelated_RequiredNested_Id", r0."OptionalRelated_RequiredNested_Int", r0."OptionalRelated_RequiredNested_Ints", r0."OptionalRelated_RequiredNested_Name", r0."OptionalRelated_RequiredNested_String"
+    SELECT r0."OptionalAssociate_RequiredNestedAssociate_Id", r0."OptionalAssociate_RequiredNestedAssociate_Int", r0."OptionalAssociate_RequiredNestedAssociate_Ints", r0."OptionalAssociate_RequiredNestedAssociate_Name", r0."OptionalAssociate_RequiredNestedAssociate_String"
     FROM "RootEntity" AS r0
     ORDER BY r0."Id" NULLS FIRST
     LIMIT 1
 ) AS r1 ON TRUE
 """);
     }
+
+    #endregion Subquery
 
     #region Value types
 
@@ -251,7 +296,7 @@ LEFT JOIN LATERAL (
 
         AssertSql(
             """
-SELECT v."Id", v."Name", v."OptionalRelated_Id", v."OptionalRelated_Int", v."OptionalRelated_Name", v."OptionalRelated_String", v."OptionalRelated_OptionalNested_Id", v."OptionalRelated_OptionalNested_Int", v."OptionalRelated_OptionalNested_Name", v."OptionalRelated_OptionalNested_String", v."OptionalRelated_RequiredNested_Id", v."OptionalRelated_RequiredNested_Int", v."OptionalRelated_RequiredNested_Name", v."OptionalRelated_RequiredNested_String", v."RequiredRelated_Id", v."RequiredRelated_Int", v."RequiredRelated_Name", v."RequiredRelated_String", v."RequiredRelated_OptionalNested_Id", v."RequiredRelated_OptionalNested_Int", v."RequiredRelated_OptionalNested_Name", v."RequiredRelated_OptionalNested_String", v."RequiredRelated_RequiredNested_Id", v."RequiredRelated_RequiredNested_Int", v."RequiredRelated_RequiredNested_Name", v."RequiredRelated_RequiredNested_String"
+SELECT v."Id", v."Name", v."OptionalAssociate_Id", v."OptionalAssociate_Int", v."OptionalAssociate_Name", v."OptionalAssociate_String", v."OptionalAssociate_OptionalNested_Id", v."OptionalAssociate_OptionalNested_Int", v."OptionalAssociate_OptionalNested_Name", v."OptionalAssociate_OptionalNested_String", v."OptionalAssociate_RequiredNested_Id", v."OptionalAssociate_RequiredNested_Int", v."OptionalAssociate_RequiredNested_Name", v."OptionalAssociate_RequiredNested_String", v."RequiredAssociate_Id", v."RequiredAssociate_Int", v."RequiredAssociate_Name", v."RequiredAssociate_String", v."RequiredAssociate_OptionalNested_Id", v."RequiredAssociate_OptionalNested_Int", v."RequiredAssociate_OptionalNested_Name", v."RequiredAssociate_OptionalNested_String", v."RequiredAssociate_RequiredNested_Id", v."RequiredAssociate_RequiredNested_Int", v."RequiredAssociate_RequiredNested_Name", v."RequiredAssociate_RequiredNested_String"
 FROM "ValueRootEntity" AS v
 """);
     }
@@ -262,7 +307,7 @@ FROM "ValueRootEntity" AS v
 
         AssertSql(
             """
-SELECT v."RequiredRelated_Id", v."RequiredRelated_Int", v."RequiredRelated_Name", v."RequiredRelated_String", v."RequiredRelated_OptionalNested_Id", v."RequiredRelated_OptionalNested_Int", v."RequiredRelated_OptionalNested_Name", v."RequiredRelated_OptionalNested_String", v."RequiredRelated_RequiredNested_Id", v."RequiredRelated_RequiredNested_Int", v."RequiredRelated_RequiredNested_Name", v."RequiredRelated_RequiredNested_String"
+SELECT v."RequiredAssociate_Id", v."RequiredAssociate_Int", v."RequiredAssociate_Name", v."RequiredAssociate_String", v."RequiredAssociate_OptionalNested_Id", v."RequiredAssociate_OptionalNested_Int", v."RequiredAssociate_OptionalNested_Name", v."RequiredAssociate_OptionalNested_String", v."RequiredAssociate_RequiredNested_Id", v."RequiredAssociate_RequiredNested_Int", v."RequiredAssociate_RequiredNested_Name", v."RequiredAssociate_RequiredNested_String"
 FROM "ValueRootEntity" AS v
 ORDER BY v."Id" NULLS FIRST
 """);
@@ -274,7 +319,7 @@ ORDER BY v."Id" NULLS FIRST
 
         AssertSql(
             """
-SELECT v."OptionalRelated_Id", v."OptionalRelated_Int", v."OptionalRelated_Name", v."OptionalRelated_String", v."OptionalRelated_OptionalNested_Id", v."OptionalRelated_OptionalNested_Int", v."OptionalRelated_OptionalNested_Name", v."OptionalRelated_OptionalNested_String", v."OptionalRelated_RequiredNested_Id", v."OptionalRelated_RequiredNested_Int", v."OptionalRelated_RequiredNested_Name", v."OptionalRelated_RequiredNested_String"
+SELECT v."OptionalAssociate_Id", v."OptionalAssociate_Int", v."OptionalAssociate_Name", v."OptionalAssociate_String", v."OptionalAssociate_OptionalNested_Id", v."OptionalAssociate_OptionalNested_Int", v."OptionalAssociate_OptionalNested_Name", v."OptionalAssociate_OptionalNested_String", v."OptionalAssociate_RequiredNested_Id", v."OptionalAssociate_RequiredNested_Int", v."OptionalAssociate_RequiredNested_Name", v."OptionalAssociate_RequiredNested_String"
 FROM "ValueRootEntity" AS v
 ORDER BY v."Id" NULLS FIRST
 """);
@@ -286,7 +331,7 @@ ORDER BY v."Id" NULLS FIRST
 
         AssertSql(
             """
-SELECT v."OptionalRelated_Id", v."OptionalRelated_Int", v."OptionalRelated_Name", v."OptionalRelated_String", v."OptionalRelated_OptionalNested_Id", v."OptionalRelated_OptionalNested_Int", v."OptionalRelated_OptionalNested_Name", v."OptionalRelated_OptionalNested_String", v."OptionalRelated_RequiredNested_Id", v."OptionalRelated_RequiredNested_Int", v."OptionalRelated_RequiredNested_Name", v."OptionalRelated_RequiredNested_String"
+SELECT v."OptionalAssociate_Id", v."OptionalAssociate_Int", v."OptionalAssociate_Name", v."OptionalAssociate_String", v."OptionalAssociate_OptionalNested_Id", v."OptionalAssociate_OptionalNested_Int", v."OptionalAssociate_OptionalNested_Name", v."OptionalAssociate_OptionalNested_String", v."OptionalAssociate_RequiredNested_Id", v."OptionalAssociate_RequiredNested_Int", v."OptionalAssociate_RequiredNested_Name", v."OptionalAssociate_RequiredNested_String"
 FROM "ValueRootEntity" AS v
 ORDER BY v."Id" NULLS FIRST
 """);

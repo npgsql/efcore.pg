@@ -9,20 +9,20 @@ public class ComplexJsonCollectionNpgsqlTest(ComplexJsonNpgsqlFixture fixture, I
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
 WHERE (
     SELECT count(*)::int
-    FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
+    FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS (
         "Id" integer,
         "Int" integer,
         "Ints" jsonb,
         "Name" text,
         "String" text,
         "NestedCollection" jsonb,
-        "OptionalNested" jsonb,
-        "RequiredNested" jsonb
-    )) WITH ORDINALITY AS r0) = 2
+        "OptionalNestedAssociate" jsonb,
+        "RequiredNestedAssociate" jsonb
+    )) WITH ORDINALITY AS a) = 2
 """);
     }
 
@@ -32,12 +32,12 @@ WHERE (
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
 WHERE (
     SELECT count(*)::int
-    FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS ("Int" integer)) WITH ORDINALITY AS r0
-    WHERE r0."Int" <> 8) = 2
+    FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS ("Int" integer)) WITH ORDINALITY AS a
+    WHERE a."Int" <> 8) = 2
 """);
     }
 
@@ -47,15 +47,15 @@ WHERE (
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
 WHERE (
-    SELECT r0."Int"
-    FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
+    SELECT a."Int"
+    FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS (
         "Id" integer,
         "Int" integer
-    )) WITH ORDINALITY AS r0
-    ORDER BY r0."Id" NULLS FIRST
+    )) WITH ORDINALITY AS a
+    ORDER BY a."Id" NULLS FIRST
     LIMIT 1 OFFSET 0) = 8
 """);
     }
@@ -68,23 +68,23 @@ WHERE (
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
 WHERE (
     SELECT count(*)::int
     FROM (
-        SELECT DISTINCT r0."Id", r0."Int", r0."Ints", r0."Name", r0."String", r0."NestedCollection" AS c, r0."OptionalNested" AS c0, r0."RequiredNested" AS c1
-        FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
+        SELECT DISTINCT a."Id", a."Int", a."Ints", a."Name", a."String", a."NestedCollection" AS c, a."OptionalNestedAssociate" AS c0, a."RequiredNestedAssociate" AS c1
+        FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS (
             "Id" integer,
             "Int" integer,
             "Ints" jsonb,
             "Name" text,
             "String" text,
             "NestedCollection" jsonb,
-            "OptionalNested" jsonb,
-            "RequiredNested" jsonb
-        )) WITH ORDINALITY AS r0
-    ) AS r1) = 2
+            "OptionalNestedAssociate" jsonb,
+            "RequiredNestedAssociate" jsonb
+        )) WITH ORDINALITY AS a
+    ) AS a0) = 2
 """);
     }
 
@@ -101,14 +101,14 @@ WHERE (
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
 WHERE (
     SELECT count(*)::int
     FROM (
-        SELECT DISTINCT r0."NestedCollection" AS c
-        FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS ("NestedCollection" jsonb)) WITH ORDINALITY AS r0
-    ) AS r1) = 2
+        SELECT DISTINCT a."NestedCollection" AS c
+        FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS ("NestedCollection" jsonb)) WITH ORDINALITY AS a
+    ) AS a0) = 2
 """);
     }
 
@@ -129,9 +129,9 @@ WHERE (
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (CAST(r."RelatedCollection" #>> '{0,Int}' AS integer)) = 8
+WHERE (CAST(r."AssociateCollection" #>> '{0,Int}' AS integer)) = 8
 """);
     }
 
@@ -143,9 +143,9 @@ WHERE (CAST(r."RelatedCollection" #>> '{0,Int}' AS integer)) = 8
             """
 @i='?' (DbType = Int32)
 
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (CAST(r."RelatedCollection" #>> ARRAY[@i,'Int']::text[] AS integer)) = 8
+WHERE (CAST(r."AssociateCollection" #>> ARRAY[@i,'Int']::text[] AS integer)) = 8
 """);
     }
 
@@ -155,9 +155,9 @@ WHERE (CAST(r."RelatedCollection" #>> ARRAY[@i,'Int']::text[] AS integer)) = 8
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (CAST(r."RelatedCollection" #>> ARRAY[r."Id" - 1,'Int']::text[] AS integer)) = 8
+WHERE (CAST(r."AssociateCollection" #>> ARRAY[r."Id" - 1,'Int']::text[] AS integer)) = 8
 """);
     }
 
@@ -167,9 +167,9 @@ WHERE (CAST(r."RelatedCollection" #>> ARRAY[r."Id" - 1,'Int']::text[] AS integer
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (CAST(r."RelatedCollection" #>> '{9999,Int}' AS integer)) = 8
+WHERE (CAST(r."AssociateCollection" #>> '{9999,Int}' AS integer)) = 8
 """);
     }
 
@@ -184,15 +184,15 @@ WHERE (CAST(r."RelatedCollection" #>> '{9999,Int}' AS integer)) = 8
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."OptionalRelated", r."RelatedCollection", r."RequiredRelated"
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
 WHERE 16 IN (
-    SELECT COALESCE(sum(r0."Int"), 0)::int
-    FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS (
+    SELECT COALESCE(sum(a."Int"), 0)::int
+    FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS (
         "Int" integer,
         "String" text
-    )) WITH ORDINALITY AS r0
-    GROUP BY r0."String"
+    )) WITH ORDINALITY AS a
+    GROUP BY a."String"
 )
 """);
     }
@@ -208,8 +208,8 @@ WHERE 16 IN (
 SELECT (
     SELECT COALESCE(sum((
         SELECT max(n."Int")
-        FROM ROWS FROM (jsonb_to_recordset(r0."NestedCollection") AS ("Int" integer)) WITH ORDINALITY AS n)), 0)::int
-    FROM ROWS FROM (jsonb_to_recordset(r."RelatedCollection") AS ("NestedCollection" jsonb)) WITH ORDINALITY AS r0)
+        FROM ROWS FROM (jsonb_to_recordset(a."NestedCollection") AS ("Int" integer)) WITH ORDINALITY AS n)), 0)::int
+    FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS ("NestedCollection" jsonb)) WITH ORDINALITY AS a)
 FROM "RootEntity" AS r
 """);
     }
