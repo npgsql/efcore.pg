@@ -383,8 +383,24 @@ public static class NpgsqlNetworkDbFunctionsExtensions
     /// <exception cref="NotSupportedException">
     ///     This method is only intended for use via SQL translation as part of an EF Core LINQ query.
     /// </exception>
+    public static string Abbreviate(this DbFunctions _, IPNetwork cidr)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Abbreviate)));
+
+#pragma warning disable CS0618 // NpgsqlCidr is obsolete, replaced by .NET IPNetwork
+    /// <summary>
+    ///     Returns the abbreviated display format as text.
+    /// </summary>
+    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
+    /// <param name="cidr">The cidr to abbreviate.</param>
+    /// <returns>
+    ///     The abbreviated display format as text.
+    /// </returns>
+    /// <exception cref="NotSupportedException">
+    ///     This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+    /// </exception>
     public static string Abbreviate(this DbFunctions _, NpgsqlCidr cidr)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Abbreviate)));
+#pragma warning restore CS0618
 
     /// <summary>
     ///     Returns the broadcast address for a network.
@@ -481,7 +497,7 @@ public static class NpgsqlNetworkDbFunctionsExtensions
     /// <exception cref="NotSupportedException">
     ///     This method is only intended for use via SQL translation as part of an EF Core LINQ query.
     /// </exception>
-    public static NpgsqlCidr Network(this DbFunctions _, NpgsqlInet inet)
+    public static IPNetwork Network(this DbFunctions _, NpgsqlInet inet)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Network)));
 
     /// <summary>
@@ -511,8 +527,25 @@ public static class NpgsqlNetworkDbFunctionsExtensions
     /// <exception cref="NotSupportedException">
     ///     This method is only intended for use via SQL translation as part of an EF Core LINQ query.
     /// </exception>
+    public static IPNetwork SetMaskLength(this DbFunctions _, IPNetwork cidr, int length)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(SetMaskLength)));
+
+#pragma warning disable CS0618 // NpgsqlCidr is obsolete, replaced by .NET IPNetwork
+    /// <summary>
+    ///     Sets the length of the subnet mask.
+    /// </summary>
+    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
+    /// <param name="cidr">The cidr to modify.</param>
+    /// <param name="length">The subnet mask length to set.</param>
+    /// <returns>
+    ///     The network with a subnet mask of the specified length.
+    /// </returns>
+    /// <exception cref="NotSupportedException">
+    ///     This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+    /// </exception>
     public static NpgsqlCidr SetMaskLength(this DbFunctions _, NpgsqlCidr cidr, int length)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(SetMaskLength)));
+#pragma warning restore CS0618
 
     /// <summary>
     ///     Extracts the IP address and subnet mask as text.
@@ -555,7 +588,7 @@ public static class NpgsqlNetworkDbFunctionsExtensions
     /// <exception cref="NotSupportedException">
     ///     This method is only intended for use via SQL translation as part of an EF Core LINQ query.
     /// </exception>
-    public static NpgsqlCidr Merge(this DbFunctions _, NpgsqlInet inet, NpgsqlInet other)
+    public static IPNetwork Merge(this DbFunctions _, NpgsqlInet inet, NpgsqlInet other)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Merge)));
 
     /// <summary>

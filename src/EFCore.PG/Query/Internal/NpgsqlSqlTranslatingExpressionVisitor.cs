@@ -188,7 +188,11 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
             // implicit conversion operator to NpgsqlInet. So remove that cast as well.
             case ExpressionType.Convert
                 when unaryExpression.Type == typeof(NpgsqlInet)
-                && (unaryExpression.Operand.Type == typeof(IPAddress) || unaryExpression.Operand.Type == typeof(NpgsqlCidr)):
+                && (unaryExpression.Operand.Type == typeof(IPAddress)
+                    || unaryExpression.Operand.Type == typeof(IPNetwork)
+#pragma warning disable CS0618 // NpgsqlCidr is obsolete, replaced by .NET IPNetwork
+                    || unaryExpression.Operand.Type == typeof(NpgsqlCidr)):
+#pragma warning restore CS0618
                 return Visit(unaryExpression.Operand);
         }
 

@@ -282,13 +282,27 @@ public class NpgsqlTypeMappingTest
 
     [Fact]
     public void GenerateSqlLiteral_returns_cidr_literal()
-        => Assert.Equal("CIDR '192.168.1.0/24'", GetMapping("cidr").GenerateSqlLiteral(new NpgsqlCidr(IPAddress.Parse("192.168.1.0"), 24)));
+        => Assert.Equal("CIDR '192.168.1.0/24'", GetMapping("cidr").GenerateSqlLiteral(new IPNetwork(IPAddress.Parse("192.168.1.0"), 24)));
 
     [Fact]
     public void GenerateCodeLiteral_returns_cidr_literal()
         => Assert.Equal(
+            """new System.Net.IPNetwork(System.Net.IPAddress.Parse("192.168.1.0"), 24)""",
+            CodeLiteral(new IPNetwork(IPAddress.Parse("192.168.1.0"), 24)));
+
+#pragma warning disable CS0618 // NpgsqlCidr is obsolete, replaced by .NET IPNetwork
+    [Fact]
+    public void GenerateSqlLiteral_returns_legacy_cidr_literal()
+        => Assert.Equal(
+            "CIDR '192.168.1.0/24'",
+            GetMapping(typeof(NpgsqlCidr), "cidr").GenerateSqlLiteral(new NpgsqlCidr(IPAddress.Parse("192.168.1.0"), 24)));
+
+    [Fact]
+    public void GenerateCodeLiteral_returns_legacy_cidr_literal()
+        => Assert.Equal(
             """new NpgsqlTypes.NpgsqlCidr(System.Net.IPAddress.Parse("192.168.1.0"), (byte)24)""",
             CodeLiteral(new NpgsqlCidr(IPAddress.Parse("192.168.1.0"), 24)));
+#pragma warning restore CS0618
 
     #endregion Networking
 

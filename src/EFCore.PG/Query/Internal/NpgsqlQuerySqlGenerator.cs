@@ -496,11 +496,11 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 binaryExpression.OperatorType switch
                 {
                     PgExpressionType.Contains
-                        when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping or NpgsqlCidrTypeMapping
+                        when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping or NpgsqlCidrTypeMapping or NpgsqlLegacyCidrTypeMapping
                         => ">>",
 
                     PgExpressionType.ContainedBy
-                        when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping or NpgsqlCidrTypeMapping
+                        when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping or NpgsqlCidrTypeMapping or NpgsqlLegacyCidrTypeMapping
                         => "<<",
 
                     PgExpressionType.Contains => "@>",
