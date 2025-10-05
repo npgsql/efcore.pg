@@ -533,6 +533,31 @@ WHERE p."Enum" = ANY (@enums)
 """);
     }
 
+    [ConditionalFact]
+    public virtual async Task Parameter_collection_Dictionary_Values_with_value_converter_Contains()
+    {
+        Dictionary<int, MyEnum> enums = new()
+        {
+            [0] = MyEnum.Value1,
+            [1] = MyEnum.Value4
+        };
+
+        // Dictionary<>.ValuesCollection doesn't have a public parameterless constructor, so NpgsqlArrayConverter can't convert to it
+        // (see #3050). We still allow NpgsqlArrayConverter to be built to allow one-directional conversion: in the query below,
+        // we only need to write enum.Values as a parameter (never read it).
+        await AssertQuery(ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => enums.Values.Contains(c.Enum)));
+
+        AssertSql(
+            """
+@enums_Values={ '0'
+'3' } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Enum" = ANY (@enums_Values)
+""");
+    }
+
     public override async Task Parameter_collection_ImmutableArray_of_ints_Contains_int()
     {
         await base.Parameter_collection_ImmutableArray_of_ints_Contains_int();
