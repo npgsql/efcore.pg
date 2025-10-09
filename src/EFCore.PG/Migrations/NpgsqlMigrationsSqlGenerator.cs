@@ -1044,6 +1044,14 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 .Append(DelimitIdentifier(operation.Collation));
         }
 
+        if (!string.IsNullOrEmpty(operation.Encoding))
+        {
+            builder
+                .AppendLine()
+                .Append("ENCODING ")
+                .Append(DelimitIdentifier(operation.Encoding));
+        }
+
         builder.AppendLine(";");
 
         EndStatement(builder, suppressTransaction: true);
