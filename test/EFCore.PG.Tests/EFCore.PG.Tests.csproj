@@ -20,6 +20,10 @@
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Npgsql.DependencyInjection" />
 
+    <!-- Temporary workaround for https://github.com/advisories/GHSA-w3q9-fxm7-j8fq, remote for 10.0.0 GA -->
+    <PackageReference Include="Microsoft.Build.Tasks.Core" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" />
+
     <!-- Needed to override xunit dependencies from EFCore projects on versions which aren't available on nuget.org -->
     <PackageReference Include="xunit.assert" />
     <PackageReference Include="xunit.core" />

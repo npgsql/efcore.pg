@@ -1,7 +1,7 @@
   <Project>
   <PropertyGroup>
-    <EFCoreVersion>10.0.0-rc.2.25502.106</EFCoreVersion>
-    <MicrosoftExtensionsVersion>10.0.0-rc.2.25502.106</MicrosoftExtensionsVersion>
+    <EFCoreVersion>10.0.0-rc.2.25502.107</EFCoreVersion>
+    <MicrosoftExtensionsVersion>10.0.0-rc.2.25502.107</MicrosoftExtensionsVersion>
     <NpgsqlVersion>10.0.0-rc.1</NpgsqlVersion>
   </PropertyGroup>
 
@@ -32,5 +32,9 @@
     <PackageVersion Include="xunit.core" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.3" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
+
+    <!-- Temporary workaround for https://github.com/advisories/GHSA-w3q9-fxm7-j8fq, remote for 10.0.0 GA -->
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.14.28" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.14.28" />
   </ItemGroup>
 </Project>
