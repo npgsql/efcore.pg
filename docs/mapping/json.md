@@ -100,7 +100,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 }
 ```
 
-#### [Owned entities](#tab/owned entities)
+#### [Owned entities](#tab/owned-entities)
 
 ```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
