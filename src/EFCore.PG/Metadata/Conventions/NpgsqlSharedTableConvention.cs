@@ -25,6 +25,18 @@ public class NpgsqlSharedTableConvention : SharedTableConvention
             && index.AreCompatibleForNpgsql(duplicateIndex, storeObject, shouldThrow: false);
 
     /// <inheritdoc />
+    protected override bool KeysUniqueAcrossTables
+        => true;
+
+    /// <inheritdoc />
+    protected override bool ForeignKeysUniqueAcrossTables
+        => false;
+
+    /// <inheritdoc />
+    protected override bool IndexesUniqueAcrossTables
+        => true;
+
+    /// <inheritdoc />
     protected override bool CheckConstraintsUniqueAcrossTables
         => false;
 }
