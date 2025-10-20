@@ -742,7 +742,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             // In addition, at least in theory users may decide to map to JSON instead of array even outside JSON documents.
             case "jsonb" or "json" when modelClrType is not null:
                 return base.FindCollectionMapping(
-                    new RelationalTypeMappingInfo(modelClrType, (RelationalTypeMapping?)elementMapping, storeType),
+                    new RelationalTypeMappingInfo(
+                        modelClrType, (RelationalTypeMapping?)elementMapping, storeTypeName: storeType, storeTypeNameBase: storeType),
                     modelClrType,
                     providerClrType,
                     elementMapping);
