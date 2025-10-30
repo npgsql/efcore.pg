@@ -646,9 +646,8 @@ public class NpgsqlDatabaseCreatorTest
         public TestDatabaseCreator(
             RelationalDatabaseCreatorDependencies dependencies,
             INpgsqlRelationalConnection connection,
-            IRawSqlCommandBuilder rawSqlCommandBuilder,
-            IRelationalConnectionDiagnosticsLogger connectionLogger)
-        : base(dependencies, connection, rawSqlCommandBuilder, connectionLogger)
+            IRawSqlCommandBuilder rawSqlCommandBuilder)
+        : base(dependencies, connection, rawSqlCommandBuilder)
         {
         }
         public bool HasTablesBase()
