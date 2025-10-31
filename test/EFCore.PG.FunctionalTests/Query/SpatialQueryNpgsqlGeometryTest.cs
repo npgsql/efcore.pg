@@ -362,6 +362,32 @@ FROM "PolygonEntity" AS p
 """);
     }
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task IntersectsBbox(bool async)
+    {
+        var polygon = Fixture.GeometryFactory.CreatePolygon([new Coordinate(0, 0), new Coordinate(1, 0), new Coordinate(0, 1), new Coordinate(0, 0)]);
+
+        await AssertQuery(
+            async,
+            ss => ss.Set<PolygonEntity>().Select(e => new { e.Id, IntersectsBbox = (bool?)EF.Functions.IntersectsBbox(e.Polygon, polygon) }),
+            ss => ss.Set<PolygonEntity>().Select(e => new { e.Id, IntersectsBbox = (e.Polygon == null ? (bool?)null : e.Polygon.EnvelopeInternal.Intersects(polygon.EnvelopeInternal)) }),
+            elementSorter: e => e.Id,
+            elementAsserter: (e, a) =>
+            {
+                Assert.Equal(e.Id, a.Id);
+                Assert.Equal(e.IntersectsBbox, a.IntersectsBbox);
+            });
+
+        AssertSql(
+            """
+@__polygon_1='POLYGON ((0 0, 1 0, 0 1, 0 0))' (DbType = Object)
+
+SELECT p."Id", p."Polygon" && @__polygon_1 AS "IntersectsBbox"
+FROM "PolygonEntity" AS p
+""");
+    }
+
     public override async Task Intersects(bool async)
     {
         await base.Intersects(async);
