@@ -5,7 +5,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 /// <summary>
 ///     The type mapping for the PostgreSQL hstore type. Supports both <see cref="Dictionary{TKey,TValue} " />
-///     and <see cref="ImmutableDictionary{TKey,TValue}" /> over strings.
+///     and <see cref="ImmutableDictionary{TKey,TValue}" /> where TKey and TValue are both strings.
 /// </summary>
 /// <remarks>
 ///     See: https://www.postgresql.org/docs/current/static/hstore.html
