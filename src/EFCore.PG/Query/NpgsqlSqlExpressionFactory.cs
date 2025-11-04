@@ -816,6 +816,8 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 {
                     "geometry" or "geography" => typeof(double),
 
+                    "cube" => typeof(double),
+
                     "date" => typeof(int),
 
                     "interval" when left.Type.FullName is "NodaTime.Period" or "NodaTime.Duration"
@@ -834,6 +836,21 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 };
                 break;
             }
+
+            case PgExpressionType.CubeNthCoordinate:
+            case PgExpressionType.CubeNthCoordinateKnn:
+                // Different operand types so we cannot use inferredTypeMapping
+                inferredTypeMapping = null;
+                resultType = typeof(double);
+                resultTypeMapping = _typeMappingSource.FindMapping(typeof(double));
+                break;
+
+            case PgExpressionType.CubeDistanceTaxicab:
+            case PgExpressionType.CubeDistanceChebyshev:
+                inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
+                resultType = typeof(double);
+                resultTypeMapping = _typeMappingSource.FindMapping(typeof(double));
+                break;
 
             default:
                 throw new InvalidOperationException(

@@ -169,6 +169,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     private readonly NpgsqlStringTypeMapping _lquery = new("lquery", NpgsqlDbType.LQuery);
     private readonly NpgsqlStringTypeMapping _ltxtquery = new("ltxtquery", NpgsqlDbType.LTxtQuery);
 
+    private readonly NpgsqlCubeTypeMapping _cube = NpgsqlCubeTypeMapping.Default;
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -341,6 +343,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { typeof(NpgsqlPath), _path },
             { typeof(NpgsqlPolygon), _polygon },
             { typeof(NpgsqlCircle), _circle },
+            { typeof(NpgsqlCube), _cube },
             { typeof(NpgsqlRange<int>), _int4range },
             { typeof(NpgsqlRange<long>), _int8range },
             { typeof(NpgsqlRange<decimal>), _numrange },
