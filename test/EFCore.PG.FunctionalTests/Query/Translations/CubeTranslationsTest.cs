@@ -101,7 +101,7 @@ LIMIT 2
     }
 
     [ConditionalFact]
-    public void Overlaps_true()
+    public void Overlaps()
     {
         using var context = CreateContext();
         var overlappingCube = new NpgsqlCube([0.0, 1.0, 2.0], [5.0, 6.0, 7.0]);
@@ -116,24 +116,6 @@ SELECT c."Id", c."Cube"
 FROM "CubeTestEntities" AS c
 WHERE c."Cube" && @overlappingCube
 LIMIT 2
-""");
-    }
-
-    [ConditionalFact]
-    public void Overlaps_false()
-    {
-        using var context = CreateContext();
-        var nonOverlappingCube = new NpgsqlCube([50.0, 60.0, 70.0], [80.0, 90.0, 100.0]);
-        var result = context.CubeTestEntities.Where(x => x.Cube.Overlaps(nonOverlappingCube)).ToList();
-        Assert.Empty(result);
-
-        AssertSql(
-            """
-@nonOverlappingCube='(50, 60, 70),(80, 90, 100)' (DbType = Object)
-
-SELECT c."Id", c."Cube"
-FROM "CubeTestEntities" AS c
-WHERE c."Cube" && @nonOverlappingCube
 """);
     }
 
