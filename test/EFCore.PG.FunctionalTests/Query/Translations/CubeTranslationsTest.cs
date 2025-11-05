@@ -658,6 +658,151 @@ LIMIT 2
 
     #endregion
 
+    #region Constructors
+
+    [ConditionalFact]
+    public void Constructor_in_where_point()
+    {
+        using var context = CreateContext();
+        // Use constructor in WHERE clause - this exercises the translation when comparing
+        var targetCube = new NpgsqlCube(10.0);
+        var result = context.CubeConstructorTestEntities
+            .Where(x => new NpgsqlCube(x.Coord1) == targetCube)
+            .Select(x => x.Id)
+            .Single();
+
+        Assert.Equal(1, result);
+
+        AssertSql(
+            """
+@targetCube='(10)' (DbType = Object)
+
+SELECT c."Id"
+FROM "CubeConstructorTestEntities" AS c
+WHERE cube(c."Coord1") = @targetCube
+LIMIT 2
+""");
+    }
+
+    [ConditionalFact]
+    public void Constructor_in_where_one_dimension()
+    {
+        using var context = CreateContext();
+        var targetCube = new NpgsqlCube(10.0, 20.0);
+        var result = context.CubeConstructorTestEntities
+            .Where(x => new NpgsqlCube(x.Coord1, x.Coord2) == targetCube)
+            .Select(x => x.Id)
+            .Single();
+
+        Assert.Equal(1, result);
+
+        AssertSql(
+            """
+@targetCube='(10),(20)' (DbType = Object)
+
+SELECT c."Id"
+FROM "CubeConstructorTestEntities" AS c
+WHERE cube(c."Coord1", c."Coord2") = @targetCube
+LIMIT 2
+""");
+    }
+
+    [ConditionalFact]
+    public void Constructor_in_where_zero_volume()
+    {
+        using var context = CreateContext();
+        var targetCube = new NpgsqlCube([10.0, 20.0, 30.0]);
+        var result = context.CubeConstructorTestEntities
+            .Where(x => new NpgsqlCube(x.Coordinates) == targetCube)
+            .Select(x => x.Id)
+            .Single();
+
+        Assert.Equal(1, result);
+
+        AssertSql(
+            """
+@targetCube='(10, 20, 30)' (DbType = Object)
+
+SELECT c."Id"
+FROM "CubeConstructorTestEntities" AS c
+WHERE cube(c."Coordinates") = @targetCube
+LIMIT 2
+""");
+    }
+
+    [ConditionalFact]
+    public void Constructor_in_where_lower_left_upper_right()
+    {
+        using var context = CreateContext();
+        var targetCube = new NpgsqlCube([1.0, 2.0, 3.0], [4.0, 5.0, 6.0]);
+        var result = context.CubeConstructorTestEntities
+            .Where(x => new NpgsqlCube(x.LowerLeft, x.UpperRight) == targetCube)
+            .Select(x => x.Id)
+            .Single();
+
+        Assert.Equal(1, result);
+
+        AssertSql(
+            """
+@targetCube='(1, 2, 3),(4, 5, 6)' (DbType = Object)
+
+SELECT c."Id"
+FROM "CubeConstructorTestEntities" AS c
+WHERE cube(c."LowerLeft", c."UpperRight") = @targetCube
+LIMIT 2
+""");
+    }
+
+    [ConditionalFact]
+    public void Constructor_extend_cube_one_coordinate()
+    {
+        using var context = CreateContext();
+        var baseCube = new NpgsqlCube([1.0, 2.0, 3.0], [4.0, 5.0, 6.0]);
+        var targetCube = new NpgsqlCube(baseCube, 40.0);
+        var result = context.CubeConstructorTestEntities
+            .Where(x => new NpgsqlCube(x.BaseCube, x.Coord1) == targetCube)
+            .Select(x => x.Id)
+            .Single();
+
+        Assert.Equal(2, result);
+
+        AssertSql(
+            """
+@targetCube='(1, 2, 3, 40),(4, 5, 6, 40)' (DbType = Object)
+
+SELECT c."Id"
+FROM "CubeConstructorTestEntities" AS c
+WHERE cube(c."BaseCube", c."Coord1") = @targetCube
+LIMIT 2
+""");
+    }
+
+    [ConditionalFact]
+    public void Constructor_extend_cube_two_coordinates()
+    {
+        using var context = CreateContext();
+        var baseCube = new NpgsqlCube([1.0, 2.0, 3.0], [4.0, 5.0, 6.0]);
+        var targetCube = new NpgsqlCube(baseCube, 40.0, 50.0);
+        var result = context.CubeConstructorTestEntities
+            .Where(x => new NpgsqlCube(x.BaseCube, x.Coord1, x.Coord2) == targetCube)
+            .Select(x => x.Id)
+            .Single();
+
+        Assert.Equal(2, result);
+
+        AssertSql(
+            """
+@targetCube='(1, 2, 3, 40),(4, 5, 6, 50)' (DbType = Object)
+
+SELECT c."Id"
+FROM "CubeConstructorTestEntities" AS c
+WHERE cube(c."BaseCube", c."Coord1", c."Coord2") = @targetCube
+LIMIT 2
+""");
+    }
+
+    #endregion
+
     #region Fixture
 
     public class CubeQueryNpgsqlFixture : SharedStoreFixtureBase<CubeContext>
@@ -681,9 +826,21 @@ LIMIT 2
         public NpgsqlCube Cube { get; set; }
     }
 
+    public class CubeConstructorTestEntity
+    {
+        public int Id { get; set; }
+        public double Coord1 { get; set; }
+        public double Coord2 { get; set; }
+        public double[] Coordinates { get; set; } = null!;
+        public double[] LowerLeft { get; set; } = null!;
+        public double[] UpperRight { get; set; } = null!;
+        public NpgsqlCube BaseCube { get; set; }
+    }
+
     public class CubeContext(DbContextOptions options) : PoolableDbContext(options)
     {
         public DbSet<CubeTestEntity> CubeTestEntities { get; set; }
+        public DbSet<CubeConstructorTestEntity> CubeConstructorTestEntities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
             => builder.HasPostgresExtension("cube");
@@ -740,6 +897,28 @@ LIMIT 2
                         [-5.0, -10.0, -15.0],
                         [-2.0, -7.0, -12.0]
                     )  // (-5,-10,-15),(-2,-7,-12)
+                });
+
+            context.CubeConstructorTestEntities.AddRange(
+                new CubeConstructorTestEntity
+                {
+                    Id = 1,
+                    Coord1 = 10.0,
+                    Coord2 = 20.0,
+                    Coordinates = [10.0, 20.0, 30.0],
+                    LowerLeft = [1.0, 2.0, 3.0],
+                    UpperRight = [4.0, 5.0, 6.0],
+                    BaseCube = new NpgsqlCube([1.0, 2.0, 3.0], [4.0, 5.0, 6.0])
+                },
+                new CubeConstructorTestEntity
+                {
+                    Id = 2,
+                    Coord1 = 40.0,
+                    Coord2 = 50.0,
+                    Coordinates = [40.0, 50.0, 60.0],
+                    LowerLeft = [7.0, 8.0, 9.0],
+                    UpperRight = [10.0, 11.0, 12.0],
+                    BaseCube = new NpgsqlCube([1.0, 2.0, 3.0], [4.0, 5.0, 6.0])
                 });
 
             await context.SaveChangesAsync();

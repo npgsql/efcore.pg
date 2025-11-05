@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net;
 using System.Runtime.CompilerServices;
@@ -468,6 +468,55 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                 ? _sqlExpressionFactory.Function(
                     "make_date", sqlArguments, nullable: true, TrueArrays[3], typeof(DateOnly))
                 : QueryCompilationContext.NotTranslatedExpression;
+        }
+
+        // Translate new NpgsqlCube(...) -> cube(...)
+        if (newExpression.Constructor?.DeclaringType == typeof(NpgsqlCube))
+        {
+            if (!TryTranslateArguments(out var sqlArguments))
+            {
+                return QueryCompilationContext.NotTranslatedExpression;
+            }
+
+            var cubeTypeMapping = _typeMappingSource.FindMapping(typeof(NpgsqlCube));
+
+            // Distinguish constructor overloads by argument count and types
+            switch (sqlArguments.Length)
+            {
+                case 1:
+                    // NpgsqlCube(double coord) or NpgsqlCube(IEnumerable<double> coords)
+                    // Both map to cube() - PostgreSQL overloads based on argument type
+                    return _sqlExpressionFactory.Function(
+                        "cube",
+                        sqlArguments,
+                        nullable: false,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        typeof(NpgsqlCube),
+                        cubeTypeMapping);
+
+                case 2:
+                    // NpgsqlCube(double coord1, double coord2)
+                    // NpgsqlCube(IEnumerable<double> lowerLeft, IEnumerable<double> upperRight)
+                    // NpgsqlCube(NpgsqlCube cube, double coord)
+                    // All map to cube() - PostgreSQL overloads based on argument types
+                    return _sqlExpressionFactory.Function(
+                        "cube",
+                        sqlArguments,
+                        nullable: false,
+                        argumentsPropagateNullability: FalseArrays[2],
+                        typeof(NpgsqlCube),
+                        cubeTypeMapping);
+
+                case 3:
+                    // NpgsqlCube(NpgsqlCube cube, double coord1, double coord2)
+                    return _sqlExpressionFactory.Function(
+                        "cube",
+                        sqlArguments,
+                        nullable: false,
+                        argumentsPropagateNullability: FalseArrays[3],
+                        typeof(NpgsqlCube),
+                        cubeTypeMapping);
+            }
         }
 
         return QueryCompilationContext.NotTranslatedExpression;

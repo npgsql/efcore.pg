@@ -15,14 +15,6 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
     private readonly IRelationalTypeMappingSource _typeMappingSource;
 
-    private static readonly ConstructorInfo[] CubeConstructors =
-    [
-        typeof(NpgsqlCube).GetConstructor([typeof(double)])!,
-        typeof(NpgsqlCube).GetConstructor([typeof(double), typeof(double)])!,
-        typeof(NpgsqlCube).GetConstructor([typeof(IEnumerable<double>)])!,
-        typeof(NpgsqlCube).GetConstructor([typeof(IEnumerable<double>), typeof(IEnumerable<double>)])!
-    ];
-
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -44,60 +36,6 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        // Handle cube constructors for in-query cube construction
-        if (method.DeclaringType == typeof(NpgsqlCube) && method.IsConstructor)
-        {
-            var cubeTypeMapping = _typeMappingSource.FindMapping(typeof(NpgsqlCube));
-
-            // Constructor: NpgsqlCube(double coord) - 1D point
-            if (method == CubeConstructors[0])
-            {
-                return _sqlExpressionFactory.Function(
-                    "cube",
-                    [arguments[0]],
-                    nullable: false,
-                    argumentsPropagateNullability: FalseArrays[1],
-                    typeof(NpgsqlCube),
-                    cubeTypeMapping);
-            }
-
-            // Constructor: NpgsqlCube(double lowerLeft, double upperRight) - 1D cube
-            if (method == CubeConstructors[1])
-            {
-                return _sqlExpressionFactory.Function(
-                    "cube",
-                    [arguments[0], arguments[1]],
-                    nullable: false,
-                    argumentsPropagateNullability: FalseArrays[2],
-                    typeof(NpgsqlCube),
-                    cubeTypeMapping);
-            }
-
-            // Constructor: NpgsqlCube(IEnumerable<double> coords) - N-D point
-            if (method == CubeConstructors[2])
-            {
-                return _sqlExpressionFactory.Function(
-                    "cube",
-                    [arguments[0]],
-                    nullable: false,
-                    argumentsPropagateNullability: FalseArrays[1],
-                    typeof(NpgsqlCube),
-                    cubeTypeMapping);
-            }
-
-            // Constructor: NpgsqlCube(IEnumerable<double> lowerLeft, IEnumerable<double> upperRight) - N-D cube
-            if (method == CubeConstructors[3])
-            {
-                return _sqlExpressionFactory.Function(
-                    "cube",
-                    [arguments[0], arguments[1]],
-                    nullable: false,
-                    argumentsPropagateNullability: FalseArrays[2],
-                    typeof(NpgsqlCube),
-                    cubeTypeMapping);
-            }
-        }
-
         // Handle indexer access: cube.LowerLeft[index] or cube.UpperRight[index]
         if (method.Name == "get_Item" && instance != null)
         {
