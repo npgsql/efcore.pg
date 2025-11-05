@@ -272,6 +272,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { "path", [_path] },
             { "polygon", [_polygon] },
             { "circle", [_circle] },
+            { "cube", [_cube] },
             { "xid", [_xid] },
             { "xid8", [_xid8] },
             { "oid", [_oid] },

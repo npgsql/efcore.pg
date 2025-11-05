@@ -839,10 +839,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
 
             case PgExpressionType.CubeNthCoordinate:
             case PgExpressionType.CubeNthCoordinateKnn:
-                // Different operand types so we cannot use inferredTypeMapping
-                inferredTypeMapping = null;
+                inferredTypeMapping = typeMapping;
                 resultType = typeof(double);
-                resultTypeMapping = _typeMappingSource.FindMapping(typeof(double));
+                resultTypeMapping = typeMapping ?? _typeMappingSource.FindMapping(typeof(double));
                 break;
 
             case PgExpressionType.CubeDistanceTaxicab:

@@ -14,6 +14,7 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
 {
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
     private readonly IRelationalTypeMappingSource _typeMappingSource;
+    private readonly RelationalTypeMapping _doubleTypeMapping;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -27,6 +28,7 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
     {
         _sqlExpressionFactory = sqlExpressionFactory;
         _typeMappingSource = typeMappingSource;
+        _doubleTypeMapping = typeMappingSource.FindMapping(typeof(double))!;
     }
 
     /// <inheritdoc />
@@ -97,13 +99,15 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
                 => _sqlExpressionFactory.MakePostgresBinary(
                     PgExpressionType.CubeNthCoordinate,
                     arguments[0],
-                    ConvertToPostgresIndex(arguments[1])),
+                    ConvertToPostgresIndex(arguments[1]),
+                    _doubleTypeMapping),
 
             nameof(NpgsqlCubeDbFunctionsExtensions.NthCoordinateKnn)
                 => _sqlExpressionFactory.MakePostgresBinary(
                     PgExpressionType.CubeNthCoordinateKnn,
                     arguments[0],
-                    ConvertToPostgresIndex(arguments[1])),
+                    ConvertToPostgresIndex(arguments[1]),
+                    _doubleTypeMapping),
 
             nameof(NpgsqlCubeDbFunctionsExtensions.LlCoord)
                 => _sqlExpressionFactory.Function(
@@ -244,15 +248,14 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
 
     /// <summary>
     /// Converts a zero-based index to one-based for PostgreSQL cube functions.
-    /// For constant indexes, simplifies at translation time to avoid operator precedence issues.
+    /// For constant indexes, simplifies at translation time to avoid unnecessary addition in SQL.
     /// </summary>
     private SqlExpression ConvertToPostgresIndex(SqlExpression indexExpression)
     {
         var intTypeMapping = _typeMappingSource.FindMapping(typeof(int));
 
-        // If the index is a constant, add 1 at translation time to increment the constant by 1
-        return indexExpression is SqlConstantExpression { Value: int index } ? _sqlExpressionFactory.Constant(index + 1, intTypeMapping) :
-            // For non-constant expressions (parameters, columns), generate addition expression
-            _sqlExpressionFactory.Add(indexExpression, _sqlExpressionFactory.Constant(1, intTypeMapping));
+        return indexExpression is SqlConstantExpression { Value: int index }
+            ? _sqlExpressionFactory.Constant(index + 1, intTypeMapping)
+            : _sqlExpressionFactory.Add(indexExpression, _sqlExpressionFactory.Constant(1, intTypeMapping));
     }
 }
