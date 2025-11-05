@@ -1,4 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using NpgsqlTypes;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
@@ -210,40 +212,67 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
         // arguments[1] is the int[] indexes array
 
         // For subset, we need to convert the C# zero-based indexes to PostgreSQL one-based indexes
-        int[]? indexes;
+        // This is handled transparently using the internal PgIndexes infrastructure
 
-        // Try to extract the int array from various SQL expression types
+        SqlExpression convertedIndexes;
+
         switch (arguments[1])
         {
-            case SqlConstantExpression { Value: int[] constantIndexes }:
-                indexes = constantIndexes;
+            case PgNewArrayExpression { Expressions: var expressions }
+                when expressions.All(e => e is SqlConstantExpression { Value: int }):
+                // OPTIMIZATION: For constant array literals (from params expansion), convert at translation time
+                var constantIndexes = expressions
+                    .Cast<SqlConstantExpression>()
+                    .Select(e => (int)e.Value!)
+                    .ToArray();
+                var pgIndexes = new PgIndexes(constantIndexes);
+                var oneBasedIndexes = pgIndexes.ToOneBased();
+
+                convertedIndexes = _sqlExpressionFactory.NewArray(
+                    oneBasedIndexes.Select(i => _sqlExpressionFactory.Constant(i)).ToArray(),
+                    typeof(int[]));
                 break;
 
-            case SqlParameterExpression:
-                // Parameterized arrays aren't supported because we can't convert zero-based
-                // indexes to one-based at compile time for parameter values
-                return null;
+            case SqlConstantExpression { Value: int[] constantArray }:
+                // OPTIMIZATION: For constant arrays, convert at translation time (no SQL overhead)
+                var pgIndexesFromConstant = new PgIndexes(constantArray);
+                var oneBasedFromConstant = pgIndexesFromConstant.ToOneBased();
+
+                convertedIndexes = _sqlExpressionFactory.NewArray(
+                    oneBasedFromConstant.Select(i => _sqlExpressionFactory.Constant(i)).ToArray(),
+                    typeof(int[]));
+                break;
+
+            case SqlParameterExpression parameterExpression:
+                // For parameters, generate SQL to convert zero-based to one-based at runtime
+                // Generates: (SELECT array_agg(x + 1) FROM unnest(@parameter) AS x)
+                convertedIndexes = CreateArrayIncrementExpression(parameterExpression);
+                break;
 
             default:
-                // Unsupported expression type for array argument
-                return null;
+                // For other expression types (columns, etc.), also use runtime conversion
+                convertedIndexes = CreateArrayIncrementExpression(arguments[1]);
+                break;
         }
-
-        // Convert zero-based indexes to one-based
-        var oneBasedIndexes = indexes.Select(i => i + 1).ToArray();
-
-        // Create a PostgreSQL array literal using PgNewArrayExpression
-        var arrayExpression = _sqlExpressionFactory.NewArray(
-            oneBasedIndexes.Select(i => _sqlExpressionFactory.Constant(i)).ToArray(),
-            typeof(int[]));
 
         return _sqlExpressionFactory.Function(
             "cube_subset",
-            [arguments[0], arrayExpression],
+            [arguments[0], convertedIndexes],
             nullable: true,
             argumentsPropagateNullability: TrueArrays[2],
             typeof(NpgsqlCube),
             _typeMappingSource.FindMapping(typeof(NpgsqlCube)));
+    }
+
+    /// <summary>
+    /// Creates a SQL expression that converts a zero-based index array to one-based.
+    /// Generates: (SELECT array_agg(x + 1) FROM unnest(arrayExpression) AS x)
+    /// </summary>
+    private SqlExpression CreateArrayIncrementExpression(SqlExpression arrayExpression)
+    {
+        var intArrayTypeMapping = _typeMappingSource.FindMapping(typeof(int[]));
+
+        return new PgIndexesArrayExpression(arrayExpression, intArrayTypeMapping);
     }
 
     /// <summary>

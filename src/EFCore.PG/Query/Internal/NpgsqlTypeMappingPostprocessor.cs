@@ -41,6 +41,20 @@ public class NpgsqlTypeMappingPostprocessor : RelationalTypeMappingPostprocessor
     {
         switch (expression)
         {
+            case PgIndexesArrayExpression arrayIncrementExpression:
+            {
+                // Apply type mapping to the array expression (e.g., SqlParameterExpression)
+                var arrayTypeMapping = _typeMappingSource.FindMapping(typeof(int[]), _model);
+
+                if (arrayTypeMapping is null)
+                {
+                    throw new InvalidOperationException(RelationalStrings.NullTypeMappingInSqlTree(expression.Print()));
+                }
+
+                return arrayIncrementExpression.Update(
+                    _sqlExpressionFactory.ApplyTypeMapping(arrayIncrementExpression.ArrayExpression, arrayTypeMapping));
+            }
+
             case PgUnnestExpression unnestExpression
                 when TryGetInferredTypeMapping(unnestExpression.Alias, unnestExpression.ColumnName, out var elementTypeMapping):
             {

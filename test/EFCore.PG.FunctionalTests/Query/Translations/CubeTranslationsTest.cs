@@ -521,6 +521,114 @@ WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", ARRAY[1,1,2]::integer[]) 
 """);
     }
 
+    [ConditionalFact]
+    public void Subset_with_parameter_array_single_index()
+    {
+        using var context = CreateContext();
+        // Test parameter array conversion: zero-based [0] should become one-based [1] in SQL
+        var indexes = new[] { 0 };
+        var subset = new NpgsqlCube([1.0], [4.0]);
+        var result = context.CubeTestEntities.Where(x => x.Cube.Subset(indexes) == subset).ToList();
+
+        AssertSql(
+            """
+@indexes={ '0' } (DbType = Object)
+@subset='(1),(4)' (DbType = Object)
+
+SELECT c."Id", c."Cube"
+FROM "CubeTestEntities" AS c
+WHERE cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@indexes) AS x)) = @subset
+""");
+    }
+
+    [ConditionalFact]
+    public void Subset_with_parameter_array_multiple_indexes()
+    {
+        using var context = CreateContext();
+        // Test parameter array conversion with reordering: [2, 1, 0] should become [3, 2, 1] in SQL
+        var indexes = new[] { 2, 1, 0 };
+        var reordered = new NpgsqlCube([3.0, 2.0, 1.0], [6.0, 5.0, 4.0]);
+        var result = context.CubeTestEntities
+            .Where(x => x.Cube.Dimensions == 3 && x.Cube.Subset(indexes) == reordered)
+            .ToList();
+
+        AssertSql(
+            """
+@indexes={ '2'
+'1'
+'0' } (DbType = Object)
+@reordered='(3, 2, 1),(6, 5, 4)' (DbType = Object)
+
+SELECT c."Id", c."Cube"
+FROM "CubeTestEntities" AS c
+WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@indexes) AS x)) = @reordered
+""");
+    }
+
+    [ConditionalFact]
+    public void Subset_with_inline_array_literal()
+    {
+        using var context = CreateContext();
+        // Test inline array literal: new[] { 0, 1 } should be converted at translation time
+        var extracted = new NpgsqlCube([1.0, 2.0], [4.0, 5.0]);
+        var result = context.CubeTestEntities
+            .Where(x => x.Cube.Dimensions == 3 && x.Cube.Subset(new[] { 0, 1 }) == extracted)
+            .ToList();
+
+        AssertSql(
+            """
+@extracted='(1, 2),(4, 5)' (DbType = Object)
+
+SELECT c."Id", c."Cube"
+FROM "CubeTestEntities" AS c
+WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", ARRAY[1,2]::integer[]) = @extracted
+""");
+    }
+
+    [ConditionalFact]
+    public void Subset_with_empty_array_parameter()
+    {
+        using var context = CreateContext();
+        // Test empty array parameter - PostgreSQL should handle this gracefully
+        var indexes = Array.Empty<int>();
+        var result = context.CubeTestEntities
+            .Where(x => x.Cube.Subset(indexes).Dimensions == 0)
+            .ToList();
+
+        AssertSql(
+            """
+@indexes={  } (DbType = Object)
+
+SELECT c."Id", c."Cube"
+FROM "CubeTestEntities" AS c
+WHERE cube_dim(cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@indexes) AS x))) = 0
+""");
+    }
+
+    [ConditionalFact]
+    public void Subset_with_repeated_indices_in_parameter()
+    {
+        using var context = CreateContext();
+        // Test parameter array with repeated indices - duplicates should be converted correctly
+        var indexes = new[] { 0, 1, 0, 2, 1 };
+        var result = context.CubeTestEntities
+            .Where(x => x.Cube.Dimensions == 3 && x.Cube.Subset(indexes).Dimensions == 5)
+            .ToList();
+
+        AssertSql(
+            """
+@indexes={ '0'
+'1'
+'0'
+'2'
+'1' } (DbType = Object)
+
+SELECT c."Id", c."Cube"
+FROM "CubeTestEntities" AS c
+WHERE cube_dim(c."Cube") = 3 AND cube_dim(cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@indexes) AS x))) = 5
+""");
+    }
+
     #endregion
 
     #region Edge Cases

@@ -54,6 +54,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             PgAllExpression e => VisitArrayAll(e),
             PgAnyExpression e => VisitArrayAny(e),
             PgArrayIndexExpression e => VisitArrayIndex(e),
+            PgIndexesArrayExpression e => VisitIndexesArray(e),
             PgArraySliceExpression e => VisitArraySlice(e),
             PgBinaryExpression e => VisitPgBinary(e),
             PgDeleteExpression e => VisitPgDelete(e),
@@ -943,6 +944,20 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         Sql.Append(":");
         Visit(expression.UpperBound);
         Sql.Append("]");
+        return expression;
+    }
+
+    /// <summary>
+    ///     Produces SQL array increment expression to convert an array of zero-based indexes to one-based indexes.
+    /// </summary>
+    /// <remarks>
+    ///     Generates: (SELECT array_agg(x + 1) FROM unnest(arrayExpression) AS x)
+    /// </remarks>
+    protected virtual Expression VisitIndexesArray(PgIndexesArrayExpression expression)
+    {
+        Sql.Append("(SELECT array_agg(x + 1) FROM unnest(");
+        Visit(expression.ArrayExpression);
+        Sql.Append(") AS x)");
         return expression;
     }
 

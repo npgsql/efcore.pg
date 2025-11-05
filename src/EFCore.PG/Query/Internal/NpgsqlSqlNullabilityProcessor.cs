@@ -207,6 +207,7 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
             PgAnyExpression e => VisitAny(e, allowOptimizedExpansion, out nullable),
             PgAllExpression e => VisitAll(e, allowOptimizedExpansion, out nullable),
             PgArrayIndexExpression e => VisitArrayIndex(e, allowOptimizedExpansion, out nullable),
+            PgIndexesArrayExpression e => VisitIndexesArray(e, allowOptimizedExpansion, out nullable),
             PgArraySliceExpression e => VisitArraySlice(e, allowOptimizedExpansion, out nullable),
             PgBinaryExpression e => VisitPostgresBinary(e, allowOptimizedExpansion, out nullable),
             PgILikeExpression e => VisitILike(e, allowOptimizedExpansion, out nullable),
@@ -362,6 +363,27 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         nullable = arrayNullable || lowerBoundNullable || upperBoundNullable || arraySliceExpression.IsNullable;
 
         return arraySliceExpression.Update(array, lowerBound, upperBound);
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected virtual SqlExpression VisitIndexesArray(
+        PgIndexesArrayExpression indexesArrayExpression,
+        bool allowOptimizedExpansion,
+        out bool nullable)
+    {
+        Check.NotNull(indexesArrayExpression, nameof(indexesArrayExpression));
+
+        var array = Visit(indexesArrayExpression.ArrayExpression, allowOptimizedExpansion, out var arrayNullable);
+
+        // The array increment operation is nullable if the input array is nullable
+        nullable = arrayNullable;
+
+        return indexesArrayExpression.Update(array);
     }
 
     /// <summary>
