@@ -4,6 +4,7 @@ using System.Net.NetworkInformation;
 using System.Text.RegularExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
@@ -54,7 +55,6 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             PgAllExpression e => VisitArrayAll(e),
             PgAnyExpression e => VisitArrayAny(e),
             PgArrayIndexExpression e => VisitArrayIndex(e),
-            PgIndexesArrayExpression e => VisitIndexesArray(e),
             PgArraySliceExpression e => VisitArraySlice(e),
             PgBinaryExpression e => VisitPgBinary(e),
             PgDeleteExpression e => VisitPgDelete(e),
@@ -66,6 +66,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             PgRowValueExpression e => VisitRowValue(e),
             PgUnknownBinaryExpression e => VisitUnknownBinary(e),
             PgTableValuedFunctionExpression e => VisitPgTableValuedFunctionExpression(e),
+            NpgsqlCubeTranslator.ArrayIncrementSubqueryExpression e => VisitArrayIncrementSubquery(e),
 
             _ => base.VisitExtension(extensionExpression)
         };
@@ -948,12 +949,10 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     }
 
     /// <summary>
-    ///     Produces SQL array increment expression to convert an array of zero-based indexes to one-based indexes.
+    ///     Generates SQL for array increment subquery used in cube subset translation.
+    ///     Produces: (SELECT array_agg(x + 1) FROM unnest(array) AS x)
     /// </summary>
-    /// <remarks>
-    ///     Generates: (SELECT array_agg(x + 1) FROM unnest(arrayExpression) AS x)
-    /// </remarks>
-    protected virtual Expression VisitIndexesArray(PgIndexesArrayExpression expression)
+    protected virtual Expression VisitArrayIncrementSubquery(NpgsqlCubeTranslator.ArrayIncrementSubqueryExpression expression)
     {
         Sql.Append("(SELECT array_agg(x + 1) FROM unnest(");
         Visit(expression.ArrayExpression);

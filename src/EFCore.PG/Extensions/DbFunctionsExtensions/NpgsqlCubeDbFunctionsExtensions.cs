@@ -18,7 +18,7 @@ public static class NpgsqlCubeDbFunctionsExtensions
     /// <param name="cube">The first cube.</param>
     /// <param name="other">The second cube.</param>
     /// <returns>
-    ///     <value>true</value> if the cubes overlap; otherwise, <value>false</value>.
+    ///     true if the cubes overlap; otherwise, false.
     /// </returns>
     /// <exception cref="InvalidOperationException">
     ///     <see cref="Overlaps" /> is only intended for use via SQL translation as part of an EF Core LINQ query.
@@ -32,7 +32,7 @@ public static class NpgsqlCubeDbFunctionsExtensions
     /// <param name="cube">The cube to check.</param>
     /// <param name="other">The cube that may be contained.</param>
     /// <returns>
-    ///     <value>true</value> if <paramref name="cube" /> contains <paramref name="other" />; otherwise, <value>false</value>.
+    ///     true if <paramref name="cube" /> contains <paramref name="other" />; otherwise, false.
     /// </returns>
     /// <exception cref="InvalidOperationException">
     ///     <see cref="Contains" /> is only intended for use via SQL translation as part of an EF Core LINQ query.
@@ -46,7 +46,7 @@ public static class NpgsqlCubeDbFunctionsExtensions
     /// <param name="cube">The cube to check.</param>
     /// <param name="other">The cube that may contain it.</param>
     /// <returns>
-    ///     <value>true</value> if <paramref name="cube" /> is contained by <paramref name="other" />; otherwise, <value>false</value>.
+    ///     true if <paramref name="cube" /> is contained by <paramref name="other" />; otherwise, false.
     /// </returns>
     /// <exception cref="InvalidOperationException">
     ///     <see cref="ContainedBy" /> is only intended for use via SQL translation as part of an EF Core LINQ query.
@@ -55,10 +55,10 @@ public static class NpgsqlCubeDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ContainedBy)));
 
     /// <summary>
-    ///     Extracts the n-th coordinate of the cube (uses zero-based indexing).
+    ///     Extracts the n-th coordinate of the cube.
     /// </summary>
     /// <param name="cube">The cube.</param>
-    /// <param name="index">The zero-based coordinate index to extract.</param>
+    /// <param name="index">The coordinate index to extract.</param>
     /// <returns>The coordinate value at the specified index.</returns>
     /// <remarks>
     ///     This method uses zero-based indexing (C# convention), which is translated to PostgreSQL's one-based indexing.
@@ -70,10 +70,10 @@ public static class NpgsqlCubeDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NthCoordinate)));
 
     /// <summary>
-    ///     Extracts the n-th coordinate of the cube for K-nearest neighbor (KNN) indexing (uses zero-based indexing).
+    ///     Extracts the n-th coordinate of the cube for K-nearest neighbor (KNN) indexing.
     /// </summary>
     /// <param name="cube">The cube.</param>
-    /// <param name="index">The zero-based coordinate index to extract.</param>
+    /// <param name="index">The coordinate index to extract.</param>
     /// <returns>The coordinate value at the specified index.</returns>
     /// <remarks>
     ///     <para>
@@ -89,48 +89,6 @@ public static class NpgsqlCubeDbFunctionsExtensions
     /// </exception>
     public static double NthCoordinateKnn(this NpgsqlCube cube, int index)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NthCoordinateKnn)));
-
-    /// <summary>
-    ///     Extracts the n-th coordinate of the lower-left corner of the cube (uses zero-based indexing).
-    /// </summary>
-    /// <param name="cube">The cube.</param>
-    /// <param name="index">The zero-based coordinate index to extract.</param>
-    /// <returns>The lower-left coordinate value at the specified index.</returns>
-    /// <remarks>
-    ///     <para>
-    ///         This method uses zero-based indexing (C# convention), which is translated to PostgreSQL's one-based indexing.
-    ///     </para>
-    ///     <para>
-    ///         This method is intended for use via SQL translation as part of an EF Core LINQ query,
-    ///         to get the lower-left coordinate of a cube locally use <see cref="NpgsqlCube.LowerLeft"/>.
-    ///     </para>
-    /// </remarks>
-    /// <exception cref="InvalidOperationException">
-    ///     <see cref="LlCoord" /> is only intended for use via SQL translation as part of an EF Core LINQ query.
-    /// </exception>
-    public static double LlCoord(this NpgsqlCube cube, int index)
-        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LlCoord)));
-
-    /// <summary>
-    ///     Extracts the n-th coordinate of the upper-right corner of the cube (uses zero-based indexing).
-    /// </summary>
-    /// <param name="cube">The cube.</param>
-    /// <param name="index">The zero-based coordinate index to extract.</param>
-    /// <returns>The upper-right coordinate value at the specified index.</returns>
-    /// <remarks>
-    ///     <para>
-    ///         This method uses zero-based indexing (C# convention), which is translated to PostgreSQL's one-based indexing.
-    ///     </para>
-    ///     <para>
-    ///         This method is intended for use via SQL translation as part of an EF Core LINQ query,
-    ///         to get the upper-right coordinate of a cube locally use <see cref="NpgsqlCube.UpperRight"/>.
-    ///     </para>
-    /// </remarks>
-    /// <exception cref="InvalidOperationException">
-    ///     <see cref="UrCoord" /> is only intended for use via SQL translation as part of an EF Core LINQ query.
-    /// </exception>
-    public static double UrCoord(this NpgsqlCube cube, int index)
-        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(UrCoord)));
 
     /// <summary>
     ///     Computes the Euclidean distance between two cubes.
@@ -210,10 +168,10 @@ public static class NpgsqlCubeDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Enlarge)));
 
     /// <summary>
-    ///     Creates a new cube by extracting and optionally reordering specified dimensions (uses zero-based indexing).
+    ///     Creates a new cube by extracting and optionally reordering specified dimensions.
     /// </summary>
     /// <param name="cube">The cube.</param>
-    /// <param name="indexes">The zero-based dimension indexes to extract (in the desired order).</param>
+    /// <param name="indexes">The dimension indexes to extract (in the desired order).</param>
     /// <returns>A new cube containing only the specified dimensions in the specified order.</returns>
     /// <remarks>
     ///     <para>

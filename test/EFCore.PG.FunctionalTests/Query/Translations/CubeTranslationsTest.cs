@@ -33,7 +33,7 @@ public class CubeTranslationsTest : IClassFixture<CubeTranslationsTest.CubeQuery
             """
 @smallCube='(2, 3, 4),(3, 4, 5)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE c."Cube" @> @smallCube
 LIMIT 2
@@ -52,7 +52,7 @@ LIMIT 2
             """
 @point='(2, 3, 4)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE c."Cube" @> @point
 LIMIT 2
@@ -74,7 +74,7 @@ LIMIT 2
             """
 @largeCube='(0.5, 1.5, 2.5),(4.5, 5.5, 6.5)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE c."Cube" <@ @largeCube AND cube_dim(c."Cube") = 3
 LIMIT 2
@@ -93,7 +93,7 @@ LIMIT 2
             """
 @cube='(6, 7, 8),(8, 9, 10)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE c."Cube" <@ @cube
 LIMIT 2
@@ -112,7 +112,7 @@ LIMIT 2
             """
 @overlappingCube='(0, 1, 2),(5, 6, 7)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE c."Cube" && @overlappingCube
 LIMIT 2
@@ -131,7 +131,7 @@ LIMIT 2
             """
 @targetCube='(5, 6, 7)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 ORDER BY c."Cube" <-> @targetCube NULLS FIRST
 LIMIT 1
@@ -150,7 +150,7 @@ LIMIT 1
             """
 @targetCube='(5, 6, 7)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 ORDER BY c."Cube" <#> @targetCube NULLS FIRST
 LIMIT 1
@@ -169,7 +169,7 @@ LIMIT 1
             """
 @targetCube='(5, 6, 7)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 ORDER BY c."Cube" <=> @targetCube NULLS FIRST
 LIMIT 1
@@ -186,7 +186,7 @@ LIMIT 1
 
         AssertSql(
             """
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE c."Cube" -> 1 = 1.0
 LIMIT 2
@@ -205,7 +205,7 @@ LIMIT 2
 
         AssertSql(
             """
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE c."Cube" ~> 2 = 4.0
 LIMIT 2
@@ -213,35 +213,17 @@ LIMIT 2
     }
 
     [ConditionalFact]
-    public void LlCoord()
-    {
-        using var context = CreateContext();
-        // Zero-based index 0 should translate to PostgreSQL index 1
-        // LlCoord accesses the lower-left coordinate = 1.0 for cube (1,2,3),(4,5,6)
-        var result = context.CubeTestEntities.Where(x => x.Cube.LlCoord(0) == 1.0).Single();
-        Assert.Equal(1, result.Id);
-
-        AssertSql(
-            """
-SELECT c."Id", c."Cube"
-FROM "CubeTestEntities" AS c
-WHERE cube_ll_coord(c."Cube", 1) = 1.0
-LIMIT 2
-""");
-    }
-
-    [ConditionalFact]
-    public void LlCoord_different_dimension()
+    public void LowerLeft_indexer_different_dimension()
     {
         using var context = CreateContext();
         // Zero-based index 1 should translate to PostgreSQL index 2
-        // LlCoord(1) accesses the second lower-left coordinate = 2.0 for cube (1,2,3),(4,5,6)
-        var result = context.CubeTestEntities.Where(x => x.Cube.LlCoord(1) == 2.0).Single();
+        // LowerLeft[1] accesses the second lower-left coordinate = 2.0 for cube (1,2,3),(4,5,6)
+        var result = context.CubeTestEntities.Where(x => x.Cube.LowerLeft[1] == 2.0).Single();
         Assert.Equal(1, result.Id);
 
         AssertSql(
             """
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE cube_ll_coord(c."Cube", 2) = 2.0
 LIMIT 2
@@ -249,35 +231,17 @@ LIMIT 2
     }
 
     [ConditionalFact]
-    public void UrCoord()
-    {
-        using var context = CreateContext();
-        // Zero-based index 0 should translate to PostgreSQL index 1
-        // UrCoord accesses the upper-right coordinate = 4.0 for cube (1,2,3),(4,5,6)
-        var result = context.CubeTestEntities.Where(x => x.Cube.UrCoord(0) == 4.0).Single();
-        Assert.Equal(1, result.Id);
-
-        AssertSql(
-            """
-SELECT c."Id", c."Cube"
-FROM "CubeTestEntities" AS c
-WHERE cube_ur_coord(c."Cube", 1) = 4.0
-LIMIT 2
-""");
-    }
-
-    [ConditionalFact]
-    public void UrCoord_different_dimension()
+    public void UpperRight_indexer_different_dimension()
     {
         using var context = CreateContext();
         // Zero-based index 1 should translate to PostgreSQL index 2
-        // UrCoord(1) accesses the second upper-right coordinate = 5.0 for cube (1,2,3),(4,5,6)
-        var result = context.CubeTestEntities.Where(x => x.Cube.UrCoord(1) == 5.0).Single();
+        // UpperRight[1] accesses the second upper-right coordinate = 5.0 for cube (1,2,3),(4,5,6)
+        var result = context.CubeTestEntities.Where(x => x.Cube.UpperRight[1] == 5.0).Single();
         Assert.Equal(1, result.Id);
 
         AssertSql(
             """
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE cube_ur_coord(c."Cube", 2) = 5.0
 LIMIT 2
@@ -285,17 +249,17 @@ LIMIT 2
     }
 
     [ConditionalFact]
-    public void LlCoord_and_UrCoord_combined()
+    public void LowerLeft_and_UpperRight_indexers_combined()
     {
         using var context = CreateContext();
-        // Combine both LlCoord and UrCoord in the same query
-        // For cube (1,2,3),(4,5,6): LlCoord(0)=1.0, UrCoord(0)=4.0
-        var result = context.CubeTestEntities.Where(x => x.Cube.LlCoord(0) == 1.0 && x.Cube.UrCoord(0) == 4.0).Single();
+        // Combine both LowerLeft and UpperRight indexers in the same query
+        // For cube (1,2,3),(4,5,6): LowerLeft[0]=1.0, UpperRight[0]=4.0
+        var result = context.CubeTestEntities.Where(x => x.Cube.LowerLeft[0] == 1.0 && x.Cube.UpperRight[0] == 4.0).Single();
         Assert.Equal(1, result.Id);
 
         AssertSql(
             """
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE cube_ll_coord(c."Cube", 1) = 1.0 AND cube_ur_coord(c."Cube", 1) = 4.0
 LIMIT 2
@@ -314,7 +278,7 @@ LIMIT 2
             """
 @cube='(1, 2, 3),(4, 5, 6)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE c."Cube" = @cube
 LIMIT 2
@@ -333,7 +297,7 @@ LIMIT 2
             """
 @cube='(1, 2, 3),(4, 5, 6)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE c."Cube" <> @cube
 """);
@@ -352,7 +316,7 @@ WHERE c."Cube" <> @cube
 
         AssertSql(
             """
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE cube_dim(c."Cube") = 3
 """);
@@ -369,7 +333,7 @@ WHERE cube_dim(c."Cube") = 3
 
         AssertSql(
             """
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE cube_is_point(c."Cube")
 """);
@@ -473,7 +437,7 @@ LIMIT 1
             """
 @subset='(1),(4)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE cube_subset(c."Cube", ARRAY[1]::integer[]) = @subset
 """);
@@ -494,7 +458,7 @@ WHERE cube_subset(c."Cube", ARRAY[1]::integer[]) = @subset
             """
 @reordered='(3, 2, 1),(6, 5, 4)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", ARRAY[3,2,1]::integer[]) = @reordered
 """);
@@ -515,7 +479,7 @@ WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", ARRAY[3,2,1]::integer[]) 
             """
 @duplicated='(1, 1, 2),(4, 4, 5)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", ARRAY[1,1,2]::integer[]) = @duplicated
 """);
@@ -535,7 +499,7 @@ WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", ARRAY[1,1,2]::integer[]) 
 @indexes={ '0' } (DbType = Object)
 @subset='(1),(4)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@indexes) AS x)) = @subset
 """);
@@ -559,7 +523,7 @@ WHERE cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@indexes) AS x)
 '0' } (DbType = Object)
 @reordered='(3, 2, 1),(6, 5, 4)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@indexes) AS x)) = @reordered
 """);
@@ -579,7 +543,7 @@ WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", (SELECT array_agg(x + 1) 
             """
 @extracted='(1, 2),(4, 5)' (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", ARRAY[1,2]::integer[]) = @extracted
 """);
@@ -599,14 +563,14 @@ WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", ARRAY[1,2]::integer[]) = 
             """
 @indexes={  } (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE cube_dim(cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@indexes) AS x))) = 0
 """);
     }
 
     [ConditionalFact]
-    public void Subset_with_repeated_indices_in_parameter()
+    public void Subset_with_repeated_indexes_in_parameter()
     {
         using var context = CreateContext();
         // Test parameter array with repeated indices - duplicates should be converted correctly
@@ -623,9 +587,43 @@ WHERE cube_dim(cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@index
 '2'
 '1' } (DbType = Object)
 
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE cube_dim(c."Cube") = 3 AND cube_dim(cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@indexes) AS x))) = 5
+""");
+    }
+
+    [ConditionalFact]
+    public void Subset_with_column_array()
+    {
+        using var context = CreateContext();
+        // Test column-based array: should generate runtime subquery conversion
+        var result = context.CubeTestEntities
+            .Where(x => x.Id == 1 && x.Cube.Subset(x.IndexArray!).Dimensions == 2)
+            .ToList();
+
+        AssertSql(
+            """
+SELECT c."Id", c."Cube", c."IndexArray"
+FROM "CubeTestEntities" AS c
+WHERE c."Id" = 1 AND cube_dim(cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(c."IndexArray") AS x))) = 2
+""");
+    }
+
+    [ConditionalFact]
+    public void Subset_with_column_array_multiple_rows()
+    {
+        using var context = CreateContext();
+        // Test column-based array with multiple rows
+        var result = context.CubeTestEntities
+            .Where(x => x.Cube.Dimensions == 3 && x.Cube.Subset(x.IndexArray!).Dimensions == 2)
+            .ToList();
+
+        AssertSql(
+            """
+SELECT c."Id", c."Cube", c."IndexArray"
+FROM "CubeTestEntities" AS c
+WHERE cube_dim(c."Cube") = 3 AND cube_dim(cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(c."IndexArray") AS x))) = 2
 """);
     }
 
@@ -642,7 +640,7 @@ WHERE cube_dim(c."Cube") = 3 AND cube_dim(cube_subset(c."Cube", (SELECT array_ag
 
         AssertSql(
             """
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE cube_dim(c."Cube") = 1
 LIMIT 2
@@ -659,7 +657,7 @@ LIMIT 2
 
         AssertSql(
             """
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE c."Cube" -> 1 < 0.0
 LIMIT 2
@@ -675,7 +673,7 @@ LIMIT 2
 
         AssertSql(
             """
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE cube_is_point(c."Cube")
 """);
@@ -691,7 +689,7 @@ WHERE cube_is_point(c."Cube")
 
         AssertSql(
             """
-SELECT c."Id", c."Cube"
+SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
 WHERE c."Cube" -> 1 > 50.0
 LIMIT 2
@@ -707,19 +705,23 @@ LIMIT 2
 
         Assert.Contains("LowerLeft", exception.Message);
         Assert.Contains("cannot be translated to SQL", exception.Message);
-        Assert.Contains("LlCoord()", exception.Message);
+        Assert.Contains("indexer syntax", exception.Message);
     }
 
     [ConditionalFact]
-    public void LowerLeft_index_throws_helpful_error()
+    public void LowerLeft_index_with_constant()
     {
         using var context = CreateContext();
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => context.CubeTestEntities.Where(x => x.Cube.LowerLeft[0] > 0).ToList());
+        var result = context.CubeTestEntities
+            .Where(x => x.Cube.LowerLeft[0] == 1.0)
+            .ToList();
 
-        Assert.Contains("LowerLeft", exception.Message);
-        Assert.Contains("cannot be translated to SQL", exception.Message);
-        Assert.Contains("LlCoord()", exception.Message);
+        AssertSql(
+            """
+SELECT c."Id", c."Cube", c."IndexArray"
+FROM "CubeTestEntities" AS c
+WHERE cube_ll_coord(c."Cube", 1) = 1.0
+""");
     }
 
     [ConditionalFact]
@@ -731,19 +733,151 @@ LIMIT 2
 
         Assert.Contains("UpperRight", exception.Message);
         Assert.Contains("cannot be translated to SQL", exception.Message);
-        Assert.Contains("UrCoord()", exception.Message);
+        Assert.Contains("indexer syntax", exception.Message);
     }
 
     [ConditionalFact]
-    public void UpperRight_index_throws_helpful_error()
+    public void LowerLeft_in_projection_throws_helpful_error()
     {
         using var context = CreateContext();
         var exception = Assert.Throws<InvalidOperationException>(
-            () => context.CubeTestEntities.Where(x => x.Cube.UpperRight[0] > 0).ToList());
+            () => context.CubeTestEntities
+                .Select(x => new { x.Id, LowerLeft = x.Cube.LowerLeft })
+                .ToList());
+
+        Assert.Contains("LowerLeft", exception.Message);
+        Assert.Contains("cannot be translated to SQL", exception.Message);
+        Assert.Contains("indexer syntax", exception.Message);
+    }
+
+    [ConditionalFact]
+    public void UpperRight_in_projection_throws_helpful_error()
+    {
+        using var context = CreateContext();
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => context.CubeTestEntities
+                .Select(x => new { x.Id, UpperRight = x.Cube.UpperRight })
+                .ToList());
 
         Assert.Contains("UpperRight", exception.Message);
         Assert.Contains("cannot be translated to SQL", exception.Message);
-        Assert.Contains("UrCoord()", exception.Message);
+        Assert.Contains("indexer syntax", exception.Message);
+    }
+
+    [ConditionalFact]
+    public void LowerLeft_FirstOrDefault_throws_helpful_error()
+    {
+        using var context = CreateContext();
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => context.CubeTestEntities
+                .Select(x => x.Cube.LowerLeft.FirstOrDefault())
+                .ToList());
+
+        Assert.Contains("LowerLeft", exception.Message);
+        Assert.Contains("cannot be translated to SQL", exception.Message);
+        Assert.Contains("indexer syntax", exception.Message);
+    }
+
+    [ConditionalFact]
+    public void UpperRight_Any_throws_helpful_error()
+    {
+        using var context = CreateContext();
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => context.CubeTestEntities
+                .Where(x => x.Cube.UpperRight.Any(coord => coord > 5.0))
+                .ToList());
+
+        Assert.Contains("UpperRight", exception.Message);
+        Assert.Contains("cannot be translated to SQL", exception.Message);
+        Assert.Contains("indexer syntax", exception.Message);
+    }
+
+    [ConditionalFact]
+    public void UpperRight_index_with_constant()
+    {
+        using var context = CreateContext();
+        var result = context.CubeTestEntities
+            .Where(x => x.Cube.UpperRight[2] > 5.0)
+            .ToList();
+
+        AssertSql(
+            """
+SELECT c."Id", c."Cube", c."IndexArray"
+FROM "CubeTestEntities" AS c
+WHERE cube_ur_coord(c."Cube", 3) > 5.0
+""");
+    }
+
+    [ConditionalFact]
+    public void LowerLeft_index_with_parameter()
+    {
+        using var context = CreateContext();
+        var index = 1;
+        var result = context.CubeTestEntities
+            .Where(x => x.Cube.LowerLeft[index] < 3.0)
+            .ToList();
+
+        AssertSql(
+            """
+@index='1'
+
+SELECT c."Id", c."Cube", c."IndexArray"
+FROM "CubeTestEntities" AS c
+WHERE cube_ll_coord(c."Cube", @index + 1) < 3.0
+""");
+    }
+
+    [ConditionalFact]
+    public void UpperRight_index_with_parameter()
+    {
+        using var context = CreateContext();
+        var index = 2;
+        var result = context.CubeTestEntities
+            .Where(x => x.Cube.UpperRight[index] > 5.0)
+            .ToList();
+
+        AssertSql(
+            """
+@index='2'
+
+SELECT c."Id", c."Cube", c."IndexArray"
+FROM "CubeTestEntities" AS c
+WHERE cube_ur_coord(c."Cube", @index + 1) > 5.0
+""");
+    }
+
+    [ConditionalFact]
+    public void LowerLeft_index_with_column()
+    {
+        using var context = CreateContext();
+        // Use Id % 3 to get a valid index (0, 1, or 2) for the 3D cubes in test data
+        var result = context.CubeTestEntities
+            .Where(x => x.Cube.Dimensions == 3 && x.Cube.LowerLeft[x.Id % 3] > 0.0)
+            .ToList();
+
+        AssertSql(
+            """
+SELECT c."Id", c."Cube", c."IndexArray"
+FROM "CubeTestEntities" AS c
+WHERE cube_dim(c."Cube") = 3 AND cube_ll_coord(c."Cube", c."Id" % 3 + 1) > 0.0
+""");
+    }
+
+    [ConditionalFact]
+    public void UpperRight_index_with_column()
+    {
+        using var context = CreateContext();
+        // Use Id % 3 to get a valid index (0, 1, or 2) for the 3D cubes in test data
+        var result = context.CubeTestEntities
+            .Where(x => x.Cube.Dimensions == 3 && x.Cube.UpperRight[x.Id % 3] < 10.0)
+            .ToList();
+
+        AssertSql(
+            """
+SELECT c."Id", c."Cube", c."IndexArray"
+FROM "CubeTestEntities" AS c
+WHERE cube_dim(c."Cube") = 3 AND cube_ur_coord(c."Cube", c."Id" % 3 + 1) < 10.0
+""");
     }
 
     #endregion
@@ -893,6 +1027,190 @@ LIMIT 2
 
     #endregion
 
+    #region Constructor NULL handling
+
+    [ConditionalFact]
+    public void Constructor_single_coordinate_null()
+    {
+        using var context = CreateContext();
+        double? nullCoord = null;
+
+        // cube(NULL) should return NULL (STRICT function)
+        var result = context.CubeConstructorTestEntities
+            .Select(x => new { x.Id, Cube = nullCoord.HasValue ? new NpgsqlCube(nullCoord.Value) : (NpgsqlCube?)null })
+            .OrderBy(x => x.Id)
+            .First();
+
+        Assert.Null(result.Cube);
+
+        AssertSql(
+            """
+SELECT c."Id", NULL AS "Cube"
+FROM "CubeConstructorTestEntities" AS c
+ORDER BY c."Id" NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [ConditionalFact]
+    public void Constructor_two_coordinates_first_null()
+    {
+        using var context = CreateContext();
+        double? nullCoord = null;
+        double secondCoord = 20.0;
+
+        // cube(NULL, 20.0) should return NULL (STRICT function)
+        var result = context.CubeConstructorTestEntities
+            .Select(x => new {
+                x.Id,
+                Cube = nullCoord.HasValue ? new NpgsqlCube(nullCoord.Value, secondCoord) : (NpgsqlCube?)null
+            })
+            .OrderBy(x => x.Id)
+            .First();
+
+        Assert.Null(result.Cube);
+
+        AssertSql(
+            """
+SELECT c."Id", NULL AS "Cube"
+FROM "CubeConstructorTestEntities" AS c
+ORDER BY c."Id" NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [ConditionalFact]
+    public void Constructor_two_coordinates_second_null()
+    {
+        using var context = CreateContext();
+        double firstCoord = 10.0;
+        double? nullCoord = null;
+
+        // cube(10.0, NULL) should return NULL (STRICT function)
+        var result = context.CubeConstructorTestEntities
+            .Select(x => new {
+                x.Id,
+                Cube = nullCoord.HasValue ? new NpgsqlCube(firstCoord, nullCoord.Value) : (NpgsqlCube?)null
+            })
+            .OrderBy(x => x.Id)
+            .First();
+
+        Assert.Null(result.Cube);
+
+        AssertSql(
+            """
+SELECT c."Id", NULL AS "Cube"
+FROM "CubeConstructorTestEntities" AS c
+ORDER BY c."Id" NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [ConditionalFact]
+    public void Constructor_array_null()
+    {
+        using var context = CreateContext();
+        double[]? nullArray = null;
+
+        var result = context.CubeConstructorTestEntities
+            .Select(x => new {
+                x.Id,
+                Cube = nullArray != null ? new NpgsqlCube(nullArray) : (NpgsqlCube?)null
+            })
+            .OrderBy(x => x.Id)
+            .First();
+
+        Assert.Null(result.Cube);
+
+        AssertSql(
+            """
+SELECT c."Id", NULL AS "Cube"
+FROM "CubeConstructorTestEntities" AS c
+ORDER BY c."Id" NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [ConditionalFact]
+    public void Constructor_two_arrays_first_null()
+    {
+        using var context = CreateContext();
+        double[]? nullArray = null;
+        double[] secondArray = [4.0, 5.0, 6.0];
+
+        var result = context.CubeConstructorTestEntities
+            .Select(x => new {
+                x.Id,
+                Cube = nullArray != null ? new NpgsqlCube(nullArray, secondArray) : (NpgsqlCube?)null
+            })
+            .OrderBy(x => x.Id)
+            .First();
+
+        Assert.Null(result.Cube);
+
+        AssertSql(
+            """
+SELECT c."Id", NULL AS "Cube"
+FROM "CubeConstructorTestEntities" AS c
+ORDER BY c."Id" NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [ConditionalFact]
+    public void Constructor_extend_cube_null_cube()
+    {
+        using var context = CreateContext();
+        NpgsqlCube? nullCube = null;
+        const double coord = 7.0;
+
+        var result = context.CubeConstructorTestEntities
+            .Select(x => new {
+                x.Id,
+                Cube = nullCube.HasValue ? new NpgsqlCube(nullCube.Value, coord) : (NpgsqlCube?)null
+            })
+            .OrderBy(x => x.Id)
+            .First();
+
+        Assert.Null(result.Cube);
+
+        AssertSql(
+            """
+SELECT c."Id", NULL AS "Cube"
+FROM "CubeConstructorTestEntities" AS c
+ORDER BY c."Id" NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    [ConditionalFact]
+    public void Constructor_extend_cube_null_coord()
+    {
+        using var context = CreateContext();
+        var cube = new NpgsqlCube([1.0, 2.0, 3.0], [4.0, 5.0, 6.0]);
+        double? nullCoord = null;
+
+        var result = context.CubeConstructorTestEntities
+            .Select(x => new {
+                x.Id,
+                Cube = nullCoord.HasValue ? new NpgsqlCube(cube, nullCoord.Value) : (NpgsqlCube?)null
+            })
+            .OrderBy(x => x.Id)
+            .First();
+
+        Assert.Null(result.Cube);
+
+        AssertSql(
+            """
+SELECT c."Id", NULL AS "Cube"
+FROM "CubeConstructorTestEntities" AS c
+ORDER BY c."Id" NULLS FIRST
+LIMIT 1
+""");
+    }
+
+    #endregion
+
     #region Fixture
 
     public class CubeQueryNpgsqlFixture : SharedStoreFixtureBase<CubeContext>
@@ -914,6 +1232,7 @@ LIMIT 2
     {
         public int Id { get; set; }
         public NpgsqlCube Cube { get; set; }
+        public int[]? IndexArray { get; set; }
     }
 
     public class CubeConstructorTestEntity
@@ -945,7 +1264,8 @@ LIMIT 2
                     Cube = new NpgsqlCube(
                         [1.0, 2.0, 3.0],
                         [4.0, 5.0, 6.0]
-                    )  // (1,2,3),(4,5,6)
+                    ),  // (1,2,3),(4,5,6)
+                    IndexArray = [0, 1]  // Extract first two dimensions
                 },
                 new CubeTestEntity
                 {
@@ -953,7 +1273,8 @@ LIMIT 2
                     // 3D point cube with all different dimensions
                     Cube = new NpgsqlCube(
                         [7.0, 8.0, 9.0]
-                    )  // (7,8,9)
+                    ),  // (7,8,9)
+                    IndexArray = [2, 1, 0]  // Reverse order
                 },
                 new CubeTestEntity
                 {
@@ -962,7 +1283,8 @@ LIMIT 2
                     Cube = new NpgsqlCube(
                         [20.0, 30.0, 40.0],
                         [25.0, 35.0, 45.0]
-                    )  // (20,30,40),(25,35,45)
+                    ),  // (20,30,40),(25,35,45)
+                    IndexArray = [1, 2]  // Extract middle and last dimensions
                 },
                 new CubeTestEntity
                 {
@@ -971,13 +1293,15 @@ LIMIT 2
                     Cube = new NpgsqlCube(
                         [100.0, 200.0, 300.0],
                         [400.0, 500.0, 600.0]
-                    )  // (100,200,300),(400,500,600)
+                    ),  // (100,200,300),(400,500,600)
+                    IndexArray = [0, 0, 1]  // Duplicate indices
                 },
                 new CubeTestEntity
                 {
                     Id = 5,
                     // 1D cube (single point)
-                    Cube = new NpgsqlCube(2.5)  // (2.5)
+                    Cube = new NpgsqlCube(2.5),  // (2.5)
+                    IndexArray = [0]  // Single index
                 },
                 new CubeTestEntity
                 {
@@ -986,7 +1310,8 @@ LIMIT 2
                     Cube = new NpgsqlCube(
                         [-5.0, -10.0, -15.0],
                         [-2.0, -7.0, -12.0]
-                    )  // (-5,-10,-15),(-2,-7,-12)
+                    ),  // (-5,-10,-15),(-2,-7,-12)
+                    IndexArray = []  // Empty array
                 });
 
             context.CubeConstructorTestEntities.AddRange(

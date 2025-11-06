@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
@@ -207,7 +208,6 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
             PgAnyExpression e => VisitAny(e, allowOptimizedExpansion, out nullable),
             PgAllExpression e => VisitAll(e, allowOptimizedExpansion, out nullable),
             PgArrayIndexExpression e => VisitArrayIndex(e, allowOptimizedExpansion, out nullable),
-            PgIndexesArrayExpression e => VisitIndexesArray(e, allowOptimizedExpansion, out nullable),
             PgArraySliceExpression e => VisitArraySlice(e, allowOptimizedExpansion, out nullable),
             PgBinaryExpression e => VisitPostgresBinary(e, allowOptimizedExpansion, out nullable),
             PgILikeExpression e => VisitILike(e, allowOptimizedExpansion, out nullable),
@@ -216,6 +216,7 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
             PgRegexMatchExpression e => VisitRegexMatch(e, allowOptimizedExpansion, out nullable),
             PgRowValueExpression e => VisitRowValueExpression(e, allowOptimizedExpansion, out nullable),
             PgUnknownBinaryExpression e => VisitUnknownBinary(e, allowOptimizedExpansion, out nullable),
+            NpgsqlCubeTranslator.ArrayIncrementSubqueryExpression e => VisitArrayIncrementSubquery(e, allowOptimizedExpansion, out nullable),
 
             // PostgresFunctionExpression is visited via the SqlFunctionExpression override below
 
@@ -371,19 +372,21 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    protected virtual SqlExpression VisitIndexesArray(
-        PgIndexesArrayExpression indexesArrayExpression,
+    protected virtual SqlExpression VisitArrayIncrementSubquery(
+        NpgsqlCubeTranslator.ArrayIncrementSubqueryExpression expression,
         bool allowOptimizedExpansion,
         out bool nullable)
     {
-        Check.NotNull(indexesArrayExpression, nameof(indexesArrayExpression));
+        Check.NotNull(expression, nameof(expression));
 
-        var array = Visit(indexesArrayExpression.ArrayExpression, allowOptimizedExpansion, out var arrayNullable);
+        var array = Visit(expression.ArrayExpression, allowOptimizedExpansion, out var arrayNullable);
 
-        // The array increment operation is nullable if the input array is nullable
+        // The subquery is nullable if the input array is nullable
         nullable = arrayNullable;
 
-        return indexesArrayExpression.Update(array);
+        return array == expression.ArrayExpression
+            ? expression
+            : new NpgsqlCubeTranslator.ArrayIncrementSubqueryExpression(array, expression.TypeMapping);
     }
 
     /// <summary>

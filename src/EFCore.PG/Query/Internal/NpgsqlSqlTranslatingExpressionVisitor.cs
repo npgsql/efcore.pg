@@ -353,6 +353,44 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     {
         var method = methodCallExpression.Method;
 
+        // Pattern-match: cube.LowerLeft[index] or cube.UpperRight[index]
+        // This appears as: get_Item method call on a MemberExpression of LowerLeft/UpperRight
+        if (method.Name == "get_Item"
+            && methodCallExpression.Object is MemberExpression memberExpression
+            && memberExpression.Member.DeclaringType == typeof(NpgsqlCube)
+            && memberExpression.Member.Name is nameof(NpgsqlCube.LowerLeft) or nameof(NpgsqlCube.UpperRight))
+        {
+            // Translate the cube instance (the object on which LowerLeft/UpperRight is accessed)
+            if (Visit(memberExpression.Expression) is not SqlExpression sqlCubeInstance)
+            {
+                return QueryCompilationContext.NotTranslatedExpression;
+            }
+
+            // Translate the index argument
+            if (Visit(methodCallExpression.Arguments[0]) is not SqlExpression sqlIndex)
+            {
+                return QueryCompilationContext.NotTranslatedExpression;
+            }
+
+            // Convert zero-based to one-based index
+            // For constants, optimize at translation time; for parameters/columns, add at runtime
+            var pgIndex = sqlIndex is SqlConstantExpression { Value: int index }
+                ? _sqlExpressionFactory.Constant(index + 1)
+                : _sqlExpressionFactory.Add(sqlIndex, _sqlExpressionFactory.Constant(1));
+
+            // Determine which function to call
+            var functionName = memberExpression.Member.Name == nameof(NpgsqlCube.LowerLeft)
+                ? "cube_ll_coord"
+                : "cube_ur_coord";
+
+            return _sqlExpressionFactory.Function(
+                functionName,
+                [sqlCubeInstance, pgIndex],
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[2],
+                typeof(double));
+        }
+
         if (method == StringStartsWithMethod
             && TryTranslateStartsEndsWithContains(
                 methodCallExpression.Object!, methodCallExpression.Arguments[0], StartsEndsWithContains.StartsWith, out var translation1))
@@ -479,41 +517,36 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
             }
 
             var cubeTypeMapping = _typeMappingSource.FindMapping(typeof(NpgsqlCube));
+            var cubeParameters = newExpression.Constructor.GetParameters();
 
-            // Distinguish constructor overloads by argument count and types
-            switch (sqlArguments.Length)
+            // Distinguish constructor overloads by parameter patterns
+            switch (cubeParameters)
             {
-                case 1:
+                case [var pCoords] when pCoords.ParameterType == typeof(double)
+                        || typeof(IEnumerable<double>).IsAssignableFrom(pCoords.ParameterType):
                     // NpgsqlCube(double coord) or NpgsqlCube(IEnumerable<double> coords)
-                    // Both map to cube() - PostgreSQL overloads based on argument type
-                    return _sqlExpressionFactory.Function(
-                        "cube",
-                        sqlArguments,
-                        nullable: false,
-                        argumentsPropagateNullability: FalseArrays[1],
-                        typeof(NpgsqlCube),
-                        cubeTypeMapping);
-
-                case 2:
+                case [var pCoord1, var pCoord2]
+                        when pCoord1.ParameterType == typeof(double) && pCoord2.ParameterType == typeof(double):
                     // NpgsqlCube(double coord1, double coord2)
+                case [var pLowerLeft, var pUpperRight]
+                        when typeof(IEnumerable<double>).IsAssignableFrom(pLowerLeft.ParameterType)
+                            && typeof(IEnumerable<double>).IsAssignableFrom(pUpperRight.ParameterType):
                     // NpgsqlCube(IEnumerable<double> lowerLeft, IEnumerable<double> upperRight)
+                case [var pCube, var pCoord]
+                        when pCube.ParameterType == typeof(NpgsqlCube) && pCoord.ParameterType == typeof(double):
                     // NpgsqlCube(NpgsqlCube cube, double coord)
-                    // All map to cube() - PostgreSQL overloads based on argument types
-                    return _sqlExpressionFactory.Function(
-                        "cube",
-                        sqlArguments,
-                        nullable: false,
-                        argumentsPropagateNullability: FalseArrays[2],
-                        typeof(NpgsqlCube),
-                        cubeTypeMapping);
-
-                case 3:
+                case [var pCube2, var pCoord12, var pCoord22]
+                        when pCube2.ParameterType == typeof(NpgsqlCube)
+                            && pCoord12.ParameterType == typeof(double)
+                            && pCoord22.ParameterType == typeof(double):
                     // NpgsqlCube(NpgsqlCube cube, double coord1, double coord2)
+                    // All cases fallthrough to single cube() expression
+                    // cube() is a STRICT function - returns NULL if any argument is NULL
                     return _sqlExpressionFactory.Function(
                         "cube",
                         sqlArguments,
-                        nullable: false,
-                        argumentsPropagateNullability: FalseArrays[3],
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[sqlArguments.Length],
                         typeof(NpgsqlCube),
                         cubeTypeMapping);
             }

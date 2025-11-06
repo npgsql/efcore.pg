@@ -1,4 +1,5 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
@@ -41,9 +42,9 @@ public class NpgsqlTypeMappingPostprocessor : RelationalTypeMappingPostprocessor
     {
         switch (expression)
         {
-            case PgIndexesArrayExpression arrayIncrementExpression:
+            case NpgsqlCubeTranslator.ArrayIncrementSubqueryExpression arrayIncrementExpression:
             {
-                // Apply type mapping to the array expression (e.g., SqlParameterExpression)
+                // Apply type mapping to the array expression
                 var arrayTypeMapping = _typeMappingSource.FindMapping(typeof(int[]), _model);
 
                 if (arrayTypeMapping is null)
@@ -51,8 +52,9 @@ public class NpgsqlTypeMappingPostprocessor : RelationalTypeMappingPostprocessor
                     throw new InvalidOperationException(RelationalStrings.NullTypeMappingInSqlTree(expression.Print()));
                 }
 
-                return arrayIncrementExpression.Update(
-                    _sqlExpressionFactory.ApplyTypeMapping(arrayIncrementExpression.ArrayExpression, arrayTypeMapping));
+                return new NpgsqlCubeTranslator.ArrayIncrementSubqueryExpression(
+                    _sqlExpressionFactory.ApplyTypeMapping(arrayIncrementExpression.ArrayExpression, arrayTypeMapping),
+                    arrayIncrementExpression.TypeMapping);
             }
 
             case PgUnnestExpression unnestExpression

@@ -111,22 +111,6 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
                     ConvertToPostgresIndex(arguments[1]),
                     _doubleTypeMapping),
 
-            nameof(NpgsqlCubeDbFunctionsExtensions.LlCoord)
-                => _sqlExpressionFactory.Function(
-                    "cube_ll_coord",
-                    [arguments[0], ConvertToPostgresIndex(arguments[1])],
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[2],
-                    typeof(double)),
-
-            nameof(NpgsqlCubeDbFunctionsExtensions.UrCoord)
-                => _sqlExpressionFactory.Function(
-                    "cube_ur_coord",
-                    [arguments[0], ConvertToPostgresIndex(arguments[1])],
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[2],
-                    typeof(double)),
-
             nameof(NpgsqlCubeDbFunctionsExtensions.Union)
                 => _sqlExpressionFactory.Function(
                     "cube_union",
@@ -191,16 +175,15 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(bool)),
 
-            // TODO: Determine if we should remove these list accessors and replace them with UrCoord and LlCoord methods instead.
             nameof(NpgsqlCube.LowerLeft)
                 => throw new InvalidOperationException(
                     $"The '{nameof(NpgsqlCube.LowerLeft)}' property cannot be translated to SQL. " +
-                    $"To access individual lower-left coordinates in queries, use the LlCoord() extension method instead."),
+                    $"To access individual lower-left coordinates in queries, use indexer syntax (e.g., cube.LowerLeft[index]) instead."),
 
             nameof(NpgsqlCube.UpperRight)
                 => throw new InvalidOperationException(
                     $"The '{nameof(NpgsqlCube.UpperRight)}' property cannot be translated to SQL. " +
-                    $"To access individual upper-right coordinates in queries, use the UrCoord() extension method instead."),
+                    $"To access individual upper-right coordinates in queries, use indexer syntax (e.g., cube.UpperRight[index]) instead."),
 
             _ => null
         };
@@ -212,8 +195,6 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
         // arguments[1] is the int[] indexes array
 
         // For subset, we need to convert the C# zero-based indexes to PostgreSQL one-based indexes
-        // This is handled transparently using the internal PgIndexes infrastructure
-
         SqlExpression convertedIndexes;
 
         switch (arguments[1])
@@ -221,37 +202,27 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
             case PgNewArrayExpression { Expressions: var expressions }
                 when expressions.All(e => e is SqlConstantExpression { Value: int }):
                 // OPTIMIZATION: For constant array literals (from params expansion), convert at translation time
-                var constantIndexes = expressions
+                var oneBasedConstants = expressions
                     .Cast<SqlConstantExpression>()
-                    .Select(e => (int)e.Value!)
+                    .Select(e => _sqlExpressionFactory.Constant((int)e.Value! + 1))
                     .ToArray();
-                var pgIndexes = new PgIndexes(constantIndexes);
-                var oneBasedIndexes = pgIndexes.ToOneBased();
 
-                convertedIndexes = _sqlExpressionFactory.NewArray(
-                    oneBasedIndexes.Select(i => _sqlExpressionFactory.Constant(i)).ToArray(),
-                    typeof(int[]));
+                convertedIndexes = _sqlExpressionFactory.NewArray(oneBasedConstants, typeof(int[]));
                 break;
 
             case SqlConstantExpression { Value: int[] constantArray }:
                 // OPTIMIZATION: For constant arrays, convert at translation time (no SQL overhead)
-                var pgIndexesFromConstant = new PgIndexes(constantArray);
-                var oneBasedFromConstant = pgIndexesFromConstant.ToOneBased();
+                var oneBasedArray = constantArray
+                    .Select(i => _sqlExpressionFactory.Constant(i + 1))
+                    .ToArray();
 
-                convertedIndexes = _sqlExpressionFactory.NewArray(
-                    oneBasedFromConstant.Select(i => _sqlExpressionFactory.Constant(i)).ToArray(),
-                    typeof(int[]));
-                break;
-
-            case SqlParameterExpression parameterExpression:
-                // For parameters, generate SQL to convert zero-based to one-based at runtime
-                // Generates: (SELECT array_agg(x + 1) FROM unnest(@parameter) AS x)
-                convertedIndexes = CreateArrayIncrementExpression(parameterExpression);
+                convertedIndexes = _sqlExpressionFactory.NewArray(oneBasedArray, typeof(int[]));
                 break;
 
             default:
-                // For other expression types (columns, etc.), also use runtime conversion
-                convertedIndexes = CreateArrayIncrementExpression(arguments[1]);
+                // For parameters, columns, and other expressions - runtime conversion
+                // Generates: (SELECT array_agg(x + 1) FROM unnest(array) AS x)
+                convertedIndexes = BuildArrayIncrementSubquery(arguments[1]);
                 break;
         }
 
@@ -265,14 +236,15 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
     }
 
     /// <summary>
-    /// Creates a SQL expression that converts a zero-based index array to one-based.
+    /// Builds a subquery expression that converts a zero-based index array to one-based.
     /// Generates: (SELECT array_agg(x + 1) FROM unnest(arrayExpression) AS x)
     /// </summary>
-    private SqlExpression CreateArrayIncrementExpression(SqlExpression arrayExpression)
+    private SqlExpression BuildArrayIncrementSubquery(SqlExpression arrayExpression)
     {
+        // Create a custom expression that will generate the subquery SQL
         var intArrayTypeMapping = _typeMappingSource.FindMapping(typeof(int[]));
 
-        return new PgIndexesArrayExpression(arrayExpression, intArrayTypeMapping);
+        return new ArrayIncrementSubqueryExpression(arrayExpression, intArrayTypeMapping);
     }
 
     /// <summary>
@@ -286,5 +258,50 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
         return indexExpression is SqlConstantExpression { Value: int index }
             ? _sqlExpressionFactory.Constant(index + 1, intTypeMapping)
             : _sqlExpressionFactory.Add(indexExpression, _sqlExpressionFactory.Constant(1, intTypeMapping));
+    }
+
+    /// <summary>
+    /// Internal expression for generating array increment subquery SQL.
+    /// This is a minimal custom expression used only within cube translation.
+    /// </summary>
+    public sealed class ArrayIncrementSubqueryExpression : SqlExpression
+    {
+        /// <summary>
+        /// The array expression to increment.
+        /// </summary>
+        public SqlExpression ArrayExpression { get; }
+
+        /// <summary>
+        /// Creates a new instance of ArrayIncrementSubqueryExpression.
+        /// </summary>
+        public ArrayIncrementSubqueryExpression(SqlExpression arrayExpression, RelationalTypeMapping? typeMapping)
+            : base(typeof(int[]), typeMapping)
+        {
+            ArrayExpression = arrayExpression;
+        }
+
+        /// <inheritdoc />
+        protected override Expression VisitChildren(ExpressionVisitor visitor)
+            => visitor.Visit(ArrayExpression) is var visited && visited == ArrayExpression
+                ? this
+                : new ArrayIncrementSubqueryExpression((SqlExpression)visited, TypeMapping);
+
+        /// <inheritdoc />
+        public override Expression Quote()
+            => New(
+                typeof(ArrayIncrementSubqueryExpression).GetConstructor([typeof(SqlExpression), typeof(RelationalTypeMapping)])!,
+                ArrayExpression.Quote(),
+                RelationalExpressionQuotingUtilities.QuoteTypeMapping(TypeMapping));
+
+        /// <inheritdoc />
+        protected override void Print(ExpressionPrinter expressionPrinter)
+            => expressionPrinter.Append($"ArrayIncrementSubquery({ArrayExpression})");
+
+        /// <inheritdoc />
+        public override bool Equals(object? obj)
+            => obj is ArrayIncrementSubqueryExpression other && ArrayExpression.Equals(other.ArrayExpression);
+
+        /// <inheritdoc />
+        public override int GetHashCode() => HashCode.Combine(ArrayExpression);
     }
 }
