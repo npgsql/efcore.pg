@@ -161,7 +161,7 @@ public class NpgsqlCubeTranslator(
         };
     }
 
-    private SqlExpression TranslateSubset(IReadOnlyList<SqlExpression> arguments)
+    private SqlExpression? TranslateSubset(IReadOnlyList<SqlExpression> arguments)
     {
         // arguments[0] is the cube
         // arguments[1] is the int[] indexes array
@@ -186,10 +186,14 @@ public class NpgsqlCubeTranslator(
                 convertedIndexes = sqlExpressionFactory.NewArray(convertedExpressions, typeof(int[]));
                 break;
 
-            default:
-                // Runtime conversion for columns, parameters, etc.
-                convertedIndexes = BuildArrayIncrementSubquery(arguments[1]);
+            case ScalarSubqueryExpression:
+                // Already converted by NpgsqlSqlTranslatingExpressionVisitor
+                convertedIndexes = arguments[1];
                 break;
+
+            default:
+                // For parameters and columns, let NpgsqlSqlTranslatingExpressionVisitor handle it
+                return null;
         }
 
         return sqlExpressionFactory.Function(
@@ -199,18 +203,6 @@ public class NpgsqlCubeTranslator(
             argumentsPropagateNullability: TrueArrays[2],
             typeof(NpgsqlCube),
             typeMappingSource.FindMapping(typeof(NpgsqlCube)));
-    }
-
-    /// <summary>
-    /// Builds a subquery expression that converts a zero-based index array to one-based.
-    /// Generates: (SELECT array_agg(x + 1) FROM unnest(arrayExpression) AS x)
-    /// </summary>
-    private SqlExpression BuildArrayIncrementSubquery(SqlExpression arrayExpression)
-    {
-        // Create a custom expression that will generate the subquery SQL
-        var intArrayTypeMapping = typeMappingSource.FindMapping(typeof(int[]));
-
-        return new ArrayIncrementSubqueryExpression(arrayExpression, intArrayTypeMapping);
     }
 
     /// <summary>
@@ -224,50 +216,5 @@ public class NpgsqlCubeTranslator(
         return indexExpression is SqlConstantExpression { Value: int index }
             ? sqlExpressionFactory.Constant(index + 1, intTypeMapping)
             : sqlExpressionFactory.Add(indexExpression, sqlExpressionFactory.Constant(1, intTypeMapping));
-    }
-
-    /// <summary>
-    /// Internal expression for generating array increment subquery SQL.
-    /// This is a minimal custom expression used only within cube translation.
-    /// </summary>
-    public sealed class ArrayIncrementSubqueryExpression : SqlExpression
-    {
-        /// <summary>
-        /// The array expression to increment.
-        /// </summary>
-        public SqlExpression ArrayExpression { get; }
-
-        /// <summary>
-        /// Creates a new instance of ArrayIncrementSubqueryExpression.
-        /// </summary>
-        public ArrayIncrementSubqueryExpression(SqlExpression arrayExpression, RelationalTypeMapping? typeMapping)
-            : base(typeof(int[]), typeMapping)
-        {
-            ArrayExpression = arrayExpression;
-        }
-
-        /// <inheritdoc />
-        protected override Expression VisitChildren(ExpressionVisitor visitor)
-            => visitor.Visit(ArrayExpression) is var visited && visited.Equals(ArrayExpression)
-                ? this
-                : new ArrayIncrementSubqueryExpression((SqlExpression)visited, TypeMapping);
-
-        /// <inheritdoc />
-        public override Expression Quote()
-            => New(
-                typeof(ArrayIncrementSubqueryExpression).GetConstructor([typeof(SqlExpression), typeof(RelationalTypeMapping)])!,
-                ArrayExpression.Quote(),
-                RelationalExpressionQuotingUtilities.QuoteTypeMapping(TypeMapping));
-
-        /// <inheritdoc />
-        protected override void Print(ExpressionPrinter expressionPrinter)
-            => expressionPrinter.Append($"ArrayIncrementSubquery({ArrayExpression})");
-
-        /// <inheritdoc />
-        public override bool Equals(object? obj)
-            => obj is ArrayIncrementSubqueryExpression other && ArrayExpression.Equals(other.ArrayExpression);
-
-        /// <inheritdoc />
-        public override int GetHashCode() => HashCode.Combine(ArrayExpression);
     }
 }

@@ -390,6 +390,71 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                 typeof(double));
         }
 
+        // Pattern-match: cube.ToSubset(indexes)
+        // Handle runtime array conversion via subquery for parameters and columns
+        if (method.Name == nameof(NpgsqlCube.ToSubset)
+            && method.DeclaringType == typeof(NpgsqlCube)
+            && methodCallExpression.Object is not null)
+        {
+            // Translate cube instance and indexes array
+            if (Visit(methodCallExpression.Object) is not SqlExpression sqlCubeInstance
+                || Visit(methodCallExpression.Arguments[0]) is not SqlExpression sqlIndexes)
+            {
+                return QueryCompilationContext.NotTranslatedExpression;
+            }
+
+            // For parameters and columns, construct the subquery: (SELECT array_agg(u.x + 1) FROM unnest(indexes) AS u(x))
+            // For constants and inline arrays, delegate to translator for optimization
+            if (sqlIndexes is SqlParameterExpression or ColumnExpression)
+            {
+                // Apply type mapping to the indexes array
+                var intArrayTypeMapping = _typeMappingSource.FindMapping(typeof(int[]))!;
+                sqlIndexes = _sqlExpressionFactory.ApplyTypeMapping(sqlIndexes, intArrayTypeMapping);
+
+                // Generate table alias and create unnest table
+                var tableAlias = ((RelationalQueryCompilationContext)_queryCompilationContext).SqlAliasManager.GenerateTableAlias("u");
+                var unnestTable = new PgUnnestExpression(tableAlias, sqlIndexes, "x", withOrdinality: false);
+
+                // Create column reference for unnested value
+                var intTypeMapping = _typeMappingSource.FindMapping(typeof(int))!;
+                var xColumn = new ColumnExpression("x", tableAlias, typeof(int), intTypeMapping, nullable: false);
+
+                // Create increment expression: x + 1
+                var xPlusOne = _sqlExpressionFactory.Add(xColumn, _sqlExpressionFactory.Constant(1, intTypeMapping));
+
+                // Create array_agg(x + 1) function
+                var arrayAggFunction = _sqlExpressionFactory.Function(
+                    "array_agg",
+                    [xPlusOne],
+                    nullable: true,
+                    argumentsPropagateNullability: new[] { true },
+                    typeof(int[]),
+                    intArrayTypeMapping);
+
+                // Construct SelectExpression
+#pragma warning disable EF1001 // SelectExpression constructors are pubternal
+                var selectExpression = new SelectExpression(
+                    [unnestTable],
+                    arrayAggFunction,
+                    [],
+                    ((RelationalQueryCompilationContext)_queryCompilationContext).SqlAliasManager);
+#pragma warning restore EF1001
+
+                // Finalize and wrap in ScalarSubqueryExpression
+                selectExpression.ApplyProjection();
+                var convertedIndexes = new ScalarSubqueryExpression(selectExpression);
+
+                // Delegate to translator to build the cube_subset function call
+                // by calling the base implementation which will invoke translators
+                return base.VisitMethodCall(
+                    methodCallExpression.Update(
+                        methodCallExpression.Object,
+                        [convertedIndexes]));
+            }
+
+            // For other cases (constants, inline arrays), let the translator handle it
+        }
+
         if (method == StringStartsWithMethod
             && TryTranslateStartsEndsWithContains(
                 methodCallExpression.Object!, methodCallExpression.Arguments[0], StartsEndsWithContains.StartsWith, out var translation1))
