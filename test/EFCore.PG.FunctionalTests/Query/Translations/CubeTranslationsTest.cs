@@ -7,6 +7,7 @@ namespace Microsoft.EntityFrameworkCore.Query.Translations;
 /// <summary>
 /// Tests operations on the PostgreSQL cube type.
 /// </summary>
+[MinimumPostgresVersion(14, 0)] // Binary conversion for cube type was added in PostgreSQL 14
 public class CubeTranslationsTest : IClassFixture<CubeTranslationsTest.CubeQueryNpgsqlFixture>
 {
     private CubeQueryNpgsqlFixture Fixture { get; }
