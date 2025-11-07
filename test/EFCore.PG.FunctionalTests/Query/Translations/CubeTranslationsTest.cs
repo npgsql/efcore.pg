@@ -426,12 +426,12 @@ LIMIT 1
     }
 
     [ConditionalFact]
-    public void Subset_extract()
+    public void ToSubset_extract()
     {
         using var context = CreateContext();
         // Extract dimension 0 (PostgreSQL index 1) - expected result is (1),(4)
         var subset = new NpgsqlCube([1.0], [4.0]);
-        var result = context.CubeTestEntities.Where(x => x.Cube.Subset(0) == subset).ToList();
+        var result = context.CubeTestEntities.Where(x => x.Cube.ToSubset(0) == subset).ToList();
 
         AssertSql(
             """
@@ -444,14 +444,14 @@ WHERE cube_subset(c."Cube", ARRAY[1]::integer[]) = @subset
     }
 
     [ConditionalFact]
-    public void Subset_reorder()
+    public void ToSubset_reorder()
     {
         using var context = CreateContext();
         // Reorder dimensions: [2, 1, 0] (PostgreSQL: [3, 2, 1]) - expected result is (3,2,1),(6,5,4)
         var reordered = new NpgsqlCube([3.0, 2.0, 1.0], [6.0, 5.0, 4.0]);
         // Filter by dimension to avoid errors on cubes with different dimensionality
         var result = context.CubeTestEntities
-            .Where(x => x.Cube.Dimensions == 3 && x.Cube.Subset(2, 1, 0) == reordered)
+            .Where(x => x.Cube.Dimensions == 3 && x.Cube.ToSubset(2, 1, 0) == reordered)
             .ToList();
 
         AssertSql(
@@ -465,14 +465,14 @@ WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", ARRAY[3,2,1]::integer[]) 
     }
 
     [ConditionalFact]
-    public void Subset_duplicate()
+    public void ToSubset_duplicate()
     {
         using var context = CreateContext();
         // Duplicate dimension 0: [0, 0, 1] (PostgreSQL: [1, 1, 2]) - expected result is (1,1,2),(4,4,5)
         var duplicated = new NpgsqlCube([1.0, 1.0, 2.0], [4.0, 4.0, 5.0]);
         // Filter by dimension to avoid errors on cubes with different dimensionality
         var result = context.CubeTestEntities
-            .Where(x => x.Cube.Dimensions == 3 && x.Cube.Subset(0, 0, 1) == duplicated)
+            .Where(x => x.Cube.Dimensions == 3 && x.Cube.ToSubset(0, 0, 1) == duplicated)
             .ToList();
 
         AssertSql(
@@ -486,13 +486,13 @@ WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", ARRAY[1,1,2]::integer[]) 
     }
 
     [ConditionalFact]
-    public void Subset_with_parameter_array_single_index()
+    public void ToSubset_with_parameter_array_single_index()
     {
         using var context = CreateContext();
         // Test parameter array conversion: zero-based [0] should become one-based [1] in SQL
         var indexes = new[] { 0 };
         var subset = new NpgsqlCube([1.0], [4.0]);
-        var result = context.CubeTestEntities.Where(x => x.Cube.Subset(indexes) == subset).ToList();
+        var result = context.CubeTestEntities.Where(x => x.Cube.ToSubset(indexes) == subset).ToList();
 
         AssertSql(
             """
@@ -506,14 +506,14 @@ WHERE cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@indexes) AS x)
     }
 
     [ConditionalFact]
-    public void Subset_with_parameter_array_multiple_indexes()
+    public void ToSubset_with_parameter_array_multiple_indexes()
     {
         using var context = CreateContext();
         // Test parameter array conversion with reordering: [2, 1, 0] should become [3, 2, 1] in SQL
         var indexes = new[] { 2, 1, 0 };
         var reordered = new NpgsqlCube([3.0, 2.0, 1.0], [6.0, 5.0, 4.0]);
         var result = context.CubeTestEntities
-            .Where(x => x.Cube.Dimensions == 3 && x.Cube.Subset(indexes) == reordered)
+            .Where(x => x.Cube.Dimensions == 3 && x.Cube.ToSubset(indexes) == reordered)
             .ToList();
 
         AssertSql(
@@ -530,13 +530,13 @@ WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", (SELECT array_agg(x + 1) 
     }
 
     [ConditionalFact]
-    public void Subset_with_inline_array_literal()
+    public void ToSubset_with_inline_array_literal()
     {
         using var context = CreateContext();
         // Test inline array literal: new[] { 0, 1 } should be converted at translation time
         var extracted = new NpgsqlCube([1.0, 2.0], [4.0, 5.0]);
         var result = context.CubeTestEntities
-            .Where(x => x.Cube.Dimensions == 3 && x.Cube.Subset(new[] { 0, 1 }) == extracted)
+            .Where(x => x.Cube.Dimensions == 3 && x.Cube.ToSubset(new[] { 0, 1 }) == extracted)
             .ToList();
 
         AssertSql(
@@ -550,13 +550,13 @@ WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", ARRAY[1,2]::integer[]) = 
     }
 
     [ConditionalFact]
-    public void Subset_with_empty_array_parameter()
+    public void ToSubset_with_empty_array_parameter()
     {
         using var context = CreateContext();
         // Test empty array parameter - PostgreSQL should handle this gracefully
         var indexes = Array.Empty<int>();
         var result = context.CubeTestEntities
-            .Where(x => x.Cube.Subset(indexes).Dimensions == 0)
+            .Where(x => x.Cube.ToSubset(indexes).Dimensions == 0)
             .ToList();
 
         AssertSql(
@@ -570,13 +570,13 @@ WHERE cube_dim(cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@index
     }
 
     [ConditionalFact]
-    public void Subset_with_repeated_indexes_in_parameter()
+    public void ToSubset_with_repeated_indexes_in_parameter()
     {
         using var context = CreateContext();
         // Test parameter array with repeated indices - duplicates should be converted correctly
         var indexes = new[] { 0, 1, 0, 2, 1 };
         var result = context.CubeTestEntities
-            .Where(x => x.Cube.Dimensions == 3 && x.Cube.Subset(indexes).Dimensions == 5)
+            .Where(x => x.Cube.Dimensions == 3 && x.Cube.ToSubset(indexes).Dimensions == 5)
             .ToList();
 
         AssertSql(
@@ -594,12 +594,12 @@ WHERE cube_dim(c."Cube") = 3 AND cube_dim(cube_subset(c."Cube", (SELECT array_ag
     }
 
     [ConditionalFact]
-    public void Subset_with_column_array()
+    public void ToSubset_with_column_array()
     {
         using var context = CreateContext();
         // Test column-based array: should generate runtime subquery conversion
         var result = context.CubeTestEntities
-            .Where(x => x.Id == 1 && x.Cube.Subset(x.IndexArray!).Dimensions == 2)
+            .Where(x => x.Id == 1 && x.Cube.ToSubset(x.IndexArray!).Dimensions == 2)
             .ToList();
 
         AssertSql(
@@ -611,12 +611,12 @@ WHERE c."Id" = 1 AND cube_dim(cube_subset(c."Cube", (SELECT array_agg(x + 1) FRO
     }
 
     [ConditionalFact]
-    public void Subset_with_column_array_multiple_rows()
+    public void ToSubset_with_column_array_multiple_rows()
     {
         using var context = CreateContext();
         // Test column-based array with multiple rows
         var result = context.CubeTestEntities
-            .Where(x => x.Cube.Dimensions == 3 && x.Cube.Subset(x.IndexArray!).Dimensions == 2)
+            .Where(x => x.Cube.Dimensions == 3 && x.Cube.ToSubset(x.IndexArray!).Dimensions == 2)
             .ToList();
 
         AssertSql(
@@ -628,13 +628,13 @@ WHERE cube_dim(c."Cube") = 3 AND cube_dim(cube_subset(c."Cube", (SELECT array_ag
     }
 
     [ConditionalFact]
-    public void Subset_with_mixed_constant_and_variable_indexes()
+    public void ToSubset_with_mixed_constant_and_variable_indexes()
     {
         using var context = CreateContext();
         var variableIndex = 1;
         var extracted = new NpgsqlCube([1.0, 2.0, 3.0], [4.0, 5.0, 6.0]);
         var result = context.CubeTestEntities
-            .Where(x => x.Cube.Dimensions == 3 && x.Cube.Subset(new[] { 0, variableIndex, 2 }) == extracted)
+            .Where(x => x.Cube.Dimensions == 3 && x.Cube.ToSubset(new[] { 0, variableIndex, 2 }) == extracted)
             .ToList();
 
         AssertSql(

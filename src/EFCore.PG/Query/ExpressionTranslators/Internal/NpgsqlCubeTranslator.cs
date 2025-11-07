@@ -25,6 +25,18 @@ public class NpgsqlCubeTranslator(
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
+        // Handle instance methods on NpgsqlCube
+        if (instance is not null && method.DeclaringType == typeof(NpgsqlCube))
+        {
+            return method.Name switch
+            {
+                nameof(NpgsqlCube.ToSubset) when arguments is [var indexes]
+                    => TranslateSubset([instance, indexes]),
+
+                _ => null
+            };
+        }
+
         // Handle NpgsqlCubeDbFunctionsExtensions methods
         if (method.DeclaringType != typeof(NpgsqlCubeDbFunctionsExtensions))
         {
@@ -92,17 +104,14 @@ public class NpgsqlCubeTranslator(
                     typeof(NpgsqlCube),
                     typeMappingSource.FindMapping(typeof(NpgsqlCube))),
 
-            nameof(NpgsqlCubeDbFunctionsExtensions.Enlarge) when arguments is [var cube, var radius, var dimension]
+            nameof(NpgsqlCubeDbFunctionsExtensions.Enlarge) when arguments is [var cube1, var cube2, var dimension]
                 => sqlExpressionFactory.Function(
                     "cube_enlarge",
-                    [cube, radius, dimension],
+                    [cube1, cube2, dimension],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[3],
                     typeof(NpgsqlCube),
                     typeMappingSource.FindMapping(typeof(NpgsqlCube))),
-
-            nameof(NpgsqlCubeDbFunctionsExtensions.Subset) when arguments is [var cube, var indexes]
-                => TranslateSubset([cube, indexes]),
 
             _ => null
         };

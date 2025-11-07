@@ -166,28 +166,4 @@ public static class NpgsqlCubeDbFunctionsExtensions
     /// </exception>
     public static NpgsqlCube Enlarge(this NpgsqlCube cube, double radius, int dimensions)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Enlarge)));
-
-    /// <summary>
-    ///     Creates a new cube by extracting and optionally reordering specified dimensions.
-    /// </summary>
-    /// <param name="cube">The cube.</param>
-    /// <param name="indexes">The dimension indexes to extract (in the desired order).</param>
-    /// <returns>A new cube containing only the specified dimensions in the specified order.</returns>
-    /// <remarks>
-    ///     <para>
-    ///         This method uses zero-based indexing (C# convention), which is translated to PostgreSQL's one-based indexing.
-    ///     </para>
-    ///     <para>
-    ///         Can be used to drop dimensions, reorder them, or duplicate them as desired.
-    ///     </para>
-    ///     <para>
-    ///         This method is only intended for use via SQL translation as part of an EF Core LINQ query,
-    ///         to get the subset of a cube locally, use <see cref="NpgsqlCube.ToSubset"/>.
-    ///     </para>
-    /// </remarks>
-    /// <exception cref="InvalidOperationException">
-    ///     <see cref="Subset" /> is only intended for use via SQL translation as part of an EF Core LINQ query.
-    /// </exception>
-    public static NpgsqlCube Subset(this NpgsqlCube cube, params int[] indexes)
-        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Subset)));
 }
