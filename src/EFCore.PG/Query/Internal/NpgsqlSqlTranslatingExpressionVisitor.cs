@@ -355,19 +355,17 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
 
         // Pattern-match: cube.LowerLeft[index] or cube.UpperRight[index]
         // This appears as: get_Item method call on a MemberExpression of LowerLeft/UpperRight
-        if (method.Name == "get_Item"
-            && methodCallExpression.Object is MemberExpression memberExpression
-            && memberExpression.Member.DeclaringType == typeof(NpgsqlCube)
-            && memberExpression.Member.Name is nameof(NpgsqlCube.LowerLeft) or nameof(NpgsqlCube.UpperRight))
-        {
-            // Translate the cube instance (the object on which LowerLeft/UpperRight is accessed)
-            if (Visit(memberExpression.Expression) is not SqlExpression sqlCubeInstance)
+        if (method.Name == "get_Item" && methodCallExpression is
             {
-                return QueryCompilationContext.NotTranslatedExpression;
-            }
-
-            // Translate the index argument
-            if (Visit(methodCallExpression.Arguments[0]) is not SqlExpression sqlIndex)
+                Object: MemberExpression
+                {
+                    Member.Name: nameof(NpgsqlCube.LowerLeft) or nameof(NpgsqlCube.UpperRight)
+                } memberExpression
+            } && memberExpression.Member.DeclaringType == typeof(NpgsqlCube))
+        {
+            // Translate the cube instance and index argument
+            if (Visit(memberExpression.Expression) is not SqlExpression sqlCubeInstance
+                || Visit(methodCallExpression.Arguments[0]) is not SqlExpression sqlIndex)
             {
                 return QueryCompilationContext.NotTranslatedExpression;
             }

@@ -627,6 +627,27 @@ WHERE cube_dim(c."Cube") = 3 AND cube_dim(cube_subset(c."Cube", (SELECT array_ag
 """);
     }
 
+    [ConditionalFact]
+    public void Subset_with_mixed_constant_and_variable_indexes()
+    {
+        using var context = CreateContext();
+        var variableIndex = 1;
+        var extracted = new NpgsqlCube([1.0, 2.0, 3.0], [4.0, 5.0, 6.0]);
+        var result = context.CubeTestEntities
+            .Where(x => x.Cube.Dimensions == 3 && x.Cube.Subset(new[] { 0, variableIndex, 2 }) == extracted)
+            .ToList();
+
+        AssertSql(
+            """
+@variableIndex='1'
+@extracted='(1, 2, 3),(4, 5, 6)' (DbType = Object)
+
+SELECT c."Id", c."Cube", c."IndexArray"
+FROM "CubeTestEntities" AS c
+WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", ARRAY[1,@variableIndex + 1,3]::integer[]) = @extracted
+""");
+    }
+
     #endregion
 
     #region Edge Cases

@@ -12,26 +12,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
+public class NpgsqlCubeTranslator(
+    NpgsqlSqlExpressionFactory sqlExpressionFactory,
+    IRelationalTypeMappingSource typeMappingSource) : IMethodCallTranslator, IMemberTranslator
 {
-    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-    private readonly IRelationalTypeMappingSource _typeMappingSource;
-    private readonly RelationalTypeMapping _doubleTypeMapping;
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public NpgsqlCubeTranslator(
-        NpgsqlSqlExpressionFactory sqlExpressionFactory,
-        IRelationalTypeMappingSource typeMappingSource)
-    {
-        _sqlExpressionFactory = sqlExpressionFactory;
-        _typeMappingSource = typeMappingSource;
-        _doubleTypeMapping = typeMappingSource.FindMapping(typeof(double))!;
-    }
+    private readonly RelationalTypeMapping _doubleTypeMapping = typeMappingSource.FindMapping(typeof(double))!;
 
     /// <inheritdoc />
     public virtual SqlExpression? Translate(
@@ -40,28 +25,6 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        // Handle indexer access: cube.LowerLeft[index] or cube.UpperRight[index]
-        if (method.Name == "get_Item" && instance != null)
-        {
-            // Check if this is being called on LowerLeft or UpperRight property
-            if (instance is SqlFunctionExpression { Name: "cube_ll_coord" or "cube_ur_coord" })
-            {
-                // This is already a function call, let it pass through
-                return null;
-            }
-
-            // For member access like cube.LowerLeft or cube.UpperRight, the instance will be a column/parameter
-            // and we need to check if this is accessing an IReadOnlyList<double>
-            if (instance.Type == typeof(IReadOnlyList<double>))
-            {
-                // We can't directly determine if this is LowerLeft or UpperRight from here.
-                // This case might need special handling in the member translator or we might need
-                // to track this through a custom expression type. For now, return null.
-                // The indexer translation will be handled by translating member access first.
-                return null;
-            }
-        }
-
         // Handle NpgsqlCubeDbFunctionsExtensions methods
         if (method.DeclaringType != typeof(NpgsqlCubeDbFunctionsExtensions))
         {
@@ -70,76 +33,76 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
 
         return method.Name switch
         {
-            nameof(NpgsqlCubeDbFunctionsExtensions.Overlaps)
-                => _sqlExpressionFactory.Overlaps(arguments[0], arguments[1]),
+            nameof(NpgsqlCubeDbFunctionsExtensions.Overlaps) when arguments is [var cube1, var cube2]
+                => sqlExpressionFactory.Overlaps(cube1, cube2),
 
-            nameof(NpgsqlCubeDbFunctionsExtensions.Contains)
-                => _sqlExpressionFactory.Contains(arguments[0], arguments[1]),
+            nameof(NpgsqlCubeDbFunctionsExtensions.Contains) when arguments is [var cube1, var cube2]
+                => sqlExpressionFactory.Contains(cube1, cube2),
 
-            nameof(NpgsqlCubeDbFunctionsExtensions.ContainedBy)
-                => _sqlExpressionFactory.ContainedBy(arguments[0], arguments[1]),
+            nameof(NpgsqlCubeDbFunctionsExtensions.ContainedBy) when arguments is [var cube1, var cube2]
+                => sqlExpressionFactory.ContainedBy(cube1, cube2),
 
-            nameof(NpgsqlCubeDbFunctionsExtensions.Distance)
-                => _sqlExpressionFactory.MakePostgresBinary(
+            nameof(NpgsqlCubeDbFunctionsExtensions.Distance) when arguments is [var cube1, var cube2]
+                => sqlExpressionFactory.MakePostgresBinary(
                     PgExpressionType.Distance,
-                    arguments[0],
-                    arguments[1]),
+                    cube1,
+                    cube2),
 
-            nameof(NpgsqlCubeDbFunctionsExtensions.DistanceTaxicab)
-                => _sqlExpressionFactory.MakePostgresBinary(
+            nameof(NpgsqlCubeDbFunctionsExtensions.DistanceTaxicab) when arguments is [var cube1, var cube2]
+                => sqlExpressionFactory.MakePostgresBinary(
                     PgExpressionType.CubeDistanceTaxicab,
-                    arguments[0],
-                    arguments[1]),
+                    cube1,
+                    cube2),
 
-            nameof(NpgsqlCubeDbFunctionsExtensions.DistanceChebyshev)
-                => _sqlExpressionFactory.MakePostgresBinary(
+            nameof(NpgsqlCubeDbFunctionsExtensions.DistanceChebyshev) when arguments is [var cube1, var cube2]
+                => sqlExpressionFactory.MakePostgresBinary(
                     PgExpressionType.CubeDistanceChebyshev,
-                    arguments[0],
-                    arguments[1]),
+                    cube1,
+                    cube2),
 
-            nameof(NpgsqlCubeDbFunctionsExtensions.NthCoordinate)
-                => _sqlExpressionFactory.MakePostgresBinary(
+            nameof(NpgsqlCubeDbFunctionsExtensions.NthCoordinate) when arguments is [var cube, var index]
+                => sqlExpressionFactory.MakePostgresBinary(
                     PgExpressionType.CubeNthCoordinate,
-                    arguments[0],
-                    ConvertToPostgresIndex(arguments[1]),
+                    cube,
+                    ConvertToPostgresIndex(index),
                     _doubleTypeMapping),
 
-            nameof(NpgsqlCubeDbFunctionsExtensions.NthCoordinateKnn)
-                => _sqlExpressionFactory.MakePostgresBinary(
+            nameof(NpgsqlCubeDbFunctionsExtensions.NthCoordinateKnn) when arguments is [var cube, var index]
+                => sqlExpressionFactory.MakePostgresBinary(
                     PgExpressionType.CubeNthCoordinateKnn,
-                    arguments[0],
-                    ConvertToPostgresIndex(arguments[1]),
+                    cube,
+                    ConvertToPostgresIndex(index),
                     _doubleTypeMapping),
 
-            nameof(NpgsqlCubeDbFunctionsExtensions.Union)
-                => _sqlExpressionFactory.Function(
+            nameof(NpgsqlCubeDbFunctionsExtensions.Union) when arguments is [var cube1, var cube2]
+                => sqlExpressionFactory.Function(
                     "cube_union",
-                    [arguments[0], arguments[1]],
+                    [cube1, cube2],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
                     typeof(NpgsqlCube),
-                    _typeMappingSource.FindMapping(typeof(NpgsqlCube))),
+                    typeMappingSource.FindMapping(typeof(NpgsqlCube))),
 
-            nameof(NpgsqlCubeDbFunctionsExtensions.Intersect)
-                => _sqlExpressionFactory.Function(
+            nameof(NpgsqlCubeDbFunctionsExtensions.Intersect) when arguments is [var cube1, var cube2]
+                => sqlExpressionFactory.Function(
                     "cube_inter",
-                    [arguments[0], arguments[1]],
+                    [cube1, cube2],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
                     typeof(NpgsqlCube),
-                    _typeMappingSource.FindMapping(typeof(NpgsqlCube))),
+                    typeMappingSource.FindMapping(typeof(NpgsqlCube))),
 
-            nameof(NpgsqlCubeDbFunctionsExtensions.Enlarge)
-                => _sqlExpressionFactory.Function(
+            nameof(NpgsqlCubeDbFunctionsExtensions.Enlarge) when arguments is [var cube, var radius, var dimension]
+                => sqlExpressionFactory.Function(
                     "cube_enlarge",
-                    [arguments[0], arguments[1], arguments[2]],
+                    [cube, radius, dimension],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[3],
                     typeof(NpgsqlCube),
-                    _typeMappingSource.FindMapping(typeof(NpgsqlCube))),
+                    typeMappingSource.FindMapping(typeof(NpgsqlCube))),
 
-            nameof(NpgsqlCubeDbFunctionsExtensions.Subset)
-                => TranslateSubset(arguments),
+            nameof(NpgsqlCubeDbFunctionsExtensions.Subset) when arguments is [var cube, var indexes]
+                => TranslateSubset([cube, indexes]),
 
             _ => null
         };
@@ -160,7 +123,7 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
         return member.Name switch
         {
             nameof(NpgsqlCube.Dimensions)
-                => _sqlExpressionFactory.Function(
+                => sqlExpressionFactory.Function(
                     "cube_dim",
                     [instance!],
                     nullable: true,
@@ -168,7 +131,7 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
                     typeof(int)),
 
             nameof(NpgsqlCube.IsPoint)
-                => _sqlExpressionFactory.Function(
+                => sqlExpressionFactory.Function(
                     "cube_is_point",
                     [instance!],
                     nullable: true,
@@ -189,50 +152,44 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
         };
     }
 
-    private SqlExpression? TranslateSubset(IReadOnlyList<SqlExpression> arguments)
+    private SqlExpression TranslateSubset(IReadOnlyList<SqlExpression> arguments)
     {
         // arguments[0] is the cube
         // arguments[1] is the int[] indexes array
 
-        // For subset, we need to convert the C# zero-based indexes to PostgreSQL one-based indexes
         SqlExpression convertedIndexes;
 
         switch (arguments[1])
         {
-            case PgNewArrayExpression { Expressions: var expressions }
-                when expressions.All(e => e is SqlConstantExpression { Value: int }):
-                // OPTIMIZATION: For constant array literals (from params expansion), convert at translation time
-                var oneBasedConstants = expressions
-                    .Cast<SqlConstantExpression>()
-                    .Select(e => _sqlExpressionFactory.Constant((int)e.Value! + 1))
-                    .ToArray();
-
-                convertedIndexes = _sqlExpressionFactory.NewArray(oneBasedConstants, typeof(int[]));
+            case SqlConstantExpression { Value: int[] constantArray }:
+                // All elements are constants
+                var oneBasedValues = constantArray.Select(i => i + 1).ToArray();
+                convertedIndexes = sqlExpressionFactory.Constant(oneBasedValues);
                 break;
 
-            case SqlConstantExpression { Value: int[] constantArray }:
-                // OPTIMIZATION: For constant arrays, convert at translation time (no SQL overhead)
-                var oneBasedArray = constantArray
-                    .Select(i => _sqlExpressionFactory.Constant(i + 1))
+            case PgNewArrayExpression { Expressions: var expressions }:
+                // Mixed constants and non-constants
+                var convertedExpressions = expressions
+                    .Select(e => e is SqlConstantExpression { Value: int index }
+                        ? sqlExpressionFactory.Constant(index + 1)  // Constant
+                        : sqlExpressionFactory.Add(e, sqlExpressionFactory.Constant(1)))  // Non-constant
                     .ToArray();
-
-                convertedIndexes = _sqlExpressionFactory.NewArray(oneBasedArray, typeof(int[]));
+                convertedIndexes = sqlExpressionFactory.NewArray(convertedExpressions, typeof(int[]));
                 break;
 
             default:
-                // For parameters, columns, and other expressions - runtime conversion
-                // Generates: (SELECT array_agg(x + 1) FROM unnest(array) AS x)
+                // Runtime conversion for columns, parameters, etc.
                 convertedIndexes = BuildArrayIncrementSubquery(arguments[1]);
                 break;
         }
 
-        return _sqlExpressionFactory.Function(
+        return sqlExpressionFactory.Function(
             "cube_subset",
             [arguments[0], convertedIndexes],
             nullable: true,
             argumentsPropagateNullability: TrueArrays[2],
             typeof(NpgsqlCube),
-            _typeMappingSource.FindMapping(typeof(NpgsqlCube)));
+            typeMappingSource.FindMapping(typeof(NpgsqlCube)));
     }
 
     /// <summary>
@@ -242,7 +199,7 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
     private SqlExpression BuildArrayIncrementSubquery(SqlExpression arrayExpression)
     {
         // Create a custom expression that will generate the subquery SQL
-        var intArrayTypeMapping = _typeMappingSource.FindMapping(typeof(int[]));
+        var intArrayTypeMapping = typeMappingSource.FindMapping(typeof(int[]));
 
         return new ArrayIncrementSubqueryExpression(arrayExpression, intArrayTypeMapping);
     }
@@ -253,11 +210,11 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
     /// </summary>
     private SqlExpression ConvertToPostgresIndex(SqlExpression indexExpression)
     {
-        var intTypeMapping = _typeMappingSource.FindMapping(typeof(int));
+        var intTypeMapping = typeMappingSource.FindMapping(typeof(int));
 
         return indexExpression is SqlConstantExpression { Value: int index }
-            ? _sqlExpressionFactory.Constant(index + 1, intTypeMapping)
-            : _sqlExpressionFactory.Add(indexExpression, _sqlExpressionFactory.Constant(1, intTypeMapping));
+            ? sqlExpressionFactory.Constant(index + 1, intTypeMapping)
+            : sqlExpressionFactory.Add(indexExpression, sqlExpressionFactory.Constant(1, intTypeMapping));
     }
 
     /// <summary>
@@ -282,7 +239,7 @@ public class NpgsqlCubeTranslator : IMethodCallTranslator, IMemberTranslator
 
         /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
-            => visitor.Visit(ArrayExpression) is var visited && visited == ArrayExpression
+            => visitor.Visit(ArrayExpression) is var visited && visited.Equals(ArrayExpression)
                 ? this
                 : new ArrayIncrementSubqueryExpression((SqlExpression)visited, TypeMapping);
 
