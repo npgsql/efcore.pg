@@ -59,36 +59,8 @@ public class NpgsqlCubeTypeMapping : NpgsqlTypeMapping
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
     {
-        // TODO: Re-use the existing NpgsqlCube ToString() method (does not use full-precision G17 format)
         var cube = (NpgsqlCube)value;
-        var sb = new StringBuilder();
-
-        sb.Append('(');
-        for (var i = 0; i < cube.Dimensions; i++)
-        {
-            sb.Append(cube.LowerLeft[i].ToString("G17", CultureInfo.InvariantCulture));
-            if (i < cube.Dimensions - 1)
-            {
-                sb.Append(", ");
-            }
-        }
-        sb.Append(')');
-
-        if (!cube.IsPoint)
-        {
-            sb.Append(", (");
-            for (var i = 0; i < cube.Dimensions; i++)
-            {
-                sb.Append(cube.UpperRight[i].ToString("G17", CultureInfo.InvariantCulture));
-                if (i < cube.Dimensions - 1)
-                {
-                    sb.Append(", ");
-                }
-            }
-            sb.Append(')');
-        }
-
-        return $"'{sb}'::cube";
+        return $"'{cube}'::cube";
     }
 
     /// <summary>
