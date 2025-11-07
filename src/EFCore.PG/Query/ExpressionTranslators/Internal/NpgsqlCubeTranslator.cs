@@ -1,7 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
-using NpgsqlTypes;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
@@ -25,18 +23,6 @@ public class NpgsqlCubeTranslator(
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        // Handle instance methods on NpgsqlCube
-        if (instance is not null && method.DeclaringType == typeof(NpgsqlCube))
-        {
-            return method.Name switch
-            {
-                nameof(NpgsqlCube.ToSubset) when arguments is [var indexes]
-                    => TranslateSubset([instance, indexes]),
-
-                _ => null
-            };
-        }
-
         // Handle NpgsqlCubeDbFunctionsExtensions methods
         if (method.DeclaringType != typeof(NpgsqlCubeDbFunctionsExtensions))
         {
@@ -55,35 +41,43 @@ public class NpgsqlCubeTranslator(
                 => sqlExpressionFactory.ContainedBy(cube1, cube2),
 
             nameof(NpgsqlCubeDbFunctionsExtensions.Distance) when arguments is [var cube1, var cube2]
-                => sqlExpressionFactory.MakePostgresBinary(
+                => new PgBinaryExpression(
                     PgExpressionType.Distance,
                     cube1,
-                    cube2),
+                    cube2,
+                    typeof(double),
+                    null),
 
             nameof(NpgsqlCubeDbFunctionsExtensions.DistanceTaxicab) when arguments is [var cube1, var cube2]
-                => sqlExpressionFactory.MakePostgresBinary(
+                => new PgBinaryExpression(
                     PgExpressionType.CubeDistanceTaxicab,
                     cube1,
-                    cube2),
+                    cube2,
+                    typeof(double),
+                    null),
 
             nameof(NpgsqlCubeDbFunctionsExtensions.DistanceChebyshev) when arguments is [var cube1, var cube2]
-                => sqlExpressionFactory.MakePostgresBinary(
+                => new PgBinaryExpression(
                     PgExpressionType.CubeDistanceChebyshev,
                     cube1,
-                    cube2),
+                    cube2,
+                    typeof(double),
+                    null),
 
             nameof(NpgsqlCubeDbFunctionsExtensions.NthCoordinate) when arguments is [var cube, var index]
-                => sqlExpressionFactory.MakePostgresBinary(
+                => new PgBinaryExpression(
                     PgExpressionType.CubeNthCoordinate,
                     cube,
                     ConvertToPostgresIndex(index),
+                    typeof(double),
                     _doubleTypeMapping),
 
             nameof(NpgsqlCubeDbFunctionsExtensions.NthCoordinateKnn) when arguments is [var cube, var index]
-                => sqlExpressionFactory.MakePostgresBinary(
+                => new PgBinaryExpression(
                     PgExpressionType.CubeNthCoordinateKnn,
                     cube,
                     ConvertToPostgresIndex(index),
+                    typeof(double),
                     _doubleTypeMapping),
 
             nameof(NpgsqlCubeDbFunctionsExtensions.Union) when arguments is [var cube1, var cube2]
@@ -159,50 +153,6 @@ public class NpgsqlCubeTranslator(
 
             _ => null
         };
-    }
-
-    private SqlExpression? TranslateSubset(IReadOnlyList<SqlExpression> arguments)
-    {
-        // arguments[0] is the cube
-        // arguments[1] is the int[] indexes array
-
-        SqlExpression convertedIndexes;
-
-        switch (arguments[1])
-        {
-            case SqlConstantExpression { Value: int[] constantArray }:
-                // All elements are constants
-                var oneBasedValues = constantArray.Select(i => i + 1).ToArray();
-                convertedIndexes = sqlExpressionFactory.Constant(oneBasedValues);
-                break;
-
-            case PgNewArrayExpression { Expressions: var expressions }:
-                // Mixed constants and non-constants
-                var convertedExpressions = expressions
-                    .Select(e => e is SqlConstantExpression { Value: int index }
-                        ? sqlExpressionFactory.Constant(index + 1)  // Constant
-                        : sqlExpressionFactory.Add(e, sqlExpressionFactory.Constant(1)))  // Non-constant
-                    .ToArray();
-                convertedIndexes = sqlExpressionFactory.NewArray(convertedExpressions, typeof(int[]));
-                break;
-
-            case ScalarSubqueryExpression:
-                // Already converted by NpgsqlSqlTranslatingExpressionVisitor
-                convertedIndexes = arguments[1];
-                break;
-
-            default:
-                // For parameters and columns, let NpgsqlSqlTranslatingExpressionVisitor handle it
-                return null;
-        }
-
-        return sqlExpressionFactory.Function(
-            "cube_subset",
-            [arguments[0], convertedIndexes],
-            nullable: true,
-            argumentsPropagateNullability: TrueArrays[2],
-            typeof(NpgsqlCube),
-            typeMappingSource.FindMapping(typeof(NpgsqlCube)));
     }
 
     /// <summary>

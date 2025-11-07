@@ -391,7 +391,6 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         }
 
         // Pattern-match: cube.ToSubset(indexes)
-        // Handle runtime array conversion via subquery for parameters and columns
         if (method.Name == nameof(NpgsqlCube.ToSubset)
             && method.DeclaringType == typeof(NpgsqlCube)
             && methodCallExpression.Object is not null)
@@ -403,17 +402,49 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                 return QueryCompilationContext.NotTranslatedExpression;
             }
 
-            // For parameters and columns, construct the subquery: (SELECT array_agg(u.x + 1) FROM unnest(indexes) AS u(x))
-            // For constants and inline arrays, delegate to translator for optimization
-            if (sqlIndexes is SqlParameterExpression or ColumnExpression)
+            return TranslateToSubset(sqlCubeInstance, sqlIndexes) ?? QueryCompilationContext.NotTranslatedExpression;
+        }
+
+        if (method == StringStartsWithMethod
+            && TryTranslateStartsEndsWithContains(
+                methodCallExpression.Object!, methodCallExpression.Arguments[0], StartsEndsWithContains.StartsWith, out var translation1))
+        {
+            return translation1;
+        }
+
+        if (method == StringEndsWithMethod
+            && TryTranslateStartsEndsWithContains(
+                methodCallExpression.Object!, methodCallExpression.Arguments[0], StartsEndsWithContains.EndsWith, out var translation2))
+        {
+            return translation2;
+        }
+
+        if (method == StringContainsMethod
+            && TryTranslateStartsEndsWithContains(
+                methodCallExpression.Object!, methodCallExpression.Arguments[0], StartsEndsWithContains.Contains, out var translation3))
+        {
+            return translation3;
+        }
+
+        return base.VisitMethodCall(methodCallExpression);
+    }
+
+    private SqlExpression? TranslateToSubset(SqlExpression cubeExpression, SqlExpression indexesExpression)
+    {
+        SqlExpression convertedIndexes;
+
+        switch (indexesExpression)
+        {
+            // Parameters or columns - create subquery to convert 0-based to 1-based at runtime
+            case SqlParameterExpression or ColumnExpression:
             {
                 // Apply type mapping to the indexes array
                 var intArrayTypeMapping = _typeMappingSource.FindMapping(typeof(int[]))!;
-                sqlIndexes = _sqlExpressionFactory.ApplyTypeMapping(sqlIndexes, intArrayTypeMapping);
+                var typedIndexes = _sqlExpressionFactory.ApplyTypeMapping(indexesExpression, intArrayTypeMapping);
 
                 // Generate table alias and create unnest table
                 var tableAlias = ((RelationalQueryCompilationContext)_queryCompilationContext).SqlAliasManager.GenerateTableAlias("u");
-                var unnestTable = new PgUnnestExpression(tableAlias, sqlIndexes, "x", withOrdinality: false);
+                var unnestTable = new PgUnnestExpression(tableAlias, typedIndexes, "x", withOrdinality: false);
 
                 // Create column reference for unnested value
                 var intTypeMapping = _typeMappingSource.FindMapping(typeof(int))!;
@@ -442,41 +473,43 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
 
                 // Finalize and wrap in ScalarSubqueryExpression
                 selectExpression.ApplyProjection();
-                var convertedIndexes = new ScalarSubqueryExpression(selectExpression);
-
-                // Delegate to translator to build the cube_subset function call
-                // by calling the base implementation which will invoke translators
-                return base.VisitMethodCall(
-                    methodCallExpression.Update(
-                        methodCallExpression.Object,
-                        [convertedIndexes]));
+                convertedIndexes = new ScalarSubqueryExpression(selectExpression);
+                break;
             }
 
-            // For other cases (constants, inline arrays), let the translator handle it
+            // Constant arrays - convert directly at compile time
+            case SqlConstantExpression { Value: int[] constantArray }:
+            {
+                var oneBasedValues = constantArray.Select(i => i + 1).ToArray();
+                convertedIndexes = _sqlExpressionFactory.Constant(oneBasedValues);
+                break;
+            }
+
+            // Inline arrays (new[] { ... }) - convert each element
+            case PgNewArrayExpression { Expressions: var expressions }:
+            {
+                var convertedExpressions = expressions
+                    .Select(e => e is SqlConstantExpression { Value: int index }
+                        ? _sqlExpressionFactory.Constant(index + 1)  // Constant element
+                        : _sqlExpressionFactory.Add(e, _sqlExpressionFactory.Constant(1)))  // Non-constant element
+                    .ToArray();
+                convertedIndexes = _sqlExpressionFactory.NewArray(convertedExpressions, typeof(int[]));
+                break;
+            }
+
+            default:
+                // Unexpected case - cannot translate
+                return null;
         }
 
-        if (method == StringStartsWithMethod
-            && TryTranslateStartsEndsWithContains(
-                methodCallExpression.Object!, methodCallExpression.Arguments[0], StartsEndsWithContains.StartsWith, out var translation1))
-        {
-            return translation1;
-        }
-
-        if (method == StringEndsWithMethod
-            && TryTranslateStartsEndsWithContains(
-                methodCallExpression.Object!, methodCallExpression.Arguments[0], StartsEndsWithContains.EndsWith, out var translation2))
-        {
-            return translation2;
-        }
-
-        if (method == StringContainsMethod
-            && TryTranslateStartsEndsWithContains(
-                methodCallExpression.Object!, methodCallExpression.Arguments[0], StartsEndsWithContains.Contains, out var translation3))
-        {
-            return translation3;
-        }
-
-        return base.VisitMethodCall(methodCallExpression);
+        // Build final cube_subset function call
+        return _sqlExpressionFactory.Function(
+            "cube_subset",
+            [cubeExpression, convertedIndexes],
+            nullable: true,
+            argumentsPropagateNullability: TrueArrays[2],
+            typeof(NpgsqlCube),
+            _typeMappingSource.FindMapping(typeof(NpgsqlCube)));
     }
 
     /// <summary>

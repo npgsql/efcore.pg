@@ -309,14 +309,6 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case PgExpressionType.JsonExistsAll:
                 returnType = typeof(bool);
                 break;
-
-            case PgExpressionType.Distance:
-            case PgExpressionType.CubeNthCoordinate:
-            case PgExpressionType.CubeNthCoordinateKnn:
-            case PgExpressionType.CubeDistanceTaxicab:
-            case PgExpressionType.CubeDistanceChebyshev:
-                returnType = typeof(double);
-                break;
         }
 
         return (PgBinaryExpression)ApplyTypeMapping(
