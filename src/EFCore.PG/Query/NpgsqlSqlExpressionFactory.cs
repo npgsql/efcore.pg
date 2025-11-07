@@ -835,11 +835,12 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
 
             case PgExpressionType.CubeNthCoordinate:
             case PgExpressionType.CubeNthCoordinateKnn:
+            case PgExpressionType.CubeDistance:
             case PgExpressionType.CubeDistanceTaxicab:
             case PgExpressionType.CubeDistanceChebyshev:
-                inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
+                inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
                 resultType = pgBinaryExpression.Type;
-                resultTypeMapping = typeMapping ?? _typeMappingSource.FindMapping(typeof(double));
+                resultTypeMapping = _typeMappingSource.FindMapping(typeof(double));
                 break;
 
             default:

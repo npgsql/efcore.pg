@@ -173,6 +173,11 @@ public enum PgExpressionType
     CubeNthCoordinateKnn, // ~>
 
     /// <summary>
+    ///     Represents a PostgreSQL operator for computing the Euclidean (L-2 metric) distance between two cubes.
+    /// </summary>
+    CubeDistance, // <->
+
+    /// <summary>
     ///     Represents a PostgreSQL operator for computing the taxicab (L-1 metric) distance between two cubes.
     /// </summary>
     CubeDistanceTaxicab, // <#>

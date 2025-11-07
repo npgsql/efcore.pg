@@ -42,7 +42,7 @@ public class NpgsqlCubeTranslator(
 
             nameof(NpgsqlCubeDbFunctionsExtensions.Distance) when arguments is [var cube1, var cube2]
                 => new PgBinaryExpression(
-                    PgExpressionType.Distance,
+                    PgExpressionType.CubeDistance,
                     cube1,
                     cube2,
                     typeof(double),
