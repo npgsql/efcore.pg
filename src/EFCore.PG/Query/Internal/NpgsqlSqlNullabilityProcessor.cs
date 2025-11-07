@@ -216,7 +216,6 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
             PgRegexMatchExpression e => VisitRegexMatch(e, allowOptimizedExpansion, out nullable),
             PgRowValueExpression e => VisitRowValueExpression(e, allowOptimizedExpansion, out nullable),
             PgUnknownBinaryExpression e => VisitUnknownBinary(e, allowOptimizedExpansion, out nullable),
-            NpgsqlCubeTranslator.ArrayIncrementSubqueryExpression e => VisitArrayIncrementSubquery(e, allowOptimizedExpansion, out nullable),
 
             // PostgresFunctionExpression is visited via the SqlFunctionExpression override below
 
@@ -364,29 +363,6 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         nullable = arrayNullable || lowerBoundNullable || upperBoundNullable || arraySliceExpression.IsNullable;
 
         return arraySliceExpression.Update(array, lowerBound, upperBound);
-    }
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    protected virtual SqlExpression VisitArrayIncrementSubquery(
-        NpgsqlCubeTranslator.ArrayIncrementSubqueryExpression expression,
-        bool allowOptimizedExpansion,
-        out bool nullable)
-    {
-        Check.NotNull(expression, nameof(expression));
-
-        var array = Visit(expression.ArrayExpression, allowOptimizedExpansion, out var arrayNullable);
-
-        // The subquery is nullable if the input array is nullable
-        nullable = arrayNullable;
-
-        return array == expression.ArrayExpression
-            ? expression
-            : new NpgsqlCubeTranslator.ArrayIncrementSubqueryExpression(array, expression.TypeMapping);
     }
 
     /// <summary>

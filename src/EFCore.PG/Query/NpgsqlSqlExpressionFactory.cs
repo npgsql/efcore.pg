@@ -311,6 +311,10 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 break;
 
             case PgExpressionType.Distance:
+            case PgExpressionType.CubeNthCoordinate:
+            case PgExpressionType.CubeNthCoordinateKnn:
+            case PgExpressionType.CubeDistanceTaxicab:
+            case PgExpressionType.CubeDistanceChebyshev:
                 returnType = typeof(double);
                 break;
         }
@@ -839,16 +843,11 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
 
             case PgExpressionType.CubeNthCoordinate:
             case PgExpressionType.CubeNthCoordinateKnn:
-                inferredTypeMapping = typeMapping;
-                resultType = typeof(double);
-                resultTypeMapping = typeMapping ?? _typeMappingSource.FindMapping(typeof(double));
-                break;
-
             case PgExpressionType.CubeDistanceTaxicab:
             case PgExpressionType.CubeDistanceChebyshev:
                 inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
-                resultType = typeof(double);
-                resultTypeMapping = _typeMappingSource.FindMapping(typeof(double));
+                resultType = pgBinaryExpression.Type;
+                resultTypeMapping = typeMapping ?? _typeMappingSource.FindMapping(typeof(double));
                 break;
 
             default:

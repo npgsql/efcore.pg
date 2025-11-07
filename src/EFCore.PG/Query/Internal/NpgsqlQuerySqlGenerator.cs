@@ -66,7 +66,6 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             PgRowValueExpression e => VisitRowValue(e),
             PgUnknownBinaryExpression e => VisitUnknownBinary(e),
             PgTableValuedFunctionExpression e => VisitPgTableValuedFunctionExpression(e),
-            NpgsqlCubeTranslator.ArrayIncrementSubqueryExpression e => VisitArrayIncrementSubquery(e),
 
             _ => base.VisitExtension(extensionExpression)
         };
@@ -945,18 +944,6 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         Sql.Append(":");
         Visit(expression.UpperBound);
         Sql.Append("]");
-        return expression;
-    }
-
-    /// <summary>
-    ///     Generates SQL for array increment subquery used in cube subset translation.
-    ///     Produces: (SELECT array_agg(x + 1) FROM unnest(array) AS x)
-    /// </summary>
-    protected virtual Expression VisitArrayIncrementSubquery(NpgsqlCubeTranslator.ArrayIncrementSubqueryExpression expression)
-    {
-        Sql.Append("(SELECT array_agg(x + 1) FROM unnest(");
-        Visit(expression.ArrayExpression);
-        Sql.Append(") AS x)");
         return expression;
     }
 

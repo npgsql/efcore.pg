@@ -44,17 +44,55 @@ public class NpgsqlTypeMappingPostprocessor : RelationalTypeMappingPostprocessor
         {
             case NpgsqlCubeTranslator.ArrayIncrementSubqueryExpression arrayIncrementExpression:
             {
-                // Apply type mapping to the array expression
-                var arrayTypeMapping = _typeMappingSource.FindMapping(typeof(int[]), _model);
+                // Transform the marker expression into a proper scalar subquery:
+                // (SELECT array_agg(x + 1) FROM unnest(arrayExpression) AS x)
 
+                // Apply type mapping to the input array expression
+                var arrayTypeMapping = _typeMappingSource.FindMapping(typeof(int[]), _model);
                 if (arrayTypeMapping is null)
                 {
                     throw new InvalidOperationException(RelationalStrings.NullTypeMappingInSqlTree(expression.Print()));
                 }
 
-                return new NpgsqlCubeTranslator.ArrayIncrementSubqueryExpression(
-                    _sqlExpressionFactory.ApplyTypeMapping(arrayIncrementExpression.ArrayExpression, arrayTypeMapping),
-                    arrayIncrementExpression.TypeMapping);
+                var typedArrayExpression = _sqlExpressionFactory.ApplyTypeMapping(
+                    arrayIncrementExpression.ArrayExpression, arrayTypeMapping);
+
+                // Generate table alias and create the unnest table expression
+                var tableAlias = ((RelationalQueryCompilationContext)QueryCompilationContext).SqlAliasManager.GenerateTableAlias("u");
+                var unnestTable = new PgUnnestExpression(tableAlias, typedArrayExpression, "x", withOrdinality: false);
+
+                // Create column reference for the unnested value
+                var intTypeMapping = _typeMappingSource.FindMapping(typeof(int), _model);
+                var xColumn = new ColumnExpression("x", tableAlias, typeof(int), intTypeMapping, nullable: false);
+
+                // Create the increment expression: x + 1
+                var xPlusOne = ((NpgsqlSqlExpressionFactory)_sqlExpressionFactory).Add(
+                    xColumn,
+                    _sqlExpressionFactory.Constant(1, intTypeMapping));
+
+                // Create array_agg(x + 1) function call
+                var arrayAggFunction = _sqlExpressionFactory.Function(
+                    "array_agg",
+                    new[] { xPlusOne },
+                    nullable: true,
+                    argumentsPropagateNullability: new[] { true },
+                    typeof(int[]),
+                    arrayIncrementExpression.TypeMapping ?? arrayTypeMapping);
+
+                // Construct the SelectExpression (mutable state)
+#pragma warning disable EF1001 // SelectExpression constructors are pubternal
+                var selectExpression = new SelectExpression(
+                    new List<TableExpressionBase> { unnestTable },
+                    arrayAggFunction,
+                    new List<(ColumnExpression, ValueComparer)>(),
+                    ((RelationalQueryCompilationContext)QueryCompilationContext).SqlAliasManager);
+#pragma warning restore EF1001
+
+                // Finalize: convert _projectionMapping → Projection list (immutable state)
+                selectExpression.ApplyProjection();
+
+                // Wrap in ScalarSubqueryExpression
+                return new ScalarSubqueryExpression(selectExpression);
             }
 
             case PgUnnestExpression unnestExpression

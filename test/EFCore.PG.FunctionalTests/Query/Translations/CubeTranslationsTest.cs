@@ -502,7 +502,9 @@ WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", ARRAY[1,1,2]::integer[]) 
 
 SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
-WHERE cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@indexes) AS x)) = @subset
+WHERE cube_subset(c."Cube", (
+    SELECT array_agg(u.x + 1)
+    FROM unnest(@indexes) AS u(x))) = @subset
 """);
     }
 
@@ -526,7 +528,9 @@ WHERE cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@indexes) AS x)
 
 SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
-WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@indexes) AS x)) = @reordered
+WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", (
+    SELECT array_agg(u.x + 1)
+    FROM unnest(@indexes) AS u(x))) = @reordered
 """);
     }
 
@@ -566,7 +570,9 @@ WHERE cube_dim(c."Cube") = 3 AND cube_subset(c."Cube", ARRAY[1,2]::integer[]) = 
 
 SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
-WHERE cube_dim(cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@indexes) AS x))) = 0
+WHERE cube_dim(cube_subset(c."Cube", (
+    SELECT array_agg(u.x + 1)
+    FROM unnest(@indexes) AS u(x)))) = 0
 """);
     }
 
@@ -590,7 +596,9 @@ WHERE cube_dim(cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@index
 
 SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
-WHERE cube_dim(c."Cube") = 3 AND cube_dim(cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(@indexes) AS x))) = 5
+WHERE cube_dim(c."Cube") = 3 AND cube_dim(cube_subset(c."Cube", (
+    SELECT array_agg(u.x + 1)
+    FROM unnest(@indexes) AS u(x)))) = 5
 """);
     }
 
@@ -607,7 +615,9 @@ WHERE cube_dim(c."Cube") = 3 AND cube_dim(cube_subset(c."Cube", (SELECT array_ag
             """
 SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
-WHERE c."Id" = 1 AND cube_dim(cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(c."IndexArray") AS x))) = 2
+WHERE c."Id" = 1 AND cube_dim(cube_subset(c."Cube", (
+    SELECT array_agg(u.x + 1)
+    FROM unnest(c."IndexArray") AS u(x)))) = 2
 """);
     }
 
@@ -624,7 +634,9 @@ WHERE c."Id" = 1 AND cube_dim(cube_subset(c."Cube", (SELECT array_agg(x + 1) FRO
             """
 SELECT c."Id", c."Cube", c."IndexArray"
 FROM "CubeTestEntities" AS c
-WHERE cube_dim(c."Cube") = 3 AND cube_dim(cube_subset(c."Cube", (SELECT array_agg(x + 1) FROM unnest(c."IndexArray") AS x))) = 2
+WHERE cube_dim(c."Cube") = 3 AND cube_dim(cube_subset(c."Cube", (
+    SELECT array_agg(u.x + 1)
+    FROM unnest(c."IndexArray") AS u(x)))) = 2
 """);
     }
 
