@@ -355,8 +355,9 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
 
         // Pattern-match: cube.LowerLeft[index] or cube.UpperRight[index]
         // This appears as: get_Item method call on a MemberExpression of LowerLeft/UpperRight
-        if (method.Name == "get_Item" && methodCallExpression is
+        if (methodCallExpression is
             {
+                Method.Name: "get_Item",
                 Object: MemberExpression
                 {
                     Member.Name: nameof(NpgsqlCube.LowerLeft) or nameof(NpgsqlCube.UpperRight)
@@ -520,23 +521,23 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
             // Distinguish constructor overloads by parameter patterns
             switch (cubeParameters)
             {
-                case [var pCoords] when pCoords.ParameterType == typeof(double)
-                        || typeof(IEnumerable<double>).IsAssignableFrom(pCoords.ParameterType):
+                case [var pCoords] when pCoords.ParameterType.IsAssignableFrom(typeof(double))
+                    || typeof(IEnumerable<double>).IsAssignableFrom(pCoords.ParameterType):
                     // NpgsqlCube(double coord) or NpgsqlCube(IEnumerable<double> coords)
-                case [var pCoord1, var pCoord2]
-                        when pCoord1.ParameterType == typeof(double) && pCoord2.ParameterType == typeof(double):
+                case [var pCoord1, var pCoord2] when pCoord1.ParameterType.IsAssignableFrom(typeof(double))
+                    && pCoord2.ParameterType.IsAssignableFrom(typeof(double)):
                     // NpgsqlCube(double coord1, double coord2)
                 case [var pLowerLeft, var pUpperRight]
-                        when typeof(IEnumerable<double>).IsAssignableFrom(pLowerLeft.ParameterType)
-                            && typeof(IEnumerable<double>).IsAssignableFrom(pUpperRight.ParameterType):
+                    when typeof(IEnumerable<double>).IsAssignableFrom(pLowerLeft.ParameterType)
+                        && typeof(IEnumerable<double>).IsAssignableFrom(pUpperRight.ParameterType):
                     // NpgsqlCube(IEnumerable<double> lowerLeft, IEnumerable<double> upperRight)
-                case [var pCube, var pCoord]
-                        when pCube.ParameterType == typeof(NpgsqlCube) && pCoord.ParameterType == typeof(double):
+                case [var pCube, var pCoord] when pCube.ParameterType.IsAssignableFrom(typeof(NpgsqlCube))
+                    && pCoord.ParameterType.IsAssignableFrom(typeof(double)):
                     // NpgsqlCube(NpgsqlCube cube, double coord)
                 case [var pCube2, var pCoord12, var pCoord22]
-                        when pCube2.ParameterType == typeof(NpgsqlCube)
-                            && pCoord12.ParameterType == typeof(double)
-                            && pCoord22.ParameterType == typeof(double):
+                    when pCube2.ParameterType.IsAssignableFrom(typeof(NpgsqlCube))
+                        && pCoord12.ParameterType.IsAssignableFrom(typeof(double))
+                        && pCoord22.ParameterType.IsAssignableFrom(typeof(double)):
                     // NpgsqlCube(NpgsqlCube cube, double coord1, double coord2)
                     // All cases fallthrough to single cube() expression
                     // cube() is a STRICT function - returns NULL if any argument is NULL
