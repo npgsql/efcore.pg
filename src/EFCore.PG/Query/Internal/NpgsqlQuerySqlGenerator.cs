@@ -546,7 +546,6 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
                     PgExpressionType.CubeNthCoordinate => "->",
                     PgExpressionType.CubeNthCoordinateKnn => "~>",
-                    PgExpressionType.CubeDistance => "<->",
                     PgExpressionType.CubeDistanceTaxicab => "<#>",
                     PgExpressionType.CubeDistanceChebyshev => "<=>",
 

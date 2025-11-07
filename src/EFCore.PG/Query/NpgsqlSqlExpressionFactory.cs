@@ -806,7 +806,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
 
             case PgExpressionType.Distance:
             {
-                inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
+                inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
 
                 resultType = inferredTypeMapping?.StoreTypeNameBase switch
                 {
@@ -835,7 +835,6 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
 
             case PgExpressionType.CubeNthCoordinate:
             case PgExpressionType.CubeNthCoordinateKnn:
-            case PgExpressionType.CubeDistance:
             case PgExpressionType.CubeDistanceTaxicab:
             case PgExpressionType.CubeDistanceChebyshev:
                 inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
