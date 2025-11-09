@@ -309,6 +309,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case PgExpressionType.JsonExistsAll:
                 returnType = typeof(bool);
                 break;
+
             case PgExpressionType.Distance:
                 returnType = typeof(double);
                 break;
