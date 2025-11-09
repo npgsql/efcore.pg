@@ -14,6 +14,7 @@ public class NpgsqlCubeTranslator(
     NpgsqlSqlExpressionFactory sqlExpressionFactory,
     IRelationalTypeMappingSource typeMappingSource) : IMethodCallTranslator, IMemberTranslator
 {
+    private readonly RelationalTypeMapping _cubeTypeMapping = typeMappingSource.FindMapping(typeof(NpgsqlCube))!;
     private readonly RelationalTypeMapping _doubleTypeMapping = typeMappingSource.FindMapping(typeof(double))!;
 
     /// <inheritdoc />
@@ -43,31 +44,31 @@ public class NpgsqlCubeTranslator(
             nameof(NpgsqlCubeDbFunctionsExtensions.Distance) when arguments is [var cube1, var cube2]
                 => new PgBinaryExpression(
                     PgExpressionType.Distance,
-                    cube1,
-                    cube2,
+                    sqlExpressionFactory.ApplyTypeMapping(cube1, _cubeTypeMapping),
+                    sqlExpressionFactory.ApplyTypeMapping(cube2, _cubeTypeMapping),
                     typeof(double),
-                    null),
+                    _doubleTypeMapping),
 
             nameof(NpgsqlCubeDbFunctionsExtensions.DistanceTaxicab) when arguments is [var cube1, var cube2]
                 => new PgBinaryExpression(
                     PgExpressionType.CubeDistanceTaxicab,
-                    cube1,
-                    cube2,
+                    sqlExpressionFactory.ApplyTypeMapping(cube1, _cubeTypeMapping),
+                    sqlExpressionFactory.ApplyTypeMapping(cube2, _cubeTypeMapping),
                     typeof(double),
-                    null),
+                    _doubleTypeMapping),
 
             nameof(NpgsqlCubeDbFunctionsExtensions.DistanceChebyshev) when arguments is [var cube1, var cube2]
                 => new PgBinaryExpression(
                     PgExpressionType.CubeDistanceChebyshev,
-                    cube1,
-                    cube2,
+                    sqlExpressionFactory.ApplyTypeMapping(cube1, _cubeTypeMapping),
+                    sqlExpressionFactory.ApplyTypeMapping(cube2, _cubeTypeMapping),
                     typeof(double),
-                    null),
+                    _doubleTypeMapping),
 
             nameof(NpgsqlCubeDbFunctionsExtensions.NthCoordinate) when arguments is [var cube, var index]
                 => new PgBinaryExpression(
                     PgExpressionType.CubeNthCoordinate,
-                    cube,
+                    sqlExpressionFactory.ApplyTypeMapping(cube, _cubeTypeMapping),
                     ConvertToPostgresIndex(index),
                     typeof(double),
                     _doubleTypeMapping),
@@ -75,7 +76,7 @@ public class NpgsqlCubeTranslator(
             nameof(NpgsqlCubeDbFunctionsExtensions.NthCoordinateKnn) when arguments is [var cube, var index]
                 => new PgBinaryExpression(
                     PgExpressionType.CubeNthCoordinateKnn,
-                    cube,
+                    sqlExpressionFactory.ApplyTypeMapping(cube, _cubeTypeMapping),
                     ConvertToPostgresIndex(index),
                     typeof(double),
                     _doubleTypeMapping),

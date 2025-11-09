@@ -309,6 +309,9 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case PgExpressionType.JsonExistsAll:
                 returnType = typeof(bool);
                 break;
+            case PgExpressionType.Distance:
+                returnType = typeof(double);
+                break;
         }
 
         return (PgBinaryExpression)ApplyTypeMapping(
@@ -832,15 +835,6 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                 };
                 break;
             }
-
-            case PgExpressionType.CubeNthCoordinate:
-            case PgExpressionType.CubeNthCoordinateKnn:
-            case PgExpressionType.CubeDistanceTaxicab:
-            case PgExpressionType.CubeDistanceChebyshev:
-                inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
-                resultType = pgBinaryExpression.Type;
-                resultTypeMapping = _typeMappingSource.FindMapping(typeof(double));
-                break;
 
             default:
                 throw new InvalidOperationException(
