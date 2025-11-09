@@ -402,7 +402,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                 return QueryCompilationContext.NotTranslatedExpression;
             }
 
-            return TranslateToSubset(sqlCubeInstance, sqlIndexes) ?? QueryCompilationContext.NotTranslatedExpression;
+            return TranslateCubeToSubset(sqlCubeInstance, sqlIndexes) ?? QueryCompilationContext.NotTranslatedExpression;
         }
 
         if (method == StringStartsWithMethod
@@ -429,7 +429,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         return base.VisitMethodCall(methodCallExpression);
     }
 
-    private SqlExpression? TranslateToSubset(SqlExpression cubeExpression, SqlExpression indexesExpression)
+    private SqlExpression? TranslateCubeToSubset(SqlExpression cubeExpression, SqlExpression indexesExpression)
     {
         SqlExpression convertedIndexes;
 
