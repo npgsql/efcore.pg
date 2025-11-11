@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net;
 using System.Runtime.CompilerServices;
@@ -353,6 +353,58 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
     {
         var method = methodCallExpression.Method;
 
+        // Pattern-match: cube.LowerLeft[index] or cube.UpperRight[index]
+        // This appears as: get_Item method call on a MemberExpression of LowerLeft/UpperRight
+        if (methodCallExpression is
+            {
+                Method.Name: "get_Item",
+                Object: MemberExpression
+                {
+                    Member.Name: nameof(NpgsqlCube.LowerLeft) or nameof(NpgsqlCube.UpperRight)
+                } memberExpression
+            } && memberExpression.Member.DeclaringType == typeof(NpgsqlCube))
+        {
+            // Translate the cube instance and index argument
+            if (Visit(memberExpression.Expression) is not SqlExpression sqlCubeInstance
+                || Visit(methodCallExpression.Arguments[0]) is not SqlExpression sqlIndex)
+            {
+                return QueryCompilationContext.NotTranslatedExpression;
+            }
+
+            // Convert zero-based to one-based index
+            // For constants, optimize at translation time; for parameters/columns, add at runtime
+            var pgIndex = sqlIndex is SqlConstantExpression { Value: int index }
+                ? _sqlExpressionFactory.Constant(index + 1)
+                : _sqlExpressionFactory.Add(sqlIndex, _sqlExpressionFactory.Constant(1));
+
+            // Determine which function to call
+            var functionName = memberExpression.Member.Name == nameof(NpgsqlCube.LowerLeft)
+                ? "cube_ll_coord"
+                : "cube_ur_coord";
+
+            return _sqlExpressionFactory.Function(
+                functionName,
+                [sqlCubeInstance, pgIndex],
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[2],
+                typeof(double));
+        }
+
+        // Pattern-match: cube.ToSubset(indexes)
+        if (method.Name == nameof(NpgsqlCube.ToSubset)
+            && method.DeclaringType == typeof(NpgsqlCube)
+            && methodCallExpression.Object is not null)
+        {
+            // Translate cube instance and indexes array
+            if (Visit(methodCallExpression.Object) is not SqlExpression sqlCubeInstance
+                || Visit(methodCallExpression.Arguments[0]) is not SqlExpression sqlIndexes)
+            {
+                return QueryCompilationContext.NotTranslatedExpression;
+            }
+
+            return TranslateCubeToSubset(sqlCubeInstance, sqlIndexes) ?? QueryCompilationContext.NotTranslatedExpression;
+        }
+
         if (method == StringStartsWithMethod
             && TryTranslateStartsEndsWithContains(
                 methodCallExpression.Object!, methodCallExpression.Arguments[0], StartsEndsWithContains.StartsWith, out var translation1))
@@ -375,6 +427,89 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
         }
 
         return base.VisitMethodCall(methodCallExpression);
+    }
+
+    private SqlExpression? TranslateCubeToSubset(SqlExpression cubeExpression, SqlExpression indexesExpression)
+    {
+        SqlExpression convertedIndexes;
+
+        switch (indexesExpression)
+        {
+            // Parameters or columns - create subquery to convert 0-based to 1-based at runtime
+            case SqlParameterExpression or ColumnExpression:
+            {
+                // Apply type mapping to the indexes array
+                var intArrayTypeMapping = _typeMappingSource.FindMapping(typeof(int[]))!;
+                var typedIndexes = _sqlExpressionFactory.ApplyTypeMapping(indexesExpression, intArrayTypeMapping);
+
+                // Generate table alias and create unnest table
+                var tableAlias = ((RelationalQueryCompilationContext)_queryCompilationContext).SqlAliasManager.GenerateTableAlias("u");
+                var unnestTable = new PgUnnestExpression(tableAlias, typedIndexes, "x", withOrdinality: false);
+
+                // Create column reference for unnested value
+                var intTypeMapping = _typeMappingSource.FindMapping(typeof(int))!;
+                var xColumn = new ColumnExpression("x", tableAlias, typeof(int), intTypeMapping, nullable: false);
+
+                // Create increment expression: x + 1
+                var xPlusOne = _sqlExpressionFactory.Add(xColumn, _sqlExpressionFactory.Constant(1, intTypeMapping));
+
+                // Create array_agg(x + 1) function
+                var arrayAggFunction = _sqlExpressionFactory.Function(
+                    "array_agg",
+                    [xPlusOne],
+                    nullable: true,
+                    argumentsPropagateNullability: new[] { true },
+                    typeof(int[]),
+                    intArrayTypeMapping);
+
+                // Construct SelectExpression
+#pragma warning disable EF1001 // SelectExpression constructors are pubternal
+                var selectExpression = new SelectExpression(
+                    [unnestTable],
+                    arrayAggFunction,
+                    [],
+                    ((RelationalQueryCompilationContext)_queryCompilationContext).SqlAliasManager);
+#pragma warning restore EF1001
+
+                // Finalize and wrap in ScalarSubqueryExpression
+                selectExpression.ApplyProjection();
+                convertedIndexes = new ScalarSubqueryExpression(selectExpression);
+                break;
+            }
+
+            // Constant arrays - convert directly at compile time
+            case SqlConstantExpression { Value: int[] constantArray }:
+            {
+                var oneBasedValues = constantArray.Select(i => i + 1).ToArray();
+                convertedIndexes = _sqlExpressionFactory.Constant(oneBasedValues);
+                break;
+            }
+
+            // Inline arrays (new[] { ... }) - convert each element
+            case PgNewArrayExpression { Expressions: var expressions }:
+            {
+                var convertedExpressions = expressions
+                    .Select(e => e is SqlConstantExpression { Value: int index }
+                        ? _sqlExpressionFactory.Constant(index + 1)  // Constant element
+                        : _sqlExpressionFactory.Add(e, _sqlExpressionFactory.Constant(1)))  // Non-constant element
+                    .ToArray();
+                convertedIndexes = _sqlExpressionFactory.NewArray(convertedExpressions, typeof(int[]));
+                break;
+            }
+
+            default:
+                // Unexpected case - cannot translate
+                return null;
+        }
+
+        // Build final cube_subset function call
+        return _sqlExpressionFactory.Function(
+            "cube_subset",
+            [cubeExpression, convertedIndexes],
+            nullable: true,
+            argumentsPropagateNullability: TrueArrays[2],
+            typeof(NpgsqlCube),
+            _typeMappingSource.FindMapping(typeof(NpgsqlCube)));
     }
 
     /// <summary>
@@ -468,6 +603,50 @@ public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExp
                 ? _sqlExpressionFactory.Function(
                     "make_date", sqlArguments, nullable: true, TrueArrays[3], typeof(DateOnly))
                 : QueryCompilationContext.NotTranslatedExpression;
+        }
+
+        // Translate new NpgsqlCube(...) -> cube(...)
+        if (newExpression.Constructor?.DeclaringType == typeof(NpgsqlCube))
+        {
+            if (!TryTranslateArguments(out var sqlArguments))
+            {
+                return QueryCompilationContext.NotTranslatedExpression;
+            }
+
+            var cubeTypeMapping = _typeMappingSource.FindMapping(typeof(NpgsqlCube));
+            var cubeParameters = newExpression.Constructor.GetParameters();
+
+            // Distinguish constructor overloads by parameter patterns
+            switch (cubeParameters)
+            {
+                case [var pCoords] when pCoords.ParameterType.IsAssignableFrom(typeof(double))
+                    || typeof(IEnumerable<double>).IsAssignableFrom(pCoords.ParameterType):
+                    // NpgsqlCube(double coord) or NpgsqlCube(IEnumerable<double> coords)
+                case [var pCoord1, var pCoord2] when pCoord1.ParameterType.IsAssignableFrom(typeof(double))
+                    && pCoord2.ParameterType.IsAssignableFrom(typeof(double)):
+                    // NpgsqlCube(double coord1, double coord2)
+                case [var pLowerLeft, var pUpperRight]
+                    when typeof(IEnumerable<double>).IsAssignableFrom(pLowerLeft.ParameterType)
+                        && typeof(IEnumerable<double>).IsAssignableFrom(pUpperRight.ParameterType):
+                    // NpgsqlCube(IEnumerable<double> lowerLeft, IEnumerable<double> upperRight)
+                case [var pCube, var pCoord] when pCube.ParameterType.IsAssignableFrom(typeof(NpgsqlCube))
+                    && pCoord.ParameterType.IsAssignableFrom(typeof(double)):
+                    // NpgsqlCube(NpgsqlCube cube, double coord)
+                case [var pCube2, var pCoord12, var pCoord22]
+                    when pCube2.ParameterType.IsAssignableFrom(typeof(NpgsqlCube))
+                        && pCoord12.ParameterType.IsAssignableFrom(typeof(double))
+                        && pCoord22.ParameterType.IsAssignableFrom(typeof(double)):
+                    // NpgsqlCube(NpgsqlCube cube, double coord1, double coord2)
+                    // All cases fallthrough to single cube() expression
+                    // cube() is a STRICT function - returns NULL if any argument is NULL
+                    return _sqlExpressionFactory.Function(
+                        "cube",
+                        sqlArguments,
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[sqlArguments.Length],
+                        typeof(NpgsqlCube),
+                        cubeTypeMapping);
+            }
         }
 
         return QueryCompilationContext.NotTranslatedExpression;

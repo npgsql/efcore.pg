@@ -810,11 +810,13 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
 
             case PgExpressionType.Distance:
             {
-                inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
+                inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
 
                 resultType = inferredTypeMapping?.StoreTypeNameBase switch
                 {
                     "geometry" or "geography" => typeof(double),
+
+                    "cube" => typeof(double),
 
                     "date" => typeof(int),
 
