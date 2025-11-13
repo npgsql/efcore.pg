@@ -1,7 +1,7 @@
   <Project>
   <PropertyGroup>
-    <EFCoreVersion>10.0.0-rc.2.25502.107</EFCoreVersion>
-    <MicrosoftExtensionsVersion>10.0.0-rc.2.25502.107</MicrosoftExtensionsVersion>
+    <EFCoreVersion>10.0.0</EFCoreVersion>
+    <MicrosoftExtensionsVersion>10.0.0</MicrosoftExtensionsVersion>
     <NpgsqlVersion>10.0.0-rc.2-ci.20251107T191940</NpgsqlVersion>
   </PropertyGroup>
 
@@ -10,11 +10,11 @@
       Dependencies on EF preview versions should be locked to a specific version (as provider-facing breaking changes are frequent).
       For released versions, depend on anything in the current major version to allow users to update to higher patch versions.
     -->
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="[$(EFCoreVersion)]" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="[$(EFCoreVersion)]" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Abstractions" Version="[$(EFCoreVersion)]" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="[$(EFCoreVersion)]" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="[$(EFCoreVersion)]" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="[$(EFCoreVersion),11.0.0)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="[$(EFCoreVersion),11.0.0)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Abstractions" Version="[$(EFCoreVersion),11.0.0)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="[$(EFCoreVersion),11.0.0)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="[$(EFCoreVersion),11.0.0)" />
 
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="$(MicrosoftExtensionsVersion)" />
