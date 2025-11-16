@@ -150,16 +150,13 @@ WHERE (r."RequiredAssociate" -> 'NestedCollection') = @entity_equality_nestedCol
 
     public override async Task Contains_with_inline()
     {
-        // https://github.com/dotnet/efcore/issues/36837
-        await Assert.ThrowsAsync<PostgresException>(async () =>
-        {
-            await base.Contains_with_inline();
+        await base.Contains_with_inline();
 
-            // TODO: The following translation is sub-optimal: we should be using OPENSJON to extract elements of the collection as JSON elements (OPENJSON WITH JSON),
-            // and comparison those elements to a single entire JSON fragment on the other side (just like non-collection JSON comparison), rather than breaking the
-            // elements down to their columns and doing column-by-column comparison. See #32576.
-            AssertSql(
-                """
+        // TODO: The following translation is sub-optimal: we should be using OPENSJON to extract elements of the collection as JSON elements (OPENJSON WITH JSON),
+        // and comparison those elements to a single entire JSON fragment on the other side (just like non-collection JSON comparison), rather than breaking the
+        // elements down to their columns and doing column-by-column comparison. See #32576.
+        AssertSql(
+            """
 SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
 WHERE EXISTS (
@@ -173,21 +170,17 @@ WHERE EXISTS (
     )) WITH ORDINALITY AS n
     WHERE n."Id" = 1002 AND n."Int" = 8 AND n."Ints" = '[1,2,3]' AND n."Name" = 'Root1_RequiredAssociate_NestedCollection_1' AND n."String" = 'foo')
 """);
-        });
     }
 
     public override async Task Contains_with_parameter()
     {
-        // https://github.com/dotnet/efcore/issues/36837
-        await Assert.ThrowsAsync<PostgresException>(async () =>
-        {
-            await base.Contains_with_parameter();
+        await base.Contains_with_parameter();
 
-            // TODO: The following translation is sub-optimal: we should be using OPENSJON to extract elements of the collection as JSON elements (OPENJSON WITH JSON),
-            // and comparison those elements to a single entire JSON fragment on the other side (just like non-collection JSON comparison), rather than breaking the
-            // elements down to their columns and doing column-by-column comparison. See #32576.
-            AssertSql(
-                """
+        // TODO: The following translation is sub-optimal: we should be using OPENSJON to extract elements of the collection as JSON elements (OPENJSON WITH JSON),
+        // and comparison those elements to a single entire JSON fragment on the other side (just like non-collection JSON comparison), rather than breaking the
+        // elements down to their columns and doing column-by-column comparison. See #32576.
+        AssertSql(
+            """
 @entity_equality_nested_Id='?' (DbType = Int32)
 @entity_equality_nested_Int='?' (DbType = Int32)
 @entity_equality_nested_Ints='?' (DbType = Object)
@@ -207,18 +200,14 @@ WHERE EXISTS (
     )) WITH ORDINALITY AS n
     WHERE n."Id" = @entity_equality_nested_Id AND n."Int" = @entity_equality_nested_Int AND n."Ints" = @entity_equality_nested_Ints AND n."Name" = @entity_equality_nested_Name AND n."String" = @entity_equality_nested_String)
 """);
-        });
     }
 
     public override async Task Contains_with_operators_composed_on_the_collection()
     {
-        // https://github.com/dotnet/efcore/issues/36837
-        await Assert.ThrowsAsync<PostgresException>(async () =>
-        {
-            await base.Contains_with_operators_composed_on_the_collection();
+        await base.Contains_with_operators_composed_on_the_collection();
 
-            AssertSql(
-                """
+        AssertSql(
+            """
 @get_Item_Int='?' (DbType = Int32)
 @entity_equality_get_Item_Id='?' (DbType = Int32)
 @entity_equality_get_Item_Int='?' (DbType = Int32)
@@ -239,18 +228,14 @@ WHERE EXISTS (
     )) WITH ORDINALITY AS n
     WHERE n."Int" > @get_Item_Int AND n."Id" = @entity_equality_get_Item_Id AND n."Int" = @entity_equality_get_Item_Int AND n."Ints" = @entity_equality_get_Item_Ints AND n."Name" = @entity_equality_get_Item_Name AND n."String" = @entity_equality_get_Item_String)
 """);
-        });
     }
 
     public override async Task Contains_with_nested_and_composed_operators()
     {
-        // https://github.com/dotnet/efcore/issues/36837
-        await Assert.ThrowsAsync<PostgresException>(async () =>
-        {
-            await base.Contains_with_nested_and_composed_operators();
+        await base.Contains_with_nested_and_composed_operators();
 
-            AssertSql(
-                """
+        AssertSql(
+            """
 @get_Item_Id='?' (DbType = Int32)
 @entity_equality_get_Item_Id='?' (DbType = Int32)
 @entity_equality_get_Item_Int='?' (DbType = Int32)
@@ -277,7 +262,6 @@ WHERE EXISTS (
     )) WITH ORDINALITY AS a
     WHERE a."Id" > @get_Item_Id AND a."Id" = @entity_equality_get_Item_Id AND a."Int" = @entity_equality_get_Item_Int AND a."Ints" = @entity_equality_get_Item_Ints AND a."Name" = @entity_equality_get_Item_Name AND a."String" = @entity_equality_get_Item_String AND (a."NestedCollection") = @entity_equality_get_Item_NestedCollection AND (a."OptionalNestedAssociate") = @entity_equality_get_Item_OptionalNestedAssociate AND (a."RequiredNestedAssociate") = @entity_equality_get_Item_RequiredNestedAssociate)
 """);
-        });
     }
 
     #endregion Contains
