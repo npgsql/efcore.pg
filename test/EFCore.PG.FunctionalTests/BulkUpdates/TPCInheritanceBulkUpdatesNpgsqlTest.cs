@@ -135,7 +135,7 @@ SET "Name" = @p
 
         AssertExecuteUpdateSql(
             """
-@p='0' (DbType = Int16)
+@p='0'
 
 UPDATE "Kiwi" AS k
 SET "FoundOn" = @p
@@ -172,7 +172,7 @@ WHERE (
         AssertExecuteUpdateSql(
             """
 @p='Kiwi'
-@p0='0' (DbType = Int16)
+@p0='0'
 
 UPDATE "Kiwi" AS k
 SET "Name" = @p,

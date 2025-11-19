@@ -64,7 +64,7 @@ WHERE position(BYTEA E'\\x01' IN b."ByteArray") > 0
 
         AssertSql(
             """
-@someByte='1' (DbType = Int16)
+@someByte='1'
 
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
