@@ -745,12 +745,18 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             // However, when scalar collections are nested inside a JSON document, they obviously have to be JSON-mapped.
             // In addition, at least in theory users may decide to map to JSON instead of array even outside JSON documents.
             case "jsonb" or "json" when modelClrType is not null:
-                return base.FindCollectionMapping(
+                var mapping = base.FindCollectionMapping(
                     new RelationalTypeMappingInfo(
                         modelClrType, (RelationalTypeMapping?)elementMapping, storeTypeName: storeType, storeTypeNameBase: storeType),
                     modelClrType,
                     providerClrType,
                     elementMapping);
+
+                // If a multidimensional array is mapped to json/jsonb, we get here, and base.FindCollectionMapping happily returns a
+                // "primitive" collection whose element mapping is an array; but EF does not support nested primitive collections.
+                // So we return null to let the calling code in FindBaseMapping simply return an NpgsqlJsonTypeMapping with no
+                // ElementTypeMapping - this case isn't at all handled as an EF primitive collection, but as an opaque JSON type.
+                return mapping is { ElementTypeMapping: NpgsqlArrayTypeMapping } ? null : mapping;
 #pragma warning restore EF1001 // SelectExpression constructors are pubternal
 
             default:
