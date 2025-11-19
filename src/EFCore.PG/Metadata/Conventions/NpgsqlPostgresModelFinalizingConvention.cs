@@ -71,6 +71,9 @@ public class NpgsqlPostgresModelFinalizingConvention(
             case "ltxtquery":
                 modelBuilder.HasPostgresExtension("ltree");
                 break;
+            case "cube":
+                modelBuilder.HasPostgresExtension("cube");
+                break;
         }
     }
 
