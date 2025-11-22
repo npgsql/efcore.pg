@@ -155,7 +155,7 @@ WHERE a."Id" = k."Id" AND a."Id" = b."Id" AND a."CountryId" = 1
 
         AssertExecuteUpdateSql(
             """
-@p='0' (DbType = Int16)
+@p='0'
 
 UPDATE "Kiwi" AS k
 SET "FoundOn" = @p

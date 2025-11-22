@@ -173,7 +173,7 @@ WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1
 
         AssertExecuteUpdateSql(
             """
-@p='0' (DbType = Int16)
+@p='0'
 
 UPDATE "Animals" AS a
 SET "FoundOn" = @p
@@ -188,7 +188,7 @@ WHERE a."Discriminator" = 'Kiwi' AND a."CountryId" = 1
         AssertExecuteUpdateSql(
             """
 @p='Kiwi'
-@p0='0' (DbType = Int16)
+@p0='0'
 
 UPDATE "Animals" AS a
 SET "Name" = @p,

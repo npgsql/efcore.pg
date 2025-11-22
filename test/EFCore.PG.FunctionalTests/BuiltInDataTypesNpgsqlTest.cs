@@ -470,7 +470,7 @@ WHERE m."TimeSpanAsTime" = @timeSpan
             """
 @p0='77'
 @p1='True'
-@p2='80' (DbType = Int16)
+@p2='80'
 @p3='0x56' (Nullable = false)
 @p4='g' (Nullable = false)
 @p5='h' (Nullable = false)
