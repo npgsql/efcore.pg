@@ -275,6 +275,29 @@ ltree.Index(subpath)                                              | index(ltree,
 ltree.Index(subpath, 2)                                           | index(ltree, subpath, 2)
 LTree.LongestCommonAncestor(ltree1, ltree2)                       | lca(index(ltree1, ltree2)
 
+## Cube functions
+
+The below translations are for working with cubes from the PostgreSQL [`cube`](https://www.postgresql.org/docs/current/cube.html) extension. Use the <xref:NpgsqlTypes.NpgsqlCube> type to represent cube and invoke methods on it in EF Core LINQ queries.
+
+.NET                                | SQL
+----------------------------------- | --------------------
+cube1.Overlaps(cube2)               | [cube1 && cube2](https://www.postgresql.org/docs/current/cube.html#CUBE-OPERATORS-TABLE)
+cube1.Contains(cube2)               | [cube1 @> cube2](https://www.postgresql.org/docs/current/cube.html#CUBE-OPERATORS-TABLE)
+cube1.ContainedBy(cube2)            | [cube1 <@ cube2](https://www.postgresql.org/docs/current/cube.html#CUBE-OPERATORS-TABLE)
+cube.NthCoordinate(n)               | [cube -> n + 1](https://www.postgresql.org/docs/current/cube.html#CUBE-OPERATORS-TABLE)
+cube.NthCoordinateKnn(n)            | [cube ~> n + 1](https://www.postgresql.org/docs/current/cube.html#CUBE-OPERATORS-TABLE)
+cube1.Distance(cube2)               | [cube1 <-> cube2](https://www.postgresql.org/docs/current/cube.html#CUBE-OPERATORS-TABLE)
+cube1.DistanceTaxicab(cube2)        | [cube1 <#> cube2](https://www.postgresql.org/docs/current/cube.html#CUBE-OPERATORS-TABLE)
+cube1.DistanceChebyshev(cube2)      | [cube1 <=> cube2](https://www.postgresql.org/docs/current/cube.html#CUBE-OPERATORS-TABLE)
+cube1.Union(cube2)                  | [cube_union(cube1, cube2)](https://www.postgresql.org/docs/current/cube.html#CUBE-FUNCTIONS-TABLE)
+cube1.Intersect(cube2)              | [cube_inter(cube1, cube2)](https://www.postgresql.org/docs/current/cube.html#CUBE-FUNCTIONS-TABLE)
+cube.Enlarge(r, n)                  | [cube_enlarge(cube, r, n)](https://www.postgresql.org/docs/current/cube.html#CUBE-FUNCTIONS-TABLE)
+cube.Dimensions                     | [cube_dim(cube)](https://www.postgresql.org/docs/current/cube.html#CUBE-FUNCTIONS-TABLE)
+cube.IsPoint                        | [cube_is_point(cube)](https://www.postgresql.org/docs/current/cube.html#CUBE-FUNCTIONS-TABLE)
+cube.ToSubset(indexes)              | [cube_subset(cube, indexes + 1)](https://www.postgresql.org/docs/current/cube.html#CUBE-FUNCTIONS-TABLE)
+cube.LowerLeft[n]                   | [cube_ll_coord(cube, n + 1)](https://www.postgresql.org/docs/current/cube.html#CUBE-FUNCTIONS-TABLE)
+cube.UpperRight[n]                  | [cube_ur_coord(cube, n + 1)](https://www.postgresql.org/docs/current/cube.html#CUBE-FUNCTIONS-TABLE)
+
 ## Aggregate functions
 
 The PostgreSQL aggregate functions are documented [here](https://www.postgresql.org/docs/current/functions-aggregate.html).
