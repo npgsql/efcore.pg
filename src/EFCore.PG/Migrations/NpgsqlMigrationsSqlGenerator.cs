@@ -1132,7 +1132,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 .Append(DelimitIdentifier(extension.Version));
         }
 
-        builder.AppendLine(";");
+        builder.AppendLine(" CASCADE;");
     }
 
     #region Collation management

@@ -2688,7 +2688,7 @@ SELECT setval(
                 Assert.Equal("public", citext.Schema);
             });
 
-        AssertSql("CREATE EXTENSION IF NOT EXISTS citext;");
+        AssertSql("CREATE EXTENSION IF NOT EXISTS citext CASCADE;");
     }
 
     [Fact]
@@ -2714,7 +2714,7 @@ SELECT setval(
                 END $EF$;
                 """,
             //
-            @"CREATE EXTENSION IF NOT EXISTS citext SCHEMA some_schema;");
+            @"CREATE EXTENSION IF NOT EXISTS citext SCHEMA some_schema CASCADE;");
     }
 
     #endregion
