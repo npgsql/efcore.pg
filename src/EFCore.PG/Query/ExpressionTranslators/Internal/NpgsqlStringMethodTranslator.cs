@@ -39,6 +39,9 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
     private static readonly MethodInfo Replace = typeof(string).GetRuntimeMethod(
         nameof(string.Replace), [typeof(string), typeof(string)])!;
 
+    private static readonly MethodInfo Replace_Char = typeof(string).GetRuntimeMethod(
+        nameof(string.Replace), [typeof(char), typeof(char)])!;
+
     private static readonly MethodInfo Substring = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring))
         .Single(m => m.GetParameters().Length == 1);
 
@@ -204,7 +207,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
         {
             var argument = arguments[0];
             var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance!, argument);
-
+            argument = _sqlExpressionFactory.ApplyTypeMapping(argument, argument.Type == typeof(char) ? CharTypeMapping.Default : stringTypeMapping);
             return _sqlExpressionFactory.Subtract(
                 _sqlExpressionFactory.Function(
                     "strpos",
@@ -218,11 +221,14 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                 _sqlExpressionFactory.Constant(1));
         }
 
-        if (method == Replace)
+        if (method == Replace || method == Replace_Char)
         {
             var oldValue = arguments[0];
             var newValue = arguments[1];
             var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance!, oldValue, newValue);
+
+            oldValue = _sqlExpressionFactory.ApplyTypeMapping(oldValue, oldValue.Type == typeof(char) ? CharTypeMapping.Default : stringTypeMapping);
+            newValue = _sqlExpressionFactory.ApplyTypeMapping(newValue, newValue.Type == typeof(char) ? CharTypeMapping.Default : stringTypeMapping);
 
             return _sqlExpressionFactory.Function(
                 "replace",
