@@ -487,8 +487,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             case nameof(string.StartsWith) or nameof(string.EndsWith) or nameof(string.Contains)
                 when declaringType == typeof(string)
                     && @object is not null
-                    && arguments is [Expression value]
-                    && value.Type == typeof(string):
+                    && arguments is [Expression value]:
             {
                 return TranslateStartsEndsWithContains(
                     @object,
@@ -844,6 +843,32 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                                 _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
                             })),
 
+                    char s when !IsLikeWildChar(s)
+                        => _sqlExpressionFactory.Like(
+                            translatedInstance,
+                            _sqlExpressionFactory.Constant(
+                                methodType switch
+                                {
+                                    StartsEndsWithContains.StartsWith => s + "%",
+                                    StartsEndsWithContains.EndsWith => "%" + s,
+                                    StartsEndsWithContains.Contains => $"%{s}%",
+
+                                    _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
+                                })),
+
+                    char s => _sqlExpressionFactory.Like(
+                        translatedInstance,
+                        _sqlExpressionFactory.Constant(
+                            methodType switch
+                            {
+                                StartsEndsWithContains.StartsWith => LikeEscapeChar + s + "%",
+                                StartsEndsWithContains.EndsWith => "%" + LikeEscapeChar + s,
+                                StartsEndsWithContains.Contains => $"%{LikeEscapeChar}{s}%",
+
+                                _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
+                            }),
+                        _sqlExpressionFactory.Constant(LikeEscapeChar)),
+
                     _ => throw new UnreachableException()
                 };
             }
@@ -947,6 +972,22 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 StartsEndsWithContains.StartsWith => EscapeLikePattern(s) + '%',
                 StartsEndsWithContains.EndsWith => '%' + EscapeLikePattern(s),
                 StartsEndsWithContains.Contains => $"%{EscapeLikePattern(s)}%",
+                _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
+            },
+
+            char s when !IsLikeWildChar(s) => methodType switch
+            {
+                StartsEndsWithContains.StartsWith => s + "%",
+                StartsEndsWithContains.EndsWith => "%" + s,
+                StartsEndsWithContains.Contains => $"%{s}%",
+                _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
+            },
+
+            char s => methodType switch
+            {
+                StartsEndsWithContains.StartsWith => LikeEscapeChar + s + "%",
+                StartsEndsWithContains.EndsWith => "%" + LikeEscapeChar + s,
+                StartsEndsWithContains.Contains => $"%{LikeEscapeChar}{s}%",
                 _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
             },
 

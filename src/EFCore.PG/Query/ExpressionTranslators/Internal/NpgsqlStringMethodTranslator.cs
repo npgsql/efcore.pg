@@ -98,6 +98,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
             {
                 var argument = arguments[0];
                 var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance!, argument);
+                argument = _sqlExpressionFactory.ApplyTypeMapping(argument, argument.Type == typeof(char) ? CharTypeMapping.Default : stringTypeMapping);
 
                 return _sqlExpressionFactory.Subtract(
                     _sqlExpressionFactory.Function(
@@ -112,9 +113,12 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                     _sqlExpressionFactory.Constant(1));
             }
 
-            case nameof(string.Replace) when arguments is [var oldValue, var newValue] && oldValue.Type == typeof(string):
+            case nameof(string.Replace) when arguments is [var oldValue, var newValue]:
             {
                 var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance!, oldValue, newValue);
+
+                oldValue = _sqlExpressionFactory.ApplyTypeMapping(oldValue, oldValue.Type == typeof(char) ? CharTypeMapping.Default : stringTypeMapping);
+                newValue = _sqlExpressionFactory.ApplyTypeMapping(newValue, newValue.Type == typeof(char) ? CharTypeMapping.Default : stringTypeMapping);
 
                 return _sqlExpressionFactory.Function(
                     "replace",
