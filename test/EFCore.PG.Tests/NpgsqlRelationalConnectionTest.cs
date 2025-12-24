@@ -160,6 +160,17 @@ public class NpgsqlRelationalConnectionTest
     }
 
     [Fact]
+    public void Data_source_config_without_a_connection_string()
+    {
+        var context = new ConfigurableContext(
+            connectionString: null,
+            no => no.ConfigureDataSource(dsb => dsb.ConnectionStringBuilder.Host = "192.168.1.1"));
+        var connection1 = (NpgsqlRelationalConnection)context.GetService<IRelationalConnection>();
+        Assert.Equal("Host=192.168.1.1", connection1.ConnectionString);
+        Assert.NotNull(connection1.DbDataSource);
+    }
+
+    [Fact]
     public void Plugin_config_with_same_connection_string()
     {
         // The connection string and plugin config are the same, so the same data source gets resolved.
@@ -437,7 +448,7 @@ public class NpgsqlRelationalConnectionTest
         }
     }
 
-    private class ConfigurableContext(string connectionString, Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null) : DbContext
+    private class ConfigurableContext(string? connectionString, Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null) : DbContext
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder.UseNpgsql(connectionString, npgsqlOptionsAction);
