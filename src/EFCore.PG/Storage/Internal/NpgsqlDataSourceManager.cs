@@ -65,29 +65,37 @@ public class NpgsqlDataSourceManager : IDisposable, IAsyncDisposable
             // must be manually set up by the user for the enum, of course).
             { Connection: not null } => null,
 
-            // If the user hasn't configured anything in UseNpgsql (no data source, no connection, no connection string), check the
-            // application service provider to see if a data source is registered there, and return that.
-            { ConnectionString: null } when applicationServiceProvider?.GetService<NpgsqlDataSource>() is DbDataSource dataSource
-                => dataSource,
+            // If a data source builder action is specified, always create a data source.
+            { DataSourceBuilderAction: not null } o => GetSingletonDataSource(o),
 
-            // Otherwise if there's no connection string, abort: a connection string is required to create a data source in any case.
-            { ConnectionString: null } or null => null,
+            // If the user hasn't configured anything in UseNpgsql (no data source, no data source builder action, no connection,
+            // no connection string), check the application service provider to see if a data source is registered there, and return that.
+            // Otherwise if there's no connection string, abort: either a connection string or DataSourceBuilderAction is required
+            // to create a data source in any case.
+            { ConnectionString: null } or null
+                => applicationServiceProvider?.GetService<NpgsqlDataSource>() is DbDataSource dataSource
+                    ? dataSource
+                    : null,
 
             // The following are features which require an NpgsqlDataSource, since they require configuration on NpgsqlDataSourceBuilder.
-            { DataSourceBuilderAction: not null } => GetSingletonDataSource(npgsqlOptionsExtension),
-            { EnumDefinitions.Count: > 0 } => GetSingletonDataSource(npgsqlOptionsExtension),
-            _ when _plugins.Any() => GetSingletonDataSource(npgsqlOptionsExtension),
+            { EnumDefinitions.Count: > 0 } o => GetSingletonDataSource(o),
+            { } o when _plugins.Any() => GetSingletonDataSource(o),
 
             // If there's no configured feature which requires us to use a data source internally, don't use one; this causes
-            // NpgsqlRelationalConnection to use the connection string as before (no data source), allowing switching connection strings
-            // with the same service provider etc.
+            // NpgsqlRelationalConnection to use the connection string as before (no data source at the EF level), allowing switching
+            // connection strings with the same service provider etc.
             _ => null
         };
 
     private DbDataSource GetSingletonDataSource(NpgsqlOptionsExtension npgsqlOptionsExtension)
     {
         var connectionString = npgsqlOptionsExtension.ConnectionString;
-        Check.DebugAssert(connectionString is not null, "Connection string can't be null");
+
+        // It should be possible to use ConfigureDataSource() without supplying a connection string, providing the connection
+        // information via the connection string builder on the NpgsqlDataSourceBuilder. In order to support this, we
+        // coalesce null connection strings to empty strings (since dictionaries don't allow null keys).
+        // This is in line with general ADO.NET practice of coalescing null connection strings to empty strings.
+        connectionString ??= string.Empty;
 
         if (_dataSources.TryGetValue(connectionString, out var dataSource))
         {
