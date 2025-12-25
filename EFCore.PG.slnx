@@ -11,7 +11,7 @@
   <Folder Name="/Github/">
     <File Path=".github/dependabot.yml" />
     <File Path=".github/workflows/build.yml" />
-    <File Path=".github/workflows/codeql-analysis.yml" />
+    <File Path=".github/workflows/trigger-doc-build.yml" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/EFCore.PG.NodaTime/EFCore.PG.NodaTime.csproj" />
