@@ -10,6 +10,9 @@ on:
       - v*
   pull_request:
 
+permissions:
+  contents: read
+
 env:
   postgis_version: 3
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
