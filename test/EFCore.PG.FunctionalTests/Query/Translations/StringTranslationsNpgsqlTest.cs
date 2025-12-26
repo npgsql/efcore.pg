@@ -131,9 +131,17 @@ WHERE strpos(b."String", 'eattl') - 1 <> -1
 """);
     }
 
-    // TODO: #3547
-    public override Task IndexOf_Char()
-        => Assert.ThrowsAsync<InvalidCastException>(() => base.IndexOf_Char());
+    public override async Task IndexOf_Char()
+    {
+        await base.IndexOf_Char();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE strpos(b."String", 'e') - 1 <> -1
+""");
+    }
 
     public override async Task IndexOf_with_empty_string()
     {
@@ -231,9 +239,17 @@ WHERE replace(b."String", 'Sea', 'Rea') = 'Reattle'
 """);
     }
 
-    // TODO: #3547
-    public override Task Replace_Char()
-        => AssertTranslationFailed(() => base.Replace_Char());
+    public override async Task Replace_Char()
+    {
+        await base.Replace_Char();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE replace(b."String", 'S', 'R') = 'Reattle'
+""");
+    }
 
     public override async Task Replace_with_empty_string()
     {
@@ -429,9 +445,17 @@ WHERE b."String" LIKE 'Se%'
 """);
     }
 
-    // TODO: #3547
-    public override Task StartsWith_Literal_Char()
-        => AssertTranslationFailed(() => base.StartsWith_Literal_Char());
+    public override async Task StartsWith_Literal_Char()
+    {
+        await base.StartsWith_Literal_Char();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."String" LIKE 'S%'
+""");
+    }
 
     public override async Task StartsWith_Parameter()
     {
@@ -447,8 +471,19 @@ WHERE b."String" LIKE @pattern_startswith
 """);
     }
 
-    public override Task StartsWith_Parameter_Char()
-        => AssertTranslationFailed(() => base.StartsWith_Parameter_Char());
+    public override async Task StartsWith_Parameter_Char()
+    {
+        await base.StartsWith_Parameter_Char();
+
+        AssertSql(
+            """
+@pattern_startswith='S%'
+
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."String" LIKE @pattern_startswith
+""");
+    }
 
     public override async Task StartsWith_Column()
     {
@@ -499,9 +534,17 @@ WHERE b."String" LIKE '%le'
 """);
     }
 
-    // TODO: #3547
-    public override Task EndsWith_Literal_Char()
-        => AssertTranslationFailed(() => base.EndsWith_Literal_Char());
+    public override async Task EndsWith_Literal_Char()
+    {
+        await base.EndsWith_Literal_Char();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."String" LIKE '%e'
+""");
+    }
 
     public override async Task EndsWith_Parameter()
     {
@@ -517,9 +560,19 @@ WHERE b."String" LIKE @pattern_endswith
 """);
     }
 
-    // TODO: #3547
-    public override Task EndsWith_Parameter_Char()
-        => AssertTranslationFailed(() => base.EndsWith_Parameter_Char());
+    public override async Task EndsWith_Parameter_Char()
+    {
+        await base.EndsWith_Parameter_Char();
+
+        AssertSql(
+            """
+@pattern_endswith='%e'
+
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."String" LIKE @pattern_endswith
+""");
+    }
 
     public override async Task EndsWith_Column()
     {
@@ -575,9 +628,17 @@ WHERE b."String" LIKE '%eattl%'
 """);
     }
 
-    // TODO: #3547
-    public override Task Contains_Literal_Char()
-        => AssertTranslationFailed(() => base.Contains_Literal_Char());
+    public override async Task Contains_Literal_Char()
+    {
+        await base.Contains_Literal_Char();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."String" LIKE '%e%'
+""");
+    }
 
     public override async Task Contains_Column()
     {
