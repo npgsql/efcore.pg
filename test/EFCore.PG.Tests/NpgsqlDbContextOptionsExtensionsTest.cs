@@ -27,6 +27,32 @@ public class NpgsqlDbContextOptionsExtensionsTest
     }
 
     [ConditionalFact]
+    public void Can_add_extension_without_connection_string()
+    {
+        var optionsBuilder = new DbContextOptionsBuilder();
+        optionsBuilder.UseNpgsql();
+
+        var extension = optionsBuilder.Options.Extensions.OfType<NpgsqlOptionsExtension>().Single();
+
+        Assert.Null(extension.ConnectionString);
+        Assert.Null(extension.Connection);
+        Assert.Null(extension.DataSource);
+    }
+
+    [ConditionalFact]
+    public void Can_add_extension_without_connection_string_using_generic_options()
+    {
+        var optionsBuilder = new DbContextOptionsBuilder<DbContext>();
+        optionsBuilder.UseNpgsql();
+
+        var extension = optionsBuilder.Options.Extensions.OfType<NpgsqlOptionsExtension>().Single();
+
+        Assert.Null(extension.ConnectionString);
+        Assert.Null(extension.Connection);
+        Assert.Null(extension.DataSource);
+    }
+
+    [ConditionalFact]
     public void Can_add_extension_with_connection_string()
     {
         var optionsBuilder = new DbContextOptionsBuilder();
