@@ -64,6 +64,9 @@ public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
 
         ReplaceConvention(conventionSet.ForeignKeyRemovedConventions, valueGenerationConvention);
 
+        conventionSet.ForeignKeyAnnotationChangedConventions.Add(
+            new NpgsqlPeriodConvention(Dependencies, RelationalDependencies));
+
         var storeGenerationConvention =
             new NpgsqlStoreGenerationConvention(Dependencies, RelationalDependencies);
         ReplaceConvention(conventionSet.PropertyAnnotationChangedConventions, storeGenerationConvention);

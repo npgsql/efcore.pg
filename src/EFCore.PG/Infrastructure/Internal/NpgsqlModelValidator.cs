@@ -45,6 +45,7 @@ public class NpgsqlModelValidator : RelationalModelValidator
         ValidateIdentityVersionCompatibility(model);
         ValidateIndexIncludeProperties(model);
         ValidateWithoutOverlaps(model);
+        ValidatePeriod(model);
     }
 
     /// <summary>
@@ -294,7 +295,7 @@ public class NpgsqlModelValidator : RelationalModelValidator
 
     private void ValidateWithoutOverlapsKey(IKey key)
     {
-        var keyName = key.IsPrimaryKey() ? "primary key" : $"alternate key {{{string.Join(", ", key.Properties.Select(p => p.Name))}}}";
+        var keyName = key.IsPrimaryKey() ? "primary key" : $"alternate key {key.Properties.Format()}";
         var entityType = key.DeclaringEntityType;
 
         // Check PostgreSQL version requirement
@@ -305,7 +306,7 @@ public class NpgsqlModelValidator : RelationalModelValidator
         }
 
         // Check that the last property is a range type
-        var lastProperty = key.Properties.Last();
+        var lastProperty = key.Properties[^1];
         var typeMapping = lastProperty.FindTypeMapping();
 
         if (typeMapping is not NpgsqlRangeTypeMapping)
@@ -313,6 +314,67 @@ public class NpgsqlModelValidator : RelationalModelValidator
             throw new InvalidOperationException(
                 NpgsqlStrings.WithoutOverlapsRequiresRangeType(
                     keyName,
+                    entityType.DisplayName(),
+                    lastProperty.Name,
+                    lastProperty.ClrType.ShortDisplayName()));
+        }
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected virtual void ValidatePeriod(IModel model)
+    {
+        foreach (var entityType in model.GetEntityTypes())
+        {
+            foreach (var foreignKey in entityType.GetDeclaredForeignKeys())
+            {
+                if (foreignKey.GetPeriod() == true)
+                {
+                    ValidatePeriodForeignKey(foreignKey);
+                }
+            }
+        }
+    }
+
+    private void ValidatePeriodForeignKey(IForeignKey foreignKey)
+    {
+        var entityType = foreignKey.DeclaringEntityType;
+        var fkName = foreignKey.Properties.Format();
+        var principalKey = foreignKey.PrincipalKey;
+        var principalEntityType = principalKey.DeclaringEntityType;
+
+        if (!_postgresVersion.AtLeast(18))
+        {
+            throw new InvalidOperationException(
+                NpgsqlStrings.PeriodRequiresPostgres18(fkName, entityType.DisplayName()));
+        }
+
+        // Check that the principal key has WITHOUT OVERLAPS (check this before range type)
+        if (principalKey.GetWithoutOverlaps() != true)
+        {
+            throw new InvalidOperationException(
+                NpgsqlStrings.PeriodRequiresWithoutOverlapsOnPrincipal(
+                    fkName,
+                    entityType.DisplayName(),
+                    principalKey.IsPrimaryKey()
+                        ? "primary key"
+                        : $"alternate key {principalKey.Properties.Format()}",
+                    principalEntityType.DisplayName()));
+        }
+
+        // Check that the last property is a range type
+        var lastProperty = foreignKey.Properties[^1];
+        var typeMapping = lastProperty.FindTypeMapping();
+
+        if (typeMapping is not NpgsqlRangeTypeMapping)
+        {
+            throw new InvalidOperationException(
+                NpgsqlStrings.PeriodRequiresRangeType(
+                    fkName,
                     entityType.DisplayName(),
                     lastProperty.Name,
                     lastProperty.ClrType.ShortDisplayName()));

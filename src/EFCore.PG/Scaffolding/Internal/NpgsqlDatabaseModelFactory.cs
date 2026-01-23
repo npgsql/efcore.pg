@@ -955,6 +955,12 @@ WHERE
                     foreignKey.PrincipalColumns.Add(foreignKeyPrincipalColumn);
                 }
 
+                // PERIOD (PostgreSQL 18+)
+                if (foreignKeyRecord.GetFieldValue<bool>("conperiod"))
+                {
+                    foreignKey[NpgsqlAnnotationNames.Period] = true;
+                }
+
                 table.ForeignKeys.Add(foreignKey);
                 ForeignKeyEnd: ;
             }

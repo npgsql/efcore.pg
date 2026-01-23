@@ -1635,6 +1635,70 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         IndexOptions(operation, model, builder);
     }
 
+    /// <inheritdoc />
+    protected override void ForeignKeyConstraint(
+        AddForeignKeyOperation operation,
+        IModel? model,
+        MigrationCommandListBuilder builder)
+    {
+        if (operation.Name != null)
+        {
+            builder
+                .Append("CONSTRAINT ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .Append(" ");
+        }
+
+        var withPeriod = operation[NpgsqlAnnotationNames.Period] is true;
+
+        builder.Append("FOREIGN KEY (");
+        if (withPeriod)
+        {
+            builder
+                .Append(ColumnList(operation.Columns[..^1]))
+                .Append(", PERIOD ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Columns[^1]));
+        }
+        else
+        {
+            builder.Append(ColumnList(operation.Columns));
+        }
+
+        builder
+            .Append(") REFERENCES ")
+            .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.PrincipalTable, operation.PrincipalSchema));
+
+        if (operation.PrincipalColumns != null)
+        {
+            builder.Append(" (");
+            if (withPeriod)
+            {
+                builder
+                    .Append(ColumnList(operation.PrincipalColumns[..^1]))
+                    .Append(", PERIOD ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.PrincipalColumns[^1]));
+            }
+            else
+            {
+                builder.Append(ColumnList(operation.PrincipalColumns));
+            }
+
+            builder.Append(")");
+        }
+
+        if (operation.OnUpdate != ReferentialAction.NoAction)
+        {
+            builder.Append(" ON UPDATE ");
+            ForeignKeyAction(operation.OnUpdate, builder);
+        }
+
+        if (operation.OnDelete != ReferentialAction.NoAction)
+        {
+            builder.Append(" ON DELETE ");
+            ForeignKeyAction(operation.OnDelete, builder);
+        }
+    }
+
     #endregion Standard migrations
 
     #region Utilities
