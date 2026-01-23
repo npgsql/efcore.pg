@@ -30,9 +30,28 @@ public class NpgsqlPostgresModelFinalizingConvention(
                     ProcessRowVersionProperty(property, typeMapping);
                 }
             }
+
+            DiscoverBtreeGistForWithoutOverlaps(entityType, modelBuilder);
         }
 
         SetupEnums(modelBuilder);
+    }
+
+    /// <summary>
+    ///     Discovers the btree_gist extension if any keys or indexes use WITHOUT OVERLAPS.
+    /// </summary>
+    protected virtual void DiscoverBtreeGistForWithoutOverlaps(
+        IConventionEntityType entityType,
+        IConventionModelBuilder modelBuilder)
+    {
+        foreach (var key in entityType.GetDeclaredKeys())
+        {
+            if (key.GetWithoutOverlaps() == true)
+            {
+                modelBuilder.HasPostgresExtension("btree_gist");
+                return;
+            }
+        }
     }
 
     /// <summary>

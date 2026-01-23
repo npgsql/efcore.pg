@@ -1579,6 +1579,62 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
+    /// <inheritdoc />
+    protected override void PrimaryKeyConstraint(
+        AddPrimaryKeyOperation operation,
+        IModel? model,
+        MigrationCommandListBuilder builder)
+    {
+        if (operation.Name != null)
+        {
+            builder
+                .Append("CONSTRAINT ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .Append(" ");
+        }
+
+        builder
+            .Append("PRIMARY KEY (")
+            .Append(ColumnList(operation.Columns));
+
+        if (operation[NpgsqlAnnotationNames.WithoutOverlaps] is true)
+        {
+            builder.Append(" WITHOUT OVERLAPS");
+        }
+
+        builder.Append(")");
+
+        IndexOptions(operation, model, builder);
+    }
+
+    /// <inheritdoc />
+    protected override void UniqueConstraint(
+        AddUniqueConstraintOperation operation,
+        IModel? model,
+        MigrationCommandListBuilder builder)
+    {
+        if (operation.Name != null)
+        {
+            builder
+                .Append("CONSTRAINT ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .Append(" ");
+        }
+
+        builder
+            .Append("UNIQUE (")
+            .Append(ColumnList(operation.Columns));
+
+        if (operation[NpgsqlAnnotationNames.WithoutOverlaps] is true)
+        {
+            builder.Append(" WITHOUT OVERLAPS");
+        }
+
+        builder.Append(")");
+
+        IndexOptions(operation, model, builder);
+    }
+
     #endregion Standard migrations
 
     #region Utilities

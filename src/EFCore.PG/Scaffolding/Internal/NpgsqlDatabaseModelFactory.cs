@@ -810,6 +810,9 @@ WHERE
         out List<uint> constraintIndexes,
         IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
     {
+        // conperiod was added in PG18 for WITHOUT OVERLAPS support
+        var supportsConperiod = connection.PostgreSqlVersion >= new Version(18, 0);
+
         var commandText = $"""
 SELECT
   ns.nspname,
@@ -821,7 +824,8 @@ SELECT
   frnns.nspname AS fr_nspname,
   frncls.relname AS fr_relname,
   confkey,
-  confdeltype::text
+  confdeltype::text,
+  {(supportsConperiod ? "con.conperiod" : "false AS conperiod")}
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 JOIN pg_constraint as con ON con.conrelid = cls.oid
@@ -880,6 +884,12 @@ WHERE
                         logger.UnsupportedColumnConstraintSkippedWarning(primaryKey.Name, DisplayName(tableSchema, tableName));
                         goto PkEnd;
                     }
+                }
+
+                // WITHOUT OVERLAPS (PostgreSQL 18+)
+                if (primaryKeyRecord.GetFieldValue<bool>("conperiod"))
+                {
+                    primaryKey[NpgsqlAnnotationNames.WithoutOverlaps] = true;
                 }
 
                 table.PrimaryKey = primaryKey;
@@ -968,6 +978,12 @@ WHERE
                     }
 
                     uniqueConstraint.Columns.Add(constraintColumn);
+                }
+
+                // WITHOUT OVERLAPS (PostgreSQL 18+)
+                if (record.GetFieldValue<bool>("conperiod"))
+                {
+                    uniqueConstraint[NpgsqlAnnotationNames.WithoutOverlaps] = true;
                 }
 
                 table.UniqueConstraints.Add(uniqueConstraint);

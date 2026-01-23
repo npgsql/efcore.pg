@@ -1,5 +1,6 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
@@ -43,6 +44,7 @@ public class NpgsqlModelValidator : RelationalModelValidator
 
         ValidateIdentityVersionCompatibility(model);
         ValidateIndexIncludeProperties(model);
+        ValidateWithoutOverlaps(model);
     }
 
     /// <summary>
@@ -266,6 +268,54 @@ public class NpgsqlModelValidator : RelationalModelValidator
                     property.Name,
                     columnName,
                     storeObject.DisplayName()));
+        }
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected virtual void ValidateWithoutOverlaps(IModel model)
+    {
+        foreach (var entityType in model.GetEntityTypes())
+        {
+            // Validate primary key and alternate keys
+            foreach (var key in entityType.GetDeclaredKeys())
+            {
+                if (key.GetWithoutOverlaps() == true)
+                {
+                    ValidateWithoutOverlapsKey(key);
+                }
+            }
+        }
+    }
+
+    private void ValidateWithoutOverlapsKey(IKey key)
+    {
+        var keyName = key.IsPrimaryKey() ? "primary key" : $"alternate key {{{string.Join(", ", key.Properties.Select(p => p.Name))}}}";
+        var entityType = key.DeclaringEntityType;
+
+        // Check PostgreSQL version requirement
+        if (!_postgresVersion.AtLeast(18))
+        {
+            throw new InvalidOperationException(
+                NpgsqlStrings.WithoutOverlapsRequiresPostgres18(keyName, entityType.DisplayName()));
+        }
+
+        // Check that the last property is a range type
+        var lastProperty = key.Properties.Last();
+        var typeMapping = lastProperty.FindTypeMapping();
+
+        if (typeMapping is not NpgsqlRangeTypeMapping)
+        {
+            throw new InvalidOperationException(
+                NpgsqlStrings.WithoutOverlapsRequiresRangeType(
+                    keyName,
+                    entityType.DisplayName(),
+                    lastProperty.Name,
+                    lastProperty.ClrType.ShortDisplayName()));
         }
     }
 }

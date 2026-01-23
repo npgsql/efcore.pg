@@ -183,6 +183,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static string TransientExceptionDetected
             => GetString("TransientExceptionDetected");
 
+        /// <summary>
+        ///     WITHOUT OVERLAPS on {keyOrIndexName} in entity type '{entityType}' requires PostgreSQL 18.0 or later. If you're targeting an older version, remove the `WithoutOverlaps()` configuration call. Otherwise, set PostgreSQL compatibility mode by calling 'optionsBuilder.UseNpgsql(..., o => o.SetPostgresVersion(18, 0))' in your model's OnConfiguring.
+        /// </summary>
+        public static string WithoutOverlapsRequiresPostgres18(object? keyOrIndexName, object? entityType)
+            => string.Format(
+                GetString("WithoutOverlapsRequiresPostgres18", nameof(keyOrIndexName), nameof(entityType)),
+                keyOrIndexName, entityType);
+
+        /// <summary>
+        ///     WITHOUT OVERLAPS on {keyOrIndexName} in entity type '{entityType}' requires the last column to be a PostgreSQL range type (e.g. daterange, tsrange, tstzrange), but property '{property}' has type '{propertyType}'.
+        /// </summary>
+        public static string WithoutOverlapsRequiresRangeType(object? keyOrIndexName, object? entityType, object? property, object? propertyType)
+            => string.Format(
+                GetString("WithoutOverlapsRequiresRangeType", nameof(keyOrIndexName), nameof(entityType), nameof(property), nameof(propertyType)),
+                keyOrIndexName, entityType, property, propertyType);
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name)!;
