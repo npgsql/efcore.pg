@@ -37,7 +37,7 @@ public class NpgsqlModelValidatorTest
             });
 
         VerifyError(
-            "WITHOUT OVERLAPS on alternate key {Name, Period} in entity type 'EntityWithIntPeriod' requires the last column to be a PostgreSQL range type (e.g. daterange, tsrange, tstzrange), but property 'Period' has type 'int'.",
+            "WITHOUT OVERLAPS on alternate key {'Name', 'Period'} in entity type 'EntityWithIntPeriod' requires the last column to be a PostgreSQL range type (e.g. daterange, tsrange, tstzrange), but property 'Period' has type 'int'.",
             modelBuilder);
     }
 
@@ -57,10 +57,54 @@ public class NpgsqlModelValidatorTest
             modelBuilder);
     }
 
+    [ConditionalFact]
+    public void Throws_for_Period_on_foreign_key_without_without_overlaps_on_principal()
+    {
+        // Configure PG 18 so version check passes
+        var modelBuilder = CreateConventionModelBuilder(
+            o => o.UseNpgsql("Host=localhost", npgsqlOptions => npgsqlOptions.SetPostgresVersion(18, 0)));
+
+        // Use int for Period to avoid EF Core's base validation issues with NpgsqlRange<DateTime>
+        // Principal key does NOT have WithoutOverlaps configured
+        modelBuilder.Entity<PrincipalWithIntPeriod>(
+            b =>
+            {
+                b.HasKey(e => new { e.Id, e.Period });
+            });
+        modelBuilder.Entity<DependentWithIntPeriod>(
+            b =>
+            {
+                b.HasKey(e => e.Id);
+                b.HasOne<PrincipalWithIntPeriod>().WithMany()
+                    .HasForeignKey(e => new { e.PrincipalId, e.Period })
+                    .HasPrincipalKey(e => new { e.Id, e.Period })
+                    .WithPeriod();
+            });
+
+        // The PERIOD validation should fail because principal key doesn't have WITHOUT OVERLAPS
+        // Note: We would also fail the range type check, but the WITHOUT OVERLAPS check comes first
+        VerifyError(
+            "PERIOD on foreign key '{'PrincipalId', 'Period'}' in entity type 'DependentWithIntPeriod' requires the referenced primary key in entity type 'PrincipalWithIntPeriod' to be configured with WITHOUT OVERLAPS.",
+            modelBuilder);
+    }
+
     private class EntityWithIntPeriod
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public int Period { get; set; }
+    }
+
+    private class PrincipalWithIntPeriod
+    {
+        public int Id { get; set; }
+        public int Period { get; set; }
+    }
+
+    private class DependentWithIntPeriod
+    {
+        public int Id { get; set; }
+        public int PrincipalId { get; set; }
         public int Period { get; set; }
     }
 

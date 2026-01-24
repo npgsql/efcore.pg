@@ -228,6 +228,28 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    public override IEnumerable<IAnnotation> For(IForeignKeyConstraint constraint, bool designTime)
+    {
+        if (!designTime)
+        {
+            yield break;
+        }
+
+        // Model validation ensures that these facets are the same on all mapped foreign keys
+        var modelForeignKey = constraint.MappedForeignKeys.First();
+
+        if (modelForeignKey.GetPeriod() == true)
+        {
+            yield return new Annotation(NpgsqlAnnotationNames.Period, true);
+        }
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     public override IEnumerable<IAnnotation> For(IRelationalModel model, bool designTime)
     {
         if (!designTime)
