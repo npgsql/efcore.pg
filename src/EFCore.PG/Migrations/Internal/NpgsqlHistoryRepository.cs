@@ -1,4 +1,5 @@
 ﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal;
 
@@ -105,7 +106,16 @@ public class NpgsqlHistoryRepository : HistoryRepository, IHistoryRepository
         var model = EnsureModel();
 
         var operations = Dependencies.ModelDiffer.GetDifferences(null, model.GetRelationalModel());
-        var commandList = Dependencies.MigrationsSqlGenerator.Generate(operations, model);
+
+        // Workaround for https://github.com/npgsql/efcore.pg/issues/3496: filter out extension-related operations.
+        // On managed PostgreSQL services (e.g. Azure Flexible Server), CREATE EXTENSION requires sometimes superuser privileges
+        // even with IF NOT EXISTS. Since extension creation isn't needed for the history table, we exclude these
+        // operations to avoid permission errors for non-superuser application accounts.
+        var operationsWithoutExtensions = operations
+            .Where(o => !o.GetAnnotations().Any(a => a.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal)))
+            .ToList();
+
+        var commandList = Dependencies.MigrationsSqlGenerator.Generate(operationsWithoutExtensions, model);
         return commandList;
     }
 
