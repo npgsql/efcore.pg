@@ -382,9 +382,9 @@ FROM "PolygonEntity" AS p
 
         AssertSql(
             """
-@__polygon_1='POLYGON ((0 0, 1 0, 0 1, 0 0))' (DbType = Object)
+@polygon='POLYGON ((0 0, 1 0, 0 1, 0 0))' (DbType = Object)
 
-SELECT p."Id", p."Polygon" && @__polygon_1 AS "IntersectsBbox"
+SELECT p."Id", p."Polygon" && @polygon AS "IntersectsBbox"
 FROM "PolygonEntity" AS p
 """);
     }
