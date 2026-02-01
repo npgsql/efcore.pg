@@ -228,27 +228,6 @@ WHERE s."UppercaseNamedEnum" = ANY (@values)
 """);
     }
 
-    [ConditionalTheory] // #3433
-    [MemberData(nameof(IsAsyncData))]
-    public async Task Where_uppercase_enum_array_contains_enum(bool async)
-    {
-        await using var ctx = CreateContext();
-
-        List<UppercaseNamedEnum> values = [UppercaseNamedEnum.Sad];
-        await AssertQuery(
-            async,
-            ss => ss.Set<SomeEnumEntity>().Where(e => values.Contains(e.UppercaseNamedEnum)));
-
-        AssertSql(
-            """
-@__values_0={ 'Sad' } (DbType = Object)
-
-SELECT s."Id", s."ByteEnum", s."EnumValue", s."InferredEnum", s."MappedEnum", s."SchemaQualifiedEnum", s."UnmappedByteEnum", s."UnmappedEnum", s."UppercaseNamedEnum"
-FROM test."SomeEntities" AS s
-WHERE s."UppercaseNamedEnum" = ANY (@__values_0)
-""");
-    }
-
     #endregion
 
     #region Support
