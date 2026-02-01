@@ -1,8 +1,6 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.Query;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
-
-public class AdHocManyToManyQueryNpgsqlTest : AdHocManyToManyQueryRelationalTestBase
+public class AdHocManyToManyQueryNpgsqlTest(NonSharedFixture fixture) : AdHocManyToManyQueryRelationalTestBase(fixture)
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;

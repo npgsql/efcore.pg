@@ -1,11 +1,12 @@
 using System.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 // ReSharper disable MethodSupportsCancellation
 // ReSharper disable AccessToDisposedClosure
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
+
+#nullable disable
 
 public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.ExecutionStrategyFixture>
 {

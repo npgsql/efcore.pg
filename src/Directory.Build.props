@@ -5,7 +5,6 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <Nullable>enable</Nullable>
     <Feature>nullablePublicOnly</Feature>
   </PropertyGroup>
 

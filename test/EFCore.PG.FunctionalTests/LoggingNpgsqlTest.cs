@@ -2,7 +2,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public class LoggingNpgsqlTest : LoggingRelationalTestBase<NpgsqlDbContextOptionsBuilder, NpgsqlOptionsExtension>
 {
@@ -72,5 +72,5 @@ public class LoggingNpgsqlTest : LoggingRelationalTestBase<NpgsqlDbContextOption
 
     protected override string ProviderVersion
         => typeof(NpgsqlOptionsExtension).Assembly
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion!;
 }

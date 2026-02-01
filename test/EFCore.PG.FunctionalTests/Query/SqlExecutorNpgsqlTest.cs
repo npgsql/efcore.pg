@@ -1,6 +1,6 @@
 ﻿using System.Data.Common;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class SqlExecutorNpgsqlTest : SqlExecutorTestBase<NorthwindQueryNpgsqlFixture<SqlExecutorModelCustomizer>>
 {

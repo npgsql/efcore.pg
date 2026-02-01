@@ -390,18 +390,22 @@ ORDER BY attnum
                     continue;
                 }
 
-                // Default values and PostgreSQL 12 generated columns
+                // Default values and generated columns
                 var defaultValueSql = record.GetValueOrDefault<string>("default");
-                if (record.GetFieldValue<string>("attgenerated") == "s")
+                switch (record.GetFieldValue<string>("attgenerated"))
                 {
-                    column.ComputedColumnSql = defaultValueSql;
-                    column.IsStored = true;
-                }
-                else
-                {
-                    column.DefaultValueSql = defaultValueSql;
-                    column.DefaultValue = ParseClrDefault(storeType, defaultValueSql);
-                    AdjustDefaults(column, systemTypeName);
+                    case "v":
+                        column.ComputedColumnSql = defaultValueSql;
+                        column.IsStored = false;
+                        break;
+                    case "s":
+                        column.ComputedColumnSql = defaultValueSql;
+                        column.IsStored = true;
+                        break;
+                    default:
+                        column.DefaultValueSql = defaultValueSql;
+                        column.DefaultValue = ParseDefaultValueSql(systemTypeName, defaultValueSql);
+                        break;
                 }
 
                 // Identify IDENTITY columns, as well as SERIAL ones.
@@ -503,7 +507,7 @@ ORDER BY attnum
         }
     }
 
-    private static object? ParseClrDefault(string dataTypeName, string? defaultValueSql)
+    private static object? ParseDefaultValueSql(string systemTypeName, string? defaultValueSql)
     {
         defaultValueSql = defaultValueSql?.Trim();
 
@@ -514,10 +518,10 @@ ORDER BY attnum
 
         while (defaultValueSql.StartsWith('(') && defaultValueSql.EndsWith(')'))
         {
-            defaultValueSql = (defaultValueSql.Substring(1, defaultValueSql.Length - 2)).Trim();
+            defaultValueSql = defaultValueSql[1..^1].Trim();
         }
 
-        return dataTypeName switch
+        return systemTypeName switch
         {
             "bool" or "boolean" => defaultValueSql switch
             {
@@ -525,9 +529,14 @@ ORDER BY attnum
                 "false" or "no" or "off" or "0" => false,
                 _ => null
             },
+
             "smallint" or "int2" => short.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @short) ? @short : null,
             "integer" or "int" or "int4" => int.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @int) ? @int : null,
             "bigint" or "int8" => long.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @long) ? @long : null,
+
+            "real" or "float4" => float.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @float) ? @float : null,
+            "double precision" or "float8" => double.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @double) ? @double : null,
+            "numeric" or "decimal" => decimal.TryParse(defaultValueSql, CultureInfo.InvariantCulture, out var @decimal) ? @decimal : null,
 
             _ => null
         };
@@ -801,6 +810,9 @@ WHERE
         out List<uint> constraintIndexes,
         IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
     {
+        // conperiod was added in PG18 for WITHOUT OVERLAPS support
+        var supportsConperiod = connection.PostgreSqlVersion >= new Version(18, 0);
+
         var commandText = $"""
 SELECT
   ns.nspname,
@@ -812,7 +824,8 @@ SELECT
   frnns.nspname AS fr_nspname,
   frncls.relname AS fr_relname,
   confkey,
-  confdeltype::text
+  confdeltype::text,
+  {(supportsConperiod ? "con.conperiod" : "false AS conperiod")}
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 JOIN pg_constraint as con ON con.conrelid = cls.oid
@@ -871,6 +884,12 @@ WHERE
                         logger.UnsupportedColumnConstraintSkippedWarning(primaryKey.Name, DisplayName(tableSchema, tableName));
                         goto PkEnd;
                     }
+                }
+
+                // WITHOUT OVERLAPS (PostgreSQL 18+)
+                if (primaryKeyRecord.GetFieldValue<bool>("conperiod"))
+                {
+                    primaryKey[NpgsqlAnnotationNames.WithoutOverlaps] = true;
                 }
 
                 table.PrimaryKey = primaryKey;
@@ -936,6 +955,12 @@ WHERE
                     foreignKey.PrincipalColumns.Add(foreignKeyPrincipalColumn);
                 }
 
+                // PERIOD (PostgreSQL 18+)
+                if (foreignKeyRecord.GetFieldValue<bool>("conperiod"))
+                {
+                    foreignKey[NpgsqlAnnotationNames.Period] = true;
+                }
+
                 table.ForeignKeys.Add(foreignKey);
                 ForeignKeyEnd: ;
             }
@@ -959,6 +984,12 @@ WHERE
                     }
 
                     uniqueConstraint.Columns.Add(constraintColumn);
+                }
+
+                // WITHOUT OVERLAPS (PostgreSQL 18+)
+                if (record.GetFieldValue<bool>("conperiod"))
+                {
+                    uniqueConstraint[NpgsqlAnnotationNames.WithoutOverlaps] = true;
                 }
 
                 table.UniqueConstraints.Add(uniqueConstraint);
@@ -1234,55 +1265,7 @@ WHERE
 
     #endregion
 
-    #region Configure default values
-
-    /// <summary>
-    ///     Configures the default value for a column.
-    /// </summary>
-    /// <param name="column">The column to configure.</param>
-    /// <param name="systemTypeName">The type name of the column.</param>
-    private static void AdjustDefaults(DatabaseColumn column, string systemTypeName)
-    {
-        var defaultValue = column.DefaultValueSql;
-        if (defaultValue is null or "(NULL)")
-        {
-            column.DefaultValueSql = null;
-            return;
-        }
-
-        if (column.IsNullable)
-        {
-            return;
-        }
-
-        if (defaultValue == "0")
-        {
-            if (systemTypeName is "float4" or "float8" or "int2" or "int4" or "int8" or "money" or "numeric")
-            {
-                column.DefaultValueSql = null;
-                return;
-            }
-        }
-
-        if (defaultValue is "0.0" or "'0'::numeric")
-        {
-            if (systemTypeName is "numeric" or "float4" or "float8" or "money")
-            {
-                column.DefaultValueSql = null;
-                return;
-            }
-        }
-
-        if (systemTypeName == "bool" && defaultValue == "false"
-            || systemTypeName == "date" && defaultValue == "'0001-01-01'::date"
-            || systemTypeName == "timestamp" && defaultValue == "'1900-01-01 00:00:00'::timestamp without time zone"
-            || systemTypeName == "time" && defaultValue == "'00:00:00'::time without time zone"
-            || systemTypeName == "interval" && defaultValue == "'00:00:00'::interval"
-            || systemTypeName == "uuid" && defaultValue == "'00000000-0000-0000-0000-000000000000'::uuid")
-        {
-            column.DefaultValueSql = null;
-        }
-    }
+    #region SequenceInfo
 
     private static SequenceInfo ReadSequenceInfo(DbDataRecord record, Version postgresVersion)
     {

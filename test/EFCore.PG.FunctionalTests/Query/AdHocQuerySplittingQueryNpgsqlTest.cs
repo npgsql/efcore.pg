@@ -1,11 +1,18 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
-public class AdHocQuerySplittingQueryNpgsqlTest : AdHocQuerySplittingQueryTestBase
+#nullable disable
+
+public class AdHocQuerySplittingQueryNpgsqlTest(NonSharedFixture fixture) : AdHocQuerySplittingQueryTestBase(fixture)
 {
+    protected override ITestStoreFactory TestStoreFactory
+        => NpgsqlTestStoreFactory.Instance;
+
+    private static readonly FieldInfo _querySplittingBehaviorFieldInfo =
+        typeof(RelationalOptionsExtension).GetField("_querySplittingBehavior", BindingFlags.NonPublic | BindingFlags.Instance);
+
     protected override DbContextOptionsBuilder SetQuerySplittingBehavior(
         DbContextOptionsBuilder optionsBuilder,
         QuerySplittingBehavior splittingBehavior)
@@ -32,9 +39,10 @@ public class AdHocQuerySplittingQueryNpgsqlTest : AdHocQuerySplittingQueryTestBa
         return optionsBuilder;
     }
 
-    private static readonly FieldInfo _querySplittingBehaviorFieldInfo =
-        typeof(RelationalOptionsExtension).GetField("_querySplittingBehavior", BindingFlags.NonPublic | BindingFlags.Instance);
-
-    protected override ITestStoreFactory TestStoreFactory
-        => NpgsqlTestStoreFactory.Instance;
+    protected override TestStore CreateTestStore25225()
+    {
+        var testStore = NpgsqlTestStore.Create(StoreName);
+        testStore.UseConnectionString = true;
+        return testStore;
+    }
 }

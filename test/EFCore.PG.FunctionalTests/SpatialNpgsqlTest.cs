@@ -1,6 +1,4 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 [RequiresPostgis]
 public class SpatialNpgsqlTest(SpatialNpgsqlFixture fixture) : SpatialTestBase<SpatialNpgsqlFixture>(fixture)

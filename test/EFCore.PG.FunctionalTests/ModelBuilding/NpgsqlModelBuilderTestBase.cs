@@ -1,9 +1,4 @@
-#nullable enable
-
-using Microsoft.EntityFrameworkCore.ModelBuilding;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.ModelBuilding;
+namespace Microsoft.EntityFrameworkCore.ModelBuilding;
 
 public class NpgsqlModelBuilderTestBase : RelationalModelBuilderTest
 {
@@ -12,6 +7,9 @@ public class NpgsqlModelBuilderTestBase : RelationalModelBuilderTest
 
     public abstract class NpgsqlComplexType(NpgsqlModelBuilderFixture fixture)
         : RelationalComplexTypeTestBase(fixture), IClassFixture<NpgsqlModelBuilderFixture>;
+
+    public abstract class NpgsqlComplexCollection(NpgsqlModelBuilderFixture fixture)
+        : RelationalComplexCollectionTestBase(fixture), IClassFixture<NpgsqlModelBuilderFixture>;
 
     public abstract class NpgsqlInheritance(NpgsqlModelBuilderFixture fixture)
         : RelationalInheritanceTestBase(fixture), IClassFixture<NpgsqlModelBuilderFixture>;

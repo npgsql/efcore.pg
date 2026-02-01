@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.JsonQuery;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class JsonQueryNpgsqlTest : JsonQueryRelationalTestBase<JsonQueryNpgsqlTest.JsonQueryNpgsqlFixture>
 {
@@ -10,28 +9,6 @@ public class JsonQueryNpgsqlTest : JsonQueryRelationalTestBase<JsonQueryNpgsqlTe
     {
         Fixture.TestSqlLoggerFactory.Clear();
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
-    }
-
-    public override async Task Basic_json_projection_owner_entity(bool async)
-    {
-        await base.Basic_json_projection_owner_entity(async);
-
-        AssertSql(
-            """
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
-    public override async Task Basic_json_projection_owner_entity_NoTracking(bool async)
-    {
-        await base.Basic_json_projection_owner_entity_NoTracking(async);
-
-        AssertSql(
-            """
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
-FROM "JsonEntitiesBasic" AS j
-""");
     }
 
     public override async Task Basic_json_projection_owner_entity_NoTrackingWithIdentityResolution(bool async)
@@ -45,28 +22,6 @@ FROM "JsonEntitiesBasic" AS j
 """);
     }
 
-    public override async Task Basic_json_projection_owner_entity_duplicated(bool async)
-    {
-        await base.Basic_json_projection_owner_entity_duplicated(async);
-
-        AssertSql(
-            """
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
-    public override async Task Basic_json_projection_owner_entity_duplicated_NoTracking(bool async)
-    {
-        await base.Basic_json_projection_owner_entity_duplicated_NoTracking(async);
-
-        AssertSql(
-            """
-SELECT j."Id", j."Name", j."OwnedCollection", j."OwnedCollection"
-FROM "JsonEntitiesSingleOwned" AS j
-""");
-    }
-
     public override async Task Basic_json_projection_owner_entity_duplicated_NoTrackingWithIdentityResolution(bool async)
     {
         await base.Basic_json_projection_owner_entity_duplicated_NoTrackingWithIdentityResolution(async);
@@ -75,28 +30,6 @@ FROM "JsonEntitiesSingleOwned" AS j
             """
 SELECT j."Id", j."Name", j."OwnedCollection", j."OwnedCollection"
 FROM "JsonEntitiesSingleOwned" AS j
-""");
-    }
-
-    public override async Task Basic_json_projection_owner_entity_twice(bool async)
-    {
-        await base.Basic_json_projection_owner_entity_twice(async);
-
-        AssertSql(
-            """
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
-    public override async Task Basic_json_projection_owner_entity_twice_NoTracking(bool async)
-    {
-        await base.Basic_json_projection_owner_entity_twice_NoTracking(async);
-
-        AssertSql(
-            """
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
-FROM "JsonEntitiesBasic" AS j
 """);
     }
 
@@ -135,17 +68,6 @@ FROM "JsonEntitiesBasic" AS j
         );
     }
 
-    public override async Task Basic_json_projection_owned_reference_root(bool async)
-    {
-        await base.Basic_json_projection_owned_reference_root(async);
-
-        AssertSql(
-            """
-SELECT j."OwnedReferenceRoot", j."Id"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
     public override async Task Basic_json_projection_owned_reference_root_NoTrackingWithIdentityResolution(bool async)
     {
         await base.Basic_json_projection_owned_reference_root_NoTrackingWithIdentityResolution(async);
@@ -157,18 +79,6 @@ FROM "JsonEntitiesBasic" AS j
 """);
     }
 
-    public override async Task Basic_json_projection_owned_reference_duplicated2(bool async)
-    {
-        await base.Basic_json_projection_owned_reference_duplicated2(async);
-
-        AssertSql(
-            """
-SELECT j."OwnedReferenceRoot", j."Id", j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}', j."OwnedReferenceRoot", j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}'
-FROM "JsonEntitiesBasic" AS j
-ORDER BY j."Id" NULLS FIRST
-""");
-    }
-
     public override async Task Basic_json_projection_owned_reference_duplicated2_NoTrackingWithIdentityResolution(bool async)
     {
         await base.Basic_json_projection_owned_reference_duplicated2_NoTrackingWithIdentityResolution(async);
@@ -176,18 +86,6 @@ ORDER BY j."Id" NULLS FIRST
         AssertSql(
             """
 SELECT j."OwnedReferenceRoot", j."Id", j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}', j."OwnedReferenceRoot", j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}'
-FROM "JsonEntitiesBasic" AS j
-ORDER BY j."Id" NULLS FIRST
-""");
-    }
-
-    public override async Task Basic_json_projection_owned_reference_duplicated(bool async)
-    {
-        await base.Basic_json_projection_owned_reference_duplicated(async);
-
-        AssertSql(
-            """
-SELECT j."OwnedReferenceRoot", j."Id", j."OwnedReferenceRoot" -> 'OwnedReferenceBranch', j."OwnedReferenceRoot", j."OwnedReferenceRoot" -> 'OwnedReferenceBranch'
 FROM "JsonEntitiesBasic" AS j
 ORDER BY j."Id" NULLS FIRST
 """);
@@ -205,17 +103,6 @@ ORDER BY j."Id" NULLS FIRST
 """);
     }
 
-    public override async Task Basic_json_projection_owned_collection_root(bool async)
-    {
-        await base.Basic_json_projection_owned_collection_root(async);
-
-        AssertSql(
-            """
-SELECT j."OwnedCollectionRoot", j."Id"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
     public override async Task Basic_json_projection_owned_collection_root_NoTrackingWithIdentityResolution(bool async)
     {
         await base.Basic_json_projection_owned_collection_root_NoTrackingWithIdentityResolution(async);
@@ -227,17 +114,6 @@ FROM "JsonEntitiesBasic" AS j
 """);
     }
 
-    public override async Task Basic_json_projection_owned_reference_branch(bool async)
-    {
-        await base.Basic_json_projection_owned_reference_branch(async);
-
-        AssertSql(
-            """
-SELECT j."OwnedReferenceRoot" -> 'OwnedReferenceBranch', j."Id"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
     public override async Task Basic_json_projection_owned_reference_branch_NoTrackingWithIdentityResolution(bool async)
     {
         await base.Basic_json_projection_owned_reference_branch_NoTrackingWithIdentityResolution(async);
@@ -245,17 +121,6 @@ FROM "JsonEntitiesBasic" AS j
         AssertSql(
             """
 SELECT j."OwnedReferenceRoot" -> 'OwnedReferenceBranch', j."Id"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
-    public override async Task Basic_json_projection_owned_collection_branch(bool async)
-    {
-        await base.Basic_json_projection_owned_collection_branch(async);
-
-        AssertSql(
-            """
-SELECT j."OwnedReferenceRoot" -> 'OwnedCollectionBranch', j."Id"
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -338,28 +203,6 @@ FROM "JsonEntitiesCustomNaming" AS j
 """);
     }
 
-    public override async Task Json_projection_with_deduplication(bool async)
-    {
-        await base.Json_projection_with_deduplication(async);
-
-        AssertSql(
-            """
-SELECT j."Id", j."OwnedReferenceRoot" -> 'OwnedReferenceBranch', j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}', j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedCollectionLeaf}', j."OwnedReferenceRoot" -> 'OwnedCollectionBranch', j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,OwnedReferenceLeaf,SomethingSomething}'
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
-    public override async Task Json_projection_with_deduplication_reverse_order(bool async)
-    {
-        await base.Json_projection_with_deduplication_reverse_order(async);
-
-        AssertSql(
-            """
-SELECT j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}', j."Id", j."OwnedReferenceRoot", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
-FROM "JsonEntitiesBasic" AS j
-""");
-    }
-
     public override async Task Json_property_in_predicate(bool async)
     {
         await base.Json_property_in_predicate(async);
@@ -378,7 +221,7 @@ WHERE (CAST(j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,Fraction}' AS nume
 
         AssertSql(
             """
-@__p_0='3'
+@p='3'
 
 SELECT length(j1.c)::int
 FROM (
@@ -387,7 +230,7 @@ FROM (
         SELECT j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,OwnedReferenceLeaf,SomethingSomething}' AS c
         FROM "JsonEntitiesBasic" AS j
         ORDER BY j."Id" NULLS FIRST
-        LIMIT @__p_0
+        LIMIT @p
     ) AS j0
 ) AS j1
 """);
@@ -399,7 +242,7 @@ FROM (
 
         AssertSql(
             """
-@__p_0='10'
+@p='10'
 
 SELECT j1.c -> 'OwnedReferenceBranch', j1."Id"
 FROM (
@@ -408,7 +251,7 @@ FROM (
         SELECT j."OwnedReferenceRoot" AS c, j."Id"
         FROM "JsonEntitiesBasic" AS j
         ORDER BY j."Id" NULLS FIRST
-        LIMIT @__p_0
+        LIMIT @p
     ) AS j0
 ) AS j1
 """);
@@ -467,7 +310,7 @@ FROM (
 
         AssertSql(
             """
-@__p_0='10'
+@p='10'
 
 SELECT j3.c -> 'OwnedReferenceLeaf', j3."Id"
 FROM (
@@ -480,11 +323,11 @@ FROM (
                 SELECT j."OwnedReferenceRoot" AS c, j."Id"
                 FROM "JsonEntitiesBasic" AS j
                 ORDER BY j."Id" NULLS FIRST
-                LIMIT @__p_0
+                LIMIT @p
             ) AS j0
         ) AS j1
         ORDER BY j1.c0 ->> 'Name' NULLS FIRST
-        LIMIT @__p_0
+        LIMIT @p
     ) AS j2
 ) AS j3
 """);
@@ -496,7 +339,7 @@ FROM (
 
         AssertSql(
             """
-@__p_0='10'
+@p='10'
 
 SELECT j3.c -> 'OwnedCollectionLeaf', j3."Id"
 FROM (
@@ -509,11 +352,11 @@ FROM (
                 SELECT j."OwnedReferenceRoot" AS c, j."Id"
                 FROM "JsonEntitiesBasic" AS j
                 ORDER BY j."Id" NULLS FIRST
-                LIMIT @__p_0
+                LIMIT @p
             ) AS j0
         ) AS j1
         ORDER BY j1.c0 ->> 'Name' NULLS FIRST
-        LIMIT @__p_0
+        LIMIT @p
     ) AS j2
 ) AS j3
 """);
@@ -525,7 +368,7 @@ FROM (
 
         AssertSql(
             """
-@__p_0='10'
+@p='10'
 
 SELECT j1.c ->> 'SomethingSomething'
 FROM (
@@ -534,7 +377,7 @@ FROM (
         SELECT j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedReferenceLeaf}' AS c, j."Id"
         FROM "JsonEntitiesBasic" AS j
         ORDER BY j."Id" NULLS FIRST
-        LIMIT @__p_0
+        LIMIT @p
     ) AS j0
 ) AS j1
 """);
@@ -607,15 +450,27 @@ FROM "JsonEntitiesSingleOwned" AS j
 """);
     }
 
-    public override async Task Left_join_json_entities(bool async)
+    public override async Task LeftJoin_json_entities(bool async)
     {
-        await base.Left_join_json_entities(async);
+        await base.LeftJoin_json_entities(async);
 
         AssertSql(
             """
 SELECT j."Id", j."Name", j."OwnedCollection", j0."Id", j0."EntityBasicId", j0."Name", j0."OwnedCollectionRoot", j0."OwnedReferenceRoot"
 FROM "JsonEntitiesSingleOwned" AS j
 LEFT JOIN "JsonEntitiesBasic" AS j0 ON j."Id" = j0."Id"
+""");
+    }
+
+    public override async Task RightJoin_json_entities(bool async)
+    {
+        await base.RightJoin_json_entities(async);
+
+        AssertSql(
+            """
+SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j0."Id", j0."Name", j0."OwnedCollection"
+FROM "JsonEntitiesBasic" AS j
+RIGHT JOIN "JsonEntitiesSingleOwned" AS j0 ON j."Id" = j0."Id"
 """);
     }
 
@@ -655,24 +510,6 @@ LEFT JOIN "JsonEntitiesSingleOwned" AS j0 ON j."Id" = j0."Id"
 """);
     }
 
-    public override async Task Project_json_entity_FirstOrDefault_subquery(bool async)
-    {
-        await base.Project_json_entity_FirstOrDefault_subquery(async);
-
-        AssertSql(
-            """
-SELECT j1.c, j1."Id"
-FROM "JsonEntitiesBasic" AS j
-LEFT JOIN LATERAL (
-    SELECT j0."OwnedReferenceRoot" -> 'OwnedReferenceBranch' AS c, j0."Id"
-    FROM "JsonEntitiesBasic" AS j0
-    ORDER BY j0."Id" NULLS FIRST
-    LIMIT 1
-) AS j1 ON TRUE
-ORDER BY j."Id" NULLS FIRST
-""");
-    }
-
     public override async Task Project_json_entity_FirstOrDefault_subquery_with_binding_on_top(bool async)
     {
         await base.Project_json_entity_FirstOrDefault_subquery_with_binding_on_top(async);
@@ -695,60 +532,6 @@ ORDER BY j."Id" NULLS FIRST
 
         AssertSql(
             @"");
-    }
-
-    public override async Task Project_json_entity_FirstOrDefault_subquery_deduplication(bool async)
-    {
-        await base.Project_json_entity_FirstOrDefault_subquery_deduplication(async);
-
-        AssertSql(
-            """
-SELECT j1.c, j1."Id", j1.c0, j1."Id0", j1.c1, j1.c2, j1.c3, j1.c4
-FROM "JsonEntitiesBasic" AS j
-LEFT JOIN LATERAL (
-    SELECT j."OwnedReferenceRoot" -> 'OwnedCollectionBranch' AS c, j."Id", j0."OwnedReferenceRoot" AS c0, j0."Id" AS "Id0", j0."OwnedReferenceRoot" -> 'OwnedReferenceBranch' AS c1, j0."OwnedReferenceRoot" ->> 'Name' AS c2, CAST(j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,Enum}' AS integer) AS c3, 1 AS c4
-    FROM "JsonEntitiesBasic" AS j0
-    ORDER BY j0."Id" NULLS FIRST
-    LIMIT 1
-) AS j1 ON TRUE
-ORDER BY j."Id" NULLS FIRST
-""");
-    }
-
-    public override async Task Project_json_entity_FirstOrDefault_subquery_deduplication_and_outer_reference(bool async)
-    {
-        await base.Project_json_entity_FirstOrDefault_subquery_deduplication_and_outer_reference(async);
-
-        AssertSql(
-            """
-SELECT j1.c, j1."Id", j1.c0, j1."Id0", j1.c1, j1.c2, j1.c3, j1.c4
-FROM "JsonEntitiesBasic" AS j
-LEFT JOIN LATERAL (
-    SELECT j."OwnedReferenceRoot" -> 'OwnedCollectionBranch' AS c, j."Id", j0."OwnedReferenceRoot" AS c0, j0."Id" AS "Id0", j0."OwnedReferenceRoot" -> 'OwnedReferenceBranch' AS c1, j0."OwnedReferenceRoot" ->> 'Name' AS c2, CAST(j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,Enum}' AS integer) AS c3, 1 AS c4
-    FROM "JsonEntitiesBasic" AS j0
-    ORDER BY j0."Id" NULLS FIRST
-    LIMIT 1
-) AS j1 ON TRUE
-ORDER BY j."Id" NULLS FIRST
-""");
-    }
-
-    public override async Task Project_json_entity_FirstOrDefault_subquery_deduplication_outer_reference_and_pruning(bool async)
-    {
-        await base.Project_json_entity_FirstOrDefault_subquery_deduplication_outer_reference_and_pruning(async);
-
-        AssertSql(
-            """
-SELECT j1.c, j1."Id", j1.c0
-FROM "JsonEntitiesBasic" AS j
-LEFT JOIN LATERAL (
-    SELECT j."OwnedReferenceRoot" -> 'OwnedCollectionBranch' AS c, j."Id", 1 AS c0
-    FROM "JsonEntitiesBasic" AS j0
-    ORDER BY j0."Id" NULLS FIRST
-    LIMIT 1
-) AS j1 ON TRUE
-ORDER BY j."Id" NULLS FIRST
-""");
     }
 
     public override async Task Json_entity_with_inheritance_basic_projection(bool async)
@@ -877,9 +660,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='0'
+@prm='0'
 
-SELECT j."OwnedCollectionRoot" -> @__prm_0, j."Id", @__prm_0
+SELECT j."OwnedCollectionRoot" -> @prm, j."Id", @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -902,7 +685,7 @@ FROM "JsonEntitiesBasic" AS j
 
         Assert.Contains(
             CoreStrings.QueryUnableToTranslateMethod(
-                "Microsoft.EntityFrameworkCore.Query.JsonQueryTestBase<Npgsql.EntityFrameworkCore.PostgreSQL.Query.JsonQueryNpgsqlTest+JsonQueryNpgsqlFixture>",
+                "Microsoft.EntityFrameworkCore.Query.JsonQueryTestBase<Microsoft.EntityFrameworkCore.Query.JsonQueryNpgsqlTest+JsonQueryNpgsqlFixture>",
                 "MyMethod"),
             message);
     }
@@ -914,7 +697,7 @@ FROM "JsonEntitiesBasic" AS j
 
         Assert.Contains(
             CoreStrings.QueryUnableToTranslateMethod(
-                "Microsoft.EntityFrameworkCore.Query.JsonQueryTestBase<Npgsql.EntityFrameworkCore.PostgreSQL.Query.JsonQueryNpgsqlTest+JsonQueryNpgsqlFixture>",
+                "Microsoft.EntityFrameworkCore.Query.JsonQueryTestBase<Microsoft.EntityFrameworkCore.Query.JsonQueryNpgsqlTest+JsonQueryNpgsqlFixture>",
                 "MyMethod"),
             message);
     }
@@ -959,9 +742,9 @@ ORDER BY j."Id" NULLS FIRST
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@__prm_0]::text[], j."Id", @__prm_0
+SELECT j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@prm]::text[], j."Id", @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -972,9 +755,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT CAST(j."OwnedCollectionRoot" #>> ARRAY[0,'OwnedCollectionBranch',@__prm_0,'Date']::text[] AS timestamp without time zone)
+SELECT CAST(j."OwnedCollectionRoot" #>> ARRAY[0,'OwnedCollectionBranch',@prm,'Date']::text[] AS timestamp without time zone)
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -985,9 +768,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@__prm_0,'OwnedReferenceLeaf']::text[], j."Id", @__prm_0
+SELECT j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@prm,'OwnedReferenceLeaf']::text[], j."Id", @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -998,9 +781,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@__prm_0,'OwnedCollectionLeaf']::text[], j."Id", @__prm_0
+SELECT j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@prm,'OwnedCollectionLeaf']::text[], j."Id", @prm
 FROM "JsonEntitiesBasic" AS j
 ORDER BY j."Id" NULLS FIRST
 """);
@@ -1012,9 +795,9 @@ ORDER BY j."Id" NULLS FIRST
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@__prm_0,'OwnedCollectionLeaf']::text[], @__prm_0
+SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[0,'OwnedCollectionBranch',@prm,'OwnedCollectionLeaf']::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1037,11 +820,11 @@ WHERE (j."OwnedCollectionRoot" #>> '{0,Name}') <> 'Foo' OR (j."OwnedCollectionRo
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
 SELECT j."Id"
 FROM "JsonEntitiesBasic" AS j
-WHERE (j."OwnedCollectionRoot" #>> ARRAY[@__prm_0,'Name']::text[]) <> 'Foo' OR (j."OwnedCollectionRoot" #>> ARRAY[@__prm_0,'Name']::text[]) IS NULL
+WHERE (j."OwnedCollectionRoot" #>> ARRAY[@prm,'Name']::text[]) <> 'Foo' OR (j."OwnedCollectionRoot" #>> ARRAY[@prm,'Name']::text[]) IS NULL
 """);
     }
 
@@ -1104,11 +887,11 @@ WHERE (j."OwnedCollectionRoot" #>> '{1,Name}') <> 'Foo' OR (j."OwnedCollectionRo
 
         AssertSql(
             """
-@__prm_0='0'
+@prm='0'
 
 SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
 FROM "JsonEntitiesBasic" AS j
-WHERE (j."OwnedCollectionRoot" #>> ARRAY[1,'OwnedCollectionBranch',@__prm_0,'OwnedCollectionLeaf',j."Id" - 1,'SomethingSomething']::text[]) = 'e1_c2_c1_c1'
+WHERE (j."OwnedCollectionRoot" #>> ARRAY[1,'OwnedCollectionBranch',@prm,'OwnedCollectionLeaf',j."Id" - 1,'SomethingSomething']::text[]) = 'e1_c2_c1_c1'
 """);
     }
 
@@ -1221,11 +1004,11 @@ WHERE (
         FROM ROWS FROM (jsonb_to_recordset(j."OwnedReferenceRoot" -> 'OwnedCollectionBranch') AS (
             "Date" timestamp without time zone,
             "Enum" integer,
-            "Enums" integer[],
+            "Enums" jsonb,
             "Fraction" numeric(18,2),
             "Id" integer,
             "NullableEnum" integer,
-            "NullableEnums" integer[],
+            "NullableEnums" jsonb,
             "OwnedCollectionLeaf" jsonb,
             "OwnedReferenceLeaf" jsonb
         )) WITH ORDINALITY AS o
@@ -1250,11 +1033,11 @@ WHERE EXISTS (
         FROM ROWS FROM (jsonb_to_recordset(o."OwnedCollectionBranch") AS (
             "Date" timestamp without time zone,
             "Enum" integer,
-            "Enums" integer[],
+            "Enums" jsonb,
             "Fraction" numeric(18,2),
             "Id" integer,
             "NullableEnum" integer,
-            "NullableEnums" integer[],
+            "NullableEnums" jsonb,
             "OwnedCollectionLeaf" jsonb,
             "OwnedReferenceLeaf" jsonb
         )) WITH ORDINALITY AS o0) = 2)
@@ -1272,9 +1055,9 @@ SELECT (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[],
+        "Numbers" jsonb,
         "OwnedCollectionBranch" jsonb,
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o)
@@ -1334,9 +1117,9 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[]
+        "Numbers" jsonb
     )) WITH ORDINALITY AS o
     WHERE o."Name" = 'Foo'
 ) AS o0 ON TRUE
@@ -1357,9 +1140,9 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[],
+        "Numbers" jsonb,
         "OwnedCollectionBranch" jsonb,
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o
@@ -1385,11 +1168,11 @@ LEFT JOIN LATERAL (
         FROM ROWS FROM (jsonb_to_recordset(o."OwnedCollectionBranch") AS (
             "Date" timestamp without time zone,
             "Enum" integer,
-            "Enums" integer[],
+            "Enums" jsonb,
             "Fraction" numeric(18,2),
             "Id" integer,
             "NullableEnum" integer,
-            "NullableEnums" integer[],
+            "NullableEnums" jsonb,
             "OwnedCollectionLeaf" jsonb,
             "OwnedReferenceLeaf" jsonb
         )) WITH ORDINALITY AS o0
@@ -1414,7 +1197,7 @@ LEFT JOIN LATERAL (
     LEFT JOIN LATERAL ROWS FROM (jsonb_to_recordset(o."OwnedCollectionBranch") AS (
         "Date" timestamp without time zone,
         "Enum" integer,
-        "Enums" integer[],
+        "Enums" jsonb,
         "Fraction" numeric(18,2),
         "Id" integer,
         "OwnedCollectionLeaf" jsonb,
@@ -1438,9 +1221,9 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[],
+        "Numbers" jsonb,
         "OwnedCollectionBranch" jsonb,
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o
@@ -1464,9 +1247,9 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[],
+        "Numbers" jsonb,
         "OwnedCollectionBranch" jsonb,
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o
@@ -1513,9 +1296,9 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[],
+        "Numbers" jsonb,
         "OwnedCollectionBranch" jsonb,
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o
@@ -1566,9 +1349,9 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[],
+        "Numbers" jsonb,
         "OwnedCollectionBranch" jsonb,
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o0
@@ -1581,11 +1364,11 @@ LEFT JOIN LATERAL (
         FROM ROWS FROM (jsonb_to_recordset(o2."OwnedCollectionBranch") AS (
             "Date" timestamp without time zone,
             "Enum" integer,
-            "Enums" integer[],
+            "Enums" jsonb,
             "Fraction" numeric(18,2),
             "Id" integer,
             "NullableEnum" integer,
-            "NullableEnums" integer[],
+            "NullableEnums" jsonb,
             "OwnedCollectionLeaf" jsonb,
             "OwnedReferenceLeaf" jsonb
         )) WITH ORDINALITY AS o3
@@ -1610,11 +1393,11 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedReferenceRoot" -> 'OwnedCollectionBranch') AS (
         "Date" timestamp without time zone,
         "Enum" integer,
-        "Enums" integer[],
+        "Enums" jsonb,
         "Fraction" numeric(18,2),
         "Id" integer,
         "NullableEnum" integer,
-        "NullableEnums" integer[],
+        "NullableEnums" jsonb,
         "OwnedCollectionLeaf" jsonb,
         "OwnedReferenceLeaf" jsonb
     )) WITH ORDINALITY AS o
@@ -1641,57 +1424,15 @@ ORDER BY j."Id" NULLS FIRST, o0."SomethingSomething" NULLS FIRST
 """);
     }
 
-    public override async Task Json_collection_SelectMany(bool async)
-    {
-        await base.Json_collection_SelectMany(async);
-
-        AssertSql(
-            """
-SELECT j."Id", o."Id", o."Name", o."Names", o."Number", o."Numbers", o."OwnedCollectionBranch", o."OwnedReferenceBranch"
-FROM "JsonEntitiesBasic" AS j
-JOIN LATERAL ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
-    "Id" integer,
-    "Name" text,
-    "Names" text[],
-    "Number" integer,
-    "Numbers" integer[],
-    "OwnedCollectionBranch" jsonb,
-    "OwnedReferenceBranch" jsonb
-)) WITH ORDINALITY AS o ON TRUE
-""");
-    }
-
-    public override async Task Json_nested_collection_SelectMany(bool async)
-    {
-        await base.Json_nested_collection_SelectMany(async);
-
-        AssertSql(
-            """
-SELECT j."Id", o."Date", o."Enum", o."Enums", o."Fraction", o."Id", o."NullableEnum", o."NullableEnums", o."OwnedCollectionLeaf", o."OwnedReferenceLeaf"
-FROM "JsonEntitiesBasic" AS j
-JOIN LATERAL ROWS FROM (jsonb_to_recordset(j."OwnedReferenceRoot" -> 'OwnedCollectionBranch') AS (
-    "Date" timestamp without time zone,
-    "Enum" integer,
-    "Enums" integer[],
-    "Fraction" numeric(18,2),
-    "Id" integer,
-    "NullableEnum" integer,
-    "NullableEnums" integer[],
-    "OwnedCollectionLeaf" jsonb,
-    "OwnedReferenceLeaf" jsonb
-)) WITH ORDINALITY AS o ON TRUE
-""");
-    }
-
     public override async Task Json_collection_of_primitives_SelectMany(bool async)
     {
         await base.Json_collection_of_primitives_SelectMany(async);
 
         AssertSql(
             """
-SELECT n.value
+SELECT n.element
 FROM "JsonEntitiesBasic" AS j
-JOIN LATERAL unnest((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elements_text(j."OwnedReferenceRoot" -> 'Names') WITH ORDINALITY AS t(element) ORDER BY ordinality))) AS n(value) ON TRUE
+JOIN LATERAL jsonb_array_elements_text(j."OwnedReferenceRoot" -> 'Names') WITH ORDINALITY AS n(element) ON TRUE
 """);
     }
 
@@ -1703,7 +1444,7 @@ JOIN LATERAL unnest((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_element
             """
 SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
 FROM "JsonEntitiesBasic" AS j
-WHERE ((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elements_text(j."OwnedReferenceRoot" -> 'Names') WITH ORDINALITY AS t(element) ORDER BY ordinality)))[1] = 'e1_r1'
+WHERE (j."OwnedReferenceRoot" #>> '{Names,0}') = 'e1_r1'
 """);
     }
 
@@ -1713,7 +1454,7 @@ WHERE ((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elements_text(j."Own
 
         AssertSql(
             """
-SELECT ((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_text(j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,Enums}') WITH ORDINALITY AS t(element) ORDER BY ordinality)))[1]
+SELECT CAST(j."OwnedReferenceRoot" #>> '{OwnedReferenceBranch,Enums,0}' AS integer)
 FROM "JsonEntitiesBasic" AS j
 ORDER BY j."Id" NULLS FIRST
 """);
@@ -1727,7 +1468,7 @@ ORDER BY j."Id" NULLS FIRST
             """
 SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
 FROM "JsonEntitiesBasic" AS j
-ORDER BY ((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_text(j."OwnedReferenceRoot" -> 'Numbers') WITH ORDINALITY AS t(element) ORDER BY ordinality)))[1] NULLS FIRST
+ORDER BY CAST(j."OwnedReferenceRoot" #>> '{Numbers,0}' AS integer) NULLS FIRST
 """);
     }
 
@@ -1739,7 +1480,7 @@ ORDER BY ((ARRAY(SELECT CAST(element AS integer) FROM jsonb_array_elements_text(
             """
 SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
 FROM "JsonEntitiesBasic" AS j
-WHERE 'e1_r1' = ANY ((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elements_text(j."OwnedReferenceRoot" -> 'Names') WITH ORDINALITY AS t(element) ORDER BY ordinality)))
+WHERE (j."OwnedReferenceRoot" -> 'Names') @> to_jsonb('e1_r1'::text)
 """);
     }
 
@@ -1749,18 +1490,18 @@ WHERE 'e1_r1' = ANY ((ARRAY(SELECT CAST(element AS text) FROM jsonb_array_elemen
 
         AssertSql(
             """
-@__prm_0='0'
+@prm='0'
 
 SELECT j."Id", (
     SELECT 'Foo'
-    FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedCollectionBranch']::text[]) AS (
+    FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedCollectionBranch']::text[]) AS (
         "Date" timestamp without time zone,
         "Enum" integer,
-        "Enums" integer[],
+        "Enums" jsonb,
         "Fraction" numeric(18,2),
         "Id" integer,
         "NullableEnum" integer,
-        "NullableEnums" integer[],
+        "NullableEnums" jsonb,
         "OwnedCollectionLeaf" jsonb,
         "OwnedReferenceLeaf" jsonb
     )) WITH ORDINALITY AS o
@@ -1775,9 +1516,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='0'
+@prm='0'
 
-SELECT j."OwnedCollectionRoot" #>> ARRAY[@__prm_0 + j."Id",'OwnedCollectionBranch',0,'OwnedReferenceLeaf','SomethingSomething']::text[]
+SELECT j."OwnedCollectionRoot" #>> ARRAY[@prm + j."Id",'OwnedCollectionBranch',0,'OwnedReferenceLeaf','SomethingSomething']::text[]
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1834,9 +1575,9 @@ LEFT JOIN LATERAL (
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
-        "Names" text[],
+        "Names" jsonb,
         "Number" integer,
-        "Numbers" integer[],
+        "Numbers" jsonb,
         "OwnedCollectionBranch" jsonb,
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o
@@ -1862,9 +1603,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,1}', j."OwnedReferenceRoot", j."OwnedReferenceRoot" #> ARRAY['OwnedReferenceBranch','OwnedCollectionLeaf',@__prm_0]::text[], @__prm_0
+SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,1}', j."OwnedReferenceRoot", j."OwnedReferenceRoot" #> ARRAY['OwnedReferenceBranch','OwnedCollectionLeaf',@prm]::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1875,9 +1616,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',0,'OwnedCollectionLeaf',@__prm_0]::text[], j."Id", @__prm_0, j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',@__prm_0]::text[], j."OwnedReferenceRoot" -> 'OwnedCollectionBranch', j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0}'
+SELECT j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',0,'OwnedCollectionLeaf',@prm]::text[], j."Id", @prm, j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',@prm]::text[], j."OwnedReferenceRoot" -> 'OwnedCollectionBranch', j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0}'
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1910,9 +1651,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" -> @__prm_0, @__prm_0
+SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" -> @prm, @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1923,9 +1664,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."OwnedCollectionRoot" -> @__prm_0, @__prm_0
+SELECT j."Id", j."OwnedCollectionRoot" -> @prm, @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1958,9 +1699,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedCollectionBranch']::text[], @__prm_0
+SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedCollectionBranch']::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1971,9 +1712,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedCollectionBranch']::text[], @__prm_0
+SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedCollectionBranch']::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1984,9 +1725,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" #> ARRAY[1,'OwnedCollectionBranch',@__prm_0]::text[], @__prm_0
+SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" #> ARRAY[1,'OwnedCollectionBranch',@prm]::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -1997,9 +1738,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[1,'OwnedCollectionBranch',@__prm_0]::text[], @__prm_0
+SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[1,'OwnedCollectionBranch',@prm]::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -2032,9 +1773,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedCollectionBranch',1]::text[], @__prm_0, j."OwnedCollectionRoot" #> '{1,OwnedCollectionBranch,1,OwnedReferenceLeaf}', j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedCollectionBranch',j."Id"]::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',1,'OwnedReferenceLeaf']::text[], j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',j."Id"]::text[]
+SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedCollectionBranch',1]::text[], @prm, j."OwnedCollectionRoot" #> '{1,OwnedCollectionBranch,1,OwnedReferenceLeaf}', j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedCollectionBranch',j."Id"]::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',1,'OwnedReferenceLeaf']::text[], j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',j."Id"]::text[]
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -2045,9 +1786,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedCollectionBranch',1]::text[], @__prm_0, j."OwnedCollectionRoot" #> '{1,OwnedCollectionBranch,1,OwnedReferenceLeaf}', j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[@__prm_0,'OwnedCollectionBranch',j."Id"]::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',1,'OwnedReferenceLeaf']::text[], j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',j."Id"]::text[]
+SELECT j."Id", j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedCollectionBranch',1]::text[], @prm, j."OwnedCollectionRoot" #> '{1,OwnedCollectionBranch,1,OwnedReferenceLeaf}', j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[@prm,'OwnedCollectionBranch',j."Id"]::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',1,'OwnedReferenceLeaf']::text[], j."OwnedCollectionRoot" #> '{1,OwnedReferenceBranch}', j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedReferenceBranch']::text[], j."OwnedCollectionRoot" #> ARRAY[j."Id",'OwnedCollectionBranch',j."Id"]::text[]
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -3252,7 +2993,7 @@ LEFT JOIN LATERAL (
     LEFT JOIN LATERAL ROWS FROM (jsonb_to_recordset(o."OwnedCollectionBranch") AS (
         "Date" timestamp without time zone,
         "Enum" integer,
-        "Enums" integer[],
+        "Enums" jsonb,
         "Fraction" numeric(18,2),
         "Id" integer
     )) WITH ORDINALITY AS o0 ON TRUE
@@ -3293,9 +3034,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='1'
+@prm='1'
 
-SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0,OwnedCollectionLeaf}', j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',0,'OwnedCollectionLeaf',@__prm_0]::text[], @__prm_0
+SELECT j."Id", j."OwnedReferenceRoot" #> '{OwnedCollectionBranch,0,OwnedCollectionLeaf}', j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',0,'OwnedCollectionLeaf',@prm]::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -3321,10 +3062,10 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm1_0='0'
-@__prm2_1='1'
+@prm1='0'
+@prm2='1'
 
-SELECT j."Id", j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',@__prm1_0,'OwnedCollectionLeaf',@__prm2_1]::text[], @__prm1_0, @__prm2_1
+SELECT j."Id", j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',@prm1,'OwnedCollectionLeaf',@prm2]::text[], @prm1, @prm2
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -3357,9 +3098,9 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-@__prm_0='0'
+@prm='0'
 
-SELECT j."Id", j."OwnedReferenceRoot", j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',@__prm_0,'OwnedCollectionLeaf',1]::text[], @__prm_0
+SELECT j."Id", j."OwnedReferenceRoot", j."OwnedReferenceRoot" #> ARRAY['OwnedCollectionBranch',@prm,'OwnedCollectionLeaf',1]::text[], @prm
 FROM "JsonEntitiesBasic" AS j
 """);
     }
@@ -3398,7 +3139,7 @@ FROM "JsonEntitiesBasic" AS j
         protected override ITestStoreFactory TestStoreFactory
             => NpgsqlTestStoreFactory.Instance;
 
-        private JsonQueryData _expectedData;
+        private JsonQueryData? _expectedData;
         private readonly IReadOnlyDictionary<Type, object> _entityAsserters;
 
         public JsonQueryNpgsqlFixture()
@@ -3407,8 +3148,9 @@ FROM "JsonEntitiesBasic" AS j
 
             entityAsserters[typeof(JsonEntityAllTypes)] = (object e, object a) =>
             {
-                Assert.Equal(e == null, a == null);
-                if (a != null)
+                Assert.Equal(e is null, a is null);
+
+                if (e is not null && a is not null)
                 {
                     var ee = (JsonEntityAllTypes)e;
                     var aa = (JsonEntityAllTypes)a;
@@ -3418,17 +3160,18 @@ FROM "JsonEntitiesBasic" AS j
                     AssertAllTypes(ee.Reference, aa.Reference);
 
                     Assert.Equal(ee.Collection?.Count ?? 0, aa.Collection?.Count ?? 0);
-                    for (var i = 0; i < ee.Collection.Count; i++)
+                    for (var i = 0; i < ee.Collection!.Count; i++)
                     {
-                        AssertAllTypes(ee.Collection[i], aa.Collection[i]);
+                        AssertAllTypes(ee.Collection[i], aa.Collection![i]);
                     }
                 }
             };
 
             entityAsserters[typeof(JsonOwnedAllTypes)] = (object e, object a) =>
             {
-                Assert.Equal(e == null, a == null);
-                if (a != null)
+                Assert.Equal(e is null, a is null);
+
+                if (e is not null && a is not null)
                 {
                     var ee = (JsonOwnedAllTypes)e;
                     var aa = (JsonOwnedAllTypes)a;

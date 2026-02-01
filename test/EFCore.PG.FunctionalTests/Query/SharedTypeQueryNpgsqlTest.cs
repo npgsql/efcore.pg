@@ -1,8 +1,6 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.Query;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
-
-public class SharedTypeQueryNpgsqlTest : SharedTypeQueryRelationalTestBase
+public class SharedTypeQueryNpgsqlTest(NonSharedFixture fixture) : SharedTypeQueryRelationalTestBase(fixture)
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;

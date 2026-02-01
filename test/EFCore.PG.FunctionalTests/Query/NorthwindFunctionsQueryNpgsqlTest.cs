@@ -1,9 +1,10 @@
 ﻿using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
+
+#nullable disable
 
 public class NorthwindFunctionsQueryNpgsqlTest : NorthwindFunctionsQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
 {
@@ -15,50 +16,6 @@ public class NorthwindFunctionsQueryNpgsqlTest : NorthwindFunctionsQueryRelation
     {
         ClearLog();
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
-    }
-
-    public override async Task IsNullOrWhiteSpace_in_predicate(bool async)
-    {
-        await base.IsNullOrWhiteSpace_in_predicate(async);
-
-        AssertSql(
-            """
-SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
-FROM "Customers" AS c
-WHERE c."Region" IS NULL OR btrim(c."Region", E' \t\n\r') = ''
-""");
-    }
-
-    // PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though
-    public override Task Where_math_log_new_base(bool async)
-        => AssertTranslationFailed(() => base.Where_math_log_new_base(async));
-
-    // PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though
-    public override Task Where_mathf_log_new_base(bool async)
-        => AssertTranslationFailed(() => base.Where_mathf_log_new_base(async));
-
-    // PostgreSQL only has round(v, s) over numeric, may be possible to cast back and forth though
-    public override Task Where_mathf_round2(bool async)
-        => AssertTranslationFailed(() => base.Where_mathf_round2(async));
-
-    // Convert on DateTime not yet supported
-    public override Task Convert_ToString(bool async)
-        => AssertTranslationFailed(() => base.Convert_ToString(async));
-
-    [ConditionalTheory]
-    [MemberData(nameof(IsAsyncData))]
-    public override async Task String_Join_non_aggregate(bool async)
-    {
-        await base.String_Join_non_aggregate(async);
-
-        AssertSql(
-            """
-@__foo_0='foo'
-
-SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
-FROM "Customers" AS c
-WHERE concat_ws('|', c."CompanyName", @__foo_0, '', 'bar') = 'Around the Horn|foo||bar'
-""");
     }
 
     #region Substring
@@ -140,11 +97,11 @@ WHERE c."CompanyName" ~ '(?p)^A'';foo'
 
         AssertSql(
             """
-@__pattern_0='^A'
+@pattern='^A'
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."CompanyName" ~ ('(?p)' || @__pattern_0)
+WHERE c."CompanyName" ~ ('(?p)' || @pattern)
 """);
     }
 
@@ -282,43 +239,293 @@ WHERE c."CompanyName" ~ '(?px)^ A'
             () =>
                 Fixture.CreateContext().Customers.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.RightToLeft)).ToList());
 
-    #endregion Regex
-
-    #region Guid
-
-    private static string UuidGenerationFunction { get; } = TestEnvironment.PostgresVersion.AtLeast(13)
-        ? "gen_random_uuid"
-        : "uuid_generate_v4";
-
-    public override async Task Where_guid_newguid(bool async)
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_constant_pattern_and_replacement(bool async)
     {
-        await base.Where_guid_newguid(async);
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^A", "B")));
 
         AssertSql(
-            $"""
-SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
+            """
+SELECT regexp_replace(c."CompanyName", '^A', 'B', 'p')
 FROM "Customers" AS c
-WHERE {UuidGenerationFunction}() <> '00000000-0000-0000-0000-000000000000'
+"""
+        );
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_parameter_pattern_and_replacement(bool async)
+    {
+        var pattern = "^A";
+        var replacement = "B";
+
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, pattern, replacement)));
+
+        AssertSql(
+            """
+@pattern='^A'
+@replacement='B'
+
+SELECT regexp_replace(c."CompanyName", @pattern, @replacement, 'p')
+FROM "Customers" AS c
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_OptionsNone(bool async)
+    {
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^A", "B", RegexOptions.None)));
+
+        AssertSql(
+            """
+SELECT regexp_replace(c."CompanyName", '^A', 'B', 'p')
+FROM "Customers" AS c
+"""
+        );
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_IgnoreCase(bool async)
+    {
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^a", "B", RegexOptions.IgnoreCase)));
+
+        AssertSql(
+            """
+SELECT regexp_replace(c."CompanyName", '^a', 'B', 'pi')
+FROM "Customers" AS c
+"""
+        );
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_Multiline(bool async)
+    {
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^A", "B", RegexOptions.Multiline)));
+
+        AssertSql(
+            """
+SELECT regexp_replace(c."CompanyName", '^A', 'B', 'n')
+FROM "Customers" AS c
+"""
+        );
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_Singleline(bool async)
+    {
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^A", "B", RegexOptions.Singleline)));
+
+        AssertSql(
+            """
+SELECT regexp_replace(c."CompanyName", '^A', 'B')
+FROM "Customers" AS c
+"""
+        );
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_Singleline_and_IgnoreCase(bool async)
+    {
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>()
+                .Select(x => Regex.Replace(x.CompanyName, "^a", "B", RegexOptions.Singleline | RegexOptions.IgnoreCase)));
+
+        AssertSql(
+            """
+SELECT regexp_replace(c."CompanyName", '^a', 'B', 'i')
+FROM "Customers" AS c
+"""
+        );
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_Replace_with_IgnorePatternWhitespace(bool async)
+    {
+        await AssertQuery(
+            async,
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^ A", "B", RegexOptions.IgnorePatternWhitespace)));
+
+        AssertSql(
+            """
+SELECT regexp_replace(c."CompanyName", '^ A', 'B', 'px')
+FROM "Customers" AS c
+"""
+        );
+    }
+
+    [Fact]
+    public void Regex_Replace_with_unsupported_option()
+        => Assert.Throws<InvalidOperationException>(
+            () => Fixture.CreateContext().Customers
+                .FirstOrDefault(x => Regex.Replace(x.CompanyName, "^A", "foo", RegexOptions.RightToLeft) != null));
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    [MinimumPostgresVersion(15, 0)]
+    public async Task Regex_Count_with_constant_pattern(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Customer>().Select(c => Regex.Count(c.CompanyName, "^A")));
+
+        AssertSql(
+            """
+SELECT regexp_count(c."CompanyName", '^A', 1, 'p')
+FROM "Customers" AS c
+"""
+        );
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    [MinimumPostgresVersion(15, 0)]
+    public async Task Regex_Count_with_parameter_pattern(bool async)
+    {
+        var pattern = "^A";
+
+        await AssertQuery(
+            async,
+            cs => cs.Set<Customer>().Select(c => Regex.Count(c.CompanyName, pattern)));
+
+        AssertSql(
+            """
+@pattern='^A'
+
+SELECT regexp_count(c."CompanyName", @pattern, 1, 'p')
+FROM "Customers" AS c
 """);
     }
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
-    public virtual async Task OrderBy_Guid_NewGuid(bool async)
+    [MinimumPostgresVersion(15, 0)]
+    public async Task Regex_Count_with_OptionsNone(bool async)
     {
         await AssertQuery(
             async,
-            ods => ods.Set<OrderDetail>().OrderBy(od => Guid.NewGuid()).Select(x => x));
+            cs => cs.Set<Customer>().Select(c => Regex.Count(c.CompanyName, "^A", RegexOptions.None)));
 
         AssertSql(
-            $"""
-SELECT o."OrderID", o."ProductID", o."Discount", o."Quantity", o."UnitPrice"
-FROM "Order Details" AS o
-ORDER BY {UuidGenerationFunction}() NULLS FIRST
-""");
+            """
+SELECT regexp_count(c."CompanyName", '^A', 1, 'p')
+FROM "Customers" AS c
+"""
+        );
     }
 
-    #endregion
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    [MinimumPostgresVersion(15, 0)]
+    public async Task Regex_Count_with_IgnoreCase(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Customer>().Select(c => Regex.Count(c.CompanyName, "^a", RegexOptions.IgnoreCase)));
+
+        AssertSql(
+            """
+SELECT regexp_count(c."CompanyName", '^a', 1, 'pi')
+FROM "Customers" AS c
+"""
+        );
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    [MinimumPostgresVersion(15, 0)]
+    public async Task Regex_Count_with_Multiline(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Customer>().Select(c => Regex.Count(c.CompanyName, "^A", RegexOptions.Multiline)));
+
+        AssertSql(
+            """
+SELECT regexp_count(c."CompanyName", '^A', 1, 'n')
+FROM "Customers" AS c
+"""
+        );
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    [MinimumPostgresVersion(15, 0)]
+    public async Task Regex_Count_with_Singleline(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Customer>().Select(c => Regex.Count(c.CompanyName, "^A", RegexOptions.Singleline)));
+
+        AssertSql(
+            """
+SELECT regexp_count(c."CompanyName", '^A')
+FROM "Customers" AS c
+"""
+        );
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    [MinimumPostgresVersion(15, 0)]
+    public async Task Regex_Count_with_Singleline_and_IgnoreCase(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Customer>().Select(c => Regex.Count(c.CompanyName, "^a", RegexOptions.Singleline | RegexOptions.IgnoreCase)));
+
+        AssertSql(
+            """
+SELECT regexp_count(c."CompanyName", '^a', 1, 'i')
+FROM "Customers" AS c
+"""
+        );
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    [MinimumPostgresVersion(15, 0)]
+    public async Task Regex_Count_with_IgnorePatternWhitespace(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Customer>().Select(c => Regex.Count(c.CompanyName, "^ A", RegexOptions.IgnorePatternWhitespace)));
+
+        AssertSql(
+            """
+SELECT regexp_count(c."CompanyName", '^ A', 1, 'px')
+FROM "Customers" AS c
+"""
+        );
+    }
+
+    [ConditionalFact]
+    [MinimumPostgresVersion(15, 0)]
+    public void Regex_Count_with_unsupported_option()
+        => Assert.Throws<InvalidOperationException>(
+            () => Fixture.CreateContext().Customers
+                .FirstOrDefault(x => Regex.Count(x.CompanyName, "^A", RegexOptions.RightToLeft) != 0));
+
+    #endregion Regex
 
     #region PadLeft, PadRight
 
@@ -397,66 +604,6 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST
     #endregion
 
     #region Aggregate functions
-
-    public override async Task String_Join_over_non_nullable_column(bool async)
-    {
-        await base.String_Join_over_non_nullable_column(async);
-
-        AssertSql(
-            """
-SELECT c."City", COALESCE(string_agg(c."CustomerID", '|'), '') AS "Customers"
-FROM "Customers" AS c
-GROUP BY c."City"
-""");
-    }
-
-    public override async Task String_Join_over_nullable_column(bool async)
-    {
-        await base.String_Join_over_nullable_column(async);
-
-        AssertSql(
-            """
-SELECT c."City", COALESCE(string_agg(COALESCE(c."Region", ''), '|'), '') AS "Regions"
-FROM "Customers" AS c
-GROUP BY c."City"
-""");
-    }
-
-    public override async Task String_Join_with_predicate(bool async)
-    {
-        await base.String_Join_with_predicate(async);
-
-        AssertSql(
-            """
-SELECT c."City", COALESCE(string_agg(c."CustomerID", '|') FILTER (WHERE length(c."ContactName")::int > 10), '') AS "Customers"
-FROM "Customers" AS c
-GROUP BY c."City"
-""");
-    }
-
-    public override async Task String_Join_with_ordering(bool async)
-    {
-        await base.String_Join_with_ordering(async);
-
-        AssertSql(
-            """
-SELECT c."City", COALESCE(string_agg(c."CustomerID", '|' ORDER BY c."CustomerID" DESC NULLS LAST), '') AS "Customers"
-FROM "Customers" AS c
-GROUP BY c."City"
-""");
-    }
-
-    public override async Task String_Concat(bool async)
-    {
-        await base.String_Concat(async);
-
-        AssertSql(
-            """
-SELECT c."City", COALESCE(string_agg(c."CustomerID", ''), '') AS "Customers"
-FROM "Customers" AS c
-GROUP BY c."City"
-""");
-    }
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
@@ -843,37 +990,69 @@ GROUP BY o."ProductID"
 
     #endregion Statistics
 
-    #region Unsupported
+    #region NullIf
 
-    // PostgreSQL does not have strpos with starting position
-    public override Task Indexof_with_constant_starting_position(bool async)
-        => AssertTranslationFailed(() => base.Indexof_with_constant_starting_position(async));
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task NullIf_with_equality_left_sided(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Order>().Select(x => x.OrderID == 1 ? (int?)null : x.OrderID));
 
-    // PostgreSQL does not have strpos with starting position
-    public override Task Indexof_with_parameter_starting_position(bool async)
-        => AssertTranslationFailed(() => base.Indexof_with_parameter_starting_position(async));
+        AssertSql(
+            """
+SELECT NULLIF(o."OrderID", 1)
+FROM "Orders" AS o
+""");
+    }
 
-    // These tests convert (among other things) to and from boolean, which PostgreSQL
-    // does not support (https://github.com/dotnet/efcore/issues/19606)
-    public override Task Convert_ToBoolean(bool async)
-        => Task.CompletedTask;
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task NullIf_with_equality_right_sided(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Order>().Select(x => 1 == x.OrderID ? (int?)null : x.OrderID));
 
-    public override Task Convert_ToByte(bool async)
-        => Task.CompletedTask;
+        AssertSql(
+            """
+SELECT NULLIF(o."OrderID", 1)
+FROM "Orders" AS o
+""");
+    }
 
-    public override Task Convert_ToDecimal(bool async)
-        => Task.CompletedTask;
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task NullIf_with_inequality_left_sided(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Order>().Select(x => x.OrderID != 1 ? x.OrderID : (int?)null));
 
-    public override Task Convert_ToDouble(bool async)
-        => Task.CompletedTask;
+        AssertSql(
+            """
+SELECT NULLIF(o."OrderID", 1)
+FROM "Orders" AS o
+""");
+    }
 
-    public override Task Convert_ToInt16(bool async)
-        => Task.CompletedTask;
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task NullIf_with_inequality_right_sided(bool async)
+    {
+        await AssertQuery(
+            async,
+            cs => cs.Set<Order>().Select(x => 1 != x.OrderID ? x.OrderID : (int?)null));
 
-    public override Task Convert_ToInt64(bool async)
-        => Task.CompletedTask;
+        AssertSql(
+            """
+SELECT NULLIF(o."OrderID", 1)
+FROM "Orders" AS o
+""");
+    }
 
-    #endregion Unsupported
+    #endregion
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

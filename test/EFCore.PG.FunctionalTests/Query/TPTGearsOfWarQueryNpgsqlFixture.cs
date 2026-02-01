@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.GearsOfWarModel;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class TPTGearsOfWarQueryNpgsqlFixture : TPTGearsOfWarQueryRelationalFixture
 {
@@ -26,7 +25,7 @@ public class TPTGearsOfWarQueryNpgsqlFixture : TPTGearsOfWarQueryRelationalFixtu
         modelBuilder.Entity<City>().Property(g => g.Location).HasColumnType("varchar(100)");
     }
 
-    private GearsOfWarData _expectedData;
+    private GearsOfWarData? _expectedData;
 
     public override ISetSource GetExpectedData()
     {
@@ -40,6 +39,8 @@ public class TPTGearsOfWarQueryNpgsqlFixture : TPTGearsOfWarQueryRelationalFixtu
             {
                 mission.Timeline = new DateTimeOffset(
                     mission.Timeline.Ticks - (mission.Timeline.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
+                mission.Duration = new TimeSpan(
+                    mission.Duration.Ticks - (mission.Duration.Ticks % (TimeSpan.TicksPerMillisecond / 1000)));
             }
         }
 
@@ -66,10 +67,10 @@ public class TPTGearsOfWarQueryNpgsqlFixture : TPTGearsOfWarQueryRelationalFixtu
 
         foreach (var mission in missions)
         {
-            // var newThing = new DateTimeOffset(orig.Ticks - (orig.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
-
             mission.Timeline = new DateTimeOffset(
                 mission.Timeline.Ticks - (mission.Timeline.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
+            mission.Duration = new TimeSpan(
+                mission.Duration.Ticks - (mission.Duration.Ticks % (TimeSpan.TicksPerMillisecond / 1000)));
         }
 
         GearsOfWarData.WireUp(

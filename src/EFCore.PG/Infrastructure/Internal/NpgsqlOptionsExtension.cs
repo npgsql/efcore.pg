@@ -11,10 +11,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 public class NpgsqlOptionsExtension : RelationalOptionsExtension
 {
     private DbContextOptionsExtensionInfo? _info;
+    private ParameterTranslationMode? _parameterizedCollectionMode;
+
     private readonly List<UserRangeDefinition> _userRangeDefinitions;
     private readonly List<EnumDefinition> _enumDefinitions;
-
     private Version? _postgresVersion;
+
+    // We override ParameterizedCollectionMode to set Parameter as the default instead of MultipleParameters,
+    // which is the EF relational default. In PostgreSQL using native array parameters is better, and the
+    // query plan problem can be mitigated by telling PostgreSQL to use a custom plan (see #3269).
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public override ParameterTranslationMode ParameterizedCollectionMode
+        => _parameterizedCollectionMode ?? ParameterTranslationMode.Parameter;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -131,6 +145,17 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     /// </summary>
     public override int? MinBatchSize
         => base.MinBatchSize ?? 2;
+
+    // We need to override WithUseParameterizedCollectionMode since we override ParameterizedCollectionMode above
+    /// <inheritdoc />
+    public override RelationalOptionsExtension WithUseParameterizedCollectionMode(ParameterTranslationMode parameterizedCollectionMode)
+    {
+        var clone = (NpgsqlOptionsExtension)Clone();
+
+        clone._parameterizedCollectionMode = parameterizedCollectionMode;
+
+        return clone;
+    }
 
     /// <summary>
     ///     Creates a new instance with all options the same as for this instance, but with the given option changed.
@@ -484,11 +509,6 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
                 foreach (var userRangeDefinition in Extension._userRangeDefinitions)
                 {
                     hashCode.Add(userRangeDefinition);
-                }
-
-                if (Extension.DataSource is not null)
-                {
-                    hashCode.Add(Extension.DataSource.ConnectionString);
                 }
 
                 hashCode.Add(Extension.AdminDatabase);

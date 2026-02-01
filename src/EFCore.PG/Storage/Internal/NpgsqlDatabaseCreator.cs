@@ -13,8 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 public class NpgsqlDatabaseCreator(
         RelationalDatabaseCreatorDependencies dependencies,
         INpgsqlRelationalConnection connection,
-        IRawSqlCommandBuilder rawSqlCommandBuilder,
-        IRelationalConnectionDiagnosticsLogger connectionLogger)
+        IRawSqlCommandBuilder rawSqlCommandBuilder)
     : RelationalDatabaseCreator(dependencies)
 {
     /// <summary>
@@ -174,7 +173,41 @@ WHERE
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public override bool Exists()
-        => Exists(async: false).GetAwaiter().GetResult();
+        => Dependencies.ExecutionStrategy.Execute(() =>
+        {
+            using var _ = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
+            var opened = false;
+
+            try
+            {
+                connection.Open(errorsExpected: true);
+                opened = true;
+
+                rawSqlCommandBuilder
+                    .Build("SELECT 1")
+                    .ExecuteNonQuery(
+                        new RelationalCommandParameterObject(
+                            connection,
+                            parameterValues: null,
+                            readerColumns: null,
+                            Dependencies.CurrentContext.Context,
+                            Dependencies.CommandLogger,
+                            CommandSource.Migrations));
+
+                return true;
+            }
+            catch (Exception e) when (IsDoesNotExist(e))
+            {
+                return false;
+            }
+            finally
+            {
+                if (opened)
+                {
+                    connection.Close();
+                }
+            }
+        });
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -183,87 +216,61 @@ WHERE
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public override Task<bool> ExistsAsync(CancellationToken cancellationToken = default)
-        => Exists(async: true, cancellationToken);
-
-    private async Task<bool> Exists(bool async, CancellationToken cancellationToken = default)
-    {
-        var logger = connectionLogger;
-        var startTime = DateTimeOffset.UtcNow;
-
-        var interceptionResult = async
-            ? await logger.ConnectionOpeningAsync(connection, startTime, cancellationToken).ConfigureAwait(false)
-            : logger.ConnectionOpening(connection, startTime);
-
-        if (interceptionResult.IsSuppressed)
+        => Dependencies.ExecutionStrategy.ExecuteAsync(async ct =>
         {
-            // If the connection attempt was suppressed by an interceptor, assume that the interceptor took care of all the opening
-            // details, and the database exists.
-            return true;
-        }
+            using var _ = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
+            var opened = false;
 
-        // When checking whether a database exists, pooling must be off, otherwise we may
-        // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
-        // If Pooling is off, but Multiplexing is on - NpgsqlConnectionStringBuilder.Validate will throw,
-        // so we turn off Multiplexing as well.
-        var unpooledCsb = new NpgsqlConnectionStringBuilder(connection.ConnectionString) { Pooling = false, Multiplexing = false };
-
-        using var _ = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
-        var unpooledRelationalConnection =
-            await connection.CloneWith(unpooledCsb.ToString(), async, cancellationToken).ConfigureAwait(false);
-
-        try
-        {
-            if (async)
+            try
             {
-                await unpooledRelationalConnection.OpenAsync(errorsExpected: true, cancellationToken: cancellationToken)
+                await connection.OpenAsync(cancellationToken, errorsExpected: true).ConfigureAwait(false);
+                opened = true;
+
+                await rawSqlCommandBuilder
+                    .Build("SELECT 1")
+                    .ExecuteNonQueryAsync(
+                        new RelationalCommandParameterObject(
+                            connection,
+                            parameterValues: null,
+                            readerColumns: null,
+                            Dependencies.CurrentContext.Context,
+                            Dependencies.CommandLogger,
+                            CommandSource.Migrations),
+                        cancellationToken)
                     .ConfigureAwait(false);
-            }
-            else
-            {
-                unpooledRelationalConnection.Open(errorsExpected: true);
-            }
 
-            return true;
-        }
-        catch (PostgresException e)
-        {
-            if (IsDoesNotExist(e))
+                return true;
+            }
+            catch (Exception e) when (IsDoesNotExist(e))
             {
                 return false;
             }
+            finally
+            {
+                if (opened)
+                {
+                    await connection.CloseAsync().ConfigureAwait(false);
+                }
+            }
+        }, cancellationToken);
 
-            throw;
-        }
-        catch (NpgsqlException e) when (
+    private static bool IsDoesNotExist(Exception exception)
+        => exception switch
+        {
+            // Login failed is thrown when database does not exist (See Issue #776)
+            PostgresException { SqlState: "3D000" }
+                => true,
+
             // This can happen when Npgsql attempts to connect to multiple hosts
-            e.InnerException is AggregateException ae && ae.InnerExceptions.Any(ie => ie is PostgresException pe && IsDoesNotExist(pe)))
-        {
-            return false;
-        }
-        catch (NpgsqlException e) when (
-            e.InnerException is IOException { InnerException: SocketException { SocketErrorCode: SocketError.ConnectionReset } })
-        {
-            // Pretty awful hack around #104
-            return false;
-        }
-        finally
-        {
-            if (async)
-            {
-                await unpooledRelationalConnection.CloseAsync().ConfigureAwait(false);
-                await unpooledRelationalConnection.DisposeAsync().ConfigureAwait(false);
-            }
-            else
-            {
-                unpooledRelationalConnection.Close();
-                unpooledRelationalConnection.Dispose();
-            }
-        }
-    }
+            NpgsqlException { InnerException: AggregateException ae } when ae.InnerExceptions.Any(ie => ie is PostgresException { SqlState: "3D000" })
+                => true,
 
-    // Login failed is thrown when database does not exist (See Issue #776)
-    private static bool IsDoesNotExist(PostgresException exception)
-        => exception.SqlState == "3D000";
+            // Pretty awful hack around #104
+            NpgsqlException { InnerException: IOException { InnerException: SocketException { SocketErrorCode: SocketError.ConnectionReset } } }
+                => true,
+
+            _ => false
+        };
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -354,7 +361,7 @@ WHERE
             {
                 npgsqlConnection.ReloadTypes();
             }
-            catch
+            finally
             {
                 npgsqlConnection.Close();
             }
@@ -396,7 +403,7 @@ WHERE
             {
                 await npgsqlConnection.ReloadTypesAsync(cancellationToken).ConfigureAwait(false);
             }
-            catch
+            finally
             {
                 await npgsqlConnection.CloseAsync().ConfigureAwait(false);
             }

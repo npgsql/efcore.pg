@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class JsonDomQueryTest : IClassFixture<JsonDomQueryTest.JsonDomQueryFixture>
 {
@@ -73,27 +72,27 @@ WHERE j."CustomerDocument" = '{"Name":"Test customer","Age":80}'
     {
         using var ctx = CreateContext();
 
-        var expected = ctx.JsonbEntities.Find(1).CustomerDocument;
+        var expected = ctx.JsonbEntities.Find(1)!.CustomerDocument;
         var actual = ctx.JsonbEntities.Single(e => e.CustomerDocument == expected).CustomerDocument;
 
         Assert.Equal(actual, expected);
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE j."Id" = @__p_0
+WHERE j."Id" = @p
 LIMIT 1
 """,
             //
             """
-@__expected_0='System.Text.Json.JsonDocument' (DbType = Object)
+@expected='System.Text.Json.JsonDocument' (DbType = Object)
 
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE j."CustomerDocument" = @__expected_0
+WHERE j."CustomerDocument" = @expected
 LIMIT 2
 """);
     }
@@ -103,27 +102,27 @@ LIMIT 2
     {
         using var ctx = CreateContext();
 
-        var expected = ctx.JsonbEntities.Find(1).CustomerElement;
+        var expected = ctx.JsonbEntities.Find(1)!.CustomerElement;
         var actual = ctx.JsonbEntities.Single(e => e.CustomerElement.Equals(expected)).CustomerElement;
 
         Assert.Equal(actual, expected);
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE j."Id" = @__p_0
+WHERE j."Id" = @p
 LIMIT 1
 """,
             //
             """
-@__expected_0='{"ID": "00000000-0000-0000-0000-000000000000", "Age": 25, "Name": "Joe", "IsVip": false, "Orders": [{"Price": 99.5, "ShippingAddress": "Some address 1"}, {"Price": 23, "ShippingAddress": "Some address 2"}], "Statistics": {"Nested": {"IntList": [3, 4], "IntArray": [3, 4], "SomeProperty": 10, "SomeNullableInt": 20, "SomeNullableGuid": "d5f2685d-e5c4-47e5-97aa-d0266154eb2d"}, "Visits": 4, "Purchases": 3}, "VariousTypes": {"Bool": "false", "Int16": 8, "Int32": 8, "Int64": 8, "String": "foo", "Decimal": 10, "DateTime": "2020-01-01T10:30:45", "DateTimeOffset": "2020-01-01T10:30:45+02:00"}}' (DbType = Object)
+@expected='{"ID": "00000000-0000-0000-0000-000000000000", "Age": 25, "Name": "Joe", "IsVip": false, "Orders": [{"Price": 99.5, "ShippingAddress": "Some address 1"}, {"Price": 23, "ShippingAddress": "Some address 2"}], "Statistics": {"Nested": {"IntList": [3, 4], "IntArray": [3, 4], "SomeProperty": 10, "SomeNullableInt": 20, "SomeNullableGuid": "d5f2685d-e5c4-47e5-97aa-d0266154eb2d"}, "Visits": 4, "Purchases": 3}, "VariousTypes": {"Bool": "false", "Int16": 8, "Int32": 8, "Int64": 8, "String": "foo", "Decimal": 10, "DateTime": "2020-01-01T10:30:45", "DateTimeOffset": "2020-01-01T10:30:45+02:00"}}' (DbType = Object)
 
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE j."CustomerElement" = @__expected_0
+WHERE j."CustomerElement" = @expected
 LIMIT 2
 """);
     }
@@ -324,11 +323,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__i_0='1'
+@i='1'
 
 SELECT j."Id", j."CustomerDocument", j."CustomerElement"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."CustomerElement" #>> ARRAY['Statistics','Nested','IntArray',@__i_0]::text[] AS integer) = 4
+WHERE CAST(j."CustomerElement" #>> ARRAY['Statistics','Nested','IntArray',@i]::text[] AS integer) = 4
 LIMIT 2
 """);
     }
@@ -374,7 +373,7 @@ LIMIT 2
     {
         using var ctx = CreateContext();
 
-        var x = ctx.JsonbEntities.Single(e => e.CustomerElement.GetProperty("Name").GetString().StartsWith("J"));
+        var x = ctx.JsonbEntities.Single(e => e.CustomerElement.GetProperty("Name").GetString()!.StartsWith("J"));
 
         Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
 
@@ -438,11 +437,11 @@ LIMIT 2
         Assert.Equal(1, count);
         AssertSql(
             """
-@__element_1='{"Name": "Joe", "Age": 25}' (DbType = Object)
+@element='{"Name": "Joe", "Age": 25}' (DbType = Object)
 
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."CustomerElement" @> @__element_1
+WHERE j."CustomerElement" @> @element
 """);
     }
 
@@ -475,11 +474,11 @@ WHERE j."CustomerElement" @> '{"Name": "Joe", "Age": 25}'
         Assert.Equal(1, count);
         AssertSql(
             """
-@__element_1='{"Name": "Joe", "Age": 25}' (DbType = Object)
+@element='{"Name": "Joe", "Age": 25}' (DbType = Object)
 
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE @__element_1 <@ j."CustomerElement"
+WHERE @element <@ j."CustomerElement"
 """);
     }
 
@@ -744,7 +743,7 @@ WHERE json_typeof(j."CustomerElement" #> '{Statistics,Visits}') = 'number'
     {
         public int Id { get; set; }
 
-        public JsonDocument CustomerDocument { get; set; }
+        public JsonDocument CustomerDocument { get; set; } = null!;
         public JsonElement CustomerElement { get; set; }
     }
 
@@ -753,7 +752,7 @@ WHERE json_typeof(j."CustomerElement" #> '{Statistics,Visits}') = 'number'
         public int Id { get; set; }
 
         [Column(TypeName = "json")]
-        public JsonDocument CustomerDocument { get; set; }
+        public JsonDocument CustomerDocument { get; set; } = null!;
 
         [Column(TypeName = "json")]
         public JsonElement CustomerElement { get; set; }

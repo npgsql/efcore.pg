@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Xunit.Sdk;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
+
+#nullable disable
 
 public class NorthwindMiscellaneousQueryNpgsqlTest : NorthwindMiscellaneousQueryRelationalTestBase<
     NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
@@ -55,9 +57,9 @@ WHERE o."OrderDate" IS NOT NULL
 
         AssertSql(
             """
-@__years_0='2'
+@years='2'
 
-SELECT o."OrderDate" + CAST(@__years_0::text || ' years' AS interval) AS "OrderDate"
+SELECT o."OrderDate" + CAST(@years::text || ' years' AS interval) AS "OrderDate"
 FROM "Orders" AS o
 WHERE o."OrderDate" IS NOT NULL
 """);
@@ -110,7 +112,7 @@ LIMIT 1
     {
         Assert.Equal(
             CoreStrings.ClientProjectionCapturingConstantInMethodInstance(
-                "Npgsql.EntityFrameworkCore.PostgreSQL.Query.NorthwindMiscellaneousQueryNpgsqlTest",
+                "Microsoft.EntityFrameworkCore.Query.NorthwindMiscellaneousQueryNpgsqlTest",
                 "InstanceMethod"),
             (await Assert.ThrowsAsync<InvalidOperationException>(
                 () => base.Client_code_using_instance_method_throws(async))).Message);
@@ -122,7 +124,7 @@ LIMIT 1
     {
         Assert.Equal(
             CoreStrings.ClientProjectionCapturingConstantInMethodArgument(
-                "Npgsql.EntityFrameworkCore.PostgreSQL.Query.NorthwindMiscellaneousQueryNpgsqlTest",
+                "Microsoft.EntityFrameworkCore.Query.NorthwindMiscellaneousQueryNpgsqlTest",
                 "StaticMethod"),
             (await Assert.ThrowsAsync<InvalidOperationException>(
                 () => base.Client_code_using_instance_in_static_method(async))).Message);
@@ -134,7 +136,7 @@ LIMIT 1
     {
         Assert.Equal(
             CoreStrings.ClientProjectionCapturingConstantInTree(
-                "Npgsql.EntityFrameworkCore.PostgreSQL.Query.NorthwindMiscellaneousQueryNpgsqlTest"),
+                "Microsoft.EntityFrameworkCore.Query.NorthwindMiscellaneousQueryNpgsqlTest"),
             (await Assert.ThrowsAsync<InvalidOperationException>(
                 () => base.Client_code_using_instance_in_anonymous_type(async))).Message);
 
@@ -146,7 +148,7 @@ LIMIT 1
         await AssertTranslationFailedWithDetails(
             () => base.Client_code_unknown_method(async),
             CoreStrings.QueryUnableToTranslateMethod(
-                "Microsoft.EntityFrameworkCore.Query.NorthwindMiscellaneousQueryTestBase<Npgsql.EntityFrameworkCore.PostgreSQL.Query.NorthwindQueryNpgsqlFixture<Microsoft.EntityFrameworkCore.TestUtilities.NoopModelCustomizer>>",
+                "Microsoft.EntityFrameworkCore.Query.NorthwindMiscellaneousQueryTestBase<Microsoft.EntityFrameworkCore.Query.NorthwindQueryNpgsqlFixture<Microsoft.EntityFrameworkCore.TestUtilities.NoopModelCustomizer>>",
                 nameof(UnknownMethod)));
 
         AssertSql();
@@ -199,17 +201,9 @@ ORDER BY o0."CustomerID" NULLS FIRST
 """);
     }
 
-    public override async Task Where_bitwise_binary_xor(bool async)
-    {
-        await base.Where_bitwise_binary_xor(async);
-
-        AssertSql(
-            """
-SELECT o."OrderID", o."CustomerID", o."EmployeeID", o."OrderDate"
-FROM "Orders" AS o
-WHERE (o."OrderID" # 1) = 10249
-""");
-    }
+    // TODO: #3406
+    public override Task Where_nanosecond_and_microsecond_component(bool async)
+        => AssertTranslationFailed(() => base.Where_nanosecond_and_microsecond_component(async));
 
     // TODO: Array tests can probably move to the dedicated ArrayQueryTest suite
 
@@ -251,11 +245,12 @@ WHERE c."CustomerID" IN ('ALFKI', 'ANATR')
         // (see https://github.com/aspnet/EntityFrameworkCore/issues/17598).
         AssertSql(
             """
-@__regions_0={ 'UK', 'SP' } (DbType = Object)
+@regions={ 'UK'
+'SP' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Region" = ANY (@__regions_0) OR (c."Region" IS NULL AND array_position(@__regions_0, NULL) IS NOT NULL)
+WHERE c."Region" = ANY (@regions) OR (c."Region" IS NULL AND array_position(@regions, NULL) IS NOT NULL)
 """);
     }
 
@@ -275,11 +270,13 @@ WHERE c."Region" = ANY (@__regions_0) OR (c."Region" IS NULL AND array_position(
         // (see https://github.com/aspnet/EntityFrameworkCore/issues/17598).
         AssertSql(
             """
-@__regions_0={ 'UK', 'SP', NULL } (DbType = Object)
+@regions={ 'UK'
+'SP'
+NULL } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Region" = ANY (@__regions_0) OR (c."Region" IS NULL AND array_position(@__regions_0, NULL) IS NOT NULL)
+WHERE c."Region" = ANY (@regions) OR (c."Region" IS NULL AND array_position(@regions, NULL) IS NOT NULL)
 """);
     }
 
@@ -325,11 +322,13 @@ WHERE c."Region" = ANY (@__regions_0) OR (c."Region" IS NULL AND array_position(
 
         AssertSql(
             """
-@__collection_1={ 'A%', 'B%', 'C%' } (DbType = Object)
+@collection={ 'A%'
+'B%'
+'C%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" LIKE ANY (@__collection_1)
+WHERE c."Address" LIKE ANY (@collection)
 """);
     }
 
@@ -347,11 +346,13 @@ WHERE c."Address" LIKE ANY (@__collection_1)
 
         AssertSql(
             """
-@__collection_1={ 'A%', 'B%', 'C%' } (DbType = Object)
+@collection={ 'A%'
+'B%'
+'C%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" LIKE ALL (@__collection_1)
+WHERE c."Address" LIKE ALL (@collection)
 """);
     }
 
@@ -369,11 +370,13 @@ WHERE c."Address" LIKE ALL (@__collection_1)
 
         AssertSql(
             """
-@__collection_1={ 'A%', 'B%', 'C%' } (DbType = Object)
+@collection={ 'A%'
+'B%'
+'C%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE NOT (c."Address" LIKE ALL (@__collection_1))
+WHERE NOT (c."Address" LIKE ALL (@collection))
 """);
     }
 
@@ -415,11 +418,13 @@ WHERE NOT (c."Address" LIKE ALL (@__collection_1))
 
         AssertSql(
             """
-@__collection_1={ 'a%', 'b%', 'c%' } (DbType = Object)
+@collection={ 'a%'
+'b%'
+'c%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" ILIKE ANY (@__collection_1)
+WHERE c."Address" ILIKE ANY (@collection)
 """);
     }
 
@@ -444,11 +449,13 @@ WHERE c."Address" ILIKE ANY (@__collection_1)
 
         AssertSql(
             """
-@__collection_1={ 'a%', 'b%', 'c%' } (DbType = Object)
+@collection={ 'a%'
+'b%'
+'c%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE NOT (c."Address" ILIKE ANY (@__collection_1))
+WHERE NOT (c."Address" ILIKE ANY (@collection))
 """);
     }
 
@@ -466,11 +473,13 @@ WHERE NOT (c."Address" ILIKE ANY (@__collection_1))
 
         AssertSql(
             """
-@__collection_1={ 'a%', 'b%', 'c%' } (DbType = Object)
+@collection={ 'a%'
+'b%'
+'c%' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."Address" ILIKE ALL (@__collection_1)
+WHERE c."Address" ILIKE ALL (@collection)
 """);
     }
 

@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.TestModels.ConcurrencyModel;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public class F1BytesNpgsqlFixture : F1NpgsqlFixtureBase<byte[]>
 {
@@ -34,15 +33,15 @@ public class F1NpgsqlFixture : F1NpgsqlFixtureBase<uint>
         base.BuildModelExternal(modelBuilder);
 
         // TODO: This is a hack to work around, remove in 8.0 after https://github.com/dotnet/efcore/pull/29401
-        modelBuilder.Entity<Chassis>().Property<uint>("Version").HasConversion((ValueConverter)null);
-        modelBuilder.Entity<Driver>().Property<uint>("Version").HasConversion((ValueConverter)null);
-        modelBuilder.Entity<Team>().Property<uint>("Version").HasConversion((ValueConverter)null);
-        modelBuilder.Entity<Sponsor>().Property<uint>("Version").HasConversion((ValueConverter)null);
+        modelBuilder.Entity<Chassis>().Property<uint>("Version").HasConversion((ValueConverter?)null);
+        modelBuilder.Entity<Driver>().Property<uint>("Version").HasConversion((ValueConverter?)null);
+        modelBuilder.Entity<Team>().Property<uint>("Version").HasConversion((ValueConverter?)null);
+        modelBuilder.Entity<Sponsor>().Property<uint>("Version").HasConversion((ValueConverter?)null);
         modelBuilder.Entity<TitleSponsor>()
             .OwnsOne(
                 s => s.Details, eb =>
                 {
-                    eb.Property<uint>("Version").IsRowVersion().HasConversion((ValueConverter)null);
+                    eb.Property<uint>("Version").IsRowVersion().HasConversion((ValueConverter?)null);
                 });
     }
 }

@@ -1,16 +1,20 @@
   <Project>
   <PropertyGroup>
-    <EFCoreVersion>[9.0.1,10.0.0)</EFCoreVersion>
-    <MicrosoftExtensionsVersion>9.0.1</MicrosoftExtensionsVersion>
-    <NpgsqlVersion>9.0.3</NpgsqlVersion>
+    <EFCoreVersion>10.0.0</EFCoreVersion>
+    <MicrosoftExtensionsVersion>10.0.0</MicrosoftExtensionsVersion>
+    <NpgsqlVersion>10.0.0</NpgsqlVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(EFCoreVersion)" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="$(EFCoreVersion)" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Abstractions" Version="$(EFCoreVersion)" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="$(EFCoreVersion)" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(EFCoreVersion)" />
+    <!--
+      Dependencies on EF preview versions should be locked to a specific version (as provider-facing breaking changes are frequent).
+      For released versions, depend on anything in the current major version to allow users to update to higher patch versions.
+    -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="[10.0.0]" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="[10.0.0]" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Abstractions" Version="[10.0.0]" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="[10.0.0]" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="[10.0.0]" />
 
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="$(MicrosoftExtensionsVersion)" />
@@ -22,11 +26,11 @@
     <PackageVersion Include="Npgsql.DependencyInjection" Version="$(NpgsqlVersion)" />
 
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageVersion Include="xunit" Version="2.9.0" />
-    <PackageVersion Include="xunit.assert" Version="2.9.0" />
-    <PackageVersion Include="xunit.core" Version="2.9.0" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
-    <PackageVersion Include="GitHubActionsTestLogger" Version="2.3.3" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.assert" Version="2.9.3" />
+    <PackageVersion Include="xunit.core" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
   </ItemGroup>
 </Project>

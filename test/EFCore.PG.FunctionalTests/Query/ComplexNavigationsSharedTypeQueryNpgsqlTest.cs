@@ -1,6 +1,6 @@
 using Xunit.Sdk;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class ComplexNavigationsSharedTypeQueryNpgsqlTest
     : ComplexNavigationsSharedTypeQueryRelationalTestBase<ComplexNavigationsSharedTypeQueryNpgsqlFixture>
@@ -27,12 +27,8 @@ public class ComplexNavigationsSharedTypeQueryNpgsqlTest
         => AssertTranslationFailedWithDetails(
             () => base.GroupJoin_client_method_in_OrderBy(async),
             CoreStrings.QueryUnableToTranslateMethod(
-                "Microsoft.EntityFrameworkCore.Query.ComplexNavigationsQueryTestBase<Npgsql.EntityFrameworkCore.PostgreSQL.Query.ComplexNavigationsSharedTypeQueryNpgsqlFixture>",
+                "Microsoft.EntityFrameworkCore.Query.ComplexNavigationsQueryTestBase<Microsoft.EntityFrameworkCore.Query.ComplexNavigationsSharedTypeQueryNpgsqlFixture>",
                 "ClientMethodNullableInt"));
-
-    public override Task Nested_SelectMany_correlated_with_join_table_correctly_translated_to_apply(bool async)
-        => Assert.ThrowsAsync<EqualException>(
-            async () => await base.Nested_SelectMany_correlated_with_join_table_correctly_translated_to_apply(async));
 
     [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/26104")]
     public override Task GroupBy_aggregate_where_required_relationship(bool async)

@@ -1,13 +1,8 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.Query;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
-
-public class EntitySplittingQueryNpgsqlTest : EntitySplittingQueryTestBase
+public class EntitySplittingQueryNpgsqlTest(NonSharedFixture fixture)
+    : EntitySplittingQueryTestBase(fixture)
 {
-    public EntitySplittingQueryNpgsqlTest(ITestOutputHelper testOutputHelper)
-    {
-    }
-
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());

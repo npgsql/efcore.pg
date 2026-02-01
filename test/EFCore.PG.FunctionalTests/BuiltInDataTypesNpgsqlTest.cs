@@ -1,9 +1,10 @@
 ﻿using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Net.NetworkInformation;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
+
+#nullable disable
 
 public class BuiltInDataTypesNpgsqlTest : BuiltInDataTypesTestBase<BuiltInDataTypesNpgsqlTest.BuiltInDataTypesNpgsqlFixture>
 {
@@ -48,11 +49,11 @@ WHERE m."TimeSpanAsTime" = TIME '00:01:02'
 
         AssertSql(
             """
-@__timeSpan_0='02:01:00' (Nullable = true)
+@timeSpan='02:01:00' (Nullable = true)
 
 SELECT m."Int"
 FROM "MappedNullableDataTypes" AS m
-WHERE m."TimeSpanAsTime" = @__timeSpan_0
+WHERE m."TimeSpanAsTime" = @timeSpan
 """);
     }
 
@@ -469,7 +470,7 @@ WHERE m."TimeSpanAsTime" = @__timeSpan_0
             """
 @p0='77'
 @p1='True'
-@p2='80' (DbType = Int16)
+@p2='80'
 @p3='0x56' (Nullable = false)
 @p4='g' (Nullable = false)
 @p5='h' (Nullable = false)

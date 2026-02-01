@@ -1,4 +1,4 @@
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
+namespace Microsoft.EntityFrameworkCore.TestModels.Array;
 
 public class ArrayQueryContext(DbContextOptions options) : PoolableDbContext(options)
 {
@@ -32,7 +32,7 @@ public class ArrayQueryContext(DbContextOptions options) : PoolableDbContext(opt
                         v => string.Join(",", v),
                         v => v.Split(',', StringSplitOptions.None).ToList(),
                         new ValueComparer<List<string>>(
-                            (c1, c2) => c1.SequenceEqual(c2),
+                            (c1, c2) => c1 == null && c2 == null || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
                             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                             c => c.ToList()));
 
@@ -41,7 +41,7 @@ public class ArrayQueryContext(DbContextOptions options) : PoolableDbContext(opt
                         v => string.Join(",", v),
                         v => v.Split(',', StringSplitOptions.None).ToArray(),
                         new ValueComparer<string[]>(
-                            (c1, c2) => c1.SequenceEqual(c2),
+                            (c1, c2) => c1 == null && c2 == null || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
                             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                             c => c.ToArray()));
 

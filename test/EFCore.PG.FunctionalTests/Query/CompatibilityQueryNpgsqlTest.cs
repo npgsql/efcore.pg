@@ -1,6 +1,4 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+﻿namespace Microsoft.EntityFrameworkCore.Query;
 
 public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgsqlTest.CompatibilityQueryNpgsqlFixture>
 {
@@ -25,16 +23,19 @@ public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgs
 
         AssertSql(
             """
+@numbers1='?' (DbType = Int32)
+@numbers2='?' (DbType = Int32)
+
 SELECT t."Id", t."SomeInt"
 FROM "TestEntities" AS t
-WHERE t."SomeInt" IN (8, 9)
+WHERE t."SomeInt" IN (@numbers1, @numbers2)
 LIMIT 2
 """);
     }
 
     #region Support
 
-    private CompatibilityContext CreateContext(Version postgresVersion = null)
+    private CompatibilityContext CreateContext(Version? postgresVersion = null)
         => Fixture.CreateContext(postgresVersion);
 
     private CompatibilityContext CreateRedshiftContext()
@@ -42,7 +43,7 @@ LIMIT 2
 
     public class CompatibilityQueryNpgsqlFixture : FixtureBase, IDisposable, IAsyncLifetime
     {
-        private TestStore _testStore;
+        private TestStore _testStore = null!;
 
         private const string StoreName = "CompatibilityTest";
         private readonly ListLoggerFactory _listLoggerFactory = NpgsqlTestStoreFactory.Instance.CreateListLoggerFactory(_ => false);
@@ -53,7 +54,7 @@ LIMIT 2
         public virtual CompatibilityContext CreateContext()
             => CreateContext(null);
 
-        public virtual CompatibilityContext CreateContext(Version postgresVersion)
+        public virtual CompatibilityContext CreateContext(Version? postgresVersion)
         {
             var builder = new DbContextOptionsBuilder();
             _testStore.AddProviderOptions(builder);

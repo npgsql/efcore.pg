@@ -33,6 +33,7 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
     {
         var npgsqlOptions = contextOptions.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
         var supportsMultiranges = npgsqlOptions.PostgresVersion.AtLeast(14);
+        var supportRegexCount = npgsqlOptions.PostgresVersion.AtLeast(15);
 
         var sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
         var typeMappingSource = (NpgsqlTypeMappingSource)dependencies.RelationalTypeMappingSource;
@@ -54,14 +55,15 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
                 LTreeTranslator,
                 new NpgsqlMathTranslator(typeMappingSource, sqlExpressionFactory, model),
                 new NpgsqlNetworkTranslator(typeMappingSource, sqlExpressionFactory, model),
-                new NpgsqlNewGuidTranslator(sqlExpressionFactory, npgsqlOptions.PostgresVersion),
+                new NpgsqlGuidTranslator(sqlExpressionFactory, npgsqlOptions.PostgresVersion),
                 new NpgsqlObjectToStringTranslator(typeMappingSource, sqlExpressionFactory),
                 new NpgsqlRandomTranslator(sqlExpressionFactory),
                 new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory, model, supportsMultiranges),
-                new NpgsqlRegexIsMatchTranslator(sqlExpressionFactory),
+                new NpgsqlRegexTranslator(typeMappingSource, sqlExpressionFactory, supportRegexCount),
                 new NpgsqlRowValueTranslator(sqlExpressionFactory),
                 new NpgsqlStringMethodTranslator(typeMappingSource, sqlExpressionFactory),
-                new NpgsqlTrigramsMethodTranslator(typeMappingSource, sqlExpressionFactory, model)
+                new NpgsqlTrigramsMethodTranslator(typeMappingSource, sqlExpressionFactory, model),
+                new NpgsqlCubeTranslator(sqlExpressionFactory, typeMappingSource),
         ]);
     }
 }

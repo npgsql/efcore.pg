@@ -131,25 +131,15 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
                 indexer = i => ArrayAccess(input, i);
                 break;
 
-            // Input is typed as an IList - we can get its length and index into it
-            case { IsGenericType: true } when inputInterfaces.Append(input.Type)
-                .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IList<>)):
-            {
-                getInputLength = Property(
-                    input,
-                    input.Type.GetProperty("Count")
-                    // If TInput is an interface (IList<T>), its Count property needs to be found on ICollection<T>
-                    ?? typeof(ICollection<>).MakeGenericType(input.Type.GetGenericArguments()[0]).GetProperty("Count")!);
-                indexer = i => Property(input, input.Type.FindIndexerProperty()!, i);
-                break;
-            }
-
             // Input is typed as an ICollection - we can get its length, but we can't index into it
             case { IsGenericType: true } when inputInterfaces.Append(input.Type)
                 .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>)):
             {
                 getInputLength = Property(
-                    input, typeof(ICollection<>).MakeGenericType(input.Type.GetGenericArguments()[0]).GetProperty("Count")!);
+                    input,
+                    input.Type.GetProperty("Count")
+                    // If TInput is an interface (ICollection<T>), its Count property needs to be found on ICollection<T>
+                    ?? typeof(ICollection<>).MakeGenericType(input.Type.GetGenericArguments()[0]).GetProperty("Count")!);
                 indexer = null;
                 break;
             }
@@ -176,6 +166,31 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
                 throw new NotSupportedException($"Array value converter input type must be an IEnumerable, but is {typeof(TInput)}");
         }
 
+        Expression? instantiateOutput = typeof(TConcreteOutput) switch
+        {
+            var t when t.IsArray => NewArrayBounds(outputElementType, lengthVariable),
+            var t when typeof(TConcreteOutput).GetConstructor([typeof(int)]) is ConstructorInfo ctorWithLength => New(ctorWithLength, lengthVariable),
+            var t when typeof(TConcreteOutput).GetConstructor([]) is not null => New(typeof(TConcreteOutput)),
+
+            _ => null
+        };
+
+        if (instantiateOutput is null)
+        {
+            // If the output type can't be instantiated (no public parameterless constructor), we can't value convert to it.
+            // If we simply throw and prevent the array converter from being instantiated, that would block scenarios where the user is
+            // only *writing* an uninstantiable type, but never reading it (see #3050). To allow for such "one-directional" value converters,
+            // we instead return a lambda that throws, so that if converter is actually ever used to read, it will throw at that point.
+            // See test Parameter_collection_Dictionary_Valuees_with_value_converter_Contains.
+            return Lambda<Func<TInput, TOutput>>(
+                Throw(
+                    New(
+                        typeof(InvalidOperationException).GetConstructor([typeof(string)])!,
+                        Constant($"Type {typeof(TConcreteOutput)} cannot be instantiated as it does not have a public parameterless constructor.")),
+                    typeof(TOutput)),
+                input);
+        }
+
         expressions.AddRange(
         [
             // Get the length of the input array or list
@@ -184,12 +199,7 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
 
             // Allocate an output array or list
             // var result = new int[length];
-            Assign(
-                output, typeof(TConcreteOutput).IsArray
-                    ? NewArrayBounds(outputElementType, lengthVariable)
-                    : typeof(TConcreteOutput).GetConstructor([typeof(int)]) is ConstructorInfo ctorWithLength
-                        ? New(ctorWithLength, lengthVariable)
-                        : New(typeof(TConcreteOutput).GetConstructor([])!))
+            Assign(output, instantiateOutput)
         ]);
 
         if (indexer is not null)
@@ -198,7 +208,7 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
             // the element converter on each element.
             // for (var i = 0; i < length; i++)
             // {
-            //     result[i] = input[i];
+            //     result[i] = convert(input[i]);
             // }
             var counter = Parameter(typeof(int), "i");
 
@@ -230,7 +240,7 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
             // counter = 0;
             // while (enumerator.MoveNext())
             // {
-            //     output[counter] = enumerator.Current;
+            //     output[counter] = convert(enumerator.Current);
             //     counter++;
             // }
             var enumerableType = typeof(IEnumerable<>).MakeGenericType(inputElementType);
@@ -285,13 +295,21 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
         // return output;
         expressions.Add(output);
 
-        return Lambda<Func<TInput, TOutput>>(
-            // First, check if the given array value is null and return null immediately if so
-            Condition(
-                ReferenceEqual(input, Constant(null)),
-                Constant(null, typeof(TOutput)),
-                Block(typeof(TOutput), variables, expressions)),
-            input);
+        Expression body = Block(typeof(TOutput), variables, expressions);
+
+        // If the input type is a reference type, first check if the input array is null and return null
+        // (or default for output value type) if so, bypassing all of the logic above.
+        if (!typeof(TInput).IsValueType)
+        {
+            body = Condition(
+                ReferenceEqual(input, Constant(null, typeof(TInput))),
+                typeof(TOutput).IsValueType
+                    ? New(typeof(TConcreteOutput))
+                    : Constant(null, typeof(TOutput)),
+                body);
+        }
+
+        return Lambda<Func<TInput, TOutput>>(body, input);
     }
 
     private static Expression ForLoop(

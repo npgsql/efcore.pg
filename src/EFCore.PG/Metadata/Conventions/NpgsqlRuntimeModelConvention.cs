@@ -103,7 +103,6 @@ public class NpgsqlRuntimeModelConvention : RelationalRuntimeModelConvention
 
         if (!runtime)
         {
-            annotations.Remove(NpgsqlAnnotationNames.IndexMethod);
             annotations.Remove(NpgsqlAnnotationNames.IndexOperators);
             annotations.Remove(NpgsqlAnnotationNames.IndexSortOrder);
             annotations.Remove(NpgsqlAnnotationNames.IndexNullSortOrder);

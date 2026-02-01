@@ -1,8 +1,8 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+﻿
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public class DefaultValuesTest : IDisposable
 {
@@ -69,7 +69,7 @@ public class DefaultValuesTest : IDisposable
     {
         // ReSharper disable once UnusedMember.Local
         public int Id { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
         public DateTime BestBuyDate { get; set; }
     }
 }

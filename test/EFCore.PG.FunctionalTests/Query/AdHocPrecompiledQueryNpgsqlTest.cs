@@ -1,10 +1,9 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
-public class AdHocPrecompiledQueryNpgsqlTest(ITestOutputHelper testOutputHelper)
-    : AdHocPrecompiledQueryRelationalTestBase(testOutputHelper)
+public class AdHocPrecompiledQueryNpgsqlTest(NonSharedFixture fixture, ITestOutputHelper testOutputHelper)
+    : AdHocPrecompiledQueryRelationalTestBase(fixture, testOutputHelper)
 {
     protected override bool AlwaysPrintGeneratedSources
         => false;
@@ -27,11 +26,11 @@ WHERE j."IntList"[j."Id" + 1] = 2
 
         AssertSql(
             """
-@__id_0='1'
+@id='1'
 
 SELECT j."Id", j."IntList", j."JsonThing"
 FROM "JsonEntities" AS j
-WHERE j."IntList"[@__id_0 + 1] = 2
+WHERE j."IntList"[@id + 1] = 2
 """);
     }
 

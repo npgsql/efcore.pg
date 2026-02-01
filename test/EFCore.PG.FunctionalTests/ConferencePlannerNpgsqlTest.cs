@@ -1,8 +1,9 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.TestModels.ConferencePlanner;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
+
+#nullable disable
 
 public class ConferencePlannerNpgsqlTest(ConferencePlannerNpgsqlTest.ConferencePlannerNpgsqlFixture fixture)
     : ConferencePlannerTestBase<ConferencePlannerNpgsqlTest.ConferencePlannerNpgsqlFixture>(fixture)

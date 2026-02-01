@@ -1,6 +1,4 @@
-using Microsoft.EntityFrameworkCore.BulkUpdates;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.BulkUpdates;
+namespace Microsoft.EntityFrameworkCore.BulkUpdates;
 
 public class TPHInheritanceBulkUpdatesNpgsqlTest(
     TPHInheritanceBulkUpdatesNpgsqlFixture fixture,
@@ -70,8 +68,10 @@ WHERE (
 
         AssertExecuteUpdateSql(
             """
+@p='Animal'
+
 UPDATE "Animals" AS a
-SET "Name" = 'Animal'
+SET "Name" = @p
 WHERE a."Name" = 'Great spotted kiwi'
 """);
     }
@@ -82,8 +82,10 @@ WHERE a."Name" = 'Great spotted kiwi'
 
         AssertExecuteUpdateSql(
             """
+@p='NewBird'
+
 UPDATE "Animals" AS a
-SET "Name" = 'NewBird'
+SET "Name" = @p
 WHERE a."Discriminator" = 'Kiwi'
 """);
     }
@@ -94,8 +96,8 @@ WHERE a."Discriminator" = 'Kiwi'
 
         AssertSql(
             """
-@__p_1='3'
-@__p_0='0'
+@p0='3'
+@p='0'
 
 DELETE FROM "Animals" AS a
 WHERE a."Id" IN (
@@ -103,7 +105,7 @@ WHERE a."Id" IN (
     FROM "Animals" AS a0
     WHERE a0."Name" = 'Great spotted kiwi'
     ORDER BY a0."Name" NULLS FIRST
-    LIMIT @__p_1 OFFSET @__p_0
+    LIMIT @p0 OFFSET @p
 )
 """);
     }
@@ -167,8 +169,10 @@ WHERE a."Id" IN (
 
         AssertExecuteUpdateSql(
             """
+@p='SomeOtherKiwi'
+
 UPDATE "Animals" AS a
-SET "Name" = 'SomeOtherKiwi'
+SET "Name" = @p
 WHERE a."Discriminator" = 'Kiwi'
 """);
     }
@@ -179,8 +183,10 @@ WHERE a."Discriminator" = 'Kiwi'
 
         AssertExecuteUpdateSql(
             """
+@p='0'
+
 UPDATE "Animals" AS a
-SET "FoundOn" = 0
+SET "FoundOn" = @p
 WHERE a."Discriminator" = 'Kiwi'
 """);
     }
@@ -191,9 +197,12 @@ WHERE a."Discriminator" = 'Kiwi'
 
         AssertExecuteUpdateSql(
             """
+@p='Kiwi'
+@p0='0'
+
 UPDATE "Animals" AS a
-SET "FoundOn" = 0,
-    "Name" = 'Kiwi'
+SET "Name" = @p,
+    "FoundOn" = @p0
 WHERE a."Discriminator" = 'Kiwi'
 """);
     }
@@ -204,8 +213,10 @@ WHERE a."Discriminator" = 'Kiwi'
 
         AssertExecuteUpdateSql(
             """
+@p='Monovia'
+
 UPDATE "Countries" AS c
-SET "Name" = 'Monovia'
+SET "Name" = @p
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
@@ -219,8 +230,10 @@ WHERE (
 
         AssertExecuteUpdateSql(
             """
+@p='Monovia'
+
 UPDATE "Countries" AS c
-SET "Name" = 'Monovia'
+SET "Name" = @p
 WHERE (
     SELECT count(*)::int
     FROM "Animals" AS a
@@ -241,8 +254,10 @@ WHERE (
 
         AssertExecuteUpdateSql(
             """
+@p='0'
+
 UPDATE "Drinks" AS d
-SET "SugarGrams" = 0
+SET "SugarGrams" = @p
 WHERE d."Discriminator" = 1
 """);
     }
@@ -253,8 +268,10 @@ WHERE d."Discriminator" = 1
 
         AssertExecuteUpdateSql(
             """
+@p='0'
+
 UPDATE "Drinks" AS d
-SET "SugarGrams" = 0
+SET "SugarGrams" = @p
 WHERE d."Discriminator" = 1
 """);
     }

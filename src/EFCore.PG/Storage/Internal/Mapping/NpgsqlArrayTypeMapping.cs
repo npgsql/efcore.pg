@@ -132,7 +132,7 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
         var comparer = typeof(TCollection).IsArray && typeof(TCollection).GetArrayRank() > 1
             ? null // TODO: Value comparer for multidimensional arrays
             : (ValueComparer?)Activator.CreateInstance(
-                elementType.IsNullableValueType()
+                elementType.IsNullableValueType() || elementMapping.Comparer.Type.IsNullableValueType()
                     ? typeof(ListOfNullableValueTypesComparer<,>)
                         .MakeGenericType(typeof(TConcreteCollection), elementType.UnwrapNullableType())
                     : elementType.IsValueType

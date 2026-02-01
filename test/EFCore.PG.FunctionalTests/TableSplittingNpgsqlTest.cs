@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore.TestModels.TransportationModel;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 [MinimumPostgresVersion(12, 0)] // Test suite uses computed columns
-public class TableSplittingNpgsqlTest(ITestOutputHelper testOutputHelper) : TableSplittingTestBase(testOutputHelper)
+public class TableSplittingNpgsqlTest(NonSharedFixture fixture, ITestOutputHelper testOutputHelper)
+    : TableSplittingTestBase(fixture, testOutputHelper)
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
@@ -15,8 +15,10 @@ public class TableSplittingNpgsqlTest(ITestOutputHelper testOutputHelper) : Tabl
 
         AssertSql(
             """
+@p='1'
+
 UPDATE "Vehicles" AS v
-SET "SeatingCapacity" = 1
+SET "SeatingCapacity" = @p
 """,
             //
             """

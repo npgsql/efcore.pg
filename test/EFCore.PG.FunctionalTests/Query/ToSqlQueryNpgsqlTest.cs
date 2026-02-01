@@ -1,8 +1,6 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.Query;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
-
-public class ToSqlQuerySqlServerTest : ToSqlQueryTestBase
+public class ToSqlQuerySqlServerTest(NonSharedFixture fixture) : ToSqlQueryTestBase(fixture)
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;

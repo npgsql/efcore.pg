@@ -27,7 +27,7 @@ public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public NpgsqlCidrTypeMapping()
-        : base("cidr", typeof(NpgsqlCidr), NpgsqlDbType.Cidr, JsonCidrReaderWriter.Instance)
+        : base("cidr", typeof(IPNetwork), NpgsqlDbType.Cidr, JsonCidrReaderWriter.Instance)
     {
     }
 
@@ -59,8 +59,8 @@ public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
     {
-        var cidr = (NpgsqlCidr)value;
-        return $"CIDR '{cidr.Address}/{cidr.Netmask}'";
+        var ipNetwork = (IPNetwork)value;
+        return $"CIDR '{ipNetwork.BaseAddress}/{ipNetwork.PrefixLength}'";
     }
 
     /// <summary>
@@ -71,17 +71,17 @@ public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
     /// </summary>
     public override Expression GenerateCodeLiteral(object value)
     {
-        var cidr = (NpgsqlCidr)value;
+        var cidr = (IPNetwork)value;
         return Expression.New(
             NpgsqlCidrConstructor,
-            Expression.Call(ParseMethod, Expression.Constant(cidr.Address.ToString())),
-            Expression.Constant(cidr.Netmask));
+            Expression.Call(ParseMethod, Expression.Constant(cidr.BaseAddress.ToString())),
+            Expression.Constant(cidr.PrefixLength));
     }
 
     private static readonly MethodInfo ParseMethod = typeof(IPAddress).GetMethod("Parse", [typeof(string)])!;
 
     private static readonly ConstructorInfo NpgsqlCidrConstructor =
-        typeof(NpgsqlCidr).GetConstructor([typeof(IPAddress), typeof(byte)])!;
+        typeof(IPNetwork).GetConstructor([typeof(IPAddress), typeof(int)])!;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -89,7 +89,7 @@ public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public sealed class JsonCidrReaderWriter : JsonValueReaderWriter<NpgsqlCidr>
+    public sealed class JsonCidrReaderWriter : JsonValueReaderWriter<IPNetwork>
     {
         private static readonly PropertyInfo InstanceProperty = typeof(JsonCidrReaderWriter).GetProperty(nameof(Instance))!;
 
@@ -107,8 +107,8 @@ public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
         ///     any release. You should only use it directly in your code with extreme caution and knowing that
         ///     doing so can result in application failures when updating to a new Entity Framework Core release.
         /// </summary>
-        public override NpgsqlCidr FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
-            => new(manager.CurrentReader.GetString()!);
+        public override IPNetwork FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
+            => IPNetwork.Parse(manager.CurrentReader.GetString()!);
 
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -116,8 +116,8 @@ public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
         ///     any release. You should only use it directly in your code with extreme caution and knowing that
         ///     doing so can result in application failures when updating to a new Entity Framework Core release.
         /// </summary>
-        public override void ToJsonTyped(Utf8JsonWriter writer, NpgsqlCidr value)
-            => writer.WriteStringValue(value.ToString());
+        public override void ToJsonTyped(Utf8JsonWriter writer, IPNetwork ipNetwork)
+            => writer.WriteStringValue(ipNetwork.ToString());
 
         /// <inheritdoc />
         public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);

@@ -1,8 +1,6 @@
 using Xunit.Sdk;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.ModelBuilding;
-
-#nullable enable
+namespace Microsoft.EntityFrameworkCore.ModelBuilding;
 
 public class NpgsqlModelBuilderGenericTest : NpgsqlModelBuilderTestBase
 {
@@ -18,6 +16,13 @@ public class NpgsqlModelBuilderGenericTest : NpgsqlModelBuilderTestBase
     }
 
     public class NpgsqlGenericComplexType(NpgsqlModelBuilderFixture fixture) : NpgsqlComplexType(fixture)
+    {
+        protected override TestModelBuilder CreateModelBuilder(
+            Action<ModelConfigurationBuilder>? configure)
+            => new GenericTestModelBuilder(Fixture, configure);
+    }
+
+    public class NpgsqlGenericComplexCollection(NpgsqlModelBuilderFixture fixture) : NpgsqlComplexCollection(fixture)
     {
         protected override TestModelBuilder CreateModelBuilder(
             Action<ModelConfigurationBuilder>? configure)

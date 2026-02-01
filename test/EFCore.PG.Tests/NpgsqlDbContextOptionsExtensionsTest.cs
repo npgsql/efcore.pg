@@ -116,5 +116,19 @@ public class NpgsqlDbContextOptionsExtensionsTest
         }
     }
 
+    [ConditionalFact]
+    public void Varying_data_source_connection_strings_do_not_cause_multiple_service_providers()
+    {
+        for (var i = 0; i < 21; i++)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<DbContext>();
+            var dataSource = NpgsqlDataSource.Create($"Host=localhost;Database={i};Include Error Detail=true;Username=admin;Password=admin");
+            optionsBuilder.UseNpgsql(dataSource);
+
+            using var context = new ApplicationDbContext(optionsBuilder.Options);
+            _ = context.Model;
+        }
+    }
+
     private class ApplicationDbContext(DbContextOptions options) : DbContext(options);
 }

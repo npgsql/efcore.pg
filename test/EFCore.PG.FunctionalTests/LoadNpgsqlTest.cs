@@ -1,6 +1,4 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+﻿namespace Microsoft.EntityFrameworkCore;
 
 // ReSharper disable once UnusedMember.Global
 public class LoadNpgsqlTest : LoadTestBase<LoadNpgsqlTest.LoadNpgsqlFixture>
@@ -18,7 +16,7 @@ public class LoadNpgsqlTest : LoadTestBase<LoadNpgsqlTest.LoadNpgsqlFixture>
         => Sql = Fixture.TestSqlLoggerFactory.Sql;
 
     // ReSharper disable once UnusedAutoPropertyAccessor.Local
-    private string Sql { get; set; }
+    private string Sql { get; set; } = null!;
 
     public class LoadNpgsqlFixture : LoadFixtureBase
     {

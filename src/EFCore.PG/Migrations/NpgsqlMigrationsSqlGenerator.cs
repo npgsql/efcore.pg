@@ -1132,7 +1132,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 .Append(DelimitIdentifier(extension.Version));
         }
 
-        builder.AppendLine(";");
+        builder.AppendLine(" CASCADE;");
     }
 
     #region Collation management
@@ -1579,6 +1579,126 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         }
     }
 
+    /// <inheritdoc />
+    protected override void PrimaryKeyConstraint(
+        AddPrimaryKeyOperation operation,
+        IModel? model,
+        MigrationCommandListBuilder builder)
+    {
+        if (operation.Name != null)
+        {
+            builder
+                .Append("CONSTRAINT ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .Append(" ");
+        }
+
+        builder
+            .Append("PRIMARY KEY (")
+            .Append(ColumnList(operation.Columns));
+
+        if (operation[NpgsqlAnnotationNames.WithoutOverlaps] is true)
+        {
+            builder.Append(" WITHOUT OVERLAPS");
+        }
+
+        builder.Append(")");
+
+        IndexOptions(operation, model, builder);
+    }
+
+    /// <inheritdoc />
+    protected override void UniqueConstraint(
+        AddUniqueConstraintOperation operation,
+        IModel? model,
+        MigrationCommandListBuilder builder)
+    {
+        if (operation.Name != null)
+        {
+            builder
+                .Append("CONSTRAINT ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .Append(" ");
+        }
+
+        builder
+            .Append("UNIQUE (")
+            .Append(ColumnList(operation.Columns));
+
+        if (operation[NpgsqlAnnotationNames.WithoutOverlaps] is true)
+        {
+            builder.Append(" WITHOUT OVERLAPS");
+        }
+
+        builder.Append(")");
+
+        IndexOptions(operation, model, builder);
+    }
+
+    /// <inheritdoc />
+    protected override void ForeignKeyConstraint(
+        AddForeignKeyOperation operation,
+        IModel? model,
+        MigrationCommandListBuilder builder)
+    {
+        if (operation.Name != null)
+        {
+            builder
+                .Append("CONSTRAINT ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .Append(" ");
+        }
+
+        var withPeriod = operation[NpgsqlAnnotationNames.Period] is true;
+
+        builder.Append("FOREIGN KEY (");
+        if (withPeriod)
+        {
+            builder
+                .Append(ColumnList(operation.Columns[..^1]))
+                .Append(", PERIOD ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Columns[^1]));
+        }
+        else
+        {
+            builder.Append(ColumnList(operation.Columns));
+        }
+
+        builder
+            .Append(") REFERENCES ")
+            .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.PrincipalTable, operation.PrincipalSchema));
+
+        if (operation.PrincipalColumns != null)
+        {
+            builder.Append(" (");
+            if (withPeriod)
+            {
+                builder
+                    .Append(ColumnList(operation.PrincipalColumns[..^1]))
+                    .Append(", PERIOD ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.PrincipalColumns[^1]));
+            }
+            else
+            {
+                builder.Append(ColumnList(operation.PrincipalColumns));
+            }
+
+            builder.Append(")");
+        }
+
+        if (operation.OnUpdate != ReferentialAction.NoAction)
+        {
+            builder.Append(" ON UPDATE ");
+            ForeignKeyAction(operation.OnUpdate, builder);
+        }
+
+        if (operation.OnDelete != ReferentialAction.NoAction)
+        {
+            builder.Append(" ON DELETE ");
+            ForeignKeyAction(operation.OnDelete, builder);
+        }
+    }
+
     #endregion Standard migrations
 
     #region Utilities
@@ -1872,10 +1992,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             throw new NotSupportedException("Computed/generated columns aren't supported in PostgreSQL prior to version 12");
         }
 
-        if (operation.IsStored != true)
+        if (operation.IsStored is not true && _postgresVersion < new Version(18, 0))
         {
             throw new NotSupportedException(
-                "Generated columns currently must be stored, specify 'stored: true' in "
+                "Virtual (non-stored) generated columns are only supported on PostgreSQL 18 and up. " +
+                "On older versions, specify 'stored: true' in "
                 + $"'{nameof(RelationalPropertyBuilderExtensions.HasComputedColumnSql)}' in your context's OnModelCreating.");
         }
 
@@ -1894,7 +2015,12 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         builder
             .Append(" GENERATED ALWAYS AS (")
             .Append(operation.ComputedColumnSql!)
-            .Append(") STORED");
+            .Append(")");
+
+        if (operation.IsStored is true)
+        {
+            builder.Append(" STORED");
+        }
 
         if (!operation.IsNullable)
         {

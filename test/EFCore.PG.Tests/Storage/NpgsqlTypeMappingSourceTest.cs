@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
@@ -28,6 +30,11 @@ public class NpgsqlTypeMappingSourceTest
     [InlineData("varchar(8)", typeof(string), 8, null, null, false)]
     [InlineData("varchar", typeof(string), null, null, null, false)]
     [InlineData("timestamp with time zone", typeof(DateTime), null, null, null, false)]
+    [InlineData("timestamp without time zone", typeof(DateTime), null, null, null, false)]
+    [InlineData("date", typeof(DateOnly), null, null, null, false)]
+    [InlineData("time", typeof(TimeOnly), null, null, null, false)]
+    [InlineData("time without time zone", typeof(TimeOnly), null, null, null, false)]
+    [InlineData("interval", typeof(TimeSpan), null, null, null, false)]
     [InlineData("dummy", typeof(DummyType), null, null, null, false)]
     [InlineData("int4range", typeof(NpgsqlRange<int>), null, null, null, false)]
     [InlineData("floatrange", typeof(NpgsqlRange<float>), null, null, null, false)]
@@ -42,6 +49,7 @@ public class NpgsqlTypeMappingSourceTest
     [InlineData("xid", typeof(uint), null, null, null, false)]
     [InlineData("xid8", typeof(ulong), null, null, null, false)]
     [InlineData("jsonpath", typeof(string), null, null, null, false)]
+    [InlineData("cidr", typeof(IPNetwork), null, null, null, false)]
     public void By_StoreType(string typeName, Type type, int? size, int? precision, int? scale, bool fixedLength)
     {
         var mapping = CreateTypeMappingSource().FindMapping(typeName);
@@ -107,6 +115,10 @@ public class NpgsqlTypeMappingSourceTest
     [InlineData(typeof(int), "integer")]
     [InlineData(typeof(int[]), "integer[]")]
     [InlineData(typeof(byte[]), "bytea")]
+    [InlineData(typeof(DateTime), "timestamp with time zone")]
+    [InlineData(typeof(DateOnly), "date")]
+    [InlineData(typeof(TimeOnly), "time without time zone")]
+    [InlineData(typeof(TimeSpan), "interval")]
     [InlineData(typeof(DummyType), "dummy")]
     [InlineData(typeof(NpgsqlRange<int>), "int4range")]
     [InlineData(typeof(NpgsqlRange<float>), "floatrange")]
@@ -115,6 +127,12 @@ public class NpgsqlTypeMappingSourceTest
     [InlineData(typeof(List<NpgsqlRange<int>>), "int4multirange")]
     [InlineData(typeof(Geometry), "geometry")]
     [InlineData(typeof(Point), "geometry")]
+    [InlineData(typeof(IPAddress), "inet")]
+    [InlineData(typeof(IPNetwork), "cidr")]
+#pragma warning disable CS0618 // NpgsqlCidr is obsolete, replaced by .NET IPNetwork
+    [InlineData(typeof(NpgsqlCidr), "cidr")] // legacy
+#pragma warning restore CS0618
+    [InlineData(typeof(PhysicalAddress), "macaddr")]
     public void By_ClrType(Type clrType, string expectedStoreType)
     {
         var mapping = CreateTypeMappingSource().FindMapping(clrType);
@@ -160,6 +178,10 @@ public class NpgsqlTypeMappingSourceTest
     [InlineData("integer", typeof(int))]
     [InlineData("numeric", typeof(float))]
     [InlineData("numeric", typeof(double))]
+    [InlineData("date", typeof(DateOnly))]
+    [InlineData("date", typeof(DateTime))]
+    [InlineData("time", typeof(TimeOnly))]
+    [InlineData("time", typeof(TimeSpan))]
     [InlineData("integer[]", typeof(int[]))]
     [InlineData("integer[]", typeof(List<int>))]
     [InlineData("smallint[]", typeof(byte[]))]
@@ -218,6 +240,17 @@ public class NpgsqlTypeMappingSourceTest
         Assert.Equal(NpgsqlDbType.Char, parameter.NpgsqlDbType);
     }
 
+    #region Array
+
+    [Fact]
+    public void Primitive_collection()
+    {
+        var mapping = CreateTypeMappingSource().FindMapping(typeof(int[]));
+        Assert.IsType<NpgsqlArrayTypeMapping>(mapping, exactMatch: false);
+        Assert.Equal("integer[]", mapping.StoreType);
+        Assert.Same(typeof(int[]), mapping.ClrType);
+    }
+
     [Fact]
     public void Array_over_type_mapping_with_value_converter_by_clr_type_array()
         => Array_over_type_mapping_with_value_converter(CreateTypeMappingSource().FindMapping(typeof(LTree[])), typeof(LTree[]));
@@ -255,6 +288,35 @@ public class NpgsqlTypeMappingSourceTest
             s => Assert.Equal("bar", s));
     }
 
+    #endregion Array
+
+    #region JSON
+
+    [Fact]
+    public void Json_structural()
+    {
+        var mapping = CreateTypeMappingSource().FindMapping(typeof(JsonTypePlaceholder));
+        Assert.Equal("jsonb", mapping.StoreType);
+        Assert.Same(typeof(JsonTypePlaceholder), mapping.ClrType);
+    }
+
+    [Fact]
+    public void Json_primitive_collection()
+    {
+        var mapping = CreateTypeMappingSource().FindMapping(typeof(int[]), "jsonb");
+        Assert.Equal("jsonb", mapping.StoreType);
+        Assert.Same(typeof(IEnumerable<int>), mapping.ClrType);
+
+        var elementMapping = (RelationalTypeMapping)mapping.ElementTypeMapping;
+        Assert.NotNull(elementMapping);
+        Assert.Equal("integer", elementMapping.StoreType);
+        Assert.Same(typeof(int), elementMapping.ClrType);
+    }
+
+    #endregion JSON
+
+    #region Multirange
+
     [Fact]
     public void Multirange_by_clr_type_across_pg_versions()
     {
@@ -290,6 +352,8 @@ public class NpgsqlTypeMappingSourceTest
         // Once 14 is made the default version, this stuff can be removed.
         Assert.Same(typeof(List<NpgsqlRange<int>>), mappingDefault.ClrType);
     }
+
+    #endregion Multirange
 
 #nullable enable
     [Theory]

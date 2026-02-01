@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore.TestModels.SpatialModel;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
+
+#nullable disable
 
 [RequiresPostgis]
 public class SpatialQueryNpgsqlGeometryTest
@@ -126,9 +127,9 @@ GROUP BY p."Group"
 
         AssertSql(
             """
-@__point_0='POINT (0.25 0.25)' (DbType = Object)
+@point='POINT (0.25 0.25)' (DbType = Object)
 
-SELECT p."Id", ST_Contains(p."Polygon", @__point_0) AS "Contains"
+SELECT p."Id", ST_Contains(p."Polygon", @point) AS "Contains"
 FROM "PolygonEntity" AS p
 """);
     }
@@ -185,9 +186,9 @@ FROM "LineStringEntity" AS l
 
         AssertSql(
             """
-@__lineString_0='LINESTRING (0.5 -0.5, 0.5 0.5)' (DbType = Object)
+@lineString='LINESTRING (0.5 -0.5, 0.5 0.5)' (DbType = Object)
 
-SELECT l."Id", ST_Crosses(l."LineString", @__lineString_0) AS "Crosses"
+SELECT l."Id", ST_Crosses(l."LineString", @lineString) AS "Crosses"
 FROM "LineStringEntity" AS l
 """);
     }
@@ -198,9 +199,9 @@ FROM "LineStringEntity" AS l
 
         AssertSql(
             """
-@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
+@polygon='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
 
-SELECT p."Id", ST_Difference(p."Polygon", @__polygon_0) AS "Difference"
+SELECT p."Id", ST_Difference(p."Polygon", @polygon) AS "Difference"
 FROM "PolygonEntity" AS p
 """);
     }
@@ -248,9 +249,9 @@ FROM "PolygonEntity" AS p
 
         AssertSql(
             """
-@__point_0='POINT (0 0)' (DbType = Object)
+@point='POINT (0 0)' (DbType = Object)
 
-SELECT p."Id", ST_Equals(p."Point", @__point_0) AS "EqualsTopologically"
+SELECT p."Id", ST_Equals(p."Point", @point) AS "EqualsTopologically"
 FROM "PointEntity" AS p
 """);
     }
@@ -355,9 +356,9 @@ FROM "PolygonEntity" AS p
 
         AssertSql(
             """
-@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
+@polygon='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
 
-SELECT p."Id", ST_Intersection(p."Polygon", @__polygon_0) AS "Intersection"
+SELECT p."Id", ST_Intersection(p."Polygon", @polygon) AS "Intersection"
 FROM "PolygonEntity" AS p
 """);
     }
@@ -394,9 +395,9 @@ FROM "PolygonEntity" AS p
 
         AssertSql(
             """
-@__lineString_0='LINESTRING (0.5 -0.5, 0.5 0.5)' (DbType = Object)
+@lineString='LINESTRING (0.5 -0.5, 0.5 0.5)' (DbType = Object)
 
-SELECT l."Id", ST_Intersects(l."LineString", @__lineString_0) AS "Intersects"
+SELECT l."Id", ST_Intersects(l."LineString", @lineString) AS "Intersects"
 FROM "LineStringEntity" AS l
 """);
     }
@@ -473,9 +474,9 @@ FROM "PointEntity" AS p
 
         AssertSql(
             """
-@__point_0='POINT (0 1)' (DbType = Object)
+@point='POINT (0 1)' (DbType = Object)
 
-SELECT p."Id", ST_DWithin(p."Point", @__point_0, 1.0) AS "IsWithinDistance"
+SELECT p."Id", ST_DWithin(p."Point", @point, 1.0) AS "IsWithinDistance"
 FROM "PointEntity" AS p
 """);
     }
@@ -578,9 +579,9 @@ FROM "PointEntity" AS p
 
         AssertSql(
             """
-@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
+@polygon='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
 
-SELECT p."Id", ST_Overlaps(p."Polygon", @__polygon_0) AS "Overlaps"
+SELECT p."Id", ST_Overlaps(p."Polygon", @polygon) AS "Overlaps"
 FROM "PolygonEntity" AS p
 """);
     }
@@ -602,9 +603,9 @@ FROM "PolygonEntity" AS p
 
         AssertSql(
             """
-@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
+@polygon='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
 
-SELECT p."Id", ST_Relate(p."Polygon", @__polygon_0, '212111212') AS "Relate"
+SELECT p."Id", ST_Relate(p."Polygon", @polygon, '212111212') AS "Relate"
 FROM "PolygonEntity" AS p
 """);
     }
@@ -637,9 +638,9 @@ FROM "LineStringEntity" AS l
 
         AssertSql(
             """
-@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
+@polygon='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
 
-SELECT p."Id", ST_SymDifference(p."Polygon", @__polygon_0) AS "SymmetricDifference"
+SELECT p."Id", ST_SymDifference(p."Polygon", @polygon) AS "SymmetricDifference"
 FROM "PolygonEntity" AS p
 """);
     }
@@ -672,9 +673,9 @@ FROM "PointEntity" AS p
 
         AssertSql(
             """
-@__polygon_0='POLYGON ((0 1, 1 0, 1 1, 0 1))' (DbType = Object)
+@polygon='POLYGON ((0 1, 1 0, 1 1, 0 1))' (DbType = Object)
 
-SELECT p."Id", ST_Touches(p."Polygon", @__polygon_0) AS "Touches"
+SELECT p."Id", ST_Touches(p."Polygon", @polygon) AS "Touches"
 FROM "PolygonEntity" AS p
 """);
     }
@@ -685,9 +686,9 @@ FROM "PolygonEntity" AS p
 
         AssertSql(
             """
-@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
+@polygon='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
 
-SELECT p."Id", ST_Union(p."Polygon", @__polygon_0) AS "Union"
+SELECT p."Id", ST_Union(p."Polygon", @polygon) AS "Union"
 FROM "PolygonEntity" AS p
 """);
     }
@@ -722,9 +723,9 @@ FROM "MultiLineStringEntity" AS m
 
         AssertSql(
             """
-@__polygon_0='POLYGON ((-1 -1, 2 -1, 2 2, -1 2, -1 -1))' (DbType = Object)
+@polygon='POLYGON ((-1 -1, 2 -1, 2 2, -1 2, -1 -1))' (DbType = Object)
 
-SELECT p."Id", ST_Within(p."Point", @__polygon_0) AS "Within"
+SELECT p."Id", ST_Within(p."Point", @polygon) AS "Within"
 FROM "PointEntity" AS p
 """);
     }

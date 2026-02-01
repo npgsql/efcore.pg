@@ -1,8 +1,9 @@
 ﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 // ReSharper disable StringLiteralTypo
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
+
+#nullable disable
 
 public class ConnectionSpecificationTest
 {

@@ -1,9 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore.TestModels.NullSemanticsModel;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 // ReSharper disable once UnusedMember.Global
 public class NullSemanticsQueryNpgsqlTest : NullSemanticsQueryTestBase<NullSemanticsQueryNpgsqlTest.NullSemanticsQueryNpgsqlFixture>

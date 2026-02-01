@@ -737,5 +737,5 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     // Note that we can check parameter values for null since we cache by the parameter nullability; but we cannot do the same for bool.
     private bool IsNull(SqlExpression? expression)
         => expression is SqlConstantExpression { Value: null }
-            || expression is SqlParameterExpression { Name: string parameterName } && ParameterValues[parameterName] is null;
+            || expression is SqlParameterExpression { Name: string parameterName } && ParametersDecorator.IsNull(parameterName);
 }

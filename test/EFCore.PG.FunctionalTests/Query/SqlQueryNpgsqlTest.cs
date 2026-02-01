@@ -1,7 +1,7 @@
 ﻿using System.Data.Common;
 using Xunit.Sdk;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class SqlQueryNpgsqlTest : SqlQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
 {
@@ -70,7 +70,9 @@ WHERE m."ContactName" LIKE '%z%'
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
 FROM (
 
-        
+
+""" + "        " + """
+
 
 
     SELECT
@@ -279,20 +281,20 @@ SELECT * FROM "Employees" WHERE "ReportsTo" = @p0 OR ("ReportsTo" IS NULL AND @p
 """);
     }
 
-    public override async Task<string> SqlQueryRaw_queryable_with_parameters_and_closure(bool async)
+    public override async Task<string?> SqlQueryRaw_queryable_with_parameters_and_closure(bool async)
     {
         var queryString = await base.SqlQueryRaw_queryable_with_parameters_and_closure(async);
 
         AssertSql(
             """
 p0='London'
-@__contactTitle_1='Sales Representative'
+@contactTitle='Sales Representative'
 
 SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
 FROM (
     SELECT * FROM "Customers" WHERE "City" = @p0
 ) AS m
-WHERE m."ContactTitle" = @__contactTitle_1
+WHERE m."ContactTitle" = @contactTitle
 """);
 
         return null;
@@ -410,9 +412,9 @@ SELECT * FROM "Customers" WHERE "City" = @p0 AND "ContactTitle" = @title
             //
             """
 @city='London' (Nullable = false)
-p1='Sales Representative'
+p0='Sales Representative'
 
-SELECT * FROM "Customers" WHERE "City" = @city AND "ContactTitle" = @p1
+SELECT * FROM "Customers" WHERE "City" = @city AND "ContactTitle" = @p0
 """);
     }
 
@@ -637,7 +639,7 @@ WHERE m."CustomerID" IN (
             //
             """
 @city='London' (Nullable = false)
-p1='Sales Representative'
+p0='Sales Representative'
 
 SELECT m."CustomerID", m."EmployeeID", m."Freight", m."OrderDate", m."OrderID", m."RequiredDate", m."ShipAddress", m."ShipCity", m."ShipCountry", m."ShipName", m."ShipPostalCode", m."ShipRegion", m."ShipVia", m."ShippedDate"
 FROM (
@@ -646,29 +648,9 @@ FROM (
 WHERE m."CustomerID" IN (
     SELECT m0."CustomerID"
     FROM (
-        SELECT * FROM "Customers" WHERE "City" = @city AND "ContactTitle" = @p1
+        SELECT * FROM "Customers" WHERE "City" = @city AND "ContactTitle" = @p0
     ) AS m0
 )
-""");
-    }
-
-    public override async Task Multiple_occurrences_of_SqlQuery_with_db_parameter_adds_parameter_only_once(bool async)
-    {
-        await base.Multiple_occurrences_of_SqlQuery_with_db_parameter_adds_parameter_only_once(async);
-
-        AssertSql(
-            """
-city='Seattle' (Nullable = false)
-
-SELECT m."Address", m."City", m."CompanyName", m."ContactName", m."ContactTitle", m."Country", m."CustomerID", m."Fax", m."Phone", m."Region", m."PostalCode"
-FROM (
-    SELECT * FROM "Customers" WHERE "City" = @city
-) AS m
-INTERSECT
-SELECT m0."Address", m0."City", m0."CompanyName", m0."ContactName", m0."ContactTitle", m0."Country", m0."CustomerID", m0."Fax", m0."Phone", m0."Region", m0."PostalCode"
-FROM (
-    SELECT * FROM "Customers" WHERE "City" = @city
-) AS m0
 """);
     }
 

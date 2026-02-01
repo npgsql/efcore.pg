@@ -1,6 +1,4 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public class StoreGeneratedNpgsqlTest(StoreGeneratedNpgsqlTest.StoreGeneratedNpgsqlFixture fixture)
     : StoreGeneratedTestBase<StoreGeneratedNpgsqlTest.StoreGeneratedNpgsqlFixture>(fixture)

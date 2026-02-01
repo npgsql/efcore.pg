@@ -1,11 +1,13 @@
-﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+﻿using System.Globalization;
+
+namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class RequiresPostgisAttribute : Attribute, ITestCondition
 {
     public ValueTask<bool> IsMetAsync()
-        => new(TestEnvironment.IsPostgisAvailable);
+        => new(TestEnvironment.IsPostgisAvailable || Environment.GetEnvironmentVariable("NPGSQL_TEST_POSTGIS")?.ToLower(CultureInfo.InvariantCulture) is "1" or "true");
 
     public string SkipReason
-        => "Requires PostGIS";
+        => "PostGIS isn't installed, skipping";
 }

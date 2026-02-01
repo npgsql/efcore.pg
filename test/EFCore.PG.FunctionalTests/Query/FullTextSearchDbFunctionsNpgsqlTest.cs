@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 #pragma warning disable CS0618 // NpgsqlTsVector.Parse is obsolete
 
@@ -505,9 +504,9 @@ LIMIT 1
         Assert.NotEmpty(headline);
         AssertSql(
             """
-@__config_1='english'
+@config='english'
 
-SELECT ts_headline(@__config_1::regconfig, 'a b c', to_tsquery('b'), 'MinWords=1, MaxWords=2')
+SELECT ts_headline(@config::regconfig, 'a b c', to_tsquery('b'), 'MinWords=1, MaxWords=2')
 FROM "Customers" AS c
 LIMIT 1
 """);
@@ -598,9 +597,9 @@ LIMIT 1
         Assert.False(result);
         AssertSql(
             """
-@__query_1='b'
+@query='b'
 
-SELECT to_tsvector('a') @@ plainto_tsquery(@__query_1)
+SELECT to_tsvector('a') @@ plainto_tsquery(@query)
 FROM "Customers" AS c
 LIMIT 1
 """);
@@ -1019,9 +1018,9 @@ LIMIT 1
 
         AssertSql(
             """
-@__regDictionary_1='unaccent'
+@regDictionary='unaccent'
 
-SELECT unaccent(@__regDictionary_1::regdictionary, c."ContactName")
+SELECT unaccent(@regDictionary::regdictionary, c."ContactName")
 FROM "Customers" AS c
 LIMIT 1
 """);

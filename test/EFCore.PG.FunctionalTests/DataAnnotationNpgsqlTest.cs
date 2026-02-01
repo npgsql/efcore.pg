@@ -1,6 +1,4 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+﻿namespace Microsoft.EntityFrameworkCore;
 
 public class DataAnnotationNpgsqlTest(DataAnnotationNpgsqlTest.DataAnnotationNpgsqlFixture fixture)
     : DataAnnotationRelationalTestBase<DataAnnotationNpgsqlTest.DataAnnotationNpgsqlFixture>(fixture)

@@ -1,6 +1,4 @@
-using Microsoft.EntityFrameworkCore.BulkUpdates;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.BulkUpdates;
+namespace Microsoft.EntityFrameworkCore.BulkUpdates;
 
 public class TPCInheritanceBulkUpdatesNpgsqlTest(
     TPCInheritanceBulkUpdatesNpgsqlFixture fixture,
@@ -124,8 +122,10 @@ WHERE (
 
         AssertExecuteUpdateSql(
             """
+@p='SomeOtherKiwi'
+
 UPDATE "Kiwi" AS k
-SET "Name" = 'SomeOtherKiwi'
+SET "Name" = @p
 """);
     }
 
@@ -135,8 +135,10 @@ SET "Name" = 'SomeOtherKiwi'
 
         AssertExecuteUpdateSql(
             """
+@p='0'
+
 UPDATE "Kiwi" AS k
-SET "FoundOn" = 0
+SET "FoundOn" = @p
 """);
     }
 
@@ -146,8 +148,10 @@ SET "FoundOn" = 0
 
         AssertExecuteUpdateSql(
             """
+@p='Monovia'
+
 UPDATE "Countries" AS c
-SET "Name" = 'Monovia'
+SET "Name" = @p
 WHERE (
     SELECT count(*)::int
     FROM (
@@ -167,9 +171,12 @@ WHERE (
 
         AssertExecuteUpdateSql(
             """
+@p='Kiwi'
+@p0='0'
+
 UPDATE "Kiwi" AS k
-SET "FoundOn" = 0,
-    "Name" = 'Kiwi'
+SET "Name" = @p,
+    "FoundOn" = @p0
 """);
     }
 
@@ -179,8 +186,10 @@ SET "FoundOn" = 0,
 
         AssertExecuteUpdateSql(
             """
+@p='Monovia'
+
 UPDATE "Countries" AS c
-SET "Name" = 'Monovia'
+SET "Name" = @p
 WHERE (
     SELECT count(*)::int
     FROM (
@@ -204,8 +213,10 @@ WHERE (
 
         AssertExecuteUpdateSql(
             """
+@p='0'
+
 UPDATE "Coke" AS c
-SET "SugarGrams" = 0
+SET "SugarGrams" = @p
 """);
     }
 
@@ -215,8 +226,10 @@ SET "SugarGrams" = 0
 
         AssertExecuteUpdateSql(
             """
+@p='0'
+
 UPDATE "Coke" AS c
-SET "SugarGrams" = 0
+SET "SugarGrams" = @p
 """);
     }
 

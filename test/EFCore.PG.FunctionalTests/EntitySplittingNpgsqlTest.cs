@@ -1,8 +1,7 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
-
-public class EntitySplittingNpgsqlTest(ITestOutputHelper testOutputHelper) : EntitySplittingTestBase(testOutputHelper)
+public class EntitySplittingNpgsqlTest(NonSharedFixture fixture, ITestOutputHelper testOutputHelper)
+    : EntitySplittingTestBase(fixture, testOutputHelper)
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;

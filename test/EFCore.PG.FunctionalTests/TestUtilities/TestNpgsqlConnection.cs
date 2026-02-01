@@ -2,9 +2,9 @@
 using System.Data.Common;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
-public class TestNpgsqlConnection(RelationalConnectionDependencies dependencies, DbDataSource dataSource = null)
+public class TestNpgsqlConnection(RelationalConnectionDependencies dependencies, DbDataSource? dataSource = null)
     : NpgsqlRelationalConnection(dependencies, dataSource)
 {
     public string ErrorCode { get; set; } = "XX000";

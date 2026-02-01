@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class JsonStringQueryTest : IClassFixture<JsonStringQueryTest.JsonStringQueryFixture>
 {
@@ -67,27 +66,27 @@ WHERE j."CustomerJsonb" = '{"Name":"Test customer","Age":80,"IsVip":false,"Stati
     {
         using var ctx = CreateContext();
 
-        var expected = ctx.JsonEntities.Find(1).CustomerJsonb;
+        var expected = ctx.JsonEntities.Find(1)!.CustomerJsonb;
         var actual = ctx.JsonEntities.Single(e => e.CustomerJsonb == expected).CustomerJsonb;
 
         Assert.Equal(actual, expected);
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 SELECT j."Id", j."CustomerJson", j."CustomerJsonb", j."SomeString"
 FROM "JsonEntities" AS j
-WHERE j."Id" = @__p_0
+WHERE j."Id" = @p
 LIMIT 1
 """,
             //
             """
-@__expected_0='{"Age": 25, "Name": "Joe", "IsVip": false, "Orders": [{"Price": 99.5, "ShippingDate": "2019-10-01", "ShippingAddress": "Some address 1"}, {"Price": 23, "ShippingDate": "2019-10-10", "ShippingAddress": "Some address 2"}], "Statistics": {"Nested": {"IntArray": [3, 4], "SomeProperty": 10}, "Visits": 4, "Purchases": 3}}' (DbType = Object)
+@expected='{"Age": 25, "Name": "Joe", "IsVip": false, "Orders": [{"Price": 99.5, "ShippingDate": "2019-10-01", "ShippingAddress": "Some address 1"}, {"Price": 23, "ShippingDate": "2019-10-10", "ShippingAddress": "Some address 2"}], "Statistics": {"Nested": {"IntArray": [3, 4], "SomeProperty": 10}, "Visits": 4, "Purchases": 3}}' (DbType = Object)
 
 SELECT j."Id", j."CustomerJson", j."CustomerJsonb", j."SomeString"
 FROM "JsonEntities" AS j
-WHERE j."CustomerJsonb" = @__expected_0
+WHERE j."CustomerJsonb" = @expected
 LIMIT 2
 """);
     }
@@ -106,11 +105,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__element_1='{"Name": "Joe", "Age": 25}' (DbType = Object)
+@element='{"Name": "Joe", "Age": 25}' (DbType = Object)
 
 SELECT count(*)::int
 FROM "JsonEntities" AS j
-WHERE j."CustomerJsonb" @> @__element_1
+WHERE j."CustomerJsonb" @> @element
 """);
     }
 
@@ -165,11 +164,11 @@ WHERE j."CustomerJsonb" @> CAST('{"Name": "' || COALESCE(j."SomeString", '') || 
 
         AssertSql(
             """
-@__element_1='{"Name": "Joe", "Age": 25}' (DbType = Object)
+@element='{"Name": "Joe", "Age": 25}' (DbType = Object)
 
 SELECT count(*)::int
 FROM "JsonEntities" AS j
-WHERE @__element_1 <@ j."CustomerJsonb"
+WHERE @element <@ j."CustomerJsonb"
 """);
     }
 
@@ -349,12 +348,12 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
         public int Id { get; set; }
 
         [Column(TypeName = "jsonb")]
-        public string CustomerJsonb { get; set; }
+        public string CustomerJsonb { get; set; } = null!;
 
         [Column(TypeName = "json")]
-        public string CustomerJson { get; set; }
+        public string CustomerJson { get; set; } = null!;
 
-        public string SomeString { get; set; }
+        public string? SomeString { get; set; }
     }
 
     public class JsonStringQueryFixture : SharedStoreFixtureBase<JsonStringQueryContext>

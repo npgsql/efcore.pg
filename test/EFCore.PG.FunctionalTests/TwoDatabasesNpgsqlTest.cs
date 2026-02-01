@@ -1,6 +1,4 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public class TwoDatabasesNpgsqlTest(NpgsqlFixture fixture) : TwoDatabasesTestBase(fixture), IClassFixture<NpgsqlFixture>
 {
@@ -13,7 +11,7 @@ public class TwoDatabasesNpgsqlTest(NpgsqlFixture fixture) : TwoDatabasesTestBas
         bool withNullConnectionString = false)
         => withConnectionString
             ? withNullConnectionString
-                ? optionsBuilder.UseNpgsql((string)null)
+                ? optionsBuilder.UseNpgsql((string?)null)
                 : optionsBuilder.UseNpgsql(DummyConnectionString)
             : optionsBuilder.UseNpgsql();
 

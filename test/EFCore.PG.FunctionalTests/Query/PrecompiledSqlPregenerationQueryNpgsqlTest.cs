@@ -1,8 +1,6 @@
-using Microsoft.EntityFrameworkCore.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 // ReSharper disable InconsistentNaming
 
@@ -33,11 +31,11 @@ WHERE b."Name" = 'foo'
 
         AssertSql(
             """
-@__id_0='8'
+@id='8'
 
 SELECT b."Id", b."Name"
 FROM "Blogs" AS b
-WHERE b."Id" = @__id_0
+WHERE b."Id" = @id
 """);
     }
 
@@ -47,11 +45,11 @@ WHERE b."Id" = @__id_0
 
         AssertSql(
             """
-@__id_0='8' (Nullable = true)
+@id='8' (Nullable = true)
 
 SELECT b."Id", b."Name"
 FROM "Blogs" AS b
-WHERE b."Id" = @__id_0
+WHERE b."Id" = @id
 """);
     }
 
@@ -61,11 +59,11 @@ WHERE b."Id" = @__id_0
 
         AssertSql(
             """
-@__name_0='bar'
+@name='bar'
 
 SELECT b."Id", b."Name"
 FROM "Blogs" AS b
-WHERE b."Name" = @__name_0
+WHERE b."Name" = @name
 """);
     }
 
@@ -75,11 +73,11 @@ WHERE b."Name" = @__name_0
 
         AssertSql(
             """
-@__name_0='bar' (Nullable = false)
+@name='bar' (Nullable = false)
 
 SELECT b."Id", b."Name"
 FROM "Blogs" AS b
-WHERE b."Name" = @__name_0
+WHERE b."Name" = @name
 """);
     }
 
@@ -89,12 +87,12 @@ WHERE b."Name" = @__name_0
 
         AssertSql(
             """
-@__id1_0='8' (Nullable = true)
-@__id2_1='9'
+@id1='8' (Nullable = true)
+@id2='9'
 
 SELECT b."Id", b."Name"
 FROM "Blogs" AS b
-WHERE b."Id" = @__id1_0 OR b."Id" = @__id2_1
+WHERE b."Id" = @id1 OR b."Id" = @id2
 """);
     }
 
@@ -104,12 +102,12 @@ WHERE b."Id" = @__id1_0 OR b."Id" = @__id2_1
 
         AssertSql(
             """
-@__name1_0='foo'
-@__name2_1='bar'
+@name1='foo'
+@name2='bar'
 
 SELECT b."Id", b."Name"
 FROM "Blogs" AS b
-WHERE b."Name" = @__name1_0 OR b."Name" = @__name2_1
+WHERE b."Name" = @name1 OR b."Name" = @name2
 """);
     }
 
@@ -119,12 +117,12 @@ WHERE b."Name" = @__name1_0 OR b."Name" = @__name2_1
 
         AssertSql(
             """
-@__name1_0='foo' (Nullable = false)
-@__name2_1='bar' (Nullable = false)
+@name1='foo' (Nullable = false)
+@name2='bar' (Nullable = false)
 
 SELECT b."Id", b."Name"
 FROM "Blogs" AS b
-WHERE b."Name" = @__name1_0 OR b."Name" = @__name2_1
+WHERE b."Name" = @name1 OR b."Name" = @name2
 """);
     }
 
@@ -134,12 +132,12 @@ WHERE b."Name" = @__name1_0 OR b."Name" = @__name2_1
 
         AssertSql(
             """
-@__name1_0='foo'
-@__name2_1='bar' (Nullable = false)
+@name1='foo'
+@name2='bar' (Nullable = false)
 
 SELECT b."Id", b."Name"
 FROM "Blogs" AS b
-WHERE b."Name" = @__name1_0 OR b."Name" = @__name2_1
+WHERE b."Name" = @name1 OR b."Name" = @name2
 """);
     }
 
@@ -149,14 +147,14 @@ WHERE b."Name" = @__name1_0 OR b."Name" = @__name2_1
 
         AssertSql(
             """
-@__name1_0='foo'
-@__name2_1='bar'
-@__name3_2='baz'
-@__name4_3='baq'
+@name1='foo'
+@name2='bar'
+@name3='baz'
+@name4='baq'
 
 SELECT b."Id", b."Name"
 FROM "Blogs" AS b
-WHERE b."Name" = @__name1_0 OR b."Name" = @__name2_1 OR b."Name" = @__name3_2 OR b."Name" = @__name4_3
+WHERE b."Name" = @name1 OR b."Name" = @name2 OR b."Name" = @name3 OR b."Name" = @name4
 """);
     }
 
@@ -166,14 +164,14 @@ WHERE b."Name" = @__name1_0 OR b."Name" = @__name2_1 OR b."Name" = @__name3_2 OR
 
         AssertSql(
             """
-@__name1_0='foo' (Nullable = false)
-@__name2_1='bar' (Nullable = false)
-@__name3_2='baz' (Nullable = false)
-@__name4_3='baq' (Nullable = false)
+@name1='foo' (Nullable = false)
+@name2='bar' (Nullable = false)
+@name3='baz' (Nullable = false)
+@name4='baq' (Nullable = false)
 
 SELECT b."Id", b."Name"
 FROM "Blogs" AS b
-WHERE b."Name" = @__name1_0 OR b."Name" = @__name2_1 OR b."Name" = @__name3_2 OR b."Name" = @__name4_3
+WHERE b."Name" = @name1 OR b."Name" = @name2 OR b."Name" = @name3 OR b."Name" = @name4
 """);
     }
 

@@ -1,6 +1,4 @@
-using Microsoft.EntityFrameworkCore.BulkUpdates;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.BulkUpdates;
+namespace Microsoft.EntityFrameworkCore.BulkUpdates;
 
 public class TPCFiltersInheritanceBulkUpdatesNpgsqlTest(
     TPCFiltersInheritanceBulkUpdatesNpgsqlFixture fixture,
@@ -124,8 +122,10 @@ WHERE (
 
         AssertExecuteUpdateSql(
             """
+@p='SomeOtherKiwi'
+
 UPDATE "Kiwi" AS k
-SET "Name" = 'SomeOtherKiwi'
+SET "Name" = @p
 WHERE k."CountryId" = 1
 """);
     }
@@ -136,8 +136,10 @@ WHERE k."CountryId" = 1
 
         AssertExecuteUpdateSql(
             """
+@p='0'
+
 UPDATE "Kiwi" AS k
-SET "FoundOn" = 0
+SET "FoundOn" = @p
 WHERE k."CountryId" = 1
 """);
     }
@@ -148,8 +150,10 @@ WHERE k."CountryId" = 1
 
         AssertExecuteUpdateSql(
             """
+@p='Monovia'
+
 UPDATE "Countries" AS c
-SET "Name" = 'Monovia'
+SET "Name" = @p
 WHERE (
     SELECT count(*)::int
     FROM (
@@ -169,9 +173,12 @@ WHERE (
 
         AssertExecuteUpdateSql(
             """
+@p='Kiwi'
+@p0='0'
+
 UPDATE "Kiwi" AS k
-SET "FoundOn" = 0,
-    "Name" = 'Kiwi'
+SET "Name" = @p,
+    "FoundOn" = @p0
 WHERE k."CountryId" = 1
 """);
     }
@@ -182,8 +189,10 @@ WHERE k."CountryId" = 1
 
         AssertExecuteUpdateSql(
             """
+@p='Monovia'
+
 UPDATE "Countries" AS c
-SET "Name" = 'Monovia'
+SET "Name" = @p
 WHERE (
     SELECT count(*)::int
     FROM (

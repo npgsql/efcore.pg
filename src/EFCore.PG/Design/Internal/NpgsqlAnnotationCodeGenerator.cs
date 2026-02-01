@@ -117,6 +117,10 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         = typeof(NpgsqlIndexBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlIndexBuilderExtensions.AreNullsDistinct), typeof(IndexBuilder), typeof(bool));
 
+    private static readonly MethodInfo KeyWithoutOverlapsMethodInfo
+        = typeof(NpgsqlKeyBuilderExtensions).GetRequiredRuntimeMethod(
+            nameof(NpgsqlKeyBuilderExtensions.WithoutOverlaps), typeof(KeyBuilder), typeof(bool));
+
     #endregion MethodInfos
 
     /// <summary>
@@ -290,6 +294,25 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         if (annotation.Name == NpgsqlAnnotationNames.UnloggedTable)
         {
             return new MethodCallCodeFragment(EntityTypeIsUnloggedMethodInfo, annotation.Value);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected override MethodCallCodeFragment? GenerateFluentApi(IKey key, IAnnotation annotation)
+    {
+        Check.NotNull(key, nameof(key));
+        Check.NotNull(annotation, nameof(annotation));
+
+        if (annotation.Name == NpgsqlAnnotationNames.WithoutOverlaps)
+        {
+            return new MethodCallCodeFragment(KeyWithoutOverlapsMethodInfo, annotation.Value);
         }
 
         return null;

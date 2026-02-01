@@ -1,9 +1,8 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class JsonPocoQueryTest : IClassFixture<JsonPocoQueryTest.JsonPocoQueryFixture>
 {
@@ -57,27 +56,27 @@ WHERE j."Customer" = '{"Name":"Test customer","Age":80,"ID":"00000000-0000-0000-
     {
         using var ctx = CreateContext();
 
-        var expected = ctx.JsonbEntities.Find(1).Customer;
+        var expected = ctx.JsonbEntities.Find(1)!.Customer;
         var actual = ctx.JsonbEntities.Single(e => e.Customer == expected).Customer;
 
         Assert.Equal(actual.Name, expected.Name);
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE j."Id" = @__p_0
+WHERE j."Id" = @p
 LIMIT 1
 """,
             //
             """
-@__expected_0='Npgsql.EntityFrameworkCore.PostgreSQL.Query.JsonPocoQueryTest+Customer' (DbType = Object)
+@expected='Microsoft.EntityFrameworkCore.Query.JsonPocoQueryTest+Customer' (DbType = Object)
 
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE j."Customer" = @__expected_0
+WHERE j."Customer" = @expected
 LIMIT 2
 """);
     }
@@ -186,11 +185,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__p_0='1990-03-03T17:10:15.0000000Z' (DbType = DateTime)
+@p='1990-03-03T17:10:15.0000000Z' (DbType = DateTime)
 
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer" #>> '{VariousTypes,DateTime}' AS timestamp with time zone) = @__p_0
+WHERE CAST(j."Customer" #>> '{VariousTypes,DateTime}' AS timestamp with time zone) = @p
 LIMIT 2
 """);
     }
@@ -207,11 +206,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__p_0='1990-03-03T17:10:15.0000000+00:00' (DbType = DateTime)
+@p='1990-03-03T17:10:15.0000000+00:00' (DbType = DateTime)
 
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer" #>> '{VariousTypes,DateTimeOffset}' AS timestamp with time zone) = @__p_0
+WHERE CAST(j."Customer" #>> '{VariousTypes,DateTimeOffset}' AS timestamp with time zone) = @p
 LIMIT 2
 """);
     }
@@ -321,7 +320,7 @@ LIMIT 2
             """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE j."ToplevelArray" ->> 1 = 'two'
+WHERE (j."ToplevelArray" ->> 1) = 'two'
 LIMIT 2
 """);
     }
@@ -356,11 +355,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__i_0='1'
+@i='1'
 
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CAST(j."Customer" #>> ARRAY['Statistics','Nested','IntArray',@__i_0]::text[] AS integer) = 4
+WHERE CAST(j."Customer" #>> ARRAY['Statistics','Nested','IntArray',@i]::text[] AS integer) = 4
 LIMIT 2
 """);
     }
@@ -507,11 +506,11 @@ LIMIT 2
         Assert.Equal(1, count);
         AssertSql(
             """
-@__element_1='{"Name": "Joe", "Age": 25}' (DbType = Object)
+@element='{"Name": "Joe", "Age": 25}' (DbType = Object)
 
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."Customer" @> @__element_1
+WHERE j."Customer" @> @element
 """);
     }
 
@@ -544,11 +543,11 @@ WHERE j."Customer" @> '{"Name": "Joe", "Age": 25}'
         Assert.Equal(1, count);
         AssertSql(
             """
-@__someJson_1='{"Name": "Joe", "Age": 25}' (DbType = Object)
+@someJson='{"Name": "Joe", "Age": 25}' (DbType = Object)
 
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."Customer" @> @__someJson_1
+WHERE j."Customer" @> @someJson
 """);
     }
 
@@ -564,11 +563,11 @@ WHERE j."Customer" @> @__someJson_1
         Assert.Equal(1, count);
         AssertSql(
             """
-@__element_1='{"Name": "Joe", "Age": 25}' (DbType = Object)
+@element='{"Name": "Joe", "Age": 25}' (DbType = Object)
 
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE @__element_1 <@ j."Customer"
+WHERE @element <@ j."Customer"
 """);
     }
 
@@ -601,11 +600,11 @@ WHERE '{"Name": "Joe", "Age": 25}' <@ j."Customer"
         Assert.Equal(1, count);
         AssertSql(
             """
-@__someJson_1='{"Name": "Joe", "Age": 25}' (DbType = Object)
+@someJson='{"Name": "Joe", "Age": 25}' (DbType = Object)
 
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE @__someJson_1 <@ j."Customer"
+WHERE @someJson <@ j."Customer"
 """);
     }
 
@@ -718,7 +717,7 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
                     Customer = CreateCustomer1(),
                     ToplevelArray = ["one", "two", "three"]
                 },
-                new JsonbEntity { Id = 2, Customer = CreateCustomer2() });
+                new JsonbEntity { Id = 2, Customer = CreateCustomer2(), ToplevelArray = [] });
             context.JsonEntities.AddRange(
                 new JsonEntity
                 {
@@ -726,7 +725,7 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
                     Customer = CreateCustomer1(),
                     ToplevelArray = ["one", "two", "three"]
                 },
-                new JsonEntity { Id = 2, Customer = CreateCustomer2() });
+                new JsonEntity { Id = 2, Customer = CreateCustomer2(), ToplevelArray = [] });
 
             await context.SaveChangesAsync();
 
@@ -826,10 +825,10 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
         public int Id { get; set; }
 
         [Column(TypeName = "jsonb")]
-        public Customer Customer { get; set; }
+        public required Customer Customer { get; set; }
 
         [Column(TypeName = "jsonb")]
-        public string[] ToplevelArray { get; set; }
+        public required string[] ToplevelArray { get; set; }
     }
 
     public class JsonEntity
@@ -837,10 +836,10 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
         public int Id { get; set; }
 
         [Column(TypeName = "json")]
-        public Customer Customer { get; set; }
+        public required Customer Customer { get; set; }
 
         [Column(TypeName = "json")]
-        public string[] ToplevelArray { get; set; }
+        public required string[] ToplevelArray { get; set; }
     }
 
     public class JsonPocoQueryFixture : SharedStoreFixtureBase<JsonPocoQueryContext>
@@ -868,43 +867,43 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
 
     public class Customer
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
         public int Age { get; set; }
         public Guid ID { get; set; }
 
         [JsonPropertyName("is_vip")]
         public bool IsVip { get; set; }
 
-        public Statistics Statistics { get; set; }
-        public Order[] Orders { get; set; }
-        public VariousTypes VariousTypes { get; set; }
+        public Statistics Statistics { get; set; } = null!;
+        public Order[] Orders { get; set; } = null!;
+        public VariousTypes VariousTypes { get; set; } = null!;
     }
 
     public class Statistics
     {
         public long Visits { get; set; }
         public int Purchases { get; set; }
-        public NestedStatistics Nested { get; set; }
+        public required NestedStatistics Nested { get; set; }
     }
 
     public class NestedStatistics
     {
         public int SomeProperty { get; set; }
         public int? SomeNullableInt { get; set; }
-        public int[] IntArray { get; set; }
-        public List<int> IntList { get; set; }
+        public int[] IntArray { get; set; } = null!;
+        public List<int> IntList { get; set; } = null!;
         public Guid? SomeNullableGuid { get; set; }
     }
 
     public class Order
     {
         public decimal Price { get; set; }
-        public string ShippingAddress { get; set; }
+        public string ShippingAddress { get; set; } = null!;
     }
 
     public class VariousTypes
     {
-        public string String { get; set; }
+        public string String { get; set; } = null!;
         public int Int16 { get; set; }
         public int Int32 { get; set; }
         public int Int64 { get; set; }

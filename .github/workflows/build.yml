@@ -10,8 +10,10 @@ on:
       - v*
   pull_request:
 
+permissions:
+  contents: read
+
 env:
-  dotnet_sdk_version: '9.0.100'
   postgis_version: 3
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
@@ -22,30 +24,37 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-2022]
-        pg_major: [17, 16, 15, 14, 13]
+        os: [ubuntu-24.04]
+        pg_major: [18, 17, 16, 15, 14, 13]
         config: [Release]
         include:
-          - os: ubuntu-22.04
+          - os: windows-2022
             pg_major: 17
+            config: Release
+          - os: ubuntu-24.04
+            pg_major: 18
             config: Debug
-#          - os: ubuntu-22.04
-#            pg_major: 17
-#            config: Release
+#          - os: ubuntu-24.04
+#            pg_major: 19
+#            config: Debug
 #            pg_prerelease: 'PG Prerelease'
 
     outputs:
       is_release: ${{ steps.analyze_tag.outputs.is_release }}
       is_prerelease: ${{ steps.analyze_tag.outputs.is_prerelease }}
 
+    # Installing PostGIS on Windows is complicated/unreliable, so we don't test on it.
+    # The NPGSQL_TEST_POSTGIS environment variable ensures that if PostGIS isn't installed,
+    # the PostGIS tests fail and therefore fail the build.
+    env:
+      NPGSQL_TEST_POSTGIS: ${{ !startsWith(matrix.os, 'windows') }}
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.dotnet_sdk_version }}
+        uses: actions/setup-dotnet@v5
 
       - name: Build
         run: dotnet build --configuration Debug
@@ -57,17 +66,16 @@ jobs:
           # First uninstall any PostgreSQL installed on the image
           dpkg-query -W --showformat='${Package}\n' 'postgresql-*' | xargs sudo dpkg -P postgresql
 
-          # Import the repository signing key
-          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-
-          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main ${{ matrix.pg_major }}" >> /etc/apt/sources.list.d/pgdg.list'
+          # Automated repository configuration
+          sudo apt install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -v ${{ matrix.pg_major }} -y
           sudo apt-get update -qq
           sudo apt-get install -qq postgresql-${{ matrix.pg_major  }}
 
           # To disable PostGIS for prereleases (because it usually isn't available until late), surround with the following:
-          if [ -z "${{ matrix.pg_prerelease }}" ]; then
+          #if [ -z "${{ matrix.pg_prerelease }}" ]; then
             sudo apt-get install -qq postgresql-${{ matrix.pg_major }}-postgis-${{ env.postgis_version }}
-          fi
+          #fi
 
           sudo sed -i 's/max_connections = 100/max_connections = 200/g' /etc/postgresql/${{ matrix.pg_major }}/main/postgresql.conf
           sudo systemctl restart postgresql
@@ -92,28 +100,6 @@ jobs:
 
           # Match Npgsql CI Docker image and stash one level up
           cp $GITHUB_WORKSPACE/.build/{server.crt,server.key} pgsql
-
-          # Find OSGEO version number
-          OSGEO_VERSION=$(\
-            curl -Ls https://download.osgeo.org/postgis/windows/pg${{ matrix.pg_major }} |
-            sed -n 's/.*>postgis-bundle-pg${{ matrix.pg_major }}-\(${{ env.postgis_version }}.[0-9]*.[0-9]*\)x64.zip<.*/\1/p' |
-            tail -n 1)
-          if [ -z "$OSGEO_VERSION" ]; then
-              OSGEO_VERSION=$(\
-                curl -Ls https://download.osgeo.org/postgis/windows/pg${{ matrix.pg_major }}/archive |
-                sed -n 's/.*>postgis-bundle-pg${{ matrix.pg_major }}-\(${{ env.postgis_version }}.[0-9]*.[0-9]*\)x64.zip<.*/\1/p' |
-                tail -n 1)
-              POSTGIS_PATH="archive/"
-          else
-              POSTGIS_PATH=""
-          fi
-
-          # Install PostGIS
-          echo "Installing PostGIS (version: ${OSGEO_VERSION})"
-          POSTGIS_FILE="postgis-bundle-pg${{ matrix.pg_major }}-${OSGEO_VERSION}x64"
-          curl -o postgis.zip -L https://download.osgeo.org/postgis/windows/pg${{ matrix.pg_major }}/${POSTGIS_FILE}.zip
-          unzip postgis.zip -d postgis
-          cp -a postgis/$POSTGIS_FILE/. pgsql/
 
           # Start PostgreSQL
           pgsql/bin/initdb -D pgsql/PGDATA -E UTF8 -U postgres
@@ -143,24 +129,22 @@ jobs:
 
   publish-ci:
     needs: build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: github.event_name == 'push' && startsWith(github.repository, 'npgsql/')
     environment: myget
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.dotnet_sdk_version }}
+        uses: actions/setup-dotnet@v5
 
       - name: Pack
         run: dotnet pack --configuration Release --property:PackageOutputPath="$PWD/nupkgs" --version-suffix "ci.$(date -u +%Y%m%dT%H%M%S)+sha.${GITHUB_SHA:0:9}" -p:ContinuousIntegrationBuild=true
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: EFCore.PG.CI
           path: nupkgs
@@ -177,24 +161,22 @@ jobs:
 
   release:
     needs: build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: github.event_name == 'push' && startsWith(github.repository, 'npgsql/') && needs.build.outputs.is_release == 'true'
     environment: nuget.org
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.dotnet_sdk_version }}
+        uses: actions/setup-dotnet@v5
 
       - name: Pack
         run: dotnet pack --configuration Release --property:PackageOutputPath="$PWD/nupkgs" -p:ContinuousIntegrationBuild=true
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: EFCore.PG.Release
           path: nupkgs

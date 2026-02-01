@@ -1,7 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 public class NpgsqlPrecompiledQueryTestHelpers : PrecompiledQueryTestHelpers
 {

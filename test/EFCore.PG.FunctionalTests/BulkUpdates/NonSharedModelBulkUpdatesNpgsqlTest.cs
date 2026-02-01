@@ -1,9 +1,6 @@
-using Microsoft.EntityFrameworkCore.BulkUpdates;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.BulkUpdates;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update;
-
-public class NonSharedModelBulkUpdatesNpgsqlTest : NonSharedModelBulkUpdatesRelationalTestBase
+public class NonSharedModelBulkUpdatesNpgsqlTest(NonSharedFixture fixture) : NonSharedModelBulkUpdatesRelationalTestBase(fixture)
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
@@ -28,14 +25,14 @@ DELETE FROM "Owner" AS o
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 DELETE FROM "Owner" AS o
 WHERE o."Id" IN (
     SELECT o0."Id"
     FROM "Owner" AS o0
     ORDER BY o0."Title" NULLS FIRST
-    OFFSET @__p_0
+    OFFSET @p
 )
 """);
     }
@@ -56,8 +53,10 @@ DELETE FROM "Owner" AS o
 
         AssertSql(
             """
+@p='SomeValue'
+
 UPDATE "OwnedCollection" AS o0
-SET "Value" = 'SomeValue'
+SET "Value" = @p
 FROM "Owner" AS o
 WHERE o."Id" = o0."OwnerId"
 """);
@@ -76,8 +75,10 @@ WHERE o."Id" = o0."OwnerId"
 
         AssertSql(
             """
+@p='SomeValue'
+
 UPDATE "Owner" AS o
-SET "Title" = 'SomeValue'
+SET "Title" = @p
 """);
     }
 
@@ -114,8 +115,10 @@ SET "Title" = COALESCE(o."Title", '') || '_Suffix'
 
         AssertSql(
             """
+@p='NewValue'
+
 UPDATE "Owner" AS o
-SET "Title" = 'NewValue'
+SET "Title" = @p
 FROM "Owner" AS o0
 WHERE o."Id" = o0."Id"
 """);
@@ -128,8 +131,8 @@ WHERE o."Id" = o0."Id"
         AssertSql(
             """
 UPDATE "Owner" AS o
-SET "OwnedReference_Number" = length(o."Title")::int,
-    "Title" = COALESCE(o."OwnedReference_Number"::text, '')
+SET "Title" = COALESCE(o."OwnedReference_Number"::text, ''),
+    "OwnedReference_Number" = length(o."Title")::int
 """);
     }
 
@@ -172,8 +175,8 @@ SET "CreationTimestamp" = TIMESTAMPTZ '2020-01-01T00:00:00Z'
         AssertSql(
             """
 UPDATE "BlogsPart1" AS b0
-SET "Rating" = length(b0."Title")::int,
-    "Title" = b0."Rating"::text
+SET "Title" = b0."Rating"::text,
+    "Rating" = length(b0."Title")::int
 FROM "Blogs" AS b
 WHERE b."Id" = b0."Id"
 """);
@@ -209,7 +212,7 @@ WHERE o."Id" = 1
 """);
     }
 
-    [ConditionalTheory] // #3001
+    [ConditionalTheory] // #3622
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task Update_with_primitive_collection_in_value_selector(bool async)
     {
@@ -220,12 +223,12 @@ WHERE o."Id" = 1
                 await ctx.SaveChangesAsync();
             });
 
-        await AssertUpdate(
+        await Assert.ThrowsAsync<InvalidOperationException>(() => AssertUpdate(
             async,
             contextFactory.CreateContext,
             ss => ss.EntitiesWithPrimitiveCollection,
             s => s.SetProperty(x => x.Tags, x => x.Tags.Append("another_tag")),
-            rowsAffectedCount: 1);
+            rowsAffectedCount: 1));
     }
 
     protected class Context3001(DbContextOptions options) : DbContext(options)
@@ -236,7 +239,38 @@ WHERE o."Id" = 1
     protected class EntityWithPrimitiveCollection
     {
         public int Id { get; set; }
-        public List<string> Tags { get; set; }
+        public List<string> Tags { get; set; } = null!;
+    }
+
+    public override async Task Delete_with_view_mapping(bool async)
+    {
+        await base.Delete_with_view_mapping(async);
+
+        AssertSql(
+            """
+DELETE FROM "Blogs" AS b
+""");
+    }
+
+    public override async Task Update_with_view_mapping(bool async)
+    {
+        await base.Update_with_view_mapping(async);
+
+        AssertSql(
+            """
+@p='Updated'
+
+UPDATE "Blogs" AS b
+SET "Data" = @p
+""");
+    }
+
+    public override async Task Update_complex_type_with_view_mapping(bool async)
+    {
+        await base.Update_complex_type_with_view_mapping(async);
+
+        // #34706
+        AssertSql();
     }
 
     private void AssertSql(params string[] expected)

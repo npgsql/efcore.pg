@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class NorthwindAggregateOperatorsQueryNpgsqlTest : NorthwindAggregateOperatorsQueryRelationalTestBase<
     NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
@@ -26,7 +26,7 @@ public class NorthwindAggregateOperatorsQueryNpgsqlTest : NorthwindAggregateOper
 
         AssertSql(
             """
-@__p_0='3'
+@p='3'
 
 SELECT avg((
     SELECT avg(CAST(5 + (
@@ -39,7 +39,7 @@ FROM (
     SELECT c."CustomerID"
     FROM "Customers" AS c
     ORDER BY c."CustomerID" NULLS FIRST
-    LIMIT @__p_0
+    LIMIT @p
 ) AS c0
 """);
     }
@@ -51,19 +51,20 @@ FROM (
         // Note: PostgreSQL doesn't support uint, but value converters make this into bigint
         AssertSql(
             """
-@__ids_0={ '0', '1' } (DbType = Object)
+@ids={ '0'
+'1' } (DbType = Object)
 
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
 FROM "Employees" AS e
-WHERE e."EmployeeID" = ANY (@__ids_0)
+WHERE e."EmployeeID" = ANY (@ids)
 """,
             //
             """
-@__ids_0={ '0' } (DbType = Object)
+@ids={ '0' } (DbType = Object)
 
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
 FROM "Employees" AS e
-WHERE e."EmployeeID" = ANY (@__ids_0)
+WHERE e."EmployeeID" = ANY (@ids)
 """);
     }
 
@@ -75,19 +76,20 @@ WHERE e."EmployeeID" = ANY (@__ids_0)
 
         AssertSql(
             """
-@__ids_0={ '0', '1' } (DbType = Object)
+@ids={ '0'
+'1' } (DbType = Object)
 
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
 FROM "Employees" AS e
-WHERE e."EmployeeID" = ANY (@__ids_0)
+WHERE e."EmployeeID" = ANY (@ids)
 """,
             //
             """
-@__ids_0={ '0' } (DbType = Object)
+@ids={ '0' } (DbType = Object)
 
 SELECT e."EmployeeID", e."City", e."Country", e."FirstName", e."ReportsTo", e."Title"
 FROM "Employees" AS e
-WHERE e."EmployeeID" = ANY (@__ids_0)
+WHERE e."EmployeeID" = ANY (@ids)
 """);
     }
 
@@ -114,19 +116,21 @@ WHERE e."EmployeeID" = ANY (@__ids_0)
 
         AssertSql(
             """
-@__p_0={ 'ABCDE', 'ALFKI' } (DbType = Object)
+@p={ 'ABCDE'
+'ALFKI' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."CustomerID" = ANY (array_remove(@__p_0, NULL))
+WHERE c."CustomerID" = ANY (array_remove(@p, NULL))
 """,
             //
             """
-@__p_0={ 'ABCDE', 'ANATR' } (DbType = Object)
+@p={ 'ABCDE'
+'ANATR' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."CustomerID" = ANY (array_remove(@__p_0, NULL))
+WHERE c."CustomerID" = ANY (array_remove(@p, NULL))
 """);
     }
 
@@ -136,11 +140,12 @@ WHERE c."CustomerID" = ANY (array_remove(@__p_0, NULL))
 
         AssertSql(
             """
-@__Select_0={ 'ABCDE', 'ALFKI' } (DbType = Object)
+@Select={ 'ABCDE'
+'ALFKI' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."CustomerID" = ANY (@__Select_0)
+WHERE c."CustomerID" = ANY (@Select)
 """);
     }
 
@@ -150,19 +155,21 @@ WHERE c."CustomerID" = ANY (@__Select_0)
 
         AssertSql(
             """
-@__Select_0={ 'ABCDE', 'ALFKI' } (DbType = Object)
+@Select={ 'ABCDE'
+'ALFKI' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."CustomerID" = ANY (@__Select_0)
+WHERE c."CustomerID" = ANY (@Select)
 """,
             //
             """
-@__Select_0={ 'ABCDE', 'ANATR' } (DbType = Object)
+@Select={ 'ABCDE'
+'ANATR' } (DbType = Object)
 
 SELECT c."CustomerID", c."Address", c."City", c."CompanyName", c."ContactName", c."ContactTitle", c."Country", c."Fax", c."Phone", c."PostalCode", c."Region"
 FROM "Customers" AS c
-WHERE c."CustomerID" = ANY (@__Select_0)
+WHERE c."CustomerID" = ANY (@Select)
 """);
     }
 

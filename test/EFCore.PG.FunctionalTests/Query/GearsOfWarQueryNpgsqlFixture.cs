@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.TestModels.GearsOfWarModel;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
+
 
 public class GearsOfWarQueryNpgsqlFixture : GearsOfWarQueryRelationalFixture
 {
@@ -11,7 +11,7 @@ public class GearsOfWarQueryNpgsqlFixture : GearsOfWarQueryRelationalFixture
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
-    private GearsOfWarData _expectedData;
+    private GearsOfWarData? _expectedData;
 
     static GearsOfWarQueryNpgsqlFixture()
     {
@@ -43,6 +43,8 @@ public class GearsOfWarQueryNpgsqlFixture : GearsOfWarQueryRelationalFixture
             {
                 mission.Timeline = new DateTimeOffset(
                     mission.Timeline.Ticks - (mission.Timeline.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
+                mission.Duration = new TimeSpan(
+                    mission.Duration.Ticks - (mission.Duration.Ticks % (TimeSpan.TicksPerMillisecond / 1000)));
             }
         }
 
@@ -70,6 +72,8 @@ public class GearsOfWarQueryNpgsqlFixture : GearsOfWarQueryRelationalFixture
         {
             mission.Timeline = new DateTimeOffset(
                 mission.Timeline.Ticks - (mission.Timeline.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
+            mission.Duration = new TimeSpan(
+                mission.Duration.Ticks - (mission.Duration.Ticks % (TimeSpan.TicksPerMillisecond / 1000)));
         }
 
         GearsOfWarData.WireUp(

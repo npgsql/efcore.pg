@@ -1,5 +1,7 @@
 ﻿using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 

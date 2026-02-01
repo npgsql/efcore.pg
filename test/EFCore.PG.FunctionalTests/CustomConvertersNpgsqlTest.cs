@@ -1,6 +1,4 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+﻿namespace Microsoft.EntityFrameworkCore;
 
 public class CustomConvertersNpgsqlTest(CustomConvertersNpgsqlTest.CustomConvertersNpgsqlFixture fixture)
     : CustomConvertersTestBase<CustomConvertersNpgsqlTest.CustomConvertersNpgsqlFixture>(fixture)

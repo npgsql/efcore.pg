@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using Microsoft.Extensions.Configuration;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 public static class TestEnvironment
 {
@@ -26,7 +26,7 @@ public static class TestEnvironment
     public static string DefaultConnection
         => Config["DefaultConnection"] ?? DefaultConnectionString;
 
-    private static Version _postgresVersion;
+    private static Version? _postgresVersion;
 
     public static Version PostgresVersion
     {
@@ -59,7 +59,7 @@ public static class TestEnvironment
             using var cmd = conn.CreateCommand();
 
             cmd.CommandText = "SELECT EXISTS (SELECT 1 FROM pg_available_extensions WHERE \"name\" = 'postgis' LIMIT 1)";
-            _isPostgisAvailable = (bool)cmd.ExecuteScalar();
+            _isPostgisAvailable = (bool)cmd.ExecuteScalar()!;
             return _isPostgisAvailable.Value;
         }
     }

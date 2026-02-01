@@ -1,6 +1,4 @@
-﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-#nullable enable
+﻿namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 public class NpgsqlTestStoreFactory(
         string? scriptPath = null,
@@ -11,10 +9,10 @@ public class NpgsqlTestStoreFactory(
     public static NpgsqlTestStoreFactory Instance { get; } = new();
 
     public override TestStore Create(string storeName)
-        => new NpgsqlTestStore(storeName, scriptPath, additionalSql, connectionStringOptions, shared: false, useConnectionString);
+        => new NpgsqlTestStore(storeName, scriptPath, additionalSql, connectionStringOptions, shared: false) { UseConnectionString = useConnectionString };
 
     public override TestStore GetOrCreate(string storeName)
-        => new NpgsqlTestStore(storeName, scriptPath, additionalSql, connectionStringOptions, shared: true, useConnectionString);
+        => new NpgsqlTestStore(storeName, scriptPath, additionalSql, connectionStringOptions, shared: true) { UseConnectionString = useConnectionString };
 
     public override IServiceCollection AddProviderServices(IServiceCollection serviceCollection)
         => serviceCollection.AddEntityFrameworkNpgsql();

@@ -1,22 +1,24 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+namespace Microsoft.EntityFrameworkCore.Query;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
-
-public class AdHocComplexTypeQueryNpgsqlTest : AdHocComplexTypeQueryTestBase
+public class AdHocComplexTypeQueryNpgsqlTest(NonSharedFixture fixture) : AdHocComplexTypeQueryTestBase(fixture)
 {
+    // Test is SQL Server-specific and being removed, https://github.com/dotnet/efcore/pull/37177
+    public override Task Complex_type_equality_with_non_default_type_mapping()
+        => Task.CompletedTask;
+
     public override async Task Complex_type_equals_parameter_with_nested_types_with_property_of_same_name()
     {
         await base.Complex_type_equals_parameter_with_nested_types_with_property_of_same_name();
 
         AssertSql(
             """
-@__entity_equality_container_0_Id='1' (Nullable = true)
-@__entity_equality_container_0_Containee1_Id='2' (Nullable = true)
-@__entity_equality_container_0_Containee2_Id='3' (Nullable = true)
+@entity_equality_container_Id='1' (Nullable = true)
+@entity_equality_container_Containee1_Id='2' (Nullable = true)
+@entity_equality_container_Containee2_Id='3' (Nullable = true)
 
 SELECT e."Id", e."ComplexContainer_Id", e."ComplexContainer_Containee1_Id", e."ComplexContainer_Containee2_Id"
 FROM "EntityType" AS e
-WHERE e."ComplexContainer_Id" = @__entity_equality_container_0_Id AND e."ComplexContainer_Containee1_Id" = @__entity_equality_container_0_Containee1_Id AND e."ComplexContainer_Containee2_Id" = @__entity_equality_container_0_Containee2_Id
+WHERE e."ComplexContainer_Id" = @entity_equality_container_Id AND e."ComplexContainer_Containee1_Id" = @entity_equality_container_Containee1_Id AND e."ComplexContainer_Containee2_Id" = @entity_equality_container_Containee2_Id
 LIMIT 2
 """);
     }

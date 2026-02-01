@@ -1,7 +1,6 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Array;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using Microsoft.EntityFrameworkCore.TestModels.Array;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public abstract class ArrayQueryFixture : SharedStoreFixtureBase<ArrayQueryContext>, IQueryFixtureBase, ITestSqlLoggerFactory
 {
@@ -11,7 +10,7 @@ public abstract class ArrayQueryFixture : SharedStoreFixtureBase<ArrayQueryConte
     public TestSqlLoggerFactory TestSqlLoggerFactory
         => (TestSqlLoggerFactory)ListLoggerFactory;
 
-    private ArrayQueryData _expectedData;
+    private ArrayQueryData? _expectedData;
 
     public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
         => base.AddOptions(builder).ConfigureWarnings(wcb => wcb.Ignore(CoreEventId.CollectionWithoutComparer));
@@ -26,9 +25,9 @@ public abstract class ArrayQueryFixture : SharedStoreFixtureBase<ArrayQueryConte
         => _expectedData ??= new ArrayQueryData();
 
     public IReadOnlyDictionary<Type, object> EntitySorters
-        => new Dictionary<Type, Func<object, object>>
+        => new Dictionary<Type, Func<object, object?>>
         {
-            { typeof(ArrayEntity), e => ((ArrayEntity)e)?.Id }, { typeof(ArrayContainerEntity), e => ((ArrayContainerEntity)e)?.Id }
+            { typeof(ArrayEntity), e => ((ArrayEntity)e).Id }, { typeof(ArrayContainerEntity), e => ((ArrayContainerEntity)e)?.Id }
         }.ToDictionary(e => e.Key, e => (object)e.Value);
 
     public IReadOnlyDictionary<Type, object> EntityAsserters
@@ -38,7 +37,8 @@ public abstract class ArrayQueryFixture : SharedStoreFixtureBase<ArrayQueryConte
                 typeof(ArrayEntity), (e, a) =>
                 {
                     Assert.Equal(e is null, a is null);
-                    if (a is not null)
+
+                    if (e is not null && a is not null)
                     {
                         var ee = (ArrayEntity)e;
                         var aa = (ArrayEntity)a;
@@ -69,7 +69,8 @@ public abstract class ArrayQueryFixture : SharedStoreFixtureBase<ArrayQueryConte
                 typeof(ArrayContainerEntity), (e, a) =>
                 {
                     Assert.Equal(e is null, a is null);
-                    if (a is not null)
+
+                    if (e is not null && a is not null)
                     {
                         var ee = (ArrayContainerEntity)e;
                         var aa = (ArrayContainerEntity)a;

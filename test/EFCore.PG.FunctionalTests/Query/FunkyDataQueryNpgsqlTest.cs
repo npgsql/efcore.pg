@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.FunkyDataModel;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpgsqlTest.FunkyDataQueryNpgsqlFixture>
 {
@@ -40,7 +39,7 @@ public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpg
 
     public class FunkyDataQueryNpgsqlFixture : FunkyDataQueryFixtureBase, ITestSqlLoggerFactory
     {
-        private FunkyDataData _expectedData;
+        private FunkyDataData? _expectedData;
 
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;

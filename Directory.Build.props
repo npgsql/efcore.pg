@@ -1,10 +1,11 @@
 <Project>
   <PropertyGroup>
-    <VersionPrefix>9.0.4</VersionPrefix>
+    <VersionPrefix>11.0.0-preview.1</VersionPrefix>
+    <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest</AnalysisLevel>
-    <NoWarn>NU5105</NoWarn>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)Npgsql.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
@@ -12,7 +13,7 @@
     <ImplicitUsings>true</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
-    <Copyright>Copyright 2024 © The Npgsql Development Team</Copyright>
+    <Copyright>Copyright 2025 © The Npgsql Development Team</Copyright>
     <Company>Npgsql</Company>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>

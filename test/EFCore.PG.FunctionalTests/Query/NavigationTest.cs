@@ -1,6 +1,6 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+﻿namespace Microsoft.EntityFrameworkCore.Query;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+#nullable disable
 
 public class NavigationTest(NavigationTestFixture fixture) : IClassFixture<NavigationTestFixture>
 {

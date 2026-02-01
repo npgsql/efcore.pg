@@ -1,10 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 #if DEBUG
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
+namespace Microsoft.EntityFrameworkCore.Query
 {
     // Because we can't play around with the LegacyTimestampBehavior flag at the ADO level (different assembly already compile in
     // RELEASE), this test suite is limited to playing around at the EF Core level only.
@@ -44,11 +43,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             AssertSql(
                 """
-@__myDatetime_0='2015-04-10T00:00:00.0000000Z' (DbType = DateTime)
+@myDatetime='2015-04-10T00:00:00.0000000Z' (DbType = DateTime)
 
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeOffset", e."TimestamptzDateTime"
 FROM "Entities" AS e
-WHERE now() <> @__myDatetime_0
+WHERE now() <> @myDatetime
 """);
         }
 
@@ -63,11 +62,11 @@ WHERE now() <> @__myDatetime_0
 
             AssertSql(
                 """
-@__myDatetime_0='2015-04-10T00:00:00.0000000'
+@myDatetime='2015-04-10T00:00:00.0000000'
 
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeOffset", e."TimestamptzDateTime"
 FROM "Entities" AS e
-WHERE now() AT TIME ZONE 'UTC' <> @__myDatetime_0
+WHERE now() AT TIME ZONE 'UTC' <> @myDatetime
 """);
         }
 

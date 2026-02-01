@@ -1,11 +1,12 @@
 ﻿using System.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 // ReSharper disable HeapView.CanAvoidClosure
 // ReSharper disable MethodHasAsyncOverload
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
+
+#nullable disable
 
 public class NpgsqlDatabaseCreatorExistsTest : NpgsqlDatabaseCreatorTest
 {
@@ -632,9 +633,8 @@ public class NpgsqlDatabaseCreatorTest
     public class TestDatabaseCreator(
         RelationalDatabaseCreatorDependencies dependencies,
         INpgsqlRelationalConnection connection,
-        IRawSqlCommandBuilder rawSqlCommandBuilder,
-        IRelationalConnectionDiagnosticsLogger connectionLogger)
-        : NpgsqlDatabaseCreator(dependencies, connection, rawSqlCommandBuilder, connectionLogger)
+        IRawSqlCommandBuilder rawSqlCommandBuilder)
+        : NpgsqlDatabaseCreator(dependencies, connection, rawSqlCommandBuilder)
     {
         public bool HasTablesBase()
             => HasTables();

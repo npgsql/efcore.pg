@@ -1,18 +1,20 @@
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using Xunit.Sdk;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
-public class AdHocJsonQueryNpgsqlTest : AdHocJsonQueryTestBase
+#nullable disable
+
+public class AdHocJsonQueryNpgsqlTest(NonSharedFixture fixture) : AdHocJsonQueryRelationalTestBase(fixture)
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
     protected override async Task Seed29219(DbContext ctx)
     {
-        var entity1 = new MyEntity29219
+        var entity1 = new Context29219.MyEntity
         {
             Id = 1,
-            Reference = new MyJsonEntity29219 { NonNullableScalar = 10, NullableScalar = 11 },
+            Reference = new Context29219.MyJsonEntity { NonNullableScalar = 10, NullableScalar = 11 },
             Collection =
             [
                 new() { NonNullableScalar = 100, NullableScalar = 101 },
@@ -21,10 +23,10 @@ public class AdHocJsonQueryNpgsqlTest : AdHocJsonQueryTestBase
             ]
         };
 
-        var entity2 = new MyEntity29219
+        var entity2 = new Context29219.MyEntity
         {
             Id = 2,
-            Reference = new MyJsonEntity29219 { NonNullableScalar = 20, NullableScalar = null },
+            Reference = new Context29219.MyJsonEntity { NonNullableScalar = 20, NullableScalar = null },
             Collection = [new() { NonNullableScalar = 1001, NullableScalar = null }]
         };
 
@@ -84,52 +86,6 @@ INSERT INTO "Reviews" ("Rounds", "Id")
 VALUES('[{"RoundNumber":11,"SubRounds":[{"SubRoundNumber":111},{"SubRoundNumber":112}]}]', 1)
 """);
 
-    protected override async Task SeedArrayOfPrimitives(DbContext ctx)
-    {
-        var entity1 = new MyEntityArrayOfPrimitives
-        {
-            Id = 1,
-            Reference = new MyJsonEntityArrayOfPrimitives
-            {
-                IntArray = [1, 2, 3],
-                ListOfString =
-                [
-                    "Foo",
-                    "Bar",
-                    "Baz"
-                ]
-            },
-            Collection =
-            [
-                new() { IntArray = [111, 112, 113], ListOfString = ["Foo11", "Bar11"] },
-                new() { IntArray = [211, 212, 213], ListOfString = ["Foo12", "Bar12"] }
-            ]
-        };
-
-        var entity2 = new MyEntityArrayOfPrimitives
-        {
-            Id = 2,
-            Reference = new MyJsonEntityArrayOfPrimitives
-            {
-                IntArray = [10, 20, 30],
-                ListOfString =
-                [
-                    "A",
-                    "B",
-                    "C"
-                ]
-            },
-            Collection =
-            [
-                new() { IntArray = [110, 120, 130], ListOfString = ["A1", "Z1"] },
-                new() { IntArray = [210, 220, 230], ListOfString = ["A2", "Z2"] }
-            ]
-        };
-
-        ctx.AddRange(entity1, entity2);
-        await ctx.SaveChangesAsync();
-    }
-
     protected override async Task SeedJunkInJson(DbContext ctx)
         => await ctx.Database.ExecuteSqlAsync(
             $$$"""
@@ -181,6 +137,42 @@ VALUES(
 2)
 """);
     }
+
+    #region BadJsonProperties
+
+    // PostgreSQL stores JSON as jsonb, which doesn't allow badly-formed JSON; so the following tests are irrelevant.
+
+    public override async Task Bad_json_properties_duplicated_navigations(bool noTracking)
+    {
+        if (noTracking)
+        {
+            await Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_duplicated_navigations(noTracking: true));
+        }
+        else
+        {
+            await base.Bad_json_properties_duplicated_navigations(noTracking: false);
+        }
+    }
+
+    public override Task Bad_json_properties_duplicated_scalars(bool noTracking)
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_duplicated_scalars(noTracking));
+
+    public override Task Bad_json_properties_empty_navigations(bool noTracking)
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_empty_navigations(noTracking));
+
+    public override Task Bad_json_properties_empty_scalars(bool noTracking)
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_empty_scalars(noTracking));
+
+    public override Task Bad_json_properties_null_navigations(bool noTracking)
+        => Assert.ThrowsAsync<ThrowsAnyException>(() => base.Bad_json_properties_null_navigations(noTracking));
+
+    public override Task Bad_json_properties_null_scalars(bool noTracking)
+        => Assert.ThrowsAsync<ThrowsAnyException>(() => base.Bad_json_properties_null_scalars(noTracking));
+
+    protected override Task SeedBadJsonProperties(ContextBadJsonProperties ctx)
+        => throw new NotSupportedException("PostgreSQL stores JSON as jsonb, which doesn't allow badly-formed JSON");
+
+    #endregion
 
     [ConditionalTheory, MemberData(nameof(IsAsyncData))]
     public virtual async Task Json_predicate_on_bytea(bool async)
@@ -265,6 +257,60 @@ LIMIT 2
         public byte[] Bytea { get; set; }
         public TimeSpan Interval { get; set; }
     }
+
+    #region Problematc tests (Unspecified DateTime)
+
+    // These tests use a model with a non-UTC DateTime, which isn't supported in PG's timestamp with time zone
+
+    public override Task Project_entity_with_json_null_values()
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_entity_with_json_null_values());
+
+    public override Task Try_project_collection_but_JSON_is_entity()
+        => Assert.ThrowsAsync<ThrowsException>(() => base.Try_project_collection_but_JSON_is_entity());
+
+    public override Task Try_project_reference_but_JSON_is_collection()
+        => Assert.ThrowsAsync<ThrowsException>(() => base.Try_project_reference_but_JSON_is_collection());
+
+    public override Task Project_entity_with_optional_json_entity_owned_by_required_json()
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_entity_with_optional_json_entity_owned_by_required_json());
+
+    public override Task Project_required_json_entity()
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_required_json_entity());
+
+    public override Task Project_optional_json_entity_owned_by_required_json_entity()
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_optional_json_entity_owned_by_required_json_entity());
+
+    public override Task Project_missing_required_scalar(bool async)
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_missing_required_scalar(async));
+
+    public override Task Project_nested_json_entity_with_missing_scalars(bool async)
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_nested_json_entity_with_missing_scalars(async));
+
+    public override Task Project_null_required_scalar(bool async)
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_null_required_scalar(async));
+
+    public override Task Project_root_entity_with_missing_required_navigation(bool async)
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_root_entity_with_missing_required_navigation(async));
+
+    public override Task Project_root_entity_with_null_required_navigation(bool async)
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_root_entity_with_null_required_navigation(async));
+
+    public override Task Project_root_with_missing_scalars(bool async)
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_root_with_missing_scalars(async));
+
+    public override Task Project_top_level_json_entity_with_missing_scalars(bool async)
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_top_level_json_entity_with_missing_scalars(async));
+
+    public override Task Project_missing_required_navigation(bool async)
+        => Task.CompletedTask; // Different exception expected in the base implementation
+
+    public override Task Project_null_required_navigation(bool async)
+        => Task.CompletedTask; // Different exception expected in the base implementation
+
+    public override Task Project_top_level_entity_with_null_value_required_scalars(bool async)
+        => Task.CompletedTask; // Different exception expected in the base implementation
+
+    #endregion Problematc tests (Unspecified DateTime)
 
     protected void AssertSql(params string[] expected)
         => TestSqlLoggerFactory.AssertBaseline(expected);

@@ -3,15 +3,12 @@ using System.Data.Common;
 using System.Text.RegularExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-#nullable enable
+namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 public class NpgsqlTestStore : RelationalTestStore
 {
     private readonly string? _scriptPath;
     private readonly string? _additionalSql;
-    private readonly string? _connectionString;
 
     private const string Northwind = "Northwind";
 
@@ -30,9 +27,8 @@ public class NpgsqlTestStore : RelationalTestStore
         string name,
         string? scriptPath = null,
         string? additionalSql = null,
-        string? connectionStringOptions = null,
-        bool useConnectionString = false)
-        => new(name, scriptPath, additionalSql, connectionStringOptions, useConnectionString: useConnectionString);
+        string? connectionStringOptions = null)
+        => new(name, scriptPath, additionalSql, connectionStringOptions);
 
     public static NpgsqlTestStore Create(string name, string? connectionStringOptions = null)
         => new(name, connectionStringOptions: connectionStringOptions, shared: false);
@@ -45,15 +41,9 @@ public class NpgsqlTestStore : RelationalTestStore
         string? scriptPath = null,
         string? additionalSql = null,
         string? connectionStringOptions = null,
-        bool shared = true,
-        bool useConnectionString = false)
+        bool shared = true)
         : base(name, shared, CreateConnection(name, connectionStringOptions))
     {
-        if (useConnectionString)
-        {
-            _connectionString = CreateConnectionString(name, connectionStringOptions);
-        }
-
         Name = name;
 
         if (scriptPath is not null)
@@ -121,12 +111,9 @@ public class NpgsqlTestStore : RelationalTestStore
             // sorts NULLs last by default. This configures the provider to emit NULLS FIRST.
             .ReverseNullOrdering();
 
-        // The default mode in the EF tests is to use a DbConnection, but in Npgsql we have certain test suites which require that
-        // we use a connection string instead, because an NpgsqlDataSource is required internally (e.g. enums or plugins
-        // are used).
-        return _connectionString is null
-            ? builder.UseNpgsql(Connection, npgsqlOptionsBuilder)
-            : builder.UseNpgsql(_connectionString, npgsqlOptionsBuilder);
+        return UseConnectionString
+            ? builder.UseNpgsql(ConnectionString, npgsqlOptionsBuilder)
+            : builder.UseNpgsql(Connection, npgsqlOptionsBuilder);
     }
 
     private async Task<bool> CreateDatabaseAsync(Func<DbContext, Task>? clean)

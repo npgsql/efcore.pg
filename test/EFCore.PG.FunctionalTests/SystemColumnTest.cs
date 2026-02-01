@@ -1,6 +1,4 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+﻿namespace Microsoft.EntityFrameworkCore;
 
 public class SystemColumnTest : IClassFixture<SystemColumnTest.SystemColumnFixture>
 {
@@ -49,7 +47,7 @@ public class SystemColumnTest : IClassFixture<SystemColumnTest.SystemColumnFixtu
         // ReSharper disable UnusedMember.Global
         // ReSharper disable UnusedAutoPropertyAccessor.Global
         public int Id { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
         public uint Version { get; set; }
         // ReSharper restore UnusedMember.Global

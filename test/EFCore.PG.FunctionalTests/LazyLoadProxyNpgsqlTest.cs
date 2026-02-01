@@ -1,9 +1,7 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+﻿namespace Microsoft.EntityFrameworkCore;
 
 // ReSharper disable once UnusedMember.Global
-public class LazyLoadProxyNpgsqlTest : LazyLoadProxyTestBase<LazyLoadProxyNpgsqlTest.LoadNpgsqlFixture>
+public class LazyLoadProxyNpgsqlTest : LazyLoadProxyRelationalTestBase<LazyLoadProxyNpgsqlTest.LoadNpgsqlFixture>
 {
     public LazyLoadProxyNpgsqlTest(LoadNpgsqlFixture fixture)
         : base(fixture)
@@ -25,7 +23,7 @@ public class LazyLoadProxyNpgsqlTest : LazyLoadProxyTestBase<LazyLoadProxyNpgsql
         => Sql = Fixture.TestSqlLoggerFactory.Sql;
 
     // ReSharper disable once UnusedAutoPropertyAccessor.Local
-    private string Sql { get; set; }
+    private string Sql { get; set; } = null!;
 
     #region Expected JSON override
 
@@ -1493,7 +1491,7 @@ public class LazyLoadProxyNpgsqlTest : LazyLoadProxyTestBase<LazyLoadProxyNpgsql
 
     #endregion Expected JSON override
 
-    public class LoadNpgsqlFixture : LoadFixtureBase
+    public class LoadNpgsqlFixture : LoadRelationalFixtureBase
     {
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();

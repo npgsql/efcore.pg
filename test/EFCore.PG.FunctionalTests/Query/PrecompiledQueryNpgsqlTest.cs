@@ -1,7 +1,6 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class PrecompiledQueryNpgsqlTest(
     PrecompiledQueryNpgsqlTest.PrecompiledQueryNpgsqlFixture fixture,
@@ -10,7 +9,7 @@ public class PrecompiledQueryNpgsqlTest(
         IClassFixture<PrecompiledQueryNpgsqlTest.PrecompiledQueryNpgsqlFixture>
 {
     protected override bool AlwaysPrintGeneratedSources
-        => true;
+        => false;
 
     #region Expression types
 
@@ -20,11 +19,11 @@ public class PrecompiledQueryNpgsqlTest(
 
         AssertSql(
             """
-@__id_0='3'
+@id='3'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
-WHERE b."Id" > @__id_0
+WHERE b."Id" > @id
 """);
     }
 
@@ -48,10 +47,10 @@ FROM "Blogs" AS b
 
         AssertSql(
             """
-@__yes_0='yes'
+@yes='yes'
 
 SELECT CASE
-    WHEN b."Id" = 2 THEN @__yes_0
+    WHEN b."Id" = 2 THEN @yes
     ELSE 'no'
 END
 FROM "Blogs" AS b
@@ -129,11 +128,11 @@ WHERE b."Name" IS NOT NULL AND left(b."Name", length(b."Name")) = b."Name"
 
         AssertSql(
             """
-@__pattern_0_startswith='foo%'
+@pattern_startswith='foo%'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
-WHERE b."Name" LIKE @__pattern_0_startswith
+WHERE b."Name" LIKE @pattern_startswith
 """);
     }
 
@@ -207,9 +206,9 @@ FROM "Blogs" AS b
 
         AssertSql(
             """
-@__id_0='8'
+@id='8'
 
-SELECT @__id_0 AS "Id", b."Name"
+SELECT @id AS "Id", b."Name"
 FROM "Blogs" AS b
 """);
     }
@@ -242,9 +241,9 @@ FROM "Blogs" AS b
 
         AssertSql(
             """
-@__i_0='8'
+@i='8'
 
-SELECT ARRAY[b."Id",b."Id" + @__i_0]::integer[]
+SELECT ARRAY[b."Id",b."Id" + @i]::integer[]
 FROM "Blogs" AS b
 """);
     }
@@ -269,6 +268,149 @@ WHERE b."Id"::smallint = 8
     }
 
     #endregion Expression types
+
+    #region Regular operators
+
+    public override async Task OrderBy()
+    {
+        await base.OrderBy();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+ORDER BY b."Name" NULLS FIRST
+""");
+    }
+
+    public override async Task Skip_with_constant()
+    {
+        await base.Skip_with_constant();
+
+        AssertSql(
+            """
+@p='1'
+
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+ORDER BY b."Name" NULLS FIRST
+OFFSET @p
+""");
+    }
+
+    public override async Task Skip_with_parameter()
+    {
+        await base.Skip_with_parameter();
+
+        AssertSql(
+            """
+@p='1'
+
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+ORDER BY b."Name" NULLS FIRST
+OFFSET @p
+""");
+    }
+
+    public override async Task Take_with_constant()
+    {
+        await base.Take_with_constant();
+
+        AssertSql(
+            """
+@p='1'
+
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+ORDER BY b."Name" NULLS FIRST
+LIMIT @p
+""");
+    }
+
+    public override async Task Take_with_parameter()
+    {
+        await base.Take_with_parameter();
+
+        AssertSql(
+            """
+@p='1'
+
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+ORDER BY b."Name" NULLS FIRST
+LIMIT @p
+""");
+    }
+
+    public override async Task Select_changes_type()
+    {
+        await base.Select_changes_type();
+
+        AssertSql(
+            """
+SELECT b."Name"
+FROM "Blogs" AS b
+""");
+    }
+
+    public override async Task Select_anonymous_object()
+    {
+        await base.Select_anonymous_object();
+
+        AssertSql(
+            """
+SELECT COALESCE(b."Name", '') || 'Foo' AS "Foo"
+FROM "Blogs" AS b
+""");
+    }
+
+    public override async Task Include_single()
+    {
+        await base.Include_single();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Name", b."Json", p."Id", p."BlogId", p."Title"
+FROM "Blogs" AS b
+LEFT JOIN "Posts" AS p ON b."Id" = p."BlogId"
+WHERE b."Id" > 8
+ORDER BY b."Id" NULLS FIRST
+""");
+    }
+
+    public override async Task Include_split()
+    {
+        await base.Include_split();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+ORDER BY b."Id" NULLS FIRST
+""",
+            //
+            """
+SELECT p."Id", p."BlogId", p."Title", b."Id"
+FROM "Blogs" AS b
+INNER JOIN "Posts" AS p ON b."Id" = p."BlogId"
+ORDER BY b."Id" NULLS FIRST
+""");
+    }
+
+    public override async Task Final_GroupBy()
+    {
+        await base.Final_GroupBy();
+
+        AssertSql(
+            """
+SELECT b."Name", b."Id", b."Json"
+FROM "Blogs" AS b
+ORDER BY b."Name" NULLS FIRST
+""");
+    }
+
+    #endregion Regular operators
 
     #region Terminating operators
 
@@ -601,18 +743,18 @@ FROM "Blogs" AS b
 
         AssertSql(
             """
-@__p_0='8'
+@p='8'
 
-SELECT @__p_0 IN (
+SELECT @p IN (
     SELECT b."Id"
     FROM "Blogs" AS b
 )
 """,
             //
             """
-@__p_0='7'
+@p='7'
 
-SELECT @__p_0 IN (
+SELECT @p IN (
     SELECT b."Id"
     FROM "Blogs" AS b
 )
@@ -625,18 +767,18 @@ SELECT @__p_0 IN (
 
         AssertSql(
             """
-@__p_0='8'
+@p='8'
 
-SELECT @__p_0 IN (
+SELECT @p IN (
     SELECT b."Id"
     FROM "Blogs" AS b
 )
 """,
             //
             """
-@__p_0='7'
+@p='7'
 
-SELECT @__p_0 IN (
+SELECT @p IN (
     SELECT b."Id"
     FROM "Blogs" AS b
 )
@@ -683,21 +825,21 @@ WHERE b."Id" > 8
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """,
             //
             """
-@__p_0='3'
+@p='3'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """);
     }
 
@@ -707,21 +849,21 @@ LIMIT 1 OFFSET @__p_0
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """,
             //
             """
-@__p_0='3'
+@p='3'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """);
     }
 
@@ -731,21 +873,21 @@ LIMIT 1 OFFSET @__p_0
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """,
             //
             """
-@__p_0='3'
+@p='3'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """);
     }
 
@@ -755,21 +897,21 @@ LIMIT 1 OFFSET @__p_0
 
         AssertSql(
             """
-@__p_0='1'
+@p='1'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """,
             //
             """
-@__p_0='3'
+@p='3'
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
 ORDER BY b."Id" NULLS FIRST
-LIMIT 1 OFFSET @__p_0
+LIMIT 1 OFFSET @p
 """);
     }
 
@@ -1366,16 +1508,16 @@ FROM "Blogs" AS b
 """);
     }
 
-    public override async Task Terminating_ExecuteUpdate()
+    public override async Task Terminating_ExecuteUpdate_with_lambda()
     {
-        await base.Terminating_ExecuteUpdate();
+        await base.Terminating_ExecuteUpdate_with_lambda();
 
         AssertSql(
             """
-@__suffix_0='Suffix'
+@suffix='Suffix'
 
 UPDATE "Blogs" AS b
-SET "Name" = COALESCE(b."Name", '') || @__suffix_0
+SET "Name" = COALESCE(b."Name", '') || @suffix
 WHERE b."Id" > 8
 """,
             //
@@ -1386,16 +1528,36 @@ WHERE b."Id" = 9 AND b."Name" = 'Blog2Suffix'
 """);
     }
 
-    public override async Task Terminating_ExecuteUpdateAsync()
+    public override async Task Terminating_ExecuteUpdate_without_lambda()
     {
-        await base.Terminating_ExecuteUpdateAsync();
+        await base.Terminating_ExecuteUpdate_without_lambda();
 
         AssertSql(
             """
-@__suffix_0='Suffix'
+@newValue='NewValue'
 
 UPDATE "Blogs" AS b
-SET "Name" = COALESCE(b."Name", '') || @__suffix_0
+SET "Name" = @newValue
+WHERE b."Id" > 8
+""",
+            //
+            """
+SELECT count(*)::int
+FROM "Blogs" AS b
+WHERE b."Id" = 9 AND b."Name" = 'NewValue'
+""");
+    }
+
+    public override async Task Terminating_ExecuteUpdateAsync_with_lambda()
+    {
+        await base.Terminating_ExecuteUpdateAsync_with_lambda();
+
+        AssertSql(
+            """
+@suffix='Suffix'
+
+UPDATE "Blogs" AS b
+SET "Name" = COALESCE(b."Name", '') || @suffix
 WHERE b."Id" > 8
 """,
             //
@@ -1403,6 +1565,46 @@ WHERE b."Id" > 8
 SELECT count(*)::int
 FROM "Blogs" AS b
 WHERE b."Id" = 9 AND b."Name" = 'Blog2Suffix'
+""");
+    }
+
+    public override async Task Terminating_ExecuteUpdateAsync_without_lambda()
+    {
+        await base.Terminating_ExecuteUpdateAsync_without_lambda();
+
+        AssertSql(
+            """
+@newValue='NewValue'
+
+UPDATE "Blogs" AS b
+SET "Name" = @newValue
+WHERE b."Id" > 8
+""",
+            //
+            """
+SELECT count(*)::int
+FROM "Blogs" AS b
+WHERE b."Id" = 9 AND b."Name" = 'NewValue'
+""");
+    }
+
+    public override async Task Terminating_with_cancellation_token()
+    {
+        await base.Terminating_with_cancellation_token();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+WHERE b."Id" = 8
+LIMIT 1
+""",
+            //
+            """
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+WHERE b."Id" = 7
+LIMIT 1
 """);
     }
 
@@ -1591,11 +1793,13 @@ WHERE (
 
         AssertSql(
             """
-@__ids_0={ '1', '2', '3' } (DbType = Object)
+@p={ '1'
+'2'
+'3' } (DbType = Object)
 
 SELECT b."Id", b."Name", b."Json"
 FROM "Blogs" AS b
-WHERE b."Id" = ANY (@__ids_0)
+WHERE b."Id" = ANY (@p)
 """);
     }
 
@@ -1691,6 +1895,97 @@ FROM "Blogs" AS b
 
     #endregion Different query roots
 
+    #region Captured variable handling
+
+    public override async Task Two_captured_variables_in_same_lambda()
+    {
+        await base.Two_captured_variables_in_same_lambda();
+
+        AssertSql(
+            """
+@yes='yes'
+@no='no'
+
+SELECT CASE
+    WHEN b."Id" = 3 THEN @yes
+    ELSE @no
+END
+FROM "Blogs" AS b
+""");
+    }
+
+    public override async Task Two_captured_variables_in_different_lambdas()
+    {
+        await base.Two_captured_variables_in_different_lambdas();
+
+        AssertSql(
+            """
+@starts_startswith='Blog%'
+@ends_endswith='%2'
+
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+WHERE b."Name" LIKE @starts_startswith AND b."Name" LIKE @ends_endswith
+LIMIT 2
+""");
+    }
+
+    public override async Task Same_captured_variable_twice_in_same_lambda()
+    {
+        await base.Same_captured_variable_twice_in_same_lambda();
+
+        AssertSql(
+            """
+@foo_startswith='X%'
+@foo_endswith='%X'
+
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+WHERE b."Name" LIKE @foo_startswith AND b."Name" LIKE @foo_endswith
+""");
+    }
+
+    public override async Task Same_captured_variable_twice_in_different_lambdas()
+    {
+        await base.Same_captured_variable_twice_in_different_lambdas();
+
+        AssertSql(
+            """
+@foo_startswith='X%'
+@foo_endswith='%X'
+
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+WHERE b."Name" LIKE @foo_startswith AND b."Name" LIKE @foo_endswith
+""");
+    }
+
+    public override async Task Multiple_queries_with_captured_variables()
+    {
+        await base.Multiple_queries_with_captured_variables();
+
+        AssertSql(
+            """
+@id1='8'
+@id2='9'
+
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+WHERE b."Id" = @id1 OR b."Id" = @id2
+""",
+            //
+            """
+@id1='8'
+
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+WHERE b."Id" = @id1
+LIMIT 2
+""");
+    }
+
+    #endregion Captured variable handling
+
     #region Negative cases
 
     public override async Task Dynamic_query_does_not_get_precompiled()
@@ -1748,204 +2043,6 @@ LIMIT 2
     }
 
     #endregion Negative cases
-
-    public override async Task Select_changes_type()
-    {
-        await base.Select_changes_type();
-
-        AssertSql(
-            """
-SELECT b."Name"
-FROM "Blogs" AS b
-""");
-    }
-
-    public override async Task OrderBy()
-    {
-        await base.OrderBy();
-
-AssertSql(
-    """
-SELECT b."Id", b."Name", b."Json"
-FROM "Blogs" AS b
-ORDER BY b."Name" NULLS FIRST
-""");
-    }
-
-    public override async Task Skip()
-    {
-        await base.Skip();
-
-        AssertSql(
-            """
-@__p_0='1'
-
-SELECT b."Id", b."Name", b."Json"
-FROM "Blogs" AS b
-ORDER BY b."Name" NULLS FIRST
-OFFSET @__p_0
-""");
-    }
-
-    public override async Task Take()
-    {
-        await base.Take();
-
-        AssertSql(
-            """
-@__p_0='1'
-
-SELECT b."Id", b."Name", b."Json"
-FROM "Blogs" AS b
-ORDER BY b."Name" NULLS FIRST
-LIMIT @__p_0
-""");
-    }
-
-    public override async Task Project_anonymous_object()
-    {
-        await base.Project_anonymous_object();
-
-        AssertSql(
-            """
-SELECT COALESCE(b."Name", '') || 'Foo' AS "Foo"
-FROM "Blogs" AS b
-""");
-    }
-
-    public override async Task Two_captured_variables_in_same_lambda()
-    {
-        await base.Two_captured_variables_in_same_lambda();
-
-        AssertSql(
-            """
-@__yes_0='yes'
-@__no_1='no'
-
-SELECT CASE
-    WHEN b."Id" = 3 THEN @__yes_0
-    ELSE @__no_1
-END
-FROM "Blogs" AS b
-""");
-    }
-
-    public override async Task Two_captured_variables_in_different_lambdas()
-    {
-        //Throws because the base startswith is uses a different case "Blog" vs "blog" and postgresql LIKE is case sensitive unlike SQL Server
-        //Base test fixed upstream for later versions
-        await Assert.ThrowsAsync<InvalidOperationException>(() => base.Two_captured_variables_in_different_lambdas());
-
-//        AssertSql(
-//            """
-//@__starts_0_startswith='Blog%'
-//@__ends_1_endswith='%2'
-//
-//SELECT b."Id", b."Name", b."Json"
-//FROM "Blogs" AS b
-//WHERE b."Name" LIKE @__starts_0_startswith AND b."Name" LIKE @__ends_1_endswith
-//LIMIT 2
-//""");
-    }
-
-    public override async Task Same_captured_variable_twice_in_same_lambda()
-    {
-        await base.Same_captured_variable_twice_in_same_lambda();
-
-        AssertSql(
-            """
-@__foo_0_startswith='X%'
-@__foo_0_endswith='%X'
-
-SELECT b."Id", b."Name", b."Json"
-FROM "Blogs" AS b
-WHERE b."Name" LIKE @__foo_0_startswith AND b."Name" LIKE @__foo_0_endswith
-""");
-    }
-
-    public override async Task Same_captured_variable_twice_in_different_lambdas()
-    {
-        await base.Same_captured_variable_twice_in_different_lambdas();
-
-        AssertSql(
-            """
-@__foo_0_startswith='X%'
-@__foo_0_endswith='%X'
-
-SELECT b."Id", b."Name", b."Json"
-FROM "Blogs" AS b
-WHERE b."Name" LIKE @__foo_0_startswith AND b."Name" LIKE @__foo_0_endswith
-""");
-    }
-
-    public override async Task Include_single()
-    {
-        await base.Include_single();
-
-        AssertSql(
-            """
-SELECT b."Id", b."Name", b."Json", p."Id", p."BlogId", p."Title"
-FROM "Blogs" AS b
-LEFT JOIN "Posts" AS p ON b."Id" = p."BlogId"
-WHERE b."Id" > 8
-ORDER BY b."Id" NULLS FIRST
-""");
-    }
-
-    public override async Task Include_split()
-    {
-        await base.Include_split();
-
-        AssertSql(
-    """
-SELECT b."Id", b."Name", b."Json"
-FROM "Blogs" AS b
-ORDER BY b."Id" NULLS FIRST
-""",
-    //
-    """
-SELECT p."Id", p."BlogId", p."Title", b."Id"
-FROM "Blogs" AS b
-INNER JOIN "Posts" AS p ON b."Id" = p."BlogId"
-ORDER BY b."Id" NULLS FIRST
-""");
-    }
-
-    public override async Task Final_GroupBy()
-    {
-        await base.Final_GroupBy();
-
-        AssertSql(
-            """
-SELECT b."Name", b."Id", b."Json"
-FROM "Blogs" AS b
-ORDER BY b."Name" NULLS FIRST
-""");
-    }
-
-    public override async Task Multiple_queries_with_captured_variables()
-    {
-        await base.Multiple_queries_with_captured_variables();
-
-        AssertSql(
-            """
-@__id1_0='8'
-@__id2_1='9'
-
-SELECT b."Id", b."Name", b."Json"
-FROM "Blogs" AS b
-WHERE b."Id" = @__id1_0 OR b."Id" = @__id2_1
-""",
-            //
-            """
-@__id1_0='8'
-
-SELECT b."Id", b."Name", b."Json"
-FROM "Blogs" AS b
-WHERE b."Id" = @__id1_0
-LIMIT 2
-""");
-    }
 
     public override async Task Unsafe_accessor_gets_generated_once_for_multiple_queries()
     {

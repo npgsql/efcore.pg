@@ -1,4 +1,4 @@
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
 
 public class ModelBuilding101NpgsqlTest : ModelBuilding101RelationalTestBase
 {

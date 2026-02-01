@@ -130,7 +130,7 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
         if (columnModification.JsonPath is not (null or "$"))
         {
             Check.DebugAssert(
-                columnModification.TypeMapping is NpgsqlOwnedJsonTypeMapping,
+                columnModification.TypeMapping is NpgsqlStructuralJsonTypeMapping,
                 "ColumnModification with JsonPath but non-NpgsqlOwnedJsonTypeMapping");
 
             if (columnModification.TypeMapping.StoreType is "json")

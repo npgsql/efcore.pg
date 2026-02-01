@@ -1,6 +1,6 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+﻿namespace Microsoft.EntityFrameworkCore.Query;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+#nullable disable
 
 public class UdfDbFunctionNpgsqlTests : UdfDbFunctionTestBase<UdfDbFunctionNpgsqlTests.UdfNpgsqlFixture>
 {
@@ -34,11 +34,11 @@ WHERE "IsDate"(c."FirstName") = FALSE
 
         AssertSql(
             """
-@__customerId_0='3'
+@customerId='3'
 
 SELECT length(c."LastName")
 FROM "Customers" AS c
-WHERE c."Id" = @__customerId_0
+WHERE c."Id" = @customerId
 LIMIT 2
 """);
     }
@@ -54,9 +54,9 @@ LIMIT 2
 
         AssertSql(
             """
-@__customerId_0='1'
+@customerId='1'
 
-SELECT "CustomerOrderCount"(@__customerId_0)
+SELECT "CustomerOrderCount"(@customerId)
 FROM "Customers" AS c
 """);
     }
@@ -96,11 +96,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__customerId_0='1'
+@customerId='1'
 
-SELECT c."LastName", "CustomerOrderCount"(@__customerId_0) AS "OrderCount"
+SELECT c."LastName", "CustomerOrderCount"(@customerId) AS "OrderCount"
 FROM "Customers" AS c
-WHERE c."Id" = @__customerId_0
+WHERE c."Id" = @customerId
 LIMIT 2
 """);
     }
@@ -112,12 +112,12 @@ LIMIT 2
 
         AssertSql(
             """
-@__starCount_1='3'
-@__customerId_0='3'
+@starCount='3'
+@customerId='3'
 
-SELECT c."LastName", "StarValue"(@__starCount_1, "CustomerOrderCount"(@__customerId_0)) AS "OrderCount"
+SELECT c."LastName", "StarValue"(@starCount, "CustomerOrderCount"(@customerId)) AS "OrderCount"
 FROM "Customers" AS c
-WHERE c."Id" = @__customerId_0
+WHERE c."Id" = @customerId
 LIMIT 2
 """);
     }
@@ -158,11 +158,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__period_0='0'
+@period='0'
 
 SELECT c."Id"
 FROM "Customers" AS c
-WHERE c."Id" = "GetCustomerWithMostOrdersAfterDate"("GetReportingPeriodStartDate"(@__period_0))
+WHERE c."Id" = "GetCustomerWithMostOrdersAfterDate"("GetReportingPeriodStartDate"(@period))
 LIMIT 2
 """);
     }
@@ -216,11 +216,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__customerId_0='2'
+@customerId='2'
 
-SELECT c."LastName", "CustomerOrderCount"(@__customerId_0) AS "OrderCount"
+SELECT c."LastName", "CustomerOrderCount"(@customerId) AS "OrderCount"
 FROM "Customers" AS c
-WHERE c."Id" = @__customerId_0
+WHERE c."Id" = @customerId
 LIMIT 2
 """);
     }
@@ -232,12 +232,12 @@ LIMIT 2
 
         AssertSql(
             """
-@__starCount_1='3'
-@__customerId_0='1'
+@starCount='3'
+@customerId='1'
 
-SELECT c."LastName", "StarValue"(@__starCount_1, "CustomerOrderCount"(@__customerId_0)) AS "OrderCount"
+SELECT c."LastName", "StarValue"(@starCount, "CustomerOrderCount"(@customerId)) AS "OrderCount"
 FROM "Customers" AS c
-WHERE c."Id" = @__customerId_0
+WHERE c."Id" = @customerId
 LIMIT 2
 """);
     }
@@ -336,11 +336,11 @@ WHERE "IsDate"(c."FirstName") = FALSE
 
         AssertSql(
             """
-@__customerId_0='3'
+@customerId='3'
 
 SELECT length(c."LastName")
 FROM "Customers" AS c
-WHERE c."Id" = @__customerId_0
+WHERE c."Id" = @customerId
 LIMIT 2
 """);
     }
@@ -352,9 +352,9 @@ LIMIT 2
 
         AssertSql(
             """
-@__customerId_1='1'
+@customerId='1'
 
-SELECT "CustomerOrderCount"(@__customerId_1)
+SELECT "CustomerOrderCount"(@customerId)
 FROM "Customers" AS c
 """);
     }
@@ -394,11 +394,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__customerId_0='1'
+@customerId='1'
 
-SELECT c."LastName", "CustomerOrderCount"(@__customerId_0) AS "OrderCount"
+SELECT c."LastName", "CustomerOrderCount"(@customerId) AS "OrderCount"
 FROM "Customers" AS c
-WHERE c."Id" = @__customerId_0
+WHERE c."Id" = @customerId
 LIMIT 2
 """);
     }
@@ -410,12 +410,12 @@ LIMIT 2
 
         AssertSql(
             """
-@__starCount_2='3'
-@__customerId_0='3'
+@starCount='3'
+@customerId='3'
 
-SELECT c."LastName", "StarValue"(@__starCount_2, "CustomerOrderCount"(@__customerId_0)) AS "OrderCount"
+SELECT c."LastName", "StarValue"(@starCount, "CustomerOrderCount"(@customerId)) AS "OrderCount"
 FROM "Customers" AS c
-WHERE c."Id" = @__customerId_0
+WHERE c."Id" = @customerId
 LIMIT 2
 """);
     }
@@ -456,11 +456,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__period_1='0'
+@period='0'
 
 SELECT c."Id"
 FROM "Customers" AS c
-WHERE c."Id" = "GetCustomerWithMostOrdersAfterDate"("GetReportingPeriodStartDate"(@__period_1))
+WHERE c."Id" = "GetCustomerWithMostOrdersAfterDate"("GetReportingPeriodStartDate"(@period))
 LIMIT 2
 """);
     }
@@ -514,11 +514,11 @@ LIMIT 2
 
         AssertSql(
             """
-@__customerId_1='2'
+@customerId='2'
 
-SELECT c."LastName", "CustomerOrderCount"(@__customerId_1) AS "OrderCount"
+SELECT c."LastName", "CustomerOrderCount"(@customerId) AS "OrderCount"
 FROM "Customers" AS c
-WHERE c."Id" = @__customerId_1
+WHERE c."Id" = @customerId
 LIMIT 2
 """);
     }
@@ -530,12 +530,12 @@ LIMIT 2
 
         AssertSql(
             """
-@__starCount_2='3'
-@__customerId_1='1'
+@starCount='3'
+@customerId='1'
 
-SELECT c."LastName", "StarValue"(@__starCount_2, "CustomerOrderCount"(@__customerId_1)) AS "OrderCount"
+SELECT c."LastName", "StarValue"(@starCount, "CustomerOrderCount"(@customerId)) AS "OrderCount"
 FROM "Customers" AS c
-WHERE c."Id" = @__customerId_1
+WHERE c."Id" = @customerId
 LIMIT 2
 """);
     }

@@ -1,5 +1,3 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+﻿namespace Microsoft.EntityFrameworkCore;
 
 public class NpgsqlServiceCollectionExtensionsTest() : RelationalServiceCollectionExtensionsTestBase(NpgsqlTestHelpers.Instance);

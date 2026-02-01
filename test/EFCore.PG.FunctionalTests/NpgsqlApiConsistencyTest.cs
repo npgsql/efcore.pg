@@ -1,7 +1,9 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
+
+#nullable disable
 
 public class NpgsqlApiConsistencyTest(NpgsqlApiConsistencyTest.NpgsqlApiConsistencyFixture fixture)
     : ApiConsistencyTestBase<NpgsqlApiConsistencyTest.NpgsqlApiConsistencyFixture>(fixture)

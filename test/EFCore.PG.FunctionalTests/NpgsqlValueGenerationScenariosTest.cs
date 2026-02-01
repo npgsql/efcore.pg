@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL;
+namespace Microsoft.EntityFrameworkCore;
+
+#nullable disable
 
 public class NpgsqlValueGenerationScenariosTest
 {
