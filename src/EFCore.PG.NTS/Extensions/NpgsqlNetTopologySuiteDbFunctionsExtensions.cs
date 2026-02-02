@@ -8,6 +8,13 @@ namespace Microsoft.EntityFrameworkCore;
 public static class NpgsqlNetTopologySuiteDbFunctionsExtensions
 {
     /// <summary>
+    ///     Checks whether the 2D bounding boxes of two geometries intersect.
+    ///     Translates to the PostGIS <c>&amp;&amp;</c> operator.
+    /// </summary>
+    public static bool IntersectsBbox(this DbFunctions _, Geometry geometry, Geometry anotherGeometry)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(IntersectsBbox)));
+
+    /// <summary>
     ///     Returns a new geometry with its coordinates transformed to a different spatial reference system.
     ///     Translates to <c>ST_Transform(geometry, srid)</c>.
     /// </summary>

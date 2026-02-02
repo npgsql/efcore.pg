@@ -122,6 +122,11 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
                 method.ReturnType,
                 arguments[1].TypeMapping),
 
+            nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.IntersectsBbox) => _sqlExpressionFactory.MakePostgresBinary(
+                PgExpressionType.Overlaps,
+                arguments[1],
+                arguments[2]),
+
             nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.DistanceKnn) => _sqlExpressionFactory.MakePostgresBinary(
                 PgExpressionType.Distance,
                 arguments[1],
