@@ -94,6 +94,7 @@ public static class NpgsqlServiceCollectionExtensions
             .TryAdd<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
             .TryAdd<ISqlGenerationHelper, NpgsqlSqlGenerationHelper>()
             .TryAdd<IRelationalAnnotationProvider, NpgsqlAnnotationProvider>()
+            .TryAdd<IMigrationsAnnotationProvider, NpgsqlMigrationsAnnotationProvider>()
             .TryAdd<IModelValidator, NpgsqlModelValidator>()
             .TryAdd<IMigrator, NpgsqlMigrator>()
             .TryAdd<IProviderConventionSetBuilder, NpgsqlConventionSetBuilder>()
