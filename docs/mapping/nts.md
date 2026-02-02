@@ -137,8 +137,8 @@ geom1.Difference(geom2)                                          | [ST_Differenc
 geom1.Dimension                                                  | [ST_Dimension(geom1)](https://postgis.net/docs/ST_Dimension.html)
 geom1.Disjoint(geom2)                                            | [ST_Disjoint(geom1, geom2)](https://postgis.net/docs/ST_Disjoint.html)
 geom1.Distance(geom2)                                            | [ST_Distance(geom1, geom2)](https://postgis.net/docs/ST_Distance.html)
-EF.Functions.DistanceKnn(geom1, geom2)                           | [geom1 <-> geom2](https://postgis.net/docs/geometry_distance_knn.html)               | Added in 6.0
-EF.Functions.Distance(geom1, geom2, useSpheriod)                 | [ST_Distance(geom1, geom2, useSpheriod)](https://postgis.net/docs/ST_Distance.html)  | Added in 6.0
+EF.Functions.DistanceKnn(geom1, geom2)                           | [geom1 <-> geom2](https://postgis.net/docs/geometry_distance_knn.html)
+EF.Functions.Distance(geom1, geom2, useSpheriod)                 | [ST_Distance(geom1, geom2, useSpheriod)](https://postgis.net/docs/ST_Distance.html)
 geom1.Envelope                                                   | [ST_Envelope(geom1)](https://postgis.net/docs/ST_Envelope.html)
 geom1.ExactEquals(geom2)                                         | [ST_OrderingEquals(geom1, geom2)](https://postgis.net/docs/ST_OrderingEquals.html)
 lineString.EndPoint                                              | [ST_EndPoint(lineString)](https://postgis.net/docs/ST_EndPoint.html)
@@ -146,18 +146,19 @@ polygon.ExteriorRing                                             | [ST_ExteriorR
 geom1.Equals(geom2)                                              | [geom1 = geom2](https://postgis.net/docs/ST_Geometry_EQ.html)
 geom1.Polygon.EqualsExact(geom2)                                 | [geom1 = geom2](https://postgis.net/docs/ST_Geometry_EQ.html)
 geom1.EqualsTopologically(geom2)                                 | [ST_Equals(geom1, geom2)](https://postgis.net/docs/ST_Equals.html)
-EF.Functions.Force2D                                             | [ST_Force2D(geom)](https://postgis.net/docs/ST_Force2D.html)                         | Added in 6.0
+EF.Functions.Force2D                                             | [ST_Force2D(geom)](https://postgis.net/docs/ST_Force2D.html)
 geom.GeometryType                                                | [GeometryType(geom)](https://postgis.net/docs/GeometryType.html)
 geomCollection.GetGeometryN(i)                                   | [ST_GeometryN(geomCollection, i)](https://postgis.net/docs/ST_GeometryN.html)
 linestring.GetPointN(i)                                          | [ST_PointN(linestring, i)](https://postgis.net/docs/ST_PointN.html)
 geom1.Intersection(geom2)                                        | [ST_Intersection(geom1, geom2)](https://postgis.net/docs/ST_Intersection.html)
 geom1.Intersects(geom2)                                          | [ST_Intersects(geom1, geom2)](https://postgis.net/docs/ST_Intersects.html)
+EF.Functions.IntersectsBbox(geom1, geom2)                        | [geom1 && geom2](https://postgis.net/docs/geometry_overlaps.html)                    | Added in 11.0
 geom.InteriorPoint                                               | [ST_PointOnSurface(geom)](https://postgis.net/docs/ST_PointOnSurface.html)
 lineString.IsClosed()                                            | [ST_IsClosed(lineString)](https://postgis.net/docs/ST_IsClosed.html)
 geomCollection.IsEmpty()                                         | [ST_IsEmpty(geomCollection)](https://postgis.net/docs/ST_IsEmpty.html)
 linestring.IsRing                                                | [ST_IsRing(linestring)](https://postgis.net/docs/ST_IsRing.html)
 geom.IsWithinDistance(geom2,d)                                   | [ST_DWithin(geom1, geom2, d)](https://postgis.net/docs/ST_DWithin.html)
-EF.Functions.IsWithinDistance(geom1, geom2, d, useSpheriod)      | [ST_DWithin(geom1, geom2, d, useSpheriod)](https://postgis.net/docs/ST_DWithin.html) | Added in 6.0
+EF.Functions.IsWithinDistance(geom1, geom2, d, useSpheriod)      | [ST_DWithin(geom1, geom2, d, useSpheriod)](https://postgis.net/docs/ST_DWithin.html)
 geom.IsSimple()                                                  | [ST_IsSimple(geom)](https://postgis.net/docs/ST_IsSimple.html)
 geom.IsValid()                                                   | [ST_IsValid(geom)](https://postgis.net/docs/ST_IsValid.html)
 lineString.Length                                                | [ST_Length(lineString)](https://postgis.net/docs/ST_Length.html)
@@ -182,7 +183,7 @@ point.M                                                          | [ST_M(point)]
 point.X                                                          | [ST_X(point)](https://postgis.net/docs/ST_X.html)
 point.Y                                                          | [ST_Y(point)](https://postgis.net/docs/ST_Y.html)
 point.Z                                                          | [ST_Z(point)](https://postgis.net/docs/ST_Z.html)
-UnaryUnionOp.Union(geometries)                                   | [ST_Union(geometries)](https://postgis.net/docs/ST_Union.html)                       | Added in 7.0, see [Aggregate functions](translations.md#aggregate-functions).
-GeometryCombiner.Combine(geometries)                             | [ST_Collect(geometries)](https://postgis.net/docs/ST_Collect.html)                   | Added in 7.0, see [Aggregate functions](translations.md#aggregate-functions).
-EnvelopeCombiner.CombineAsGeometry(geometries)                   | [ST_Extent(geometries)::geometry](https://postgis.net/docs/ST_Extent.html)           | Added in 7.0, see [Aggregate functions](translations.md#aggregate-functions).
-ConvexHull.Create(geometries)                                    | [ST_ConvexHull(geometries)](https://postgis.net/docs/ST_ConvexHull.html)             | Added in 7.0, see [Aggregate functions](translations.md#aggregate-functions).
+UnaryUnionOp.Union(geometries)                                   | [ST_Union(geometries)](https://postgis.net/docs/ST_Union.html)                       | See [Aggregate functions](translations.md#aggregate-functions).
+GeometryCombiner.Combine(geometries)                             | [ST_Collect(geometries)](https://postgis.net/docs/ST_Collect.html)                   | See [Aggregate functions](translations.md#aggregate-functions).
+EnvelopeCombiner.CombineAsGeometry(geometries)                   | [ST_Extent(geometries)::geometry](https://postgis.net/docs/ST_Extent.html)           | See [Aggregate functions](translations.md#aggregate-functions).
+ConvexHull.Create(geometries)                                    | [ST_ConvexHull(geometries)](https://postgis.net/docs/ST_ConvexHull.html)             | See [Aggregate functions](translations.md#aggregate-functions).
