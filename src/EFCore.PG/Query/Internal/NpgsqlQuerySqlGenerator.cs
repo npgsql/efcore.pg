@@ -1485,6 +1485,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 return true;
             }
 
+            case SqlFunctionExpression when outerExpression is PgArrayIndexExpression:
             case PgUnknownBinaryExpression:
                 return true;
 

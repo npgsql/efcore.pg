@@ -90,6 +90,15 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
                     typeof(byte));
             }
 
+            if (arguments[0].TypeMapping is NpgsqlArrayTypeMapping)
+            {
+                return _sqlExpressionFactory.ArrayIndex(
+                    arguments[0],
+                    _sqlExpressionFactory.GenerateOneBasedIndexExpression(arguments[1]),
+                    nullable: true
+                );
+            }
+
             // Try translating indexing inside JSON column
             // Note that Length over PG arrays (not within JSON) gets translated by QueryableMethodTranslatingEV, since arrays are primitive
             // collections
