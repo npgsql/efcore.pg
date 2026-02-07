@@ -229,6 +229,28 @@ WHERE string_to_array(c."ContactName", ' ', 'Maria') = ARRAY[NULL,'Anders']::tex
     }
 
     [Fact]
+    public void StringToArray_with_index()
+    {
+        using var context = CreateContext();
+        var count = context.Customers
+            .Select(c => EF.Functions.StringToArray(c.ContactName, " ")[0])
+            .Distinct()
+            .Count(c => c == "Maria");
+
+        Assert.Equal(1, count);
+
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM (
+    SELECT DISTINCT (string_to_array(c."ContactName", ' '))[1] AS c
+    FROM "Customers" AS c
+    WHERE (string_to_array(c."ContactName", ' '))[1] = 'Maria'
+) AS c0
+""");
+    }
+
+    [Fact]
     public void ToDate()
     {
         using var context = CreateContext();
