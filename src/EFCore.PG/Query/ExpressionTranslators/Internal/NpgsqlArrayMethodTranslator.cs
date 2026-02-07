@@ -79,30 +79,28 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
         // During preprocessing, ArrayIndex and List[] get normalized to ElementAt; so we handle indexing into array/list here
         if (method.IsClosedFormOf(Enumerable_ElementAt))
         {
-            // Indexing over bytea is special, we have to use function rather than subscript
-            if (arguments[0].TypeMapping is NpgsqlByteArrayTypeMapping)
+            return arguments[0].TypeMapping switch
             {
-                return _sqlExpressionFactory.Function(
-                    "get_byte",
-                    [arguments[0], arguments[1]],
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[2],
-                    typeof(byte));
-            }
+                // Indexing over bytea is special, we have to use function rather than subscript
+                NpgsqlByteArrayTypeMapping
+                    => _sqlExpressionFactory.Function(
+                        "get_byte",
+                        [arguments[0], arguments[1]],
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[2],
+                        typeof(byte)),
 
-            if (arguments[0].TypeMapping is NpgsqlArrayTypeMapping)
-            {
-                return _sqlExpressionFactory.ArrayIndex(
-                    arguments[0],
-                    _sqlExpressionFactory.GenerateOneBasedIndexExpression(arguments[1]),
-                    nullable: true
-                );
-            }
+                NpgsqlArrayTypeMapping typeMapping
+                    => _sqlExpressionFactory.ArrayIndex(
+                        arguments[0],
+                        _sqlExpressionFactory.GenerateOneBasedIndexExpression(arguments[1]),
+                        nullable: true),
 
-            // Try translating indexing inside JSON column
-            // Note that Length over PG arrays (not within JSON) gets translated by QueryableMethodTranslatingEV, since arrays are primitive
-            // collections
-            return _jsonPocoTranslator.TranslateMemberAccess(arguments[0], arguments[1], method.ReturnType);
+                // Try translating indexing inside JSON column
+                // Note that Length over PG arrays (not within JSON) gets translated by QueryableMethodTranslatingEV, since arrays are primitive
+                // collections
+                _ => _jsonPocoTranslator.TranslateMemberAccess(arguments[0], arguments[1], method.ReturnType)
+            };
         }
 
         if (method.IsClosedFormOf(Enumerable_SequenceEqual)
