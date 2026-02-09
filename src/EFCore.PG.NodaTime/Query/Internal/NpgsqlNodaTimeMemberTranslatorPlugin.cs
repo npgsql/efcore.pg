@@ -9,23 +9,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal;
 /// <remarks>
 ///     See: https://www.postgresql.org/docs/current/static/functions-datetime.html
 /// </remarks>
-public class NpgsqlNodaTimeMemberTranslatorPlugin : IMemberTranslatorPlugin
+public class NpgsqlNodaTimeMemberTranslatorPlugin(
+    IRelationalTypeMappingSource typeMappingSource,
+    ISqlExpressionFactory sqlExpressionFactory)
+    : IMemberTranslatorPlugin
 {
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public NpgsqlNodaTimeMemberTranslatorPlugin(
-        IRelationalTypeMappingSource typeMappingSource,
-        ISqlExpressionFactory sqlExpressionFactory)
-    {
-        Translators =
-        [
-            new NpgsqlNodaTimeMemberTranslator(typeMappingSource, (NpgsqlSqlExpressionFactory)sqlExpressionFactory)
-        ];
-    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -33,7 +21,10 @@ public class NpgsqlNodaTimeMemberTranslatorPlugin : IMemberTranslatorPlugin
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public virtual IEnumerable<IMemberTranslator> Translators { get; }
+    public virtual IEnumerable<IMemberTranslator> Translators { get; } =
+        [
+            new NpgsqlNodaTimeMemberTranslator(typeMappingSource, (NpgsqlSqlExpressionFactory)sqlExpressionFactory)
+        ];
 }
 
 /// <summary>
@@ -42,64 +33,22 @@ public class NpgsqlNodaTimeMemberTranslatorPlugin : IMemberTranslatorPlugin
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
+/// <remarks>
+///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+///     any release. You should only use it directly in your code with extreme caution and knowing that
+///     doing so can result in application failures when updating to a new Entity Framework Core release.
+/// </remarks>
+public class NpgsqlNodaTimeMemberTranslator(
+    IRelationalTypeMappingSource typeMappingSource,
+    NpgsqlSqlExpressionFactory sqlExpressionFactory)
+    : IMemberTranslator
 {
-    private static readonly MemberInfo SystemClock_Instance =
-        typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance))!;
-
-    private static readonly MemberInfo ZonedDateTime_LocalDateTime =
-        typeof(ZonedDateTime).GetRuntimeProperty(nameof(ZonedDateTime.LocalDateTime))!;
-
-    private static readonly MemberInfo Interval_Start =
-        typeof(Interval).GetRuntimeProperty(nameof(Interval.Start))!;
-
-    private static readonly MemberInfo Interval_End =
-        typeof(Interval).GetRuntimeProperty(nameof(Interval.End))!;
-
-    private static readonly MemberInfo Interval_HasStart =
-        typeof(Interval).GetRuntimeProperty(nameof(Interval.HasStart))!;
-
-    private static readonly MemberInfo Interval_HasEnd =
-        typeof(Interval).GetRuntimeProperty(nameof(Interval.HasEnd))!;
-
-    private static readonly MemberInfo Interval_Duration =
-        typeof(Interval).GetRuntimeProperty(nameof(Interval.Duration))!;
-
-    private static readonly MemberInfo DateInterval_Start =
-        typeof(DateInterval).GetRuntimeProperty(nameof(DateInterval.Start))!;
-
-    private static readonly MemberInfo DateInterval_End =
-        typeof(DateInterval).GetRuntimeProperty(nameof(DateInterval.End))!;
-
-    private static readonly MemberInfo DateInterval_Length =
-        typeof(DateInterval).GetRuntimeProperty(nameof(DateInterval.Length))!;
-
-    private static readonly MemberInfo DateTimeZoneProviders_TzDb =
-        typeof(DateTimeZoneProviders).GetRuntimeProperty(nameof(DateTimeZoneProviders.Tzdb))!;
-
-    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-    private readonly IRelationalTypeMappingSource _typeMappingSource;
-    private readonly RelationalTypeMapping _dateTypeMapping;
-    private readonly RelationalTypeMapping _periodTypeMapping;
-    private readonly RelationalTypeMapping _localDateTimeTypeMapping;
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public NpgsqlNodaTimeMemberTranslator(
-        IRelationalTypeMappingSource typeMappingSource,
-        NpgsqlSqlExpressionFactory sqlExpressionFactory)
-    {
-        _typeMappingSource = typeMappingSource;
-        _sqlExpressionFactory = sqlExpressionFactory;
-        _dateTypeMapping = typeMappingSource.FindMapping(typeof(LocalDate))!;
-        _periodTypeMapping = typeMappingSource.FindMapping(typeof(Period))!;
-        _localDateTimeTypeMapping = typeMappingSource.FindMapping(typeof(LocalDateTime))!;
-    }
-
+    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory = sqlExpressionFactory;
+    private readonly IRelationalTypeMappingSource _typeMappingSource = typeMappingSource;
+    private readonly RelationalTypeMapping _dateTypeMapping = typeMappingSource.FindMapping(typeof(LocalDate))!;
+    private readonly RelationalTypeMapping _periodTypeMapping = typeMappingSource.FindMapping(typeof(Period))!;
+    private readonly RelationalTypeMapping _localDateTimeTypeMapping = typeMappingSource.FindMapping(typeof(LocalDateTime))!;
     private static readonly bool[][] TrueArrays = [[], [true], [true, true]];
 
     /// <inheritdoc />
@@ -110,12 +59,12 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
         // This is necessary to allow translation of methods on SystemClock.Instance
-        if (member == SystemClock_Instance)
+        if (member.DeclaringType == typeof(SystemClock) && member.Name == nameof(SystemClock.Instance))
         {
             return _sqlExpressionFactory.Constant(SystemClock.Instance);
         }
 
-        if (member == DateTimeZoneProviders_TzDb)
+        if (member.DeclaringType == typeof(DateTimeZoneProviders) && member.Name == nameof(DateTimeZoneProviders.Tzdb))
         {
             return PendingDateTimeZoneProviderExpression.Instance;
         }
@@ -181,44 +130,34 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
 
     private SqlExpression? TranslateInterval(SqlExpression instance, MemberInfo member)
     {
-        if (member == Interval_Start)
+        return member.Name switch
         {
-            return Lower();
-        }
+            nameof(Interval.Start) => Lower(),
+            nameof(Interval.End) => Upper(),
 
-        if (member == Interval_End)
-        {
-            return Upper();
-        }
+            nameof(Interval.HasStart)
+                => _sqlExpressionFactory.Not(
+                    _sqlExpressionFactory.Function(
+                        "lower_inf",
+                        [instance],
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(bool))),
 
-        if (member == Interval_HasStart)
-        {
-            return _sqlExpressionFactory.Not(
-                _sqlExpressionFactory.Function(
-                    "lower_inf",
-                    [instance],
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[1],
-                    typeof(bool)));
-        }
+            nameof(Interval.HasEnd)
+                => _sqlExpressionFactory.Not(
+                    _sqlExpressionFactory.Function(
+                        "upper_inf",
+                        [instance],
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(bool))),
 
-        if (member == Interval_HasEnd)
-        {
-            return _sqlExpressionFactory.Not(
-                _sqlExpressionFactory.Function(
-                    "upper_inf",
-                    [instance],
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[1],
-                    typeof(bool)));
-        }
+            nameof(Interval.Duration)
+                => _sqlExpressionFactory.Subtract(Upper(), Lower(), _typeMappingSource.FindMapping(typeof(Duration))),
 
-        if (member == Interval_Duration)
-        {
-            return _sqlExpressionFactory.Subtract(Upper(), Lower(), _typeMappingSource.FindMapping(typeof(Duration)));
-        }
-
-        return null;
+            _ => null
+        };
 
         SqlExpression Lower()
             => _sqlExpressionFactory.Function(
@@ -244,28 +183,23 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
         // NodaTime DateInterval is inclusive on both ends.
         // PostgreSQL daterange is a discrete range type; this means it gets normalized to inclusive lower bound, exclusive upper bound.
         // So we can translate Start as-is, but need to subtract a day for End.
-        if (member == DateInterval_Start)
+        return member.Name switch
         {
-            return Lower();
-        }
+            nameof(DateInterval.Start) => Lower(),
 
-        if (member == DateInterval_End)
-        {
             // PostgreSQL creates a result of type 'timestamp without time zone' when subtracting intervals from dates, so add a cast back
             // to date.
-            return _sqlExpressionFactory.Convert(
-                _sqlExpressionFactory.Subtract(
-                    Upper(),
-                    _sqlExpressionFactory.Constant(Period.FromDays(1), _periodTypeMapping)), typeof(LocalDate),
-                _typeMappingSource.FindMapping(typeof(LocalDate)));
-        }
+            nameof(DateInterval.End)
+                => _sqlExpressionFactory.Convert(
+                    _sqlExpressionFactory.Subtract(
+                        Upper(),
+                        _sqlExpressionFactory.Constant(Period.FromDays(1), _periodTypeMapping)), typeof(LocalDate),
+                    _typeMappingSource.FindMapping(typeof(LocalDate))),
 
-        if (member == DateInterval_Length)
-        {
-            return _sqlExpressionFactory.Subtract(Upper(), Lower());
-        }
+            nameof(DateInterval.Length) => _sqlExpressionFactory.Subtract(Upper(), Lower()),
 
-        return null;
+            _ => null
+        };
 
         SqlExpression Lower()
             => _sqlExpressionFactory.Function(
@@ -378,7 +312,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
                 typeof(LocalDateTime),
                 _localDateTimeTypeMapping);
 
-            return member == ZonedDateTime_LocalDateTime
+            return member.Name == nameof(ZonedDateTime.LocalDateTime)
                 ? instance
                 : TranslateDateTime(instance, member);
         }
@@ -388,7 +322,7 @@ public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
         // The same works also for the LocalDateTime member.
         instance = _sqlExpressionFactory.AtUtc(instance);
 
-        return member == ZonedDateTime_LocalDateTime
+        return member.Name == nameof(ZonedDateTime.LocalDateTime)
             ? instance
             : TranslateDateTime(instance, member);
     }

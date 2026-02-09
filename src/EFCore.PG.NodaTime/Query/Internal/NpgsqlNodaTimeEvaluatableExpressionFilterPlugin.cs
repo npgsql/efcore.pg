@@ -8,12 +8,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal;
 /// </summary>
 public class NpgsqlNodaTimeEvaluatableExpressionFilterPlugin : IEvaluatableExpressionFilterPlugin
 {
-    private static readonly MethodInfo GetCurrentInstantMethod =
-        typeof(SystemClock).GetRuntimeMethod(nameof(SystemClock.GetCurrentInstant), [])!;
-
-    private static readonly MemberInfo SystemClockInstanceMember =
-        typeof(SystemClock).GetMember(nameof(SystemClock.Instance)).FirstOrDefault()!;
-
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -24,11 +18,14 @@ public class NpgsqlNodaTimeEvaluatableExpressionFilterPlugin : IEvaluatableExpre
     {
         switch (expression)
         {
-            case MethodCallExpression methodCallExpression when methodCallExpression.Method == GetCurrentInstantMethod:
+            case MethodCallExpression methodCallExpression
+                when methodCallExpression.Method.DeclaringType == typeof(SystemClock)
+                    && methodCallExpression.Method.Name == nameof(SystemClock.GetCurrentInstant):
                 return false;
 
             case MemberExpression memberExpression:
-                if (memberExpression.Member == SystemClockInstanceMember)
+                if (memberExpression.Member.DeclaringType == typeof(SystemClock)
+                    && memberExpression.Member.Name == nameof(SystemClock.Instance))
                 {
                     return false;
                 }

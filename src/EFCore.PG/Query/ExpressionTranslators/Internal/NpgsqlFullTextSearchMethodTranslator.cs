@@ -6,41 +6,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 /// <summary>
 ///     Provides translations for PostgreSQL full-text search methods.
 /// </summary>
-public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
+public class NpgsqlFullTextSearchMethodTranslator(
+    IRelationalTypeMappingSource typeMappingSource,
+    NpgsqlSqlExpressionFactory sqlExpressionFactory,
+    IModel model)
+    : IMethodCallTranslator
 {
-    private static readonly MethodInfo TsQueryParse =
-        typeof(NpgsqlTsQuery).GetMethod(nameof(NpgsqlTsQuery.Parse), BindingFlags.Public | BindingFlags.Static)!;
-
-    private static readonly MethodInfo TsVectorParse =
-        typeof(NpgsqlTsVector).GetMethod(nameof(NpgsqlTsVector.Parse), BindingFlags.Public | BindingFlags.Static)!;
-
-    private readonly IRelationalTypeMappingSource _typeMappingSource;
-    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-    private readonly IModel _model;
-    private readonly RelationalTypeMapping _tsQueryMapping;
-    private readonly RelationalTypeMapping _tsVectorMapping;
-    private readonly RelationalTypeMapping _regconfigMapping;
-    private readonly RelationalTypeMapping _regdictionaryMapping;
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public NpgsqlFullTextSearchMethodTranslator(
-        IRelationalTypeMappingSource typeMappingSource,
-        NpgsqlSqlExpressionFactory sqlExpressionFactory,
-        IModel model)
-    {
-        _typeMappingSource = typeMappingSource;
-        _sqlExpressionFactory = sqlExpressionFactory;
-        _model = model;
-        _tsQueryMapping = typeMappingSource.FindMapping("tsquery")!;
-        _tsVectorMapping = typeMappingSource.FindMapping("tsvector")!;
-        _regconfigMapping = typeMappingSource.FindMapping("regconfig")!;
-        _regdictionaryMapping = typeMappingSource.FindMapping("regdictionary")!;
-    }
+    private readonly IRelationalTypeMappingSource _typeMappingSource = typeMappingSource;
+    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory = sqlExpressionFactory;
+    private readonly IModel _model = model;
+    private readonly RelationalTypeMapping _tsQueryMapping = typeMappingSource.FindMapping("tsquery")!;
+    private readonly RelationalTypeMapping _tsVectorMapping = typeMappingSource.FindMapping("tsvector")!;
+    private readonly RelationalTypeMapping _regconfigMapping = typeMappingSource.FindMapping("regconfig")!;
+    private readonly RelationalTypeMapping _regdictionaryMapping = typeMappingSource.FindMapping("regdictionary")!;
 
     /// <inheritdoc />
     public virtual SqlExpression? Translate(
@@ -49,7 +27,8 @@ public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (method == TsQueryParse || method == TsVectorParse)
+        if ((method.DeclaringType == typeof(NpgsqlTsQuery) || method.DeclaringType == typeof(NpgsqlTsVector))
+            && method.Name == nameof(NpgsqlTsQuery.Parse))
         {
             return _sqlExpressionFactory.Convert(arguments[0], method.ReturnType);
         }

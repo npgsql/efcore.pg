@@ -9,33 +9,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslator
+public class NpgsqlMiscAggregateMethodTranslator(
+    NpgsqlSqlExpressionFactory sqlExpressionFactory,
+    IRelationalTypeMappingSource typeMappingSource,
+    IModel model)
+    : IAggregateMethodCallTranslator
 {
-    private static readonly MethodInfo StringJoin
-        = typeof(string).GetRuntimeMethod(nameof(string.Join), [typeof(string), typeof(IEnumerable<string>)])!;
-
-    private static readonly MethodInfo StringConcat
-        = typeof(string).GetRuntimeMethod(nameof(string.Concat), [typeof(IEnumerable<string>)])!;
-
-    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-    private readonly IRelationalTypeMappingSource _typeMappingSource;
-    private readonly IModel _model;
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public NpgsqlMiscAggregateMethodTranslator(
-        NpgsqlSqlExpressionFactory sqlExpressionFactory,
-        IRelationalTypeMappingSource typeMappingSource,
-        IModel model)
-    {
-        _sqlExpressionFactory = sqlExpressionFactory;
-        _typeMappingSource = typeMappingSource;
-        _model = model;
-    }
+    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory = sqlExpressionFactory;
+    private readonly IRelationalTypeMappingSource _typeMappingSource = typeMappingSource;
+    private readonly IModel _model = model;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -56,8 +38,21 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
             return null;
         }
 
-        if (method == StringJoin || method == StringConcat)
+        if (method.DeclaringType == typeof(string))
         {
+            SqlExpression separator;
+            switch (method.Name)
+            {
+                case nameof(string.Concat) when arguments is []:
+                    separator = _sqlExpressionFactory.Constant(string.Empty, typeof(string));
+                    break;
+                case nameof(string.Join) when arguments is [var sep]:
+                    separator = sep;
+                    break;
+                default:
+                    return null;
+            }
+
             // string_agg filters out nulls, but string.Join treats them as empty strings; coalesce unless we know we're aggregating over
             // a non-nullable column.
             if (sqlExpression is not ColumnExpression { IsNullable: false })
@@ -73,7 +68,7 @@ public class NpgsqlMiscAggregateMethodTranslator : IAggregateMethodCallTranslato
                     "string_agg",
                     [
                         sqlExpression,
-                        method == StringJoin ? arguments[0] : _sqlExpressionFactory.Constant(string.Empty, typeof(string))
+                        separator
                     ],
                     source,
                     nullable: true,

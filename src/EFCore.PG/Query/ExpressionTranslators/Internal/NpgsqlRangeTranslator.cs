@@ -18,10 +18,6 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
     private readonly IModel _model;
     private readonly bool _supportsMultiranges;
 
-    private static readonly MethodInfo EnumerableAnyWithoutPredicate =
-        typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 1);
-
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -50,13 +46,14 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
         // Any() over multirange -> NOT isempty(). NpgsqlRange<T> has IsEmpty which is translated below.
         if (_supportsMultiranges
             && method.IsGenericMethod
-            && method.GetGenericMethodDefinition() == EnumerableAnyWithoutPredicate
-            && arguments[0].IsMultirange())
+            && method.DeclaringType == typeof(Enumerable) && method.Name == nameof(Enumerable.Any)
+            && arguments is [var multirange]
+            && multirange.IsMultirange())
         {
             return _sqlExpressionFactory.Not(
                 _sqlExpressionFactory.Function(
                     "isempty",
-                    [arguments[0]],
+                    [multirange],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(bool)));

@@ -11,56 +11,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
+public class NpgsqlJsonDomTranslator(
+    IRelationalTypeMappingSource typeMappingSource,
+    NpgsqlSqlExpressionFactory sqlExpressionFactory,
+    IModel model)
+    : IMemberTranslator, IMethodCallTranslator
 {
-    private static readonly MemberInfo RootElement = typeof(JsonDocument).GetProperty(nameof(JsonDocument.RootElement))!;
-
-    private static readonly MethodInfo GetProperty = typeof(JsonElement).GetRuntimeMethod(
-        nameof(JsonElement.GetProperty), [typeof(string)])!;
-
-    private static readonly MethodInfo GetArrayLength = typeof(JsonElement).GetRuntimeMethod(
-        nameof(JsonElement.GetArrayLength), Type.EmptyTypes)!;
-
-    private static readonly MethodInfo ArrayIndexer = typeof(JsonElement).GetProperties()
-        .Single(p => p.GetIndexParameters().Length == 1 && p.GetIndexParameters()[0].ParameterType == typeof(int))
-        .GetMethod!;
-
-    private static readonly string[] GetMethods =
-    [
-        nameof(JsonElement.GetBoolean),
-        nameof(JsonElement.GetDateTime),
-        nameof(JsonElement.GetDateTimeOffset),
-        nameof(JsonElement.GetDecimal),
-        nameof(JsonElement.GetDouble),
-        nameof(JsonElement.GetGuid),
-        nameof(JsonElement.GetInt16),
-        nameof(JsonElement.GetInt32),
-        nameof(JsonElement.GetInt64),
-        nameof(JsonElement.GetSingle),
-        nameof(JsonElement.GetString)
-    ];
-
-    private readonly IRelationalTypeMappingSource _typeMappingSource;
-    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-    private readonly RelationalTypeMapping _stringTypeMapping;
-    private readonly IModel _model;
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public NpgsqlJsonDomTranslator(
-        IRelationalTypeMappingSource typeMappingSource,
-        NpgsqlSqlExpressionFactory sqlExpressionFactory,
-        IModel model)
-    {
-        _typeMappingSource = typeMappingSource;
-        _sqlExpressionFactory = sqlExpressionFactory;
-        _model = model;
-        _stringTypeMapping = typeMappingSource.FindMapping(typeof(string), model)!;
-    }
+    private readonly IRelationalTypeMappingSource _typeMappingSource = typeMappingSource;
+    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory = sqlExpressionFactory;
+    private readonly RelationalTypeMapping _stringTypeMapping = typeMappingSource.FindMapping(typeof(string), model)!;
+    private readonly IModel _model = model;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -79,7 +39,8 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
             return null;
         }
 
-        if (member == RootElement && instance is ColumnExpression { TypeMapping: NpgsqlJsonTypeMapping } column)
+        if (member.Name == nameof(JsonDocument.RootElement)
+            && instance is ColumnExpression { TypeMapping: NpgsqlJsonTypeMapping } column)
         {
             // Simply get rid of the RootElement member access
             return column;
@@ -114,14 +75,25 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
                 columnExpression, returnsText: false, typeof(string), mapping)
             : instance;
 
-        if (method == GetProperty || method == ArrayIndexer)
+        if (method.Name is nameof(JsonElement.GetProperty) or "get_Item" && arguments is [_])
         {
             return instance is PgJsonTraversalExpression prevPathTraversal
                 ? prevPathTraversal.Append(_sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]))
                 : null;
         }
 
-        if (GetMethods.Contains(method.Name) && arguments.Count == 0 && instance is PgJsonTraversalExpression traversal)
+        if (method.Name is nameof(JsonElement.GetBoolean)
+                or nameof(JsonElement.GetDateTime)
+                or nameof(JsonElement.GetDateTimeOffset)
+                or nameof(JsonElement.GetDecimal)
+                or nameof(JsonElement.GetDouble)
+                or nameof(JsonElement.GetGuid)
+                or nameof(JsonElement.GetInt16)
+                or nameof(JsonElement.GetInt32)
+                or nameof(JsonElement.GetInt64)
+                or nameof(JsonElement.GetSingle)
+                or nameof(JsonElement.GetString)
+            && arguments.Count == 0 && instance is PgJsonTraversalExpression traversal)
         {
             var traversalToText = new PgJsonTraversalExpression(
                 traversal.Expression,
@@ -137,7 +109,7 @@ public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
                     traversalToText, method.ReturnType, _typeMappingSource.FindMapping(method.ReturnType, _model));
         }
 
-        if (method == GetArrayLength)
+        if (method.Name == nameof(JsonElement.GetArrayLength) && arguments is [])
         {
             return _sqlExpressionFactory.Function(
                 mapping.IsJsonb ? "jsonb_array_length" : "json_array_length",

@@ -13,12 +13,6 @@ public class NpgsqlEvaluatableExpressionFilter : RelationalEvaluatableExpression
 {
     private readonly Version _postgresVersion;
 
-    private static readonly MethodInfo TsQueryParse =
-        typeof(NpgsqlTsQuery).GetRuntimeMethod(nameof(NpgsqlTsQuery.Parse), [typeof(string)])!;
-
-    private static readonly MethodInfo TsVectorParse =
-        typeof(NpgsqlTsVector).GetRuntimeMethod(nameof(NpgsqlTsVector.Parse), [typeof(string)])!;
-
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -48,8 +42,8 @@ public class NpgsqlEvaluatableExpressionFilter : RelationalEvaluatableExpression
                 var declaringType = methodCallExpression.Method.DeclaringType;
                 var method = methodCallExpression.Method;
 
-                if (method == TsQueryParse
-                    || method == TsVectorParse
+                if ((method.Name == nameof(NpgsqlTsQuery.Parse)
+                        && (method.DeclaringType == typeof(NpgsqlTsQuery) || method.DeclaringType == typeof(NpgsqlTsVector)))
                     || declaringType == typeof(NpgsqlDbFunctionsExtensions)
                     || declaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions)
                     || declaringType == typeof(NpgsqlFullTextSearchLinqExtensions)
