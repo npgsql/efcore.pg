@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore.BulkUpdates.Inheritance;
 namespace Microsoft.EntityFrameworkCore.BulkUpdates;
 
 public class TPCFiltersInheritanceBulkUpdatesNpgsqlTest(
@@ -174,11 +175,11 @@ WHERE (
         AssertExecuteUpdateSql(
             """
 @p='Kiwi'
-@p0='0'
+@p1='0'
 
 UPDATE "Kiwi" AS k
 SET "Name" = @p,
-    "FoundOn" = @p0
+    "FoundOn" = @p1
 WHERE k."CountryId" = 1
 """);
     }

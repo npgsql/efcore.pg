@@ -3,6 +3,19 @@ namespace Microsoft.EntityFrameworkCore.Query;
 public class EntitySplittingQueryNpgsqlTest(NonSharedFixture fixture)
     : EntitySplittingQueryTestBase(fixture)
 {
+
+    public override async Task Compare_split_entity_to_null(bool async)
+    {
+        await base.Compare_split_entity_to_null(async);
+
+        AssertSql(
+            """
+SELECT e."Id", e."EntityThreeId", e."IntValue1", e."IntValue2", s."IntValue3", e."IntValue4", e."StringValue1", e."StringValue2", e."StringValue3", e."StringValue4"
+FROM "EntityOne" AS e
+INNER JOIN "SplitEntityOnePart" AS s ON e."Id" = s."Id"
+""");
+    }
+
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());

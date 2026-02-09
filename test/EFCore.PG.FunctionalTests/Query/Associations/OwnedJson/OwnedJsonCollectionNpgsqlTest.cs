@@ -249,6 +249,19 @@ FROM "RootEntity" AS r
 """);
     }
 
+
+    public override async Task Index_on_nested_collection()
+    {
+        await base.Index_on_nested_collection();
+
+        AssertSql(
+            """
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
+FROM "RootEntity" AS r
+WHERE (CAST(r."RequiredAssociate" #>> '{NestedCollection,0,Int}' AS integer)) = 8
+""");
+    }
+
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());

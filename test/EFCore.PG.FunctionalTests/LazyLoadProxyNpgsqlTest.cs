@@ -9,6 +9,10 @@ public class LazyLoadProxyNpgsqlTest : LazyLoadProxyRelationalTestBase<LazyLoadP
         Fixture.TestSqlLoggerFactory.Clear();
     }
 
+    [ConditionalFact(Skip = "EF Core base class issue - complex types on owned types (#33170)")]
+    public override void Can_serialize_proxies_to_JSON()
+        => base.Can_serialize_proxies_to_JSON();
+
     [ConditionalFact] // Requires MARS
     public override void Top_level_projection_track_entities_before_passing_to_client_method() { }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.TestModels.InheritanceModel;
 
+using Microsoft.EntityFrameworkCore.Query.Inheritance;
 namespace Microsoft.EntityFrameworkCore.Query;
 
 public class TPHInheritanceQueryNpgsqlFixture : TPHInheritanceQueryFixture

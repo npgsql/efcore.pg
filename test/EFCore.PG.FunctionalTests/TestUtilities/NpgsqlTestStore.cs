@@ -433,7 +433,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
     private static string CreateAdminConnectionString()
         => CreateConnectionString("postgres");
 
-    public override Task CleanAsync(DbContext context)
+    public override Task CleanAsync(DbContext context, bool createTables = true)
     {
         context.Database.EnsureClean();
         return Task.CompletedTask;

@@ -141,7 +141,7 @@ WHERE (CAST(r."AssociateCollection" #>> '{0,Int}' AS integer)) = 8
 
         AssertSql(
             """
-@i='?' (DbType = Int32)
+@i='0'
 
 SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
@@ -211,6 +211,19 @@ SELECT (
         FROM ROWS FROM (jsonb_to_recordset(a."NestedCollection") AS ("Int" integer)) WITH ORDINALITY AS n)), 0)::int
     FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS ("NestedCollection" jsonb)) WITH ORDINALITY AS a)
 FROM "RootEntity" AS r
+""");
+    }
+
+
+    public override async Task Index_on_nested_collection()
+    {
+        await base.Index_on_nested_collection();
+
+        AssertSql(
+            """
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
+FROM "RootEntity" AS r
+WHERE (CAST(r."RequiredAssociate" #>> '{NestedCollection,0,Int}' AS integer)) = 8
 """);
     }
 

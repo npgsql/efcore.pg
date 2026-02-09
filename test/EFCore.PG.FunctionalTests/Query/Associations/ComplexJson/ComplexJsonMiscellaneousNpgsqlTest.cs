@@ -86,6 +86,11 @@ WHERE (v."OptionalAssociate") IS NOT NULL
 
     #endregion Value types
 
+
+    [ConditionalFact(Skip = "EF Core bug - NullReferenceException in GenerateComplexJsonShaper")]
+    public override async Task FromSql_on_root()
+        => await base.FromSql_on_root();
+
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());

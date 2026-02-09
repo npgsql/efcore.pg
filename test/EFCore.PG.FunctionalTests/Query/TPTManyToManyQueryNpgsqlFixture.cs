@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.ManyToManyModel;
 
+using Microsoft.EntityFrameworkCore.Query.Inheritance;
 namespace Microsoft.EntityFrameworkCore.Query;
 
 public class TPTManyToManyQueryNpgsqlFixture : TPTManyToManyQueryRelationalFixture

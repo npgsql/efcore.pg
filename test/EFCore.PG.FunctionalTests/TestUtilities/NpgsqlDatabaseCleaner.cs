@@ -23,7 +23,7 @@ public class NpgsqlDatabaseCleaner : RelationalDatabaseCleaner
     protected override bool AcceptIndex(DatabaseIndex index)
         => false;
 
-    public override void Clean(DatabaseFacade facade)
+    public override void Clean(DatabaseFacade facade, bool createTables = true)
     {
         // The following is somewhat hacky
         // PostGIS creates some system tables (e.g. spatial_ref_sys) which can't be dropped until the extension

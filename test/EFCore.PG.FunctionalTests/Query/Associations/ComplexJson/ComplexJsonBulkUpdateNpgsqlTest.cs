@@ -13,7 +13,7 @@ public class ComplexJsonBulkUpdateNpgsqlTest(
 
         AssertSql(
             """
-@deletableEntity_Name='?'
+@deletableEntity_Name='Root3_With_different_values'
 
 DELETE FROM "RootEntity" AS r
 WHERE r."Name" = @deletableEntity_Name
@@ -44,7 +44,7 @@ WHERE r."Name" = @deletableEntity_Name
 
         AssertExecuteUpdateSql(
             """
-@p='?'
+@p='foo_updated'
 
 UPDATE "RootEntity" AS r
 SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{String}', to_jsonb(@p))
@@ -69,7 +69,7 @@ WHERE (r."RequiredAssociate" ->> 'String') = '{ this may/look:like JSON but it [
 
         AssertExecuteUpdateSql(
             """
-@p='?'
+@p='foo_updated'
 
 UPDATE "RootEntity" AS r
 SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{RequiredNestedAssociate,String}', to_jsonb(@p))
@@ -82,7 +82,7 @@ SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{RequiredNestedAssoc
 
         AssertExecuteUpdateSql(
             """
-@p='?'
+@p='foo_updated'
 
 UPDATE "RootEntity" AS r
 SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{String}', to_jsonb(@p))
@@ -113,7 +113,7 @@ SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{String}', to_jsonb(
 
         AssertExecuteUpdateSql(
             """
-@complex_type_p='?' (DbType = Object)
+@complex_type_p='{"Id":1000,"Int":80,"Ints":[1,2,3],"Name":"Updated associate name","String":"Updated nested string","NestedCollection":[],"OptionalNestedAssociate":null,"RequiredNestedAssociate":{"Id":1000,"Int":80,"Ints":[1,2,3],"Name":"Updated nested name","String":"Updated nested string"}}' (DbType = Object)
 
 UPDATE "RootEntity" AS r
 SET "RequiredAssociate" = @complex_type_p
@@ -126,7 +126,7 @@ SET "RequiredAssociate" = @complex_type_p
 
         AssertExecuteUpdateSql(
             """
-@complex_type_p='?' (DbType = Object)
+@complex_type_p='{"Id":1000,"Int":80,"Ints":[1,2,4],"Name":"Updated nested name","String":"Updated nested string"}' (DbType = Object)
 
 UPDATE "RootEntity" AS r
 SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{RequiredNestedAssociate}', @complex_type_p)
@@ -161,7 +161,7 @@ SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{OptionalNestedAssoc
 
         AssertExecuteUpdateSql(
             """
-@complex_type_p='?' (DbType = Object)
+@complex_type_p='{"Id":1000,"Int":70,"Ints":[1,2,4],"Name":"Updated associate name","String":"Updated associate string","NestedCollection":[],"OptionalNestedAssociate":null,"RequiredNestedAssociate":{"Id":1000,"Int":80,"Ints":[1,2,4],"Name":"Updated nested name","String":"Updated nested string"}}' (DbType = Object)
 
 UPDATE "RootEntity" AS r
 SET "RequiredAssociate" = @complex_type_p
@@ -240,7 +240,7 @@ SET "OptionalAssociate" = NULL
 
         AssertExecuteUpdateSql(
             """
-@complex_type_p='?' (DbType = Object)
+@complex_type_p='[{"Id":1000,"Int":80,"Ints":[1,2,4],"Name":"Updated associate name1","String":"Updated associate string1","NestedCollection":[],"OptionalNestedAssociate":null,"RequiredNestedAssociate":{"Id":1000,"Int":80,"Ints":[1,2,4],"Name":"Updated nested name1","String":"Updated nested string1"}},{"Id":1001,"Int":81,"Ints":[1,2,4],"Name":"Updated associate name2","String":"Updated associate string2","NestedCollection":[],"OptionalNestedAssociate":null,"RequiredNestedAssociate":{"Id":1001,"Int":81,"Ints":[1,2,4],"Name":"Updated nested name2","String":"Updated nested string2"}}]' (DbType = Object)
 
 UPDATE "RootEntity" AS r
 SET "AssociateCollection" = @complex_type_p
@@ -253,7 +253,7 @@ SET "AssociateCollection" = @complex_type_p
 
         AssertExecuteUpdateSql(
             """
-@complex_type_p='?' (DbType = Object)
+@complex_type_p='[{"Id":1000,"Int":80,"Ints":[1,2,4],"Name":"Updated nested name1","String":"Updated nested string1"},{"Id":1001,"Int":81,"Ints":[1,2,4],"Name":"Updated nested name2","String":"Updated nested string2"}]' (DbType = Object)
 
 UPDATE "RootEntity" AS r
 SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{NestedCollection}', @complex_type_p)
@@ -318,7 +318,7 @@ SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{Ints}', '[1,2,4]')
 
         AssertExecuteUpdateSql(
             """
-@ints='?' (DbType = Object)
+@ints='[1,2,4]' (DbType = Object)
 
 UPDATE "RootEntity" AS r
 SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{Ints}', @ints)
@@ -342,7 +342,7 @@ SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{OptionalNestedAssoc
 
         AssertExecuteUpdateSql(
             """
-@p='?' (DbType = Int32)
+@p='99'
 
 UPDATE "RootEntity" AS r
 SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{Ints,1}', to_jsonb(@p))
@@ -360,11 +360,11 @@ WHERE jsonb_array_length(r."RequiredAssociate" -> 'Ints') >= 2
 
         AssertExecuteUpdateSql(
             """
-@p='?'
-@p0='?' (DbType = Int32)
+@p='foo_updated'
+@p1='20'
 
 UPDATE "RootEntity" AS r
-SET "RequiredAssociate" = jsonb_set(jsonb_set(r."RequiredAssociate", '{String}', to_jsonb(@p)), '{Int}', to_jsonb(@p0))
+SET "RequiredAssociate" = jsonb_set(jsonb_set(r."RequiredAssociate", '{String}', to_jsonb(@p)), '{Int}', to_jsonb(@p1))
 """);
     }
 
@@ -374,7 +374,7 @@ SET "RequiredAssociate" = jsonb_set(jsonb_set(r."RequiredAssociate", '{String}',
 
         AssertExecuteUpdateSql(
             """
-@p='?'
+@p='foo_updated'
 
 UPDATE "RootEntity" AS r
 SET "Name" = r."Name" || 'Modified',
@@ -390,7 +390,7 @@ WHERE (r."OptionalAssociate") IS NOT NULL
 
         AssertExecuteUpdateSql(
             """
-@p='?'
+@p='foo_updated'
 
 UPDATE "RootEntity" AS r
 SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{String}', r."OptionalAssociate" -> 'String'),

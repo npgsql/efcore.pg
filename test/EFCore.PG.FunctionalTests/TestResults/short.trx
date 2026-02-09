@@ -1,0 +1,329 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="73800d27-6b25-4f4f-bfaf-81a3c226f856" name="@milo 2026-02-09 17:29:16" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-02-09T17:29:16.2623730+01:00" queuing="2026-02-09T17:29:16.2623730+01:00" start="2026-02-09T17:29:07.9757900+01:00" finish="2026-02-09T17:29:16.2886830+01:00" />
+  <TestSettings name="default" id="59c62590-98f3-4750-abb4-d55c8bc136b6">
+    <Deployment runDeploymentRoot="_milo_2026-02-09_17_29_16" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="0977e46f-f7c2-474d-bc5d-4390e063a131" testId="39b9868e-61c9-47b5-3d65-19cbfacacfdf" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.SaveChanges_within_json" computerName="milo" duration="00:00:00.0430878" startTime="2026-02-09T17:29:16.1320650+01:00" endTime="2026-02-09T17:29:16.1716880+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0977e46f-f7c2-474d-bc5d-4390e063a131">
+      <Output>
+        <StdOut>Creating DbCommand for 'ExecuteReader'.
+
+Created DbCommand for 'ExecuteReader' (0ms).
+
+Initialized DbCommand for 'ExecuteReader' (0ms).
+
+Closing data reader to 'TypeTest' on server 'tcp://localhost:5432'.
+
+A data reader for 'TypeTest' on server 'tcp://localhost:5432' is being disposed after spending 4ms reading results.
+
+Creating DbCommand for 'ExecuteReader'.
+
+Created DbCommand for 'ExecuteReader' (0ms).
+
+Initialized DbCommand for 'ExecuteReader' (0ms).
+
+Closing data reader to 'TypeTest' on server 'tcp://localhost:5432'.
+
+A data reader for 'TypeTest' on server 'tcp://localhost:5432' is being disposed after spending 0ms reading results.
+
+Creating DbCommand for 'ExecuteReader'.
+
+Created DbCommand for 'ExecuteReader' (0ms).
+
+Initialized DbCommand for 'ExecuteReader' (0ms).
+
+Closing data reader to 'TypeTest' on server 'tcp://localhost:5432'.
+
+A data reader for 'TypeTest' on server 'tcp://localhost:5432' is being disposed after spending 0ms reading results.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="805091e1-dabb-4869-a0cb-8203af9b5fa6" testId="737f7ec6-ad4a-16aa-6fa8-597df7aaac73" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.SaveChanges" computerName="milo" duration="00:00:00.0068476" startTime="2026-02-09T17:29:16.2496690+01:00" endTime="2026-02-09T17:29:16.2520700+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="805091e1-dabb-4869-a0cb-8203af9b5fa6">
+      <Output>
+        <StdOut>Creating DbCommand for 'ExecuteReader'.
+
+Created DbCommand for 'ExecuteReader' (0ms).
+
+Initialized DbCommand for 'ExecuteReader' (0ms).
+
+Closing data reader to 'TypeTest' on server 'tcp://localhost:5432'.
+
+A data reader for 'TypeTest' on server 'tcp://localhost:5432' is being disposed after spending 0ms reading results.
+
+Creating DbCommand for 'ExecuteReader'.
+
+Created DbCommand for 'ExecuteReader' (0ms).
+
+Initialized DbCommand for 'ExecuteReader' (0ms).
+
+Closing data reader to 'TypeTest' on server 'tcp://localhost:5432'.
+
+A data reader for 'TypeTest' on server 'tcp://localhost:5432' is being disposed after spending 0ms reading results.
+
+Creating DbCommand for 'ExecuteReader'.
+
+Created DbCommand for 'ExecuteReader' (0ms).
+
+Initialized DbCommand for 'ExecuteReader' (0ms).
+
+Closing data reader to 'TypeTest' on server 'tcp://localhost:5432'.
+
+A data reader for 'TypeTest' on server 'tcp://localhost:5432' is being disposed after spending 0ms reading results.
+
+Creating DbCommand for 'ExecuteReader'.
+
+Created DbCommand for 'ExecuteReader' (0ms).
+
+Initialized DbCommand for 'ExecuteReader' (0ms).
+
+Closing data reader to 'TypeTest' on server 'tcp://localhost:5432'.
+
+A data reader for 'TypeTest' on server 'tcp://localhost:5432' is being disposed after spending 0ms reading results.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="80604be5-b6f4-4e0e-bb74-49019ff5b291" testId="b1dd3ee9-c34d-d93e-9b24-0ac6bea5a926" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.Query_property_within_json" computerName="milo" duration="00:00:00.0304165" startTime="2026-02-09T17:29:16.1924600+01:00" endTime="2026-02-09T17:29:16.2229150+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="80604be5-b6f4-4e0e-bb74-49019ff5b291">
+      <Output>
+        <StdOut>Creating DbCommand for 'ExecuteReader'.
+
+Created DbCommand for 'ExecuteReader' (0ms).
+
+Initialized DbCommand for 'ExecuteReader' (0ms).
+
+Closing data reader to 'TypeTest' on server 'tcp://localhost:5432'.
+
+A data reader for 'TypeTest' on server 'tcp://localhost:5432' is being disposed after spending 2ms reading results.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="cf9922c5-9dce-4c1c-8b28-afa60058c405" testId="22ad4c2d-4574-17cf-1f2d-1caf56f02f03" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.ExecuteUpdate_within_json_to_parameter" computerName="milo" duration="00:00:00.0043245" startTime="2026-02-09T17:29:16.2305780+01:00" endTime="2026-02-09T17:29:16.2321750+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cf9922c5-9dce-4c1c-8b28-afa60058c405">
+      <Output>
+        <StdOut>Creating DbCommand for 'ExecuteNonQuery'.
+
+Created DbCommand for 'ExecuteNonQuery' (0ms).
+
+Initialized DbCommand for 'ExecuteNonQuery' (0ms).
+
+Creating DbCommand for 'ExecuteReader'.
+
+Created DbCommand for 'ExecuteReader' (0ms).
+
+Initialized DbCommand for 'ExecuteReader' (0ms).
+
+Closing data reader to 'TypeTest' on server 'tcp://localhost:5432'.
+
+A data reader for 'TypeTest' on server 'tcp://localhost:5432' is being disposed after spending 0ms reading results.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="03ef2010-0e6d-499f-983e-b1bea9a4fbac" testId="d3acb950-2f65-9003-9d15-53b4f1152c4a" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.ExecuteUpdate_within_json_to_another_json_property" computerName="milo" duration="00:00:00.0037727" startTime="2026-02-09T17:29:16.2322880+01:00" endTime="2026-02-09T17:29:16.2361070+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="03ef2010-0e6d-499f-983e-b1bea9a4fbac">
+      <Output>
+        <StdOut>Creating DbCommand for 'ExecuteNonQuery'.
+
+Created DbCommand for 'ExecuteNonQuery' (0ms).
+
+Initialized DbCommand for 'ExecuteNonQuery' (0ms).
+
+Creating DbCommand for 'ExecuteReader'.
+
+Created DbCommand for 'ExecuteReader' (0ms).
+
+Initialized DbCommand for 'ExecuteReader' (0ms).
+
+Closing data reader to 'TypeTest' on server 'tcp://localhost:5432'.
+
+A data reader for 'TypeTest' on server 'tcp://localhost:5432' is being disposed after spending 0ms reading results.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="930e72aa-a6fb-492f-b2b6-e5a412b026b1" testId="89409a5b-1286-d034-f06f-bd0fe347f904" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.Equality_in_query_with_parameter" computerName="milo" duration="00:00:00.0034752" startTime="2026-02-09T17:29:16.2415780+01:00" endTime="2026-02-09T17:29:16.2450760+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="930e72aa-a6fb-492f-b2b6-e5a412b026b1">
+      <Output>
+        <StdOut>Creating DbCommand for 'ExecuteReader'.
+
+Created DbCommand for 'ExecuteReader' (0ms).
+
+Initialized DbCommand for 'ExecuteReader' (0ms).
+
+Closing data reader to 'TypeTest' on server 'tcp://localhost:5432'.
+
+A data reader for 'TypeTest' on server 'tcp://localhost:5432' is being disposed after spending 0ms reading results.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="6f32c21b-5555-4df8-a8d5-60e6320b4840" testId="38a57ccd-ddc6-518d-efb6-be18495b6b6d" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.ExecuteUpdate_within_json_to_constant" computerName="milo" duration="00:00:00.0052100" startTime="2026-02-09T17:29:16.2362150+01:00" endTime="2026-02-09T17:29:16.2414510+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6f32c21b-5555-4df8-a8d5-60e6320b4840">
+      <Output>
+        <StdOut>Creating DbCommand for 'ExecuteNonQuery'.
+
+Created DbCommand for 'ExecuteNonQuery' (0ms).
+
+Initialized DbCommand for 'ExecuteNonQuery' (0ms).
+
+Creating DbCommand for 'ExecuteReader'.
+
+Created DbCommand for 'ExecuteReader' (0ms).
+
+Initialized DbCommand for 'ExecuteReader' (0ms).
+
+Closing data reader to 'TypeTest' on server 'tcp://localhost:5432'.
+
+A data reader for 'TypeTest' on server 'tcp://localhost:5432' is being disposed after spending 0ms reading results.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="fd1f6929-df53-4fe8-a92b-93a5728e23ea" testId="2ff076c4-b06c-053a-24a4-754a8d4fc124" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.Equality_in_query_with_constant" computerName="milo" duration="00:00:00.5056349" startTime="2026-02-09T17:29:15.6293700+01:00" endTime="2026-02-09T17:29:16.1275710+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fd1f6929-df53-4fe8-a92b-93a5728e23ea">
+      <Output>
+        <StdOut>Creating DbCommand for 'ExecuteReader'.
+
+Created DbCommand for 'ExecuteReader' (0ms).
+
+Initialized DbCommand for 'ExecuteReader' (0ms).
+
+Closing data reader to 'TypeTest' on server 'tcp://localhost:5432'.
+
+A data reader for 'TypeTest' on server 'tcp://localhost:5432' is being disposed after spending 1ms reading results.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="749aea0a-e4cc-4e73-8a23-847c554cabc6" testId="bb21ef05-10ea-a7b5-58ac-b5285d926c7e" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.ExecuteUpdate_within_json_to_nonjson_column" computerName="milo" duration="00:00:00.0204476" startTime="2026-02-09T17:29:16.1720720+01:00" endTime="2026-02-09T17:29:16.1923280+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="749aea0a-e4cc-4e73-8a23-847c554cabc6">
+      <Output>
+        <StdOut>Creating DbCommand for 'ExecuteNonQuery'.
+
+Created DbCommand for 'ExecuteNonQuery' (0ms).
+
+Initialized DbCommand for 'ExecuteNonQuery' (0ms).
+
+Creating DbCommand for 'ExecuteReader'.
+
+Created DbCommand for 'ExecuteReader' (0ms).
+
+Initialized DbCommand for 'ExecuteReader' (0ms).
+
+Closing data reader to 'TypeTest' on server 'tcp://localhost:5432'.
+
+A data reader for 'TypeTest' on server 'tcp://localhost:5432' is being disposed after spending 2ms reading results.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="afce83d3-2859-4ec3-883d-5e84a21fe4ec" testId="b944517b-cc90-2584-d27f-3017e0811aa3" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0006672" startTime="2026-02-09T17:29:16.2230460+01:00" endTime="2026-02-09T17:29:16.2279400+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="afce83d3-2859-4ec3-883d-5e84a21fe4ec">
+      <Output>
+        <ErrorInfo>
+          <Message>&#xD;
+-- Missing test overrides --&#xD;
+&#xD;
+public override async Task SaveChanges(bool async)&#xD;
+{&#xD;
+    await base.SaveChanges(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Equality_in_query_with_parameter(bool async)&#xD;
+{&#xD;
+    await base.Equality_in_query_with_parameter(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+   at Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.Check_all_tests_overridden() in /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Types/Numeric/NpgsqlShortTypeTest.cs:line 106
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net11.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="b944517b-cc90-2584-d27f-3017e0811aa3">
+      <Execution id="afce83d3-2859-4ec3-883d-5e84a21fe4ec" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net11.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.Query_property_within_json" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net11.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="b1dd3ee9-c34d-d93e-9b24-0ac6bea5a926">
+      <Execution id="80604be5-b6f4-4e0e-bb74-49019ff5b291" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net11.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest" name="Query_property_within_json" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.Equality_in_query_with_parameter" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net11.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="89409a5b-1286-d034-f06f-bd0fe347f904">
+      <Execution id="930e72aa-a6fb-492f-b2b6-e5a412b026b1" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net11.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest" name="Equality_in_query_with_parameter" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.SaveChanges_within_json" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net11.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="39b9868e-61c9-47b5-3d65-19cbfacacfdf">
+      <Execution id="0977e46f-f7c2-474d-bc5d-4390e063a131" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net11.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest" name="SaveChanges_within_json" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.SaveChanges" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net11.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="737f7ec6-ad4a-16aa-6fa8-597df7aaac73">
+      <Execution id="805091e1-dabb-4869-a0cb-8203af9b5fa6" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net11.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest" name="SaveChanges" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.ExecuteUpdate_within_json_to_another_json_property" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net11.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="d3acb950-2f65-9003-9d15-53b4f1152c4a">
+      <Execution id="03ef2010-0e6d-499f-983e-b1bea9a4fbac" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net11.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest" name="ExecuteUpdate_within_json_to_another_json_property" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.ExecuteUpdate_within_json_to_constant" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net11.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="38a57ccd-ddc6-518d-efb6-be18495b6b6d">
+      <Execution id="6f32c21b-5555-4df8-a8d5-60e6320b4840" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net11.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest" name="ExecuteUpdate_within_json_to_constant" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.ExecuteUpdate_within_json_to_nonjson_column" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net11.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="bb21ef05-10ea-a7b5-58ac-b5285d926c7e">
+      <Execution id="749aea0a-e4cc-4e73-8a23-847c554cabc6" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net11.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest" name="ExecuteUpdate_within_json_to_nonjson_column" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.Equality_in_query_with_constant" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net11.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="2ff076c4-b06c-053a-24a4-754a8d4fc124">
+      <Execution id="fd1f6929-df53-4fe8-a92b-93a5728e23ea" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net11.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest" name="Equality_in_query_with_constant" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.ExecuteUpdate_within_json_to_parameter" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net11.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="22ad4c2d-4574-17cf-1f2d-1caf56f02f03">
+      <Execution id="cf9922c5-9dce-4c1c-8b28-afa60058c405" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net11.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest" name="ExecuteUpdate_within_json_to_parameter" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="39b9868e-61c9-47b5-3d65-19cbfacacfdf" executionId="0977e46f-f7c2-474d-bc5d-4390e063a131" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="737f7ec6-ad4a-16aa-6fa8-597df7aaac73" executionId="805091e1-dabb-4869-a0cb-8203af9b5fa6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b1dd3ee9-c34d-d93e-9b24-0ac6bea5a926" executionId="80604be5-b6f4-4e0e-bb74-49019ff5b291" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="22ad4c2d-4574-17cf-1f2d-1caf56f02f03" executionId="cf9922c5-9dce-4c1c-8b28-afa60058c405" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d3acb950-2f65-9003-9d15-53b4f1152c4a" executionId="03ef2010-0e6d-499f-983e-b1bea9a4fbac" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="89409a5b-1286-d034-f06f-bd0fe347f904" executionId="930e72aa-a6fb-492f-b2b6-e5a412b026b1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="38a57ccd-ddc6-518d-efb6-be18495b6b6d" executionId="6f32c21b-5555-4df8-a8d5-60e6320b4840" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2ff076c4-b06c-053a-24a4-754a8d4fc124" executionId="fd1f6929-df53-4fe8-a92b-93a5728e23ea" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bb21ef05-10ea-a7b5-58ac-b5285d926c7e" executionId="749aea0a-e4cc-4e73-8a23-847c554cabc6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b944517b-cc90-2584-d27f-3017e0811aa3" executionId="afce83d3-2859-4ec3-883d-5e84a21fe4ec" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="10" executed="10" passed="9" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 11.0.0-preview.1.26078.121)
+[xUnit.net 00:00:00.50]   Discovering: Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+[xUnit.net 00:00:04.73]   Discovered:  Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+[xUnit.net 00:00:04.79]   Starting:    Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+[xUnit.net 00:00:07.84]       &#xD;
+[xUnit.net 00:00:07.84]       -- Missing test overrides --&#xD;
+[xUnit.net 00:00:07.84]       &#xD;
+[xUnit.net 00:00:07.84]       public override async Task SaveChanges(bool async)&#xD;
+[xUnit.net 00:00:07.84]       {&#xD;
+[xUnit.net 00:00:07.84]           await base.SaveChanges(async);&#xD;
+[xUnit.net 00:00:07.84]       &#xD;
+[xUnit.net 00:00:07.84]           AssertSql();&#xD;
+[xUnit.net 00:00:07.84]       }&#xD;
+[xUnit.net 00:00:07.84]       &#xD;
+[xUnit.net 00:00:07.84]       public override async Task Equality_in_query_with_parameter(bool async)&#xD;
+[xUnit.net 00:00:07.84]       {&#xD;
+[xUnit.net 00:00:07.84]           await base.Equality_in_query_with_parameter(async);&#xD;
+[xUnit.net 00:00:07.84]       &#xD;
+[xUnit.net 00:00:07.84]           AssertSql();&#xD;
+[xUnit.net 00:00:07.84]       }&#xD;
+[xUnit.net 00:00:07.84]       &#xD;
+[xUnit.net 00:00:07.84]       
+[xUnit.net 00:00:07.84]       Stack Trace:
+[xUnit.net 00:00:07.84]            at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+[xUnit.net 00:00:07.84]         /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Types/Numeric/NpgsqlShortTypeTest.cs(106,0): at Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.Check_all_tests_overridden()
+[xUnit.net 00:00:07.84]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:07.84]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:07.84]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:07.84]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:07.86]   Finished:    Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="milo" outcome="Error" timestamp="2026-02-09T17:29:16.2292800+01:00">
+        <Text>[xUnit.net 00:00:07.83]     Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.Check_all_tests_overridden [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>
