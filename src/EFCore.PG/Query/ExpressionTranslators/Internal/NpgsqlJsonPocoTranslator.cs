@@ -11,33 +11,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlJsonPocoTranslator : IMemberTranslator, IMethodCallTranslator
+public class NpgsqlJsonPocoTranslator(
+    IRelationalTypeMappingSource typeMappingSource,
+    NpgsqlSqlExpressionFactory sqlExpressionFactory,
+    IModel model)
+    : IMemberTranslator, IMethodCallTranslator
 {
-    private readonly IRelationalTypeMappingSource _typeMappingSource;
-    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-    private readonly RelationalTypeMapping _stringTypeMapping;
-    private readonly IModel _model;
-
-    private static readonly MethodInfo Enumerable_AnyWithoutPredicate =
-        typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 1);
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public NpgsqlJsonPocoTranslator(
-        IRelationalTypeMappingSource typeMappingSource,
-        NpgsqlSqlExpressionFactory sqlExpressionFactory,
-        IModel model)
-    {
-        _typeMappingSource = typeMappingSource;
-        _sqlExpressionFactory = sqlExpressionFactory;
-        _model = model;
-        _stringTypeMapping = typeMappingSource.FindMapping(typeof(string), model)!;
-    }
+    private readonly IRelationalTypeMappingSource _typeMappingSource = typeMappingSource;
+    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory = sqlExpressionFactory;
+    private readonly RelationalTypeMapping _stringTypeMapping = typeMappingSource.FindMapping(typeof(string), model)!;
+    private readonly IModel _model = model;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -50,16 +33,13 @@ public class NpgsqlJsonPocoTranslator : IMemberTranslator, IMethodCallTranslator
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
-    {
         // Predicate-less Any - translate to a simple length check.
-        if (method.IsClosedFormOf(Enumerable_AnyWithoutPredicate)
-            && TranslateArrayLength(arguments[0]) is SqlExpression arrayLengthTranslation)
-        {
-            return _sqlExpressionFactory.GreaterThan(arrayLengthTranslation, _sqlExpressionFactory.Constant(0));
-        }
-
-        return null;
-    }
+        => method is { IsGenericMethod: true, Name: nameof(Enumerable.Any) }
+            && method.DeclaringType == typeof(Enumerable)
+            && arguments is [var source]
+            && TranslateArrayLength(source) is SqlExpression arrayLengthTranslation
+            ? _sqlExpressionFactory.GreaterThan(arrayLengthTranslation, _sqlExpressionFactory.Constant(0))
+            : null;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

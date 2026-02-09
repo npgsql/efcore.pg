@@ -8,72 +8,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlTrigramsMethodTranslator : IMethodCallTranslator
+public class NpgsqlTrigramsMethodTranslator(
+    IRelationalTypeMappingSource typeMappingSource,
+    NpgsqlSqlExpressionFactory sqlExpressionFactory,
+    IModel model)
+    : IMethodCallTranslator
 {
-    private static readonly Dictionary<MethodInfo, string> Functions = new()
-    {
-        [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsShow), typeof(DbFunctions), typeof(string))]
-            = "show_trgm",
-        [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsSimilarity), typeof(DbFunctions), typeof(string), typeof(string))]
-            = "similarity",
-        [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsWordSimilarity), typeof(DbFunctions), typeof(string), typeof(string))]
-            = "word_similarity",
-        [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsStrictWordSimilarity), typeof(DbFunctions), typeof(string), typeof(string))]
-            = "strict_word_similarity"
-    };
-
-    private static readonly Dictionary<MethodInfo, string> BoolReturningOperators = new()
-    {
-        [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreSimilar), typeof(DbFunctions), typeof(string), typeof(string))]
-            = "%",
-        [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreWordSimilar), typeof(DbFunctions), typeof(string), typeof(string))]
-            = "<%",
-        [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreNotWordSimilar), typeof(DbFunctions), typeof(string), typeof(string))]
-            = "%>",
-        [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreStrictWordSimilar), typeof(DbFunctions), typeof(string), typeof(string))]
-            = "<<%",
-        [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreNotStrictWordSimilar), typeof(DbFunctions), typeof(string), typeof(string))]
-            = "%>>"
-    };
-
-    private static readonly Dictionary<MethodInfo, string> FloatReturningOperators = new()
-    {
-        [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsSimilarityDistance), typeof(DbFunctions), typeof(string), typeof(string))]
-            = "<->",
-        [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsWordSimilarityDistance), typeof(DbFunctions), typeof(string), typeof(string))]
-            = "<<->",
-        [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsWordSimilarityDistanceInverted), typeof(DbFunctions), typeof(string), typeof(string))]
-            = "<->>",
-        [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsStrictWordSimilarityDistance), typeof(DbFunctions), typeof(string), typeof(string))]
-            = "<<<->",
-        [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsStrictWordSimilarityDistanceInverted), typeof(DbFunctions), typeof(string), typeof(string))]
-            = "<->>>"
-    };
-
-    private static MethodInfo GetRuntimeMethod(string name, params Type[] parameters)
-        => typeof(NpgsqlTrigramsDbFunctionsExtensions).GetRuntimeMethod(name, parameters)!;
-
-    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-    private readonly RelationalTypeMapping _boolMapping;
-    private readonly RelationalTypeMapping _floatMapping;
+    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory = sqlExpressionFactory;
+    private readonly RelationalTypeMapping _boolMapping = typeMappingSource.FindMapping(typeof(bool), model)!;
+    private readonly RelationalTypeMapping _floatMapping = typeMappingSource.FindMapping(typeof(float), model)!;
 
     private static readonly bool[][] TrueArrays = [[], [true], [true, true]];
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public NpgsqlTrigramsMethodTranslator(
-        IRelationalTypeMappingSource typeMappingSource,
-        NpgsqlSqlExpressionFactory sqlExpressionFactory,
-        IModel model)
-    {
-        _sqlExpressionFactory = sqlExpressionFactory;
-        _boolMapping = typeMappingSource.FindMapping(typeof(bool), model)!;
-        _floatMapping = typeMappingSource.FindMapping(typeof(float), model)!;
-    }
 
 #pragma warning disable EF1001
     /// <inheritdoc />
@@ -83,37 +28,56 @@ public class NpgsqlTrigramsMethodTranslator : IMethodCallTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (Functions.TryGetValue(method, out var function))
+        if (method.DeclaringType != typeof(NpgsqlTrigramsDbFunctionsExtensions))
         {
-            return _sqlExpressionFactory.Function(
-                function,
+            return null;
+        }
+
+        return method.Name switch
+        {
+            nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsShow) => Function("show_trgm"),
+            nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsSimilarity) => Function("similarity"),
+            nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsWordSimilarity) => Function("word_similarity"),
+            nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsStrictWordSimilarity) => Function("strict_word_similarity"),
+
+            nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreSimilar) => BoolOperator("%"),
+            nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreWordSimilar) => BoolOperator("<%"),
+            nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreNotWordSimilar) => BoolOperator("%>"),
+            nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreStrictWordSimilar) => BoolOperator("<<%"),
+            nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreNotStrictWordSimilar) => BoolOperator("%>>"),
+
+            nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsSimilarityDistance) => FloatOperator("<->"),
+            nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsWordSimilarityDistance) => FloatOperator("<<->"),
+            nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsWordSimilarityDistanceInverted) => FloatOperator("<->>"),
+            nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsStrictWordSimilarityDistance) => FloatOperator("<<<->"),
+            nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsStrictWordSimilarityDistanceInverted) => FloatOperator("<->>>"),
+
+            _ => null
+        };
+
+        SqlExpression Function(string name)
+            => _sqlExpressionFactory.Function(
+                name,
                 arguments.Skip(1),
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[arguments.Count - 1],
                 method.ReturnType);
-        }
 
-        if (BoolReturningOperators.TryGetValue(method, out var boolOperator))
-        {
-            return new PgUnknownBinaryExpression(
+        PgUnknownBinaryExpression BoolOperator(string op)
+            => new(
                 _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
                 _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
-                boolOperator,
+                op,
                 _boolMapping.ClrType,
                 _boolMapping);
-        }
 
-        if (FloatReturningOperators.TryGetValue(method, out var floatOperator))
-        {
-            return new PgUnknownBinaryExpression(
+        PgUnknownBinaryExpression FloatOperator(string op)
+            => new(
                 _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
                 _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
-                floatOperator,
+                op,
                 _floatMapping.ClrType,
                 _floatMapping);
-        }
-
-        return null;
     }
 #pragma warning restore EF1001
 }

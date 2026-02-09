@@ -44,97 +44,15 @@ public class NpgsqlNodaTimeMethodCallTranslatorPlugin : IMethodCallTranslatorPlu
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
+public class NpgsqlNodaTimeMethodCallTranslator(
+    IRelationalTypeMappingSource typeMappingSource,
+    NpgsqlSqlExpressionFactory sqlExpressionFactory)
+    : IMethodCallTranslator
 {
-    private readonly IRelationalTypeMappingSource _typeMappingSource;
-    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-
-    private static readonly MethodInfo SystemClock_GetCurrentInstant =
-        typeof(SystemClock).GetRuntimeMethod(nameof(SystemClock.GetCurrentInstant), Type.EmptyTypes)!;
-
-    private static readonly MethodInfo Instant_InUtc =
-        typeof(Instant).GetRuntimeMethod(nameof(Instant.InUtc), Type.EmptyTypes)!;
-
-    private static readonly MethodInfo Instant_InZone =
-        typeof(Instant).GetRuntimeMethod(nameof(Instant.InZone), [typeof(DateTimeZone)])!;
-
-    private static readonly MethodInfo Instant_ToDateTimeUtc =
-        typeof(Instant).GetRuntimeMethod(nameof(Instant.ToDateTimeUtc), Type.EmptyTypes)!;
-
-    private static readonly MethodInfo Instant_Distance =
-        typeof(NpgsqlNodaTimeDbFunctionsExtensions).GetRuntimeMethod(
-            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance), [typeof(DbFunctions), typeof(Instant), typeof(Instant)])!;
-
-    private static readonly MethodInfo ZonedDateTime_ToInstant =
-        typeof(ZonedDateTime).GetRuntimeMethod(nameof(ZonedDateTime.ToInstant), Type.EmptyTypes)!;
-
-    private static readonly MethodInfo ZonedDateTime_Distance =
-        typeof(NpgsqlNodaTimeDbFunctionsExtensions).GetRuntimeMethod(
-            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance),
-            [typeof(DbFunctions), typeof(ZonedDateTime), typeof(ZonedDateTime)])!;
-
-    private static readonly MethodInfo LocalDateTime_InZoneLeniently =
-        typeof(LocalDateTime).GetRuntimeMethod(nameof(LocalDateTime.InZoneLeniently), [typeof(DateTimeZone)])!;
-
-    private static readonly MethodInfo LocalDateTime_Distance =
-        typeof(NpgsqlNodaTimeDbFunctionsExtensions).GetRuntimeMethod(
-            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance),
-            [typeof(DbFunctions), typeof(LocalDateTime), typeof(LocalDateTime)])!;
-
-    private static readonly MethodInfo LocalDate_Distance =
-        typeof(NpgsqlNodaTimeDbFunctionsExtensions).GetRuntimeMethod(
-            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance), [typeof(DbFunctions), typeof(LocalDate), typeof(LocalDate)])!;
-
-    private static readonly MethodInfo Period_FromYears = typeof(Period).GetRuntimeMethod(nameof(Period.FromYears), [typeof(int)])!;
-
-    private static readonly MethodInfo Period_FromMonths =
-        typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths), [typeof(int)])!;
-
-    private static readonly MethodInfo Period_FromWeeks = typeof(Period).GetRuntimeMethod(nameof(Period.FromWeeks), [typeof(int)])!;
-    private static readonly MethodInfo Period_FromDays = typeof(Period).GetRuntimeMethod(nameof(Period.FromDays), [typeof(int)])!;
-
-    private static readonly MethodInfo Period_FromHours = typeof(Period).GetRuntimeMethod(
-        nameof(Period.FromHours), [typeof(long)])!;
-
-    private static readonly MethodInfo Period_FromMinutes =
-        typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes), [typeof(long)])!;
-
-    private static readonly MethodInfo Period_FromSeconds =
-        typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds), [typeof(long)])!;
-
-    private static readonly MethodInfo Interval_Contains
-        = typeof(Interval).GetRuntimeMethod(nameof(Interval.Contains), [typeof(Instant)])!;
-
-    private static readonly MethodInfo DateInterval_Contains_LocalDate
-        = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Contains), [typeof(LocalDate)])!;
-
-    private static readonly MethodInfo DateInterval_Contains_DateInterval
-        = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Contains), [typeof(DateInterval)])!;
-
-    private static readonly MethodInfo DateInterval_Intersection
-        = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Intersection), [typeof(DateInterval)])!;
-
-    private static readonly MethodInfo DateInterval_Union
-        = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Union), [typeof(DateInterval)])!;
-
-    private static readonly MethodInfo IDateTimeZoneProvider_get_Item
-        = typeof(IDateTimeZoneProvider).GetRuntimeMethod("get_Item", [typeof(string)])!;
+    private readonly IRelationalTypeMappingSource _typeMappingSource = typeMappingSource;
+    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory = sqlExpressionFactory;
 
     private static readonly bool[][] TrueArrays = [[], [true], [true, true]];
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public NpgsqlNodaTimeMethodCallTranslator(
-        IRelationalTypeMappingSource typeMappingSource,
-        NpgsqlSqlExpressionFactory sqlExpressionFactory)
-    {
-        _typeMappingSource = typeMappingSource;
-        _sqlExpressionFactory = sqlExpressionFactory;
-    }
 
 #pragma warning disable EF1001
     /// <inheritdoc />
@@ -158,7 +76,7 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
             return translated;
         }
 
-        if (method == IDateTimeZoneProvider_get_Item && instance is PendingDateTimeZoneProviderExpression)
+        if (method.DeclaringType == typeof(IDateTimeZoneProvider) && method.Name == "get_Item" && instance is PendingDateTimeZoneProviderExpression)
         {
             // We're translating an expression such as 'DateTimeZoneProviders.Tzdb["Europe/Berlin"]'.
             // Note that the .NET type of that expression is DateTimeZone, but we just return the string ID for the time zone.
@@ -172,111 +90,96 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
         SqlExpression? instance,
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments)
-    {
-        if (method == SystemClock_GetCurrentInstant)
+        => method.Name switch
         {
-            return NpgsqlNodaTimeTypeMappingSourcePlugin.LegacyTimestampBehavior
-                ? _sqlExpressionFactory.AtTimeZone(
-                    _sqlExpressionFactory.Function(
+            nameof(SystemClock.GetCurrentInstant) when method.DeclaringType == typeof(SystemClock)
+                => NpgsqlNodaTimeTypeMappingSourcePlugin.LegacyTimestampBehavior
+                    ? _sqlExpressionFactory.AtTimeZone(
+                        _sqlExpressionFactory.Function(
+                            "NOW",
+                            [],
+                            nullable: false,
+                            argumentsPropagateNullability: [],
+                            method.ReturnType),
+                        _sqlExpressionFactory.Constant("UTC"),
+                        method.ReturnType)
+                    : _sqlExpressionFactory.Function(
                         "NOW",
                         [],
                         nullable: false,
                         argumentsPropagateNullability: [],
-                        method.ReturnType),
-                    _sqlExpressionFactory.Constant("UTC"),
-                    method.ReturnType)
-                : _sqlExpressionFactory.Function(
-                    "NOW",
-                    [],
-                    nullable: false,
-                    argumentsPropagateNullability: [],
-                    method.ReturnType,
-                    _typeMappingSource.FindMapping(typeof(Instant), "timestamp with time zone"));
-        }
+                        method.ReturnType,
+                        _typeMappingSource.FindMapping(typeof(Instant), "timestamp with time zone")),
 
-        if (method == Instant_InUtc)
-        {
             // Instant -> ZonedDateTime is a no-op (different types in .NET but both mapped to timestamptz in PG)
-            return instance;
-        }
+            nameof(Instant.InUtc) when method.DeclaringType == typeof(Instant)
+                => instance,
 
-        if (method == Instant_InZone)
-        {
             // When InZone is called, we have a mismatch: on the .NET NodaTime side, we have a ZonedDateTime; but on the PostgreSQL side,
             // the AT TIME ZONE expression returns a 'timestamp without time zone' (when applied to a 'timestamp with time zone', which is
             // what ZonedDateTime is mapped to).
-            return new PendingZonedDateTimeExpression(instance!, arguments[0]);
-        }
+            nameof(Instant.InZone) when method.DeclaringType == typeof(Instant)
+                => new PendingZonedDateTimeExpression(instance!, arguments[0]),
 
-        if (method == Instant_ToDateTimeUtc)
-        {
-            return _sqlExpressionFactory.Convert(
-                instance!,
-                typeof(DateTime),
-                _typeMappingSource.FindMapping(typeof(DateTime), "timestamp with time zone"));
-        }
+            nameof(Instant.ToDateTimeUtc) when method.DeclaringType == typeof(Instant)
+                => _sqlExpressionFactory.Convert(
+                    instance!,
+                    typeof(DateTime),
+                    _typeMappingSource.FindMapping(typeof(DateTime), "timestamp with time zone")),
 
-        if (method == Instant_Distance)
-        {
-            return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]);
-        }
+            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance)
+                when method.DeclaringType == typeof(NpgsqlNodaTimeDbFunctionsExtensions)
+                => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]),
 
-        return null;
-    }
+            _ => null
+        };
 
     private SqlExpression? TranslateZonedDateTime(
         SqlExpression? instance,
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments)
-    {
-        if (method == ZonedDateTime_ToInstant)
+        => method.Name switch
         {
             // We get here with the expression localDateTime.InZoneLeniently(DateTimeZoneProviders.Tzdb["Europe/Berlin"]).ToInstant()
-            if (instance is PendingZonedDateTimeExpression pendingZonedDateTime)
-            {
-                return _sqlExpressionFactory.AtTimeZone(
-                    pendingZonedDateTime.Operand,
-                    pendingZonedDateTime.TimeZoneId,
-                    typeof(Instant),
-                    _typeMappingSource.FindMapping(typeof(Instant)));
-            }
+            nameof(ZonedDateTime.ToInstant) when method.DeclaringType == typeof(ZonedDateTime)
+                => instance is PendingZonedDateTimeExpression pendingZonedDateTime
+                    ? _sqlExpressionFactory.AtTimeZone(
+                        pendingZonedDateTime.Operand,
+                        pendingZonedDateTime.TimeZoneId,
+                        typeof(Instant),
+                        _typeMappingSource.FindMapping(typeof(Instant)))
+                    // Otherwise, ZonedDateTime -> ToInstant is a no-op (different types in .NET but both mapped to timestamptz in PG)
+                    : instance,
 
-            // Otherwise, ZonedDateTime -> ToInstant is a no-op (different types in .NET but both mapped to timestamptz in PG)
-            return instance;
-        }
+            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance)
+                when method.DeclaringType == typeof(NpgsqlNodaTimeDbFunctionsExtensions)
+                => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]),
 
-        if (method == ZonedDateTime_Distance)
-        {
-            return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]);
-        }
-
-        return null;
-    }
+            _ => null
+        };
 
     private SqlExpression? TranslateLocalDateTime(
         SqlExpression? instance,
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments)
-    {
-        if (method == LocalDateTime_InZoneLeniently)
+        => method.Name switch
         {
-            return new PendingZonedDateTimeExpression(instance!, arguments[0]);
-        }
+            nameof(LocalDateTime.InZoneLeniently) when method.DeclaringType == typeof(LocalDateTime)
+                => new PendingZonedDateTimeExpression(instance!, arguments[0]),
 
-        if (method == LocalDateTime_Distance)
-        {
-            return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]);
-        }
+            nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance)
+                when method.DeclaringType == typeof(NpgsqlNodaTimeDbFunctionsExtensions)
+                => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]),
 
-        return null;
-    }
+            _ => null
+        };
 
     private SqlExpression? TranslateLocalDate(
         SqlExpression? instance,
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments)
     {
-        if (method == LocalDate_Distance)
+        if (method.DeclaringType == typeof(NpgsqlNodaTimeDbFunctionsExtensions) && method.Name == nameof(NpgsqlNodaTimeDbFunctionsExtensions.Distance))
         {
             return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]);
         }
@@ -316,43 +219,18 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
             return null;
         }
 
-        if (method == Period_FromYears)
+        return method.Name switch
         {
-            return IntervalPart("years", arguments[0]);
-        }
-
-        if (method == Period_FromMonths)
-        {
-            return IntervalPart("months", arguments[0]);
-        }
-
-        if (method == Period_FromWeeks)
-        {
-            return IntervalPart("weeks", arguments[0]);
-        }
-
-        if (method == Period_FromDays)
-        {
-            return IntervalPart("days", arguments[0]);
-        }
-
-        if (method == Period_FromHours)
-        {
-            return IntervalPartOverBigInt("hours", arguments[0]);
-        }
-
-        if (method == Period_FromMinutes)
-        {
-            return IntervalPartOverBigInt("mins", arguments[0]);
-        }
-
-        if (method == Period_FromSeconds)
-        {
-            return IntervalPart(
-                "secs", _sqlExpressionFactory.Convert(arguments[0], typeof(double), _typeMappingSource.FindMapping(typeof(double))));
-        }
-
-        return null;
+            nameof(Period.FromYears) => IntervalPart("years", arguments[0]),
+            nameof(Period.FromMonths) => IntervalPart("months", arguments[0]),
+            nameof(Period.FromWeeks) => IntervalPart("weeks", arguments[0]),
+            nameof(Period.FromDays) => IntervalPart("days", arguments[0]),
+            nameof(Period.FromHours) => IntervalPartOverBigInt("hours", arguments[0]),
+            nameof(Period.FromMinutes) => IntervalPartOverBigInt("mins", arguments[0]),
+            nameof(Period.FromSeconds) => IntervalPart(
+                "secs", _sqlExpressionFactory.Convert(arguments[0], typeof(double), _typeMappingSource.FindMapping(typeof(double)))),
+            _ => null
+        };
 
         static PgFunctionExpression IntervalPart(string datePart, SqlExpression parameter)
             => PgFunctionExpression.CreateWithNamedArguments(
@@ -390,7 +268,7 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (method == Interval_Contains)
+        if (method.DeclaringType == typeof(Interval) && method.Name == nameof(Interval.Contains))
         {
             return _sqlExpressionFactory.Contains(instance!, arguments[0]);
         }
@@ -404,18 +282,17 @@ public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (method == DateInterval_Contains_LocalDate
-            || method == DateInterval_Contains_DateInterval)
+        if (method.DeclaringType == typeof(DateInterval) && method.Name == nameof(DateInterval.Contains))
         {
             return _sqlExpressionFactory.Contains(instance!, arguments[0]);
         }
 
-        if (method == DateInterval_Intersection)
+        if (method.DeclaringType == typeof(DateInterval) && method.Name == nameof(DateInterval.Intersection))
         {
             return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.RangeIntersect, instance!, arguments[0]);
         }
 
-        if (method == DateInterval_Union)
+        if (method.DeclaringType == typeof(DateInterval) && method.Name == nameof(DateInterval.Union))
         {
             return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.RangeUnion, instance!, arguments[0]);
         }

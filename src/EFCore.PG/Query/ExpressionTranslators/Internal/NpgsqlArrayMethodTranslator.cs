@@ -11,58 +11,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 /// <remarks>
 ///     https://www.postgresql.org/docs/current/static/functions-array.html
 /// </remarks>
-public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
+public class NpgsqlArrayMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, NpgsqlJsonPocoTranslator jsonPocoTranslator)
+    : IMethodCallTranslator
 {
-    #region Methods
-
-    // ReSharper disable InconsistentNaming
-    private static readonly MethodInfo Array_IndexOf1 =
-        typeof(Array).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(m => m is { Name: nameof(Array.IndexOf), IsGenericMethod: true } && m.GetParameters().Length == 2);
-
-    private static readonly MethodInfo Array_IndexOf2 =
-        typeof(Array).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(m => m is { Name: nameof(Array.IndexOf), IsGenericMethod: true } && m.GetParameters().Length == 3);
-
-    private static readonly MethodInfo Enumerable_ElementAt =
-        typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(
-                m => m.Name == nameof(Enumerable.ElementAt)
-                    && m.GetParameters().Length == 2
-                    && m.GetParameters()[1].ParameterType == typeof(int));
-
-    private static readonly MethodInfo Enumerable_SequenceEqual =
-        typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(m => m.Name == nameof(Enumerable.SequenceEqual) && m.GetParameters().Length == 2);
-
-    // TODO: Enumerable Append and Concat are only here because primitive collections aren't handled in ExecuteUpdate,
-    // https://github.com/dotnet/efcore/issues/32494
-    private static readonly MethodInfo Enumerable_Append =
-        typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(m => m.Name == nameof(Enumerable.Append) && m.GetParameters().Length == 2);
-
-    private static readonly MethodInfo Enumerable_Concat =
-        typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Single(m => m.Name == nameof(Enumerable.Concat) && m.GetParameters().Length == 2);
-
-    // ReSharper restore InconsistentNaming
-
-    #endregion Methods
-
-    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-    private readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public NpgsqlArrayMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, NpgsqlJsonPocoTranslator jsonPocoTranslator)
-    {
-        _sqlExpressionFactory = sqlExpressionFactory;
-        _jsonPocoTranslator = jsonPocoTranslator;
-    }
+    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory = sqlExpressionFactory;
+    private readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator = jsonPocoTranslator;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -77,39 +30,44 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
         // During preprocessing, ArrayIndex and List[] get normalized to ElementAt; so we handle indexing into array/list here
-        if (method.IsClosedFormOf(Enumerable_ElementAt))
+        if (method is { IsGenericMethod: true, Name: nameof(Enumerable.ElementAt) }
+            && method.DeclaringType == typeof(Enumerable)
+            && arguments is [var source, var index]
+            && index.Type == typeof(int))
         {
-            return arguments[0].TypeMapping switch
+            return source.TypeMapping switch
             {
                 // Indexing over bytea is special, we have to use function rather than subscript
                 NpgsqlByteArrayTypeMapping
                     => _sqlExpressionFactory.Function(
                         "get_byte",
-                        [arguments[0], arguments[1]],
+                        [source, index],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[2],
                         typeof(byte)),
 
                 NpgsqlArrayTypeMapping typeMapping
                     => _sqlExpressionFactory.ArrayIndex(
-                        arguments[0],
-                        _sqlExpressionFactory.GenerateOneBasedIndexExpression(arguments[1]),
+                        source,
+                        _sqlExpressionFactory.GenerateOneBasedIndexExpression(index),
                         nullable: true),
 
                 // Try translating indexing inside JSON column
                 // Note that Length over PG arrays (not within JSON) gets translated by QueryableMethodTranslatingEV, since arrays are primitive
                 // collections
-                _ => _jsonPocoTranslator.TranslateMemberAccess(arguments[0], arguments[1], method.ReturnType)
+                _ => _jsonPocoTranslator.TranslateMemberAccess(source, index, method.ReturnType)
             };
         }
 
-        if (method.IsClosedFormOf(Enumerable_SequenceEqual)
-            && arguments[0].Type.IsArrayOrGenericList()
-            && !IsMappedToNonArray(arguments[0])
-            && arguments[1].Type.IsArrayOrGenericList()
-            && !IsMappedToNonArray(arguments[1]))
+        if (method is { IsGenericMethod: true, Name: nameof(Enumerable.SequenceEqual) }
+            && method.DeclaringType == typeof(Enumerable)
+            && arguments is [var first, var second]
+            && first.Type.IsArrayOrGenericList()
+            && !IsMappedToNonArray(first)
+            && second.Type.IsArrayOrGenericList()
+            && !IsMappedToNonArray(second))
         {
-            return _sqlExpressionFactory.Equal(arguments[0], arguments[1]);
+            return _sqlExpressionFactory.Equal(first, second);
         }
 
         // Translate instance methods on List
@@ -135,12 +93,11 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
         SqlExpression? TranslateCommon(SqlExpression arrayOrList, IReadOnlyList<SqlExpression> arguments)
 #pragma warning restore CS8321
         {
-            if (method.IsClosedFormOf(Array_IndexOf1)
-                || method.Name == nameof(List<int>.IndexOf)
-                && method.DeclaringType.IsGenericList()
-                && method.GetParameters().Length == 1)
+            if (arguments is [var searchItem]
+                && (method is { IsGenericMethod: true, Name: nameof(Array.IndexOf) } && method.DeclaringType == typeof(Array)
+                    || method.Name == nameof(List<int>.IndexOf) && method.DeclaringType.IsGenericList()))
             {
-                var (item, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(arguments[0], arrayOrList);
+                var (item, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(searchItem, arrayOrList);
 
                 return _sqlExpressionFactory.Coalesce(
                     _sqlExpressionFactory.Subtract(
@@ -157,13 +114,12 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
                     _sqlExpressionFactory.Constant(-1));
             }
 
-            if (method.IsClosedFormOf(Array_IndexOf2)
-                || method.Name == nameof(List<int>.IndexOf)
-                && method.DeclaringType.IsGenericList()
-                && method.GetParameters().Length == 2)
+            if (arguments is [var searchItem2, var startIndexArg]
+                && (method is { IsGenericMethod: true, Name: nameof(Array.IndexOf) } && method.DeclaringType == typeof(Array)
+                    || method.Name == nameof(List<>.IndexOf) && method.DeclaringType.IsGenericList()))
             {
-                var (item, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(arguments[0], arrayOrList);
-                var startIndex = _sqlExpressionFactory.GenerateOneBasedIndexExpression(arguments[1]);
+                var (item, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(searchItem2, arrayOrList);
+                var startIndex = _sqlExpressionFactory.GenerateOneBasedIndexExpression(startIndexArg);
 
                 return _sqlExpressionFactory.Coalesce(
                     _sqlExpressionFactory.Subtract(
@@ -182,9 +138,11 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
 
             // TODO: Enumerable Append and Concat are only here because primitive collections aren't handled in ExecuteUpdate,
             // https://github.com/dotnet/efcore/issues/32494
-            if (method.IsClosedFormOf(Enumerable_Append))
+            if (method is { IsGenericMethod: true, Name: nameof(Enumerable.Append) }
+                && method.DeclaringType == typeof(Enumerable)
+                && arguments is [var element])
             {
-                var (item, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(arguments[0], arrayOrList);
+                var (item, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(element, arrayOrList);
 
                 return _sqlExpressionFactory.Function(
                     "array_append",
@@ -195,15 +153,17 @@ public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
                     arrayOrList.TypeMapping);
             }
 
-            if (method.IsClosedFormOf(Enumerable_Concat))
+            if (method is { IsGenericMethod: true, Name: nameof(Enumerable.Concat) }
+                && method.DeclaringType == typeof(Enumerable)
+                && arguments is [var otherArray])
             {
-                var inferredMapping = ExpressionExtensions.InferTypeMapping(arrayOrList, arguments[0]);
+                var inferredMapping = ExpressionExtensions.InferTypeMapping(arrayOrList, otherArray);
 
                 return _sqlExpressionFactory.Function(
                     "array_cat",
                     [
                         _sqlExpressionFactory.ApplyTypeMapping(arrayOrList, inferredMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping)
+                        _sqlExpressionFactory.ApplyTypeMapping(otherArray, inferredMapping)
                     ],
                     nullable: true,
                     TrueArrays[2],

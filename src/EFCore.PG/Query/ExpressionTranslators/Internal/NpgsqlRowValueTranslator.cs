@@ -11,43 +11,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlRowValueTranslator : IMethodCallTranslator
+public class NpgsqlRowValueTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory) : IMethodCallTranslator
 {
-    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-
-    private static readonly MethodInfo GreaterThan =
-        typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
-            nameof(NpgsqlDbFunctionsExtensions.GreaterThan),
-            [typeof(DbFunctions), typeof(ITuple), typeof(ITuple)])!;
-
-    private static readonly MethodInfo LessThan =
-        typeof(NpgsqlDbFunctionsExtensions).GetMethods()
-            .Single(m => m.Name == nameof(NpgsqlDbFunctionsExtensions.LessThan));
-
-    private static readonly MethodInfo GreaterThanOrEqual =
-        typeof(NpgsqlDbFunctionsExtensions).GetMethods()
-            .Single(m => m.Name == nameof(NpgsqlDbFunctionsExtensions.GreaterThanOrEqual));
-
-    private static readonly MethodInfo LessThanOrEqual =
-        typeof(NpgsqlDbFunctionsExtensions).GetMethods()
-            .Single(m => m.Name == nameof(NpgsqlDbFunctionsExtensions.LessThanOrEqual));
-
-    private static readonly Dictionary<MethodInfo, ExpressionType> ComparisonMethods = new()
-    {
-        { GreaterThan, ExpressionType.GreaterThan },
-        { LessThan, ExpressionType.LessThan },
-        { GreaterThanOrEqual, ExpressionType.GreaterThanOrEqual },
-        { LessThanOrEqual, ExpressionType.LessThanOrEqual }
-    };
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="NpgsqlRowValueTranslator" /> class.
-    /// </summary>
-    public NpgsqlRowValueTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
-    {
-        _sqlExpressionFactory = sqlExpressionFactory;
-    }
-
     /// <inheritdoc />
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicMethods, typeof(ValueType))] // For ValueTuple.Create
     public virtual SqlExpression? Translate(
@@ -63,7 +28,21 @@ public class NpgsqlRowValueTranslator : IMethodCallTranslator
         }
 
         // Translate EF.Functions.GreaterThan and other comparisons
-        if (method.DeclaringType != typeof(NpgsqlDbFunctionsExtensions) || !ComparisonMethods.TryGetValue(method, out var expressionType))
+        if (method.DeclaringType != typeof(NpgsqlDbFunctionsExtensions))
+        {
+            return null;
+        }
+
+        var expressionType = method.Name switch
+        {
+            nameof(NpgsqlDbFunctionsExtensions.GreaterThan) => ExpressionType.GreaterThan,
+            nameof(NpgsqlDbFunctionsExtensions.LessThan) => ExpressionType.LessThan,
+            nameof(NpgsqlDbFunctionsExtensions.GreaterThanOrEqual) => ExpressionType.GreaterThanOrEqual,
+            nameof(NpgsqlDbFunctionsExtensions.LessThanOrEqual) => ExpressionType.LessThanOrEqual,
+            _ => (ExpressionType?)null
+        };
+
+        if (expressionType is null)
         {
             return null;
         }
@@ -90,6 +69,6 @@ public class NpgsqlRowValueTranslator : IMethodCallTranslator
             throw new ArgumentException(NpgsqlStrings.RowValueComparisonRequiresTuplesOfSameLength);
         }
 
-        return _sqlExpressionFactory.MakeBinary(expressionType, arguments[1], arguments[2], typeMapping: null);
+        return sqlExpressionFactory.MakeBinary(expressionType.Value, arguments[1], arguments[2], typeMapping: null);
     }
 }

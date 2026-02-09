@@ -11,38 +11,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 /// <remarks>
 ///     See: https://www.postgresql.org/docs/current/static/functions-net.html
 /// </remarks>
-public class NpgsqlNetworkTranslator : IMethodCallTranslator
+public class NpgsqlNetworkTranslator(
+    IRelationalTypeMappingSource typeMappingSource,
+    NpgsqlSqlExpressionFactory sqlExpressionFactory,
+    IModel model)
+    : IMethodCallTranslator
 {
-    private static readonly MethodInfo IPAddressParse =
-        typeof(IPAddress).GetRuntimeMethod(nameof(IPAddress.Parse), [typeof(string)])!;
+    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory = sqlExpressionFactory;
 
-    private static readonly MethodInfo PhysicalAddressParse =
-        typeof(PhysicalAddress).GetRuntimeMethod(nameof(PhysicalAddress.Parse), [typeof(string)])!;
-
-    private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-
-    private readonly RelationalTypeMapping _inetMapping;
-    private readonly RelationalTypeMapping _cidrMapping;
-    private readonly RelationalTypeMapping _macaddr8Mapping;
-    private readonly RelationalTypeMapping _longAddressMapping;
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public NpgsqlNetworkTranslator(
-        IRelationalTypeMappingSource typeMappingSource,
-        NpgsqlSqlExpressionFactory sqlExpressionFactory,
-        IModel model)
-    {
-        _sqlExpressionFactory = sqlExpressionFactory;
-        _inetMapping = typeMappingSource.FindMapping("inet")!;
-        _cidrMapping = typeMappingSource.FindMapping("cidr")!;
-        _macaddr8Mapping = typeMappingSource.FindMapping("macaddr8")!;
-        _longAddressMapping = typeMappingSource.FindMapping(typeof(long), model)!;
-    }
+    private readonly RelationalTypeMapping _inetMapping = typeMappingSource.FindMapping("inet")!;
+    private readonly RelationalTypeMapping _cidrMapping = typeMappingSource.FindMapping("cidr")!;
+    private readonly RelationalTypeMapping _macaddr8Mapping = typeMappingSource.FindMapping("macaddr8")!;
+    private readonly RelationalTypeMapping _longAddressMapping = typeMappingSource.FindMapping(typeof(long), model)!;
 
     /// <inheritdoc />
     public virtual SqlExpression? Translate(
@@ -51,17 +31,24 @@ public class NpgsqlNetworkTranslator : IMethodCallTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (method == IPAddressParse)
+        if (method.DeclaringType == typeof(IPAddress)
+            && method.Name == nameof(IPAddress.Parse)
+            && arguments is [var ipAddressArg]
+            && ipAddressArg.Type == typeof(string))
         {
-            return _sqlExpressionFactory.Convert(arguments[0], typeof(IPAddress));
+            return _sqlExpressionFactory.Convert(ipAddressArg, typeof(IPAddress));
         }
 
-        if (method == PhysicalAddressParse)
+        if (method.DeclaringType == typeof(PhysicalAddress)
+            && method.Name == nameof(PhysicalAddress.Parse)
+            && arguments is [var physicalAddressArg]
+            && physicalAddressArg.Type == typeof(string))
         {
-            return _sqlExpressionFactory.Convert(arguments[0], typeof(PhysicalAddress));
+            return _sqlExpressionFactory.Convert(physicalAddressArg, typeof(PhysicalAddress));
         }
 
-        if (method.DeclaringType == typeof(NpgsqlNetworkDbFunctionsExtensions))
+        if (method.DeclaringType == typeof(NpgsqlNetworkDbFunctionsExtensions)
+            && arguments is [_, var networkArg, ..])
         {
             var paramType = method.GetParameters()[1].ParameterType;
 
