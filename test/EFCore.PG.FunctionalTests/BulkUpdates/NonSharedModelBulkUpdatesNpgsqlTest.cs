@@ -5,9 +5,19 @@ public class NonSharedModelBulkUpdatesNpgsqlTest(NonSharedFixture fixture) : Non
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
-    [ConditionalFact]
-    public virtual void Check_all_tests_overridden()
-        => TestHelpers.AssertAllMethodsOverridden(GetType());
+
+    public override async Task Update_complex_type_property_with_view_mapping(bool async)
+    {
+        await base.Update_complex_type_property_with_view_mapping(async);
+
+        AssertSql(
+            """
+@p='6'
+
+UPDATE "Blogs" AS b
+SET "ComplexThing_Prop1" = @p
+""");
+    }
 
     public override async Task Delete_aggregate_root_when_eager_loaded_owned_collection(bool async)
     {
@@ -270,7 +280,15 @@ SET "Data" = @p
         await base.Update_complex_type_with_view_mapping(async);
 
         // #34706
-        AssertSql();
+        AssertSql(
+            """
+@complex_type_p_Prop1='3' (Nullable = true)
+@complex_type_p_Prop2='4' (Nullable = true)
+
+UPDATE "Blogs" AS b
+SET "ComplexThing_Prop1" = @complex_type_p_Prop1,
+    "ComplexThing_Prop2" = @complex_type_p_Prop2
+""");
     }
 
     private void AssertSql(params string[] expected)
@@ -278,4 +296,8 @@ SET "Data" = @p
 
     private void AssertExecuteUpdateSql(params string[] expected)
         => TestSqlLoggerFactory.AssertBaseline(expected, forUpdate: true);
+
+    [ConditionalFact]
+    public virtual void Check_all_tests_overridden()
+        => TestHelpers.AssertAllMethodsOverridden(GetType());
 }

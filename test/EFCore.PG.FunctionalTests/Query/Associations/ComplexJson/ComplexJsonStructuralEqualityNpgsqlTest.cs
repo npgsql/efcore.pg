@@ -100,7 +100,7 @@ WHERE (r."RequiredAssociate" -> 'RequiredNestedAssociate') = '{"Id":1000,"Int":8
 
         AssertSql(
             """
-@entity_equality_nested='?' (DbType = Object)
+@entity_equality_nested='{"Id":1000,"Int":8,"Ints":[1,2,3],"Name":"Root1_RequiredAssociate_RequiredNestedAssociate","String":"foo"}' (DbType = Object)
 
 SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
@@ -138,7 +138,7 @@ WHERE (r."RequiredAssociate" -> 'NestedCollection') = '[{"Id":1002,"Int":8,"Ints
 
         AssertSql(
             """
-@entity_equality_nestedCollection='?' (DbType = Object)
+@entity_equality_nestedCollection='[{"Id":1002,"Int":8,"Ints":[1,2,3],"Name":"Root1_RequiredAssociate_NestedCollection_1","String":"foo"},{"Id":1003,"Int":8,"Ints":[1,2,3],"Name":"Root1_RequiredAssociate_NestedCollection_2","String":"foo"}]' (DbType = Object)
 
 SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
@@ -181,11 +181,11 @@ WHERE EXISTS (
         // elements down to their columns and doing column-by-column comparison. See #32576.
         AssertSql(
             """
-@entity_equality_nested_Id='?' (DbType = Int32)
-@entity_equality_nested_Int='?' (DbType = Int32)
-@entity_equality_nested_Ints='?' (DbType = Object)
-@entity_equality_nested_Name='?'
-@entity_equality_nested_String='?'
+@entity_equality_nested_Id='1002' (Nullable = true)
+@entity_equality_nested_Int='8' (Nullable = true)
+@entity_equality_nested_Ints='[1,2,3]' (DbType = Object)
+@entity_equality_nested_Name='Root1_RequiredAssociate_NestedCollection_1'
+@entity_equality_nested_String='foo'
 
 SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
@@ -208,12 +208,12 @@ WHERE EXISTS (
 
         AssertSql(
             """
-@get_Item_Int='?' (DbType = Int32)
-@entity_equality_get_Item_Id='?' (DbType = Int32)
-@entity_equality_get_Item_Int='?' (DbType = Int32)
-@entity_equality_get_Item_Ints='?' (DbType = Object)
-@entity_equality_get_Item_Name='?'
-@entity_equality_get_Item_String='?'
+@get_Item_Int='106'
+@entity_equality_get_Item_Id='3003' (Nullable = true)
+@entity_equality_get_Item_Int='108' (Nullable = true)
+@entity_equality_get_Item_Ints='[8,9,109]' (DbType = Object)
+@entity_equality_get_Item_Name='Root3_RequiredAssociate_NestedCollection_2'
+@entity_equality_get_Item_String='foo104'
 
 SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
@@ -236,15 +236,15 @@ WHERE EXISTS (
 
         AssertSql(
             """
-@get_Item_Id='?' (DbType = Int32)
-@entity_equality_get_Item_Id='?' (DbType = Int32)
-@entity_equality_get_Item_Int='?' (DbType = Int32)
-@entity_equality_get_Item_Ints='?' (DbType = Object)
-@entity_equality_get_Item_Name='?'
-@entity_equality_get_Item_String='?'
-@entity_equality_get_Item_NestedCollection='?' (DbType = Object)
-@entity_equality_get_Item_OptionalNestedAssociate='?' (DbType = Object)
-@entity_equality_get_Item_RequiredNestedAssociate='?' (DbType = Object)
+@get_Item_Id='302'
+@entity_equality_get_Item_Id='303' (Nullable = true)
+@entity_equality_get_Item_Int='130' (Nullable = true)
+@entity_equality_get_Item_Ints='[8,9,131]' (DbType = Object)
+@entity_equality_get_Item_Name='Root3_AssociateCollection_2'
+@entity_equality_get_Item_String='foo115'
+@entity_equality_get_Item_NestedCollection='[{"Id":3014,"Int":136,"Ints":[8,9,137],"Name":"Root3_AssociateCollection_2_NestedCollection_1","String":"foo118"},{"Id":3015,"Int":138,"Ints":[8,9,139],"Name":"Root3_Root1_AssociateCollection_2_NestedCollection_2","String":"foo119"}]' (DbType = Object)
+@entity_equality_get_Item_OptionalNestedAssociate='{"Id":3013,"Int":134,"Ints":[8,9,135],"Name":"Root3_AssociateCollection_2_OptionalNestedAssociate","String":"foo117"}' (DbType = Object)
+@entity_equality_get_Item_RequiredNestedAssociate='{"Id":3012,"Int":132,"Ints":[8,9,133],"Name":"Root3_AssociateCollection_2_RequiredNestedAssociate","String":"foo116"}' (DbType = Object)
 
 SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r

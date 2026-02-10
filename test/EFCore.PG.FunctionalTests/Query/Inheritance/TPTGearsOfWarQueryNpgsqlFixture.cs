@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore.TestModels.GearsOfWarModel;
 
-namespace Microsoft.EntityFrameworkCore.Query;
+namespace Microsoft.EntityFrameworkCore.Query.Inheritance;
 
-public class TPCGearsOfWarQueryNpgsqlFixture : TPCGearsOfWarQueryRelationalFixture
+public class TPTGearsOfWarQueryNpgsqlFixture : TPTGearsOfWarQueryRelationalFixture
 {
-    static TPCGearsOfWarQueryNpgsqlFixture()
+    static TPTGearsOfWarQueryNpgsqlFixture()
     {
         // TODO: Switch to using NpgsqlDataSource
 #pragma warning disable CS0618 // Type or member is obsolete

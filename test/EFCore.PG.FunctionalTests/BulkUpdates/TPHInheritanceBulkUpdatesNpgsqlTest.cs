@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore.BulkUpdates.Inheritance;
 namespace Microsoft.EntityFrameworkCore.BulkUpdates;
 
 public class TPHInheritanceBulkUpdatesNpgsqlTest(
@@ -96,7 +97,7 @@ WHERE a."Discriminator" = 'Kiwi'
 
         AssertSql(
             """
-@p0='3'
+@p1='3'
 @p='0'
 
 DELETE FROM "Animals" AS a
@@ -105,7 +106,7 @@ WHERE a."Id" IN (
     FROM "Animals" AS a0
     WHERE a0."Name" = 'Great spotted kiwi'
     ORDER BY a0."Name" NULLS FIRST
-    LIMIT @p0 OFFSET @p
+    LIMIT @p1 OFFSET @p
 )
 """);
     }
@@ -198,11 +199,11 @@ WHERE a."Discriminator" = 'Kiwi'
         AssertExecuteUpdateSql(
             """
 @p='Kiwi'
-@p0='0'
+@p1='0'
 
 UPDATE "Animals" AS a
 SET "Name" = @p,
-    "FoundOn" = @p0
+    "FoundOn" = @p1
 WHERE a."Discriminator" = 'Kiwi'
 """);
     }

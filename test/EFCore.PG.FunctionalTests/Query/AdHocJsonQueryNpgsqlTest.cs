@@ -1,5 +1,7 @@
 using Xunit.Sdk;
 
+#pragma warning disable EF8001 // ToJson on owned entities is obsolete
+
 namespace Microsoft.EntityFrameworkCore.Query;
 
 #nullable disable

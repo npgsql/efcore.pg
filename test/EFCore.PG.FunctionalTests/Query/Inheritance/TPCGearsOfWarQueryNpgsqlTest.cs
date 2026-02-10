@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.GearsOfWarModel;
 
-namespace Microsoft.EntityFrameworkCore.Query;
+namespace Microsoft.EntityFrameworkCore.Query.Inheritance;
 
 public class TPCGearsOfWarQueryNpgsqlTest : TPCGearsOfWarQueryRelationalTestBase<TPCGearsOfWarQueryNpgsqlFixture>
 {

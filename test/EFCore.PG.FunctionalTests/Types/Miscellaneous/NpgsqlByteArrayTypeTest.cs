@@ -3,9 +3,22 @@ namespace Microsoft.EntityFrameworkCore.Types.Miscellaneous;
 public class ByteArrayTypeTest(ByteArrayTypeTest.ByteArrayTypeFixture fixture, ITestOutputHelper testOutputHelper)
     : RelationalTypeTestBase<byte[], ByteArrayTypeTest.ByteArrayTypeFixture>(fixture, testOutputHelper)
 {
-    public override async Task Equality_in_query()
+    public override async Task Equality_in_query_with_constant()
     {
-        await base.Equality_in_query();
+        await base.Equality_in_query_with_constant();
+
+        AssertSql(
+            """
+SELECT t."Id", t."OtherValue", t."Value"
+FROM "TypeEntity" AS t
+WHERE t."Value" = BYTEA E'\\x010203'
+LIMIT 2
+""");
+    }
+
+    public override async Task Equality_in_query_with_parameter()
+    {
+        await base.Equality_in_query_with_parameter();
 
         AssertSql(
             """
@@ -15,6 +28,20 @@ SELECT t."Id", t."OtherValue", t."Value"
 FROM "TypeEntity" AS t
 WHERE t."Value" = @Fixture_Value
 LIMIT 2
+""");
+    }
+
+    public override async Task SaveChanges()
+    {
+        await base.SaveChanges();
+
+        AssertSql(
+            """
+@p1='1'
+@p0='0x04050607'
+
+UPDATE "TypeEntity" SET "Value" = @p0
+WHERE "Id" = @p1;
 """);
     }
 

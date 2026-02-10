@@ -1,11 +1,7 @@
 namespace Microsoft.EntityFrameworkCore.Query;
 
-public class AdHocComplexTypeQueryNpgsqlTest(NonSharedFixture fixture) : AdHocComplexTypeQueryTestBase(fixture)
+public class AdHocComplexTypeQueryNpgsqlTest(NonSharedFixture fixture) : AdHocComplexTypeQueryRelationalTestBase(fixture)
 {
-    // Test is SQL Server-specific and being removed, https://github.com/dotnet/efcore/pull/37177
-    public override Task Complex_type_equality_with_non_default_type_mapping()
-        => Task.CompletedTask;
-
     public override async Task Complex_type_equals_parameter_with_nested_types_with_property_of_same_name()
     {
         await base.Complex_type_equals_parameter_with_nested_types_with_property_of_same_name();
@@ -22,12 +18,6 @@ WHERE e."ComplexContainer_Id" = @entity_equality_container_Id AND e."ComplexCont
 LIMIT 2
 """);
     }
-
-    protected TestSqlLoggerFactory TestSqlLoggerFactory
-        => (TestSqlLoggerFactory)ListLoggerFactory;
-
-    protected void AssertSql(params string[] expected)
-        => TestSqlLoggerFactory.AssertBaseline(expected);
 
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;

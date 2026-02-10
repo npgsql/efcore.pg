@@ -8,19 +8,7 @@ public class CustomConvertersNpgsqlTest(CustomConvertersNpgsqlTest.CustomConvert
         => Task.CompletedTask;
 
     [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
-    public override Task Can_insert_and_read_back_non_nullable_backed_data_types()
-        => Task.CompletedTask;
-
-    [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
-    public override Task Can_insert_and_read_back_nullable_backed_data_types()
-        => Task.CompletedTask;
-
-    [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
     public override Task Can_insert_and_read_back_object_backed_data_types()
-        => Task.CompletedTask;
-
-    [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
-    public override Task Can_query_using_any_data_type_nullable_shadow()
         => Task.CompletedTask;
 
     public override void Value_conversion_on_enum_collection_contains()
@@ -65,22 +53,10 @@ public class CustomConvertersNpgsqlTest(CustomConvertersNpgsqlTest.CustomConvert
             // supported.
             modelBuilder.Entity<ObjectBackedDataTypes>().Property(b => b.DateTime)
                 .HasColumnType("timestamp without time zone");
-            modelBuilder.Entity<NullableBackedDataTypes>().Property(b => b.DateTime)
-                .HasColumnType("timestamp without time zone");
-            modelBuilder.Entity<NonNullableBackedDataTypes>().Property(b => b.DateTime)
-                .HasColumnType("timestamp without time zone");
 
             // We don't support DateTimeOffset with non-zero offset, so we need to override the seeding data
             var objectBackedDataTypes = modelBuilder.Entity<ObjectBackedDataTypes>().Metadata.GetSeedData().Single();
             objectBackedDataTypes[nameof(ObjectBackedDataTypes.DateTimeOffset)]
-                = new DateTimeOffset(new DateTime(), TimeSpan.Zero);
-
-            var nullableBackedDataTypes = modelBuilder.Entity<NullableBackedDataTypes>().Metadata.GetSeedData().Single();
-            nullableBackedDataTypes[nameof(NullableBackedDataTypes.DateTimeOffset)]
-                = new DateTimeOffset(DateTime.Parse("01/01/2000 12:34:56"), TimeSpan.Zero);
-
-            var nonNullableBackedDataTypes = modelBuilder.Entity<NonNullableBackedDataTypes>().Metadata.GetSeedData().Single();
-            nonNullableBackedDataTypes[nameof(NonNullableBackedDataTypes.DateTimeOffset)]
                 = new DateTimeOffset(new DateTime(), TimeSpan.Zero);
         }
     }

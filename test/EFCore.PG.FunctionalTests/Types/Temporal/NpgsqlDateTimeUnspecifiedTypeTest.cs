@@ -3,9 +3,23 @@ namespace Microsoft.EntityFrameworkCore.Types.Temporal;
 public class DateTimeUnspecifiedTypeTest(DateTimeUnspecifiedTypeTest.DateTimeTypeFixture fixture, ITestOutputHelper testOutputHelper)
     : RelationalTypeTestBase<DateTime, DateTimeUnspecifiedTypeTest.DateTimeTypeFixture>(fixture, testOutputHelper)
 {
-    public override async Task Equality_in_query()
+    public override async Task Equality_in_query_with_constant()
     {
-        await base.Equality_in_query();
+        await base.Equality_in_query_with_constant();
+
+        AssertSql(
+            """
+SELECT t."Id", t."OtherValue", t."Value"
+FROM "TypeEntity" AS t
+WHERE t."Value" = TIMESTAMP '2020-01-05T12:30:45'
+LIMIT 2
+""");
+    }
+
+
+    public override async Task Equality_in_query_with_parameter()
+    {
+        await base.Equality_in_query_with_parameter();
 
         AssertSql(
             """
@@ -15,6 +29,20 @@ SELECT t."Id", t."OtherValue", t."Value"
 FROM "TypeEntity" AS t
 WHERE t."Value" = @Fixture_Value
 LIMIT 2
+""");
+    }
+
+    public override async Task SaveChanges()
+    {
+        await base.SaveChanges();
+
+        AssertSql(
+            """
+@p1='1'
+@p0='2022-05-03T00:00:00.0000000'
+
+UPDATE "TypeEntity" SET "Value" = @p0
+WHERE "Id" = @p1;
 """);
     }
 

@@ -86,6 +86,14 @@ WHERE (v."OptionalAssociate") IS NOT NULL
 
     #endregion Value types
 
+    // https://github.com/dotnet/efcore/issues/34627
+    public override async Task FromSql_on_root()
+    {
+        await Assert.ThrowsAnyAsync<Exception>(base.FromSql_on_root);
+
+        AssertSql();
+    }
+
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());

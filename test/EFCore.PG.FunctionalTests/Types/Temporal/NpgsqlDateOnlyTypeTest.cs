@@ -3,9 +3,22 @@ namespace Microsoft.EntityFrameworkCore.Types.Temporal;
 public class NpgsqlBoolTypeTest(NpgsqlBoolTypeTest.DateOnlyTypeFixture fixture, ITestOutputHelper testOutputHelper)
     : RelationalTypeTestBase<DateOnly, NpgsqlBoolTypeTest.DateOnlyTypeFixture>(fixture, testOutputHelper)
 {
-    public override async Task Equality_in_query()
+    public override async Task Equality_in_query_with_constant()
     {
-        await base.Equality_in_query();
+        await base.Equality_in_query_with_constant();
+
+        AssertSql(
+            """
+SELECT t."Id", t."OtherValue", t."Value"
+FROM "TypeEntity" AS t
+WHERE t."Value" = DATE '2020-01-05'
+LIMIT 2
+""");
+    }
+
+    public override async Task Equality_in_query_with_parameter()
+    {
+        await base.Equality_in_query_with_parameter();
 
         AssertSql(
             """
@@ -15,6 +28,20 @@ SELECT t."Id", t."OtherValue", t."Value"
 FROM "TypeEntity" AS t
 WHERE t."Value" = @Fixture_Value
 LIMIT 2
+""");
+    }
+
+    public override async Task SaveChanges()
+    {
+        await base.SaveChanges();
+
+        AssertSql(
+            """
+@p1='1'
+@p0='05/03/2022' (DbType = Date)
+
+UPDATE "TypeEntity" SET "Value" = @p0
+WHERE "Id" = @p1;
 """);
     }
 

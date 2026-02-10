@@ -47,7 +47,7 @@ public class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlTest.Upd
             "ExtraPropertyWithAnExtremelyLongAndOverlyConvolutedNameThatIsU~",
             entityType2.GetProperties().ElementAt(1).GetColumnName(StoreObjectIdentifier.Table(entityType2.GetTableName()!)));
         Assert.Equal(
-            "ExtraPropertyWithAnExtremelyLongAndOverlyConvolutedNameThatIs~1",
+            "LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThatI~",
             entityType2.GetProperties().ElementAt(2).GetColumnName(StoreObjectIdentifier.Table(entityType2.GetTableName()!)));
         Assert.Equal(
             "IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameT~1",

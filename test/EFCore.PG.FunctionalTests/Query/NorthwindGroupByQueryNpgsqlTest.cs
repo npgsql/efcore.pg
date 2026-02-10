@@ -1190,7 +1190,7 @@ GROUP BY o0."CustomerID"
 
         AssertSql(
             """
-@p0='500'
+@p1='500'
 @p='80'
 
 SELECT max(o0."OrderID")
@@ -1198,7 +1198,7 @@ FROM (
     SELECT o."OrderID", o."CustomerID"
     FROM "Orders" AS o
     ORDER BY o."OrderID" NULLS FIRST
-    LIMIT @p0 OFFSET @p
+    LIMIT @p1 OFFSET @p
 ) AS o0
 GROUP BY o0."CustomerID"
 """);
@@ -1280,8 +1280,8 @@ GROUP BY o0."CustomerID"
         AssertSql(
             """
 @p='100'
-@p1='50'
-@p0='10'
+@p2='50'
+@p1='10'
 
 SELECT c0."CustomerID" AS "Key", avg(o0."OrderID"::double precision) AS "Count"
 FROM (
@@ -1296,7 +1296,7 @@ INNER JOIN (
     FROM "Customers" AS c
     WHERE c."CustomerID" NOT IN ('DRACD', 'FOLKO')
     ORDER BY c."City" NULLS FIRST
-    LIMIT @p1 OFFSET @p0
+    LIMIT @p2 OFFSET @p1
 ) AS c0 ON o0."CustomerID" = c0."CustomerID"
 GROUP BY c0."CustomerID"
 """);
@@ -1387,9 +1387,9 @@ GROUP BY c."Country"
 
         AssertSql(
             """
-@p0='50'
+@p1='50'
 @p='10'
-@p1='100'
+@p2='100'
 
 SELECT o0."CustomerID" AS "Key", avg(o0."OrderID"::double precision) AS "Count"
 FROM (
@@ -1397,14 +1397,14 @@ FROM (
     FROM "Customers" AS c
     WHERE c."CustomerID" NOT IN ('DRACD', 'FOLKO')
     ORDER BY c."City" NULLS FIRST
-    LIMIT @p0 OFFSET @p
+    LIMIT @p1 OFFSET @p
 ) AS c0
 INNER JOIN (
     SELECT o."OrderID", o."CustomerID"
     FROM "Orders" AS o
     WHERE o."OrderID" < 10400
     ORDER BY o."OrderDate" NULLS FIRST
-    LIMIT @p1
+    LIMIT @p2
 ) AS o0 ON c0."CustomerID" = o0."CustomerID"
 WHERE o0."OrderID" > 10300
 GROUP BY o0."CustomerID"
@@ -1612,7 +1612,7 @@ WHERE EXISTS (
         AssertSql(
             """
 @p='20'
-@p0='4'
+@p1='4'
 
 SELECT o0."CustomerID"
 FROM (
@@ -1624,7 +1624,7 @@ FROM (
     LIMIT @p
 ) AS o0
 ORDER BY o0."CustomerID" NULLS FIRST
-OFFSET @p0
+OFFSET @p1
 """);
     }
 
@@ -1635,7 +1635,7 @@ OFFSET @p0
         AssertSql(
             """
 @p='20'
-@p0='4'
+@p1='4'
 
 SELECT o0."Key", o0."Max"
 FROM (
@@ -1647,7 +1647,7 @@ FROM (
     LIMIT @p
 ) AS o0
 ORDER BY o0."Key" NULLS FIRST
-OFFSET @p0
+OFFSET @p1
 """);
     }
 
@@ -1658,7 +1658,7 @@ OFFSET @p0
         AssertSql(
             """
 @p='20'
-@p0='4'
+@p1='4'
 
 SELECT length(o0."CustomerID")::int
 FROM (
@@ -1670,7 +1670,7 @@ FROM (
     LIMIT @p
 ) AS o0
 ORDER BY o0."CustomerID" NULLS FIRST
-OFFSET @p0
+OFFSET @p1
 """);
     }
 
@@ -1681,7 +1681,7 @@ OFFSET @p0
         AssertSql(
             """
 @p='20'
-@p0='4'
+@p1='4'
 
 SELECT 5
 FROM (
@@ -1693,7 +1693,7 @@ FROM (
     LIMIT @p
 ) AS o0
 ORDER BY o0."CustomerID" NULLS FIRST
-OFFSET @p0
+OFFSET @p1
 """);
     }
 

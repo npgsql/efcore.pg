@@ -1,4 +1,4 @@
-namespace Microsoft.EntityFrameworkCore.Query;
+namespace Microsoft.EntityFrameworkCore.Query.Inheritance;
 
 public class TPTManyToManyQueryNpgsqlTest : TPTManyToManyQueryRelationalTestBase<TPTManyToManyQueryNpgsqlFixture>
 {

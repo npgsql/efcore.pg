@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.TestModels.InheritanceModel;
 
-namespace Microsoft.EntityFrameworkCore.Query;
+namespace Microsoft.EntityFrameworkCore.Query.Inheritance;
 
 public class TPHInheritanceQueryNpgsqlFixture : TPHInheritanceQueryFixture
 {
@@ -11,7 +11,8 @@ public class TPHInheritanceQueryNpgsqlFixture : TPHInheritanceQueryFixture
     {
         base.OnModelCreating(modelBuilder, context);
 
-        modelBuilder.Entity<AnimalQuery>().HasNoKey().ToSqlQuery("""
+        modelBuilder.Entity<AnimalQuery>().HasNoKey().ToSqlQuery(
+            """
             SELECT * FROM "Animals"
             """);
     }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.InheritanceModel;
 
+using Microsoft.EntityFrameworkCore.BulkUpdates.Inheritance;
 namespace Microsoft.EntityFrameworkCore.BulkUpdates;
 
 public class TPHInheritanceBulkUpdatesNpgsqlFixture : TPHInheritanceBulkUpdatesFixture
