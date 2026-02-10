@@ -1,7 +1,7 @@
 namespace Microsoft.EntityFrameworkCore.Types.Temporal;
 
-public class NpgsqlBoolTypeTest(NpgsqlBoolTypeTest.DateOnlyTypeFixture fixture, ITestOutputHelper testOutputHelper)
-    : RelationalTypeTestBase<DateOnly, NpgsqlBoolTypeTest.DateOnlyTypeFixture>(fixture, testOutputHelper)
+public class NpgsqlDateOnlyTypeTest(NpgsqlDateOnlyTypeTest.DateOnlyTypeFixture fixture, ITestOutputHelper testOutputHelper)
+    : RelationalTypeTestBase<DateOnly, NpgsqlDateOnlyTypeTest.DateOnlyTypeFixture>(fixture, testOutputHelper)
 {
     public override async Task Equality_in_query_with_constant()
     {
