@@ -3,9 +3,23 @@ namespace Microsoft.EntityFrameworkCore.Types.Numeric;
 public class NpgsqlLongTypeTest(NpgsqlLongTypeTest.LongTypeFixture fixture, ITestOutputHelper testOutputHelper)
     : RelationalTypeTestBase<long, NpgsqlLongTypeTest.LongTypeFixture>(fixture, testOutputHelper)
 {
-    public override async Task Equality_in_query()
+    public override async Task Equality_in_query_with_constant()
     {
-        await base.Equality_in_query();
+        await base.Equality_in_query_with_constant();
+
+        AssertSql(
+            """
+SELECT t."Id", t."OtherValue", t."Value"
+FROM "TypeEntity" AS t
+WHERE t."Value" = -9223372036854775808
+LIMIT 2
+""");
+    }
+
+
+    public override async Task Equality_in_query_with_parameter()
+    {
+        await base.Equality_in_query_with_parameter();
 
         AssertSql(
             """
@@ -15,6 +29,20 @@ SELECT t."Id", t."OtherValue", t."Value"
 FROM "TypeEntity" AS t
 WHERE t."Value" = @Fixture_Value
 LIMIT 2
+""");
+    }
+
+    public override async Task SaveChanges()
+    {
+        await base.SaveChanges();
+
+        AssertSql(
+            """
+@p1='1'
+@p0='9223372036854775807'
+
+UPDATE "TypeEntity" SET "Value" = @p0
+WHERE "Id" = @p1;
 """);
     }
 

@@ -1,6 +1,7 @@
 ﻿using System.Data.Common;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
+using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -20,10 +21,13 @@ public class NpgsqlDatabaseCleaner : RelationalDatabaseCleaner
                 new NpgsqlLoggingDefinitions(),
                 new NullDbContextLogger()));
 
+    protected override bool AcceptTable(DatabaseTable table)
+        => table is not DatabaseView;
+
     protected override bool AcceptIndex(DatabaseIndex index)
         => false;
 
-    public override void Clean(DatabaseFacade facade)
+    public override void Clean(DatabaseFacade facade, bool createTables = true)
     {
         // The following is somewhat hacky
         // PostGIS creates some system tables (e.g. spatial_ref_sys) which can't be dropped until the extension
@@ -48,7 +52,7 @@ public class NpgsqlDatabaseCleaner : RelationalDatabaseCleaner
             }
         }
 
-        base.Clean(facade);
+        base.Clean(facade, createTables);
     }
 
     private void DropExtensions(NpgsqlConnection conn)
@@ -159,13 +163,27 @@ FROM pg_collation coll
     }
 
     protected override string BuildCustomSql(DatabaseModel databaseModel)
+    {
+        var sb = new StringBuilder();
+
+        // Drop views before tables, since views may depend on tables
+        foreach (var view in databaseModel.Tables.OfType<DatabaseView>())
+        {
+            sb.Append("DROP VIEW IF EXISTS ")
+                .Append(_sqlGenerationHelper.DelimitIdentifier(view.Name, view.Schema))
+                .Append(" CASCADE;");
+        }
+
         // Some extensions create tables (e.g. PostGIS), so we must drop them first.
-        => databaseModel.GetPostgresExtensions()
-            .Select(e => _sqlGenerationHelper.DelimitIdentifier(e.Name, e.Schema))
-            .Aggregate(
-                new StringBuilder(),
-                (builder, s) => builder.Append("DROP EXTENSION ").Append(s).Append(";"),
-                builder => builder.ToString());
+        foreach (var extension in databaseModel.GetPostgresExtensions())
+        {
+            sb.Append("DROP EXTENSION ")
+                .Append(_sqlGenerationHelper.DelimitIdentifier(extension.Name, extension.Schema))
+                .Append(';');
+        }
+
+        return sb.ToString();
+    }
 
     protected override string BuildCustomEndingSql(DatabaseModel databaseModel)
         => databaseModel.GetPostgresEnums()
