@@ -32,8 +32,7 @@ public class PgUnnestExpression : PgTableValuedFunctionExpression
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </remarks>
-    public virtual SqlExpression Array
-        => Arguments[0];
+    public virtual SqlExpression Array { get; }
 
     /// <summary>
     ///     The name of the column to be projected out from the <c>unnest</c> call.
@@ -60,8 +59,7 @@ public class PgUnnestExpression : PgTableValuedFunctionExpression
 
     private PgUnnestExpression(string alias, SqlExpression array, ColumnInfo? columnInfo, bool withOrdinality = true)
         : base(alias, "unnest", [array], columnInfo is null ? null : [columnInfo.Value], withOrdinality)
-    {
-    }
+        => Array = array;
 
     /// <inheritdoc />
     protected override Expression VisitChildren(ExpressionVisitor visitor)
@@ -75,8 +73,8 @@ public class PgUnnestExpression : PgTableValuedFunctionExpression
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override PgUnnestExpression Update(IReadOnlyList<SqlExpression> arguments)
-        => arguments is [var singleArgument]
+    public override PgUnnestExpression Update(IReadOnlyList<Expression> arguments)
+        => arguments is [SqlExpression singleArgument]
             ? Update(singleArgument)
             : throw new ArgumentException();
 

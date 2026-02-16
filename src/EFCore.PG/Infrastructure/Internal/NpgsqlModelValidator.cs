@@ -10,27 +10,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlModelValidator : RelationalModelValidator
+public class NpgsqlModelValidator(
+    ModelValidatorDependencies dependencies,
+    RelationalModelValidatorDependencies relationalDependencies,
+    INpgsqlSingletonOptions npgsqlSingletonOptions) : RelationalModelValidator(dependencies, relationalDependencies)
 {
     /// <summary>
     ///     The backend version to target.
     /// </summary>
-    private readonly Version _postgresVersion;
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public NpgsqlModelValidator(
-        ModelValidatorDependencies dependencies,
-        RelationalModelValidatorDependencies relationalDependencies,
-        INpgsqlSingletonOptions npgsqlSingletonOptions)
-        : base(dependencies, relationalDependencies)
-    {
-        _postgresVersion = npgsqlSingletonOptions.PostgresVersion;
-    }
+    private readonly Version _postgresVersion = npgsqlSingletonOptions.PostgresVersion;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -43,13 +31,10 @@ public class NpgsqlModelValidator : RelationalModelValidator
         base.Validate(model, logger);
 
         ValidateIdentityVersionCompatibility(model);
-        ValidateIndexIncludeProperties(model);
-        ValidateWithoutOverlaps(model);
-        ValidatePeriod(model);
     }
 
     /// <summary>
-    ///     Validates that identity columns are used only with PostgreSQL 10.0 or later.
+    ///     Validates that identity columns are used only with PostgreSQL 10.0 or later (model-level check).
     /// </summary>
     /// <param name="model">The model to validate.</param>
     protected virtual void ValidateIdentityVersionCompatibility(IModel model)
@@ -69,17 +54,60 @@ public class NpgsqlModelValidator : RelationalModelValidator
                 + $"'optionsBuilder.{nameof(NpgsqlDbContextOptionsBuilder.SetPostgresVersion)}()' in your model's OnConfiguring. "
                 + "See the docs for more info.");
         }
+    }
 
-        foreach (var property in model.GetEntityTypes().SelectMany(e => e.GetProperties()))
-        {
-            var propertyStrategy = property.GetValueGenerationStrategy();
+    /// <inheritdoc />
+    protected override void ValidateProperty(
+        IProperty property,
+        ITypeBase structuralType,
+        IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
+    {
+        base.ValidateProperty(property, structuralType, logger);
 
-            if (propertyStrategy is NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
+        var strategy = property.GetValueGenerationStrategy();
+
+        // Identity version compatibility (per-property check)
+        if (!_postgresVersion.AtLeast(10)
+            && strategy is NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
                 or NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
-            {
-                throw new InvalidOperationException(
-                    $"{property.DeclaringType}.{property.Name}: '{propertyStrategy}' requires PostgreSQL 10.0 or later.");
-            }
+        {
+            throw new InvalidOperationException(
+                $"{property.DeclaringType}.{property.Name}: '{strategy}' requires PostgreSQL 10.0 or later.");
+        }
+
+        // Value generation strategy compatibility
+        var propertyType = property.ClrType;
+
+        switch (strategy)
+        {
+            case NpgsqlValueGenerationStrategy.None:
+                break;
+
+            case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
+            case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
+                if (!NpgsqlPropertyExtensions.IsCompatibleWithValueGeneration(property))
+                {
+                    throw new InvalidOperationException(
+                        NpgsqlStrings.IdentityBadType(
+                            property.Name, property.DeclaringType.DisplayName(), propertyType.ShortDisplayName()));
+                }
+
+                break;
+
+            case NpgsqlValueGenerationStrategy.SequenceHiLo:
+            case NpgsqlValueGenerationStrategy.Sequence:
+            case NpgsqlValueGenerationStrategy.SerialColumn:
+                if (!NpgsqlPropertyExtensions.IsCompatibleWithValueGeneration(property))
+                {
+                    throw new InvalidOperationException(
+                        NpgsqlStrings.SequenceBadType(
+                            property.Name, property.DeclaringType.DisplayName(), propertyType.ShortDisplayName()));
+                }
+
+                break;
+
+            default:
+                throw new UnreachableException();
         }
     }
 
@@ -90,10 +118,10 @@ public class NpgsqlModelValidator : RelationalModelValidator
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override void ValidateValueGeneration(
-        IEntityType entityType,
         IKey key,
         IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
     {
+        var entityType = key.DeclaringEntityType;
         if (entityType.GetTableName() != null
             && (string?)entityType[RelationalAnnotationNames.MappingStrategy] == RelationalAnnotationNames.TpcMappingStrategy)
         {
@@ -106,124 +134,94 @@ public class NpgsqlModelValidator : RelationalModelValidator
         }
     }
 
-    /// <inheritdoc/>
-    protected override void ValidateTypeMappings(
-        IModel model,
+    /// <inheritdoc />
+    protected override void ValidateIndex(
+        IIndex index,
         IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
     {
-        base.ValidateTypeMappings(model, logger);
+        base.ValidateIndex(index, logger);
 
-        foreach (var entityType in model.GetEntityTypes())
+        var includeProperties = index.GetIncludeProperties();
+        if (includeProperties?.Count > 0)
         {
-            foreach (var property in entityType.GetFlattenedDeclaredProperties())
+            var notFound = includeProperties
+                .FirstOrDefault(i => index.DeclaringEntityType.FindProperty(i) is null);
+
+            if (notFound is not null)
             {
-                var strategy = property.GetValueGenerationStrategy();
-                var propertyType = property.ClrType;
-
-                switch (strategy)
-                {
-                    case NpgsqlValueGenerationStrategy.None:
-                        break;
-
-                    case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
-                    case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
-                        if (!NpgsqlPropertyExtensions.IsCompatibleWithValueGeneration(property))
-                        {
-                            throw new InvalidOperationException(
-                                NpgsqlStrings.IdentityBadType(
-                                    property.Name, property.DeclaringType.DisplayName(), propertyType.ShortDisplayName()));
-                        }
-
-                        break;
-
-                    case NpgsqlValueGenerationStrategy.SequenceHiLo:
-                    case NpgsqlValueGenerationStrategy.Sequence:
-                    case NpgsqlValueGenerationStrategy.SerialColumn:
-                        if (!NpgsqlPropertyExtensions.IsCompatibleWithValueGeneration(property))
-                        {
-                            throw new InvalidOperationException(
-                                NpgsqlStrings.SequenceBadType(
-                                    property.Name, property.DeclaringType.DisplayName(), propertyType.ShortDisplayName()));
-                        }
-
-                        break;
-
-                    default:
-                        throw new UnreachableException();
-                }
+                throw new InvalidOperationException(
+                    NpgsqlStrings.IncludePropertyNotFound(index.DeclaringEntityType.DisplayName(), notFound));
             }
-        }
-    }
 
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    protected virtual void ValidateIndexIncludeProperties(IModel model)
-    {
-        foreach (var index in model.GetEntityTypes().SelectMany(t => t.GetDeclaredIndexes()))
-        {
-            var includeProperties = index.GetIncludeProperties();
-            if (includeProperties?.Count > 0)
+            var duplicate = includeProperties
+                .GroupBy(i => i)
+                .Where(g => g.Count() > 1)
+                .Select(y => y.Key)
+                .FirstOrDefault();
+
+            if (duplicate is not null)
             {
-                var notFound = includeProperties
-                    .FirstOrDefault(i => index.DeclaringEntityType.FindProperty(i) is null);
+                throw new InvalidOperationException(
+                    NpgsqlStrings.IncludePropertyDuplicated(index.DeclaringEntityType.DisplayName(), duplicate));
+            }
 
-                if (notFound is not null)
-                {
-                    throw new InvalidOperationException(
-                        NpgsqlStrings.IncludePropertyNotFound(index.DeclaringEntityType.DisplayName(), notFound));
-                }
+            var inIndex = includeProperties
+                .FirstOrDefault(i => index.Properties.Any(p => i == p.Name));
 
-                var duplicate = includeProperties
-                    .GroupBy(i => i)
-                    .Where(g => g.Count() > 1)
-                    .Select(y => y.Key)
-                    .FirstOrDefault();
-
-                if (duplicate is not null)
-                {
-                    throw new InvalidOperationException(
-                        NpgsqlStrings.IncludePropertyDuplicated(index.DeclaringEntityType.DisplayName(), duplicate));
-                }
-
-                var inIndex = includeProperties
-                    .FirstOrDefault(i => index.Properties.Any(p => i == p.Name));
-
-                if (inIndex is not null)
-                {
-                    throw new InvalidOperationException(
-                        NpgsqlStrings.IncludePropertyInIndex(index.DeclaringEntityType.DisplayName(), inIndex));
-                }
+            if (inIndex is not null)
+            {
+                throw new InvalidOperationException(
+                    NpgsqlStrings.IncludePropertyInIndex(index.DeclaringEntityType.DisplayName(), inIndex));
             }
         }
     }
 
     /// <inheritdoc />
-    protected override void ValidateStoredProcedures(
-        IModel model,
+    protected override void ValidateKey(
+        IKey key,
         IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
     {
-        base.ValidateStoredProcedures(model, logger);
+        base.ValidateKey(key, logger);
 
-        foreach (var entityType in model.GetEntityTypes())
+        if (key.GetWithoutOverlaps() == true)
         {
-            if (entityType.GetDeleteStoredProcedure() is { } deleteStoredProcedure)
-            {
-                ValidateSproc(deleteStoredProcedure, logger);
-            }
+            ValidateWithoutOverlapsKey(key);
+        }
+    }
 
-            if (entityType.GetInsertStoredProcedure() is { } insertStoredProcedure)
-            {
-                ValidateSproc(insertStoredProcedure, logger);
-            }
+    /// <inheritdoc />
+    protected override void ValidateForeignKey(
+        IForeignKey foreignKey,
+        IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
+    {
+        base.ValidateForeignKey(foreignKey, logger);
 
-            if (entityType.GetUpdateStoredProcedure() is { } updateStoredProcedure)
-            {
-                ValidateSproc(updateStoredProcedure, logger);
-            }
+        if (foreignKey.GetPeriod() == true)
+        {
+            ValidatePeriodForeignKey(foreignKey);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void ValidateStoredProcedures(
+        IEntityType entityType,
+        IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
+    {
+        base.ValidateStoredProcedures(entityType, logger);
+
+        if (entityType.GetDeleteStoredProcedure() is { } deleteStoredProcedure)
+        {
+            ValidateSproc(deleteStoredProcedure, logger);
+        }
+
+        if (entityType.GetInsertStoredProcedure() is { } insertStoredProcedure)
+        {
+            ValidateSproc(insertStoredProcedure, logger);
+        }
+
+        if (entityType.GetUpdateStoredProcedure() is { } updateStoredProcedure)
+        {
+            ValidateSproc(updateStoredProcedure, logger);
         }
 
         static void ValidateSproc(IStoredProcedure sproc, IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
@@ -272,27 +270,6 @@ public class NpgsqlModelValidator : RelationalModelValidator
         }
     }
 
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    protected virtual void ValidateWithoutOverlaps(IModel model)
-    {
-        foreach (var entityType in model.GetEntityTypes())
-        {
-            // Validate primary key and alternate keys
-            foreach (var key in entityType.GetDeclaredKeys())
-            {
-                if (key.GetWithoutOverlaps() == true)
-                {
-                    ValidateWithoutOverlapsKey(key);
-                }
-            }
-        }
-    }
-
     private void ValidateWithoutOverlapsKey(IKey key)
     {
         var keyName = key.IsPrimaryKey() ? "primary key" : $"alternate key {key.Properties.Format()}";
@@ -317,26 +294,6 @@ public class NpgsqlModelValidator : RelationalModelValidator
                     entityType.DisplayName(),
                     lastProperty.Name,
                     lastProperty.ClrType.ShortDisplayName()));
-        }
-    }
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    protected virtual void ValidatePeriod(IModel model)
-    {
-        foreach (var entityType in model.GetEntityTypes())
-        {
-            foreach (var foreignKey in entityType.GetDeclaredForeignKeys())
-            {
-                if (foreignKey.GetPeriod() == true)
-                {
-                    ValidatePeriodForeignKey(foreignKey);
-                }
-            }
         }
     }
 

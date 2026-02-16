@@ -194,7 +194,7 @@ WHERE '{"Name": "Joe", "Age": 25}' <@ j."CustomerJsonb"
     {
         using var ctx = CreateContext();
 
-        var count = ctx.JsonEntities.Count(e => EF.Functions.JsonExists(e.CustomerJsonb, "Age"));
+        var count = ctx.JsonEntities.Count(e => NpgsqlJsonDbFunctionsExtensions.JsonExists(EF.Functions, e.CustomerJsonb, "Age"));
 
         Assert.Equal(2, count);
 

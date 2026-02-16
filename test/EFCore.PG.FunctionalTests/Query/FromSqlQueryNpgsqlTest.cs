@@ -34,7 +34,7 @@ public class FromSqlQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomi
         var query
             = from c in context.Set<Customer>().FromSqlRaw(
                   NormalizeDelimitersInRawString("SELECT * FROM [Customers] WHERE [City] = {0}"), city)
-              from o in context.Set<Order>().FromSqlInterpolated(
+              from o in context.Set<Order>().FromSql(
                   NormalizeDelimitersInInterpolatedString(
                       $"SELECT * FROM [Orders] WHERE [OrderDate] BETWEEN {startDate} AND {endDate}"))
               where c.CustomerID == o.CustomerID
@@ -53,7 +53,7 @@ public class FromSqlQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomi
         query
             = (from c in context.Set<Customer>().FromSqlRaw(
                    NormalizeDelimitersInRawString("SELECT * FROM [Customers] WHERE [City] = {0}"), city)
-               from o in context.Set<Order>().FromSqlInterpolated(
+               from o in context.Set<Order>().FromSql(
                    NormalizeDelimitersInInterpolatedString(
                        $"SELECT * FROM [Orders] WHERE [OrderDate] BETWEEN {startDate} AND {endDate}"))
                where c.CustomerID == o.CustomerID
@@ -80,7 +80,7 @@ public class FromSqlQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomi
         var query
             = from c in context.Set<Customer>().FromSqlRaw(
                   NormalizeDelimitersInRawString("SELECT * FROM [Customers] WHERE [City] = {0}"), city)
-              from o in context.Set<Order>().FromSqlInterpolated(
+              from o in context.Set<Order>().FromSql(
                   NormalizeDelimitersInInterpolatedString(
                       $"SELECT * FROM [Orders] WHERE [OrderDate] BETWEEN {startDate} AND {endDate}"))
               where c.CustomerID == o.CustomerID
@@ -99,7 +99,7 @@ public class FromSqlQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomi
         query
             = (from c in context.Set<Customer>().FromSqlRaw(
                    NormalizeDelimitersInRawString("SELECT * FROM [Customers] WHERE [City] = {0}"), city)
-               from o in context.Set<Order>().FromSqlInterpolated(
+               from o in context.Set<Order>().FromSql(
                    NormalizeDelimitersInInterpolatedString(
                        $"SELECT * FROM [Orders] WHERE [OrderDate] BETWEEN {startDate} AND {endDate}"))
                where c.CustomerID == o.CustomerID
