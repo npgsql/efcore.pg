@@ -17,3 +17,4 @@ artifacts/
 TestResult.xml
 .dotnet
 .vscode/
+.github/aw/logs/
