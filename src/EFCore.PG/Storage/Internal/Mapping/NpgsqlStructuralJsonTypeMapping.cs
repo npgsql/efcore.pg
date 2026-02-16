@@ -9,7 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 ///     See <see cref="NpgsqlJsonTypeMapping" /> for the older Npgsql-specific support, which allows mapping json/jsonb to text, to e.g.
 ///     <see cref="JsonElement" /> (weakly-typed mapping) or to arbitrary POCOs (but without them being modeled).
 /// </summary>
-public class NpgsqlStructuralJsonTypeMapping : JsonTypeMapping
+public class NpgsqlStructuralJsonTypeMapping : StructuralJsonTypeMapping
 {
     /// <summary>
     ///     The database type used by Npgsql (<see cref="NpgsqlDbType.Json" /> or <see cref="NpgsqlDbType.Jsonb" />.

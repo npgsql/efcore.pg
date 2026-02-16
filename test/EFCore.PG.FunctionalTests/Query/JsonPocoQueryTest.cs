@@ -614,7 +614,7 @@ WHERE @someJson <@ j."Customer"
         using var ctx = CreateContext();
         var count = ctx.JsonbEntities.Count(
             e =>
-                EF.Functions.JsonExists(e.Customer.Statistics, "Visits"));
+                NpgsqlJsonDbFunctionsExtensions.JsonExists(EF.Functions, e.Customer.Statistics, "Visits"));
 
         Assert.Equal(2, count);
         AssertSql(

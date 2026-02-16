@@ -151,7 +151,7 @@ LEFT JOIN "RootEntity" AS r0 ON r."RootEntityId" = r0."Id"
 
         AssertSql(
             """
-SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
+SELECT r."RequiredAssociate"
 FROM "RootEntity" AS r
 """);
     }
@@ -277,6 +277,20 @@ JOIN LATERAL ROWS FROM (jsonb_to_recordset(r."OptionalAssociate" -> 'NestedColle
 SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
 """);
+    }
+
+    public override async Task Select_associate_and_target_to_index_based_binding_via_closure(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.Select_associate_and_target_to_index_based_binding_via_closure(queryTrackingBehavior);
+
+        if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
+        {
+            AssertSql(
+                """
+SELECT r."Id", r."RequiredAssociate"
+FROM "RootEntity" AS r
+""");
+        }
     }
 
     #endregion Multiple

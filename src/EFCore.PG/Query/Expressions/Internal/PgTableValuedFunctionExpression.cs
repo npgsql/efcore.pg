@@ -21,7 +21,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 ///         doing so can result in application failures when updating to a new Entity Framework Core release.
 ///     </para>
 /// </remarks>
-public class PgTableValuedFunctionExpression : TableValuedFunctionExpression, IEquatable<PgTableValuedFunctionExpression>
+public class PgTableValuedFunctionExpression(
+    string alias,
+    string name,
+    IReadOnlyList<Expression> arguments,
+    IReadOnlyList<PgTableValuedFunctionExpression.ColumnInfo>? columnInfos = null,
+    bool withOrdinality = true) : TableValuedFunctionExpression(alias, name, schema: null, builtIn: true, arguments), IEquatable<PgTableValuedFunctionExpression>
 {
     /// <summary>
     ///     The name of the column to be projected out from the <c>unnest</c> call.
@@ -32,7 +37,7 @@ public class PgTableValuedFunctionExpression : TableValuedFunctionExpression, IE
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </remarks>
-    public virtual IReadOnlyList<ColumnInfo>? ColumnInfos { get; }
+    public virtual IReadOnlyList<ColumnInfo>? ColumnInfos { get; } = columnInfos;
 
     /// <summary>
     ///     Whether to project an additional ordinality column containing the index of each element in the array.
@@ -43,25 +48,7 @@ public class PgTableValuedFunctionExpression : TableValuedFunctionExpression, IE
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </remarks>
-    public virtual bool WithOrdinality { get; }
-
-    /// <summary>
-    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
-    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
-    ///     any release. You should only use it directly in your code with extreme caution and knowing that
-    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
-    /// </summary>
-    public PgTableValuedFunctionExpression(
-        string alias,
-        string name,
-        IReadOnlyList<SqlExpression> arguments,
-        IReadOnlyList<ColumnInfo>? columnInfos = null,
-        bool withOrdinality = true)
-        : base(alias, name, schema: null, builtIn: true, arguments)
-    {
-        ColumnInfos = columnInfos;
-        WithOrdinality = withOrdinality;
-    }
+    public virtual bool WithOrdinality { get; } = withOrdinality;
 
     /// <inheritdoc />
     protected override Expression VisitChildren(ExpressionVisitor visitor)
@@ -75,7 +62,7 @@ public class PgTableValuedFunctionExpression : TableValuedFunctionExpression, IE
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override PgTableValuedFunctionExpression Update(IReadOnlyList<SqlExpression> arguments)
+    public override PgTableValuedFunctionExpression Update(IReadOnlyList<Expression> arguments)
         => arguments.SequenceEqual(Arguments, ReferenceEqualityComparer.Instance)
             ? this
             : new PgTableValuedFunctionExpression(Alias, Name, arguments, ColumnInfos, WithOrdinality);
@@ -83,10 +70,10 @@ public class PgTableValuedFunctionExpression : TableValuedFunctionExpression, IE
     /// <inheritdoc />
     public override TableExpressionBase Clone(string? alias, ExpressionVisitor cloningExpressionVisitor)
     {
-        var arguments = new SqlExpression[Arguments.Count];
+        var arguments = new Expression[Arguments.Count];
         for (var i = 0; i < arguments.Length; i++)
         {
-            arguments[i] = (SqlExpression)cloningExpressionVisitor.Visit(Arguments[i]);
+            arguments[i] = cloningExpressionVisitor.Visit(Arguments[i]);
         }
 
         return new PgTableValuedFunctionExpression(Alias, Name, arguments, ColumnInfos, WithOrdinality);
