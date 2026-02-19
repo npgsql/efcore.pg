@@ -48,10 +48,7 @@ public class NpgsqlModelValidatorTest
         var modelBuilder = CreateConventionModelBuilder(
             o => o.UseNpgsql("Host=localhost", npgsqlOptions => npgsqlOptions.SetPostgresVersion(17, 0)));
 
-        // Use int for Period so EF Core's base validation (IComparable check) doesn't run first
         modelBuilder.Entity<EntityWithIntPeriod>(b => b.HasKey(e => new { e.Id, e.Period }).WithoutOverlaps());
-
-        // Our version check happens before the range type check
         VerifyError(
             "WITHOUT OVERLAPS on primary key in entity type 'EntityWithIntPeriod' requires PostgreSQL 18.0 or later.",
             modelBuilder);
@@ -64,7 +61,6 @@ public class NpgsqlModelValidatorTest
         var modelBuilder = CreateConventionModelBuilder(
             o => o.UseNpgsql("Host=localhost", npgsqlOptions => npgsqlOptions.SetPostgresVersion(18, 0)));
 
-        // Use int for Period to avoid EF Core's base validation issues with NpgsqlRange<DateTime>
         // Principal key does NOT have WithoutOverlaps configured
         modelBuilder.Entity<PrincipalWithIntPeriod>(
             b =>

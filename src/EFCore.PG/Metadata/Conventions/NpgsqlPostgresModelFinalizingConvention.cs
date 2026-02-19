@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.ChangeTracking.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -28,6 +31,7 @@ public class NpgsqlPostgresModelFinalizingConvention(
                 {
                     DiscoverPostgresExtensions(property, typeMapping, modelBuilder);
                     ProcessRowVersionProperty(property, typeMapping);
+                    SetRangeCurrentValueComparer(property, typeMapping);
                 }
             }
 
@@ -106,6 +110,23 @@ public class NpgsqlPostgresModelFinalizingConvention(
             && typeMapping.StoreType == "xid")
         {
             property.Builder.HasColumnName("xmin");
+        }
+    }
+
+    /// <summary>
+    ///     Pre-sets the current value comparer for range key/FK properties, since <see cref="NpgsqlRange{T}" /> doesn't
+    ///     implement <see cref="IComparable" /> and the default <see cref="CurrentValueComparerFactory" /> would reject it.
+    /// </summary>
+    protected virtual void SetRangeCurrentValueComparer(IConventionProperty property, RelationalTypeMapping typeMapping)
+    {
+        if ((property.IsKey() || property.IsForeignKey())
+            && typeMapping is NpgsqlRangeTypeMapping
+            && property is PropertyBase propertyBase)
+        {
+#pragma warning disable EF1001 // Internal EF Core API usage.
+            propertyBase.SetCurrentValueComparer(
+                new EntryCurrentValueComparer((IProperty)property, new NpgsqlRangeCurrentValueComparer(property.ClrType)));
+#pragma warning restore EF1001 // Internal EF Core API usage.
         }
     }
 }
