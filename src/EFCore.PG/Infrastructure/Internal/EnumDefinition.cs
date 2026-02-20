@@ -85,10 +85,36 @@ public sealed class EnumDefinition : IEquatable<EnumDefinition>
         ClrType = clrType;
 
         NameTranslator = nameTranslator;
-        Labels = clrType.GetFields(BindingFlags.Static | BindingFlags.Public)
-            .ToDictionary(
-                x => x.GetValue(null)!,
-                x => x.GetCustomAttribute<PgNameAttribute>()?.PgName ?? nameTranslator.TranslateMemberName(x.Name));
+
+        var labels = new Dictionary<object, string>();
+        // Tracks the [PgName] attribute value for each enum value (null if no [PgName] was specified).
+        // Used to detect conflicting [PgName] mappings for different labels that share the same underlying value.
+        var pgNames = new Dictionary<object, string?>();
+        foreach (var field in clrType.GetFields(BindingFlags.Static | BindingFlags.Public))
+        {
+            var value = field.GetValue(null)!;
+            var pgName = field.GetCustomAttribute<PgNameAttribute>()?.PgName;
+
+            if (labels.TryGetValue(value, out _))
+            {
+                var existingPgName = pgNames[value];
+
+                // If either the existing or current field has a [PgName] attribute, they must match.
+                if ((pgName is not null || existingPgName is not null)
+                    && pgName != existingPgName)
+                {
+                    throw new InvalidOperationException(
+                        $"Enum '{clrType.Name}' has multiple members with the same value '{value}' but with different [PgName] mappings ('{existingPgName ?? "(none)"}' and '{pgName ?? "(none)"}'). All members that share the same value must have identical [PgName] mappings.");
+                }
+
+                continue;
+            }
+
+            labels.Add(value, pgName ?? nameTranslator.TranslateMemberName(field.Name));
+            pgNames.Add(value, pgName);
+        }
+
+        Labels = labels;
     }
 
     /// <inheritdoc />
