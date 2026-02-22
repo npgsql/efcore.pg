@@ -1,24 +1,20 @@
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.ChangeTracking.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 
 /// <summary>
 ///     A convention that creates an optimized copy of the mutable model.
 /// </summary>
-public class NpgsqlRuntimeModelConvention : RelationalRuntimeModelConvention
+/// <param name="dependencies">Parameter object containing dependencies for this convention.</param>
+/// <param name="relationalDependencies">Parameter object containing relational dependencies for this convention.</param>
+public class NpgsqlRuntimeModelConvention(
+    ProviderConventionSetBuilderDependencies dependencies,
+    RelationalConventionSetBuilderDependencies relationalDependencies)
+    : RelationalRuntimeModelConvention(dependencies, relationalDependencies)
 {
-    /// <summary>
-    ///     Creates a new instance of <see cref="NpgsqlRuntimeModelConvention" />.
-    /// </summary>
-    /// <param name="dependencies">Parameter object containing dependencies for this convention.</param>
-    /// <param name="relationalDependencies">Parameter object containing relational dependencies for this convention.</param>
-    public NpgsqlRuntimeModelConvention(
-        ProviderConventionSetBuilderDependencies dependencies,
-        RelationalConventionSetBuilderDependencies relationalDependencies)
-        : base(dependencies, relationalDependencies)
-    {
-    }
-
     /// <inheritdoc />
     protected override void ProcessModelAnnotations(
         Dictionary<string, object?> annotations,
@@ -78,6 +74,18 @@ public class NpgsqlRuntimeModelConvention : RelationalRuntimeModelConvention
         bool runtime)
     {
         base.ProcessPropertyAnnotations(annotations, property, runtimeProperty, runtime);
+
+        // NpgsqlRange<T> doesn't implement IComparable (ranges are only partially ordered), so we must
+        // provide a custom CurrentValueComparer for the runtime model. Without this, the update pipeline's
+        // ModificationCommandComparer would fail when trying to sort commands by key values.
+        if ((property.IsKey() || property.IsForeignKey())
+            && property.FindTypeMapping() is NpgsqlRangeTypeMapping)
+        {
+#pragma warning disable EF1001 // Internal EF Core API usage.
+            runtimeProperty.SetCurrentValueComparer(
+                new EntryCurrentValueComparer(runtimeProperty, new NpgsqlRangeCurrentValueComparer(property.ClrType)));
+#pragma warning restore EF1001 // Internal EF Core API usage.
+        }
 
         if (!runtime)
         {

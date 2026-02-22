@@ -250,6 +250,9 @@
   <data name="TwoDataSourcesInSameServiceProvider" xml:space="preserve">
     <value>Using two distinct data sources within a service provider is not supported, and Entity Framework is not building its own internal service provider. Either allow Entity Framework to build the service provider by removing the call to '{useInternalServiceProvider}', or ensure that the same data source is used for all uses of a given service provider passed to '{useInternalServiceProvider}'.</value>
   </data>
+  <data name="PeriodForeignKeyTrackingNotSupported" xml:space="preserve">
+    <value>Queries that join entities via a PERIOD foreign key (temporal constraint) cannot use change tracking. Use 'AsNoTracking()' to execute this query.</value>
+  </data>
   <data name="PeriodRequiresPostgres18" xml:space="preserve">
     <value>PERIOD on foreign key '{foreignKeyName}' in entity type '{entityType}' requires PostgreSQL 18.0 or later. If you're targeting an older version, remove the `WithPeriod()` configuration call. Otherwise, set PostgreSQL compatibility mode by calling 'optionsBuilder.UseNpgsql(..., o =&gt; o.SetPostgresVersion(18, 0))' in your model's OnConfiguring.</value>
   </data>

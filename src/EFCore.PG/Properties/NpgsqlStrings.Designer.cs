@@ -184,6 +184,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             => GetString("TransientExceptionDetected");
 
         /// <summary>
+        ///     Queries that join entities via a PERIOD foreign key (temporal constraint) cannot use change tracking. Use 'AsNoTracking()' to execute this query.
+        /// </summary>
+        public static string PeriodForeignKeyTrackingNotSupported
+            => GetString("PeriodForeignKeyTrackingNotSupported");
+
+        /// <summary>
         ///     PERIOD on foreign key '{foreignKeyName}' in entity type '{entityType}' requires PostgreSQL 18.0 or later. If you're targeting an older version, remove the `WithPeriod()` configuration call. Otherwise, set PostgreSQL compatibility mode by calling 'optionsBuilder.UseNpgsql(..., o => o.SetPostgresVersion(18, 0))' in your model's OnConfiguring.
         /// </summary>
         public static string PeriodRequiresPostgres18(object? foreignKeyName, object? entityType)
