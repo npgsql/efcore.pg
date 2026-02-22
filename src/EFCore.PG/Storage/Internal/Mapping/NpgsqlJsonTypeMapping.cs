@@ -32,7 +32,7 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
             storeType,
             clrType,
             storeType == "jsonb" ? NpgsqlDbType.Jsonb : NpgsqlDbType.Json,
-            jsonValueReaderWriter: JsonStringReaderWriter.Instance,
+            jsonValueReaderWriter: clrType == typeof(string) ? JsonStringReaderWriter.Instance : null,
             elementTypeMapping: elementTypeMapping)
     {
         if (storeType != "json" && storeType != "jsonb")

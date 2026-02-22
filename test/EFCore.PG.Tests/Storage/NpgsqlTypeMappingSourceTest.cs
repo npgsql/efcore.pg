@@ -1,12 +1,12 @@
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage;
 
@@ -311,6 +311,20 @@ public class NpgsqlTypeMappingSourceTest
         Assert.NotNull(elementMapping);
         Assert.Equal("integer", elementMapping.StoreType);
         Assert.Same(typeof(int), elementMapping.ClrType);
+    }
+
+    [Theory]
+    [InlineData(typeof(JsonDocument[]))]
+    [InlineData(typeof(List<JsonDocument>))]
+    [InlineData(typeof(JsonElement[]))]
+    [InlineData(typeof(List<JsonElement>))]
+    public void Array_of_json_type(Type clrType)
+    {
+        var mapping = CreateTypeMappingSource().FindMapping(clrType);
+        Assert.NotNull(mapping);
+        var arrayMapping = Assert.IsType<NpgsqlArrayTypeMapping>(mapping, exactMatch: false);
+        Assert.Equal("jsonb[]", arrayMapping.StoreType);
+        Assert.Same(clrType, arrayMapping.ClrType);
     }
 
     #endregion JSON
