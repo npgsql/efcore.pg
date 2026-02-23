@@ -53,7 +53,7 @@ jobs:
       comment_repo: ""
     steps:
       - name: Setup Scripts
-        uses: github/gh-aw/actions/setup@faf2523ba6ae8aa862dc5c98e06d72e54a342d1f # v0.44.0
+        uses: github/gh-aw/actions/setup@069d9f586d6cf45ccb0b1f6f184aba7bcac4268b # v0.44.0
         with:
           destination: /opt/gh-aw/actions
       - name: Check workflow file timestamps
@@ -103,7 +103,7 @@ jobs:
       secret_verification_result: ${{ steps.validate-secret.outputs.verification_result }}
     steps:
       - name: Setup Scripts
-        uses: github/gh-aw/actions/setup@faf2523ba6ae8aa862dc5c98e06d72e54a342d1f # v0.44.0
+        uses: github/gh-aw/actions/setup@069d9f586d6cf45ccb0b1f6f184aba7bcac4268b # v0.44.0
         with:
           destination: /opt/gh-aw/actions
       - name: Checkout repository
@@ -788,7 +788,7 @@ jobs:
       total_count: ${{ steps.missing_tool.outputs.total_count }}
     steps:
       - name: Setup Scripts
-        uses: github/gh-aw/actions/setup@faf2523ba6ae8aa862dc5c98e06d72e54a342d1f # v0.44.0
+        uses: github/gh-aw/actions/setup@069d9f586d6cf45ccb0b1f6f184aba7bcac4268b # v0.44.0
         with:
           destination: /opt/gh-aw/actions
       - name: Download agent output artifact
@@ -909,7 +909,7 @@ jobs:
       success: ${{ steps.parse_results.outputs.success }}
     steps:
       - name: Setup Scripts
-        uses: github/gh-aw/actions/setup@faf2523ba6ae8aa862dc5c98e06d72e54a342d1f # v0.44.0
+        uses: github/gh-aw/actions/setup@069d9f586d6cf45ccb0b1f6f184aba7bcac4268b # v0.44.0
         with:
           destination: /opt/gh-aw/actions
       - name: Download agent artifacts
@@ -1021,7 +1021,7 @@ jobs:
       process_safe_outputs_temporary_id_map: ${{ steps.process_safe_outputs.outputs.temporary_id_map }}
     steps:
       - name: Setup Scripts
-        uses: github/gh-aw/actions/setup@faf2523ba6ae8aa862dc5c98e06d72e54a342d1f # v0.44.0
+        uses: github/gh-aw/actions/setup@069d9f586d6cf45ccb0b1f6f184aba7bcac4268b # v0.44.0
         with:
           destination: /opt/gh-aw/actions
       - name: Download agent output artifact
