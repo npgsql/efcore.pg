@@ -83,7 +83,7 @@ public class NavigationTestFixture
             .AddEntityFrameworkNpgsql()
             .BuildServiceProvider();
 
-        var connStrBuilder = new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection) { Database = "StateManagerBug" };
+        var connStrBuilder = new NpgsqlConnectionStringBuilder(TestEnvironment.ConnectionString) { Database = "StateManagerBug" };
 
         _options = new DbContextOptionsBuilder()
             .UseNpgsql(connStrBuilder.ConnectionString)

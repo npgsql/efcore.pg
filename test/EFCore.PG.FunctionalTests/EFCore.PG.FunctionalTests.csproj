@@ -18,11 +18,11 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="Northwind.sql" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="config.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -420,7 +420,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
 
     public static string CreateConnectionString(string name, string? options = null)
     {
-        var builder = new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection) { Database = name };
+        var builder = new NpgsqlConnectionStringBuilder(TestEnvironment.ConnectionString) { Database = name };
 
         if (options is not null)
         {

@@ -217,7 +217,7 @@ public class Post
 public class BloggingContext : DbContext
 {
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql(TestEnvironment.DefaultConnection);
+        => optionsBuilder.UseNpgsql(TestEnvironment.ConnectionString);
 
     public DbSet<Blog> Blogs { get; set; }
 }
