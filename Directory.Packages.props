@@ -33,5 +33,6 @@
     <PackageVersion Include="xunit.core" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.10.0" />
   </ItemGroup>
 </Project>

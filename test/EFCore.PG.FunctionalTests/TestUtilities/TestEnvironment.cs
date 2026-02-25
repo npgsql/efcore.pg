@@ -1,11 +1,17 @@
 ﻿using System.Globalization;
 using Microsoft.Extensions.Configuration;
+using Testcontainers.PostgreSql;
 
 namespace Microsoft.EntityFrameworkCore.TestUtilities;
 
 public static class TestEnvironment
 {
     public static IConfiguration Config { get; }
+
+    public static string ConnectionString { get; }
+
+    // Keep a reference to prevent GC from collecting (and finalizing/stopping) the container while tests are running.
+    private static readonly PostgreSqlContainer? _postgreSqlContainer;
 
     static TestEnvironment()
     {
@@ -18,13 +24,37 @@ public static class TestEnvironment
         Config = configBuilder.Build()
             .GetSection("Test:Npgsql");
 
+        if (Config["DefaultConnection"] is { } connectionString)
+        {
+            Console.WriteLine("Using connection string configured via Test:Npgsql:DefaultConnection: " + connectionString);
+
+            ConnectionString = connectionString;
+        }
+        else
+        {
+            Console.WriteLine("No connection string configured via Test:Npgsql:DefaultConnection, starting up testcontainer...");
+
+            _postgreSqlContainer = new PostgreSqlBuilder("postgres:latest")
+                .WithCommand("-c", "max_connections=200")
+                .Build();
+            _postgreSqlContainer.StartAsync().GetAwaiter().GetResult();
+            ConnectionString = _postgreSqlContainer.GetConnectionString();
+
+            AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+            {
+                try
+                {
+                    _postgreSqlContainer?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
+                catch
+                {
+                    // Ignore exceptions during process-exit cleanup.
+                }
+            };
+        }
+
         Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
     }
-
-    private const string DefaultConnectionString = "Server=localhost;Username=npgsql_tests;Password=npgsql_tests;Port=5432";
-
-    public static string DefaultConnection
-        => Config["DefaultConnection"] ?? DefaultConnectionString;
 
     private static Version? _postgresVersion;
 
