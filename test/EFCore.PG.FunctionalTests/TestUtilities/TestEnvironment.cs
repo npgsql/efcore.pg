@@ -41,7 +41,16 @@ public static class TestEnvironment
             ConnectionString = _postgreSqlContainer.GetConnectionString();
 
             AppDomain.CurrentDomain.ProcessExit += (_, _) =>
-                _postgreSqlContainer.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            {
+                try
+                {
+                    _postgreSqlContainer?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
+                catch
+                {
+                    // Ignore exceptions during process-exit cleanup.
+                }
+            };
         }
 
         Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
