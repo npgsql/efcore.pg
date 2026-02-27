@@ -81,6 +81,28 @@ CREATE TABLE IF NOT EXISTS my."__EFMigrationsHistory" (
     }
 
     [ConditionalFact]
+    public void GetCreateIfNotExistsScript_works_with_schema_and_extension()
+    {
+        var sql = CreateHistoryRepositoryWithNetTopologySuite("my").GetCreateIfNotExistsScript();
+
+        Assert.Equal(
+            """
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'my') THEN
+        CREATE SCHEMA my;
+    END IF;
+END $EF$;
+CREATE TABLE IF NOT EXISTS my."__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+
+""", sql, ignoreLineEndingDifferences: true);
+    }
+
+    [ConditionalFact]
     public void GetDeleteScript_works()
     {
         var sql = CreateHistoryRepository().GetDeleteScript("Migration1");
@@ -153,6 +175,19 @@ END $EF$;
                     .UseNpgsql(
                         new NpgsqlConnection("Host=localhost;Database=DummyDatabase"),
                         b => b.MigrationsHistoryTable(HistoryRepository.DefaultTableName, schema))
+                    .Options)
+            .GetService<IHistoryRepository>();
+
+    private static IHistoryRepository CreateHistoryRepositoryWithNetTopologySuite(string schema = null)
+        => new TestDbContext(
+                new DbContextOptionsBuilder()
+                    .UseInternalServiceProvider(
+                        NpgsqlTestHelpers.Instance.CreateServiceProvider(
+                            new ServiceCollection().AddEntityFrameworkNpgsqlNetTopologySuite()))
+                    .UseNpgsql(
+                        new NpgsqlConnection("Host=localhost;Database=DummyDatabase"),
+                        b => b.MigrationsHistoryTable(HistoryRepository.DefaultTableName, schema)
+                            .UseNetTopologySuite())
                     .Options)
             .GetService<IHistoryRepository>();
 
