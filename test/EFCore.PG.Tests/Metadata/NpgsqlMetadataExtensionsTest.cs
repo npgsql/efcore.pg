@@ -514,6 +514,21 @@ public class NpgsqlMetadataExtensionsTest
         Assert.Equal("R", property.FindHiLoSequence().Schema);
     }
 
+    [ConditionalFact]
+    public void UseNoIdentityGeneration_suppresses_ValueGenerated_OnAdd_for_int_pk()
+    {
+        var modelBuilder = GetModelBuilder();
+        modelBuilder.UseNoIdentityGeneration();
+
+        var property = modelBuilder
+            .Entity<Customer>()
+            .Property(e => e.Id)
+            .Metadata;
+
+        Assert.Equal(NpgsqlValueGenerationStrategy.None, property.GetValueGenerationStrategy());
+        Assert.NotEqual(ValueGenerated.OnAdd, property.ValueGenerated);
+    }
+
     private static ModelBuilder GetModelBuilder()
         => NpgsqlTestHelpers.Instance.CreateConventionBuilder();
 
