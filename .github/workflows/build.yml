@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write # required for GitHub OIDC
 
 env:
   postgis_version: 3
@@ -165,6 +166,8 @@ jobs:
     needs: build
     runs-on: ubuntu-24.04
     if: github.event_name == 'push' && startsWith(github.repository, 'npgsql/') && needs.build.outputs.is_release == 'true'
+    permissions:
+      id-token: write  # enable GitHub OIDC token issuance for this job
     environment: nuget.org
 
     steps:
@@ -185,6 +188,13 @@ jobs:
 
       # TODO: Create a release
 
+      # Get a short-lived NuGet API key
+      - name: NuGet login (OIDC)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       - name: Publish to nuget.org
-        run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.NUGET_ORG_API_KEY }} --source https://api.nuget.org/v3/index.json
+        run: dotnet nuget push "*.nupkg" --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
         working-directory: nupkgs
