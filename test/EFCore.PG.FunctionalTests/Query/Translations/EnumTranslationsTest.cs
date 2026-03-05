@@ -310,7 +310,7 @@ WHERE s."UppercaseNamedEnum" = ANY (@values)
     }
 
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class EnumFixture : SharedStoreFixtureBase<EnumContext>, IQueryFixtureBase, ITestSqlLoggerFactory
+    public class EnumFixture : QueryFixtureBase<EnumContext>, ITestSqlLoggerFactory
     {
         protected override string StoreName
             => "EnumQueryTest";
@@ -342,17 +342,14 @@ WHERE s."UppercaseNamedEnum" = ANY (@values)
         protected override Task SeedAsync(EnumContext context)
             => EnumContext.SeedAsync(context);
 
-        public Func<DbContext> GetContextCreator()
-            => CreateContext;
-
-        public ISetSource GetExpectedData()
+        public override ISetSource GetExpectedData()
             => _expectedData ??= new EnumData();
 
-        public IReadOnlyDictionary<Type, object> EntitySorters
+        public override IReadOnlyDictionary<Type, object> EntitySorters
             => new Dictionary<Type, Func<object, object?>> { { typeof(SomeEnumEntity), e => ((SomeEnumEntity)e)?.Id } }
                 .ToDictionary(e => e.Key, e => (object)e.Value);
 
-        public IReadOnlyDictionary<Type, object> EntityAsserters
+        public override IReadOnlyDictionary<Type, object> EntityAsserters
             => new Dictionary<Type, Action<object, object>>
             {
                 {

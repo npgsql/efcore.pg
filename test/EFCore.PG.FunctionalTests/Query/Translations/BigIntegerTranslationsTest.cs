@@ -144,7 +144,7 @@ WHERE e."BigInteger" % 2 = 0
         public BigInteger BigInteger { get; set; }
     }
 
-    public class BigIntegerQueryFixture : SharedStoreFixtureBase<BigIntegerQueryContext>, IQueryFixtureBase, ITestSqlLoggerFactory
+    public class BigIntegerQueryFixture : QueryFixtureBase<BigIntegerQueryContext>, ITestSqlLoggerFactory
     {
         private BigIntegerData? _expectedData;
 
@@ -160,17 +160,14 @@ WHERE e."BigInteger" % 2 = 0
         protected override Task SeedAsync(BigIntegerQueryContext context)
             => BigIntegerQueryContext.SeedAsync(context);
 
-        public Func<DbContext> GetContextCreator()
-            => CreateContext;
-
-        public ISetSource GetExpectedData()
+        public override ISetSource GetExpectedData()
             => _expectedData ??= new BigIntegerData();
 
-        public IReadOnlyDictionary<Type, object> EntitySorters
+        public override IReadOnlyDictionary<Type, object> EntitySorters
             => new Dictionary<Type, Func<object, object?>> { { typeof(Entity), e => ((Entity)e).Id } }
                 .ToDictionary(e => e.Key, e => (object)e.Value);
 
-        public IReadOnlyDictionary<Type, object> EntityAsserters
+        public override IReadOnlyDictionary<Type, object> EntityAsserters
             => new Dictionary<Type, Action<object, object>>
             {
                 {
