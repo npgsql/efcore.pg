@@ -1,3 +1,5 @@
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+
 namespace Microsoft.EntityFrameworkCore.Query;
 
 public class PrimitiveCollectionsQueryNpgsqlTest : PrimitiveCollectionsQueryRelationalTestBase<
@@ -2596,6 +2598,121 @@ SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."En
 FROM "PrimitiveCollectionsEntity" AS p
 WHERE NOT (p."Int" = ANY (@ints) AND p."Int" = ANY (@ints) IS NOT NULL)
 """);
+    }
+
+    [ConditionalFact]
+    public override async Task Multidimensional_array_is_not_supported()
+    {
+        // Multidimensional arrays are supported in PostgreSQL (via the regular array type); the EFCore.PG maps .NET
+        // multidimensional arrays. However, arrays of multidimensional arrays aren't supported (since arrays of arrays generally aren't
+        // supported).
+        var contextFactory = await InitializeNonSharedTest<TestContext>(
+            mb => mb.Entity<TestEntity>().Property<int[,]>("MultidimensionalArray"),
+            seed: async context =>
+            {
+                var entry = context.Add(new TestEntity());
+                entry.Property<int[,]>("MultidimensionalArray").CurrentValue = new[,] { { 1, 2 }, { 3, 4 } };
+                await context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateDbContext();
+
+        var arrays = new[] { new[,] { { 1, 2 }, { 3, 4 } }, new[,] { { 1, 2 }, { 3, 5 } } };
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () =>
+                context.Set<TestEntity>().Where(t => arrays.Contains(EF.Property<int[,]>(t, "MultidimensionalArray"))).ToArrayAsync());
+    }
+
+    public override async Task Column_collection_inside_json_owned_entity()
+    {
+        await base.Column_collection_inside_json_owned_entity();
+
+        AssertSql(
+            """
+SELECT t."Id", t."Owned"
+FROM "TestOwner" AS t
+WHERE jsonb_array_length(t."Owned" -> 'Strings') = 2
+LIMIT 2
+""",
+            //
+            """
+SELECT t."Id", t."Owned"
+FROM "TestOwner" AS t
+WHERE (t."Owned" #>> '{Strings,1}') = 'bar'
+LIMIT 2
+""");
+    }
+
+    #region Contains with various index methods
+
+    // For Contains over column collections that have a (modeled) GIN index, we translate to the containment operator (@>).
+    // Otherwise we translate to the ANY construct.
+    [ConditionalFact]
+    public virtual async Task Column_collection_Contains_with_GIN_index_uses_containment()
+    {
+        var contextFactory = await InitializeNonSharedTest<TestContext>(
+            onModelCreating: mb => mb.Entity<TestEntity>()
+                .HasIndex(e => e.Ints)
+                .HasMethod("GIN"),
+            seed: context =>
+            {
+                context.AddRange(
+                    new TestEntity { Id = 1, Ints = [1, 2, 3] },
+                    new TestEntity { Id = 2, Ints = [1, 2, 4] });
+                return context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateDbContext();
+
+        var result = await context.Set<TestEntity>().Where(c => c.Ints!.Contains(4)).SingleAsync();
+        Assert.Equal(2, result.Id);
+
+        AssertSql(
+            """
+SELECT t."Id", t."Ints"
+FROM "TestEntity" AS t
+WHERE t."Ints" @> ARRAY[4]::integer[]
+LIMIT 2
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Contains_with_btree_index_does_not_use_containment()
+    {
+        var contextFactory = await InitializeNonSharedTest<TestContext>(
+            onModelCreating: mb => mb.Entity<TestEntity>().HasIndex(e => e.Ints),
+            seed: context =>
+            {
+                context.AddRange(
+                    new TestEntity { Id = 1, Ints = [1, 2, 3] },
+                    new TestEntity { Id = 2, Ints = [1, 2, 4] });
+                return context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateDbContext();
+
+        var result = await context.Set<TestEntity>().Where(c => c.Ints!.Contains(4)).SingleAsync();
+        Assert.Equal(2, result.Id);
+
+        AssertSql(
+            """
+SELECT t."Id", t."Ints"
+FROM "TestEntity" AS t
+WHERE 4 = ANY (t."Ints")
+LIMIT 2
+""");
+    }
+
+    #endregion Contains with various index methods
+
+    protected override DbContextOptionsBuilder SetParameterizedCollectionMode(
+        DbContextOptionsBuilder optionsBuilder,
+        ParameterTranslationMode parameterizedCollectionMode)
+    {
+        new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseParameterizedCollectionMode(parameterizedCollectionMode);
+
+        return optionsBuilder;
     }
 
     [ConditionalFact]

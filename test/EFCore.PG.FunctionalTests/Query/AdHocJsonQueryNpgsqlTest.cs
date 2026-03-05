@@ -8,7 +8,7 @@ namespace Microsoft.EntityFrameworkCore.Query;
 
 public class AdHocJsonQueryNpgsqlTest(NonSharedFixture fixture) : AdHocJsonQueryRelationalTestBase(fixture)
 {
-    protected override ITestStoreFactory TestStoreFactory
+    protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
     protected override async Task Seed29219(DbContext ctx)
@@ -179,7 +179,7 @@ VALUES(
     [ConditionalTheory, MemberData(nameof(IsAsyncData))]
     public virtual async Task Json_predicate_on_bytea(bool async)
     {
-        var contextFactory = await InitializeAsync<TypesDbContext>(
+        var contextFactory = await InitializeNonSharedTest<TypesDbContext>(
             seed: async context =>
             {
                 context.Entities.AddRange(
@@ -188,7 +188,7 @@ VALUES(
                 await context.SaveChangesAsync();
             });
 
-        using (var context = contextFactory.CreateContext())
+        using (var context = contextFactory.CreateDbContext())
         {
             var query = context.Entities.Where(x => x.JsonEntity.Bytea == new byte[] { 1, 2, 4 });
 
@@ -211,7 +211,7 @@ LIMIT 2
     [ConditionalTheory, MemberData(nameof(IsAsyncData))]
     public virtual async Task Json_predicate_on_interval(bool async)
     {
-        var contextFactory = await InitializeAsync<TypesDbContext>(
+        var contextFactory = await InitializeNonSharedTest<TypesDbContext>(
             seed: async context =>
             {
                 context.Entities.AddRange(
@@ -220,7 +220,7 @@ LIMIT 2
                 await context.SaveChangesAsync();
             });
 
-        using (var context = contextFactory.CreateContext())
+        using (var context = contextFactory.CreateDbContext())
         {
             var query = context.Entities.Where(x => x.JsonEntity.Interval == new TimeSpan(2, 2, 3, 4, 123, 456));
 

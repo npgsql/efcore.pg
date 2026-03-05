@@ -19,6 +19,6 @@ LIMIT 2
 """);
     }
 
-    protected override ITestStoreFactory TestStoreFactory
+    protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 }

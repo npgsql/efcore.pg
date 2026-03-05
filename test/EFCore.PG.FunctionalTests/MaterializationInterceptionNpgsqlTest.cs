@@ -16,6 +16,6 @@ public class MaterializationInterceptionNpgsqlTest(NonSharedFixture fixture) :
         }
     }
 
-    protected override ITestStoreFactory TestStoreFactory
+    protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 }

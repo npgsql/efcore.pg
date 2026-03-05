@@ -7,6 +7,6 @@ public class TPTTableSplittingNpgsqlTest(NonSharedFixture fixture, ITestOutputHe
         // This scenario is not valid for TPT
         => Task.CompletedTask;
 
-    protected override ITestStoreFactory TestStoreFactory
+    protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 }

@@ -563,7 +563,7 @@ public class JsonTypesNpgsqlTest(NonSharedFixture fixture) : JsonTypesRelational
         public NpgsqlLogSequenceNumber LogSequenceNumber { get; set; }
     }
 
-    protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+    protected override ITestStoreFactory NonSharedTestStoreFactory => NpgsqlTestStoreFactory.Instance;
 
     protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
         => serviceCollection.AddEntityFrameworkNpgsqlNetTopologySuite();

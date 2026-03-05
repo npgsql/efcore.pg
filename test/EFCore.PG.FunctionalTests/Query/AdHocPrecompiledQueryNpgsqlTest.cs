@@ -101,7 +101,7 @@ FROM "Books" AS b
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());
 
-    protected override ITestStoreFactory TestStoreFactory
+    protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
     protected override PrecompiledQueryTestHelpers PrecompiledQueryTestHelpers

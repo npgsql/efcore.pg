@@ -786,6 +786,6 @@ ORDER BY u."Id" NULLS FIRST, s0."MiddleEntityId" NULLS FIRST
         AssertSql();
     }
 
-    protected override ITestStoreFactory TestStoreFactory
+    protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 }

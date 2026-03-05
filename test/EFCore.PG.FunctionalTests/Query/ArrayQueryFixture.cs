@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.TestModels.Array;
 
 namespace Microsoft.EntityFrameworkCore.Query;
 
-public abstract class ArrayQueryFixture : SharedStoreFixtureBase<ArrayQueryContext>, IQueryFixtureBase, ITestSqlLoggerFactory
+public abstract class ArrayQueryFixture : QueryFixtureBase<ArrayQueryContext>, ITestSqlLoggerFactory
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
@@ -18,19 +18,16 @@ public abstract class ArrayQueryFixture : SharedStoreFixtureBase<ArrayQueryConte
     protected override Task SeedAsync(ArrayQueryContext context)
         => ArrayQueryContext.SeedAsync(context);
 
-    public Func<DbContext> GetContextCreator()
-        => CreateContext;
-
-    public ISetSource GetExpectedData()
+    public override ISetSource GetExpectedData()
         => _expectedData ??= new ArrayQueryData();
 
-    public IReadOnlyDictionary<Type, object> EntitySorters
+    public override IReadOnlyDictionary<Type, object> EntitySorters
         => new Dictionary<Type, Func<object, object?>>
         {
             { typeof(ArrayEntity), e => ((ArrayEntity)e).Id }, { typeof(ArrayContainerEntity), e => ((ArrayContainerEntity)e)?.Id }
         }.ToDictionary(e => e.Key, e => (object)e.Value);
 
-    public IReadOnlyDictionary<Type, object> EntityAsserters
+    public override IReadOnlyDictionary<Type, object> EntityAsserters
         => new Dictionary<Type, Action<object, object>>
         {
             {
