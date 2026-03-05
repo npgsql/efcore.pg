@@ -64,8 +64,8 @@ We're going to sync the EF Core PostgreSQL provider (EFCore.PG) in this repo to 
 
 ## 1. Find out and depend on the latest EF Core daily build of the current preview release
 
-1. First, check what the latest *released* preview/rc of EF on nuget.org.
-2. Then, find the latest EF Core daily build version **for the upcoming preview/RC**; we do not want to sync to a daily build that's for the next preview. For example, if the current released EF preview is preview.3, we want to update to the latest daily build for preview.4, and not to preview.5 even if packages already exist for that.
+1. First, check what version the `main` branch represents, by looking at the `<VersionPrefix>` in `Directory.Build.props`.
+2. Then, find the latest EF Core daily build version **for that preview version**; we do not want to sync to a daily build that's for the next preview version. For example, if `main` has a `<VersionPrefix>` of `11.0.0-preview.2`, we want to update to the latest daily build for preview.2, and not to preview.3 even if packages already exist for that.
 3. Note that after preview.7, the naming switches to rc.1 and rc.2.
 4. Once you've found the latest daily build package we're syncing to, update the EF Core version in Directory.Packages.props to use it. The EF Core daily build nuget feed is https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet11/nuget/v3/index.json (note that you may need to update dotnet11 to dotnet12 depending on the version we're looking for).
 5. There's no need to switch to the latest daily build of the dotnet SDK though - only of EF; please just always use the latest released preview version of the dotnet SDK (not daily build), unless there's a specific issue requiring the very latest SDK (very rare/unlikely).
