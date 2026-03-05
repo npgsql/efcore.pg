@@ -414,6 +414,33 @@ LEFT JOIN LATERAL (
 
     #endregion Subquery
 
+    public override async Task Select_subquery_FirstOrDefault_complex_collection(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.Select_subquery_FirstOrDefault_complex_collection(queryTrackingBehavior);
+
+        if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
+        {
+            AssertSql(
+                """
+SELECT r."Id", r3."Id", s."RootEntityId", s."Id", s."Int", s."Ints", s."Name", s."String", s."AssociateTypeRootEntityId", s."AssociateTypeId", s."Id0", s."Int0", s."Ints0", s."Name0", s."String0", s."OptionalNestedAssociate_Id", s."OptionalNestedAssociate_Int", s."OptionalNestedAssociate_Ints", s."OptionalNestedAssociate_Name", s."OptionalNestedAssociate_String", s."RequiredNestedAssociate_Id", s."RequiredNestedAssociate_Int", s."RequiredNestedAssociate_Ints", s."RequiredNestedAssociate_Name", s."RequiredNestedAssociate_String", r3.c
+FROM "RootEntity" AS r
+LEFT JOIN LATERAL (
+    SELECT 1 AS c, r0."Id"
+    FROM "RootEntity" AS r0
+    ORDER BY r0."Id" NULLS FIRST
+    LIMIT 1
+) AS r3 ON TRUE
+LEFT JOIN (
+    SELECT r1."RootEntityId", r1."Id", r1."Int", r1."Ints", r1."Name", r1."String", r2."AssociateTypeRootEntityId", r2."AssociateTypeId", r2."Id" AS "Id0", r2."Int" AS "Int0", r2."Ints" AS "Ints0", r2."Name" AS "Name0", r2."String" AS "String0", r1."OptionalNestedAssociate_Id", r1."OptionalNestedAssociate_Int", r1."OptionalNestedAssociate_Ints", r1."OptionalNestedAssociate_Name", r1."OptionalNestedAssociate_String", r1."RequiredNestedAssociate_Id", r1."RequiredNestedAssociate_Int", r1."RequiredNestedAssociate_Ints", r1."RequiredNestedAssociate_Name", r1."RequiredNestedAssociate_String"
+    FROM "RelatedCollection" AS r1
+    LEFT JOIN "RelatedCollection_NestedCollection" AS r2 ON r1."RootEntityId" = r2."AssociateTypeRootEntityId" AND r1."Id" = r2."AssociateTypeId"
+) AS s ON r3."Id" = s."RootEntityId"
+ORDER BY r."Id" NULLS FIRST, r3."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST
+""");
+        }
+    }
+
+
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());

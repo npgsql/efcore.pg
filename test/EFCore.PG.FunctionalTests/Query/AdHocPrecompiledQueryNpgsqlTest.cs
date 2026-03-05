@@ -101,15 +101,15 @@ FROM "Books" AS b
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());
 
-    protected override ITestStoreFactory TestStoreFactory
+    protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
     protected override PrecompiledQueryTestHelpers PrecompiledQueryTestHelpers
         => NpgsqlPrecompiledQueryTestHelpers.Instance;
 
-    protected override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+    protected override DbContextOptionsBuilder AddNonSharedOptions(DbContextOptionsBuilder builder)
     {
-        builder = base.AddOptions(builder);
+        builder = base.AddNonSharedOptions(builder);
 
         // TODO: Figure out if there's a nice way to continue using the retrying strategy
         var sqlServerOptionsBuilder = new NpgsqlDbContextOptionsBuilder(builder);

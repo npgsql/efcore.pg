@@ -238,7 +238,7 @@ BEGIN
 END $$
 """;
 
-        var contextFactory = await InitializeAsync<DbContext>(
+        var contextFactory = await InitializeNonSharedTest<DbContext>(
             modelBuilder => modelBuilder.Entity<EntityWithAdditionalProperty>()
                 .UpdateUsingStoredProcedure(
                     nameof(EntityWithAdditionalProperty) + "_Update",
@@ -250,7 +250,7 @@ END $$
                 .Property(w => w.AdditionalProperty).HasComputedColumnSql("8", stored: true),
             seed: ctx => CreateStoredProcedures(ctx, createSprocSql));
 
-        await using var context = contextFactory.CreateContext();
+        await using var context = contextFactory.CreateDbContext();
 
         var entity = new EntityWithAdditionalProperty { Name = "Initial" };
         context.Set<EntityWithAdditionalProperty>().Add(entity);
@@ -560,6 +560,6 @@ CALL "EntityWithAdditionalProperty_Insert"(@p4, NULL, @p5);
             .ValueGeneratedOnAddOrUpdate()
             .IsConcurrencyToken();
 
-    protected override ITestStoreFactory TestStoreFactory
+    protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 }

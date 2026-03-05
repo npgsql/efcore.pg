@@ -6,7 +6,7 @@ namespace Microsoft.EntityFrameworkCore;
 public class TableSplittingNpgsqlTest(NonSharedFixture fixture, ITestOutputHelper testOutputHelper)
     : TableSplittingTestBase(fixture, testOutputHelper)
 {
-    protected override ITestStoreFactory TestStoreFactory
+    protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
     public override async Task ExecuteUpdate_works_for_table_sharing(bool async)

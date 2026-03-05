@@ -3,7 +3,7 @@ namespace Microsoft.EntityFrameworkCore.Query;
 public class AdHocAdvancedMappingsQueryNpgsqlTest(NonSharedFixture fixture)
     : AdHocAdvancedMappingsQueryRelationalTestBase(fixture)
 {
-    protected override ITestStoreFactory TestStoreFactory
+    protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
     // Cannot write DateTime with Kind=Unspecified to PostgreSQL type 'timestamp with time zone', only UTC is supported.
