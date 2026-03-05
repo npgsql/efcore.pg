@@ -563,12 +563,12 @@ public class JsonTypesNpgsqlTest(NonSharedFixture fixture) : JsonTypesRelational
         public NpgsqlLogSequenceNumber LogSequenceNumber { get; set; }
     }
 
-    protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+    protected override ITestStoreFactory NonSharedTestStoreFactory => NpgsqlTestStoreFactory.Instance;
 
     protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
         => serviceCollection.AddEntityFrameworkNpgsqlNetTopologySuite();
 
-    protected override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+    protected override DbContextOptionsBuilder AddNonSharedOptions(DbContextOptionsBuilder builder)
     {
         // Note that the enum doesn't actually need to be created in the database, since Can_read_and_write_JSON_value doesn't access
         // the database. We just need the mapping to be picked up by EFCore.PG from the ADO.NET layer.

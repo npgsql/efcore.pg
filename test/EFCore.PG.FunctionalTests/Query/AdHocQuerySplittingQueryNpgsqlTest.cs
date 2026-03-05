@@ -7,7 +7,7 @@ namespace Microsoft.EntityFrameworkCore.Query;
 
 public class AdHocQuerySplittingQueryNpgsqlTest(NonSharedFixture fixture) : AdHocQuerySplittingQueryTestBase(fixture)
 {
-    protected override ITestStoreFactory TestStoreFactory
+    protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
     private static readonly FieldInfo _querySplittingBehaviorFieldInfo =
@@ -41,7 +41,7 @@ public class AdHocQuerySplittingQueryNpgsqlTest(NonSharedFixture fixture) : AdHo
 
     protected override TestStore CreateTestStore25225()
     {
-        var testStore = NpgsqlTestStore.Create(StoreName);
+        var testStore = NpgsqlTestStore.Create(NonSharedStoreName);
         testStore.UseConnectionString = true;
         return testStore;
     }

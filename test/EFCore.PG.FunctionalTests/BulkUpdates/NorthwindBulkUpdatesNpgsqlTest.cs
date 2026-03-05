@@ -1697,6 +1697,33 @@ ORDER BY o1."OrderID" NULLS FIRST
 """);
     }
 
+    public override async Task Update_with_select_mixed_entity_scalar_anonymous_projection(bool async)
+    {
+        await base.Update_with_select_mixed_entity_scalar_anonymous_projection(async);
+
+        AssertSql(
+            """
+@p='Updated'
+
+UPDATE "Customers" AS c
+SET "ContactName" = @p
+""");
+    }
+
+    public override async Task Update_with_select_scalar_anonymous_projection(bool async)
+    {
+        await base.Update_with_select_scalar_anonymous_projection(async);
+
+        AssertSql(
+            """
+@p='Updated'
+
+UPDATE "Customers" AS c
+SET "ContactName" = @p
+""");
+    }
+
+
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());

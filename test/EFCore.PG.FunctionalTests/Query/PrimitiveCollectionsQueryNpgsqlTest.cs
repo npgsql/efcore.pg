@@ -1,3 +1,5 @@
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+
 namespace Microsoft.EntityFrameworkCore.Query;
 
 public class PrimitiveCollectionsQueryNpgsqlTest : PrimitiveCollectionsQueryRelationalTestBase<
@@ -2597,6 +2599,434 @@ FROM "PrimitiveCollectionsEntity" AS p
 WHERE NOT (p."Int" = ANY (@ints) AND p."Int" = ANY (@ints) IS NOT NULL)
 """);
     }
+
+    [ConditionalFact]
+    public override async Task Multidimensional_array_is_not_supported()
+    {
+        // Multidimensional arrays are supported in PostgreSQL (via the regular array type); the EFCore.PG maps .NET
+        // multidimensional arrays. However, arrays of multidimensional arrays aren't supported (since arrays of arrays generally aren't
+        // supported).
+        var contextFactory = await InitializeNonSharedTest<TestContext>(
+            onModelCreating: mb => mb.Entity<TestEntity>().Property<int[,]>("MultidimensionalArray"),
+            seed: async context =>
+            {
+                var entry = context.Add(new TestEntity());
+                entry.Property<int[,]>("MultidimensionalArray").CurrentValue = new[,] { { 1, 2 }, { 3, 4 } };
+                await context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateDbContext();
+
+        var arrays = new[] { new[,] { { 1, 2 }, { 3, 4 } }, new[,] { { 1, 2 }, { 3, 5 } } };
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () =>
+                context.Set<TestEntity>().Where(t => arrays.Contains(EF.Property<int[,]>(t, "MultidimensionalArray"))).ToArrayAsync());
+    }
+
+    public override async Task Column_collection_inside_json_owned_entity()
+    {
+        await base.Column_collection_inside_json_owned_entity();
+
+        AssertSql(
+            """
+SELECT t."Id", t."Owned"
+FROM "TestOwner" AS t
+WHERE jsonb_array_length(t."Owned" -> 'Strings') = 2
+LIMIT 2
+""",
+            //
+            """
+SELECT t."Id", t."Owned"
+FROM "TestOwner" AS t
+WHERE (t."Owned" #>> '{Strings,1}') = 'bar'
+LIMIT 2
+""");
+    }
+
+    #region Contains with various index methods
+
+    // For Contains over column collections that have a (modeled) GIN index, we translate to the containment operator (@>).
+    // Otherwise we translate to the ANY construct.
+    [ConditionalFact]
+    public virtual async Task Column_collection_Contains_with_GIN_index_uses_containment()
+    {
+        var contextFactory = await InitializeNonSharedTest<TestContext>(
+            onModelCreating: mb => mb.Entity<TestEntity>()
+                .HasIndex(e => e.Ints)
+                .HasMethod("GIN"),
+            seed: context =>
+            {
+                context.AddRange(
+                    new TestEntity { Id = 1, Ints = [1, 2, 3] },
+                    new TestEntity { Id = 2, Ints = [1, 2, 4] });
+                return context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateDbContext();
+
+        var result = await context.Set<TestEntity>().Where(c => c.Ints!.Contains(4)).SingleAsync();
+        Assert.Equal(2, result.Id);
+
+        AssertSql(
+            """
+SELECT t."Id", t."Ints"
+FROM "TestEntity" AS t
+WHERE t."Ints" @> ARRAY[4]::integer[]
+LIMIT 2
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Contains_with_btree_index_does_not_use_containment()
+    {
+        var contextFactory = await InitializeNonSharedTest<TestContext>(
+            onModelCreating: mb => mb.Entity<TestEntity>().HasIndex(e => e.Ints),
+            seed: context =>
+            {
+                context.AddRange(
+                    new TestEntity { Id = 1, Ints = [1, 2, 3] },
+                    new TestEntity { Id = 2, Ints = [1, 2, 4] });
+                return context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateDbContext();
+
+        var result = await context.Set<TestEntity>().Where(c => c.Ints!.Contains(4)).SingleAsync();
+        Assert.Equal(2, result.Id);
+
+        AssertSql(
+            """
+SELECT t."Id", t."Ints"
+FROM "TestEntity" AS t
+WHERE 4 = ANY (t."Ints")
+LIMIT 2
+""");
+    }
+
+    #endregion Contains with various index methods
+
+    protected override DbContextOptionsBuilder SetParameterizedCollectionMode(
+        DbContextOptionsBuilder optionsBuilder,
+        ParameterTranslationMode parameterizedCollectionMode)
+    {
+        new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseParameterizedCollectionMode(parameterizedCollectionMode);
+
+        return optionsBuilder;
+    }
+
+    public override async Task Parameter_collection_Count_with_column_predicate_with_default_mode(ParameterTranslationMode mode)
+    {
+        await base.Parameter_collection_Count_with_column_predicate_with_default_mode(mode);
+
+        switch (mode)
+        {
+            case ParameterTranslationMode.Constant:
+            {
+                AssertSql(
+                    """
+SELECT t."Id"
+FROM "TestEntity" AS t
+WHERE (
+    SELECT count(*)::int
+    FROM (VALUES (2::int), (999)) AS i("Value")
+    WHERE i."Value" > t."Id") = 1
+""");
+                break;
+            }
+
+            case ParameterTranslationMode.Parameter:
+            {
+                AssertSql(
+                    """
+@ids={ '2'
+'999' } (DbType = Object)
+
+SELECT t."Id"
+FROM "TestEntity" AS t
+WHERE (
+    SELECT count(*)::int
+    FROM unnest(@ids) AS i(value)
+    WHERE i.value > t."Id") = 1
+""");
+                break;
+            }
+
+            case ParameterTranslationMode.MultipleParameters:
+            {
+                AssertSql(
+                    """
+@ids1='2'
+@ids2='999'
+
+SELECT t."Id"
+FROM "TestEntity" AS t
+WHERE (
+    SELECT count(*)::int
+    FROM (VALUES (@ids1), (@ids2)) AS i("Value")
+    WHERE i."Value" > t."Id") = 1
+""");
+                break;
+            }
+
+            default:
+                throw new NotImplementedException();
+        }
+    }
+
+    public override async Task Parameter_collection_Contains_with_default_mode(ParameterTranslationMode mode)
+    {
+        await base.Parameter_collection_Contains_with_default_mode(mode);
+
+        switch (mode)
+        {
+            case ParameterTranslationMode.Constant:
+            {
+                AssertSql(
+                    """
+SELECT t."Id"
+FROM "TestEntity" AS t
+WHERE t."Id" IN (2, 999)
+""");
+                break;
+            }
+
+            case ParameterTranslationMode.Parameter:
+            {
+                AssertSql(
+                    """
+@ints={ '2'
+'999' } (DbType = Object)
+
+SELECT t."Id"
+FROM "TestEntity" AS t
+WHERE t."Id" = ANY (@ints)
+""");
+                break;
+            }
+
+            case ParameterTranslationMode.MultipleParameters:
+            {
+                AssertSql(
+                    """
+@ints1='2'
+@ints2='999'
+
+SELECT t."Id"
+FROM "TestEntity" AS t
+WHERE t."Id" IN (@ints1, @ints2)
+""");
+                break;
+            }
+
+            default:
+                throw new NotImplementedException();
+        }
+    }
+
+    public override async Task Parameter_collection_Count_with_column_predicate_with_default_mode_EF_Constant(ParameterTranslationMode mode)
+    {
+        await base.Parameter_collection_Count_with_column_predicate_with_default_mode_EF_Constant(mode);
+
+        AssertSql(
+            """
+SELECT t."Id"
+FROM "TestEntity" AS t
+WHERE (
+    SELECT count(*)::int
+    FROM (VALUES (2::int), (999)) AS i("Value")
+    WHERE i."Value" > t."Id") = 1
+""");
+    }
+
+    public override async Task Parameter_collection_Contains_with_default_mode_EF_Constant(ParameterTranslationMode mode)
+    {
+        await base.Parameter_collection_Contains_with_default_mode_EF_Constant(mode);
+
+        AssertSql(
+            """
+SELECT t."Id"
+FROM "TestEntity" AS t
+WHERE t."Id" IN (2, 999)
+""");
+    }
+
+    public override async Task Parameter_collection_Count_with_column_predicate_with_default_mode_EF_Parameter(ParameterTranslationMode mode)
+    {
+        await base.Parameter_collection_Count_with_column_predicate_with_default_mode_EF_Parameter(mode);
+
+        AssertSql(
+            """
+@ids={ '2'
+'999' } (DbType = Object)
+
+SELECT t."Id"
+FROM "TestEntity" AS t
+WHERE (
+    SELECT count(*)::int
+    FROM unnest(@ids) AS i(value)
+    WHERE i.value > t."Id") = 1
+""");
+    }
+
+    public override async Task Parameter_collection_Contains_with_default_mode_EF_Parameter(ParameterTranslationMode mode)
+    {
+        await base.Parameter_collection_Contains_with_default_mode_EF_Parameter(mode);
+
+        AssertSql(
+            """
+@ints={ '2'
+'999' } (DbType = Object)
+
+SELECT t."Id"
+FROM "TestEntity" AS t
+WHERE t."Id" = ANY (@ints)
+""");
+    }
+
+    public override async Task Parameter_collection_Count_with_column_predicate_with_default_mode_EF_MultipleParameters(ParameterTranslationMode mode)
+    {
+        await base.Parameter_collection_Count_with_column_predicate_with_default_mode_EF_MultipleParameters(mode);
+
+        AssertSql(
+            """
+@ids1='2'
+@ids2='999'
+
+SELECT t."Id"
+FROM "TestEntity" AS t
+WHERE (
+    SELECT count(*)::int
+    FROM (VALUES (@ids1), (@ids2)) AS i("Value")
+    WHERE i."Value" > t."Id") = 1
+""");
+    }
+
+    public override async Task Parameter_collection_Contains_with_default_mode_EF_MultipleParameters(ParameterTranslationMode mode)
+    {
+        await base.Parameter_collection_Contains_with_default_mode_EF_MultipleParameters(mode);
+
+        AssertSql(
+            """
+@ints1='2'
+@ints2='999'
+
+SELECT t."Id"
+FROM "TestEntity" AS t
+WHERE t."Id" IN (@ints1, @ints2)
+""");
+    }
+
+    public override async Task Parameter_collection_Contains_parameter_bucketization()
+    {
+        await base.Parameter_collection_Contains_parameter_bucketization();
+
+        AssertSql(
+            """
+@ints1='2'
+@ints2='999'
+@ints3='2'
+@ints4='2'
+@ints5='2'
+@ints6='2'
+@ints7='2'
+@ints8='2'
+@ints9='2'
+@ints10='2'
+@ints11='2'
+@ints12='2'
+@ints13='2'
+@ints14='2'
+@ints15='2'
+@ints16='2'
+@ints17='2'
+@ints18='2'
+@ints19='2'
+@ints20='2'
+
+SELECT t."Id"
+FROM "TestEntity" AS t
+WHERE t."Id" IN (@ints1, @ints2, @ints3, @ints4, @ints5, @ints6, @ints7, @ints8, @ints9, @ints10, @ints11, @ints12, @ints13, @ints14, @ints15, @ints16, @ints17, @ints18, @ints19, @ints20)
+""");
+    }
+
+    public override async Task Inline_collection_in_query_filter()
+    {
+        await base.Inline_collection_in_query_filter();
+
+        AssertSql(
+            """
+SELECT t."Id", t."Ints"
+FROM "TestEntity" AS t
+WHERE (
+    SELECT count(*)::int
+    FROM (VALUES (1::int), (2), (3)) AS v("Value")
+    WHERE v."Value" > t."Id") = 1
+LIMIT 2
+""");
+    }
+
+    public override async Task Column_with_custom_converter()
+    {
+        await base.Column_with_custom_converter();
+
+        AssertSql(
+            """
+@ints='1,2,3'
+
+SELECT t."Id", t."Ints"
+FROM "TestEntity" AS t
+WHERE t."Ints" = @ints
+LIMIT 2
+""");
+    }
+
+    public override async Task Parameter_with_inferred_value_converter()
+    {
+        await base.Parameter_with_inferred_value_converter();
+
+        AssertSql();
+    }
+
+    public override async Task Constant_with_inferred_value_converter()
+    {
+        await base.Constant_with_inferred_value_converter();
+
+        AssertSql(
+            """
+SELECT t."Id", t."Ints", t."PropertyWithValueConverter"
+FROM "TestEntity" AS t
+WHERE (
+    SELECT count(*)::int
+    FROM (VALUES (1::int), (8)) AS v("Value")
+    WHERE v."Value" = t."PropertyWithValueConverter") = 1
+LIMIT 2
+""");
+    }
+
+    public override async Task Project_collection_from_entity_type_with_owned()
+    {
+        await base.Project_collection_from_entity_type_with_owned();
+
+        AssertSql(
+            """
+SELECT t."Ints"
+FROM "TestEntityWithOwned" AS t
+""");
+    }
+
+    public override async Task Subquery_over_primitive_collection_on_inheritance_derived_type()
+    {
+        await base.Subquery_over_primitive_collection_on_inheritance_derived_type();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Discriminator", b."Ints"
+FROM "BaseType" AS b
+WHERE cardinality(b."Ints") > 0
+""");
+    }
+
 
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()

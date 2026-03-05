@@ -909,7 +909,7 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
         public NpgsqlRange<DateTime> TimestampDateTimeRange { get; set; }
     }
 
-    public class TimestampQueryFixture : SharedStoreFixtureBase<TimestampQueryContext>, IQueryFixtureBase, ITestSqlLoggerFactory
+    public class TimestampQueryFixture : QueryFixtureBase<TimestampQueryContext>, ITestSqlLoggerFactory
     {
         protected override string StoreName
             => "TimestampQueryTest";
@@ -928,17 +928,14 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
         protected override Task SeedAsync(TimestampQueryContext context)
             => TimestampQueryContext.SeedAsync(context);
 
-        public Func<DbContext> GetContextCreator()
-            => CreateContext;
-
-        public ISetSource GetExpectedData()
+        public override ISetSource GetExpectedData()
             => _expectedData ??= new TimestampData();
 
-        public IReadOnlyDictionary<Type, object> EntitySorters
+        public override IReadOnlyDictionary<Type, object> EntitySorters
             => new Dictionary<Type, Func<object, object?>> { { typeof(Entity), e => ((Entity)e)?.Id } }
                 .ToDictionary(e => e.Key, e => (object)e.Value);
 
-        public IReadOnlyDictionary<Type, object> EntityAsserters
+        public override IReadOnlyDictionary<Type, object> EntityAsserters
             => new Dictionary<Type, Action<object, object>>
             {
                 {

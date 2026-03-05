@@ -4,7 +4,7 @@ namespace Microsoft.EntityFrameworkCore.Query;
 
 public class OperatorsQueryNpgsqlTest(NonSharedFixture fixture) : OperatorsQueryTestBase(fixture)
 {
-    protected override ITestStoreFactory TestStoreFactory
+    protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
     protected void AssertSql(params string[] expected)
@@ -152,7 +152,7 @@ LIMIT 2
     [ConditionalFact]
     public virtual async Task AtTimeZone_and_addition()
     {
-        var contextFactory = await InitializeAsync<OperatorsContext>(
+        var contextFactory = await InitializeNonSharedTest<OperatorsContext>(
             seed: async context =>
             {
                 context.Set<OperatorEntityDateTime>().AddRange(
@@ -162,7 +162,7 @@ LIMIT 2
             },
             onModelCreating: modelBuilder => modelBuilder.Entity<OperatorEntityDateTime>().Property(x => x.Id).ValueGeneratedNever());
 
-        await using var context = contextFactory.CreateContext();
+        await using var context = contextFactory.CreateDbContext();
 
         var result = await context.Set<OperatorEntityDateTime>()
             .Where(b => new DateOnly(2020, 1, 15) > DateOnly.FromDateTime(b.Value.AddDays(1)))

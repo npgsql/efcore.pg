@@ -2,7 +2,7 @@ namespace Microsoft.EntityFrameworkCore.BulkUpdates;
 
 public class NonSharedModelBulkUpdatesNpgsqlTest(NonSharedFixture fixture) : NonSharedModelBulkUpdatesRelationalTestBase(fixture)
 {
-    protected override ITestStoreFactory TestStoreFactory
+    protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
 
@@ -149,7 +149,7 @@ SET "Title" = COALESCE(o."OwnedReference_Number"::text, ''),
     public override async Task Update_main_table_in_entity_with_entity_splitting(bool async)
     {
         // Overridden/duplicated because we update DateTime, which Npgsql requires to be a UTC timestamp
-        var contextFactory = await InitializeAsync<DbContext>(
+        var contextFactory = await InitializeNonSharedTest<DbContext>(
             onModelCreating: mb => mb.Entity<Blog>()
                 .ToTable("Blogs")
                 .SplitToTable(
@@ -166,7 +166,7 @@ SET "Title" = COALESCE(o."OwnedReference_Number"::text, ''),
 
         await AssertUpdate(
             async,
-            contextFactory.CreateContext,
+            contextFactory.CreateDbContext,
             ss => ss.Set<Blog>(),
             s => s.SetProperty(b => b.CreationTimestamp, b => new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc)),
             rowsAffectedCount: 1);
@@ -226,7 +226,7 @@ WHERE o."Id" = 1
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task Update_with_primitive_collection_in_value_selector(bool async)
     {
-        var contextFactory = await InitializeAsync<Context3001>(
+        var contextFactory = await InitializeNonSharedTest<Context3001>(
             seed: async ctx =>
             {
                 ctx.AddRange(new EntityWithPrimitiveCollection { Tags = ["tag1", "tag2"] });
@@ -235,7 +235,7 @@ WHERE o."Id" = 1
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => AssertUpdate(
             async,
-            contextFactory.CreateContext,
+            contextFactory.CreateDbContext,
             ss => ss.EntitiesWithPrimitiveCollection,
             s => s.SetProperty(x => x.Tags, x => x.Tags.Append("another_tag")),
             rowsAffectedCount: 1));

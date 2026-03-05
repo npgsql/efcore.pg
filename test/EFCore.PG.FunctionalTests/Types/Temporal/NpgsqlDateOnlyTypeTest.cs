@@ -9,7 +9,7 @@ public class NpgsqlDateOnlyTypeTest(NpgsqlDateOnlyTypeTest.DateOnlyTypeFixture f
 
         AssertSql(
             """
-SELECT t."Id", t."OtherValue", t."Value"
+SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
 FROM "TypeEntity" AS t
 WHERE t."Value" = DATE '2020-01-05'
 LIMIT 2
@@ -24,7 +24,7 @@ LIMIT 2
             """
 @Fixture_Value='01/05/2020' (DbType = Date)
 
-SELECT t."Id", t."OtherValue", t."Value"
+SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
 FROM "TypeEntity" AS t
 WHERE t."Value" = @Fixture_Value
 LIMIT 2
@@ -129,6 +129,25 @@ SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(j."OtherV
         public override DateOnly Value { get; } = new DateOnly(2020, 1, 5);
         public override DateOnly OtherValue { get; } = new DateOnly(2022, 5, 3);
     }
+
+    public override async Task Primitive_collection_in_query()
+    {
+        await base.Primitive_collection_in_query();
+
+        AssertSql(
+            """
+@value='01/05/2020' (DbType = Date)
+
+SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
+FROM "TypeEntity" AS t
+WHERE (
+    SELECT count(*)::int
+    FROM unnest(t."ArrayValue") AS a(value)
+    WHERE a.value = @value) = 2
+LIMIT 2
+""");
+    }
+
 
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()

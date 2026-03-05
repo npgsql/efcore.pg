@@ -9,7 +9,7 @@ public class NpgsqlLongTypeTest(NpgsqlLongTypeTest.LongTypeFixture fixture, ITes
 
         AssertSql(
             """
-SELECT t."Id", t."OtherValue", t."Value"
+SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
 FROM "TypeEntity" AS t
 WHERE t."Value" = -9223372036854775808
 LIMIT 2
@@ -25,7 +25,7 @@ LIMIT 2
             """
 @Fixture_Value='-9223372036854775808'
 
-SELECT t."Id", t."OtherValue", t."Value"
+SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
 FROM "TypeEntity" AS t
 WHERE t."Value" = @Fixture_Value
 LIMIT 2
@@ -130,6 +130,25 @@ SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(j."OtherV
         public override long Value { get; } = long.MinValue;
         public override long OtherValue { get; } = long.MaxValue;
     }
+
+    public override async Task Primitive_collection_in_query()
+    {
+        await base.Primitive_collection_in_query();
+
+        AssertSql(
+            """
+@value='-9223372036854775808'
+
+SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
+FROM "TypeEntity" AS t
+WHERE (
+    SELECT count(*)::int
+    FROM unnest(t."ArrayValue") AS a(value)
+    WHERE a.value = @value) = 2
+LIMIT 2
+""");
+    }
+
 
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()

@@ -9,27 +9,26 @@ public class JsonTranslationsNpgsqlTest : JsonTranslationsRelationalTestBase<Jso
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-
-    public override async Task JsonExists_on_scalar_string_column()
+    public override async Task JsonPathExists_on_scalar_string_column()
     {
         // TODO: #3733
-        await AssertTranslationFailed(base.JsonExists_on_scalar_string_column);
+        await AssertTranslationFailed(base.JsonPathExists_on_scalar_string_column);
 
         AssertSql();
     }
 
-    public override async Task JsonExists_on_complex_property()
+    public override async Task JsonPathExists_on_complex_property()
     {
         // TODO: #3733
-        await AssertTranslationFailed(base.JsonExists_on_complex_property);
+        await AssertTranslationFailed(base.JsonPathExists_on_complex_property);
 
         AssertSql();
     }
 
-    public override async Task JsonExists_on_owned_entity()
+    public override async Task JsonPathExists_on_owned_entity()
     {
         // TODO: #3733
-        await AssertTranslationFailed(base.JsonExists_on_owned_entity);
+        await AssertTranslationFailed(base.JsonPathExists_on_owned_entity);
 
         AssertSql();
     }
@@ -46,21 +45,8 @@ public class JsonTranslationsNpgsqlTest : JsonTranslationsRelationalTestBase<Jso
             modelBuilder.Entity<JsonTranslationsEntity>().Property(e => e.JsonString).HasColumnType("jsonb");
         }
 
-        protected override string RemoveJsonProperty(string column, string jsonPath)
-        {
-            // HACK. PostgreSQL doesn't have a delete function accepting JSON path, but the base class requires this
-            // only for a single path segment, which we can do. Rethink this mechanism in EF.
-            if (jsonPath.StartsWith("$."))
-            {
-                var segment = jsonPath[2..];
-                if (!segment.Contains('.'))
-                {
-                    return $"{column} - '{segment}'";
-                }
-            }
-
-            throw new UnreachableException();
-        }
+        protected override string RemoveJsonProperty(string column, string property)
+            => $"{column} - '{property}'";
     }
 
     [ConditionalFact]

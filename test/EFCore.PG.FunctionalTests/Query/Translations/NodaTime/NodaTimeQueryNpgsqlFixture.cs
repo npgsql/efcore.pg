@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
 namespace Microsoft.EntityFrameworkCore.Query.Translations.NodaTime;
 
-public class NodaTimeQueryNpgsqlFixture : SharedStoreFixtureBase<NodaTimeContext>, IQueryFixtureBase, ITestSqlLoggerFactory
+public class NodaTimeQueryNpgsqlFixture : QueryFixtureBase<NodaTimeContext>, ITestSqlLoggerFactory
 {
     protected override string StoreName
         => "NodaTimeQueryTest";
@@ -36,17 +36,14 @@ public class NodaTimeQueryNpgsqlFixture : SharedStoreFixtureBase<NodaTimeContext
     protected override Task SeedAsync(NodaTimeContext context)
         => NodaTimeContext.SeedAsync(context);
 
-    public Func<DbContext> GetContextCreator()
-        => CreateContext;
-
-    public ISetSource GetExpectedData()
+    public override ISetSource GetExpectedData()
         => _expectedData ??= new NodaTimeData();
 
-    public IReadOnlyDictionary<Type, object> EntitySorters
+    public override IReadOnlyDictionary<Type, object> EntitySorters
         => new Dictionary<Type, Func<object, object?>> { { typeof(NodaTimeTypes), e => ((NodaTimeTypes)e).Id } }
             .ToDictionary(e => e.Key, e => (object)e.Value);
 
-    public IReadOnlyDictionary<Type, object> EntityAsserters
+    public override IReadOnlyDictionary<Type, object> EntityAsserters
         => new Dictionary<Type, Action<object, object>>
         {
             {

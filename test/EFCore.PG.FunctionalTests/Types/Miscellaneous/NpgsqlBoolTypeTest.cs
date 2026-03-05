@@ -9,7 +9,7 @@ public class NpgsqlBoolTypeTest(NpgsqlBoolTypeTest.BoolTypeFixture fixture, ITes
 
         AssertSql(
             """
-SELECT t."Id", t."OtherValue", t."Value"
+SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
 FROM "TypeEntity" AS t
 WHERE t."Value"
 LIMIT 2
@@ -24,7 +24,7 @@ LIMIT 2
             """
 @Fixture_Value='True'
 
-SELECT t."Id", t."OtherValue", t."Value"
+SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
 FROM "TypeEntity" AS t
 WHERE t."Value" = @Fixture_Value
 LIMIT 2
@@ -129,6 +129,25 @@ SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(j."OtherV
         public override bool Value { get; } = true;
         public override bool OtherValue { get; } = false;
     }
+
+    public override async Task Primitive_collection_in_query()
+    {
+        await base.Primitive_collection_in_query();
+
+        AssertSql(
+            """
+@value='True'
+
+SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
+FROM "TypeEntity" AS t
+WHERE (
+    SELECT count(*)::int
+    FROM unnest(t."ArrayValue") AS a(value)
+    WHERE a.value = @value) = 2
+LIMIT 2
+""");
+    }
+
 
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()

@@ -9,7 +9,7 @@ public class StringTypeTest(StringTypeTest.StringTypeFixture fixture, ITestOutpu
 
         AssertSql(
             """
-SELECT t."Id", t."OtherValue", t."Value"
+SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
 FROM "TypeEntity" AS t
 WHERE t."Value" = 'foo'
 LIMIT 2
@@ -25,7 +25,7 @@ LIMIT 2
             """
 @Fixture_Value='foo'
 
-SELECT t."Id", t."OtherValue", t."Value"
+SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
 FROM "TypeEntity" AS t
 WHERE t."Value" = @Fixture_Value
 LIMIT 2
@@ -130,6 +130,25 @@ SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(j."OtherV
         public override string Value { get; } = "foo";
         public override string OtherValue { get; } = "bar";
     }
+
+    public override async Task Primitive_collection_in_query()
+    {
+        await base.Primitive_collection_in_query();
+
+        AssertSql(
+            """
+@value='foo'
+
+SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
+FROM "TypeEntity" AS t
+WHERE (
+    SELECT count(*)::int
+    FROM unnest(t."ArrayValue") AS a(value)
+    WHERE a.value = @value) = 2
+LIMIT 2
+""");
+    }
+
 
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()

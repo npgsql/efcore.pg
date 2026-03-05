@@ -6,6 +6,6 @@ public class AdHocNavigationsQueryNpgsqlTest(NonSharedFixture fixture) : AdHocNa
     public override Task Reference_include_on_derived_type_with_sibling_works()
         => Assert.ThrowsAsync<DbUpdateException>(() => base.Reference_include_on_derived_type_with_sibling_works());
 
-    protected override ITestStoreFactory TestStoreFactory
+    protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 }

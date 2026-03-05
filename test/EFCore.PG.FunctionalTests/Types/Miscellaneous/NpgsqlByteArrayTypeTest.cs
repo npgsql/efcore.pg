@@ -9,7 +9,7 @@ public class ByteArrayTypeTest(ByteArrayTypeTest.ByteArrayTypeFixture fixture, I
 
         AssertSql(
             """
-SELECT t."Id", t."OtherValue", t."Value"
+SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
 FROM "TypeEntity" AS t
 WHERE t."Value" = BYTEA E'\\x010203'
 LIMIT 2
@@ -24,7 +24,7 @@ LIMIT 2
             """
 @Fixture_Value='0x010203'
 
-SELECT t."Id", t."OtherValue", t."Value"
+SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
 FROM "TypeEntity" AS t
 WHERE t."Value" = @Fixture_Value
 LIMIT 2
@@ -131,6 +131,25 @@ SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(encode(j.
 
         public override Func<byte[], byte[], bool> Comparer { get; } = (a, b) => a.SequenceEqual(b);
     }
+
+    public override async Task Primitive_collection_in_query()
+    {
+        await base.Primitive_collection_in_query();
+
+        AssertSql(
+            """
+@value='0x010203'
+
+SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
+FROM "TypeEntity" AS t
+WHERE (
+    SELECT count(*)::int
+    FROM unnest(t."ArrayValue") AS a(value)
+    WHERE a.value = @value) = 2
+LIMIT 2
+""");
+    }
+
 
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
