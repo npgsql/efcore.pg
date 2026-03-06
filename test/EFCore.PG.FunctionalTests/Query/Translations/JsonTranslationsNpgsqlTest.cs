@@ -9,28 +9,43 @@ public class JsonTranslationsNpgsqlTest : JsonTranslationsRelationalTestBase<Jso
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
+    [MinimumPostgresVersion(17, 0)]
     public override async Task JsonPathExists_on_scalar_string_column()
     {
-        // TODO: #3733
-        await AssertTranslationFailed(base.JsonPathExists_on_scalar_string_column);
+        await base.JsonPathExists_on_scalar_string_column();
 
-        AssertSql();
+        AssertSql(
+            """
+SELECT j."Id", j."JsonString", j."JsonComplexType", j."JsonOwnedType"
+FROM "JsonEntities" AS j
+WHERE JSON_EXISTS(j."JsonString", '$.OptionalInt')
+""");
     }
 
+    [MinimumPostgresVersion(17, 0)]
     public override async Task JsonPathExists_on_complex_property()
     {
-        // TODO: #3733
-        await AssertTranslationFailed(base.JsonPathExists_on_complex_property);
+        await base.JsonPathExists_on_complex_property();
 
-        AssertSql();
+        AssertSql(
+            """
+SELECT j."Id", j."JsonString", j."JsonComplexType", j."JsonOwnedType"
+FROM "JsonEntities" AS j
+WHERE JSON_EXISTS(j."JsonComplexType", '$.OptionalInt')
+""");
     }
 
+    [MinimumPostgresVersion(17, 0)]
     public override async Task JsonPathExists_on_owned_entity()
     {
-        // TODO: #3733
-        await AssertTranslationFailed(base.JsonPathExists_on_owned_entity);
+        await base.JsonPathExists_on_owned_entity();
 
-        AssertSql();
+        AssertSql(
+            """
+SELECT j."Id", j."JsonString", j."JsonComplexType", j."JsonOwnedType"
+FROM "JsonEntities" AS j
+WHERE JSON_EXISTS(j."JsonOwnedType", '$.OptionalInt')
+""");
     }
 
     public class JsonTranslationsQueryNpgsqlFixture : JsonTranslationsQueryFixtureBase, ITestSqlLoggerFactory
