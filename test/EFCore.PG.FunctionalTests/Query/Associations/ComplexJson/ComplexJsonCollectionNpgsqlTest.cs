@@ -161,6 +161,18 @@ WHERE (CAST(r."AssociateCollection" #>> ARRAY[r."Id" - 1,'Int']::text[] AS integ
 """);
     }
 
+    public override async Task Index_on_nested_collection()
+    {
+        await base.Index_on_nested_collection();
+
+        AssertSql(
+            """
+SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
+FROM "RootEntity" AS r
+WHERE (CAST(r."RequiredAssociate" #>> '{NestedCollection,0,Int}' AS integer)) = 8
+""");
+    }
+
     public override async Task Index_out_of_bounds()
     {
         await base.Index_out_of_bounds();

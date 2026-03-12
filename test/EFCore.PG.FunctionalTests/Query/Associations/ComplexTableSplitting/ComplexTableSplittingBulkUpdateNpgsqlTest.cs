@@ -466,11 +466,11 @@ SET "RequiredAssociate_OptionalNestedAssociate_Ints" = r."RequiredAssociate_Requ
         AssertExecuteUpdateSql(
             """
 @p='?'
-@p0='?' (DbType = Int32)
+@p1='?' (DbType = Int32)
 
 UPDATE "RootEntity" AS r
 SET "RequiredAssociate_String" = @p,
-    "RequiredAssociate_Int" = @p0
+    "RequiredAssociate_Int" = @p1
 """);
     }
 

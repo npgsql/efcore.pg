@@ -430,6 +430,22 @@ WHERE p."Id" = ANY (@p)
 """);
     }
 
+    public override async Task Inline_collection_Contains_with_IEnumerable_EF_Parameter()
+    {
+        await base.Inline_collection_Contains_with_IEnumerable_EF_Parameter();
+
+        AssertSql(
+            """
+@Select={ '10'
+'a'
+'aa' } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."NullableString" = ANY (@Select) OR (p."NullableString" IS NULL AND array_position(@Select, NULL) IS NOT NULL)
+""");
+    }
+
     public override async Task Inline_collection_Count_with_column_predicate_with_EF_Parameter()
     {
         await base.Inline_collection_Count_with_column_predicate_with_EF_Parameter();
@@ -830,6 +846,34 @@ WHERE p."Int" = ANY (NULL)
 """);
     }
 
+    public override async Task Parameter_collection_empty_Contains()
+    {
+        await base.Parameter_collection_empty_Contains();
+
+        AssertSql(
+            """
+@ints={  } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Int" = ANY (@ints)
+""");
+    }
+
+    public override async Task Parameter_collection_empty_Join()
+    {
+        await base.Parameter_collection_empty_Join();
+
+        AssertSql(
+            """
+@p={  } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+INNER JOIN unnest(@p) AS p0(value) ON p."Id" = p0.value
+""");
+    }
+
     public override async Task Parameter_collection_Contains_with_EF_Constant()
     {
         await base.Parameter_collection_Contains_with_EF_Constant();
@@ -881,11 +925,81 @@ WHERE (
         AssertSql();
     }
 
+    public override async Task Parameter_collection_Count_with_huge_number_of_values_over_5_operations()
+    {
+        await base.Parameter_collection_Count_with_huge_number_of_values_over_5_operations();
+
+        AssertSql();
+    }
+
+    public override async Task Parameter_collection_Count_with_huge_number_of_values_over_5_operations_same_parameter()
+    {
+        await base.Parameter_collection_Count_with_huge_number_of_values_over_5_operations_same_parameter();
+
+        AssertSql();
+    }
+
+    public override async Task Parameter_collection_Count_with_huge_number_of_values_over_2_operations_same_parameter_different_type_mapping()
+    {
+        await base.Parameter_collection_Count_with_huge_number_of_values_over_2_operations_same_parameter_different_type_mapping();
+
+        AssertSql();
+    }
+
+    public override async Task Parameter_collection_Count_with_huge_number_of_values_over_5_operations_forced_constants()
+    {
+        await base.Parameter_collection_Count_with_huge_number_of_values_over_5_operations_forced_constants();
+
+        AssertSql();
+    }
+
+    public override async Task Parameter_collection_Count_with_huge_number_of_values_over_5_operations_mixed_parameters_constants()
+    {
+        await base.Parameter_collection_Count_with_huge_number_of_values_over_5_operations_mixed_parameters_constants();
+
+        AssertSql();
+    }
+
     // The following test does nothing since we don't override NumberOfValuesForHugeParameterCollectionTests;
     // the PG parameter limit is huge (ushort), so we don't need to test it.
     public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values()
     {
         await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values();
+
+        AssertSql();
+    }
+
+    public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations()
+    {
+        await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations();
+
+        AssertSql();
+    }
+
+    public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_same_parameter()
+    {
+        await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_same_parameter();
+
+        AssertSql();
+    }
+
+    public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_2_operations_same_parameter_different_type_mapping()
+    {
+        await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_2_operations_same_parameter_different_type_mapping();
+
+        AssertSql();
+    }
+
+    public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_forced_constants()
+    {
+        await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_forced_constants();
+
+        AssertSql();
+    }
+
+    public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_mixed_parameters_constants()
+    {
+        await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_mixed_parameters_constants();
 
         AssertSql();
     }
@@ -984,6 +1098,42 @@ WHERE array_position(p."NullableStrings", NULL) IS NOT NULL
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
 FROM "PrimitiveCollectionsEntity" AS p
 WHERE TRUE = ANY (p."Bools")
+""");
+    }
+
+    public override async Task Contains_on_Enumerable()
+    {
+        await base.Contains_on_Enumerable();
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Int" IN (10, 999)
+""");
+    }
+
+    public override async Task Contains_on_MemoryExtensions()
+    {
+        await base.Contains_on_MemoryExtensions();
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Int" IN (10, 999)
+""");
+    }
+
+    public override async Task Contains_with_MemoryExtensions_with_null_comparer()
+    {
+        await base.Contains_with_MemoryExtensions_with_null_comparer();
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Int" IN (10, 999)
 """);
     }
 
@@ -1542,12 +1692,12 @@ WHERE (
 
         AssertSql(
             """
-@ints={ '11'
+@p={ '11'
 '111' } (DbType = Object)
 
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
 FROM "PrimitiveCollectionsEntity" AS p
-WHERE cardinality(@ints || p."Ints") = 2
+WHERE cardinality(@p || p."Ints") = 2
 """);
     }
 

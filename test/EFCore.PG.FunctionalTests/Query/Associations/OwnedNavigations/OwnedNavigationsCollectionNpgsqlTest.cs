@@ -202,6 +202,13 @@ ORDER BY r."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s
         AssertSql();
     }
 
+    public override async Task Index_on_nested_collection()
+    {
+        await base.Index_on_nested_collection();
+
+        AssertSql();
+    }
+
     public override async Task Index_out_of_bounds()
     {
         await base.Index_out_of_bounds();

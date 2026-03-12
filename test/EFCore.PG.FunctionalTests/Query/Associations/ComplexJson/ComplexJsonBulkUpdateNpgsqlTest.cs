@@ -361,10 +361,10 @@ WHERE jsonb_array_length(r."RequiredAssociate" -> 'Ints') >= 2
         AssertExecuteUpdateSql(
             """
 @p='?'
-@p0='?' (DbType = Int32)
+@p1='?' (DbType = Int32)
 
 UPDATE "RootEntity" AS r
-SET "RequiredAssociate" = jsonb_set(jsonb_set(r."RequiredAssociate", '{String}', to_jsonb(@p)), '{Int}', to_jsonb(@p0))
+SET "RequiredAssociate" = jsonb_set(jsonb_set(r."RequiredAssociate", '{String}', to_jsonb(@p)), '{Int}', to_jsonb(@p1))
 """);
     }
 

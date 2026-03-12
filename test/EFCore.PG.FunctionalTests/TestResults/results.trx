@@ -1,0 +1,1260 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="86a45247-fc5a-4817-8146-71759b594db4" name="@milo 2026-03-12 18:44:30" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-03-12T18:44:30.9683180+02:00" queuing="2026-03-12T18:44:30.9683180+02:00" start="2026-03-12T18:44:25.3242030+02:00" finish="2026-03-12T18:44:32.5667090+02:00" />
+  <TestSettings name="default" id="d33789c8-920e-40e2-8a46-419c8c39b504">
+    <Deployment runDeploymentRoot="_milo_2026-03-12_18_44_30" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="c07d8bc1-9b77-465b-b44e-dfe9b072def5" testId="b1b8ac64-d6d6-93ba-b7a3-1e8f1d121ab5" testName="Microsoft.EntityFrameworkCore.Types.Temporal.NpgsqlTimeOnlyTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001951" startTime="2026-03-12T18:44:32.2232220+02:00" endTime="2026-03-12T18:44:32.2234260+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c07d8bc1-9b77-465b-b44e-dfe9b072def5" />
+    <UnitTestResult executionId="e2da0601-6731-42c9-9e9d-9f0792da5865" testId="4cfd26b8-45ea-a412-8446-4eb6b3f3c985" testName="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsPrimitiveCollectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001702" startTime="2026-03-12T18:44:30.9693470+02:00" endTime="2026-03-12T18:44:30.9695250+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e2da0601-6731-42c9-9e9d-9f0792da5865" />
+    <UnitTestResult executionId="a5875852-d67e-4d86-8da4-78d85c97d0a4" testId="e0c52be0-62ac-9cee-567d-096a911efa30" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlDecimalTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001703" startTime="2026-03-12T18:44:32.0810910+02:00" endTime="2026-03-12T18:44:32.0812560+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a5875852-d67e-4d86-8da4-78d85c97d0a4" />
+    <UnitTestResult executionId="4c0c68a3-fbe6-4580-972b-aec3ca7de391" testId="e9b3b945-0bd5-9967-634e-e9752bddc8ca" testName="Microsoft.EntityFrameworkCore.Query.Associations.OwnedTableSplitting.OwnedTableSplittingMiscellaneousNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002007" startTime="2026-03-12T18:44:31.5892490+02:00" endTime="2026-03-12T18:44:31.5894860+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4c0c68a3-fbe6-4580-972b-aec3ca7de391">
+      <Output>
+        <ErrorInfo>
+          <Message>&#xD;
+-- Missing test overrides --&#xD;
+&#xD;
+public override async Task FromSql_on_root(bool async)&#xD;
+{&#xD;
+    await base.FromSql_on_root(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+   at Microsoft.EntityFrameworkCore.Query.Associations.OwnedTableSplitting.OwnedTableSplittingMiscellaneousNpgsqlTest.Check_all_tests_overridden() in /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/OwnedTableSplitting/OwnedTableSplittingMiscellaneousNpgsqlTest.cs:line 83
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="868ac0d1-286b-4859-b292-5a1def5c4aa1" testId="76318410-6343-9386-17e1-ffa21f8b551b" testName="Microsoft.EntityFrameworkCore.Query.Translations.EnumTranslationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001968" startTime="2026-03-12T18:44:31.5876590+02:00" endTime="2026-03-12T18:44:31.5877030+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="868ac0d1-286b-4859-b292-5a1def5c4aa1" />
+    <UnitTestResult executionId="33f9f40c-c15a-4345-ab3b-678083df95f9" testId="00f8f67f-9257-63da-1035-1a3411f34561" testName="Microsoft.EntityFrameworkCore.Query.Associations.OwnedTableSplitting.OwnedTableSplittingProjectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002196" startTime="2026-03-12T18:44:31.2504360+02:00" endTime="2026-03-12T18:44:31.2506600+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="33f9f40c-c15a-4345-ab3b-678083df95f9" />
+    <UnitTestResult executionId="7e6e52e0-82b8-4b85-a03e-128ccf201cc8" testId="863eb4cd-3cf8-a0ee-8674-e6f2e5fe6cc6" testName="Microsoft.EntityFrameworkCore.BulkUpdates.NorthwindBulkUpdatesNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0017867" startTime="2026-03-12T18:44:29.7099600+02:00" endTime="2026-03-12T18:44:29.7111540+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7e6e52e0-82b8-4b85-a03e-128ccf201cc8">
+      <Output>
+        <ErrorInfo>
+          <Message>&#xD;
+-- Missing test overrides --&#xD;
+&#xD;
+public override async Task Update_with_PK_pushdown_and_join_and_multiple_setters(bool async)&#xD;
+{&#xD;
+    await base.Update_with_PK_pushdown_and_join_and_multiple_setters(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+   at Microsoft.EntityFrameworkCore.BulkUpdates.NorthwindBulkUpdatesNpgsqlTest.Check_all_tests_overridden() in /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/BulkUpdates/NorthwindBulkUpdatesNpgsqlTest.cs:line 1616
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="512bc781-adfc-45a8-bf23-24a278ccc366" testId="71a947fd-d424-27b8-06cb-24ee6d72ad00" testName="Microsoft.EntityFrameworkCore.Types.Networking.NpgsqlMacaddrTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001032" startTime="2026-03-12T18:44:31.6371530+02:00" endTime="2026-03-12T18:44:31.6372560+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="512bc781-adfc-45a8-bf23-24a278ccc366" />
+    <UnitTestResult executionId="5735dce8-8412-4e2f-ab14-7695604ca877" testId="aa6e711a-e1ed-f904-6f21-630df84c8dd6" testName="Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingMiscellaneousNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002732" startTime="2026-03-12T18:44:31.5878940+02:00" endTime="2026-03-12T18:44:31.5882460+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5735dce8-8412-4e2f-ab14-7695604ca877">
+      <Output>
+        <ErrorInfo>
+          <Message>&#xD;
+-- Missing test overrides --&#xD;
+&#xD;
+public override async Task FromSql_on_root(bool async)&#xD;
+{&#xD;
+    await base.FromSql_on_root(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+   at Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingMiscellaneousNpgsqlTest.Check_all_tests_overridden() in /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/ComplexTableSplitting/ComplexTableSplittingMiscellaneousNpgsqlTest.cs:line 89
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="696fe57d-ec3c-4224-a978-2109048024bf" testId="eb874af3-4752-e08c-ee77-34ae1eb05d94" testName="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonStructuralEqualityNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001615" startTime="2026-03-12T18:44:31.4212110+02:00" endTime="2026-03-12T18:44:31.4240510+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="696fe57d-ec3c-4224-a978-2109048024bf" />
+    <UnitTestResult executionId="2c457d14-4210-434e-bcb2-f88c6140e019" testId="82b7fa2b-9bab-9890-c175-7fe829a24e84" testName="Microsoft.EntityFrameworkCore.Types.Networking.NpgsqlInetTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001370" startTime="2026-03-12T18:44:31.7207770+02:00" endTime="2026-03-12T18:44:31.7209070+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2c457d14-4210-434e-bcb2-f88c6140e019" />
+    <UnitTestResult executionId="cc0ad22d-c973-47ac-833b-788d1952d4a8" testId="80a90d3e-4aec-fd01-504c-a15d936d5485" testName="Microsoft.EntityFrameworkCore.Query.NorthwindSqlQueryNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001240" startTime="2026-03-12T18:44:31.5912410+02:00" endTime="2026-03-12T18:44:31.5913710+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cc0ad22d-c973-47ac-833b-788d1952d4a8" />
+    <UnitTestResult executionId="1fa6da70-7714-4534-9fca-19353dbaf70f" testId="4f18e6ba-aa51-a7f0-77be-4014ca1f5e05" testName="Microsoft.EntityFrameworkCore.BulkUpdates.TPCFiltersInheritanceBulkUpdatesNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002319" startTime="2026-03-12T18:44:31.2196470+02:00" endTime="2026-03-12T18:44:31.2198700+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1fa6da70-7714-4534-9fca-19353dbaf70f" />
+    <UnitTestResult executionId="0d40683e-3d95-450c-ab71-ef22e72d488e" testId="d0980dd7-3411-3d78-19c7-28419f6a840c" testName="Microsoft.EntityFrameworkCore.BulkUpdates.TPHFiltersInheritanceBulkUpdatesNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001130" startTime="2026-03-12T18:44:31.2329680+02:00" endTime="2026-03-12T18:44:31.2330810+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0d40683e-3d95-450c-ab71-ef22e72d488e" />
+    <UnitTestResult executionId="92f9a67b-bd58-44a4-a282-ec38eace6843" testId="b2b5d35c-6b33-9066-87df-6e05279256e6" testName="Microsoft.EntityFrameworkCore.Types.Miscellaneous.NpgsqlBoolTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002232" startTime="2026-03-12T18:44:31.5811840+02:00" endTime="2026-03-12T18:44:31.5813910+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="92f9a67b-bd58-44a4-a282-ec38eace6843" />
+    <UnitTestResult executionId="8ab6916b-48ef-4182-adb3-611cc9927a25" testId="57428243-5955-adbf-1e99-003a1e3de80c" testName="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.TimeOnlyTranslationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001477" startTime="2026-03-12T18:44:30.9687280+02:00" endTime="2026-03-12T18:44:30.9688800+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8ab6916b-48ef-4182-adb3-611cc9927a25" />
+    <UnitTestResult executionId="04b8fc94-898c-4f54-a645-04eb4b036eea" testId="d5faffe8-7c18-a310-54a6-a1a43416f0df" testName="Microsoft.EntityFrameworkCore.Types.Temporal.DateTimeOffsetTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002988" startTime="2026-03-12T18:44:32.4420740+02:00" endTime="2026-03-12T18:44:32.4424100+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="04b8fc94-898c-4f54-a645-04eb4b036eea" />
+    <UnitTestResult executionId="ecd4d338-e942-47a0-b0ac-39b755918abf" testId="7e435fc5-807a-7219-3578-541bdae0f270" testName="Microsoft.EntityFrameworkCore.BulkUpdates.NonSharedModelBulkUpdatesNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001089" startTime="2026-03-12T18:44:31.4210350+02:00" endTime="2026-03-12T18:44:31.4210820+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ecd4d338-e942-47a0-b0ac-39b755918abf" />
+    <UnitTestResult executionId="fe38b526-6be1-451d-b892-09d40f83040a" testId="6b653fcb-6995-1325-e883-5582c8ce96e7" testName="Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonProjectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001568" startTime="2026-03-12T18:44:31.5905210+02:00" endTime="2026-03-12T18:44:31.5906800+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fe38b526-6be1-451d-b892-09d40f83040a" />
+    <UnitTestResult executionId="12442edc-fe98-47d3-b782-77a61231e731" testId="bfe0b53f-410c-34e1-62e1-25e07c98fd6b" testName="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.DateTimeTranslationsWithoutTimeZoneTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002131" startTime="2026-03-12T18:44:31.4179070+02:00" endTime="2026-03-12T18:44:31.4181170+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="12442edc-fe98-47d3-b782-77a61231e731" />
+    <UnitTestResult executionId="22eaea16-03a8-471e-bf1c-076fec1e8bb8" testId="6ca5304d-6a53-b20f-516f-c9c879487b3f" testName="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsCollectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002225" startTime="2026-03-12T18:44:31.2691010+02:00" endTime="2026-03-12T18:44:31.2693040+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="22eaea16-03a8-471e-bf1c-076fec1e8bb8">
+      <Output>
+        <ErrorInfo>
+          <Message>&#xD;
+-- Missing test overrides --&#xD;
+&#xD;
+public override async Task Index_on_nested_collection(bool async)&#xD;
+{&#xD;
+    await base.Index_on_nested_collection(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+   at Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsCollectionNpgsqlTest.Check_all_tests_overridden() in /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/OwnedNavigations/OwnedNavigationsCollectionNpgsqlTest.cs:line 271
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="1dcc2a9c-0930-4afa-8096-fe3317831f74" testId="2f02758e-3fd5-543b-8d16-e7256c4b74b9" testName="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonProjectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001845" startTime="2026-03-12T18:44:30.9572020+02:00" endTime="2026-03-12T18:44:30.9572400+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1dcc2a9c-0930-4afa-8096-fe3317831f74" />
+    <UnitTestResult executionId="cfc6d737-1da6-46c2-9434-2e06b3d1f1ee" testId="ffaaf725-8693-b56f-4735-3915f00fcf0f" testName="Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonMiscellaneousNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0003659" startTime="2026-03-12T18:44:30.5556030+02:00" endTime="2026-03-12T18:44:30.5561970+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cfc6d737-1da6-46c2-9434-2e06b3d1f1ee">
+      <Output>
+        <ErrorInfo>
+          <Message>&#xD;
+-- Missing test overrides --&#xD;
+&#xD;
+public override async Task FromSql_on_root(bool async)&#xD;
+{&#xD;
+    await base.FromSql_on_root(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+   at Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonMiscellaneousNpgsqlTest.Check_all_tests_overridden() in /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/OwnedJson/OwnedJsonMiscellaneousNpgsqlTest.cs:line 53
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e8e355bc-8af9-4a91-a103-4819815e42c5" testId="d51384aa-c0cd-bc9d-f445-8e5944278d72" testName="Microsoft.EntityFrameworkCore.Query.Translations.MiscellaneousTranslationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002252" startTime="2026-03-12T18:44:30.6031660+02:00" endTime="2026-03-12T18:44:30.6033180+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e8e355bc-8af9-4a91-a103-4819815e42c5" />
+    <UnitTestResult executionId="1193424b-6150-4808-b8d5-7b63fe75bb83" testId="02b817f1-07ad-a305-ea06-ffe5a54c73ba" testName="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsPrimitiveCollectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002390" startTime="2026-03-12T18:44:31.2495620+02:00" endTime="2026-03-12T18:44:31.2498090+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1193424b-6150-4808-b8d5-7b63fe75bb83" />
+    <UnitTestResult executionId="39e3ec39-a437-47b8-8bf6-4bb783116b38" testId="9e80e0f4-5812-3ee4-7abf-417a128e7122" testName="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsProjectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002214" startTime="2026-03-12T18:44:31.4187730+02:00" endTime="2026-03-12T18:44:31.4189930+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="39e3ec39-a437-47b8-8bf6-4bb783116b38" />
+    <UnitTestResult executionId="d4b8df31-ae4a-4499-bfc3-9acbb315aedf" testId="ec960e5b-1c60-eb98-b6d7-5bd4e233c8ce" testName="Microsoft.EntityFrameworkCore.Query.Translations.Operators.BitwiseOperatorTranslationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001569" startTime="2026-03-12T18:44:30.9575220+02:00" endTime="2026-03-12T18:44:30.9576890+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d4b8df31-ae4a-4499-bfc3-9acbb315aedf" />
+    <UnitTestResult executionId="851a2687-f433-4ee9-839d-9fb645754a8c" testId="9f76ab20-f788-63c4-5033-72c46223a110" testName="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsStructuralEqualityNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001611" startTime="2026-03-12T18:44:31.5952850+02:00" endTime="2026-03-12T18:44:31.5954370+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="851a2687-f433-4ee9-839d-9fb645754a8c" />
+    <UnitTestResult executionId="455c4eaa-059a-4498-9cfb-4a658686425a" testId="13c563cd-3923-d7b7-c4cc-3a3b97f92ed8" testName="Microsoft.EntityFrameworkCore.Query.EntitySplittingQueryNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0003773" startTime="2026-03-12T18:44:30.9565700+02:00" endTime="2026-03-12T18:44:30.9566060+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="455c4eaa-059a-4498-9cfb-4a658686425a" />
+    <UnitTestResult executionId="453b2d2d-0b62-4ad0-8aec-5ac6c0f1ea47" testId="b82095c2-a74a-dba4-7471-4a4cfb79b15e" testName="Microsoft.EntityFrameworkCore.Query.AdHocPrecompiledQueryNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001139" startTime="2026-03-12T18:44:31.5864420+02:00" endTime="2026-03-12T18:44:31.5865650+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="453b2d2d-0b62-4ad0-8aec-5ac6c0f1ea47" />
+    <UnitTestResult executionId="5e0d1e15-1b59-4a15-9925-7771f7b7161c" testId="6d40845b-ecbf-4609-af2c-1a48e62e6918" testName="Microsoft.EntityFrameworkCore.Query.NorthwindGroupByQueryNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002036" startTime="2026-03-12T18:44:31.5918870+02:00" endTime="2026-03-12T18:44:31.5920930+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5e0d1e15-1b59-4a15-9925-7771f7b7161c" />
+    <UnitTestResult executionId="fba44fd9-ded4-4a2a-89df-a33c76502af5" testId="468ecba9-d85e-e26e-6525-da0c0a6a4d46" testName="Microsoft.EntityFrameworkCore.Types.Temporal.DateTimeUnspecifiedTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001432" startTime="2026-03-12T18:44:32.3639100+02:00" endTime="2026-03-12T18:44:32.3639580+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fba44fd9-ded4-4a2a-89df-a33c76502af5" />
+    <UnitTestResult executionId="bbe708af-5bec-4c84-935b-448d75583cba" testId="3e13980a-568f-b9c0-b258-b424a9b16e7c" testName="Microsoft.EntityFrameworkCore.Query.Translations.Operators.ArithmeticOperatorTranslationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001665" startTime="2026-03-12T18:44:31.4241840+02:00" endTime="2026-03-12T18:44:31.4242190+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bbe708af-5bec-4c84-935b-448d75583cba" />
+    <UnitTestResult executionId="d3ee4124-a5be-4f18-9477-b25c531c3d53" testId="309badf7-c250-0d78-02a8-8be54253b3f7" testName="Microsoft.EntityFrameworkCore.Types.Miscellaneous.ByteArrayTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001397" startTime="2026-03-12T18:44:31.4920890+02:00" endTime="2026-03-12T18:44:31.4922270+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d3ee4124-a5be-4f18-9477-b25c531c3d53" />
+    <UnitTestResult executionId="14fa18c7-4e8f-4eb6-b6ae-76ae100fa5e5" testId="a160ead8-51be-4a4c-107e-dfef347e28d5" testName="Microsoft.EntityFrameworkCore.Types.Temporal.DateTimeUtcTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0003211" startTime="2026-03-12T18:44:32.2975260+02:00" endTime="2026-03-12T18:44:32.2978600+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="14fa18c7-4e8f-4eb6-b6ae-76ae100fa5e5" />
+    <UnitTestResult executionId="c4738c58-07c6-45f1-aa1a-82ba3545d69c" testId="e0305907-8411-bdf9-c6d0-a7f1652652c0" testName="Microsoft.EntityFrameworkCore.BulkUpdates.TPTFiltersInheritanceBulkUpdatesSqlServerTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002045" startTime="2026-03-12T18:44:31.2486400+02:00" endTime="2026-03-12T18:44:31.2488500+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c4738c58-07c6-45f1-aa1a-82ba3545d69c" />
+    <UnitTestResult executionId="3230d1e4-6b95-40c5-b62e-75075b7e7e9e" testId="775ae41d-4192-6884-caa9-aad84dde6dff" testName="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsProjectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0008763" startTime="2026-03-12T18:44:30.4814480+02:00" endTime="2026-03-12T18:44:30.4824340+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3230d1e4-6b95-40c5-b62e-75075b7e7e9e" />
+    <UnitTestResult executionId="94b0f0c5-d829-4f6a-91c5-0f9c2d27d7f2" testId="a1c4b5e7-1019-54ee-52e3-ae70ea2b1b12" testName="Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingBulkUpdateNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001052" startTime="2026-03-12T18:44:31.5947730+02:00" endTime="2026-03-12T18:44:31.5949090+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="94b0f0c5-d829-4f6a-91c5-0f9c2d27d7f2" />
+    <UnitTestResult executionId="78075e0e-2637-41e7-ae85-d0e5a0ee0387" testId="ad0110ad-113a-29c5-9859-3019146b9cab" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlDoubleTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002045" startTime="2026-03-12T18:44:31.9976430+02:00" endTime="2026-03-12T18:44:31.9977590+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="78075e0e-2637-41e7-ae85-d0e5a0ee0387" />
+    <UnitTestResult executionId="5950e52a-ad46-4527-aa4a-48840bddad2a" testId="9a1a7a34-4620-74c4-ecb3-78da7fb045b7" testName="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonBulkUpdateNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002583" startTime="2026-03-12T18:44:30.9476020+02:00" endTime="2026-03-12T18:44:30.9478570+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5950e52a-ad46-4527-aa4a-48840bddad2a" />
+    <UnitTestResult executionId="35726e8f-2559-4555-8c24-3aeeac118b0e" testId="fc50d1fe-de46-cbea-9b1a-d0aefc1bc93b" testName="Microsoft.EntityFrameworkCore.Query.ComplexTypeQueryNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0003005" startTime="2026-03-12T18:44:31.7590170+02:00" endTime="2026-03-12T18:44:31.7592950+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="35726e8f-2559-4555-8c24-3aeeac118b0e" />
+    <UnitTestResult executionId="7548be74-4deb-46bc-bdc7-705993293baf" testId="1fc36b17-8dcd-6221-ff94-0843d4b99a66" testName="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonMiscellaneousNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002728" startTime="2026-03-12T18:44:31.2682300+02:00" endTime="2026-03-12T18:44:31.2685550+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7548be74-4deb-46bc-bdc7-705993293baf">
+      <Output>
+        <ErrorInfo>
+          <Message>&#xD;
+-- Missing test overrides --&#xD;
+&#xD;
+public override async Task FromSql_on_root(bool async)&#xD;
+{&#xD;
+    await base.FromSql_on_root(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+   at Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonMiscellaneousNpgsqlTest.Check_all_tests_overridden() in /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/ComplexJson/ComplexJsonMiscellaneousNpgsqlTest.cs:line 91
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="71874b3a-633f-49b5-be58-8fd5afc4a80c" testId="48c80e07-b22a-dacb-45d1-3c19c28bab57" testName="Microsoft.EntityFrameworkCore.Types.Miscellaneous.StringTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001704" startTime="2026-03-12T18:44:31.3521980+02:00" endTime="2026-03-12T18:44:31.3523460+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="71874b3a-633f-49b5-be58-8fd5afc4a80c" />
+    <UnitTestResult executionId="6ba4f3ff-e872-4fe3-8143-cfa8e952686e" testId="732e58f6-3c5c-763a-0f15-54070c775848" testName="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsMiscellaneousNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002565" startTime="2026-03-12T18:44:31.4194510+02:00" endTime="2026-03-12T18:44:31.4198090+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6ba4f3ff-e872-4fe3-8143-cfa8e952686e">
+      <Output>
+        <ErrorInfo>
+          <Message>&#xD;
+-- Missing test overrides --&#xD;
+&#xD;
+public override async Task FromSql_on_root(bool async)&#xD;
+{&#xD;
+    await base.FromSql_on_root(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+   at Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsMiscellaneousNpgsqlTest.Check_all_tests_overridden() in /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/Navigations/NavigationsMiscellaneousNpgsqlTest.cs:line 101
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="733b0a19-60a2-47eb-ba8e-4158fb00b0f4" testId="b944517b-cc90-2584-d27f-3017e0811aa3" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002528" startTime="2026-03-12T18:44:31.7782950+02:00" endTime="2026-03-12T18:44:31.7785630+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="733b0a19-60a2-47eb-ba8e-4158fb00b0f4" />
+    <UnitTestResult executionId="47edd68e-676a-4f2c-b921-7b133fab10b7" testId="db99bb5c-d42a-62cc-d966-8e889cd17dbd" testName="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsIncludeNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002015" startTime="2026-03-12T18:44:30.9674010+02:00" endTime="2026-03-12T18:44:30.9674360+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="47edd68e-676a-4f2c-b921-7b133fab10b7" />
+    <UnitTestResult executionId="ba4e483a-a3f4-47ed-99c9-5489fc95c64a" testId="11adb2a6-7e29-30cb-7f1e-8b4159a525da" testName="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.TimeSpanTranslationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001594" startTime="2026-03-12T18:44:30.9677430+02:00" endTime="2026-03-12T18:44:30.9678840+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ba4e483a-a3f4-47ed-99c9-5489fc95c64a" />
+    <UnitTestResult executionId="9b2996d0-a632-439e-b635-53d0d233e5e0" testId="7a0a9083-02b3-70da-336b-506d408e62ae" testName="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.DateTimeTranslationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001446" startTime="2026-03-12T18:44:31.5888380+02:00" endTime="2026-03-12T18:44:31.5888770+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9b2996d0-a632-439e-b635-53d0d233e5e0" />
+    <UnitTestResult executionId="38b5672d-177b-4648-b55d-55c190437e16" testId="5a9e6a7b-0eee-b793-db53-09832a218816" testName="Microsoft.EntityFrameworkCore.Query.Translations.Operators.LogicalOperatorTranslationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001738" startTime="2026-03-12T18:44:31.2512710+02:00" endTime="2026-03-12T18:44:31.2514480+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="38b5672d-177b-4648-b55d-55c190437e16" />
+    <UnitTestResult executionId="1bfcaade-ab00-4300-9cf5-b65ba34eec80" testId="14818eca-113f-2b8a-f310-8f28e38d7bbc" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlIntTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002184" startTime="2026-03-12T18:44:31.8788210+02:00" endTime="2026-03-12T18:44:31.8790500+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1bfcaade-ab00-4300-9cf5-b65ba34eec80" />
+    <UnitTestResult executionId="8da75b9d-df6e-4b14-84df-fa9385771fe0" testId="b2600fb7-59a2-a5b0-fa4c-bb4eda0eb7ca" testName="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsCollectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0003944" startTime="2026-03-12T18:44:31.2672210+02:00" endTime="2026-03-12T18:44:31.2677210+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8da75b9d-df6e-4b14-84df-fa9385771fe0">
+      <Output>
+        <ErrorInfo>
+          <Message>&#xD;
+-- Missing test overrides --&#xD;
+&#xD;
+public override async Task Index_on_nested_collection(bool async)&#xD;
+{&#xD;
+    await base.Index_on_nested_collection(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+   at Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsCollectionNpgsqlTest.Check_all_tests_overridden() in /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/Navigations/NavigationsCollectionNpgsqlTest.cs:line 268
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="8d75f7d4-6ac7-4a35-add6-05dd83483ec5" testId="75c92bf4-3072-fec1-d7e5-ea5df2fa8101" testName="Microsoft.EntityFrameworkCore.Query.JsonQueryNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002429" startTime="2026-03-12T18:44:32.1655020+02:00" endTime="2026-03-12T18:44:32.1657470+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8d75f7d4-6ac7-4a35-add6-05dd83483ec5" />
+    <UnitTestResult executionId="74118ef3-d3b2-4f4f-aae6-2a304b4b1ff1" testId="344f4b83-f653-9033-8396-0919fa74fb2a" testName="Microsoft.EntityFrameworkCore.Query.Translations.Operators.MiscellaneousOperatorTranslationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001557" startTime="2026-03-12T18:44:31.5936430+02:00" endTime="2026-03-12T18:44:31.5936780+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="74118ef3-d3b2-4f4f-aae6-2a304b4b1ff1" />
+    <UnitTestResult executionId="1c88976f-8c81-46e6-81c4-618e8f112061" testId="52bc7dfa-b03e-9d7c-c497-fd3d0b8697d9" testName="Microsoft.EntityFrameworkCore.Query.ToSqlQuerySqlServerTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0000787" startTime="2026-03-12T18:44:31.2508150+02:00" endTime="2026-03-12T18:44:31.2508810+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1c88976f-8c81-46e6-81c4-618e8f112061" />
+    <UnitTestResult executionId="72ffaf2d-b3ca-47b3-87f5-d16f1514dd1b" testId="e1775e2d-a32a-e04c-0314-3fc19e4892ba" testName="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.DateTimeOffsetTranslationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0008809" startTime="2026-03-12T18:44:30.4814120+02:00" endTime="2026-03-12T18:44:30.4832940+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="72ffaf2d-b3ca-47b3-87f5-d16f1514dd1b" />
+    <UnitTestResult executionId="0dbaa28c-0368-4c76-be1e-65a691b1355a" testId="66960bcf-1eaa-23c8-fa25-569d7654966e" testName="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsMiscellaneousNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002479" startTime="2026-03-12T18:44:31.2519010+02:00" endTime="2026-03-12T18:44:31.2522520+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0dbaa28c-0368-4c76-be1e-65a691b1355a">
+      <Output>
+        <ErrorInfo>
+          <Message>&#xD;
+-- Missing test overrides --&#xD;
+&#xD;
+public override async Task FromSql_on_root(bool async)&#xD;
+{&#xD;
+    await base.FromSql_on_root(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+   at Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsMiscellaneousNpgsqlTest.Check_all_tests_overridden() in /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/OwnedNavigations/OwnedNavigationsMiscellaneousNpgsqlTest.cs:line 101
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="bf7cc567-0163-4f0f-aa3b-b0bfb67394e0" testId="16a51d93-151c-b8f1-3052-68128de632e1" testName="Microsoft.EntityFrameworkCore.Types.Temporal.NpgsqlBoolTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002695" startTime="2026-03-12T18:44:32.5157900+02:00" endTime="2026-03-12T18:44:32.5160660+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bf7cc567-0163-4f0f-aa3b-b0bfb67394e0" />
+    <UnitTestResult executionId="67da37f8-4c86-4c49-bf26-f3d1cbc9001f" testId="aca5ea6f-9a3d-35b8-9149-6af6f1150e52" testName="Microsoft.EntityFrameworkCore.BulkUpdates.TPTInheritanceBulkUpdatesNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0003235" startTime="2026-03-12T18:44:31.2652980+02:00" endTime="2026-03-12T18:44:31.2656250+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="67da37f8-4c86-4c49-bf26-f3d1cbc9001f" />
+    <UnitTestResult executionId="f1e2e51d-9d44-4213-8195-dcc11f2d5898" testId="5b8dd8ba-9033-a847-2cca-d4da69ab052a" testName="Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingProjectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001659" startTime="2026-03-12T18:44:30.9568660+02:00" endTime="2026-03-12T18:44:30.9569000+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f1e2e51d-9d44-4213-8195-dcc11f2d5898" />
+    <UnitTestResult executionId="fd036860-2227-4d10-8390-4800d1887ace" testId="59405c12-3425-92e5-4286-eb6961746c56" testName="Microsoft.EntityFrameworkCore.Query.Associations.OwnedTableSplitting.OwnedTableSplittingStructuralEqualityNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002719" startTime="2026-03-12T18:44:30.9654640+02:00" endTime="2026-03-12T18:44:30.9657050+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fd036860-2227-4d10-8390-4800d1887ace" />
+    <UnitTestResult executionId="691f23ac-2fa4-4de3-b4f7-d7f0ec9e2bda" testId="45c925b9-a0b0-28bc-b41e-40770b3efe21" testName="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.DateOnlyTranslationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001706" startTime="2026-03-12T18:44:31.2321310+02:00" endTime="2026-03-12T18:44:31.2321930+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="691f23ac-2fa4-4de3-b4f7-d7f0ec9e2bda" />
+    <UnitTestResult executionId="c5152d3c-a528-4aef-9433-09e1843d593b" testId="9f53b3c8-d985-e40a-d1f6-dbadbc844c8a" testName="Microsoft.EntityFrameworkCore.Query.PrecompiledQueryNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001609" startTime="2026-03-12T18:44:31.5861460+02:00" endTime="2026-03-12T18:44:31.5863030+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c5152d3c-a528-4aef-9433-09e1843d593b" />
+    <UnitTestResult executionId="e8eb9a3b-1e67-47a7-abb0-0b53903e7c35" testId="975ee19f-56b4-4b8c-d602-0c5a5fc4ac4d" testName="Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingPrimitiveCollectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002528" startTime="2026-03-12T18:44:30.5134800+02:00" endTime="2026-03-12T18:44:30.5137370+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e8eb9a3b-1e67-47a7-abb0-0b53903e7c35" />
+    <UnitTestResult executionId="0f7eafa3-99b5-40d8-b212-46b868daac71" testId="f43ec590-d685-2b3e-c1bb-440e25e6769a" testName="Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingStructuralEqualityNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001692" startTime="2026-03-12T18:44:31.2697870+02:00" endTime="2026-03-12T18:44:31.2699230+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0f7eafa3-99b5-40d8-b212-46b868daac71" />
+    <UnitTestResult executionId="56f825c5-0781-41eb-82d0-3c941b444c5d" testId="6fce4282-a572-f3f4-0e22-baa7a701d972" testName="Microsoft.EntityFrameworkCore.Query.Translations.StringTranslationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001886" startTime="2026-03-12T18:44:30.9567230+02:00" endTime="2026-03-12T18:44:30.9567570+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="56f825c5-0781-41eb-82d0-3c941b444c5d" />
+    <UnitTestResult executionId="de89cc2f-792c-4b38-9148-bcb53322ef5b" testId="5a7c9be5-c091-3a55-7866-50ee1aae509b" testName="Microsoft.EntityFrameworkCore.BulkUpdates.TPCInheritanceBulkUpdatesNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001299" startTime="2026-03-12T18:44:31.5934790+02:00" endTime="2026-03-12T18:44:31.5935140+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="de89cc2f-792c-4b38-9148-bcb53322ef5b" />
+    <UnitTestResult executionId="49dba967-89c4-45b1-941a-c93904129f74" testId="b005fc9f-5ee9-9553-2fb0-706fe80d6018" testName="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsSetOperationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002177" startTime="2026-03-12T18:44:30.9655120+02:00" endTime="2026-03-12T18:44:30.9658110+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="49dba967-89c4-45b1-941a-c93904129f74" />
+    <UnitTestResult executionId="758fbffa-a786-49c4-b0af-b9f2b831d053" testId="cb1f5bf0-ba0d-2b5c-8d15-1ae3a0876aab" testName="Microsoft.EntityFrameworkCore.BulkUpdates.TPHInheritanceBulkUpdatesNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001589" startTime="2026-03-12T18:44:31.5898840+02:00" endTime="2026-03-12T18:44:31.5900340+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="758fbffa-a786-49c4-b0af-b9f2b831d053" />
+    <UnitTestResult executionId="8b3bb1bd-459d-40d8-824c-f3455b234d1f" testId="9394936b-4477-1b41-dcf0-2f282e9b6bac" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlFloatTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001804" startTime="2026-03-12T18:44:31.9364240+02:00" endTime="2026-03-12T18:44:31.9366200+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8b3bb1bd-459d-40d8-824c-f3455b234d1f" />
+    <UnitTestResult executionId="95206e70-25b2-4f4a-89a6-f06ee2fe6a4e" testId="a7fc9b45-cbf7-b26e-914b-478c2a8a1d1f" testName="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonPrimitiveCollectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002045" startTime="2026-03-12T18:44:30.9671950+02:00" endTime="2026-03-12T18:44:30.9672380+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="95206e70-25b2-4f4a-89a6-f06ee2fe6a4e" />
+    <UnitTestResult executionId="ba2c79f6-5e7d-498b-b329-a77ab40b2bc6" testId="a795102b-c12f-a3ac-d468-76d05e9435b8" testName="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsSetOperationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002315" startTime="2026-03-12T18:44:30.9563690+02:00" endTime="2026-03-12T18:44:30.9564180+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ba2c79f6-5e7d-498b-b329-a77ab40b2bc6" />
+    <UnitTestResult executionId="2778e13d-2958-4f82-bd3f-42850c8fe50e" testId="d02957f0-bc40-36c8-57ac-db9308c4b274" testName="Microsoft.EntityFrameworkCore.Query.Translations.Operators.ComparisonOperatorTranslationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002158" startTime="2026-03-12T18:44:30.9570110+02:00" endTime="2026-03-12T18:44:30.9570630+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2778e13d-2958-4f82-bd3f-42850c8fe50e" />
+    <UnitTestResult executionId="004947fa-265b-4e43-adb0-b81dabf51d24" testId="f777ac92-ea51-413e-5710-aa1dd7f6c734" testName="Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonStructuralEqualityNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001536" startTime="2026-03-12T18:44:31.5941670+02:00" endTime="2026-03-12T18:44:31.5943470+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="004947fa-265b-4e43-adb0-b81dabf51d24" />
+    <UnitTestResult executionId="d34ff05b-0477-4ac8-9896-e000a6e21826" testId="42fe8a48-ff6e-e09a-2d93-fbdcd5560f8b" testName="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonSetOperationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001649" startTime="2026-03-12T18:44:31.5925350+02:00" endTime="2026-03-12T18:44:31.5927260+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d34ff05b-0477-4ac8-9896-e000a6e21826" />
+    <UnitTestResult executionId="1a308b1e-5323-4a16-b633-6f7f054e3cd4" testId="0a67487e-bddc-e91d-c582-cc616279ae84" testName="Microsoft.EntityFrameworkCore.Types.Miscellaneous.NpgsqlGuidTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001528" startTime="2026-03-12T18:44:31.4288040+02:00" endTime="2026-03-12T18:44:31.4290090+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1a308b1e-5323-4a16-b633-6f7f054e3cd4" />
+    <UnitTestResult executionId="2b58c161-6417-43df-b3b7-6eadc43454fb" testId="ebc30efc-ff88-2517-f171-f4da57aa495c" testName="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlLongTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001963" startTime="2026-03-12T18:44:31.8292400+02:00" endTime="2026-03-12T18:44:31.8292850+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2b58c161-6417-43df-b3b7-6eadc43454fb" />
+    <UnitTestResult executionId="94996e02-9bd9-462a-9c20-9fa7b450dba3" testId="4d1e0148-ff29-cf6b-7d7f-befc08c7951a" testName="Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonCollectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0004856" startTime="2026-03-12T18:44:30.6016250+02:00" endTime="2026-03-12T18:44:30.6022150+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="94996e02-9bd9-462a-9c20-9fa7b450dba3">
+      <Output>
+        <ErrorInfo>
+          <Message>&#xD;
+-- Missing test overrides --&#xD;
+&#xD;
+public override async Task Index_on_nested_collection(bool async)&#xD;
+{&#xD;
+    await base.Index_on_nested_collection(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+   at Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonCollectionNpgsqlTest.Check_all_tests_overridden() in /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/OwnedJson/OwnedJsonCollectionNpgsqlTest.cs:line 254
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="3f543c5f-a6f7-47b6-9df0-bb3fd06de2e7" testId="3d7bef4e-7c09-dd97-5b2c-bc67a6a34b38" testName="Microsoft.EntityFrameworkCore.Types.Temporal.NpgsqlTimeSpanTypeTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002035" startTime="2026-03-12T18:44:32.1602090+02:00" endTime="2026-03-12T18:44:32.1604120+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3f543c5f-a6f7-47b6-9df0-bb3fd06de2e7" />
+    <UnitTestResult executionId="78f25503-8943-460b-9088-d76acc7a93a3" testId="2e9081da-56c2-5818-d366-98229dc8c0f1" testName="Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonPrimitiveCollectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002063" startTime="2026-03-12T18:44:31.2668420+02:00" endTime="2026-03-12T18:44:31.2668860+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="78f25503-8943-460b-9088-d76acc7a93a3" />
+    <UnitTestResult executionId="def20afc-0a6c-40bb-8b55-749df1ec6767" testId="f2d41e7b-bb4d-71cd-a8af-67309214b4ad" testName="Microsoft.EntityFrameworkCore.Query.Translations.MathTranslationsNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0001506" startTime="2026-03-12T18:44:30.9682410+02:00" endTime="2026-03-12T18:44:30.9683910+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="def20afc-0a6c-40bb-8b55-749df1ec6767" />
+    <UnitTestResult executionId="703f3f8f-1f3e-4f04-970c-0d17231a3680" testId="04e489e5-91fa-4dab-e2cd-6582321b642f" testName="Microsoft.EntityFrameworkCore.Query.Associations.OwnedTableSplitting.OwnedTableSplittingPrimitiveCollectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0003549" startTime="2026-03-12T18:44:30.9953140+02:00" endTime="2026-03-12T18:44:30.9956490+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="703f3f8f-1f3e-4f04-970c-0d17231a3680" />
+    <UnitTestResult executionId="ed2ac2c1-955b-4c90-89e9-d467dd135828" testId="faad54a7-6e08-0153-66ed-38a64e058ce3" testName="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonCollectionNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0002922" startTime="2026-03-12T18:44:30.9486080+02:00" endTime="2026-03-12T18:44:30.9489900+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ed2ac2c1-955b-4c90-89e9-d467dd135828">
+      <Output>
+        <ErrorInfo>
+          <Message>&#xD;
+-- Missing test overrides --&#xD;
+&#xD;
+public override async Task Index_on_nested_collection(bool async)&#xD;
+{&#xD;
+    await base.Index_on_nested_collection(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+   at Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonCollectionNpgsqlTest.Check_all_tests_overridden() in /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/ComplexJson/ComplexJsonCollectionNpgsqlTest.cs:line 219
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="32c6e089-8b28-4561-92bb-d77df237e53d" testId="257817be-55ee-2abd-ce25-52eda7dd89f1" testName="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsStructuralEqualityNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0003362" startTime="2026-03-12T18:44:31.0044650+02:00" endTime="2026-03-12T18:44:31.0047730+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="32c6e089-8b28-4561-92bb-d77df237e53d" />
+    <UnitTestResult executionId="1b3cef6d-4ba8-417c-a3d9-705764d6d86d" testId="368e86d5-cd2d-1ccb-903c-f121196c8fa7" testName="Microsoft.EntityFrameworkCore.Query.PrimitiveCollectionsQueryNpgsqlTest.Check_all_tests_overridden" computerName="milo" duration="00:00:00.0003936" startTime="2026-03-12T18:44:31.4292170+02:00" endTime="2026-03-12T18:44:31.4297420+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1b3cef6d-4ba8-417c-a3d9-705764d6d86d">
+      <Output>
+        <ErrorInfo>
+          <Message>&#xD;
+-- Missing test overrides --&#xD;
+&#xD;
+public override async Task Inline_collection_Contains_with_IEnumerable_EF_Parameter(bool async)&#xD;
+{&#xD;
+    await base.Inline_collection_Contains_with_IEnumerable_EF_Parameter(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Parameter_collection_empty_Contains(bool async)&#xD;
+{&#xD;
+    await base.Parameter_collection_empty_Contains(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Parameter_collection_empty_Join(bool async)&#xD;
+{&#xD;
+    await base.Parameter_collection_empty_Join(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Parameter_collection_Count_with_huge_number_of_values_over_5_operations(bool async)&#xD;
+{&#xD;
+    await base.Parameter_collection_Count_with_huge_number_of_values_over_5_operations(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Parameter_collection_Count_with_huge_number_of_values_over_5_operations_same_parameter(bool async)&#xD;
+{&#xD;
+    await base.Parameter_collection_Count_with_huge_number_of_values_over_5_operations_same_parameter(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Parameter_collection_Count_with_huge_number_of_values_over_2_operations_same_parameter_different_type_mapping(bool async)&#xD;
+{&#xD;
+    await base.Parameter_collection_Count_with_huge_number_of_values_over_2_operations_same_parameter_different_type_mapping(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Parameter_collection_Count_with_huge_number_of_values_over_5_operations_forced_constants(bool async)&#xD;
+{&#xD;
+    await base.Parameter_collection_Count_with_huge_number_of_values_over_5_operations_forced_constants(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Parameter_collection_Count_with_huge_number_of_values_over_5_operations_mixed_parameters_constants(bool async)&#xD;
+{&#xD;
+    await base.Parameter_collection_Count_with_huge_number_of_values_over_5_operations_mixed_parameters_constants(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations(bool async)&#xD;
+{&#xD;
+    await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_same_parameter(bool async)&#xD;
+{&#xD;
+    await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_same_parameter(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_2_operations_same_parameter_different_type_mapping(bool async)&#xD;
+{&#xD;
+    await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_2_operations_same_parameter_different_type_mapping(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_forced_constants(bool async)&#xD;
+{&#xD;
+    await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_forced_constants(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_mixed_parameters_constants(bool async)&#xD;
+{&#xD;
+    await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_mixed_parameters_constants(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Contains_on_Enumerable(bool async)&#xD;
+{&#xD;
+    await base.Contains_on_Enumerable(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Contains_on_MemoryExtensions(bool async)&#xD;
+{&#xD;
+    await base.Contains_on_MemoryExtensions(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+public override async Task Contains_with_MemoryExtensions_with_null_comparer(bool async)&#xD;
+{&#xD;
+    await base.Contains_with_MemoryExtensions_with_null_comparer(async);&#xD;
+&#xD;
+    AssertSql();&#xD;
+}&#xD;
+&#xD;
+</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+   at Microsoft.EntityFrameworkCore.Query.PrimitiveCollectionsQueryNpgsqlTest.Check_all_tests_overridden() in /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/PrimitiveCollectionsQueryNpgsqlTest.cs:line 2283
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsMiscellaneousNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="66960bcf-1eaa-23c8-fa25-569d7654966e">
+      <Execution id="0dbaa28c-0368-4c76-be1e-65a691b1355a" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsMiscellaneousNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingProjectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="5b8dd8ba-9033-a847-2cca-d4da69ab052a">
+      <Execution id="f1e2e51d-9d44-4213-8195-dcc11f2d5898" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingProjectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsPrimitiveCollectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="4cfd26b8-45ea-a412-8446-4eb6b3f3c985">
+      <Execution id="e2da0601-6731-42c9-9e9d-9f0792da5865" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsPrimitiveCollectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingBulkUpdateNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="a1c4b5e7-1019-54ee-52e3-ae70ea2b1b12">
+      <Execution id="94b0f0c5-d829-4f6a-91c5-0f9c2d27d7f2" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingBulkUpdateNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsCollectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="b2600fb7-59a2-a5b0-fa4c-bb4eda0eb7ca">
+      <Execution id="8da75b9d-df6e-4b14-84df-fa9385771fe0" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsCollectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.BulkUpdates.TPTInheritanceBulkUpdatesNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="aca5ea6f-9a3d-35b8-9149-6af6f1150e52">
+      <Execution id="67da37f8-4c86-4c49-bf26-f3d1cbc9001f" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.BulkUpdates.TPTInheritanceBulkUpdatesNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.NorthwindGroupByQueryNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="6d40845b-ecbf-4609-af2c-1a48e62e6918">
+      <Execution id="5e0d1e15-1b59-4a15-9925-7771f7b7161c" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.NorthwindGroupByQueryNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.OwnedTableSplitting.OwnedTableSplittingStructuralEqualityNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="59405c12-3425-92e5-4286-eb6961746c56">
+      <Execution id="fd036860-2227-4d10-8390-4800d1887ace" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.OwnedTableSplitting.OwnedTableSplittingStructuralEqualityNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingStructuralEqualityNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="f43ec590-d685-2b3e-c1bb-440e25e6769a">
+      <Execution id="0f7eafa3-99b5-40d8-b212-46b868daac71" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingStructuralEqualityNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlFloatTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="9394936b-4477-1b41-dcf0-2f282e9b6bac">
+      <Execution id="8b3bb1bd-459d-40d8-824c-f3455b234d1f" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlFloatTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Translations.Operators.ComparisonOperatorTranslationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="d02957f0-bc40-36c8-57ac-db9308c4b274">
+      <Execution id="2778e13d-2958-4f82-bd3f-42850c8fe50e" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Translations.Operators.ComparisonOperatorTranslationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonStructuralEqualityNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="f777ac92-ea51-413e-5710-aa1dd7f6c734">
+      <Execution id="004947fa-265b-4e43-adb0-b81dabf51d24" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonStructuralEqualityNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Translations.MiscellaneousTranslationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="d51384aa-c0cd-bc9d-f445-8e5944278d72">
+      <Execution id="e8e355bc-8af9-4a91-a103-4819815e42c5" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Translations.MiscellaneousTranslationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Translations.EnumTranslationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="76318410-6343-9386-17e1-ffa21f8b551b">
+      <Execution id="868ac0d1-286b-4859-b292-5a1def5c4aa1" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Translations.EnumTranslationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Miscellaneous.StringTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="48c80e07-b22a-dacb-45d1-3c19c28bab57">
+      <Execution id="71874b3a-633f-49b5-be58-8fd5afc4a80c" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Miscellaneous.StringTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsMiscellaneousNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="732e58f6-3c5c-763a-0f15-54070c775848">
+      <Execution id="6ba4f3ff-e872-4fe3-8143-cfa8e952686e" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsMiscellaneousNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingMiscellaneousNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="aa6e711a-e1ed-f904-6f21-630df84c8dd6">
+      <Execution id="5735dce8-8412-4e2f-ab14-7695604ca877" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingMiscellaneousNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.BulkUpdates.TPHInheritanceBulkUpdatesNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="cb1f5bf0-ba0d-2b5c-8d15-1ae3a0876aab">
+      <Execution id="758fbffa-a786-49c4-b0af-b9f2b831d053" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.BulkUpdates.TPHInheritanceBulkUpdatesNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsProjectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="9e80e0f4-5812-3ee4-7abf-417a128e7122">
+      <Execution id="39e3ec39-a437-47b8-8bf6-4bb783116b38" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsProjectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Temporal.NpgsqlTimeSpanTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="3d7bef4e-7c09-dd97-5b2c-bc67a6a34b38">
+      <Execution id="3f543c5f-a6f7-47b6-9df0-bb3fd06de2e7" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Temporal.NpgsqlTimeSpanTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsStructuralEqualityNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="257817be-55ee-2abd-ce25-52eda7dd89f1">
+      <Execution id="32c6e089-8b28-4561-92bb-d77df237e53d" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsStructuralEqualityNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Temporal.DateTimeOffsetTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="d5faffe8-7c18-a310-54a6-a1a43416f0df">
+      <Execution id="04b8fc94-898c-4f54-a645-04eb4b036eea" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Temporal.DateTimeOffsetTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingPrimitiveCollectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="975ee19f-56b4-4b8c-d602-0c5a5fc4ac4d">
+      <Execution id="e8eb9a3b-1e67-47a7-abb0-0b53903e7c35" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingPrimitiveCollectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.OwnedTableSplitting.OwnedTableSplittingProjectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="00f8f67f-9257-63da-1035-1a3411f34561">
+      <Execution id="33f9f40c-c15a-4345-ab3b-678083df95f9" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.OwnedTableSplitting.OwnedTableSplittingProjectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsPrimitiveCollectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="02b817f1-07ad-a305-ea06-ffe5a54c73ba">
+      <Execution id="1193424b-6150-4808-b8d5-7b63fe75bb83" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsPrimitiveCollectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlDecimalTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="e0c52be0-62ac-9cee-567d-096a911efa30">
+      <Execution id="a5875852-d67e-4d86-8da4-78d85c97d0a4" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlDecimalTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonMiscellaneousNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="ffaaf725-8693-b56f-4735-3915f00fcf0f">
+      <Execution id="cfc6d737-1da6-46c2-9434-2e06b3d1f1ee" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonMiscellaneousNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Miscellaneous.ByteArrayTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="309badf7-c250-0d78-02a8-8be54253b3f7">
+      <Execution id="d3ee4124-a5be-4f18-9477-b25c531c3d53" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Miscellaneous.ByteArrayTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.EntitySplittingQueryNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="13c563cd-3923-d7b7-c4cc-3a3b97f92ed8">
+      <Execution id="455c4eaa-059a-4498-9cfb-4a658686425a" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.EntitySplittingQueryNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonCollectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="4d1e0148-ff29-cf6b-7d7f-befc08c7951a">
+      <Execution id="94996e02-9bd9-462a-9c20-9fa7b450dba3" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonCollectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Translations.Operators.ArithmeticOperatorTranslationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="3e13980a-568f-b9c0-b258-b424a9b16e7c">
+      <Execution id="bbe708af-5bec-4c84-935b-448d75583cba" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Translations.Operators.ArithmeticOperatorTranslationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlLongTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="ebc30efc-ff88-2517-f171-f4da57aa495c">
+      <Execution id="2b58c161-6417-43df-b3b7-6eadc43454fb" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlLongTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Translations.MathTranslationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="f2d41e7b-bb4d-71cd-a8af-67309214b4ad">
+      <Execution id="def20afc-0a6c-40bb-8b55-749df1ec6767" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Translations.MathTranslationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Networking.NpgsqlMacaddrTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="71a947fd-d424-27b8-06cb-24ee6d72ad00">
+      <Execution id="512bc781-adfc-45a8-bf23-24a278ccc366" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Networking.NpgsqlMacaddrTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.PrecompiledQueryNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="9f53b3c8-d985-e40a-d1f6-dbadbc844c8a">
+      <Execution id="c5152d3c-a528-4aef-9433-09e1843d593b" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.PrecompiledQueryNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.BulkUpdates.NonSharedModelBulkUpdatesNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="7e435fc5-807a-7219-3578-541bdae0f270">
+      <Execution id="ecd4d338-e942-47a0-b0ac-39b755918abf" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.BulkUpdates.NonSharedModelBulkUpdatesNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonCollectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="faad54a7-6e08-0153-66ed-38a64e058ce3">
+      <Execution id="ed2ac2c1-955b-4c90-89e9-d467dd135828" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonCollectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.OwnedTableSplitting.OwnedTableSplittingMiscellaneousNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="e9b3b945-0bd5-9967-634e-e9752bddc8ca">
+      <Execution id="4c0c68a3-fbe6-4580-972b-aec3ca7de391" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.OwnedTableSplitting.OwnedTableSplittingMiscellaneousNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Temporal.DateTimeUtcTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="a160ead8-51be-4a4c-107e-dfef347e28d5">
+      <Execution id="14fa18c7-4e8f-4eb6-b6ae-76ae100fa5e5" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Temporal.DateTimeUtcTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonBulkUpdateNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="9a1a7a34-4620-74c4-ecb3-78da7fb045b7">
+      <Execution id="5950e52a-ad46-4527-aa4a-48840bddad2a" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonBulkUpdateNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Miscellaneous.NpgsqlGuidTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="0a67487e-bddc-e91d-c582-cc616279ae84">
+      <Execution id="1a308b1e-5323-4a16-b633-6f7f054e3cd4" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Miscellaneous.NpgsqlGuidTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Temporal.NpgsqlBoolTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="16a51d93-151c-b8f1-3052-68128de632e1">
+      <Execution id="bf7cc567-0163-4f0f-aa3b-b0bfb67394e0" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Temporal.NpgsqlBoolTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsSetOperationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="a795102b-c12f-a3ac-d468-76d05e9435b8">
+      <Execution id="ba2c79f6-5e7d-498b-b329-a77ab40b2bc6" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsSetOperationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsProjectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="775ae41d-4192-6884-caa9-aad84dde6dff">
+      <Execution id="3230d1e4-6b95-40c5-b62e-75075b7e7e9e" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsProjectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.DateTimeOffsetTranslationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="e1775e2d-a32a-e04c-0314-3fc19e4892ba">
+      <Execution id="72ffaf2d-b3ca-47b3-87f5-d16f1514dd1b" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.DateTimeOffsetTranslationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.OwnedTableSplitting.OwnedTableSplittingPrimitiveCollectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="04e489e5-91fa-4dab-e2cd-6582321b642f">
+      <Execution id="703f3f8f-1f3e-4f04-970c-0d17231a3680" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.OwnedTableSplitting.OwnedTableSplittingPrimitiveCollectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.DateTimeTranslationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="7a0a9083-02b3-70da-336b-506d408e62ae">
+      <Execution id="9b2996d0-a632-439e-b635-53d0d233e5e0" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.DateTimeTranslationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.BulkUpdates.TPTFiltersInheritanceBulkUpdatesSqlServerTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="e0305907-8411-bdf9-c6d0-a7f1652652c0">
+      <Execution id="c4738c58-07c6-45f1-aa1a-82ba3545d69c" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.BulkUpdates.TPTFiltersInheritanceBulkUpdatesSqlServerTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsCollectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="6ca5304d-6a53-b20f-516f-c9c879487b3f">
+      <Execution id="22eaea16-03a8-471e-bf1c-076fec1e8bb8" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsCollectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.TimeSpanTranslationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="11adb2a6-7e29-30cb-7f1e-8b4159a525da">
+      <Execution id="ba4e483a-a3f4-47ed-99c9-5489fc95c64a" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.TimeSpanTranslationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Networking.NpgsqlInetTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="82b7fa2b-9bab-9890-c175-7fe829a24e84">
+      <Execution id="2c457d14-4210-434e-bcb2-f88c6140e019" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Networking.NpgsqlInetTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonStructuralEqualityNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="eb874af3-4752-e08c-ee77-34ae1eb05d94">
+      <Execution id="696fe57d-ec3c-4224-a978-2109048024bf" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonStructuralEqualityNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Translations.StringTranslationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="6fce4282-a572-f3f4-0e22-baa7a701d972">
+      <Execution id="56f825c5-0781-41eb-82d0-3c941b444c5d" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Translations.StringTranslationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Temporal.NpgsqlTimeOnlyTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="b1b8ac64-d6d6-93ba-b7a3-1e8f1d121ab5">
+      <Execution id="c07d8bc1-9b77-465b-b44e-dfe9b072def5" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Temporal.NpgsqlTimeOnlyTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.AdHocPrecompiledQueryNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="b82095c2-a74a-dba4-7471-4a4cfb79b15e">
+      <Execution id="453b2d2d-0b62-4ad0-8aec-5ac6c0f1ea47" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.AdHocPrecompiledQueryNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Miscellaneous.NpgsqlBoolTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="b2b5d35c-6b33-9066-87df-6e05279256e6">
+      <Execution id="92f9a67b-bd58-44a4-a282-ec38eace6843" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Miscellaneous.NpgsqlBoolTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlIntTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="14818eca-113f-2b8a-f310-8f28e38d7bbc">
+      <Execution id="1bfcaade-ab00-4300-9cf5-b65ba34eec80" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlIntTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.ToSqlQuerySqlServerTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="52bc7dfa-b03e-9d7c-c497-fd3d0b8697d9">
+      <Execution id="1c88976f-8c81-46e6-81c4-618e8f112061" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.ToSqlQuerySqlServerTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsSetOperationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="b005fc9f-5ee9-9553-2fb0-706fe80d6018">
+      <Execution id="49dba967-89c4-45b1-941a-c93904129f74" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsSetOperationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsIncludeNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="db99bb5c-d42a-62cc-d966-8e889cd17dbd">
+      <Execution id="47edd68e-676a-4f2c-b921-7b133fab10b7" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsIncludeNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.BulkUpdates.TPCInheritanceBulkUpdatesNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="5a7c9be5-c091-3a55-7866-50ee1aae509b">
+      <Execution id="de89cc2f-792c-4b38-9148-bcb53322ef5b" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.BulkUpdates.TPCInheritanceBulkUpdatesNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.DateOnlyTranslationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="45c925b9-a0b0-28bc-b41e-40770b3efe21">
+      <Execution id="691f23ac-2fa4-4de3-b4f7-d7f0ec9e2bda" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.DateOnlyTranslationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.BulkUpdates.TPHFiltersInheritanceBulkUpdatesNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="d0980dd7-3411-3d78-19c7-28419f6a840c">
+      <Execution id="0d40683e-3d95-450c-ab71-ef22e72d488e" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.BulkUpdates.TPHFiltersInheritanceBulkUpdatesNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsStructuralEqualityNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="9f76ab20-f788-63c4-5033-72c46223a110">
+      <Execution id="851a2687-f433-4ee9-839d-9fb645754a8c" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsStructuralEqualityNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.DateTimeTranslationsWithoutTimeZoneTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="bfe0b53f-410c-34e1-62e1-25e07c98fd6b">
+      <Execution id="12442edc-fe98-47d3-b782-77a61231e731" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.DateTimeTranslationsWithoutTimeZoneTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="b944517b-cc90-2584-d27f-3017e0811aa3">
+      <Execution id="733b0a19-60a2-47eb-ba8e-4158fb00b0f4" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlShortTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonProjectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="2f02758e-3fd5-543b-8d16-e7256c4b74b9">
+      <Execution id="1dcc2a9c-0930-4afa-8096-fe3317831f74" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonProjectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Translations.Operators.LogicalOperatorTranslationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="5a9e6a7b-0eee-b793-db53-09832a218816">
+      <Execution id="38b5672d-177b-4648-b55d-55c190437e16" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Translations.Operators.LogicalOperatorTranslationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.PrimitiveCollectionsQueryNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="368e86d5-cd2d-1ccb-903c-f121196c8fa7">
+      <Execution id="1b3cef6d-4ba8-417c-a3d9-705764d6d86d" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.PrimitiveCollectionsQueryNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlDoubleTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="ad0110ad-113a-29c5-9859-3019146b9cab">
+      <Execution id="78075e0e-2637-41e7-ae85-d0e5a0ee0387" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Numeric.NpgsqlDoubleTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.ComplexTypeQueryNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="fc50d1fe-de46-cbea-9b1a-d0aefc1bc93b">
+      <Execution id="35726e8f-2559-4555-8c24-3aeeac118b0e" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.ComplexTypeQueryNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.NorthwindSqlQueryNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="80a90d3e-4aec-fd01-504c-a15d936d5485">
+      <Execution id="cc0ad22d-c973-47ac-833b-788d1952d4a8" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.NorthwindSqlQueryNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Translations.Operators.BitwiseOperatorTranslationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="ec960e5b-1c60-eb98-b6d7-5bd4e233c8ce">
+      <Execution id="d4b8df31-ae4a-4499-bfc3-9acbb315aedf" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Translations.Operators.BitwiseOperatorTranslationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonPrimitiveCollectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="a7fc9b45-cbf7-b26e-914b-478c2a8a1d1f">
+      <Execution id="95206e70-25b2-4f4a-89a6-f06ee2fe6a4e" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonPrimitiveCollectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonSetOperationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="42fe8a48-ff6e-e09a-2d93-fbdcd5560f8b">
+      <Execution id="d34ff05b-0477-4ac8-9896-e000a6e21826" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonSetOperationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Types.Temporal.DateTimeUnspecifiedTypeTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="468ecba9-d85e-e26e-6525-da0c0a6a4d46">
+      <Execution id="fba44fd9-ded4-4a2a-89df-a33c76502af5" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Types.Temporal.DateTimeUnspecifiedTypeTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.BulkUpdates.NorthwindBulkUpdatesNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="863eb4cd-3cf8-a0ee-8674-e6f2e5fe6cc6">
+      <Execution id="7e6e52e0-82b8-4b85-a03e-128ccf201cc8" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.BulkUpdates.NorthwindBulkUpdatesNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Translations.Operators.MiscellaneousOperatorTranslationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="344f4b83-f653-9033-8396-0919fa74fb2a">
+      <Execution id="74118ef3-d3b2-4f4f-aae6-2a304b4b1ff1" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Translations.Operators.MiscellaneousOperatorTranslationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.TimeOnlyTranslationsNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="57428243-5955-adbf-1e99-003a1e3de80c">
+      <Execution id="8ab6916b-48ef-4182-adb3-611cc9927a25" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Translations.Temporal.TimeOnlyTranslationsNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.JsonQueryNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="75c92bf4-3072-fec1-d7e5-ea5df2fa8101">
+      <Execution id="8d75f7d4-6ac7-4a35-add6-05dd83483ec5" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.JsonQueryNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonProjectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="6b653fcb-6995-1325-e883-5582c8ce96e7">
+      <Execution id="fe38b526-6be1-451d-b892-09d40f83040a" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonProjectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.BulkUpdates.TPCFiltersInheritanceBulkUpdatesNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="4f18e6ba-aa51-a7f0-77be-4014ca1f5e05">
+      <Execution id="1fa6da70-7714-4534-9fca-19353dbaf70f" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.BulkUpdates.TPCFiltersInheritanceBulkUpdatesNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonMiscellaneousNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="1fc36b17-8dcd-6221-ff94-0843d4b99a66">
+      <Execution id="7548be74-4deb-46bc-bdc7-705993293baf" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonMiscellaneousNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+    <UnitTest name="Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonPrimitiveCollectionNpgsqlTest.Check_all_tests_overridden" storage="/users/roji/projects/efcore.pg/test/efcore.pg.functionaltests/bin/debug/net10.0/npgsql.entityframeworkcore.postgresql.functionaltests.dll" id="2e9081da-56c2-5818-d366-98229dc8c0f1">
+      <Execution id="78f25503-8943-460b-9088-d76acc7a93a3" />
+      <TestMethod codeBase="/Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonPrimitiveCollectionNpgsqlTest" name="Check_all_tests_overridden" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="b1b8ac64-d6d6-93ba-b7a3-1e8f1d121ab5" executionId="c07d8bc1-9b77-465b-b44e-dfe9b072def5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4cfd26b8-45ea-a412-8446-4eb6b3f3c985" executionId="e2da0601-6731-42c9-9e9d-9f0792da5865" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e0c52be0-62ac-9cee-567d-096a911efa30" executionId="a5875852-d67e-4d86-8da4-78d85c97d0a4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e9b3b945-0bd5-9967-634e-e9752bddc8ca" executionId="4c0c68a3-fbe6-4580-972b-aec3ca7de391" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="76318410-6343-9386-17e1-ffa21f8b551b" executionId="868ac0d1-286b-4859-b292-5a1def5c4aa1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="00f8f67f-9257-63da-1035-1a3411f34561" executionId="33f9f40c-c15a-4345-ab3b-678083df95f9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="863eb4cd-3cf8-a0ee-8674-e6f2e5fe6cc6" executionId="7e6e52e0-82b8-4b85-a03e-128ccf201cc8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="71a947fd-d424-27b8-06cb-24ee6d72ad00" executionId="512bc781-adfc-45a8-bf23-24a278ccc366" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="aa6e711a-e1ed-f904-6f21-630df84c8dd6" executionId="5735dce8-8412-4e2f-ab14-7695604ca877" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="eb874af3-4752-e08c-ee77-34ae1eb05d94" executionId="696fe57d-ec3c-4224-a978-2109048024bf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="82b7fa2b-9bab-9890-c175-7fe829a24e84" executionId="2c457d14-4210-434e-bcb2-f88c6140e019" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="80a90d3e-4aec-fd01-504c-a15d936d5485" executionId="cc0ad22d-c973-47ac-833b-788d1952d4a8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4f18e6ba-aa51-a7f0-77be-4014ca1f5e05" executionId="1fa6da70-7714-4534-9fca-19353dbaf70f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d0980dd7-3411-3d78-19c7-28419f6a840c" executionId="0d40683e-3d95-450c-ab71-ef22e72d488e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b2b5d35c-6b33-9066-87df-6e05279256e6" executionId="92f9a67b-bd58-44a4-a282-ec38eace6843" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="57428243-5955-adbf-1e99-003a1e3de80c" executionId="8ab6916b-48ef-4182-adb3-611cc9927a25" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d5faffe8-7c18-a310-54a6-a1a43416f0df" executionId="04b8fc94-898c-4f54-a645-04eb4b036eea" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7e435fc5-807a-7219-3578-541bdae0f270" executionId="ecd4d338-e942-47a0-b0ac-39b755918abf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6b653fcb-6995-1325-e883-5582c8ce96e7" executionId="fe38b526-6be1-451d-b892-09d40f83040a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bfe0b53f-410c-34e1-62e1-25e07c98fd6b" executionId="12442edc-fe98-47d3-b782-77a61231e731" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6ca5304d-6a53-b20f-516f-c9c879487b3f" executionId="22eaea16-03a8-471e-bf1c-076fec1e8bb8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2f02758e-3fd5-543b-8d16-e7256c4b74b9" executionId="1dcc2a9c-0930-4afa-8096-fe3317831f74" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ffaaf725-8693-b56f-4735-3915f00fcf0f" executionId="cfc6d737-1da6-46c2-9434-2e06b3d1f1ee" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d51384aa-c0cd-bc9d-f445-8e5944278d72" executionId="e8e355bc-8af9-4a91-a103-4819815e42c5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="02b817f1-07ad-a305-ea06-ffe5a54c73ba" executionId="1193424b-6150-4808-b8d5-7b63fe75bb83" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9e80e0f4-5812-3ee4-7abf-417a128e7122" executionId="39e3ec39-a437-47b8-8bf6-4bb783116b38" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ec960e5b-1c60-eb98-b6d7-5bd4e233c8ce" executionId="d4b8df31-ae4a-4499-bfc3-9acbb315aedf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9f76ab20-f788-63c4-5033-72c46223a110" executionId="851a2687-f433-4ee9-839d-9fb645754a8c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="13c563cd-3923-d7b7-c4cc-3a3b97f92ed8" executionId="455c4eaa-059a-4498-9cfb-4a658686425a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b82095c2-a74a-dba4-7471-4a4cfb79b15e" executionId="453b2d2d-0b62-4ad0-8aec-5ac6c0f1ea47" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6d40845b-ecbf-4609-af2c-1a48e62e6918" executionId="5e0d1e15-1b59-4a15-9925-7771f7b7161c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="468ecba9-d85e-e26e-6525-da0c0a6a4d46" executionId="fba44fd9-ded4-4a2a-89df-a33c76502af5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3e13980a-568f-b9c0-b258-b424a9b16e7c" executionId="bbe708af-5bec-4c84-935b-448d75583cba" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="309badf7-c250-0d78-02a8-8be54253b3f7" executionId="d3ee4124-a5be-4f18-9477-b25c531c3d53" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a160ead8-51be-4a4c-107e-dfef347e28d5" executionId="14fa18c7-4e8f-4eb6-b6ae-76ae100fa5e5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e0305907-8411-bdf9-c6d0-a7f1652652c0" executionId="c4738c58-07c6-45f1-aa1a-82ba3545d69c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="775ae41d-4192-6884-caa9-aad84dde6dff" executionId="3230d1e4-6b95-40c5-b62e-75075b7e7e9e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a1c4b5e7-1019-54ee-52e3-ae70ea2b1b12" executionId="94b0f0c5-d829-4f6a-91c5-0f9c2d27d7f2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ad0110ad-113a-29c5-9859-3019146b9cab" executionId="78075e0e-2637-41e7-ae85-d0e5a0ee0387" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9a1a7a34-4620-74c4-ecb3-78da7fb045b7" executionId="5950e52a-ad46-4527-aa4a-48840bddad2a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fc50d1fe-de46-cbea-9b1a-d0aefc1bc93b" executionId="35726e8f-2559-4555-8c24-3aeeac118b0e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1fc36b17-8dcd-6221-ff94-0843d4b99a66" executionId="7548be74-4deb-46bc-bdc7-705993293baf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="48c80e07-b22a-dacb-45d1-3c19c28bab57" executionId="71874b3a-633f-49b5-be58-8fd5afc4a80c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="732e58f6-3c5c-763a-0f15-54070c775848" executionId="6ba4f3ff-e872-4fe3-8143-cfa8e952686e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b944517b-cc90-2584-d27f-3017e0811aa3" executionId="733b0a19-60a2-47eb-ba8e-4158fb00b0f4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="db99bb5c-d42a-62cc-d966-8e889cd17dbd" executionId="47edd68e-676a-4f2c-b921-7b133fab10b7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="11adb2a6-7e29-30cb-7f1e-8b4159a525da" executionId="ba4e483a-a3f4-47ed-99c9-5489fc95c64a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7a0a9083-02b3-70da-336b-506d408e62ae" executionId="9b2996d0-a632-439e-b635-53d0d233e5e0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5a9e6a7b-0eee-b793-db53-09832a218816" executionId="38b5672d-177b-4648-b55d-55c190437e16" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="14818eca-113f-2b8a-f310-8f28e38d7bbc" executionId="1bfcaade-ab00-4300-9cf5-b65ba34eec80" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b2600fb7-59a2-a5b0-fa4c-bb4eda0eb7ca" executionId="8da75b9d-df6e-4b14-84df-fa9385771fe0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="75c92bf4-3072-fec1-d7e5-ea5df2fa8101" executionId="8d75f7d4-6ac7-4a35-add6-05dd83483ec5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="344f4b83-f653-9033-8396-0919fa74fb2a" executionId="74118ef3-d3b2-4f4f-aae6-2a304b4b1ff1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="52bc7dfa-b03e-9d7c-c497-fd3d0b8697d9" executionId="1c88976f-8c81-46e6-81c4-618e8f112061" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e1775e2d-a32a-e04c-0314-3fc19e4892ba" executionId="72ffaf2d-b3ca-47b3-87f5-d16f1514dd1b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="66960bcf-1eaa-23c8-fa25-569d7654966e" executionId="0dbaa28c-0368-4c76-be1e-65a691b1355a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="16a51d93-151c-b8f1-3052-68128de632e1" executionId="bf7cc567-0163-4f0f-aa3b-b0bfb67394e0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="aca5ea6f-9a3d-35b8-9149-6af6f1150e52" executionId="67da37f8-4c86-4c49-bf26-f3d1cbc9001f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5b8dd8ba-9033-a847-2cca-d4da69ab052a" executionId="f1e2e51d-9d44-4213-8195-dcc11f2d5898" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="59405c12-3425-92e5-4286-eb6961746c56" executionId="fd036860-2227-4d10-8390-4800d1887ace" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="45c925b9-a0b0-28bc-b41e-40770b3efe21" executionId="691f23ac-2fa4-4de3-b4f7-d7f0ec9e2bda" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9f53b3c8-d985-e40a-d1f6-dbadbc844c8a" executionId="c5152d3c-a528-4aef-9433-09e1843d593b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="975ee19f-56b4-4b8c-d602-0c5a5fc4ac4d" executionId="e8eb9a3b-1e67-47a7-abb0-0b53903e7c35" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f43ec590-d685-2b3e-c1bb-440e25e6769a" executionId="0f7eafa3-99b5-40d8-b212-46b868daac71" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6fce4282-a572-f3f4-0e22-baa7a701d972" executionId="56f825c5-0781-41eb-82d0-3c941b444c5d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5a7c9be5-c091-3a55-7866-50ee1aae509b" executionId="de89cc2f-792c-4b38-9148-bcb53322ef5b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b005fc9f-5ee9-9553-2fb0-706fe80d6018" executionId="49dba967-89c4-45b1-941a-c93904129f74" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cb1f5bf0-ba0d-2b5c-8d15-1ae3a0876aab" executionId="758fbffa-a786-49c4-b0af-b9f2b831d053" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9394936b-4477-1b41-dcf0-2f282e9b6bac" executionId="8b3bb1bd-459d-40d8-824c-f3455b234d1f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a7fc9b45-cbf7-b26e-914b-478c2a8a1d1f" executionId="95206e70-25b2-4f4a-89a6-f06ee2fe6a4e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a795102b-c12f-a3ac-d468-76d05e9435b8" executionId="ba2c79f6-5e7d-498b-b329-a77ab40b2bc6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d02957f0-bc40-36c8-57ac-db9308c4b274" executionId="2778e13d-2958-4f82-bd3f-42850c8fe50e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f777ac92-ea51-413e-5710-aa1dd7f6c734" executionId="004947fa-265b-4e43-adb0-b81dabf51d24" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="42fe8a48-ff6e-e09a-2d93-fbdcd5560f8b" executionId="d34ff05b-0477-4ac8-9896-e000a6e21826" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0a67487e-bddc-e91d-c582-cc616279ae84" executionId="1a308b1e-5323-4a16-b633-6f7f054e3cd4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ebc30efc-ff88-2517-f171-f4da57aa495c" executionId="2b58c161-6417-43df-b3b7-6eadc43454fb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4d1e0148-ff29-cf6b-7d7f-befc08c7951a" executionId="94996e02-9bd9-462a-9c20-9fa7b450dba3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3d7bef4e-7c09-dd97-5b2c-bc67a6a34b38" executionId="3f543c5f-a6f7-47b6-9df0-bb3fd06de2e7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2e9081da-56c2-5818-d366-98229dc8c0f1" executionId="78f25503-8943-460b-9088-d76acc7a93a3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f2d41e7b-bb4d-71cd-a8af-67309214b4ad" executionId="def20afc-0a6c-40bb-8b55-749df1ec6767" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="04e489e5-91fa-4dab-e2cd-6582321b642f" executionId="703f3f8f-1f3e-4f04-970c-0d17231a3680" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="faad54a7-6e08-0153-66ed-38a64e058ce3" executionId="ed2ac2c1-955b-4c90-89e9-d467dd135828" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="257817be-55ee-2abd-ce25-52eda7dd89f1" executionId="32c6e089-8b28-4561-92bb-d77df237e53d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="368e86d5-cd2d-1ccb-903c-f121196c8fa7" executionId="1b3cef6d-4ba8-417c-a3d9-705764d6d86d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="84" executed="84" passed="72" failed="12" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.4)
+[xUnit.net 00:00:00.17]   Discovering: Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+[xUnit.net 00:00:03.77]   Discovered:  Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+[xUnit.net 00:00:03.84]   Starting:    Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+[xUnit.net 00:00:04.10]       &#xD;
+[xUnit.net 00:00:04.10]       -- Missing test overrides --&#xD;
+[xUnit.net 00:00:04.10]       &#xD;
+[xUnit.net 00:00:04.10]       public override async Task Update_with_PK_pushdown_and_join_and_multiple_setters(bool async)&#xD;
+[xUnit.net 00:00:04.10]       {&#xD;
+[xUnit.net 00:00:04.10]           await base.Update_with_PK_pushdown_and_join_and_multiple_setters(async);&#xD;
+[xUnit.net 00:00:04.10]       &#xD;
+[xUnit.net 00:00:04.10]           AssertSql();&#xD;
+[xUnit.net 00:00:04.10]       }&#xD;
+[xUnit.net 00:00:04.10]       &#xD;
+[xUnit.net 00:00:04.10]       
+[xUnit.net 00:00:04.10]       Stack Trace:
+[xUnit.net 00:00:04.10]            at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+[xUnit.net 00:00:04.10]         /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/BulkUpdates/NorthwindBulkUpdatesNpgsqlTest.cs(1616,0): at Microsoft.EntityFrameworkCore.BulkUpdates.NorthwindBulkUpdatesNpgsqlTest.Check_all_tests_overridden()
+[xUnit.net 00:00:04.10]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:04.10]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:04.10]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:04.10]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:04.95]       &#xD;
+[xUnit.net 00:00:04.95]       -- Missing test overrides --&#xD;
+[xUnit.net 00:00:04.95]       &#xD;
+[xUnit.net 00:00:04.95]       public override async Task FromSql_on_root(bool async)&#xD;
+[xUnit.net 00:00:04.95]       {&#xD;
+[xUnit.net 00:00:04.95]           await base.FromSql_on_root(async);&#xD;
+[xUnit.net 00:00:04.95]       &#xD;
+[xUnit.net 00:00:04.95]           AssertSql();&#xD;
+[xUnit.net 00:00:04.95]       }&#xD;
+[xUnit.net 00:00:04.95]       &#xD;
+[xUnit.net 00:00:04.95]       
+[xUnit.net 00:00:04.95]       Stack Trace:
+[xUnit.net 00:00:04.95]            at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+[xUnit.net 00:00:04.95]         /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/OwnedJson/OwnedJsonMiscellaneousNpgsqlTest.cs(53,0): at Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonMiscellaneousNpgsqlTest.Check_all_tests_overridden()
+[xUnit.net 00:00:04.95]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:04.95]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:04.95]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:04.95]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:04.99]       &#xD;
+[xUnit.net 00:00:04.99]       -- Missing test overrides --&#xD;
+[xUnit.net 00:00:04.99]       &#xD;
+[xUnit.net 00:00:04.99]       public override async Task Index_on_nested_collection(bool async)&#xD;
+[xUnit.net 00:00:04.99]       {&#xD;
+[xUnit.net 00:00:04.99]           await base.Index_on_nested_collection(async);&#xD;
+[xUnit.net 00:00:04.99]       &#xD;
+[xUnit.net 00:00:04.99]           AssertSql();&#xD;
+[xUnit.net 00:00:04.99]       }&#xD;
+[xUnit.net 00:00:04.99]       &#xD;
+[xUnit.net 00:00:04.99]       
+[xUnit.net 00:00:04.99]       Stack Trace:
+[xUnit.net 00:00:04.99]            at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+[xUnit.net 00:00:04.99]         /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/OwnedJson/OwnedJsonCollectionNpgsqlTest.cs(254,0): at Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonCollectionNpgsqlTest.Check_all_tests_overridden()
+[xUnit.net 00:00:04.99]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:04.99]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:04.99]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:04.99]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:05.34]       &#xD;
+[xUnit.net 00:00:05.34]       -- Missing test overrides --&#xD;
+[xUnit.net 00:00:05.34]       &#xD;
+[xUnit.net 00:00:05.34]       public override async Task Index_on_nested_collection(bool async)&#xD;
+[xUnit.net 00:00:05.34]       {&#xD;
+[xUnit.net 00:00:05.34]           await base.Index_on_nested_collection(async);&#xD;
+[xUnit.net 00:00:05.34]       &#xD;
+[xUnit.net 00:00:05.34]           AssertSql();&#xD;
+[xUnit.net 00:00:05.34]       }&#xD;
+[xUnit.net 00:00:05.34]       &#xD;
+[xUnit.net 00:00:05.34]       
+[xUnit.net 00:00:05.34]       Stack Trace:
+[xUnit.net 00:00:05.34]            at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+[xUnit.net 00:00:05.34]         /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/ComplexJson/ComplexJsonCollectionNpgsqlTest.cs(219,0): at Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonCollectionNpgsqlTest.Check_all_tests_overridden()
+[xUnit.net 00:00:05.34]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.34]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.34]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:05.34]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:05.64]       &#xD;
+[xUnit.net 00:00:05.64]       -- Missing test overrides --&#xD;
+[xUnit.net 00:00:05.64]       &#xD;
+[xUnit.net 00:00:05.64]       public override async Task FromSql_on_root(bool async)&#xD;
+[xUnit.net 00:00:05.64]       {&#xD;
+[xUnit.net 00:00:05.64]           await base.FromSql_on_root(async);&#xD;
+[xUnit.net 00:00:05.64]       &#xD;
+[xUnit.net 00:00:05.64]           AssertSql();&#xD;
+[xUnit.net 00:00:05.64]       }&#xD;
+[xUnit.net 00:00:05.64]       &#xD;
+[xUnit.net 00:00:05.64]       
+[xUnit.net 00:00:05.64]       Stack Trace:
+[xUnit.net 00:00:05.64]            at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+[xUnit.net 00:00:05.64]         /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/OwnedNavigations/OwnedNavigationsMiscellaneousNpgsqlTest.cs(101,0): at Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsMiscellaneousNpgsqlTest.Check_all_tests_overridden()
+[xUnit.net 00:00:05.64]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.64]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.64]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:05.64]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:05.66]       &#xD;
+[xUnit.net 00:00:05.66]       -- Missing test overrides --&#xD;
+[xUnit.net 00:00:05.66]       &#xD;
+[xUnit.net 00:00:05.66]       public override async Task Index_on_nested_collection(bool async)&#xD;
+[xUnit.net 00:00:05.66]       {&#xD;
+[xUnit.net 00:00:05.66]           await base.Index_on_nested_collection(async);&#xD;
+[xUnit.net 00:00:05.66]       &#xD;
+[xUnit.net 00:00:05.66]           AssertSql();&#xD;
+[xUnit.net 00:00:05.66]       }&#xD;
+[xUnit.net 00:00:05.66]       &#xD;
+[xUnit.net 00:00:05.66]       
+[xUnit.net 00:00:05.66]       Stack Trace:
+[xUnit.net 00:00:05.66]            at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+[xUnit.net 00:00:05.66]         /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/Navigations/NavigationsCollectionNpgsqlTest.cs(268,0): at Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsCollectionNpgsqlTest.Check_all_tests_overridden()
+[xUnit.net 00:00:05.66]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.66]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.66]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:05.66]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:05.66]       &#xD;
+[xUnit.net 00:00:05.66]       -- Missing test overrides --&#xD;
+[xUnit.net 00:00:05.66]       &#xD;
+[xUnit.net 00:00:05.66]       public override async Task FromSql_on_root(bool async)&#xD;
+[xUnit.net 00:00:05.66]       {&#xD;
+[xUnit.net 00:00:05.66]           await base.FromSql_on_root(async);&#xD;
+[xUnit.net 00:00:05.66]       &#xD;
+[xUnit.net 00:00:05.66]           AssertSql();&#xD;
+[xUnit.net 00:00:05.66]       }&#xD;
+[xUnit.net 00:00:05.66]       &#xD;
+[xUnit.net 00:00:05.66]       
+[xUnit.net 00:00:05.66]       Stack Trace:
+[xUnit.net 00:00:05.66]            at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+[xUnit.net 00:00:05.66]         /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/ComplexJson/ComplexJsonMiscellaneousNpgsqlTest.cs(91,0): at Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonMiscellaneousNpgsqlTest.Check_all_tests_overridden()
+[xUnit.net 00:00:05.66]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.66]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.66]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:05.66]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:05.66]       &#xD;
+[xUnit.net 00:00:05.66]       -- Missing test overrides --&#xD;
+[xUnit.net 00:00:05.66]       &#xD;
+[xUnit.net 00:00:05.66]       public override async Task Index_on_nested_collection(bool async)&#xD;
+[xUnit.net 00:00:05.66]       {&#xD;
+[xUnit.net 00:00:05.66]           await base.Index_on_nested_collection(async);&#xD;
+[xUnit.net 00:00:05.66]       &#xD;
+[xUnit.net 00:00:05.66]           AssertSql();&#xD;
+[xUnit.net 00:00:05.66]       }&#xD;
+[xUnit.net 00:00:05.66]       &#xD;
+[xUnit.net 00:00:05.66]       
+[xUnit.net 00:00:05.66]       Stack Trace:
+[xUnit.net 00:00:05.66]            at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+[xUnit.net 00:00:05.66]         /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/OwnedNavigations/OwnedNavigationsCollectionNpgsqlTest.cs(271,0): at Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsCollectionNpgsqlTest.Check_all_tests_overridden()
+[xUnit.net 00:00:05.66]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.66]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.66]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:05.66]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:05.81]       &#xD;
+[xUnit.net 00:00:05.81]       -- Missing test overrides --&#xD;
+[xUnit.net 00:00:05.81]       &#xD;
+[xUnit.net 00:00:05.81]       public override async Task FromSql_on_root(bool async)&#xD;
+[xUnit.net 00:00:05.81]       {&#xD;
+[xUnit.net 00:00:05.81]           await base.FromSql_on_root(async);&#xD;
+[xUnit.net 00:00:05.81]       &#xD;
+[xUnit.net 00:00:05.81]           AssertSql();&#xD;
+[xUnit.net 00:00:05.81]       }&#xD;
+[xUnit.net 00:00:05.81]       &#xD;
+[xUnit.net 00:00:05.81]       
+[xUnit.net 00:00:05.81]       Stack Trace:
+[xUnit.net 00:00:05.81]            at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+[xUnit.net 00:00:05.81]         /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/Navigations/NavigationsMiscellaneousNpgsqlTest.cs(101,0): at Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsMiscellaneousNpgsqlTest.Check_all_tests_overridden()
+[xUnit.net 00:00:05.81]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.81]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.81]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:05.81]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       -- Missing test overrides --&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Inline_collection_Contains_with_IEnumerable_EF_Parameter(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Inline_collection_Contains_with_IEnumerable_EF_Parameter(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Parameter_collection_empty_Contains(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Parameter_collection_empty_Contains(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Parameter_collection_empty_Join(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Parameter_collection_empty_Join(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Parameter_collection_Count_with_huge_number_of_values_over_5_operations(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Parameter_collection_Count_with_huge_number_of_values_over_5_operations(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Parameter_collection_Count_with_huge_number_of_values_over_5_operations_same_parameter(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Parameter_collection_Count_with_huge_number_of_values_over_5_operations_same_parameter(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Parameter_collection_Count_with_huge_number_of_values_over_2_operations_same_parameter_different_type_mapping(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Parameter_collection_Count_with_huge_number_of_values_over_2_operations_same_parameter_different_type_mapping(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Parameter_collection_Count_with_huge_number_of_values_over_5_operations_forced_constants(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Parameter_collection_Count_with_huge_number_of_values_over_5_operations_forced_constants(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Parameter_collection_Count_with_huge_number_of_values_over_5_operations_mixed_parameters_constants(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Parameter_collection_Count_with_huge_number_of_values_over_5_operations_mixed_parameters_constants(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_same_parameter(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_same_parameter(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_2_operations_same_parameter_different_type_mapping(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_2_operations_same_parameter_different_type_mapping(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_forced_constants(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_forced_constants(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_mixed_parameters_constants(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Parameter_collection_of_ints_Contains_int_with_huge_number_of_values_over_5_operations_mixed_parameters_constants(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Contains_on_Enumerable(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Contains_on_Enumerable(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Contains_on_MemoryExtensions(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Contains_on_MemoryExtensions(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       public override async Task Contains_with_MemoryExtensions_with_null_comparer(bool async)&#xD;
+[xUnit.net 00:00:05.82]       {&#xD;
+[xUnit.net 00:00:05.82]           await base.Contains_with_MemoryExtensions_with_null_comparer(async);&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]           AssertSql();&#xD;
+[xUnit.net 00:00:05.82]       }&#xD;
+[xUnit.net 00:00:05.82]       &#xD;
+[xUnit.net 00:00:05.82]       
+[xUnit.net 00:00:05.82]       Stack Trace:
+[xUnit.net 00:00:05.82]            at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+[xUnit.net 00:00:05.82]         /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/PrimitiveCollectionsQueryNpgsqlTest.cs(2283,0): at Microsoft.EntityFrameworkCore.Query.PrimitiveCollectionsQueryNpgsqlTest.Check_all_tests_overridden()
+[xUnit.net 00:00:05.82]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.82]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.82]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:05.82]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:05.98]       &#xD;
+[xUnit.net 00:00:05.98]       -- Missing test overrides --&#xD;
+[xUnit.net 00:00:05.98]       &#xD;
+[xUnit.net 00:00:05.98]       public override async Task FromSql_on_root(bool async)&#xD;
+[xUnit.net 00:00:05.98]       {&#xD;
+[xUnit.net 00:00:05.98]           await base.FromSql_on_root(async);&#xD;
+[xUnit.net 00:00:05.98]       &#xD;
+[xUnit.net 00:00:05.98]           AssertSql();&#xD;
+[xUnit.net 00:00:05.98]       }&#xD;
+[xUnit.net 00:00:05.98]       &#xD;
+[xUnit.net 00:00:05.98]       
+[xUnit.net 00:00:05.98]       Stack Trace:
+[xUnit.net 00:00:05.98]            at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+[xUnit.net 00:00:05.98]         /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/ComplexTableSplitting/ComplexTableSplittingMiscellaneousNpgsqlTest.cs(89,0): at Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingMiscellaneousNpgsqlTest.Check_all_tests_overridden()
+[xUnit.net 00:00:05.98]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.98]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.98]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:05.98]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:05.98]       &#xD;
+[xUnit.net 00:00:05.98]       -- Missing test overrides --&#xD;
+[xUnit.net 00:00:05.98]       &#xD;
+[xUnit.net 00:00:05.98]       public override async Task FromSql_on_root(bool async)&#xD;
+[xUnit.net 00:00:05.98]       {&#xD;
+[xUnit.net 00:00:05.98]           await base.FromSql_on_root(async);&#xD;
+[xUnit.net 00:00:05.98]       &#xD;
+[xUnit.net 00:00:05.98]           AssertSql();&#xD;
+[xUnit.net 00:00:05.98]       }&#xD;
+[xUnit.net 00:00:05.98]       &#xD;
+[xUnit.net 00:00:05.98]       
+[xUnit.net 00:00:05.98]       Stack Trace:
+[xUnit.net 00:00:05.98]            at Microsoft.EntityFrameworkCore.TestUtilities.TestHelpers.AssertAllMethodsOverridden(Type testClass)
+[xUnit.net 00:00:05.98]         /Users/roji/projects/efcore.pg/test/EFCore.PG.FunctionalTests/Query/Associations/OwnedTableSplitting/OwnedTableSplittingMiscellaneousNpgsqlTest.cs(83,0): at Microsoft.EntityFrameworkCore.Query.Associations.OwnedTableSplitting.OwnedTableSplittingMiscellaneousNpgsqlTest.Check_all_tests_overridden()
+[xUnit.net 00:00:05.98]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.98]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.98]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:05.98]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:06.91]   Finished:    Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="milo" outcome="Error" timestamp="2026-03-12T18:44:29.7175500+02:00">
+        <Text>[xUnit.net 00:00:04.10]     Microsoft.EntityFrameworkCore.BulkUpdates.NorthwindBulkUpdatesNpgsqlTest.Check_all_tests_overridden [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="milo" outcome="Error" timestamp="2026-03-12T18:44:30.5566960+02:00">
+        <Text>[xUnit.net 00:00:04.95]     Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonMiscellaneousNpgsqlTest.Check_all_tests_overridden [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="milo" outcome="Error" timestamp="2026-03-12T18:44:30.6026000+02:00">
+        <Text>[xUnit.net 00:00:04.99]     Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson.OwnedJsonCollectionNpgsqlTest.Check_all_tests_overridden [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="milo" outcome="Error" timestamp="2026-03-12T18:44:30.9493120+02:00">
+        <Text>[xUnit.net 00:00:05.34]     Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonCollectionNpgsqlTest.Check_all_tests_overridden [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="milo" outcome="Error" timestamp="2026-03-12T18:44:31.2525320+02:00">
+        <Text>[xUnit.net 00:00:05.64]     Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsMiscellaneousNpgsqlTest.Check_all_tests_overridden [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="milo" outcome="Error" timestamp="2026-03-12T18:44:31.2680850+02:00">
+        <Text>[xUnit.net 00:00:05.66]     Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsCollectionNpgsqlTest.Check_all_tests_overridden [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="milo" outcome="Error" timestamp="2026-03-12T18:44:31.2687530+02:00">
+        <Text>[xUnit.net 00:00:05.66]     Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson.ComplexJsonMiscellaneousNpgsqlTest.Check_all_tests_overridden [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="milo" outcome="Error" timestamp="2026-03-12T18:44:31.2694190+02:00">
+        <Text>[xUnit.net 00:00:05.66]     Microsoft.EntityFrameworkCore.Query.Associations.OwnedNavigations.OwnedNavigationsCollectionNpgsqlTest.Check_all_tests_overridden [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="milo" outcome="Error" timestamp="2026-03-12T18:44:31.4201560+02:00">
+        <Text>[xUnit.net 00:00:05.81]     Microsoft.EntityFrameworkCore.Query.Associations.Navigations.NavigationsMiscellaneousNpgsqlTest.Check_all_tests_overridden [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="milo" outcome="Error" timestamp="2026-03-12T18:44:31.4300550+02:00">
+        <Text>[xUnit.net 00:00:05.82]     Microsoft.EntityFrameworkCore.Query.PrimitiveCollectionsQueryNpgsqlTest.Check_all_tests_overridden [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="milo" outcome="Error" timestamp="2026-03-12T18:44:31.5886850+02:00">
+        <Text>[xUnit.net 00:00:05.98]     Microsoft.EntityFrameworkCore.Query.Associations.ComplexTableSplitting.ComplexTableSplittingMiscellaneousNpgsqlTest.Check_all_tests_overridden [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="milo" outcome="Error" timestamp="2026-03-12T18:44:31.5895800+02:00">
+        <Text>[xUnit.net 00:00:05.98]     Microsoft.EntityFrameworkCore.Query.Associations.OwnedTableSplitting.OwnedTableSplittingMiscellaneousNpgsqlTest.Check_all_tests_overridden [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>
