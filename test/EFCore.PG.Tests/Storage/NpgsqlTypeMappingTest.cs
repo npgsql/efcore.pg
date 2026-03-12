@@ -458,7 +458,7 @@ public class NpgsqlTypeMappingTest
     public void GenerateSqlLiteral_returns_hstore_literal_when_first_value_is_null()
         => Assert.Equal(
             """HSTORE '"k1"=>NULL,"k2"=>"v2"'""",
-            GetMapping("hstore").GenerateSqlLiteral(new Dictionary<string, string> { { "k1", null }, { "k2", "v2" } }));
+            GetMapping("hstore").GenerateSqlLiteral(new Dictionary<string, string?> { { "k1", null }, { "k2", "v2" } }));
 
     [Fact]
     public void GenerateSqlLiteral_returns_hstore_literal_with_escaped_keys_and_values()
