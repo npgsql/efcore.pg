@@ -2,7 +2,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
-public class AdHocJsonQueryNpgsqlTest : AdHocJsonQueryTestBase
+public class AdHocJsonQueryNpgsqlTest : AdHocJsonQueryRelationalTestBase
 {
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
