@@ -3,15 +3,18 @@ updates:
   - package-ecosystem: nuget
     directory: "/"
     ignore:
-      # We update these dependencies manually and on a weekly basis, since dependabot treats 6.0.0-preview2 as newer than 6.0.0-ci.*,
-      # and because it submits 3 different PRs
+      # We update these dependencies manually and on a weekly basis, since we depend on EF (and extensions) daily builds,
+      # and updating these usually requires code changes.
       - dependency-name: "Microsoft.EntityFrameworkCore.*"
       - dependency-name: "Microsoft.Extensions.*"
-      - dependency-name: "Npgsql"
     schedule:
-      interval: daily
+      interval: weekly
+    groups:
+      minor-and-patch: 
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: daily
+      interval: weekly
