@@ -29,7 +29,7 @@ public class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlTest.Upd
             "FK_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTh~",
             entityType.GetForeignKeys().Single().GetConstraintName());
         Assert.Equal(
-            "IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTh~",
+            "IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameT~1",
             entityType.GetIndexes().Single().GetDatabaseName());
 
         var entityType2 = context.Model.FindEntityType(
@@ -50,7 +50,7 @@ public class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlTest.Upd
             "LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThatI~",
             entityType2.GetProperties().ElementAt(2).GetColumnName(StoreObjectIdentifier.Table(entityType2.GetTableName()!)));
         Assert.Equal(
-            "IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameT~1",
+            "IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTh~",
             entityType2.GetIndexes().Single().GetDatabaseName());
     }
 

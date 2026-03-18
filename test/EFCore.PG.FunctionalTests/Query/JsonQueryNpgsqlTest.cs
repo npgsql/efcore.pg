@@ -2024,7 +2024,7 @@ SELECT j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedRef
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN "JsonEntitiesBasicForReference" AS j0 ON j."Id" = j0."ParentId"
 LEFT JOIN "JsonEntitiesBasicForCollection" AS j1 ON j."Id" = j1."ParentId"
-ORDER BY j."Id" NULLS FIRST, j0."Id" NULLS FIRST
+ORDER BY j."Id" NULLS FIRST
 """);
     }
 
@@ -2103,7 +2103,7 @@ SELECT j."OwnedCollectionRoot" -> 0, j."Id", j0."Id", j0."Name", j0."ParentId", 
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN "JsonEntitiesBasicForReference" AS j0 ON j."Id" = j0."ParentId"
 LEFT JOIN "JsonEntitiesBasicForCollection" AS j1 ON j."Id" = j1."ParentId"
-ORDER BY j."Id" NULLS FIRST, j0."Id" NULLS FIRST
+ORDER BY j."Id" NULLS FIRST
 """);
     }
 
@@ -2117,7 +2117,7 @@ SELECT j."OwnedReferenceRoot" #> '{OwnedReferenceBranch,OwnedCollectionLeaf}', j
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN "JsonEntitiesBasicForReference" AS j0 ON j."Id" = j0."ParentId"
 LEFT JOIN "JsonEntitiesBasicForCollection" AS j1 ON j."Id" = j1."ParentId"
-ORDER BY j."Id" NULLS FIRST, j0."Id" NULLS FIRST
+ORDER BY j."Id" NULLS FIRST
 """);
 
 //        AssertSql(
