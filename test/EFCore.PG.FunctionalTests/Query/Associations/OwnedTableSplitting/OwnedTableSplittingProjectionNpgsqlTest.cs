@@ -179,7 +179,7 @@ SELECT r0."Id", r0."RequiredAssociate_Id", r0."RequiredAssociate_Int", r0."Requi
 FROM "RootReferencingEntity" AS r
 LEFT JOIN "RootEntity" AS r0 ON r."RootEntityId" = r0."Id"
 LEFT JOIN "RequiredRelated_NestedCollection" AS r1 ON r0."Id" = r1."AssociateTypeRootEntityId"
-ORDER BY r."Id" NULLS FIRST, r0."Id" NULLS FIRST, r1."AssociateTypeRootEntityId" NULLS FIRST
+ORDER BY r."Id" NULLS FIRST, r1."AssociateTypeRootEntityId" NULLS FIRST
 """);
         }
     }
@@ -422,7 +422,7 @@ LEFT JOIN LATERAL (
         {
             AssertSql(
                 """
-SELECT r."Id", r3."Id", s."RootEntityId", s."Id", s."Int", s."Ints", s."Name", s."String", s."AssociateTypeRootEntityId", s."AssociateTypeId", s."Id0", s."Int0", s."Ints0", s."Name0", s."String0", s."OptionalNestedAssociate_Id", s."OptionalNestedAssociate_Int", s."OptionalNestedAssociate_Ints", s."OptionalNestedAssociate_Name", s."OptionalNestedAssociate_String", s."RequiredNestedAssociate_Id", s."RequiredNestedAssociate_Int", s."RequiredNestedAssociate_Ints", s."RequiredNestedAssociate_Name", s."RequiredNestedAssociate_String", r3.c
+SELECT r."Id", s."RootEntityId", s."Id", s."Int", s."Ints", s."Name", s."String", s."AssociateTypeRootEntityId", s."AssociateTypeId", s."Id0", s."Int0", s."Ints0", s."Name0", s."String0", s."OptionalNestedAssociate_Id", s."OptionalNestedAssociate_Int", s."OptionalNestedAssociate_Ints", s."OptionalNestedAssociate_Name", s."OptionalNestedAssociate_String", s."RequiredNestedAssociate_Id", s."RequiredNestedAssociate_Int", s."RequiredNestedAssociate_Ints", s."RequiredNestedAssociate_Name", s."RequiredNestedAssociate_String", r3.c
 FROM "RootEntity" AS r
 LEFT JOIN LATERAL (
     SELECT 1 AS c, r0."Id"
@@ -435,7 +435,7 @@ LEFT JOIN (
     FROM "RelatedCollection" AS r1
     LEFT JOIN "RelatedCollection_NestedCollection" AS r2 ON r1."RootEntityId" = r2."AssociateTypeRootEntityId" AND r1."Id" = r2."AssociateTypeId"
 ) AS s ON r3."Id" = s."RootEntityId"
-ORDER BY r."Id" NULLS FIRST, r3."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST
+ORDER BY r."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST
 """);
         }
     }
