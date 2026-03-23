@@ -89,7 +89,9 @@ public class PgTableValuedFunctionExpression : TableValuedFunctionExpression, IE
             arguments[i] = (SqlExpression)cloningExpressionVisitor.Visit(Arguments[i]);
         }
 
-        return new PgTableValuedFunctionExpression(Alias, Name, arguments, ColumnInfos, WithOrdinality);
+        // Without ColumnInfos (e.g. unnest), PostgreSQL ties the output column name to the table alias, so preserve it.
+        // With explicit ColumnInfos (e.g. jsonb_to_recordset), apply the clone alias to keep FROM references consistent.
+        return new PgTableValuedFunctionExpression(ColumnInfos is null ? Alias : alias!, Name, arguments, ColumnInfos, WithOrdinality);
     }
 
     /// <inheritdoc />

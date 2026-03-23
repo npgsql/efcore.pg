@@ -238,6 +238,60 @@ WHERE 16 IN (
 """);
     }
 
+    [ConditionalFact]
+    public virtual async Task GroupBy_with_json_collection_predicate_and_projecting_group_elements()
+    {
+        await using var context = Fixture.CreateContext();
+
+        var result = await context.Set<RootEntity>()
+            .Where(root => root.AssociateCollection.Any(element => element.Int > 0))
+            .GroupBy(root => root.Name)
+            .Select(group => new { Elements = group.OrderBy(root => root.Id).Take(1) })
+            .ToListAsync();
+
+        Assert.NotEmpty(result);
+        Assert.All(result, grouping => Assert.NotNull(grouping.Elements));
+
+        AssertSql(
+            """
+SELECT r1."Name", r3."Id", r3."Name", r3.c, r3.c0, r3.c1
+FROM (
+    SELECT r."Name"
+    FROM "RootEntity" AS r
+    WHERE EXISTS (
+        SELECT 1
+        FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS (
+            "Id" integer,
+            "Int" integer,
+            "Ints" jsonb,
+            "Name" text,
+            "String" text
+        )) WITH ORDINALITY AS a
+        WHERE a."Int" > 0)
+    GROUP BY r."Name"
+) AS r1
+LEFT JOIN (
+    SELECT r2."Id", r2."Name", r2.c, r2.c0, r2.c1
+    FROM (
+        SELECT r0."Id", r0."Name", r0."AssociateCollection" AS c, r0."OptionalAssociate" AS c0, r0."RequiredAssociate" AS c1, ROW_NUMBER() OVER(PARTITION BY r0."Name" ORDER BY r0."Id" NULLS FIRST) AS row
+        FROM "RootEntity" AS r0
+        WHERE EXISTS (
+            SELECT 1
+            FROM ROWS FROM (jsonb_to_recordset(r0."AssociateCollection") AS (
+                "Id" integer,
+                "Int" integer,
+                "Ints" jsonb,
+                "Name" text,
+                "String" text
+            )) WITH ORDINALITY AS a0
+            WHERE a0."Int" > 0)
+    ) AS r2
+    WHERE r2.row <= 1
+) AS r3 ON r1."Name" = r3."Name"
+ORDER BY r1."Name" NULLS FIRST, r3."Name" NULLS FIRST, r3."Id" NULLS FIRST
+""");
+    }
+
     #endregion GroupBy
 
     public override async Task Select_within_Select_within_Select_with_aggregates()
