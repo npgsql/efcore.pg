@@ -33,7 +33,7 @@ public class NpgsqlDbContextOptionsExtensionsTest
         optionsBuilder.UseNpgsql("Database=Crunchie", b =>
         {
             b.UseParameterizedCollectionMode(ParameterTranslationMode.MultipleParameters);
-            b.UsePostgresVersion(new Version(17, 0));
+            b.UseRelationalNulls();
         });
 
         var extension = optionsBuilder.Options.Extensions.OfType<NpgsqlOptionsExtension>().Single();
