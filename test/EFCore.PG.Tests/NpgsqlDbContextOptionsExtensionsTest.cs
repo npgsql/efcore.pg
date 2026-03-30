@@ -27,6 +27,21 @@ public class NpgsqlDbContextOptionsExtensionsTest
     }
 
     [ConditionalFact]
+    public void ParameterizedCollectionMode_is_preserved_after_clone()
+    {
+        var optionsBuilder = new DbContextOptionsBuilder();
+        optionsBuilder.UseNpgsql("Database=Crunchie", b =>
+        {
+            b.UseParameterizedCollectionMode(ParameterTranslationMode.MultipleParameters);
+            b.UsePostgresVersion(new Version(17, 0));
+        });
+
+        var extension = optionsBuilder.Options.Extensions.OfType<NpgsqlOptionsExtension>().Single();
+
+        Assert.Equal(ParameterTranslationMode.MultipleParameters, extension.ParameterizedCollectionMode);
+    }
+
+    [ConditionalFact]
     public void Can_add_extension_with_connection_string()
     {
         var optionsBuilder = new DbContextOptionsBuilder();
