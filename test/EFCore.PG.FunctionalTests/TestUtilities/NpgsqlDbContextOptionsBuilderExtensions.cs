@@ -8,6 +8,8 @@ public static class NpgsqlDbContextOptionsBuilderExtensions
     {
         optionsBuilder.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
 
+        optionsBuilder.ExecutionStrategy(d => new TestNpgsqlRetryingExecutionStrategy(d));
+
         optionsBuilder.CommandTimeout(NpgsqlTestStore.CommandTimeout);
 
         return optionsBuilder;
