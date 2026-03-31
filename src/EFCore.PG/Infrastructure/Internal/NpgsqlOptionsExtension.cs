@@ -126,6 +126,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         DataSourceBuilderAction = copyFrom.DataSourceBuilderAction;
         AdminDatabase = copyFrom.AdminDatabase;
         _postgresVersion = copyFrom._postgresVersion;
+        _parameterizedCollectionMode = copyFrom._parameterizedCollectionMode;
         UseRedshift = copyFrom.UseRedshift;
         _userRangeDefinitions = [..copyFrom._userRangeDefinitions];
         _enumDefinitions = [..copyFrom._enumDefinitions];
