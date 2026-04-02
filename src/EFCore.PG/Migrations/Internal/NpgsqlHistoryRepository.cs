@@ -102,23 +102,40 @@ public class NpgsqlHistoryRepository : HistoryRepository, IHistoryRepository
     {
         // TODO: This is all a hack around https://github.com/dotnet/efcore/issues/34991: we have provider-specific conventions which add
         // enums and extensions to the model, and the default EF logic causes them to be created at this point, when the history table is
-        // being created.
+        // being created. This causes problems when:
+        // (a) we create an enum here when creating the history table, and then try to create it again when the actual migration
+        //     runs (#3324), and
+        // (b) we shouldn't be creating extensions at this early point either, and doing so can cause issues (e.g. #3496).
+        //
+        // So we filter out any extension/enum migration operations.
+        // Note that the approach in EF is to remove specific conventions (e.g. DbSetFindingConvention), but we don't want to hardcode
+        // specific conventions here; for example, the NetTopologySuite plugin has its NpgsqlNetTopologySuiteExtensionAddingConvention
+        // which adds PostGIS. So we just filter out the annotations on the operations themselves.
         var model = EnsureModel();
 
         var operations = Dependencies.ModelDiffer.GetDifferences(null, model.GetRelationalModel());
 
-        // Workaround for https://github.com/npgsql/efcore.pg/issues/3496: filter out extension-related operations.
-        // On managed PostgreSQL services (e.g. Azure Flexible Server), CREATE EXTENSION requires sometimes superuser privileges
-        // even with IF NOT EXISTS. Since extension creation isn't needed for the history table, we exclude these
-        // operations to avoid permission errors for non-superuser application accounts.
-        var operationsWithoutExtensions = operations
-            .Where(o => !o.GetAnnotations().Any(a => a.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal)))
-            .ToList();
+        foreach (var operation in operations)
+        {
+            if (operation is not AlterDatabaseOperation alterDatabaseOperation)
+            {
+                continue;
+            }
 
-        var commandList = Dependencies.MigrationsSqlGenerator.Generate(operationsWithoutExtensions, model);
-        return commandList;
+            foreach (var annotation in alterDatabaseOperation.GetAnnotations())
+            {
+                if (annotation.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal)
+                    || annotation.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal))
+                {
+                    alterDatabaseOperation.RemoveAnnotation(annotation.Name);
+                }
+            }
+        }
+
+        return Dependencies.MigrationsSqlGenerator.Generate(operations, model);
     }
 
+    // Copied as-is from EF's HistoryRepository, since it's private (see https://github.com/dotnet/efcore/issues/34991)
     private IModel EnsureModel()
     {
         if (_model == null)
@@ -127,16 +144,13 @@ public class NpgsqlHistoryRepository : HistoryRepository, IHistoryRepository
 
             conventionSet.Remove(typeof(DbSetFindingConvention));
             conventionSet.Remove(typeof(RelationalDbFunctionAttributeConvention));
-            // TODO: this whole method exists only so we can remove this convention (https://github.com/dotnet/efcore/issues/34991)
-            conventionSet.Remove(typeof(NpgsqlPostgresModelFinalizingConvention));
 
             var modelBuilder = new ModelBuilder(conventionSet);
-            modelBuilder.Entity<HistoryRow>(
-                x =>
-                {
-                    ConfigureTable(x);
-                    x.ToTable(TableName, TableSchema);
-                });
+            modelBuilder.Entity<HistoryRow>(x =>
+            {
+                ConfigureTable(x);
+                x.ToTable(TableName, TableSchema);
+            });
 
             _model = Dependencies.ModelRuntimeInitializer.Initialize(
                 (IModel)modelBuilder.Model, designTime: true, validationLogger: null);

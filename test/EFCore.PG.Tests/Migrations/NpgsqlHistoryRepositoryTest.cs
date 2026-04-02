@@ -81,19 +81,64 @@ CREATE TABLE IF NOT EXISTS my."__EFMigrationsHistory" (
     }
 
     [ConditionalFact]
-    public void GetCreateIfNotExistsScript_works_with_schema_and_extension()
+    public void GetCreateIfNotExistsScript_does_not_include_extensions()
     {
-        var sql = CreateHistoryRepositoryWithNetTopologySuite("my").GetCreateIfNotExistsScript();
+        var historyRepository = new TestDbContext(
+                new DbContextOptionsBuilder()
+                    .UseInternalServiceProvider(
+                        NpgsqlTestHelpers.Instance.CreateServiceProvider(
+                            new ServiceCollection().AddEntityFrameworkNpgsqlNetTopologySuite()))
+                    .UseNpgsql(
+                        new NpgsqlConnection("Host=localhost;Database=DummyDatabase"),
+                        b => b.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "some_schema")
+                            .UseNetTopologySuite())
+                    .Options)
+            .GetService<IHistoryRepository>();;
+
+        var sql = historyRepository.GetCreateIfNotExistsScript();
 
         Assert.Equal(
             """
 DO $EF$
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'my') THEN
-        CREATE SCHEMA my;
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'some_schema') THEN
+        CREATE SCHEMA some_schema;
     END IF;
 END $EF$;
-CREATE TABLE IF NOT EXISTS my."__EFMigrationsHistory" (
+CREATE TABLE IF NOT EXISTS some_schema."__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+
+""", sql, ignoreLineEndingDifferences: true);
+    }
+
+    enum TestEnum { Value1, Value2 }
+
+    [ConditionalFact]
+    public void GetCreateIfNotExistsScript_does_not_include_enums()
+    {
+        var historyRepository = new TestDbContext(
+                new DbContextOptionsBuilder()
+                    .UseNpgsql(
+                        new NpgsqlConnection("Host=localhost;Database=DummyDatabase"),
+                        b => b.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "some_schema")
+                            .MapEnum<TestEnum>("test_enum"))
+                    .Options)
+            .GetService<IHistoryRepository>();;
+
+        var sql = historyRepository.GetCreateIfNotExistsScript();
+
+        Assert.Equal(
+            """
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'some_schema') THEN
+        CREATE SCHEMA some_schema;
+    END IF;
+END $EF$;
+CREATE TABLE IF NOT EXISTS some_schema."__EFMigrationsHistory" (
     "MigrationId" character varying(150) NOT NULL,
     "ProductVersion" character varying(32) NOT NULL,
     CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
@@ -175,19 +220,6 @@ END $EF$;
                     .UseNpgsql(
                         new NpgsqlConnection("Host=localhost;Database=DummyDatabase"),
                         b => b.MigrationsHistoryTable(HistoryRepository.DefaultTableName, schema))
-                    .Options)
-            .GetService<IHistoryRepository>();
-
-    private static IHistoryRepository CreateHistoryRepositoryWithNetTopologySuite(string schema = null)
-        => new TestDbContext(
-                new DbContextOptionsBuilder()
-                    .UseInternalServiceProvider(
-                        NpgsqlTestHelpers.Instance.CreateServiceProvider(
-                            new ServiceCollection().AddEntityFrameworkNpgsqlNetTopologySuite()))
-                    .UseNpgsql(
-                        new NpgsqlConnection("Host=localhost;Database=DummyDatabase"),
-                        b => b.MigrationsHistoryTable(HistoryRepository.DefaultTableName, schema)
-                            .UseNetTopologySuite())
                     .Options)
             .GetService<IHistoryRepository>();
 
