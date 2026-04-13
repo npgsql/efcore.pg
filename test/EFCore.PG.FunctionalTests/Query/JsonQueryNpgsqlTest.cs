@@ -932,10 +932,7 @@ FROM "JsonEntitiesBasic" AS j
 WHERE (
     SELECT o."OwnedReferenceLeaf" ->> 'SomethingSomething'
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedReferenceRoot" -> 'OwnedCollectionBranch') AS (
-        "Date" timestamp without time zone,
         "Enum" integer,
-        "Fraction" numeric(18,2),
-        "Id" integer,
         "OwnedReferenceLeaf" jsonb
     )) WITH ORDINALITY AS o
     WHERE o."Enum" = -3
@@ -973,18 +970,15 @@ FROM "JsonEntitiesBasic" AS j
 WHERE (
     SELECT o0.c
     FROM (
-        SELECT o."OwnedReferenceLeaf" ->> 'SomethingSomething' AS c, o."Date" AS c0
+        SELECT o."OwnedReferenceLeaf" ->> 'SomethingSomething' AS c, o."Date"
         FROM ROWS FROM (jsonb_to_recordset(j."OwnedReferenceRoot" -> 'OwnedCollectionBranch') AS (
             "Date" timestamp without time zone,
-            "Enum" integer,
-            "Fraction" numeric(18,2),
-            "Id" integer,
             "OwnedReferenceLeaf" jsonb
         )) WITH ORDINALITY AS o
         ORDER BY o."Date" DESC NULLS LAST
         OFFSET 1
     ) AS o0
-    ORDER BY o0.c0 DESC NULLS LAST
+    ORDER BY o0."Date" DESC NULLS LAST
     LIMIT 1 OFFSET 0) = 'e1_r_c1_r'
 """);
     }
@@ -1075,7 +1069,6 @@ ORDER BY j."Id" NULLS FIRST
 SELECT j."Id", o."Name", o."Number", o.ordinality
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
-    "Id" integer,
     "Name" text,
     "Number" integer
 )) WITH ORDINALITY AS o ON TRUE
@@ -1094,7 +1087,6 @@ FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
     SELECT o."Name", o."Number", o.ordinality
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
-        "Id" integer,
         "Name" text,
         "Number" integer
     )) WITH ORDINALITY AS o
@@ -1115,10 +1107,8 @@ FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
     SELECT o."Names", o."Numbers", o.ordinality
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
-        "Id" integer,
         "Name" text,
         "Names" jsonb,
-        "Number" integer,
         "Numbers" jsonb
     )) WITH ORDINALITY AS o
     WHERE o."Name" = 'Foo'
@@ -1189,17 +1179,16 @@ ORDER BY j."Id" NULLS FIRST, s.ordinality NULLS FIRST
 
         AssertSql(
             """
-SELECT j."Id", s.ordinality, s.c, s.c0, s.c1, s.c2, s.c3, s."Id", s.c4, s.ordinality0
+SELECT j."Id", s.ordinality, s."Date", s."Enum", s."Enums", s."Fraction", s.c, s."Id", s.c0, s.ordinality0
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
-    SELECT o.ordinality, o0."Date" AS c, o0."Enum" AS c0, o0."Enums" AS c1, o0."Fraction" AS c2, o0."OwnedReferenceLeaf" AS c3, j."Id", o0."OwnedCollectionLeaf" AS c4, o0.ordinality AS ordinality0
+    SELECT o.ordinality, o0."Date", o0."Enum", o0."Enums", o0."Fraction", o0."OwnedReferenceLeaf" AS c, j."Id", o0."OwnedCollectionLeaf" AS c0, o0.ordinality AS ordinality0
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS ("OwnedCollectionBranch" jsonb)) WITH ORDINALITY AS o
     LEFT JOIN LATERAL ROWS FROM (jsonb_to_recordset(o."OwnedCollectionBranch") AS (
         "Date" timestamp without time zone,
         "Enum" integer,
         "Enums" jsonb,
         "Fraction" numeric(18,2),
-        "Id" integer,
         "OwnedCollectionLeaf" jsonb,
         "OwnedReferenceLeaf" jsonb
     )) WITH ORDINALITY AS o0 ON TRUE
@@ -1217,7 +1206,7 @@ ORDER BY j."Id" NULLS FIRST, s.ordinality NULLS FIRST
 SELECT j."Id", o0."Id", o0."Id0", o0."Name", o0."Names", o0."Number", o0."Numbers", o0.c, o0.c0, o0.ordinality
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
-    SELECT j."Id", o."Id" AS "Id0", o."Name", o."Names", o."Number", o."Numbers", o."OwnedCollectionBranch" AS c, o."OwnedReferenceBranch" AS c0, o.ordinality, o."Name" AS c1
+    SELECT j."Id", o."Id" AS "Id0", o."Name", o."Names", o."Number", o."Numbers", o."OwnedCollectionBranch" AS c, o."OwnedReferenceBranch" AS c0, o.ordinality
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
         "Id" integer,
         "Name" text,
@@ -1230,7 +1219,7 @@ LEFT JOIN LATERAL (
     ORDER BY o."Name" NULLS FIRST
     LIMIT 5 OFFSET 1
 ) AS o0 ON TRUE
-ORDER BY j."Id" NULLS FIRST, o0.c1 NULLS FIRST
+ORDER BY j."Id" NULLS FIRST, o0."Name" NULLS FIRST
 """);
     }
 
@@ -1240,12 +1229,11 @@ ORDER BY j."Id" NULLS FIRST, o0.c1 NULLS FIRST
 
         AssertSql(
             """
-SELECT j."Id", o0.c, o0.c0, o0.c1, o0.c2, o0.c3, o0."Id", o0.c4, o0.ordinality
+SELECT j."Id", o0."Name", o0."Names", o0."Number", o0."Numbers", o0.c, o0."Id", o0.c0, o0.ordinality
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
-    SELECT o."Name" AS c, o."Names" AS c0, o."Number" AS c1, o."Numbers" AS c2, o."OwnedCollectionBranch" AS c3, j."Id", o."OwnedReferenceBranch" AS c4, o.ordinality
+    SELECT o."Name", o."Names", o."Number", o."Numbers", o."OwnedCollectionBranch" AS c, j."Id", o."OwnedReferenceBranch" AS c0, o.ordinality
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
-        "Id" integer,
         "Name" text,
         "Names" jsonb,
         "Number" integer,
@@ -1256,7 +1244,7 @@ LEFT JOIN LATERAL (
     ORDER BY o."Name" NULLS FIRST
     LIMIT 5 OFFSET 1
 ) AS o0 ON TRUE
-ORDER BY j."Id" NULLS FIRST, o0.c NULLS FIRST
+ORDER BY j."Id" NULLS FIRST, o0."Name" NULLS FIRST
 """);
     }
 
@@ -1269,17 +1257,15 @@ ORDER BY j."Id" NULLS FIRST, o0.c NULLS FIRST
 SELECT j."Id", o0.c, o0."Id", o0.ordinality
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
-    SELECT o."OwnedReferenceBranch" AS c, j."Id", o.ordinality, o."Name" AS c0
+    SELECT o."OwnedReferenceBranch" AS c, j."Id", o.ordinality, o."Name"
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS (
-        "Id" integer,
         "Name" text,
-        "Number" integer,
         "OwnedReferenceBranch" jsonb
     )) WITH ORDINALITY AS o
     ORDER BY o."Name" NULLS FIRST
     LIMIT 5 OFFSET 1
 ) AS o0 ON TRUE
-ORDER BY j."Id" NULLS FIRST, o0.c0 NULLS FIRST
+ORDER BY j."Id" NULLS FIRST, o0."Name" NULLS FIRST
 """);
     }
 
@@ -2985,17 +2971,16 @@ FROM "JsonEntitiesBasic" AS j
 
         AssertSql(
             """
-SELECT j."Id", s.ordinality, s.c, s.c0, s.c1, s.c2, s.ordinality0
+SELECT j."Id", s.ordinality, s."Date", s."Enum", s."Enums", s."Fraction", s.ordinality0
 FROM "JsonEntitiesBasic" AS j
 LEFT JOIN LATERAL (
-    SELECT o.ordinality, o0."Date" AS c, o0."Enum" AS c0, o0."Enums" AS c1, o0."Fraction" AS c2, o0.ordinality AS ordinality0
+    SELECT o.ordinality, o0."Date", o0."Enum", o0."Enums", o0."Fraction", o0.ordinality AS ordinality0
     FROM ROWS FROM (jsonb_to_recordset(j."OwnedCollectionRoot") AS ("OwnedCollectionBranch" jsonb)) WITH ORDINALITY AS o
     LEFT JOIN LATERAL ROWS FROM (jsonb_to_recordset(o."OwnedCollectionBranch") AS (
         "Date" timestamp without time zone,
         "Enum" integer,
         "Enums" jsonb,
-        "Fraction" numeric(18,2),
-        "Id" integer
+        "Fraction" numeric(18,2)
     )) WITH ORDINALITY AS o0 ON TRUE
 ) AS s ON TRUE
 ORDER BY j."Id" NULLS FIRST, s.ordinality NULLS FIRST
