@@ -127,7 +127,12 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
         string name,
         string? schema)
     {
-        if (columnModification.JsonPath is not (null or "$"))
+        if (columnModification.JsonPath is null or { IsRoot: true })
+        {
+            base.AppendUpdateColumnValue(updateSqlGeneratorHelper, columnModification, stringBuilder, name, schema);
+            return;
+        }
+
         {
             Check.DebugAssert(
                 columnModification.TypeMapping is NpgsqlStructuralJsonTypeMapping,
@@ -141,45 +146,33 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
 
             Check.DebugAssert(columnModification.TypeMapping.StoreType is "jsonb", "Non-jsonb type mapping in JSON partial update");
 
+            var jsonPath = columnModification.JsonPath;
+
             // TODO: Lax or not?
             stringBuilder
                 .Append("jsonb_set(")
                 .Append(updateSqlGeneratorHelper.DelimitIdentifier(columnModification.ColumnName))
                 .Append(", '{");
 
-            // TODO: Unfortunately JsonPath is provided as a JSONPATH string, but PG's jsonb_set requires the path as an array.
-            // Parse the components back out (https://github.com/dotnet/efcore/issues/32185)
-            var components = columnModification.JsonPath.Split(".");
+            // PG's jsonb_set requires the path as an array, so we iterate over the structured JsonPath segments.
+            var ordinalIndex = 0;
             var needsComma = false;
-            for (var i = 0; i < components.Length; i++)
+            foreach (var segment in jsonPath.Segments)
             {
                 if (needsComma)
                 {
                     stringBuilder.Append(',');
                 }
 
-                var component = components[i];
-                var bracketOpen = component.IndexOf('[');
-                if (bracketOpen == -1)
+                if (segment.IsArray)
                 {
-                    if (i > 0) // The first component is $, representing the root
-                    {
-                        stringBuilder.Append(component);
-                        needsComma = true;
-                    }
-
-                    continue;
+                    stringBuilder.Append(jsonPath.Ordinals[ordinalIndex++]);
+                }
+                else
+                {
+                    stringBuilder.Append(segment.PropertyName);
                 }
 
-                var propertyName = component[..bracketOpen];
-                if (i > 0) // The first component is $, representing the root
-                {
-                    stringBuilder
-                        .Append(propertyName)
-                        .Append(',');
-                }
-
-                stringBuilder.Append(component[(bracketOpen + 1)..^1]);
                 needsComma = true;
             }
 
@@ -196,10 +189,6 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
             base.AppendUpdateColumnValue(updateSqlGeneratorHelper, columnModification, stringBuilder, name, schema);
 
             stringBuilder.Append(")");
-        }
-        else
-        {
-            base.AppendUpdateColumnValue(updateSqlGeneratorHelper, columnModification, stringBuilder, name, schema);
         }
     }
 

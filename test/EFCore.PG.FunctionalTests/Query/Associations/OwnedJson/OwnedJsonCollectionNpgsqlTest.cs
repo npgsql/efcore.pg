@@ -39,13 +39,7 @@ SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."Requ
 FROM "RootEntity" AS r
 WHERE (
     SELECT count(*)::int
-    FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS (
-        "Id" integer,
-        "Int" integer,
-        "Ints" jsonb,
-        "Name" text,
-        "String" text
-    )) WITH ORDINALITY AS a
+    FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS ("Int" integer)) WITH ORDINALITY AS a
     WHERE a."Int" <> 8) = 2
 """);
     }
@@ -62,10 +56,7 @@ WHERE (
     SELECT a."Int"
     FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS (
         "Id" integer,
-        "Int" integer,
-        "Ints" jsonb,
-        "Name" text,
-        "String" text
+        "Int" integer
     )) WITH ORDINALITY AS a
     ORDER BY a."Id" NULLS FIRST
     LIMIT 1 OFFSET 0) = 8
@@ -210,18 +201,12 @@ WHERE (CAST(r."AssociateCollection" #>> '{9999,Int}' AS integer)) = 8
 SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
 WHERE 16 IN (
-    SELECT COALESCE(sum(a0."Int"), 0)::int
-    FROM (
-        SELECT a."Id" AS "Id0", a."Int", a."Ints", a."Name", a."String", a."String" AS "Key"
-        FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS (
-            "Id" integer,
-            "Int" integer,
-            "Ints" jsonb,
-            "Name" text,
-            "String" text
-        )) WITH ORDINALITY AS a
-    ) AS a0
-    GROUP BY a0."Key"
+    SELECT COALESCE(sum(a."Int"), 0)::int
+    FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS (
+        "Int" integer,
+        "String" text
+    )) WITH ORDINALITY AS a
+    GROUP BY a."String"
 )
 """);
     }
@@ -248,13 +233,7 @@ FROM (
     FROM "RootEntity" AS r
     WHERE EXISTS (
         SELECT 1
-        FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS (
-            "Id" integer,
-            "Int" integer,
-            "Ints" jsonb,
-            "Name" text,
-            "String" text
-        )) WITH ORDINALITY AS a
+        FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS ("Int" integer)) WITH ORDINALITY AS a
         WHERE a."Int" > 0)
     GROUP BY r."Name"
 ) AS r1
@@ -265,13 +244,7 @@ LEFT JOIN (
         FROM "RootEntity" AS r0
         WHERE EXISTS (
             SELECT 1
-            FROM ROWS FROM (jsonb_to_recordset(r0."AssociateCollection") AS (
-                "Id" integer,
-                "Int" integer,
-                "Ints" jsonb,
-                "Name" text,
-                "String" text
-            )) WITH ORDINALITY AS a0
+            FROM ROWS FROM (jsonb_to_recordset(r0."AssociateCollection") AS ("Int" integer)) WITH ORDINALITY AS a0
             WHERE a0."Int" > 0)
     ) AS r2
     WHERE r2.row <= 1
@@ -291,13 +264,7 @@ ORDER BY r1."Name" NULLS FIRST, r3."Name" NULLS FIRST, r3."Id" NULLS FIRST
 SELECT (
     SELECT COALESCE(sum((
         SELECT max(n."Int")
-        FROM ROWS FROM (jsonb_to_recordset(a."NestedCollection") AS (
-            "Id" integer,
-            "Int" integer,
-            "Ints" jsonb,
-            "Name" text,
-            "String" text
-        )) WITH ORDINALITY AS n)), 0)::int
+        FROM ROWS FROM (jsonb_to_recordset(a."NestedCollection") AS ("Int" integer)) WITH ORDINALITY AS n)), 0)::int
     FROM ROWS FROM (jsonb_to_recordset(r."AssociateCollection") AS ("NestedCollection" jsonb)) WITH ORDINALITY AS a)
 FROM "RootEntity" AS r
 """);
