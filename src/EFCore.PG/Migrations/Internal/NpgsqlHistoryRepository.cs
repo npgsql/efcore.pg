@@ -11,8 +11,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal;
 /// </summary>
 public class NpgsqlHistoryRepository : HistoryRepository, IHistoryRepository
 {
-    private IModel? _model;
-
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -111,7 +109,9 @@ public class NpgsqlHistoryRepository : HistoryRepository, IHistoryRepository
         // Note that the approach in EF is to remove specific conventions (e.g. DbSetFindingConvention), but we don't want to hardcode
         // specific conventions here; for example, the NetTopologySuite plugin has its NpgsqlNetTopologySuiteExtensionAddingConvention
         // which adds PostGIS. So we just filter out the annotations on the operations themselves.
+#pragma warning disable EF1001 // Internal EF Core API usage.
         var model = EnsureModel();
+#pragma warning restore EF1001 // Internal EF Core API usage.
 
         var operations = Dependencies.ModelDiffer.GetDifferences(null, model.GetRelationalModel());
 
@@ -133,30 +133,6 @@ public class NpgsqlHistoryRepository : HistoryRepository, IHistoryRepository
         }
 
         return Dependencies.MigrationsSqlGenerator.Generate(operations, model);
-    }
-
-    // Copied as-is from EF's HistoryRepository, since it's private (see https://github.com/dotnet/efcore/issues/34991)
-    private IModel EnsureModel()
-    {
-        if (_model == null)
-        {
-            var conventionSet = Dependencies.ConventionSetBuilder.CreateConventionSet();
-
-            conventionSet.Remove(typeof(DbSetFindingConvention));
-            conventionSet.Remove(typeof(RelationalDbFunctionAttributeConvention));
-
-            var modelBuilder = new ModelBuilder(conventionSet);
-            modelBuilder.Entity<HistoryRow>(x =>
-            {
-                ConfigureTable(x);
-                x.ToTable(TableName, TableSchema);
-            });
-
-            _model = Dependencies.ModelRuntimeInitializer.Initialize(
-                (IModel)modelBuilder.Model, designTime: true, validationLogger: null);
-        }
-
-        return _model;
     }
 
     bool IHistoryRepository.CreateIfNotExists()

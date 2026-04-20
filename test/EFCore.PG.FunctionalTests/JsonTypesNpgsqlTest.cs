@@ -155,14 +155,14 @@ public class JsonTypesNpgsqlTest(NonSharedFixture fixture) : JsonTypesRelational
     // Cannot override since the base test contains [InlineData] attributes which still apply, and which contain data we need
     // to override. See Can_read_write_nullable_TimeSpan_JSON_values_npgsql instead.
     // TODO: Implement Can_read_write_collection_of_TimeSpan_JSON_values_npgsql
-    public override Task Can_read_write_collection_of_TimeSpan_JSON_values()
+    public override Task Can_read_write_collection_of_TimeSpan_JSON_values(string expected)
         => Task.CompletedTask;
 
     // Cannot override since the base test contains [InlineData] attributes which still apply, and which contain data we need
     // to override. See Can_read_write_nullable_TimeSpan_JSON_values_npgsql instead.
     // TODO: Implement Can_read_write_collection_of_nullable_TimeSpan_JSON_values_npgsql
-    public override Task Can_read_write_collection_of_nullable_TimeSpan_JSON_values()
-    => Task.CompletedTask;
+    public override Task Can_read_write_collection_of_nullable_TimeSpan_JSON_values(string expected)
+        => Task.CompletedTask;
 
     #endregion TimeSpan
 

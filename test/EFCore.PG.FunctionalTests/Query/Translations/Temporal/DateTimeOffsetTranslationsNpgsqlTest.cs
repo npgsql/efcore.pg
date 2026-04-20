@@ -139,6 +139,34 @@ FROM "BasicTypesEntities" AS b
 """);
     }
 
+    public override async Task DateTime()
+    {
+        await base.DateTime();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."DateTimeOffset" AT TIME ZONE 'UTC' = TIMESTAMP '1998-05-04T15:30:10'
+""");
+    }
+
+    // The base test compares DateTimeOffset.UtcDateTime with an Unspecified DateTime, which Npgsql can't generate as a timestamptz literal
+    public override Task UtcDateTime()
+        => Assert.ThrowsAsync<ArgumentException>(() => base.UtcDateTime());
+
+    public override async Task LocalDateTime()
+    {
+        await base.LocalDateTime();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."DateTimeOffset"::timestamp > TIMESTAMP '1999-01-01T00:00:00'
+""");
+    }
+
     public override async Task AddYears()
     {
         await base.AddYears();
@@ -221,6 +249,15 @@ FROM "BasicTypesEntities" AS b
 
     public override Task ToUnixTimeSecond()
         => AssertTranslationFailed(() => base.ToUnixTimeSecond());
+
+    public override Task ToOffset()
+        => AssertTranslationFailed(() => base.ToOffset());
+
+    public override Task Ctor_DateTime()
+        => AssertTranslationFailed(() => base.Ctor_DateTime());
+
+    public override Task Ctor_DateTime_TimeSpan()
+        => AssertTranslationFailed(() => base.Ctor_DateTime_TimeSpan());
 
     public override async Task Milliseconds_parameter_and_constant()
     {
