@@ -2355,6 +2355,63 @@ ORDER BY p."Id" NULLS FIRST
         AssertSql();
     }
 
+    public override async Task Parameter_collection_of_enum_Cast_from_different_enum_type(ParameterTranslationMode mode)
+    {
+        await base.Parameter_collection_of_enum_Cast_from_different_enum_type(mode);
+
+        switch (mode)
+        {
+            case ParameterTranslationMode.Constant:
+            {
+                AssertSql(
+                    """
+SELECT t."Id"
+FROM "TestEntity38008" AS t
+WHERE EXISTS (
+    SELECT 1
+    FROM (VALUES (2::int)) AS f("Value")
+    WHERE f."Value" = t."Status")
+""");
+                break;
+            }
+
+            case ParameterTranslationMode.Parameter:
+            {
+                AssertSql(
+                    """
+@filter={ '2' } (DbType = Object)
+
+SELECT t."Id"
+FROM "TestEntity38008" AS t
+WHERE EXISTS (
+    SELECT 1
+    FROM unnest(@filter) AS f(value)
+    WHERE f.value = t."Status")
+""");
+                break;
+            }
+
+            case ParameterTranslationMode.MultipleParameters:
+            {
+                AssertSql(
+                    """
+@filter1='2'
+
+SELECT t."Id"
+FROM "TestEntity38008" AS t
+WHERE EXISTS (
+    SELECT 1
+    FROM (VALUES (@filter1)) AS f("Value")
+    WHERE f."Value" = t."Status")
+""");
+                break;
+            }
+
+            default:
+                throw new NotImplementedException();
+        }
+    }
+
     public override async Task Nested_contains_with_Lists_and_no_inferred_type_mapping()
     {
         await base.Nested_contains_with_Lists_and_no_inferred_type_mapping();
