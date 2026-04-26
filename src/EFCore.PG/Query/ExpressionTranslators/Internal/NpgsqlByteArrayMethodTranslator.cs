@@ -46,18 +46,6 @@ public class NpgsqlByteArrayMethodTranslator : IMethodCallTranslator
             // Note: we only translate if the array argument is a column mapped to bytea. There are various other
             // cases (e.g. Where(b => new byte[] { 1, 2, 3 }.Contains(b.SomeByte))) where we prefer to translate via
             // regular PostgreSQL array logic.
-            if (method.GetGenericMethodDefinition().Equals(EnumerableMethods.AnyWithoutPredicate))
-            {
-                return _sqlExpressionFactory.GreaterThan(
-                    _sqlExpressionFactory.Function(
-                        "length",
-                        [arguments[0]],
-                        nullable: true,
-                        argumentsPropagateNullability: TrueArrays[1],
-                        typeof(int)),
-                    _sqlExpressionFactory.Constant(0));
-            }
-
             if (method.GetGenericMethodDefinition().Equals(EnumerableMethods.Contains))
             {
                 var source = arguments[0];
@@ -88,6 +76,18 @@ public class NpgsqlByteArrayMethodTranslator : IMethodCallTranslator
                         builtIn: true,
                         typeof(int),
                         null),
+                    _sqlExpressionFactory.Constant(0));
+            }
+
+            if (method.GetGenericMethodDefinition().Equals(EnumerableMethods.AnyWithoutPredicate))
+            {
+                return _sqlExpressionFactory.GreaterThan(
+                    _sqlExpressionFactory.Function(
+                        "length",
+                        [arguments[0]],
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(int)),
                     _sqlExpressionFactory.Constant(0));
             }
 
