@@ -1432,11 +1432,11 @@ WHERE (
 
         AssertSql(
             """
-@__ints_0={ '11', '111' } (DbType = Object)
+@__p_0={ '11', '111' } (DbType = Object)
 
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
 FROM "PrimitiveCollectionsEntity" AS p
-WHERE cardinality(@__ints_0 || p."Ints") = 2
+WHERE cardinality(@__p_0 || p."Ints") = 2
 """);
     }
 
