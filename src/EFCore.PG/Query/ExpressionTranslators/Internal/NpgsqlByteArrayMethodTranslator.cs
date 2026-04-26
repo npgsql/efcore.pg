@@ -50,7 +50,7 @@ public class NpgsqlByteArrayMethodTranslator : IMethodCallTranslator
             {
                 return _sqlExpressionFactory.GreaterThan(
                     _sqlExpressionFactory.Function(
-                        "octet_length",
+                        "length",
                         [arguments[0]],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[1],
