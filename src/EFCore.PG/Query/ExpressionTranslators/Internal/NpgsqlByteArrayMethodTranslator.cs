@@ -79,6 +79,18 @@ public class NpgsqlByteArrayMethodTranslator : IMethodCallTranslator
                     _sqlExpressionFactory.Constant(0));
             }
 
+            if (method.GetGenericMethodDefinition().Equals(EnumerableMethods.AnyWithoutPredicate))
+            {
+                return _sqlExpressionFactory.GreaterThan(
+                    _sqlExpressionFactory.Function(
+                        "length",
+                        [arguments[0]],
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(int)),
+                    _sqlExpressionFactory.Constant(0));
+            }
+
             if (method.GetGenericMethodDefinition().Equals(EnumerableMethods.FirstWithoutPredicate))
             {
                 return _sqlExpressionFactory.Convert(
