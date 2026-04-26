@@ -10,7 +10,7 @@ internal static class EnumerableMethods
 
     public static MethodInfo All { get; }
 
-    // public static MethodInfo AnyWithoutPredicate { get; }
+    public static MethodInfo AnyWithoutPredicate { get; }
 
     public static MethodInfo AnyWithPredicate { get; }
 
@@ -259,8 +259,9 @@ internal static class EnumerableMethods
             nameof(Enumerable.All), 1,
             types => [typeof(IEnumerable<>).MakeGenericType(types[0]), typeof(Func<,>).MakeGenericType(types[0], typeof(bool))]);
 
-        // AnyWithoutPredicate = GetMethod(nameof(Enumerable.Any), 1,
-        //     types => new[] { typeof(IEnumerable<>).MakeGenericType(types[0]) });
+        AnyWithoutPredicate = GetMethod(
+            nameof(Enumerable.Any), 1,
+            types => [typeof(IEnumerable<>).MakeGenericType(types[0])]);
 
         AnyWithPredicate = GetMethod(
             nameof(Enumerable.Any), 1,
