@@ -7,6 +7,179 @@ public class AdHocJsonQueryNpgsqlTest : AdHocJsonQueryRelationalTestBase
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
+    protected override async Task Seed21006(Context21006 context)
+    {
+        // Npgsql maps DateTime in JSON to timestamptz, which requires UTC.
+        // Override the base seed to use UTC DateTimes and insert entities 2-6 via raw SQL.
+        var e1 = new Context21006.Entity
+        {
+            Id = 1,
+            Name = "e1",
+            OptionalReference = new Context21006.JsonEntity
+            {
+                Number = 7,
+                Text = "e1 or",
+                NestedOptionalReference = new Context21006.JsonEntityNested
+                {
+                    DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 or nor"
+                },
+                NestedRequiredReference = new Context21006.JsonEntityNested
+                {
+                    DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 or nrr"
+                },
+                NestedCollection =
+                [
+                    new Context21006.JsonEntityNested
+                    {
+                        DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 or c1"
+                    },
+                    new Context21006.JsonEntityNested
+                    {
+                        DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 or c2"
+                    }
+                ]
+            },
+            RequiredReference = new Context21006.JsonEntity
+            {
+                Number = 7,
+                Text = "e1 rr",
+                NestedOptionalReference = new Context21006.JsonEntityNested
+                {
+                    DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 rr nor"
+                },
+                NestedRequiredReference = new Context21006.JsonEntityNested
+                {
+                    DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 rr nrr"
+                },
+                NestedCollection =
+                [
+                    new Context21006.JsonEntityNested
+                    {
+                        DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 rr c1"
+                    },
+                    new Context21006.JsonEntityNested
+                    {
+                        DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 rr c2"
+                    }
+                ]
+            },
+            Collection =
+            [
+                new Context21006.JsonEntity
+                {
+                    Number = 7,
+                    Text = "e1 c1",
+                    NestedOptionalReference = new Context21006.JsonEntityNested
+                    {
+                        DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 c1 nor"
+                    },
+                    NestedRequiredReference = new Context21006.JsonEntityNested
+                    {
+                        DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 c1 nrr"
+                    },
+                    NestedCollection =
+                    [
+                        new Context21006.JsonEntityNested
+                        {
+                            DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 c1 c1"
+                        },
+                        new Context21006.JsonEntityNested
+                        {
+                            DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 c1 c2"
+                        }
+                    ]
+                },
+                new Context21006.JsonEntity
+                {
+                    Number = 7,
+                    Text = "e1 c2",
+                    NestedOptionalReference = new Context21006.JsonEntityNested
+                    {
+                        DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 c2 nor"
+                    },
+                    NestedRequiredReference = new Context21006.JsonEntityNested
+                    {
+                        DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 c2 nrr"
+                    },
+                    NestedCollection =
+                    [
+                        new Context21006.JsonEntityNested
+                        {
+                            DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 c2 c1"
+                        },
+                        new Context21006.JsonEntityNested
+                        {
+                            DoB = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), Text = "e1 c2 c2"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        context.Add(e1);
+        await context.SaveChangesAsync();
+
+        // missing scalar on top level
+        await context.Database.ExecuteSqlAsync(
+            $$$"""
+INSERT INTO "Entities" ("Collection", "OptionalReference", "RequiredReference", "Id", "Name")
+VALUES (
+'[{"Text":"e2 c1","NestedCollection":[{"DoB":"2000-01-01T00:00:00Z","Text":"e2 c1 c1"},{"DoB":"2000-01-01T00:00:00Z","Text":"e2 c1 c2"}],"NestedOptionalReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e2 c1 nor"},"NestedRequiredReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e2 c1 nrr"}},{"Text":"e2 c2","NestedCollection":[{"DoB":"2000-01-01T00:00:00Z","Text":"e2 c2 c1"},{"DoB":"2000-01-01T00:00:00Z","Text":"e2 c2 c2"}],"NestedOptionalReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e2 c2 nor"},"NestedRequiredReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e2 c2 nrr"}}]',
+'{"Text":"e2 or","NestedCollection":[{"DoB":"2000-01-01T00:00:00Z","Text":"e2 or c1"},{"DoB":"2000-01-01T00:00:00Z","Text":"e2 or c2"}],"NestedOptionalReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e2 or nor"},"NestedRequiredReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e2 or nrr"}}',
+'{"Text":"e2 rr","NestedCollection":[{"DoB":"2000-01-01T00:00:00Z","Text":"e2 rr c1"},{"DoB":"2000-01-01T00:00:00Z","Text":"e2 rr c2"}],"NestedOptionalReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e2 rr nor"},"NestedRequiredReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e2 rr nrr"}}',
+2,
+'e2')
+""");
+
+        // missing scalar on nested level
+        await context.Database.ExecuteSqlAsync(
+            $$$"""
+INSERT INTO "Entities" ("Collection", "OptionalReference", "RequiredReference", "Id", "Name")
+VALUES (
+'[{"Number":7,"Text":"e3 c1","NestedCollection":[{"Text":"e3 c1 c1"},{"Text":"e3 c1 c2"}],"NestedOptionalReference":{"Text":"e3 c1 nor"},"NestedRequiredReference":{"Text":"e3 c1 nrr"}},{"Number":7,"Text":"e3 c2","NestedCollection":[{"Text":"e3 c2 c1"},{"Text":"e3 c2 c2"}],"NestedOptionalReference":{"Text":"e3 c2 nor"},"NestedRequiredReference":{"Text":"e3 c2 nrr"}}]',
+'{"Number":7,"Text":"e3 or","NestedCollection":[{"Text":"e3 or c1"},{"Text":"e3 or c2"}],"NestedOptionalReference":{"Text":"e3 or nor"},"NestedRequiredReference":{"Text":"e3 or nrr"}}',
+'{"Number":7,"Text":"e3 rr","NestedCollection":[{"Text":"e3 rr c1"},{"Text":"e3 rr c2"}],"NestedOptionalReference":{"Text":"e3 rr nor"},"NestedRequiredReference":{"Text":"e3 rr nrr"}}',
+3,
+'e3')
+""");
+
+        // null scalar on top level
+        await context.Database.ExecuteSqlAsync(
+            $$$"""
+INSERT INTO "Entities" ("Collection", "OptionalReference", "RequiredReference", "Id", "Name")
+VALUES (
+'[{"Number":null,"Text":"e4 c1","NestedCollection":[{"Text":"e4 c1 c1"},{"Text":"e4 c1 c2"}],"NestedOptionalReference":{"Text":"e4 c1 nor"},"NestedRequiredReference":{"Text":"e4 c1 nrr"}},{"Number":null,"Text":"e4 c2","NestedCollection":[{"Text":"e4 c2 c1"},{"Text":"e4 c2 c2"}],"NestedOptionalReference":{"Text":"e4 c2 nor"},"NestedRequiredReference":{"Text":"e4 c2 nrr"}}]',
+'{"Number":null,"Text":"e4 or","NestedCollection":[{"Text":"e4 or c1"},{"Text":"e4 or c2"}],"NestedOptionalReference":{"Text":"e4 or nor"},"NestedRequiredReference":{"Text":"e4 or nrr"}}',
+'{"Number":null,"Text":"e4 rr","NestedCollection":[{"Text":"e4 rr c1"},{"Text":"e4 rr c2"}],"NestedOptionalReference":{"Text":"e4 rr nor"},"NestedRequiredReference":{"Text":"e4 rr nrr"}}',
+4,
+'e4')
+""");
+
+        // missing required navigation
+        await context.Database.ExecuteSqlAsync(
+            $$$"""
+INSERT INTO "Entities" ("Collection", "OptionalReference", "RequiredReference", "Id", "Name")
+VALUES (
+'[{"Number":7,"Text":"e5 c1","NestedCollection":[{"DoB":"2000-01-01T00:00:00Z","Text":"e5 c1 c1"},{"DoB":"2000-01-01T00:00:00Z","Text":"e5 c1 c2"}],"NestedOptionalReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e5 c1 nor"}},{"Number":7,"Text":"e5 c2","NestedCollection":[{"DoB":"2000-01-01T00:00:00Z","Text":"e5 c2 c1"},{"DoB":"2000-01-01T00:00:00Z","Text":"e5 c2 c2"}],"NestedOptionalReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e5 c2 nor"}}]',
+'{"Number":7,"Text":"e5 or","NestedCollection":[{"DoB":"2000-01-01T00:00:00Z","Text":"e5 or c1"},{"DoB":"2000-01-01T00:00:00Z","Text":"e5 or c2"}],"NestedOptionalReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e5 or nor"}}',
+'{"Number":7,"Text":"e5 rr","NestedCollection":[{"DoB":"2000-01-01T00:00:00Z","Text":"e5 rr c1"},{"DoB":"2000-01-01T00:00:00Z","Text":"e5 rr c2"}],"NestedOptionalReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e5 rr nor"}}',
+5,
+'e5')
+""");
+
+        // null required navigation
+        await context.Database.ExecuteSqlAsync(
+            $$$"""
+INSERT INTO "Entities" ("Collection", "OptionalReference", "RequiredReference", "Id", "Name")
+VALUES (
+'[{"Number":7,"Text":"e6 c1","NestedCollection":[{"DoB":"2000-01-01T00:00:00Z","Text":"e6 c1 c1"},{"DoB":"2000-01-01T00:00:00Z","Text":"e6 c1 c2"}],"NestedOptionalReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e6 c1 nor"},"NestedRequiredReference":null},{"Number":7,"Text":"e6 c2","NestedCollection":[{"DoB":"2000-01-01T00:00:00Z","Text":"e6 c2 c1"},{"DoB":"2000-01-01T00:00:00Z","Text":"e6 c2 c2"}],"NestedOptionalReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e6 c2 nor"},"NestedRequiredReference":null}]',
+'{"Number":7,"Text":"e6 or","NestedCollection":[{"DoB":"2000-01-01T00:00:00Z","Text":"e6 or c1"},{"DoB":"2000-01-01T00:00:00Z","Text":"e6 or c2"}],"NestedOptionalReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e6 or nor"},"NestedRequiredReference":null}',
+'{"Number":7,"Text":"e6 rr","NestedCollection":[{"DoB":"2000-01-01T00:00:00Z","Text":"e6 rr c1"},{"DoB":"2000-01-01T00:00:00Z","Text":"e6 rr c2"}],"NestedOptionalReference":{"DoB":"2000-01-01T00:00:00Z","Text":"e6 rr nor"},"NestedRequiredReference":null}',
+6,
+'e6')
+""");
+    }
+
     protected override async Task Seed29219(DbContext ctx)
     {
         var entity1 = new MyEntity29219
