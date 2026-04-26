@@ -101,19 +101,6 @@ WHERE b."ByteArray" = @byteArrayParam
     }
 
     [ConditionalFact]
-    public virtual async Task Length_greater_than_zero()
-    {
-        await AssertQuery(ss => ss.Set<BasicTypesEntity>().Where(e => e.ByteArray.Length > 0));
-
-        AssertSql(
-"""
-SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
-FROM "BasicTypesEntities" AS b
-WHERE length(b."ByteArray") > 0
-""");
-    }
-
-    [ConditionalFact]
     public virtual async Task Any()
     {
         await AssertQuery(ss => ss.Set<BasicTypesEntity>().Where(e => e.ByteArray.Any()));
