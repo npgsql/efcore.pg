@@ -898,6 +898,30 @@ WHERE p."Bools" @> ARRAY[TRUE]::boolean[]
 """);
     }
 
+    public override async Task Contains_on_Enumerable(bool async)
+    {
+        await base.Contains_on_Enumerable(async);
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Int" IN (10, 999)
+""");
+    }
+
+    public override async Task Contains_on_MemoryExtensions(bool async)
+    {
+        await base.Contains_on_MemoryExtensions(async);
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Int" IN (10, 999)
+""");
+    }
+
     public override async Task Column_collection_Count_method(bool async)
     {
         await base.Column_collection_Count_method(async);
