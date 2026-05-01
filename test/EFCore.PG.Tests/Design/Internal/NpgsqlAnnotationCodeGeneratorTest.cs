@@ -174,6 +174,22 @@ public class NpgsqlAnnotationCodeGeneratorTest
     }
 
     [ConditionalFact]
+    public void GenerateFluentApi_IModel_works_with_NoIdentityGeneration()
+    {
+        var generator = CreateGenerator();
+        var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+        modelBuilder.UseNoIdentityGeneration();
+
+        var annotations = modelBuilder.Model.GetAnnotations().ToDictionary(a => a.Name, a => a);
+        var result = generator.GenerateFluentApiCalls(((IModel)modelBuilder.Model), annotations).Single();
+
+        Assert.Equal("UseNoIdentityGeneration", result.Method);
+        Assert.Equal("NpgsqlModelBuilderExtensions", result.DeclaringType);
+
+        Assert.Empty(result.Arguments);
+    }
+
+    [ConditionalFact]
     public void GenerateFluentApi_IModel_works_with_HiLo()
     {
         var generator = CreateGenerator();
