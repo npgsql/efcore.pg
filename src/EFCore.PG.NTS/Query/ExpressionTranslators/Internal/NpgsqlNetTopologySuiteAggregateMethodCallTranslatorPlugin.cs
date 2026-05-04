@@ -122,7 +122,10 @@ public class NpgsqlNetTopologySuiteAggregateMethodTranslator : IAggregateMethodC
         if (method == EnvelopeCombineMethod)
         {
             // ST_Extent returns a PostGIS box2d, which isn't a geometry and has no binary output function.
-            // Convert it to a geometry first.
+            // We need to cast the result to geometry. The aggregate function must use 'box2d' as the store type
+            // so that the cast to geometry is not stripped as a no-op by EF's SqlExpressionSimplifyingExpressionVisitor.
+            var geometryMapping = GetMapping();
+
             return _sqlExpressionFactory.Convert(
                 _sqlExpressionFactory.AggregateFunction(
                     "ST_Extent",
@@ -131,8 +134,8 @@ public class NpgsqlNetTopologySuiteAggregateMethodTranslator : IAggregateMethodC
                     nullable: true,
                     argumentsPropagateNullability: [false],
                     typeof(Geometry),
-                    GetMapping()),
-                typeof(Geometry), GetMapping());
+                    geometryMapping?.WithStoreTypeAndSize("box2d", null)),
+                typeof(Geometry), geometryMapping);
         }
 
         if (method == UnionMethod || method == GeometryCombineMethod)
