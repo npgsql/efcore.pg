@@ -1,8 +1,8 @@
   <Project>
   <PropertyGroup>
-    <EFCoreVersion>11.0.0-preview.5.26227.124</EFCoreVersion>
-    <MicrosoftExtensionsVersion>11.0.0-preview.5.26227.124</MicrosoftExtensionsVersion>
-    <MicrosoftExtensionsConfigurationVersion>11.0.0-preview.5.26227.124</MicrosoftExtensionsConfigurationVersion>
+    <EFCoreVersion>11.0.0-preview.5.26251.112</EFCoreVersion>
+    <MicrosoftExtensionsVersion>11.0.0-preview.5.26251.112</MicrosoftExtensionsVersion>
+    <MicrosoftExtensionsConfigurationVersion>11.0.0-preview.5.26251.112</MicrosoftExtensionsConfigurationVersion>
     <NpgsqlVersion>10.0.0</NpgsqlVersion>
   </PropertyGroup>
 
@@ -17,9 +17,15 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="[$(EFCoreVersion)]" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="[$(EFCoreVersion)]" />
 
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(MicrosoftExtensionsConfigurationVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="$(MicrosoftExtensionsConfigurationVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="$(MicrosoftExtensionsConfigurationVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
 
     <PackageVersion Include="Npgsql" Version="$(NpgsqlVersion)" />
     <PackageVersion Include="Npgsql.NodaTime" Version="$(NpgsqlVersion)" />

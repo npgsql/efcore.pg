@@ -44,7 +44,7 @@ WHERE length(b."ByteArray") >= 3 AND get_byte(b."ByteArray", 2) = 190
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE length(b."ByteArray") >= 1 AND get_byte(b."ByteArray", 0)::smallint = 222
+WHERE length(b."ByteArray") >= 1 AND get_byte(b."ByteArray", 0) = 222
 """);
     }
 
@@ -101,7 +101,7 @@ WHERE b."ByteArray" = @byteArrayParam
     }
 
     [ConditionalFact]
-    public virtual async Task Any()
+    public override async Task Any()
     {
         await AssertQuery(ss => ss.Set<BasicTypesEntity>().Where(e => e.ByteArray.Any()));
 

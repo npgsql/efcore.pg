@@ -193,7 +193,8 @@ public class NpgsqlNodaTimeMemberTranslator(
                 => _sqlExpressionFactory.Convert(
                     _sqlExpressionFactory.Subtract(
                         Upper(),
-                        _sqlExpressionFactory.Constant(Period.FromDays(1), _periodTypeMapping)), typeof(LocalDate),
+                        _sqlExpressionFactory.Constant(Period.FromDays(1), _periodTypeMapping),
+                        _typeMappingSource.FindMapping(typeof(LocalDateTime))), typeof(LocalDate),
                     _typeMappingSource.FindMapping(typeof(LocalDate))),
 
             nameof(DateInterval.Length) => _sqlExpressionFactory.Subtract(Upper(), Lower()),

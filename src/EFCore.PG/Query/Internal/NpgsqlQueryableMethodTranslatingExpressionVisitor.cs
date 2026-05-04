@@ -719,14 +719,14 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
 
                     // Similar to ParameterExpression below, but when a bare subquery is present inside ANY(), PostgreSQL just compares
                     // against each of its resulting rows (just like IN). To "extract" the array result of the scalar subquery, we need
-                    // to add an explicit cast (see #1803).
+                    // to add an explicit cast (see #1803). This is handled in the SQL generator (VisitArrayAny) rather than via
+                    // SqlUnaryExpression(Convert), since it's a same-type cast that would be removed by EF's simplifier.
                     ScalarSubqueryExpression subqueryExpression
                         => BuildSimplifiedShapedQuery(
                             source,
                             _sqlExpressionFactory.Any(
                                 translatedItem,
-                                _sqlExpressionFactory.Convert(
-                                    subqueryExpression, subqueryExpression.Type, subqueryExpression.TypeMapping),
+                                subqueryExpression,
                                 PgAnyOperatorType.Equal)),
 
                     // For ParameterExpression, and for all other cases - e.g. array returned from some function -
