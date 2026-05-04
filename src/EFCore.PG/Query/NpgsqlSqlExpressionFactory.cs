@@ -447,7 +447,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             {
                 var newLeft = ApplyTypeMapping(left, typeMapping);
                 var newRight = ApplyDefaultTypeMapping(right);
-                return new SqlBinaryExpression(binary.OperatorType, newLeft, newRight, binary.Type, newLeft.TypeMapping);
+                return new SqlBinaryExpression(binary.OperatorType, newLeft, newRight, binary.Type, typeMapping ?? newLeft.TypeMapping);
             }
 
             // DateTime - DateTime => TimeSpan
