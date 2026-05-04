@@ -66,7 +66,7 @@ LIMIT 2
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE left(@param, length(s."CaseInsensitiveText"))::citext = s."CaseInsensitiveText"
+WHERE left(@param, length(s."CaseInsensitiveText")) = s."CaseInsensitiveText"
 LIMIT 2
 """);
     }
@@ -120,7 +120,7 @@ LIMIT 2
 
 SELECT s."Id", s."CaseInsensitiveText"
 FROM "SomeEntities" AS s
-WHERE right(@param, length(s."CaseInsensitiveText"))::citext = s."CaseInsensitiveText"
+WHERE right(@param, length(s."CaseInsensitiveText")) = s."CaseInsensitiveText"
 LIMIT 2
 """);
     }

@@ -411,7 +411,7 @@ SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."En
 FROM "PrimitiveCollectionsEntity" AS p
 WHERE (
     SELECT count(*)::int
-    FROM (VALUES (@i::int)) AS v("Value")
+    FROM (VALUES (@i)) AS v("Value")
     WHERE v."Value" > p."Id") = 1
 """);
     }

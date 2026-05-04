@@ -889,6 +889,14 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
         Visit(expression.Array);
 
+        // When the array operand is a scalar subquery, PostgreSQL interprets = ANY(subquery) as a subquery comparison
+        // (comparing against each row), not as an array comparison. We need to add an explicit cast to force
+        // PostgreSQL to treat it as an array expression (see #1803).
+        if (expression.Array is ScalarSubqueryExpression { TypeMapping.StoreType: var storeType })
+        {
+            Sql.Append("::").Append(storeType);
+        }
+
         Sql.Append(")");
 
         return expression;

@@ -89,7 +89,7 @@ WHERE b."DateOnly" - DATE '0001-01-01' = 726780
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE CAST(b."DateOnly" + INTERVAL '3 years' AS date) = DATE '1993-11-10'
+WHERE b."DateOnly" + INTERVAL '3 years' = DATE '1993-11-10'
 """);
     }
 
@@ -101,7 +101,7 @@ WHERE CAST(b."DateOnly" + INTERVAL '3 years' AS date) = DATE '1993-11-10'
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE CAST(b."DateOnly" + INTERVAL '3 months' AS date) = DATE '1991-02-10'
+WHERE b."DateOnly" + INTERVAL '3 months' = DATE '1991-02-10'
 """);
     }
 
@@ -213,7 +213,7 @@ WHERE DATE '1990-11-10' + b."TimeOnly" = TIMESTAMP '1990-11-10T15:30:10'
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE CAST(b."DateOnly" + INTERVAL '1 years' AS date) + b."TimeOnly" = TIMESTAMP '2021-01-01T15:30:10'
+WHERE b."DateOnly" + INTERVAL '1 years' + b."TimeOnly" = TIMESTAMP '2021-01-01T15:30:10'
 """);
     }
 
