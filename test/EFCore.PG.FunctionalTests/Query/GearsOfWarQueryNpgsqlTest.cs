@@ -50,7 +50,7 @@ WHERE length(s."Banner5") = 5
 
 SELECT m."Id", m."CodeName", m."Date", m."Difficulty", m."Duration", m."Rating", m."Time", m."Timeline"
 FROM "Missions" AS m
-WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC')::timestamp >= @dateTimeOffset_Date
+WHERE date_trunc('day', m."Timeline" AT TIME ZONE 'UTC') >= @dateTimeOffset_Date
 """);
     }
 

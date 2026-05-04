@@ -166,7 +166,7 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
 
                 if (segment.IsArray)
                 {
-                    stringBuilder.Append(jsonPath.Ordinals[ordinalIndex++]);
+                    stringBuilder.Append(jsonPath.Indices[ordinalIndex++]);
                 }
                 else
                 {
