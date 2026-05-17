@@ -341,8 +341,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
         }
         finally
         {
-            if (connection.State == ConnectionState.Closed
-                && connection.State != ConnectionState.Closed)
+            if (connection.State != ConnectionState.Closed)
             {
                 connection.Close();
             }
@@ -389,8 +388,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
         }
         finally
         {
-            if (connection.State == ConnectionState.Closed
-                && connection.State != ConnectionState.Closed)
+            if (connection.State != ConnectionState.Closed)
             {
                 await connection.CloseAsync();
             }

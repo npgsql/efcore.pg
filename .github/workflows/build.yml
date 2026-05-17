@@ -115,7 +115,7 @@ jobs:
         run: dotnet test -c ${{ matrix.config }} --logger "GitHubActions;report-warnings=false"
         shell: bash
         env:
-          Test__Npgsql__DefaultConnection: Server=localhost;Username=npgsql_tests;Password=npgsql_tests
+          Test__Npgsql__DefaultConnection: Server=localhost;Username=npgsql_tests;Password=npgsql_tests;SSL Mode=Disable
 
       - id: analyze_tag
         name: Analyze tag
