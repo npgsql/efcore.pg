@@ -11,6 +11,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
 /// </summary>
 public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
 {
+#if DEBUG
+    internal static bool LegacyUuidBehaviour;
+#else
+    internal static readonly bool LegacyUuidBehaviour;
+#endif
+
     private readonly INpgsqlSequenceValueGeneratorFactory _sequenceFactory;
     private readonly INpgsqlRelationalConnection _connection;
     private readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
@@ -34,6 +40,8 @@ public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
         _connection = connection;
         _rawSqlCommandBuilder = rawSqlCommandBuilder;
         _commandLogger = commandLogger;
+
+        LegacyUuidBehaviour = AppContext.TryGetSwitch("Npgsql.EnableLegacyUuidBehaviour", out var enabled) && enabled;
     }
 
     /// <summary>
@@ -104,7 +112,9 @@ public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
         => property.ClrType.UnwrapNullableType() switch
         {
             var t when t == typeof(Guid) && property.ValueGenerated is not ValueGenerated.Never && property.GetDefaultValueSql() is null
-                => new NpgsqlSequentialGuidValueGenerator(),
+                => LegacyUuidBehaviour
+                    ? new NpgsqlSequentialLegacyGuidValueGenerator()
+                    : new NpgsqlSequentialGuidValueGenerator(),
 
             var t when t == typeof(string) && property.ValueGenerated is not ValueGenerated.Never && property.GetDefaultValueSql() is null
                 => new NpgsqlSequentialStringValueGenerator(),
