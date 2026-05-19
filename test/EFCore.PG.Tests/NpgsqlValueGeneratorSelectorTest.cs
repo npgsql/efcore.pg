@@ -175,6 +175,40 @@ public class NpgsqlValueGeneratorSelectorTest
         Assert.IsType<NpgsqlSequenceHiLoValueGenerator<int>>(generator);
     }
 
+    [ConditionalFact]
+    public void Returns_legacy_guid_generator_when_legacy_uuid_behaviour_enabled()
+    {
+        var previous = NpgsqlValueGeneratorSelector.LegacyUuidBehaviour;
+
+        try
+        {
+            NpgsqlValueGeneratorSelector.LegacyUuidBehaviour = true;
+
+            var builder = NpgsqlTestHelpers.Instance.CreateConventionBuilder();
+            builder.Entity<AnEntity>(
+                b =>
+                {
+                    b.Property(e => e.Guid).ValueGeneratedOnAdd();
+                    b.HasKey(e => e.Guid);
+                });
+
+            var model = builder.FinalizeModel();
+            var entityType = model.FindEntityType(typeof(AnEntity));
+
+            var selector = NpgsqlTestHelpers.Instance.CreateContextServices(model)
+                .GetRequiredService<IValueGeneratorSelector>();
+
+            var property = entityType.FindProperty("Guid")!;
+
+            Assert.True(selector.TrySelect(property, property.DeclaringType, out var generator));
+            Assert.IsType<NpgsqlSequentialLegacyGuidValueGenerator>(generator);
+        }
+        finally
+        {
+            NpgsqlValueGeneratorSelector.LegacyUuidBehaviour = previous;
+        }
+    }
+
     private class AnEntity
     {
         // ReSharper disable UnusedMember.Local
