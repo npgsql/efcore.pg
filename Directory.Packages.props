@@ -1,8 +1,8 @@
   <Project>
   <PropertyGroup>
-    <EFCoreVersion>11.0.0-preview.5.26267.102</EFCoreVersion>
-    <MicrosoftExtensionsVersion>11.0.0-preview.5.26267.102</MicrosoftExtensionsVersion>
-    <MicrosoftExtensionsConfigurationVersion>11.0.0-preview.5.26267.102</MicrosoftExtensionsConfigurationVersion>
+    <EFCoreVersion>11.0.0-preview.5.26275.101</EFCoreVersion>
+    <MicrosoftExtensionsVersion>11.0.0-preview.5.26275.101</MicrosoftExtensionsVersion>
+    <MicrosoftExtensionsConfigurationVersion>11.0.0-preview.5.26275.101</MicrosoftExtensionsConfigurationVersion>
     <NpgsqlVersion>10.0.0</NpgsqlVersion>
   </PropertyGroup>
 
@@ -28,6 +28,7 @@
 
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="xunit.v3" Version="4.0.0-pre.108" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.core" Version="2.9.3" />

@@ -2031,7 +2031,7 @@ ORDER BY o0."CustomerID" NULLS FIRST
 """);
     }
 
-    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/28410")]
+    [ActiveIssue("https://github.com/dotnet/efcore/pull/28410")]
     public override async Task Select_nested_collection_with_groupby(bool async)
     {
         await base.Select_nested_collection_with_groupby(async);

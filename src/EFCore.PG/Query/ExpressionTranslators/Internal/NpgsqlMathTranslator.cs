@@ -18,6 +18,7 @@ public class NpgsqlMathTranslator(
     IModel model) : IMethodCallTranslator
 {
     private readonly RelationalTypeMapping _intTypeMapping = typeMappingSource.FindMapping(typeof(int), model)!;
+    private readonly RelationalTypeMapping _doubleTypeMapping = typeMappingSource.FindMapping(typeof(double), model)!;
     private readonly RelationalTypeMapping _decimalTypeMapping = typeMappingSource.FindMapping(typeof(decimal), model)!;
 
     /// <inheritdoc />
@@ -226,7 +227,8 @@ public class NpgsqlMathTranslator(
                     [argument],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
-                    method.ReturnType),
+                    argument.Type == typeof(decimal) ? typeof(decimal) : typeof(double),
+                    argument.Type == typeof(decimal) ? argument.TypeMapping : _doubleTypeMapping),
                 typeof(int),
                 _intTypeMapping);
     }

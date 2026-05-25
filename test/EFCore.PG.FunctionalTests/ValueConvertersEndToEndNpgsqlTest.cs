@@ -3,7 +3,7 @@ namespace Microsoft.EntityFrameworkCore;
 public class ValueConvertersEndToEndNpgsqlTest(ValueConvertersEndToEndNpgsqlTest.ValueConvertersEndToEndNpgsqlFixture fixture)
     : ValueConvertersEndToEndTestBase<ValueConvertersEndToEndNpgsqlTest.ValueConvertersEndToEndNpgsqlFixture>(fixture)
 {
-    [ConditionalTheory(Skip = "DateTime and DateTimeOffset, https://github.com/dotnet/efcore/issues/26068")]
+    [ActiveIssue("DateTime and DateTimeOffset, https://github.com/dotnet/efcore/issues/26068")]
     public override Task Can_insert_and_read_back_with_conversions(int[] valueOrder)
         => base.Can_insert_and_read_back_with_conversions(valueOrder);
 

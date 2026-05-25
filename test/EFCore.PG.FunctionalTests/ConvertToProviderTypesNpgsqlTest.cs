@@ -1,4 +1,4 @@
-﻿namespace Microsoft.EntityFrameworkCore;
+namespace Microsoft.EntityFrameworkCore;
 
 public class ConvertToProviderTypesNpgsqlTest : ConvertToProviderTypesTestBase<
     ConvertToProviderTypesNpgsqlTest.ConvertToProviderTypesNpgsqlFixture>
@@ -49,7 +49,7 @@ public class ConvertToProviderTypesNpgsqlTest : ConvertToProviderTypesTestBase<
     //     }
     // }
 
-    [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
+    [ActiveIssue("DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
     public override Task Can_insert_and_read_back_object_backed_data_types()
         => Task.CompletedTask;
 

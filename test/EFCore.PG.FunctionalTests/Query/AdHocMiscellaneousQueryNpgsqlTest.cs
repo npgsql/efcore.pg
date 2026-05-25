@@ -33,7 +33,7 @@ INSERT INTO "ZeroKey" VALUES (NULL)
     public override Task Subquery_first_member_compared_to_null(bool async)
         => Task.CompletedTask;
 
-    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/27995/files#r874038747")]
+    [ActiveIssue("https://github.com/dotnet/efcore/pull/27995/files#r874038747")]
     public override Task StoreType_for_UDF_used(bool async)
         => base.StoreType_for_UDF_used(async);
 }

@@ -7,19 +7,19 @@ namespace Microsoft.EntityFrameworkCore;
 public abstract class ConnectionInterceptionNpgsqlTestBase(ConnectionInterceptionNpgsqlTestBase.InterceptionNpgsqlFixtureBase fixture)
     : ConnectionInterceptionTestBase(fixture)
 {
-    [ConditionalTheory(Skip = "#2368")]
+    [ActiveIssue("#2368")]
     public override Task Intercept_connection_creation_passively(bool async)
         => base.Intercept_connection_creation_passively(async);
 
-    [ConditionalTheory(Skip = "#2368")]
+    [ActiveIssue("#2368")]
     public override Task Intercept_connection_creation_with_multiple_interceptors(bool async)
         => base.Intercept_connection_creation_with_multiple_interceptors(async);
 
-    [ConditionalTheory(Skip = "#2368")]
+    [ActiveIssue("#2368")]
     public override Task Intercept_connection_to_override_connection_after_creation(bool async)
         => base.Intercept_connection_to_override_connection_after_creation(async);
 
-    [ConditionalTheory(Skip = "#2368")]
+    [ActiveIssue("#2368")]
     public override Task Intercept_connection_to_override_creation(bool async)
         => base.Intercept_connection_to_override_creation(async);
 

@@ -2657,7 +2657,6 @@ WHERE NOT (p."Int" = ANY (@ints) AND p."Int" = ANY (@ints) IS NOT NULL)
 """);
     }
 
-    [ConditionalFact]
     public override async Task Multidimensional_array_is_not_supported()
     {
         // Multidimensional arrays are supported in PostgreSQL (via the regular array type); the EFCore.PG maps .NET
