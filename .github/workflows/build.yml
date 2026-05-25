@@ -112,7 +112,7 @@ jobs:
         shell: bash
 
       - name: Test
-        run: dotnet test -c ${{ matrix.config }} --logger "GitHubActions;report-warnings=false"
+        run: dotnet test -c ${{ matrix.config }} -- --no-progress
         shell: bash
         env:
           # Disable SSL to avoid unnecessary handshake pressure in the Windows functional tests.
