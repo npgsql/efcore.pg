@@ -53,7 +53,8 @@ public static class TestEnvironment
             };
         }
 
-        Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+        CultureInfo.DefaultThreadCurrentCulture = Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+        CultureInfo.DefaultThreadCurrentUICulture = Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
     }
 
     private static Version? _postgresVersion;

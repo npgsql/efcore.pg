@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Net.NetworkInformation;
 
@@ -719,7 +719,7 @@ WHERE m."TimeSpanAsTime" = @timeSpan
         Assert.Null(entity.Mood);
     }
 
-    [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
+    [ActiveIssue("DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
     public override Task Can_insert_and_read_back_object_backed_data_types()
         => Task.CompletedTask;
 

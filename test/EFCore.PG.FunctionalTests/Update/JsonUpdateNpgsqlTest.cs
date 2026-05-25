@@ -1255,7 +1255,6 @@ LIMIT 2
 """);
     }
 
-    [ConditionalFact]
     public override async Task Edit_single_property_with_converter_string_True_False_to_bool()
     {
         await base.Edit_single_property_with_converter_string_True_False_to_bool();
@@ -1277,7 +1276,6 @@ LIMIT 2
 """);
     }
 
-    [ConditionalFact]
     public override async Task Edit_single_property_with_converter_string_Y_N_to_bool()
     {
         await base.Edit_single_property_with_converter_string_Y_N_to_bool();
