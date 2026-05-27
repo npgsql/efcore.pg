@@ -3,7 +3,7 @@
     <EFCoreVersion>11.0.0-preview.5.26275.101</EFCoreVersion>
     <MicrosoftExtensionsVersion>11.0.0-preview.5.26275.101</MicrosoftExtensionsVersion>
     <MicrosoftExtensionsConfigurationVersion>11.0.0-preview.5.26275.101</MicrosoftExtensionsConfigurationVersion>
-    <NpgsqlVersion>10.0.0</NpgsqlVersion>
+    <NpgsqlVersion>10.0.3</NpgsqlVersion>
   </PropertyGroup>
 
   <ItemGroup>
