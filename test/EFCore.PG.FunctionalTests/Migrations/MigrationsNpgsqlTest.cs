@@ -3246,7 +3246,7 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
         AssertSql("""ALTER TABLE "Customers" ADD "Numbers" integer[] NOT NULL DEFAULT (ARRAY[1,2,3]);""");
     }
 
-    [ActiveIssue("issue #33038")]
+    [ConditionalFact(Skip = "issue #33038")]
     public override async Task Add_required_primitive_collection_with_custom_converter_to_existing_table()
     {
         await base.Add_required_primitive_collection_with_custom_converter_to_existing_table();
@@ -3337,7 +3337,7 @@ CREATE TABLE "Contacts" (
         AssertSql("""ALTER TABLE "Customers" ADD "Numbers" integer[] NOT NULL DEFAULT ARRAY[1,2,3]::integer[];""");
     }
 
-    [ActiveIssue("issue #33038")]
+    [ConditionalFact(Skip = "issue #33038")]
     public override async Task Add_required_primitve_collection_with_custom_converter_to_existing_table()
     {
         await base.Add_required_primitve_collection_with_custom_converter_to_existing_table();

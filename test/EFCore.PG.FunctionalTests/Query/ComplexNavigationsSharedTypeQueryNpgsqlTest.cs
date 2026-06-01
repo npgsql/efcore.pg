@@ -15,7 +15,7 @@ public class ComplexNavigationsSharedTypeQueryNpgsqlTest
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
-    [ActiveIssue("https://github.com/dotnet/efcore/issues/26353")]
+    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/26353")]
     public override Task Subquery_with_Distinct_Skip_FirstOrDefault_without_OrderBy(bool async)
         => base.Subquery_with_Distinct_Skip_FirstOrDefault_without_OrderBy(async);
 
@@ -30,11 +30,11 @@ public class ComplexNavigationsSharedTypeQueryNpgsqlTest
                 "Microsoft.EntityFrameworkCore.Query.ComplexNavigationsQueryTestBase<Microsoft.EntityFrameworkCore.Query.ComplexNavigationsSharedTypeQueryNpgsqlFixture>",
                 "ClientMethodNullableInt"));
 
-    [ActiveIssue("https://github.com/dotnet/efcore/issues/26104")]
+    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/26104")]
     public override Task GroupBy_aggregate_where_required_relationship(bool async)
         => base.GroupBy_aggregate_where_required_relationship(async);
 
-    [ActiveIssue("https://github.com/dotnet/efcore/issues/26104")]
+    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/26104")]
     public override Task GroupBy_aggregate_where_required_relationship_2(bool async)
         => base.GroupBy_aggregate_where_required_relationship_2(async);
 }

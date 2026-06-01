@@ -391,9 +391,9 @@ public class SequenceEndToEndTest : IAsyncLifetime
 
     protected NpgsqlTestStore TestStore { get; private set; } = null!;
 
-    public async ValueTask InitializeAsync()
+    public async Task InitializeAsync()
         => TestStore = await NpgsqlTestStore.CreateInitializedAsync("SequenceEndToEndTest");
 
-    public async ValueTask DisposeAsync()
+    public async Task DisposeAsync()
         => await TestStore.DisposeAsync();
 }

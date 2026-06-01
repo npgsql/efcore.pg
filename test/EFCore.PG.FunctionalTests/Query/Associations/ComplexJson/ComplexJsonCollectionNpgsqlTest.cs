@@ -177,6 +177,7 @@ WHERE (CAST(r."AssociateCollection" #>> '{9999,Int}' AS integer)) = 8
 
     #region GroupBy
 
+    [ConditionalFact]
     public override async Task GroupBy()
     {
         await base.GroupBy();

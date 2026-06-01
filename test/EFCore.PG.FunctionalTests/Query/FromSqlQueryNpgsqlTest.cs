@@ -7,11 +7,11 @@ namespace Microsoft.EntityFrameworkCore.Query;
 public class FromSqlQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture)
     : FromSqlQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>(fixture)
 {
-    [ActiveIssue("https://github.com/aspnet/EntityFramework/issues/{6563,20364}")]
+    [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFramework/issues/{6563,20364}")]
     public override Task Bad_data_error_handling_invalid_cast(bool async)
         => base.Bad_data_error_handling_invalid_cast(async);
 
-    [ActiveIssue("https://github.com/aspnet/EntityFramework/issues/{6563,20364}")]
+    [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFramework/issues/{6563,20364}")]
     public override Task Bad_data_error_handling_invalid_cast_projection(bool async)
         => base.Bad_data_error_handling_invalid_cast_projection(async);
 
@@ -66,6 +66,7 @@ public class FromSqlQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomi
         Assert.Single(actual);
     }
 
+    [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public override async Task FromSql_queryable_multiple_composed_with_parameters_and_closure_parameters_interpolated(bool async)
     {

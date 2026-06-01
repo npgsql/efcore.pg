@@ -360,7 +360,7 @@ FROM (
 """);
     }
 
-    [ActiveIssue("https://github.com/dotnet/efcore/pull/30384")]
+    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/30384")]
     public override async Task SqlQueryRaw_annotations_do_not_affect_successive_calls(bool async)
     {
         await base.SqlQueryRaw_annotations_do_not_affect_successive_calls(async);
@@ -460,7 +460,7 @@ SELECT * FROM "Customers" WHERE "CustomerID" = @somename
 """);
     }
 
-    [ActiveIssue("https://github.com/dotnet/efcore/pull/30384")]
+    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/30384")]
     public override async Task SqlQuery_parameterization_issue_12213(bool async)
     {
         await base.SqlQuery_parameterization_issue_12213(async);
@@ -672,11 +672,11 @@ WHERE m."ContactName" LIKE '%z%'
     }
 
 #pragma warning disable xUnit1026
-    [ActiveIssue("https://github.com/dotnet/efcore/pull/30384")]
+    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/30384")]
     public override Task Bad_data_error_handling_invalid_cast(bool async)
         => Task.CompletedTask;
 
-    [ActiveIssue("https://github.com/dotnet/efcore/pull/30384")]
+    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/30384")]
     public override Task Bad_data_error_handling_invalid_cast_projection(bool async)
         => Task.CompletedTask;
 #pragma warning restore xUnit1026

@@ -78,8 +78,11 @@ ORDER BY e1."Id" NULLS FIRST
 """);
     }
 
+    // Seed data for the fixture manually inserts entities with IDs 1, 2; then this test attempts to insert another one with an auto-generated ID,
+    // but the PG sequence wasn't updated so produces 1, resulting in a conflict. The test should be consistent in either using either
+    // auto-generated IDs or not across the board.
     public override Task Can_insert_update_delete()
-        => base.Can_insert_update_delete();
+        => Assert.ThrowsAsync<DbUpdateException>(base.Can_insert_update_delete);
 
     public override async Task Can_query_all_animals(bool async)
     {

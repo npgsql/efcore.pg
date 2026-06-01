@@ -2214,7 +2214,7 @@ CREATE EXTENSION postgis;
         public new NpgsqlTestStore TestStore
             => (NpgsqlTestStore)base.TestStore;
 
-        public override async ValueTask InitializeAsync()
+        public override async Task InitializeAsync()
         {
             await base.InitializeAsync();
             await TestStore.ExecuteNonQueryAsync("CREATE SCHEMA IF NOT EXISTS db2");

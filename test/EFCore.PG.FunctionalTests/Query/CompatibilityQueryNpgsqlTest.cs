@@ -1,4 +1,4 @@
-﻿namespace Microsoft.EntityFrameworkCore.Query;
+namespace Microsoft.EntityFrameworkCore.Query;
 
 public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgsqlTest.CompatibilityQueryNpgsqlFixture>
 {
@@ -74,7 +74,7 @@ LIMIT 2
             return new CompatibilityContext(builder.Options);
         }
 
-        public virtual async ValueTask InitializeAsync()
+        public virtual async Task InitializeAsync()
         {
             _testStore = NpgsqlTestStoreFactory.Instance.GetOrCreate(StoreName);
             await _testStore.InitializeAsync(null, CreateContext, c => CompatibilityContext.SeedAsync((CompatibilityContext)c));
@@ -85,7 +85,7 @@ LIMIT 2
         {
         }
 
-        public virtual async ValueTask DisposeAsync()
+        public virtual async Task DisposeAsync()
             => await _testStore.DisposeAsync();
     }
 

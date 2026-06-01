@@ -29,23 +29,23 @@ public class MigrationsInfrastructureNpgsqlTest(MigrationsInfrastructureNpgsqlTe
     public override Task Can_generate_no_migration_script()
         => base.Can_generate_no_migration_script();
 
-    [ActiveIssue("https://github.com/dotnet/efcore/issues/33056")]
+    [ConditionalFact(Skip = "https://github.com/dotnet/efcore/issues/33056")]
     public override void Can_apply_all_migrations()
         => base.Can_apply_all_migrations();
 
-    [ActiveIssue("https://github.com/dotnet/efcore/issues/33056")]
+    [ConditionalFact(Skip = "https://github.com/dotnet/efcore/issues/33056")]
     public override void Can_apply_range_of_migrations()
         => base.Can_apply_range_of_migrations();
 
-    [ActiveIssue("https://github.com/dotnet/efcore/issues/33056")]
+    [ConditionalFact(Skip = "https://github.com/dotnet/efcore/issues/33056")]
     public override void Can_revert_all_migrations()
         => base.Can_revert_all_migrations();
 
-    [ActiveIssue("https://github.com/dotnet/efcore/issues/33056")]
+    [ConditionalFact(Skip = "https://github.com/dotnet/efcore/issues/33056")]
     public override void Can_revert_one_migrations()
         => base.Can_revert_one_migrations();
 
-    [ActiveIssue("https://github.com/dotnet/efcore/issues/33056")]
+    [ConditionalFact(Skip = "https://github.com/dotnet/efcore/issues/33056")]
     public override Task Can_apply_all_migrations_async()
         => base.Can_apply_all_migrations_async();
 

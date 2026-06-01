@@ -100,6 +100,7 @@ WHERE b."ByteArray" = @byteArrayParam
 """);
     }
 
+    [ConditionalFact]
     public override async Task Any()
     {
         await AssertQuery(ss => ss.Set<BasicTypesEntity>().Where(e => e.ByteArray.Any()));

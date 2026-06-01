@@ -15,9 +15,10 @@ public class LazyLoadProxyNpgsqlTest : LazyLoadProxyRelationalTestBase<LazyLoadP
     public override void Can_serialize_proxies_to_JSON()
         => Assert.Throws<EqualException>(base.Can_serialize_proxies_to_JSON);
 
+    [ConditionalFact] // Requires MARS
     public override void Top_level_projection_track_entities_before_passing_to_client_method() { }
 
-    [ActiveIssue("Possibly requires MARS, investigate")]
+    [ConditionalTheory(Skip = "Possibly requires MARS, investigate")]
     public override void Lazy_load_one_to_one_reference_with_recursive_property(EntityState state)
         => base.Lazy_load_one_to_one_reference_with_recursive_property(state);
 

@@ -210,6 +210,7 @@ ORDER BY r."Id" NULLS FIRST, s."Id" NULLS FIRST
 
     #region GroupBy
 
+    [ConditionalFact]
     public override async Task GroupBy()
     {
         await base.GroupBy();
