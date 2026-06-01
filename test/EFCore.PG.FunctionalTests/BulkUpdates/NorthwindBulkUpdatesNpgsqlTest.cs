@@ -1407,6 +1407,7 @@ WHERE c0."CustomerID" = s."CustomerID"
 """);
     }
 
+    [ConditionalTheory]
     public override async Task Update_with_cross_join_left_join_set_constant(bool async)
     {
         await base.Update_with_cross_join_left_join_set_constant(async);
@@ -1436,6 +1437,7 @@ WHERE c2."CustomerID" = s."CustomerID"
 """);
     }
 
+    [ConditionalTheory]
     public override async Task Update_with_cross_join_cross_apply_set_constant(bool async)
     {
         await base.Update_with_cross_join_cross_apply_set_constant(async);
@@ -1465,6 +1467,7 @@ WHERE c2."CustomerID" = s."CustomerID"
 """);
     }
 
+    [ConditionalTheory]
     public override async Task Update_with_cross_join_outer_apply_set_constant(bool async)
     {
         await base.Update_with_cross_join_outer_apply_set_constant(async);
@@ -1574,6 +1577,7 @@ WHERE c."CustomerID" LIKE 'F%'
 """);
     }
 
+    [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public override async Task Update_with_two_inner_joins(bool async)
     {

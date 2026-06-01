@@ -127,7 +127,7 @@ WHERE c."ContactName" NOT ILIKE '%M%' OR c."ContactName" IS NULL
     #region Collation
 
     [MinimumPostgresVersion(12, 0)]
-    [SkipOnPlatform(TestPlatforms.Windows, "ICU non-deterministic doesn't seem to work on Windows?")]
+    [PlatformSkipCondition(TestUtilities.Xunit.TestPlatform.Windows, SkipReason = "ICU non-deterministic doesn't seem to work on Windows?")]
     public override async Task Collate_case_insensitive(bool async)
     {
         await base.Collate_case_insensitive(async);

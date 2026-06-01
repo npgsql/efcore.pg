@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 #if DEBUG
@@ -110,10 +110,10 @@ WHERE now() AT TIME ZONE 'UTC' <> @myDatetime
                 NpgsqlTypeMappingSource.LegacyTimestampBehavior = true;
             }
 
-            public override ValueTask DisposeAsync()
+            public override Task DisposeAsync()
             {
                 NpgsqlTypeMappingSource.LegacyTimestampBehavior = false;
-                return ValueTask.CompletedTask;
+                return Task.CompletedTask;
             }
 
             protected override async Task SeedAsync(TimestampQueryContext context)
