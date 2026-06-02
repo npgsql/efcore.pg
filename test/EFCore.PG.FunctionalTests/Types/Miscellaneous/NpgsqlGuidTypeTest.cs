@@ -86,7 +86,7 @@ WHERE "Id" = @p1;
 @Fixture_OtherValue='ae192c36-9004-49b2-b785-8be10d169627'
 
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(@Fixture_OtherValue))
+SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(@Fixture_OtherValue))
 """);
     }
 
@@ -97,7 +97,7 @@ SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(@Fixture_
         AssertSql(
             """
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb('ae192c36-9004-49b2-b785-8be10d169627'::uuid))
+SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb('ae192c36-9004-49b2-b785-8be10d169627'::uuid))
 """);
     }
 
@@ -119,7 +119,7 @@ SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', j."JsonContainer" 
         AssertSql(
             """
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(j."OtherValue"))
+SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(j."OtherValue"))
 """);
     }
 

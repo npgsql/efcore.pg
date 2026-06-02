@@ -85,7 +85,7 @@ WHERE "Id" = @p1;
 @Fixture_OtherValue='0x04050607'
 
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(encode(@Fixture_OtherValue, 'base64')))
+SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(encode(@Fixture_OtherValue, 'base64')))
 """);
     }
 
@@ -96,7 +96,7 @@ SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(encode(@F
         AssertSql(
             """
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(encode(BYTEA E'\\x04050607', 'base64')))
+SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(encode(BYTEA E'\\x04050607', 'base64')))
 """);
     }
 
@@ -107,7 +107,7 @@ SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(encode(BY
         AssertSql(
             """
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(encode(decode(j."JsonContainer" ->> 'OtherValue', 'base64'), 'base64')))
+SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(encode(decode(j."JsonContainer" ->> 'OtherValue', 'base64'), 'base64')))
 """);
     }
 
@@ -118,7 +118,7 @@ SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(encode(de
         AssertSql(
             """
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(encode(j."OtherValue", 'base64')))
+SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(encode(j."OtherValue", 'base64')))
 """);
     }
 

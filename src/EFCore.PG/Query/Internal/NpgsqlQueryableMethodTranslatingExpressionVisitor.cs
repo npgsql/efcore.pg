@@ -20,6 +20,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     private readonly RelationalQueryCompilationContext _queryCompilationContext;
     private readonly NpgsqlTypeMappingSource _typeMappingSource;
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+    private readonly Version _postgresVersion;
     private readonly bool _isRedshift;
     private RelationalTypeMapping? _ordinalityTypeMapping;
 
@@ -55,6 +56,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         _queryCompilationContext = queryCompilationContext;
         _typeMappingSource = (NpgsqlTypeMappingSource)relationalDependencies.TypeMappingSource;
         _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)relationalDependencies.SqlExpressionFactory;
+        _postgresVersion = npgsqlSingletonOptions.PostgresVersion;
         _isRedshift = npgsqlSingletonOptions.UseRedshift;
     }
 
@@ -70,6 +72,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         _queryCompilationContext = parentVisitor._queryCompilationContext;
         _typeMappingSource = parentVisitor._typeMappingSource;
         _sqlExpressionFactory = parentVisitor._sqlExpressionFactory;
+        _postgresVersion = parentVisitor._postgresVersion;
         _isRedshift = parentVisitor._isRedshift;
     }
 
@@ -1274,6 +1277,14 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     {
         var jsonTypeMapping = ((ColumnExpression)target.Json).TypeMapping!;
 
+        if (IsSqlNull(value))
+        {
+            jsonValue = JsonNull(jsonTypeMapping);
+            return true;
+        }
+
+        var coalesceToJsonNull = !SupportsJsonSetLax(jsonTypeMapping) && MayReturnNull(value);
+
         if (
             // The base implementation doesn't handle serializing arbitrary SQL expressions to JSON, since that's
             // database-specific. In PostgreSQL we simply do this by wrapping any expression in to_jsonb().
@@ -1286,7 +1297,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             switch (value.TypeMapping!.StoreType)
             {
                 case "jsonb" or "json":
-                    jsonValue = value;
+                    jsonValue = coalesceToJsonNull ? CoalesceToJsonNull(value, jsonTypeMapping) : value;
                     return true;
 
                 case "bytea":
@@ -1319,24 +1330,39 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                     jsonScalarValue.Type,
                     jsonTypeMapping,
                     jsonScalarValue.IsNullable);
+
+                if (coalesceToJsonNull)
+                {
+                    jsonValue = CoalesceToJsonNull(jsonValue, jsonTypeMapping);
+                }
+
                 return true;
             }
 
-            jsonValue = _sqlExpressionFactory.Function(
+            var valueForJsonScalar = NeedsJsonScalarTypeInference(value) ? CastForJsonScalarTypeInference(value, target) : value;
+            var toJson = _sqlExpressionFactory.Function(
                 jsonTypeMapping.StoreType switch
                 {
                     "jsonb" => "to_jsonb",
                     "json" => "to_json",
                     _ => throw new UnreachableException()
                 },
-                // Make sure PG interprets constant values correctly by adding explicit typing based on the target property's type mapping.
+                // Make sure PG interprets constant/nullable parameter values correctly by adding explicit typing based on the target property's
+                // type mapping.
                 // Note that we can only be here for scalar properties, for structural types we always already get a jsonb/json value
                 // and don't need to add to_jsonb/to_json.
-                [value is SqlConstantExpression ? _sqlExpressionFactory.Convert(value, target.Type, target.TypeMapping) : value],
+                [valueForJsonScalar],
                 nullable: true,
                 argumentsPropagateNullability: [true],
                 typeof(string),
                 jsonTypeMapping);
+
+            jsonValue = toJson;
+        }
+
+        if (coalesceToJsonNull)
+        {
+            jsonValue = CoalesceToJsonNull(jsonValue, jsonTypeMapping);
         }
 
         return true;
@@ -1362,26 +1388,46 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             _ => throw new UnreachableException(),
         };
 
-        var jsonSet = _sqlExpressionFactory.Function(
-            jsonColumn.TypeMapping?.StoreType switch
-            {
-                "jsonb" => "jsonb_set",
-                "json" => "json_set",
-                _ => throw new UnreachableException()
-            },
-            arguments:
-            [
-                existingSetterValue ?? jsonColumn,
-                // Hack: Rendering of JSONPATH strings happens in value generation. We can have a special expression for modify to hold the
-                // IReadOnlyList<PathSegment> (just like Json{Scalar,Query}Expression), but instead we do the slight hack of packaging it
-                // as a constant argument; it will be unpacked and handled in SQL generation.
-                _sqlExpressionFactory.Constant(path, RelationalTypeMapping.NullMapping),
-                value
-            ],
-            nullable: true,
-            argumentsPropagateNullability: [true, true, true],
-            typeof(string),
-            jsonColumn.TypeMapping);
+        var jsonTypeMapping = jsonColumn.TypeMapping!;
+        var isNullConstant = IsJsonNull(value);
+        var isConstant = value is SqlConstantExpression;
+        var valueMayBeNull = !isNullConstant && MayReturnNull(value);
+        var supportsJsonSetLax = SupportsJsonSetLax(jsonTypeMapping);
+
+        value = isNullConstant
+            ? JsonNull(jsonTypeMapping)
+            : supportsJsonSetLax || isConstant || !valueMayBeNull
+                ? value
+                : CoalesceToJsonNull(value, jsonTypeMapping);
+
+        var useJsonSetLax = supportsJsonSetLax && (valueMayBeNull || isNullConstant);
+        var jsonSetTarget = existingSetterValue ?? jsonColumn;
+
+        // Hack: Rendering of JSONPATH strings happens in value generation. We can have a special expression for modify to hold the
+        // IReadOnlyList<PathSegment> (just like Json{Scalar,Query}Expression), but instead we do the slight hack of packaging it
+        // as a constant argument; it will be unpacked and handled in SQL generation.
+        var jsonPath = _sqlExpressionFactory.Constant(path, RelationalTypeMapping.NullMapping);
+
+        var jsonSet = useJsonSetLax
+            ? _sqlExpressionFactory.Function(
+                "jsonb_set_lax",
+                [jsonSetTarget, jsonPath, value],
+                nullable: true,
+                argumentsPropagateNullability: [true, true, false],
+                typeof(string),
+                jsonTypeMapping)
+            : _sqlExpressionFactory.Function(
+                jsonTypeMapping.StoreType switch
+                {
+                    "jsonb" => "jsonb_set",
+                    "json" => "json_set",
+                    _ => throw new UnreachableException()
+                },
+                [jsonSetTarget, jsonPath, value],
+                nullable: true,
+                argumentsPropagateNullability: [true, true, !isNullConstant],
+                typeof(string),
+                jsonTypeMapping);
 
         if (existingSetterValue is null)
         {
@@ -1393,6 +1439,54 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             return null;
         }
     }
+
+    private SqlExpression JsonNull(RelationalTypeMapping jsonTypeMapping)
+        => new SqlUnaryExpression(
+            ExpressionType.Convert,
+            _sqlExpressionFactory.Constant("null"),
+            typeof(object),
+            jsonTypeMapping);
+
+    private SqlExpression CoalesceToJsonNull(SqlExpression value, RelationalTypeMapping jsonTypeMapping)
+        => _sqlExpressionFactory.Coalesce(value, JsonNull(jsonTypeMapping), jsonTypeMapping);
+
+    private bool SupportsJsonSetLax(RelationalTypeMapping jsonTypeMapping)
+        => jsonTypeMapping.StoreType == "jsonb" && !_isRedshift && _postgresVersion.AtLeast(16);
+
+    private static bool IsNullConstant(SqlExpression expression)
+        => expression is SqlConstantExpression { Value: null or DBNull };
+
+    private static bool IsSqlNull(SqlExpression expression)
+        => IsNullConstant(expression)
+            || expression is SqlFragmentExpression { Sql: "NULL" };
+
+    private static bool IsJsonNull(SqlExpression expression)
+        => IsSqlNull(expression)
+            || expression is SqlFunctionExpression
+            {
+                Name: "to_jsonb" or "to_json",
+                Arguments: [var argument]
+            } && IsSqlNull(argument);
+
+    private static bool NeedsJsonScalarTypeInference(SqlExpression expression)
+        => expression is SqlConstantExpression;
+
+    private static SqlExpression CastForJsonScalarTypeInference(SqlExpression expression, JsonScalarExpression target)
+        => new SqlUnaryExpression(ExpressionType.Convert, expression, typeof(object), target.TypeMapping ?? expression.TypeMapping);
+
+    private static bool MayReturnNull(SqlExpression expression)
+        => expression switch
+        {
+            SqlConstantExpression { Value: null or DBNull } => true,
+            SqlFragmentExpression { Sql: "NULL" } => true,
+            SqlParameterExpression { IsNullable: true } => true,
+            ColumnExpression { IsNullable: true } => true,
+            JsonScalarExpression { IsNullable: true } => true,
+            PgJsonTraversalExpression => true,
+            SqlFunctionExpression { IsNullable: true } => true,
+
+            _ => false
+        };
 
     #endregion ExecuteUpdate
 
