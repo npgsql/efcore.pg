@@ -1444,7 +1444,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         => new SqlUnaryExpression(
             ExpressionType.Convert,
             _sqlExpressionFactory.Constant("null"),
-            typeof(object),
+            jsonTypeMapping.ClrType,
             jsonTypeMapping);
 
     private SqlExpression CoalesceToJsonNull(SqlExpression value, RelationalTypeMapping jsonTypeMapping)
