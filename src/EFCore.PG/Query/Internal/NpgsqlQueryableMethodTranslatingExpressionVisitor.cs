@@ -1443,7 +1443,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     private SqlExpression JsonNull(RelationalTypeMapping jsonTypeMapping)
         => new SqlUnaryExpression(
             ExpressionType.Convert,
-            _sqlExpressionFactory.Constant("null"),
+            _sqlExpressionFactory.Constant("null", _typeMappingSource.FindMapping(typeof(string))),
             jsonTypeMapping.ClrType,
             jsonTypeMapping);
 
