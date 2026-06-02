@@ -86,7 +86,7 @@ WHERE "Id" = @p1;
 @Fixture_OtherValue='2020-01-05T13:30:45.0000000+00:00' (DbType = DateTime)
 
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(@Fixture_OtherValue))
+SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(@Fixture_OtherValue))
 """);
     }
 
@@ -97,7 +97,7 @@ SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(@Fixture_
         AssertSql(
             """
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(TIMESTAMPTZ '2020-01-05T13:30:45+00:00'::timestamptz))
+SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(TIMESTAMPTZ '2020-01-05T13:30:45+00:00'::timestamptz))
 """);
     }
 
@@ -119,7 +119,7 @@ SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', j."JsonContainer" 
         AssertSql(
             """
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(j."OtherValue"))
+SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(j."OtherValue"))
 """);
     }
 
