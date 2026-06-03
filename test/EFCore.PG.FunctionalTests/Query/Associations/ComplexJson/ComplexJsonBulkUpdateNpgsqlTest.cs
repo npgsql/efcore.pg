@@ -49,7 +49,7 @@ WHERE r."Name" = @deletableEntity_Name
 @p='?'
 
 UPDATE "RootEntity" AS r
-SET "RequiredAssociate" = jsonb_set_lax(r."RequiredAssociate", '{String}', to_jsonb(@p))
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{String}', to_jsonb(@p))
 """);
     }
 
@@ -60,7 +60,7 @@ SET "RequiredAssociate" = jsonb_set_lax(r."RequiredAssociate", '{String}', to_js
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "RequiredAssociate" = jsonb_set_lax(r."RequiredAssociate", '{String}', to_jsonb('{ Some other/JSON:like text though it [isn''t]: ממש ממש לאéèéè }'::text))
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{String}', to_jsonb('{ Some other/JSON:like text though it [isn''t]: ממש ממש לאéèéè }'::text))
 WHERE (r."RequiredAssociate" ->> 'String') = '{ this may/look:like JSON but it [isn''t]: ממש ממש לאéèéè }'
 """);
     }
@@ -74,7 +74,7 @@ WHERE (r."RequiredAssociate" ->> 'String') = '{ this may/look:like JSON but it [
 @p='?'
 
 UPDATE "RootEntity" AS r
-SET "RequiredAssociate" = jsonb_set_lax(r."RequiredAssociate", '{RequiredNestedAssociate,String}', to_jsonb(@p))
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{RequiredNestedAssociate,String}', to_jsonb(@p))
 """);
     }
 
@@ -87,7 +87,7 @@ SET "RequiredAssociate" = jsonb_set_lax(r."RequiredAssociate", '{RequiredNestedA
 @p='?'
 
 UPDATE "RootEntity" AS r
-SET "RequiredAssociate" = jsonb_set_lax(r."RequiredAssociate", '{String}', to_jsonb(@p))
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{String}', to_jsonb(@p))
 """);
     }
 
@@ -131,7 +131,7 @@ SET "RequiredAssociate" = @complex_type_p
 @complex_type_p='?' (DbType = Object)
 
 UPDATE "RootEntity" AS r
-SET "RequiredAssociate" = jsonb_set_lax(r."RequiredAssociate", '{RequiredNestedAssociate}', @complex_type_p)
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{RequiredNestedAssociate}', @complex_type_p)
 """);
     }
 
@@ -258,7 +258,7 @@ SET "AssociateCollection" = @complex_type_p
 @complex_type_p='?' (DbType = Object)
 
 UPDATE "RootEntity" AS r
-SET "RequiredAssociate" = jsonb_set_lax(r."RequiredAssociate", '{NestedCollection}', @complex_type_p)
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{NestedCollection}', @complex_type_p)
 """);
     }
 
@@ -280,7 +280,7 @@ SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{NestedCollection}',
         AssertExecuteUpdateSql(
             """
 UPDATE "RootEntity" AS r
-SET "RequiredAssociate" = jsonb_set_lax(r."RequiredAssociate", '{NestedCollection}', r."OptionalAssociate" -> 'NestedCollection')
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{NestedCollection}', COALESCE(r."OptionalAssociate" -> 'NestedCollection', 'null'::jsonb))
 WHERE (r."OptionalAssociate") IS NOT NULL
 """);
     }
@@ -323,7 +323,7 @@ SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{Ints}', '[1,2,4]')
 @ints='?' (DbType = Object)
 
 UPDATE "RootEntity" AS r
-SET "RequiredAssociate" = jsonb_set_lax(r."RequiredAssociate", '{Ints}', @ints)
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{Ints}', @ints)
 """);
     }
 
@@ -347,7 +347,7 @@ SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{OptionalNestedAssoc
 @p='?' (DbType = Int32)
 
 UPDATE "RootEntity" AS r
-SET "RequiredAssociate" = jsonb_set_lax(r."RequiredAssociate", '{Ints,1}', to_jsonb(@p))
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{Ints,1}', to_jsonb(@p))
 WHERE jsonb_array_length(r."RequiredAssociate" -> 'Ints') >= 2
 """);
     }
@@ -366,7 +366,7 @@ WHERE jsonb_array_length(r."RequiredAssociate" -> 'Ints') >= 2
 @p1='?' (DbType = Int32)
 
 UPDATE "RootEntity" AS r
-SET "RequiredAssociate" = jsonb_set_lax(jsonb_set_lax(r."RequiredAssociate", '{String}', to_jsonb(@p)), '{Int}', to_jsonb(@p1))
+SET "RequiredAssociate" = jsonb_set(jsonb_set(r."RequiredAssociate", '{String}', to_jsonb(@p)), '{Int}', to_jsonb(@p1))
 """);
     }
 
@@ -380,8 +380,8 @@ SET "RequiredAssociate" = jsonb_set_lax(jsonb_set_lax(r."RequiredAssociate", '{S
 
 UPDATE "RootEntity" AS r
 SET "Name" = r."Name" || 'Modified',
-    "RequiredAssociate" = jsonb_set_lax(r."RequiredAssociate", '{String}', r."OptionalAssociate" -> 'String'),
-    "OptionalAssociate" = jsonb_set_lax(r."OptionalAssociate", '{RequiredNestedAssociate,String}', to_jsonb(@p))
+    "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{String}', COALESCE(r."OptionalAssociate" -> 'String', 'null'::jsonb)),
+    "OptionalAssociate" = jsonb_set(r."OptionalAssociate", '{RequiredNestedAssociate,String}', to_jsonb(@p))
 WHERE (r."OptionalAssociate") IS NOT NULL
 """);
     }
@@ -395,8 +395,8 @@ WHERE (r."OptionalAssociate") IS NOT NULL
 @p='?'
 
 UPDATE "RootEntity" AS r
-SET "RequiredAssociate" = jsonb_set_lax(r."RequiredAssociate", '{String}', r."OptionalAssociate" -> 'String'),
-    "OptionalAssociate" = jsonb_set_lax(r."OptionalAssociate", '{String}', to_jsonb(@p))
+SET "RequiredAssociate" = jsonb_set(r."RequiredAssociate", '{String}', COALESCE(r."OptionalAssociate" -> 'String', 'null'::jsonb)),
+    "OptionalAssociate" = jsonb_set(r."OptionalAssociate", '{String}', to_jsonb(@p))
 WHERE (r."OptionalAssociate") IS NOT NULL
 """);
     }

@@ -58,7 +58,7 @@ WHERE "Id" = @p1;
 @Fixture_OtherValue='05/03/2022' (DbType = Date)
 
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(@Fixture_OtherValue))
+SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(@Fixture_OtherValue))
 """);
     }
 
@@ -69,7 +69,7 @@ SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(@Fixt
         AssertSql(
             """
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(DATE '2022-05-03'::date))
+SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(DATE '2022-05-03'::date))
 """);
     }
 
@@ -91,7 +91,7 @@ SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', j."JsonContainer" 
         AssertSql(
             """
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(j."OtherValue"))
+SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(j."OtherValue"))
 """);
     }
 

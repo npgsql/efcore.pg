@@ -60,7 +60,7 @@ WHERE "Id" = @p1;
 @Fixture_OtherValue='192.168.1.2' (DbType = Object)
 
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(@Fixture_OtherValue))
+SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(@Fixture_OtherValue))
 """);
     }
 
@@ -71,7 +71,7 @@ SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(@Fixt
         AssertSql(
             """
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(INET '192.168.1.2'::inet))
+SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', to_jsonb(INET '192.168.1.2'::inet))
 """);
     }
 
@@ -82,7 +82,7 @@ SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(INET 
         AssertSql(
             """
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', j."JsonContainer" -> 'OtherValue')
+SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', COALESCE(j."JsonContainer" -> 'OtherValue', 'null'::jsonb))
 """);
     }
 
@@ -93,7 +93,7 @@ SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', j."JsonContain
         AssertSql(
             """
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(j."OtherValue"))
+SET "JsonContainer" = jsonb_set(j."JsonContainer", '{Value}', COALESCE(to_jsonb(j."OtherValue"), 'null'::jsonb))
 """);
     }
 
