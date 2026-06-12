@@ -19,7 +19,7 @@ permissions: {}
 jobs:
   # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
   copilot-setup-steps:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     # Install PostgreSQL via a docker container.
     # It's better to do this rather than e.g. use a testcontainer, because then the agent can reuse the same container

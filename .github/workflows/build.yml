@@ -25,17 +25,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04]
+        os: [ubuntu-26.04]
         pg_major: [18, 17, 16, 15, 14, 13]
         config: [Release]
         include:
           - os: windows-2022
             pg_major: 17
             config: Release
-          - os: ubuntu-24.04
+          - os: ubuntu-26.04
             pg_major: 18
             config: Debug
-#          - os: ubuntu-24.04
+#          - os: ubuntu-26.04
 #            pg_major: 19
 #            config: Debug
 #            pg_prerelease: 'PG Prerelease'
@@ -133,7 +133,7 @@ jobs:
 
   publish-ci:
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     if: github.event_name == 'push' && startsWith(github.repository, 'npgsql/')
     environment: myget
 
@@ -165,7 +165,7 @@ jobs:
 
   release:
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     if: github.event_name == 'push' && startsWith(github.repository, 'npgsql/') && needs.build.outputs.is_release == 'true'
     permissions:
       id-token: write  # enable GitHub OIDC token issuance for this job
