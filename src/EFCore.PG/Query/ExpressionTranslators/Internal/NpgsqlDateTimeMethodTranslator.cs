@@ -68,7 +68,7 @@ public class NpgsqlDateTimeMethodTranslator(
         var valueArgument = _sqlExpressionFactory.ApplyDefaultTypeMapping(value);
         var hasTimeZone = timeZone is not SqlConstantExpression { Value: null };
 
-        if (hasTimeZone && returnType == typeof(TimeSpan))
+        if (hasTimeZone && valueArgument.TypeMapping is not NpgsqlTimestampTzTypeMapping)
         {
             return null;
         }

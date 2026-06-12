@@ -170,6 +170,17 @@ FROM "NodaTimeTypes" AS n
 """);
     }
 
+    [ConditionalFact] // #3831
+    public Task DateTrunc_with_timezone_is_not_translated()
+    {
+        using var ctx = CreateContext();
+
+        return AssertTranslationFailed(
+            () => ctx.Set<NodaTimeTypes>()
+                .Where(t => EF.Functions.DateTrunc("day", t.LocalDateTime, "Europe/Berlin") == default)
+                .ToListAsync());
+    }
+
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public async Task Time(bool async)

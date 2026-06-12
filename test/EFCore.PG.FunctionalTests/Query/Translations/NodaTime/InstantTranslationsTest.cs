@@ -84,6 +84,7 @@ WHERE CAST(n."Instant" AT TIME ZONE 'Europe/Berlin' AS date) = DATE '2018-04-20'
     }
 
     [ConditionalFact] // #3831
+    [MinimumPostgresVersion(12, 0)]
     public async Task DateTrunc_with_timezone()
     {
         await using var ctx = CreateContext();

@@ -123,6 +123,12 @@ public class NpgsqlNodaTimeMethodCallTranslator(
         var fieldArgument = _sqlExpressionFactory.ApplyDefaultTypeMapping(field);
         var valueArgument = _sqlExpressionFactory.ApplyDefaultTypeMapping(value);
         var hasTimeZone = timeZone is not SqlConstantExpression { Value: null };
+
+        if (hasTimeZone && valueArgument.TypeMapping is not (TimestampTzInstantMapping or TimestampTzZonedDateTimeMapping))
+        {
+            return null;
+        }
+
         var arguments = hasTimeZone
             ? [fieldArgument, valueArgument, _sqlExpressionFactory.ApplyDefaultTypeMapping(timeZone)]
             : new[] { fieldArgument, valueArgument };
