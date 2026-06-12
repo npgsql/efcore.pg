@@ -2567,7 +2567,7 @@ WHERE NOT (p."NullableWrappedId" = ANY (@values) AND p."NullableWrappedId" = ANY
         await base.Parameter_collection_of_nullable_structs_Contains_nullable_struct_with_nullable_comparer();
 
         AssertSql(
-"""
+            """
 @values={ NULL
 '22' } (DbType = Object)
 
@@ -2575,8 +2575,8 @@ SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."En
 FROM "PrimitiveCollectionsEntity" AS p
 WHERE p."NullableWrappedIdWithNullableComparer" = ANY (@values) OR (p."NullableWrappedIdWithNullableComparer" IS NULL AND array_position(@values, NULL) IS NOT NULL)
 """,
-    //
-    """
+            //
+            """
 @values={ '11'
 '44' } (DbType = Object)
 
