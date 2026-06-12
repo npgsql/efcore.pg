@@ -108,6 +108,31 @@ WHERE floor(date_part('second', n."Period"))::int = 23
 """);
     }
 
+    [ConditionalFact] // #3831
+    public async Task DateTrunc()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Set<NodaTimeTypes>().Select(t => EF.Functions.DateTrunc("day", t.Period)).ToListAsync();
+
+        AssertSql(
+            """
+SELECT date_trunc('day', n."Period")
+FROM "NodaTimeTypes" AS n
+""");
+    }
+
+    [ConditionalFact] // #3831
+    public Task DateTrunc_with_timezone_is_not_translated()
+    {
+        using var ctx = CreateContext();
+
+        return AssertTranslationFailed(
+            () => ctx.Set<NodaTimeTypes>()
+                .Where(t => EF.Functions.DateTrunc("day", t.Period, "Europe/Berlin") == Period.Zero)
+                .ToListAsync());
+    }
+
     // PostgreSQL does not support extracting weeks from intervals
     [ConditionalFact]
     public Task Weeks_is_not_translated()

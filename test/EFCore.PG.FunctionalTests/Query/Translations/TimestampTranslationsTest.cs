@@ -469,6 +469,85 @@ FROM "Entities" AS e
         }
     }
 
+    [ConditionalFact] // #3831
+    public async Task DateTime_DateTrunc()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Set<Entity>().Select(e => EF.Functions.DateTrunc("day", e.TimestampDateTime)).ToListAsync();
+
+        AssertSql(
+            """
+SELECT date_trunc('day', e."TimestampDateTime")
+FROM "Entities" AS e
+""");
+    }
+
+    [ConditionalFact] // #3831
+    [MinimumPostgresVersion(12, 0)]
+    public async Task DateTimeOffset_DateTrunc_with_timezone()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Set<Entity>().Select(e => EF.Functions.DateTrunc("day", e.TimestampDateTimeOffset, "Europe/Berlin")).ToListAsync();
+
+        AssertSql(
+            """
+SELECT date_trunc('day', e."TimestampDateTimeOffset", 'Europe/Berlin')
+FROM "Entities" AS e
+""");
+    }
+
+    [ConditionalFact] // #3831
+    public async Task DateTime_DateTrunc_with_timezone_is_not_translated()
+    {
+        await using var ctx = CreateContext();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => ctx.Set<Entity>()
+                .Where(e => EF.Functions.DateTrunc("day", e.TimestampDateTime, "Europe/Berlin") == DateTime.Today)
+                .ToListAsync());
+    }
+
+    [ConditionalFact] // #3831
+    public async Task DateTimeOffset_DateTrunc_without_timezone()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Set<Entity>().Select(e => EF.Functions.DateTrunc("day", e.TimestampDateTimeOffset)).ToListAsync();
+
+        AssertSql(
+            """
+SELECT date_trunc('day', e."TimestampDateTimeOffset")
+FROM "Entities" AS e
+""");
+    }
+
+    [ConditionalFact] // #3831
+    public async Task TimeSpan_DateTrunc()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Set<Entity>().Select(e => EF.Functions.DateTrunc("hour", e.TimestamptzDateTime - e.TimestamptzDateTime)).ToListAsync();
+
+        AssertSql(
+            """
+SELECT date_trunc('hour', e."TimestamptzDateTime" - e."TimestamptzDateTime")
+FROM "Entities" AS e
+""");
+    }
+
+    [ConditionalFact] // #3831
+    public async Task TimeSpan_DateTrunc_with_timezone_is_not_translated()
+    {
+        await using var ctx = CreateContext();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => ctx.Set<Entity>()
+                .Where(e => EF.Functions.DateTrunc("hour", e.TimestamptzDateTime - e.TimestamptzDateTime, "Europe/Berlin") == TimeSpan.Zero)
+                .ToListAsync());
+    }
+
     #endregion DateTimeOffset
 
     #region DateTime constructors

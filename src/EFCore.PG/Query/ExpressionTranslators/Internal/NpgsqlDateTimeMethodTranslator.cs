@@ -1,5 +1,6 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
@@ -27,11 +28,65 @@ public class NpgsqlDateTimeMethodTranslator(
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
-        => TranslateDateTime(instance, method, arguments)
+        => TranslateDbFunctions(method, arguments)
+           ?? TranslateDateTime(instance, method, arguments)
            ?? TranslateDateOnly(instance, method, arguments)
            ?? TranslateTimeOnly(instance, method, arguments)
            ?? TranslateTimeZoneInfo(method, arguments)
            ?? TranslateDatePart(instance, method, arguments);
+
+    private SqlExpression? TranslateDbFunctions(
+        MethodInfo method,
+        IReadOnlyList<SqlExpression> arguments)
+    {
+        if (method.DeclaringType != typeof(NpgsqlDbFunctionsExtensions))
+        {
+            return null;
+        }
+
+        return method.Name switch
+        {
+            nameof(NpgsqlDbFunctionsExtensions.DateTrunc) when arguments is [_, var field, var value, var timeZone]
+                => TranslateDateTrunc(method.ReturnType, field, value, timeZone),
+
+            _ => null
+        };
+    }
+
+    private SqlExpression? TranslateDateTrunc(
+        Type returnType,
+        SqlExpression field,
+        SqlExpression value,
+        SqlExpression timeZone)
+    {
+        var type = Nullable.GetUnderlyingType(returnType) ?? returnType;
+
+        if (type != typeof(DateTime) && type != typeof(DateTimeOffset) && type != typeof(TimeSpan))
+        {
+            return null;
+        }
+
+        var fieldArgument = _sqlExpressionFactory.ApplyDefaultTypeMapping(field);
+        var valueArgument = _sqlExpressionFactory.ApplyDefaultTypeMapping(value);
+        var hasTimeZone = timeZone is not SqlConstantExpression { Value: null };
+
+        if (hasTimeZone && valueArgument.TypeMapping is not NpgsqlTimestampTzTypeMapping)
+        {
+            return null;
+        }
+
+        var arguments = hasTimeZone
+            ? [fieldArgument, valueArgument, _sqlExpressionFactory.ApplyDefaultTypeMapping(timeZone)]
+            : new[] { fieldArgument, valueArgument };
+
+        return _sqlExpressionFactory.Function(
+            "date_trunc",
+            arguments,
+            nullable: true,
+            argumentsPropagateNullability: TrueArrays[arguments.Length],
+            returnType,
+            valueArgument.TypeMapping);
+    }
 
     private SqlExpression? TranslateDatePart(
         SqlExpression? instance,

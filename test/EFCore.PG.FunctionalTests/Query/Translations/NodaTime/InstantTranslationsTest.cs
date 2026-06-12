@@ -83,6 +83,35 @@ WHERE CAST(n."Instant" AT TIME ZONE 'Europe/Berlin' AS date) = DATE '2018-04-20'
 """);
     }
 
+    [ConditionalFact] // #3831
+    [MinimumPostgresVersion(12, 0)]
+    public async Task DateTrunc_with_timezone()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Set<NodaTimeTypes>().Select(t => EF.Functions.DateTrunc("day", t.Instant, "Europe/Berlin")).ToListAsync();
+
+        AssertSql(
+            """
+SELECT date_trunc('day', n."Instant", 'Europe/Berlin')
+FROM "NodaTimeTypes" AS n
+""");
+    }
+
+    [ConditionalFact] // #3831
+    public async Task DateTrunc_without_timezone()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Set<NodaTimeTypes>().Select(t => EF.Functions.DateTrunc("day", t.Instant)).ToListAsync();
+
+        AssertSql(
+            """
+SELECT date_trunc('day', n."Instant")
+FROM "NodaTimeTypes" AS n
+""");
+    }
+
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public async Task InZone_parameter_LocalDateTime(bool async)
