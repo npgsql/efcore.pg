@@ -1,0 +1,25 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="Npgsql.snk" />
+    <File Path="NuGet.config" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Github/">
+    <File Path=".github/dependabot.yml" />
+    <File Path=".github/workflows/build.yml" />
+    <File Path=".github/workflows/trigger-doc-build.yml" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/EFCore.PG.NodaTime/EFCore.PG.NodaTime.csproj" />
+    <Project Path="src/EFCore.PG.NTS/EFCore.PG.NTS.csproj" />
+    <Project Path="src/EFCore.PG/EFCore.PG.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/EFCore.PG.FunctionalTests/EFCore.PG.FunctionalTests.csproj" />
+    <Project Path="test/EFCore.PG.Tests/EFCore.PG.Tests.csproj" />
+  </Folder>
+</Solution>
