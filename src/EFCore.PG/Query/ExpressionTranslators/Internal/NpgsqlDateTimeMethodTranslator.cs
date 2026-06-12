@@ -59,7 +59,9 @@ public class NpgsqlDateTimeMethodTranslator(
         SqlExpression value,
         SqlExpression timeZone)
     {
-        if (returnType != typeof(DateTime) && returnType != typeof(DateTimeOffset) && returnType != typeof(TimeSpan))
+        var type = Nullable.GetUnderlyingType(returnType) ?? returnType;
+
+        if (type != typeof(DateTime) && type != typeof(DateTimeOffset) && type != typeof(TimeSpan))
         {
             return null;
         }

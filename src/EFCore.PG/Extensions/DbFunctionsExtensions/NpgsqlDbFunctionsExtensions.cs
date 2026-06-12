@@ -154,6 +154,7 @@ public static class NpgsqlDbFunctionsExtensions
     /// <param name="value">The timestamp or interval to truncate.</param>
     /// <param name="timeZone">
     ///     The time zone in which to perform the truncation. Supported only for values mapped to <c>timestamp with time zone</c>.
+    ///     Requires PostgreSQL 12 or later.
     /// </param>
     /// <see href="https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-TRUNC" />
     public static T DateTrunc<T>(this DbFunctions _, string field, T value, string? timeZone = null)

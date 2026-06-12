@@ -111,11 +111,13 @@ public class NpgsqlNodaTimeMethodCallTranslator(
         SqlExpression value,
         SqlExpression timeZone)
     {
-        if (returnType != typeof(LocalDateTime)
-            && returnType != typeof(Instant)
-            && returnType != typeof(ZonedDateTime)
-            && returnType != typeof(Period)
-            && returnType != typeof(Duration))
+        var type = Nullable.GetUnderlyingType(returnType) ?? returnType;
+
+        if (type != typeof(LocalDateTime)
+            && type != typeof(Instant)
+            && type != typeof(ZonedDateTime)
+            && type != typeof(Period)
+            && type != typeof(Duration))
         {
             return null;
         }
