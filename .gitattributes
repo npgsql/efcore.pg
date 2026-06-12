@@ -1,0 +1,12 @@
+* text=auto
+
+*.cs text=auto diff=csharp
+*.csproj text=auto
+*.sln text=auto
+*.resx text=auto
+*.xml text=auto
+*.txt text=auto
+
+packages/ binary
+
+.github/workflows/*.lock.yml linguist-generated=true merge=ours

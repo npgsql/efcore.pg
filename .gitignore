@@ -1,0 +1,21 @@
+0.DS_Store
+*.resources
+*.suo
+*.user
+*.sln.docstates
+*.userprefs
+/*.nupkg
+.nuget/
+.idea/
+.vs/
+[Bb]in/
+[Oo]bj/
+[Oo]bj/
+artifacts/
+# Roslyn cache directories
+*.ide/
+TestResult.xml
+.dotnet
+.vscode/
+.github/aw/logs/
+*.lscache
