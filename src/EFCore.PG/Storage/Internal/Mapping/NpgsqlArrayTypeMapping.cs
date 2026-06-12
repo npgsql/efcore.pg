@@ -142,10 +142,21 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
 #pragma warning restore EF1001
 
         var elementJsonReaderWriter = elementMapping.JsonValueReaderWriter;
-        if (elementJsonReaderWriter is not null && !typeof(TElement).UnwrapNullableType().IsAssignableTo(elementJsonReaderWriter.ValueType))
+
+        if (elementJsonReaderWriter is not null)
         {
-            throw new InvalidOperationException(
-                $"When building an array mapping over '{typeof(TElement).Name}', the JsonValueReaderWriter for element mapping '{elementMapping.GetType().Name}' is incorrect ('{elementJsonReaderWriter.ValueType.Name}' instead of '{typeof(TElement).UnwrapNullableType()}', the JsonValueReaderWriter is '{elementJsonReaderWriter.GetType().Name}').");
+            if (!typeof(TElement).UnwrapNullableType().IsAssignableTo(elementJsonReaderWriter.ValueType))
+            {
+                throw new InvalidOperationException(
+                    $"When building an array mapping over '{typeof(TElement).Name}', the JsonValueReaderWriter for element mapping '{elementMapping.GetType().Name}' is incorrect ('{elementJsonReaderWriter.ValueType.Name}' instead of '{typeof(TElement).UnwrapNullableType()}', the JsonValueReaderWriter is '{elementJsonReaderWriter.GetType().Name}').");
+            }
+
+            if (elementJsonReaderWriter.ValueType.IsNullableValueType()
+                || !elementJsonReaderWriter.ValueType.IsAssignableFrom(elementType.UnwrapNullableType()))
+            {
+                elementJsonReaderWriter = (JsonValueReaderWriter)Activator.CreateInstance(
+                    typeof(JsonCastValueReaderWriter<>).MakeGenericType(elementType.UnwrapNullableType()), elementJsonReaderWriter)!;
+            }
         }
 
         // If there's no JsonValueReaderWriter on the element, we also don't set one on its array (this is for rare edge cases such as

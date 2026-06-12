@@ -385,7 +385,7 @@ WHERE GREATEST(30, p."NullableInt", NULL) = 30
 """);
     }
 
-        public override async Task Inline_collection_with_single_parameter_element_Contains()
+    public override async Task Inline_collection_with_single_parameter_element_Contains()
     {
         await base.Inline_collection_with_single_parameter_element_Contains();
 
@@ -1438,7 +1438,7 @@ WHERE p."Ints"[2] = 10
 """);
     }
 
-        public override async Task Column_collection_First()
+    public override async Task Column_collection_First()
     {
         await base.Column_collection_First();
 
@@ -1534,7 +1534,7 @@ WHERE 11 = ANY (p."Ints"[2:3])
 """);
     }
 
-        public override async Task Column_collection_Where_Skip()
+    public override async Task Column_collection_Where_Skip()
     {
         await base.Column_collection_Where_Skip();
 
@@ -2486,7 +2486,7 @@ WHERE cardinality(array_remove(p."Ints", 1)) = 1
 """);
     }
 
-        public override async Task Parameter_collection_of_structs_Contains_nullable_struct()
+    public override async Task Parameter_collection_of_structs_Contains_nullable_struct()
     {
         await base.Parameter_collection_of_structs_Contains_nullable_struct();
 
@@ -2562,9 +2562,29 @@ WHERE NOT (p."NullableWrappedId" = ANY (@values) AND p."NullableWrappedId" = ANY
 """);
     }
 
-    public override Task Parameter_collection_of_nullable_structs_Contains_nullable_struct_with_nullable_comparer()
-        => Assert.ThrowsAnyAsync<TargetInvocationException>(
-            () => base.Parameter_collection_of_nullable_structs_Contains_nullable_struct_with_nullable_comparer());
+    public override async Task Parameter_collection_of_nullable_structs_Contains_nullable_struct_with_nullable_comparer()
+    {
+        await base.Parameter_collection_of_nullable_structs_Contains_nullable_struct_with_nullable_comparer();
+
+        AssertSql(
+            """
+@values={ NULL
+'22' } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."NullableWrappedIdWithNullableComparer" = ANY (@values) OR (p."NullableWrappedIdWithNullableComparer" IS NULL AND array_position(@values, NULL) IS NOT NULL)
+""",
+            //
+            """
+@values={ '11'
+'44' } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE NOT (p."NullableWrappedIdWithNullableComparer" = ANY (@values) AND p."NullableWrappedIdWithNullableComparer" = ANY (@values) IS NOT NULL) AND (p."NullableWrappedIdWithNullableComparer" IS NOT NULL OR array_position(@values, NULL) IS NULL)
+""");
+    }
 
 
     public override async Task Inline_collection_Contains_with_IEnumerable_EF_Parameter()
