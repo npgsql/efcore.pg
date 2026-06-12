@@ -143,6 +143,23 @@ public static class NpgsqlDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Distance)));
 
     /// <summary>
+    ///     Truncates <paramref name="value" /> to the specified precision.
+    ///     Corresponds to the PostgreSQL <c>date_trunc</c> function.
+    /// </summary>
+    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
+    /// <param name="field">
+    ///     The precision to truncate to, such as <c>microseconds</c>, <c>milliseconds</c>, <c>second</c>, <c>minute</c>, <c>hour</c>,
+    ///     <c>day</c>, <c>week</c>, <c>month</c>, <c>quarter</c>, <c>year</c>, <c>decade</c>, <c>century</c> or <c>millennium</c>.
+    /// </param>
+    /// <param name="value">The timestamp or interval to truncate.</param>
+    /// <param name="timeZone">
+    ///     The time zone in which to perform the truncation. Supported only for values mapped to <c>timestamp with time zone</c>.
+    /// </param>
+    /// <see href="https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-TRUNC" />
+    public static T DateTrunc<T>(this DbFunctions _, string field, T value, string? timeZone = null)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(DateTrunc)));
+
+    /// <summary>
     ///     Converts string to date according to the given format.
     /// </summary>
     /// <param name="_">The <see cref="DbFunctions"/> instance.</param>

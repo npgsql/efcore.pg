@@ -156,6 +156,20 @@ WHERE floor(date_part('second', n."Duration"))::int = 8
 """);
     }
 
+    [ConditionalFact] // #3831
+    public async Task DateTrunc()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Set<NodaTimeTypes>().Select(t => EF.Functions.DateTrunc("day", t.Duration)).ToListAsync();
+
+        AssertSql(
+            """
+SELECT date_trunc('day', n."Duration")
+FROM "NodaTimeTypes" AS n
+""");
+    }
+
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public async Task GroupBy_Property_Select_Sum_over_Duration(bool async)

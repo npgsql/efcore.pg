@@ -52,7 +52,7 @@ public class NpgsqlNodaTimeMethodCallTranslator(
     private readonly IRelationalTypeMappingSource _typeMappingSource = typeMappingSource;
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory = sqlExpressionFactory;
 
-    private static readonly bool[][] TrueArrays = [[], [true], [true, true]];
+    private static readonly bool[][] TrueArrays = [[], [true], [true, true], [true, true, true]];
 
 #pragma warning disable EF1001
     /// <inheritdoc />
@@ -63,7 +63,8 @@ public class NpgsqlNodaTimeMethodCallTranslator(
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
         var translated =
-            TranslateInstant(instance, method, arguments)
+            TranslateDbFunctions(method, arguments)
+            ?? TranslateInstant(instance, method, arguments)
             ?? TranslateZonedDateTime(instance, method, arguments)
             ?? TranslateLocalDateTime(instance, method, arguments)
             ?? TranslateLocalDate(instance, method, arguments)
@@ -84,6 +85,55 @@ public class NpgsqlNodaTimeMethodCallTranslator(
         }
 
         return null;
+    }
+
+    private SqlExpression? TranslateDbFunctions(
+        MethodInfo method,
+        IReadOnlyList<SqlExpression> arguments)
+    {
+        if (method.DeclaringType != typeof(NpgsqlDbFunctionsExtensions))
+        {
+            return null;
+        }
+
+        return method.Name switch
+        {
+            nameof(NpgsqlDbFunctionsExtensions.DateTrunc) when arguments is [_, var field, var value, var timeZone]
+                => TranslateDateTrunc(method.ReturnType, field, value, timeZone),
+
+            _ => null
+        };
+    }
+
+    private SqlExpression? TranslateDateTrunc(
+        Type returnType,
+        SqlExpression field,
+        SqlExpression value,
+        SqlExpression timeZone)
+    {
+        if (returnType != typeof(LocalDateTime)
+            && returnType != typeof(Instant)
+            && returnType != typeof(ZonedDateTime)
+            && returnType != typeof(Period)
+            && returnType != typeof(Duration))
+        {
+            return null;
+        }
+
+        var fieldArgument = _sqlExpressionFactory.ApplyDefaultTypeMapping(field);
+        var valueArgument = _sqlExpressionFactory.ApplyDefaultTypeMapping(value);
+        var hasTimeZone = timeZone is not SqlConstantExpression { Value: null };
+        var arguments = hasTimeZone
+            ? [fieldArgument, valueArgument, _sqlExpressionFactory.ApplyDefaultTypeMapping(timeZone)]
+            : new[] { fieldArgument, valueArgument };
+
+        return _sqlExpressionFactory.Function(
+            "date_trunc",
+            arguments,
+            nullable: true,
+            argumentsPropagateNullability: TrueArrays[arguments.Length],
+            returnType,
+            valueArgument.TypeMapping);
     }
 
     private SqlExpression? TranslateInstant(

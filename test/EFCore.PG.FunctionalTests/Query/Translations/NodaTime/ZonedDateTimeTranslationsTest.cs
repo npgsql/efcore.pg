@@ -156,6 +156,20 @@ WHERE CAST(n."ZonedDateTime" AT TIME ZONE 'UTC' AS date) = DATE '2018-04-20'
 """);
     }
 
+    [ConditionalFact] // #3831
+    public async Task DateTrunc_without_timezone()
+    {
+        await using var ctx = CreateContext();
+
+        _ = await ctx.Set<NodaTimeTypes>().Select(t => EF.Functions.DateTrunc("day", t.ZonedDateTime)).ToListAsync();
+
+        AssertSql(
+            """
+SELECT date_trunc('day', n."ZonedDateTime")
+FROM "NodaTimeTypes" AS n
+""");
+    }
+
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public async Task DayOfWeek(bool async)
