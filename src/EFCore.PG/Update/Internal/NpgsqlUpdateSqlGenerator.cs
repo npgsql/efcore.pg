@@ -147,6 +147,7 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
             Check.DebugAssert(columnModification.TypeMapping.StoreType is "jsonb", "Non-jsonb type mapping in JSON partial update");
 
             var jsonPath = columnModification.JsonPath;
+            var indices = jsonPath.Indices;
 
             // TODO: Lax or not?
             stringBuilder
@@ -166,7 +167,8 @@ public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
 
                 if (segment.IsArray)
                 {
-                    stringBuilder.Append(jsonPath.Indices[ordinalIndex++]);
+                    Check.DebugAssert(indices is not null, "Array segment found in JSON path with no indices");
+                    stringBuilder.Append(indices[ordinalIndex++]);
                 }
                 else
                 {

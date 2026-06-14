@@ -584,7 +584,6 @@ LIMIT 2
     #endregion
 
 #if RELEASE
-    [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/30388")]
     public override void Scalar_Function_with_nullable_value_return_type_throws() {}
 #endif
 

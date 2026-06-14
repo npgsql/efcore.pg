@@ -427,6 +427,11 @@ WHERE b."Float" > 0 AND sqrt(b."Float") > 0
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
 WHERE sign(b."Double")::int > 0
+""",
+            //
+            """
+SELECT sign(b."Double")::int
+FROM "BasicTypesEntities" AS b
 """);
     }
 
@@ -439,6 +444,11 @@ WHERE sign(b."Double")::int > 0
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
 WHERE sign(b."Float")::int > 0
+""",
+            //
+            """
+SELECT sign(b."Float")::int
+FROM "BasicTypesEntities" AS b
 """);
     }
 

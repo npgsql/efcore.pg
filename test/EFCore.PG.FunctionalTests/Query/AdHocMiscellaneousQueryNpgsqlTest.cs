@@ -33,7 +33,51 @@ INSERT INTO "ZeroKey" VALUES (NULL)
     public override Task Subquery_first_member_compared_to_null(bool async)
         => Task.CompletedTask;
 
-    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/27995/files#r874038747")]
-    public override Task StoreType_for_UDF_used(bool async)
-        => base.StoreType_for_UDF_used(async);
+    public override async Task StoreType_for_UDF_used(bool async)
+    {
+        var contextFactory = await InitializeNonSharedTest<Context27954Npgsql>();
+        using var context = contextFactory.CreateDbContext();
+
+        var date = new DateTime(2012, 12, 12);
+        var query1 = context.Set<Context27954Npgsql.MyEntity>().Where(x => x.SomeDate == date);
+        var query2 = context.Set<Context27954Npgsql.MyEntity>().Where(x => Context27954Npgsql.MyEntity.Modify(x.SomeDate) == date);
+
+        if (async)
+        {
+            await query1.ToListAsync();
+            await Assert.ThrowsAnyAsync<Exception>(() => query2.ToListAsync());
+        }
+        else
+        {
+            query1.ToList();
+            Assert.ThrowsAny<Exception>(() => query2.ToList());
+        }
+    }
+
+    protected class Context27954Npgsql(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<MyEntity> MyEntities { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .HasDbFunction(typeof(MyEntity).GetMethod(nameof(MyEntity.Modify))!)
+                .HasName("ModifyDate")
+                .HasStoreType("timestamp without time zone");
+
+            modelBuilder.Entity<MyEntity>()
+                .Property(e => e.SomeDate)
+                .HasColumnType("timestamp without time zone");
+        }
+
+        public class MyEntity
+        {
+            public int Id { get; set; }
+
+            public DateTime SomeDate { get; set; }
+
+            public static DateTime Modify(DateTime date)
+                => throw new NotSupportedException();
+        }
+    }
 }

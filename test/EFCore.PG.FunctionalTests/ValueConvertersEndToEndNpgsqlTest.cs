@@ -3,7 +3,6 @@ namespace Microsoft.EntityFrameworkCore;
 public class ValueConvertersEndToEndNpgsqlTest(ValueConvertersEndToEndNpgsqlTest.ValueConvertersEndToEndNpgsqlFixture fixture)
     : ValueConvertersEndToEndTestBase<ValueConvertersEndToEndNpgsqlTest.ValueConvertersEndToEndNpgsqlFixture>(fixture)
 {
-    [ConditionalTheory(Skip = "DateTime and DateTimeOffset, https://github.com/dotnet/efcore/issues/26068")]
     public override Task Can_insert_and_read_back_with_conversions(int[] valueOrder)
         => base.Can_insert_and_read_back_with_conversions(valueOrder);
 
@@ -54,8 +53,8 @@ public class ValueConvertersEndToEndNpgsqlTest(ValueConvertersEndToEndNpgsqlTest
     [InlineData(nameof(ConvertingEntity.StringToNullableBytes), "bytea", false)]
     [InlineData(nameof(ConvertingEntity.StringToChar), "character(1)", false)]
     [InlineData(nameof(ConvertingEntity.StringToNullableChar), "character(1)", false)]
-    [InlineData(nameof(ConvertingEntity.StringToDateTime), "timestamp with time zone", false)]
-    [InlineData(nameof(ConvertingEntity.StringToNullableDateTime), "timestamp with time zone", false)]
+    [InlineData(nameof(ConvertingEntity.StringToDateTime), "timestamp without time zone", false)]
+    [InlineData(nameof(ConvertingEntity.StringToNullableDateTime), "timestamp without time zone", false)]
     // [InlineData(nameof(ConvertingEntity.StringToDateTimeOffset), "timestamp with time zone", false)]
     // [InlineData(nameof(ConvertingEntity.StringToNullableDateTimeOffset), "timestamp with time zone", false)]
     [InlineData(nameof(ConvertingEntity.StringToEnum), "integer", false)]
@@ -118,8 +117,8 @@ public class ValueConvertersEndToEndNpgsqlTest(ValueConvertersEndToEndNpgsqlTest
     [InlineData(nameof(ConvertingEntity.NullableStringToNullableBytes), "bytea", true)]
     [InlineData(nameof(ConvertingEntity.NullableStringToChar), "character(1)", true)]
     [InlineData(nameof(ConvertingEntity.NullableStringToNullableChar), "character(1)", true)]
-    [InlineData(nameof(ConvertingEntity.NullableStringToDateTime), "timestamp with time zone", true)]
-    [InlineData(nameof(ConvertingEntity.NullableStringToNullableDateTime), "timestamp with time zone", true)]
+    [InlineData(nameof(ConvertingEntity.NullableStringToDateTime), "timestamp without time zone", true)]
+    [InlineData(nameof(ConvertingEntity.NullableStringToNullableDateTime), "timestamp without time zone", true)]
     //[InlineData(nameof(ConvertingEntity.NullableStringToDateTimeOffset), "timestamp with time zone", true)]
     //[InlineData(nameof(ConvertingEntity.NullableStringToNullableDateTimeOffset), "timestamp with time zone", true)]
     [InlineData(nameof(ConvertingEntity.NullableStringToEnum), "integer", true)]
@@ -186,6 +185,11 @@ public class ValueConvertersEndToEndNpgsqlTest(ValueConvertersEndToEndNpgsqlTest
                     b.Ignore(e => e.StringToNullableDateTimeOffset);
                     b.Ignore(e => e.NullableStringToDateTimeOffset);
                     b.Ignore(e => e.NullableStringToNullableDateTimeOffset);
+
+                    b.Property(e => e.StringToDateTime).HasColumnType("timestamp without time zone");
+                    b.Property(e => e.StringToNullableDateTime).HasColumnType("timestamp without time zone");
+                    b.Property(e => e.NullableStringToDateTime).HasColumnType("timestamp without time zone");
+                    b.Property(e => e.NullableStringToNullableDateTime).HasColumnType("timestamp without time zone");
                 });
 
             // Add some Npgsql-specific value conversion scenarios

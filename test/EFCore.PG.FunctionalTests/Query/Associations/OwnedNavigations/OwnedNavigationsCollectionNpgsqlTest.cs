@@ -213,7 +213,6 @@ ORDER BY r."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s
 
     #region GroupBy
 
-    [ConditionalFact]
     public override async Task GroupBy()
     {
         await base.GroupBy();
