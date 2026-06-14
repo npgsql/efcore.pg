@@ -360,7 +360,6 @@ FROM (
 """);
     }
 
-    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/30384")]
     public override async Task SqlQueryRaw_annotations_do_not_affect_successive_calls(bool async)
     {
         await base.SqlQueryRaw_annotations_do_not_affect_successive_calls(async);
@@ -460,7 +459,6 @@ SELECT * FROM "Customers" WHERE "CustomerID" = @somename
 """);
     }
 
-    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/30384")]
     public override async Task SqlQuery_parameterization_issue_12213(bool async)
     {
         await base.SqlQuery_parameterization_issue_12213(async);
@@ -476,35 +474,35 @@ FROM (
 """,
             //
             """
-@__max_1='10400'
+@max='10400'
 p0='10300'
 
 SELECT m."OrderID"
 FROM (
     SELECT * FROM "Orders"
 ) AS m
-WHERE m."OrderID" <= @__max_1 AND EXISTS (
-    SELECT 1
+WHERE m."OrderID" <= @max AND m."OrderID" IN (
+    SELECT m0."OrderID"
     FROM (
         SELECT * FROM "Orders" WHERE "OrderID" >= @p0
     ) AS m0
-    WHERE m0."OrderID" = m."OrderID")
+)
 """,
             //
             """
-@__max_1='10400'
+@max='10400'
 p0='10300'
 
 SELECT m."OrderID"
 FROM (
     SELECT * FROM "Orders"
 ) AS m
-WHERE m."OrderID" <= @__max_1 AND EXISTS (
-    SELECT 1
+WHERE m."OrderID" <= @max AND m."OrderID" IN (
+    SELECT m0."OrderID"
     FROM (
         SELECT * FROM "Orders" WHERE "OrderID" >= @p0
     ) AS m0
-    WHERE m0."OrderID" = m."OrderID")
+)
 """);
     }
 
@@ -672,11 +670,9 @@ WHERE m."ContactName" LIKE '%z%'
     }
 
 #pragma warning disable xUnit1026
-    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/30384")]
     public override Task Bad_data_error_handling_invalid_cast(bool async)
         => Task.CompletedTask;
 
-    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/30384")]
     public override Task Bad_data_error_handling_invalid_cast_projection(bool async)
         => Task.CompletedTask;
 #pragma warning restore xUnit1026

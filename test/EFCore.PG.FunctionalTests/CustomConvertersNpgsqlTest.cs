@@ -7,7 +7,6 @@ public class CustomConvertersNpgsqlTest(CustomConvertersNpgsqlTest.CustomConvert
     public override Task Can_insert_and_read_back_with_case_insensitive_string_key()
         => Task.CompletedTask;
 
-    [ConditionalFact(Skip = "DateTimeOffset with non-zero offset, https://github.com/dotnet/efcore/issues/26068")]
     public override Task Can_insert_and_read_back_object_backed_data_types()
         => Task.CompletedTask;
 

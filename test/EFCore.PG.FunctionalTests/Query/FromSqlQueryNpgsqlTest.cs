@@ -7,13 +7,37 @@ namespace Microsoft.EntityFrameworkCore.Query;
 public class FromSqlQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture)
     : FromSqlQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>(fixture)
 {
-    [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFramework/issues/{6563,20364}")]
-    public override Task Bad_data_error_handling_invalid_cast(bool async)
-        => base.Bad_data_error_handling_invalid_cast(async);
+    public override async Task Bad_data_error_handling_invalid_cast(bool async)
+    {
+        await using var context = CreateContext();
+        var query = context.Set<Product>().FromSqlRaw(
+            NormalizeDelimitersInRawString(
+                """
+SELECT [ProductID], [SupplierID] AS [UnitPrice], [ProductName], [SupplierID], [UnitsInStock], [Discontinued]
+FROM [Products]
+"""));
 
-    [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFramework/issues/{6563,20364}")]
-    public override Task Bad_data_error_handling_invalid_cast_projection(bool async)
-        => base.Bad_data_error_handling_invalid_cast_projection(async);
+        var products = async ? await query.ToListAsync() : query.ToList();
+
+        Assert.NotEmpty(products);
+    }
+
+    public override async Task Bad_data_error_handling_invalid_cast_projection(bool async)
+    {
+        await using var context = CreateContext();
+        var query = context.Set<Product>()
+            .FromSqlRaw(
+                NormalizeDelimitersInRawString(
+                    """
+SELECT [ProductID], [SupplierID] AS [UnitPrice], [ProductName], [UnitsInStock], [Discontinued]
+FROM [Products]
+"""))
+            .Select(p => p.UnitPrice);
+
+        var unitPrices = async ? await query.ToListAsync() : query.ToList();
+
+        Assert.NotEmpty(unitPrices);
+    }
 
     // The test attempts to project out a column with the wrong case; this works on other databases, and fails when EF tries to materialize.
     // But in PG this fails at the database since PG is case-sensitive and the column does not exist.
@@ -66,7 +90,6 @@ public class FromSqlQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomi
         Assert.Single(actual);
     }
 
-    [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public override async Task FromSql_queryable_multiple_composed_with_parameters_and_closure_parameters_interpolated(bool async)
     {

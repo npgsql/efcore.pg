@@ -74,7 +74,7 @@ LIMIT 2
             return new CompatibilityContext(builder.Options);
         }
 
-        public virtual async Task InitializeAsync()
+        public virtual async ValueTask InitializeAsync()
         {
             _testStore = NpgsqlTestStoreFactory.Instance.GetOrCreate(StoreName);
             await _testStore.InitializeAsync(null, CreateContext, c => CompatibilityContext.SeedAsync((CompatibilityContext)c));
@@ -85,7 +85,7 @@ LIMIT 2
         {
         }
 
-        public virtual async Task DisposeAsync()
+        public virtual async ValueTask DisposeAsync()
             => await _testStore.DisposeAsync();
     }
 
