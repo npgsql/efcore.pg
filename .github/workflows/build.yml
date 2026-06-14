@@ -16,7 +16,6 @@ permissions:
 
 env:
   postgis_version: 3
-  dotnet_sdk_version: 11.0.100-preview.6.26313.102
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 jobs:
@@ -57,25 +56,6 @@ jobs:
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v5
-
-      - name: Install .NET SDK ${{ env.dotnet_sdk_version }} (Linux)
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
-          bash dotnet-install.sh --version ${{ env.dotnet_sdk_version }} --install-dir "$HOME/.dotnet" --no-path
-          echo "$HOME/.dotnet" >> "$GITHUB_PATH"
-          echo "DOTNET_ROOT=$HOME/.dotnet" >> "$GITHUB_ENV"
-        shell: bash
-
-      - name: Install .NET SDK ${{ env.dotnet_sdk_version }} (Windows)
-        if: startsWith(matrix.os, 'windows')
-        run: |
-          $installDir = Join-Path $env:USERPROFILE ".dotnet"
-          Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
-          ./dotnet-install.ps1 -Version $env:dotnet_sdk_version -InstallDir $installDir -NoPath
-          $installDir | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          "DOTNET_ROOT=$installDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        shell: pwsh
 
       - name: Build
         run: dotnet build --configuration Debug
@@ -164,14 +144,6 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v5
 
-      - name: Install .NET SDK ${{ env.dotnet_sdk_version }}
-        run: |
-          curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
-          bash dotnet-install.sh --version ${{ env.dotnet_sdk_version }} --install-dir "$HOME/.dotnet" --no-path
-          echo "$HOME/.dotnet" >> "$GITHUB_PATH"
-          echo "DOTNET_ROOT=$HOME/.dotnet" >> "$GITHUB_ENV"
-        shell: bash
-
       - name: Pack
         run: dotnet pack --configuration Release --property:PackageOutputPath="$PWD/nupkgs" --version-suffix "ci.$(date -u +%Y%m%dT%H%M%S)+sha.${GITHUB_SHA:0:9}" -p:ContinuousIntegrationBuild=true
 
@@ -205,14 +177,6 @@ jobs:
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v5
-
-      - name: Install .NET SDK ${{ env.dotnet_sdk_version }}
-        run: |
-          curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
-          bash dotnet-install.sh --version ${{ env.dotnet_sdk_version }} --install-dir "$HOME/.dotnet" --no-path
-          echo "$HOME/.dotnet" >> "$GITHUB_PATH"
-          echo "DOTNET_ROOT=$HOME/.dotnet" >> "$GITHUB_ENV"
-        shell: bash
 
       - name: Pack
         run: dotnet pack --configuration Release --property:PackageOutputPath="$PWD/nupkgs" -p:ContinuousIntegrationBuild=true
