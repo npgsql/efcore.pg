@@ -56,6 +56,8 @@ jobs:
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
 
       - name: Build
         run: dotnet build --configuration Debug
@@ -143,6 +145,8 @@ jobs:
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
 
       - name: Pack
         run: dotnet pack --configuration Release --property:PackageOutputPath="$PWD/nupkgs" --version-suffix "ci.$(date -u +%Y%m%dT%H%M%S)+sha.${GITHUB_SHA:0:9}" -p:ContinuousIntegrationBuild=true
@@ -177,6 +181,8 @@ jobs:
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
 
       - name: Pack
         run: dotnet pack --configuration Release --property:PackageOutputPath="$PWD/nupkgs" -p:ContinuousIntegrationBuild=true
