@@ -2031,7 +2031,6 @@ ORDER BY o0."CustomerID" NULLS FIRST
 """);
     }
 
-    [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/28410")]
     public override async Task Select_nested_collection_with_groupby(bool async)
     {
         await base.Select_nested_collection_with_groupby(async);
@@ -2041,14 +2040,14 @@ ORDER BY o0."CustomerID" NULLS FIRST
 SELECT EXISTS (
     SELECT 1
     FROM "Orders" AS o
-    WHERE c."CustomerID" = o."CustomerID"), c."CustomerID", t."OrderID"
+    WHERE c."CustomerID" = o."CustomerID"), c."CustomerID", o1."OrderID"
 FROM "Customers" AS c
 LEFT JOIN LATERAL (
     SELECT o0."OrderID"
     FROM "Orders" AS o0
     WHERE c."CustomerID" = o0."CustomerID"
     GROUP BY o0."OrderID"
-) AS t ON TRUE
+) AS o1 ON TRUE
 WHERE c."CustomerID" LIKE 'F%'
 ORDER BY c."CustomerID" NULLS FIRST
 """);

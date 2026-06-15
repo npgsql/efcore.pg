@@ -1,8 +1,8 @@
   <Project>
   <PropertyGroup>
-    <EFCoreVersion>11.0.0-preview.5.26311.105</EFCoreVersion>
-    <MicrosoftExtensionsVersion>11.0.0-preview.5.26311.105</MicrosoftExtensionsVersion>
-    <MicrosoftExtensionsConfigurationVersion>11.0.0-preview.5.26311.105</MicrosoftExtensionsConfigurationVersion>
+    <EFCoreVersion>11.0.0-preview.6.26311.113</EFCoreVersion>
+    <MicrosoftExtensionsVersion>11.0.0-preview.6.26311.113</MicrosoftExtensionsVersion>
+    <MicrosoftExtensionsConfigurationVersion>11.0.0-preview.6.26311.113</MicrosoftExtensionsConfigurationVersion>
     <NpgsqlVersion>10.0.3</NpgsqlVersion>
   </PropertyGroup>
 
@@ -28,11 +28,9 @@
 
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.300" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageVersion Include="xunit" Version="2.9.3" />
-    <PackageVersion Include="xunit.assert" Version="2.9.3" />
-    <PackageVersion Include="xunit.core" Version="2.9.3" />
+    <PackageVersion Include="xunit.v3" Version="4.0.0-pre.108" />
+    <PackageVersion Include="xunit.v3.runner.inproc.console" Version="4.0.0-pre.108" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0-pre.4" />
-    <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.4" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.10.0" />
   </ItemGroup>
 </Project>

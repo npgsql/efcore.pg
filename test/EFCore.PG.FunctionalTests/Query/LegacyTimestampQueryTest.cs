@@ -110,10 +110,10 @@ WHERE now() AT TIME ZONE 'UTC' <> @myDatetime
                 NpgsqlTypeMappingSource.LegacyTimestampBehavior = true;
             }
 
-            public override Task DisposeAsync()
+            public override ValueTask DisposeAsync()
             {
                 NpgsqlTypeMappingSource.LegacyTimestampBehavior = false;
-                return Task.CompletedTask;
+                return default;
             }
 
             protected override async Task SeedAsync(TimestampQueryContext context)

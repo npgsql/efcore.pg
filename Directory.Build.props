@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <VersionPrefix>11.0.0-preview.5</VersionPrefix>
+    <VersionPrefix>11.0.0-preview.6</VersionPrefix>
     <TargetFramework>net11.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>

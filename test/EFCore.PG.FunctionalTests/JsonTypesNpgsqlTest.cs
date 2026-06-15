@@ -210,7 +210,6 @@ public class JsonTypesNpgsqlTest(NonSharedFixture fixture) : JsonTypesRelational
         public List<DateOnly> DateOnly { get; set; } = null!;
     }
 
-    [ConditionalFact]
     public override Task Can_read_write_collection_of_nullable_DateOnly_JSON_values()
         => Can_read_and_write_JSON_value<NullableDateOnlyCollectionType, List<DateOnly?>>(
             nameof(NullableDateOnlyCollectionType.DateOnly),
@@ -462,7 +461,6 @@ public class JsonTypesNpgsqlTest(NonSharedFixture fixture) : JsonTypesRelational
             new NpgsqlLogSequenceNumber(value),
             json);
 
-    [ConditionalFact]
     public override async Task Can_read_write_point()
     {
         var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
@@ -480,7 +478,6 @@ public class JsonTypesNpgsqlTest(NonSharedFixture fixture) : JsonTypesRelational
             new Point(2, 4),
             """{"Prop":"POINT (2 4)"}""");
 
-    [ConditionalFact]
     public override async Task Can_read_write_point_with_M()
     {
         var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
@@ -511,7 +508,6 @@ public class JsonTypesNpgsqlTest(NonSharedFixture fixture) : JsonTypesRelational
             """{"Prop":"SRID=4326;POINT Z(1 2 3)"}""");
     }
 
-    [ConditionalFact]
     public override async Task Can_read_write_line_string()
     {
         var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
