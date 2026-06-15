@@ -16,7 +16,6 @@
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.v3.runner.inproc.console" />
     <PackageReference Include="xunit.runner.visualstudio" />
-    <PackageReference Include="GitHubActionsTestLogger" />
     <PackageReference Include="Npgsql" />
   </ItemGroup>
 

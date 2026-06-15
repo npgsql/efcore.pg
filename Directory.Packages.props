@@ -31,7 +31,6 @@
     <PackageVersion Include="xunit.v3" Version="4.0.0-pre.108" />
     <PackageVersion Include="xunit.v3.runner.inproc.console" Version="4.0.0-pre.108" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0-pre.4" />
-    <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.4" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.10.0" />
   </ItemGroup>
 </Project>
