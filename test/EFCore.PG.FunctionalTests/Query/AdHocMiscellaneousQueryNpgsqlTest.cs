@@ -56,7 +56,7 @@ INSERT INTO "ZeroKey" VALUES (NULL)
 
     protected class Context27954Npgsql(DbContextOptions options) : DbContext(options)
     {
-        public DbSet<MyEntity> MyEntities { get; set; }
+        public DbSet<MyEntity> MyEntities { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

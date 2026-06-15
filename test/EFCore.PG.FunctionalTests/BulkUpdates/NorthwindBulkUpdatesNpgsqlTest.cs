@@ -1581,7 +1581,6 @@ WHERE c."CustomerID" LIKE 'F%'
 """);
     }
 
-    [MemberData(nameof(IsAsyncData))]
     public override async Task Update_with_two_inner_joins(bool async)
     {
         await AssertUpdate(

@@ -90,7 +90,6 @@ FROM [Products]
         Assert.Single(actual);
     }
 
-    [MemberData(nameof(IsAsyncData))]
     public override async Task FromSql_queryable_multiple_composed_with_parameters_and_closure_parameters_interpolated(bool async)
     {
         // We default to mapping DateTime to 'timestamp with time zone', but here we need to send `timestamp without time zone` to match

@@ -671,9 +671,11 @@ WHERE m."ContactName" LIKE '%z%'
 
 #pragma warning disable xUnit1026
     public override Task Bad_data_error_handling_invalid_cast(bool async)
+        // Not supported on PostgreSQL: Npgsql successfully materializes the test data instead of throwing.
         => Task.CompletedTask;
 
     public override Task Bad_data_error_handling_invalid_cast_projection(bool async)
+        // Not supported on PostgreSQL: Npgsql successfully materializes the test data instead of throwing.
         => Task.CompletedTask;
 #pragma warning restore xUnit1026
 
