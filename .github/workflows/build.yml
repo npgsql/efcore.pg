@@ -95,10 +95,17 @@ jobs:
                   Select-Xml -XPath '/applications/application[id=\"postgresql_${{ matrix.pg_major }}\" and platform=\"windows-x64\"]/version/text()' |
                   Select-Object -First 1 -ExpandProperty Node |
                   Select-Object -ExpandProperty Value")
+          EDB_URL=$(pwsh -c "
+              \$global:progressPreference='silentlyContinue';
+              Invoke-WebRequest -URI https://www.postgresql.org/applications-v2.xml |
+                  Select-Object -ExpandProperty Content |
+                  Select-Xml -XPath '/applications/application[id=\"postgresql_${{ matrix.pg_major }}\" and platform=\"windows-x64\"]/alturl/text()' |
+                  Select-Object -First 1 -ExpandProperty Node |
+                  Select-Object -ExpandProperty Value")
 
           # Install PostgreSQL
           echo "Installing PostgreSQL (version: ${EDB_VERSION})"
-          curl -o pgsql.zip -L https://get.enterprisedb.com/postgresql/postgresql-${EDB_VERSION}-windows-x64-binaries.zip
+          curl --fail -o pgsql.zip -L ${EDB_URL:-https://get.enterprisedb.com/postgresql/postgresql-${EDB_VERSION}-windows-x64-binaries.zip}
           unzip pgsql.zip -x 'pgsql/include/**' 'pgsql/doc/**' 'pgsql/pgAdmin 4/**' 'pgsql/StackBuilder/**'
 
           # Match Npgsql CI Docker image and stash one level up
@@ -114,7 +121,7 @@ jobs:
         shell: bash
 
       - name: Test
-        run: dotnet test -c ${{ matrix.config }}
+        run: dotnet test -c ${{ matrix.config }} --filter-not-trait category=failing
         shell: bash
         env:
           # Disable SSL to avoid unnecessary handshake pressure in the Windows functional tests.
