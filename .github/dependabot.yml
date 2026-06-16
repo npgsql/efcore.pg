@@ -5,6 +5,7 @@ updates:
     ignore:
       # We update these dependencies manually and on a weekly basis, since we depend on EF (and extensions) daily builds,
       # and updating these usually requires code changes.
+      - dependency-name: "Microsoft.EntityFrameworkCore"
       - dependency-name: "Microsoft.EntityFrameworkCore.*"
       - dependency-name: "Microsoft.Extensions.*"
     schedule:
