@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: "/"
+    ignore:
+      # We update these dependencies manually and on a weekly basis, since we depend on EF (and extensions) daily builds,
+      # and updating these usually requires code changes.
+      - dependency-name: "Microsoft.EntityFrameworkCore"
+      - dependency-name: "Microsoft.EntityFrameworkCore.*"
+      - dependency-name: "Microsoft.Extensions.*"
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch: 
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: weekly

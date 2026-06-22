@@ -1,0 +1,9 @@
+{
+  "sdk": {
+    "version": "11.0.100-preview.6.26313.102",
+    "allowPrerelease": true
+  },
+  "test": {
+    "runner": "Microsoft.Testing.Platform"
+  }
+}

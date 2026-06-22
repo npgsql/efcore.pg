@@ -1,0 +1,207 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+      - 'hotfix/**'
+      - 'release/**'
+    tags:
+      - v*
+  pull_request:
+
+permissions:
+  contents: read
+  id-token: write # required for GitHub OIDC
+
+env:
+  postgis_version: 3
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-26.04]
+        pg_major: [18, 17, 16, 15, 14, 13]
+        config: [Release]
+        include:
+          - os: windows-2022
+            pg_major: 17
+            config: Release
+          - os: ubuntu-26.04
+            pg_major: 18
+            config: Debug
+#          - os: ubuntu-26.04
+#            pg_major: 19
+#            config: Debug
+#            pg_prerelease: 'PG Prerelease'
+
+    outputs:
+      is_release: ${{ steps.analyze_tag.outputs.is_release }}
+      is_prerelease: ${{ steps.analyze_tag.outputs.is_prerelease }}
+
+    # Installing PostGIS on Windows is complicated/unreliable, so we don't test on it.
+    # The NPGSQL_TEST_POSTGIS environment variable ensures that if PostGIS isn't installed,
+    # the PostGIS tests fail and therefore fail the build.
+    env:
+      NPGSQL_TEST_POSTGIS: ${{ !startsWith(matrix.os, 'windows') }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: dotnet build --configuration Debug
+        shell: bash
+
+      - name: Start PostgreSQL ${{ matrix.pg_major }} (Linux)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          # First uninstall any PostgreSQL installed on the image
+          dpkg-query -W --showformat='${Package}\n' 'postgresql-*' | xargs sudo dpkg -P postgresql
+
+          # Automated repository configuration
+          sudo apt install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -v ${{ matrix.pg_major }} -y
+          sudo apt-get update -qq
+          sudo apt-get install -qq postgresql-${{ matrix.pg_major  }}
+
+          # To disable PostGIS for prereleases (because it usually isn't available until late), surround with the following:
+          #if [ -z "${{ matrix.pg_prerelease }}" ]; then
+            sudo apt-get install -qq postgresql-${{ matrix.pg_major }}-postgis-${{ env.postgis_version }}
+          #fi
+
+          sudo sed -i 's/max_connections = 100/max_connections = 200/g' /etc/postgresql/${{ matrix.pg_major }}/main/postgresql.conf
+          sudo systemctl restart postgresql
+          sudo -u postgres psql -c "CREATE USER npgsql_tests SUPERUSER PASSWORD 'npgsql_tests'"
+
+      - name: Start PostgreSQL ${{ matrix.pg_major }} (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          # Find EnterpriseDB version number
+          EDB_VERSION=$(pwsh -c "
+              \$global:progressPreference='silentlyContinue';
+              Invoke-WebRequest -URI https://www.postgresql.org/applications-v2.xml |
+                  Select-Object -ExpandProperty Content |
+                  Select-Xml -XPath '/applications/application[id=\"postgresql_${{ matrix.pg_major }}\" and platform=\"windows-x64\"]/version/text()' |
+                  Select-Object -First 1 -ExpandProperty Node |
+                  Select-Object -ExpandProperty Value")
+
+          # Install PostgreSQL
+          echo "Installing PostgreSQL (version: ${EDB_VERSION})"
+          curl --fail --retry 5 --retry-all-errors -o pgsql.zip -L https://get.enterprisedb.com/postgresql/postgresql-${EDB_VERSION}-windows-x64-binaries.zip
+          unzip pgsql.zip -x 'pgsql/include/**' 'pgsql/doc/**' 'pgsql/pgAdmin 4/**' 'pgsql/StackBuilder/**'
+
+          # Match Npgsql CI Docker image and stash one level up
+          cp $GITHUB_WORKSPACE/.build/{server.crt,server.key} pgsql
+
+          # Start PostgreSQL
+          pgsql/bin/initdb -D pgsql/PGDATA -E UTF8 -U postgres
+          pgsql/bin/pg_ctl -D pgsql/PGDATA -l logfile -o '-c max_connections=200 -c max_prepared_transactions=10 -c ssl=true -c ssl_cert_file=../server.crt -c ssl_key_file=../server.key' start
+
+          # Configure test account
+          pgsql/bin/psql -U postgres -c "CREATE ROLE npgsql_tests SUPERUSER LOGIN PASSWORD 'npgsql_tests'"
+          pgsql/bin/psql -U postgres -c "CREATE DATABASE npgsql_tests OWNER npgsql_tests"
+        shell: bash
+
+      - name: Test
+        run: dotnet test -c ${{ matrix.config }} --filter-not-trait category=failing
+        shell: bash
+        env:
+          # Disable SSL to avoid unnecessary handshake pressure in the Windows functional tests.
+          Test__Npgsql__DefaultConnection: Server=localhost;Username=npgsql_tests;Password=npgsql_tests;SSL Mode=Disable
+
+      - id: analyze_tag
+        name: Analyze tag
+        shell: bash
+        run: |
+          if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+              echo "Release tag detected"
+              echo "::set-output name=is_release::true"
+              if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+.*- ]]; then
+                  echo "Prerelease tag detected"
+                  echo "::set-output name=is_prerelease::true"
+              fi
+          fi
+
+  publish-ci:
+    needs: build
+    runs-on: ubuntu-26.04
+    if: github.event_name == 'push' && startsWith(github.repository, 'npgsql/')
+    environment: myget
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Pack
+        run: dotnet pack --configuration Release --property:PackageOutputPath="$PWD/nupkgs" --version-suffix "ci.$(date -u +%Y%m%dT%H%M%S)+sha.${GITHUB_SHA:0:9}" -p:ContinuousIntegrationBuild=true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: EFCore.PG.CI
+          path: nupkgs
+
+      - name: Publish packages to MyGet (vnext)
+        if: startsWith(github.ref, 'refs/heads/') && startsWith(github.ref, 'refs/heads/hotfix/') == false
+        run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.MYGET_FEED_TOKEN }} --source https://www.myget.org/F/npgsql-vnext/api/v3/index.json
+        working-directory: nupkgs
+
+      - name: Publish packages to MyGet (patch)
+        if: startsWith(github.ref, 'refs/heads/hotfix/')
+        run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.MYGET_FEED_TOKEN }} --source https://www.myget.org/F/npgsql/api/v3/index.json
+        working-directory: nupkgs
+
+  release:
+    needs: build
+    runs-on: ubuntu-26.04
+    if: github.event_name == 'push' && startsWith(github.repository, 'npgsql/') && needs.build.outputs.is_release == 'true'
+    permissions:
+      id-token: write  # enable GitHub OIDC token issuance for this job
+    environment: nuget.org
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Pack
+        run: dotnet pack --configuration Release --property:PackageOutputPath="$PWD/nupkgs" -p:ContinuousIntegrationBuild=true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: EFCore.PG.Release
+          path: nupkgs
+
+      # TODO: Create a release
+
+      # Get a short-lived NuGet API key
+      - name: NuGet login (OIDC)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: roji
+
+      - name: Publish to nuget.org
+        run: dotnet nuget push "*.nupkg" --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        working-directory: nupkgs

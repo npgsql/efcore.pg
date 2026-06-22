@@ -1,0 +1,4 @@
+namespace Microsoft.EntityFrameworkCore.Query.Inheritance;
+
+public class TPCFiltersInheritanceQueryNpgsqlTest(TPCFiltersInheritanceQueryNpgsqlFixture fixture)
+    : TPCFiltersInheritanceQueryTestBase<TPCFiltersInheritanceQueryNpgsqlFixture>(fixture);

@@ -1,0 +1,5 @@
+<#
+    Session["ResourceFile"] = "NpgsqlStrings.resx";
+    Session["LoggingDefinitionsClass"] = "Diagnostics.Internal.NpgsqlLoggingDefinitions";
+#>
+<#@ include file="..\..\..\tools\Resources.tt" #>
