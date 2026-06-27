@@ -54,17 +54,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: global.json
-
-      - name: Build
-        run: dotnet build --configuration Debug
-        shell: bash
-
       - name: Start PostgreSQL ${{ matrix.pg_major }} (Linux)
+        id: setup-postgresql-linux
         if: startsWith(matrix.os, 'ubuntu')
+        background: true
         run: |
           # First uninstall any PostgreSQL installed on the image
           dpkg-query -W --showformat='${Package}\n' 'postgresql-*' | xargs sudo dpkg -P postgresql
@@ -85,7 +78,9 @@ jobs:
           sudo -u postgres psql -c "CREATE USER npgsql_tests SUPERUSER PASSWORD 'npgsql_tests'"
 
       - name: Start PostgreSQL ${{ matrix.pg_major }} (Windows)
+        id: setup-postgresql-windows
         if: startsWith(matrix.os, 'windows')
+        background: true
         run: |
           # Find EnterpriseDB version number
           EDB_VERSION=$(pwsh -c "
@@ -113,8 +108,20 @@ jobs:
           pgsql/bin/psql -U postgres -c "CREATE DATABASE npgsql_tests OWNER npgsql_tests"
         shell: bash
 
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: dotnet build --configuration ${{ matrix.config }}
+        shell: bash
+
+      - name: Wait for PostgreSQL setup
+        wait-all: true
+
       - name: Test
-        run: dotnet test -c ${{ matrix.config }} --filter-not-trait category=failing
+        run: dotnet test -c ${{ matrix.config }} --no-build --filter-not-trait category=failing
         shell: bash
         env:
           # Disable SSL to avoid unnecessary handshake pressure in the Windows functional tests.
