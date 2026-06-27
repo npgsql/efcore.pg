@@ -114,14 +114,14 @@ jobs:
           global-json-file: global.json
 
       - name: Build
-        run: dotnet build --configuration Debug
+        run: dotnet build --configuration ${{ matrix.config }}
         shell: bash
 
       - name: Wait for PostgreSQL setup
         wait-all: true
 
       - name: Test
-        run: dotnet test -c ${{ matrix.config }} --filter-not-trait category=failing
+        run: dotnet test -c ${{ matrix.config }} --no-build --filter-not-trait category=failing
         shell: bash
         env:
           # Disable SSL to avoid unnecessary handshake pressure in the Windows functional tests.
