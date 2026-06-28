@@ -40,16 +40,13 @@ public class NpgsqlCSharpRuntimeAnnotationCodeGenerator
     /// </summary>
     public override bool Create(
         CoreTypeMapping typeMapping,
-        CSharpRuntimeAnnotationCodeGeneratorParameters parameters,
-        ValueComparer? valueComparer = null,
-        ValueComparer? keyValueComparer = null,
-        ValueComparer? providerValueComparer = null)
+        CSharpRuntimeAnnotationCodeGeneratorParameters parameters)
     {
         _typeMappingNestingCount++;
 
         try
         {
-            var result = base.Create(typeMapping, parameters, valueComparer, keyValueComparer, providerValueComparer);
+            var result = base.Create(typeMapping, parameters);
             AddNpgsqlTypeMappingTweaks(typeMapping, parameters);
             return result;
         }

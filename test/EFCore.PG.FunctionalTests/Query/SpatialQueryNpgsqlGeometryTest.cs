@@ -278,10 +278,7 @@ FROM "PolygonEntity" AS p
 
         AssertSql(
             """
-SELECT p."Id", CASE
-    WHEN p."Point" IS NULL THEN NULL
-    ELSE lower(GeometryType(p."Point"))
-END AS "GeometryType"
+SELECT p."Id", lower(GeometryType(p."Point")) AS "GeometryType"
 FROM "PointEntity" AS p
 """);
     }
