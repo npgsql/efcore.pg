@@ -1,10 +1,12 @@
 ---
+# This Agentic Workflow is currently disabled because of token billing issues and
+# general flakiness
 description: |
   This workflow periodically updates EFCore.PG to reference the latest EF daily build, and makes any
   changes to make it pass.
 
 on:
-  schedule: weekly
+#  schedule: weekly
   workflow_dispatch:
 
 permissions:
@@ -14,7 +16,7 @@ permissions:
 
 engine:
   id: copilot
-  model: claude-opus-4.6
+  model: claude-opus-4.8
 
 strict: false # Required since we're using custom domains in network below
 
