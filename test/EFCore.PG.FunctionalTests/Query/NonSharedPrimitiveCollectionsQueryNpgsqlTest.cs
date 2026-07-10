@@ -136,6 +136,27 @@ LIMIT 2
     }
 
     [ConditionalFact]
+    public virtual async Task View_column_collection_Contains_with_GIN_index_uses_containment()
+    {
+        var contextFactory = await InitializeAsync<TestContext>(
+            onModelCreating: mb => mb.Entity<TestEntity>()
+                .ToView("TestView")
+                .HasIndex(e => e.Ints)
+                .HasMethod("GIN"),
+            onConfiguring: b => b.ConfigureWarnings(w => w.Ignore(RelationalEventId.AllIndexPropertiesNotToMappedToAnyTable)));
+
+        await using var context = contextFactory.CreateContext();
+
+        Assert.Equal(
+            """
+SELECT t."Id", t."Ints"
+FROM "TestView" AS t
+WHERE t."Ints" @> ARRAY[4]::integer[]
+""",
+            context.Set<TestEntity>().Where(c => c.Ints!.Contains(4)).ToQueryString());
+    }
+
+    [ConditionalFact]
     public virtual async Task Column_collection_Contains_with_btree_index_does_not_use_containment()
     {
         var contextFactory = await InitializeAsync<TestContext>(
