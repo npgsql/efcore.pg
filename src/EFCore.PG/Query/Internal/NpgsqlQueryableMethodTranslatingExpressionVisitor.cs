@@ -703,12 +703,12 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 return array switch
                 {
                     // For array columns which have a GIN index, we translate to array containment (with @>) which uses that index.
-                    ColumnExpression { Column: IColumn column }
-                        when column.Table.Indexes
-                            .Any(i =>
-                                i.Columns.Count > 0
-                                && i.Columns[0] == column
-                                && i.MappedIndexes.Any(mi => mi.GetMethod()?.Equals("GIN", StringComparison.OrdinalIgnoreCase) == true))
+                    ColumnExpression { Column: IColumnBase column }
+                        when column.PropertyMappings.Any(
+                            m => m.Property.GetContainingIndexes().Any(
+                                i => i.Properties.Count > 0
+                                    && i.Properties[0] == m.Property
+                                    && i.GetMethod()?.Equals("GIN", StringComparison.OrdinalIgnoreCase) == true))
                         => BuildSimplifiedShapedQuery(
                             source,
                             _sqlExpressionFactory.Contains(
