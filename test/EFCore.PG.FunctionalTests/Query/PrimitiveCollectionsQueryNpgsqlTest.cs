@@ -2760,7 +2760,8 @@ LIMIT 2
             onModelCreating: mb => mb.Entity<TestEntity>()
                 .ToView("TestView")
                 .HasIndex(e => e.Ints)
-                .HasMethod("GIN"));
+                .HasMethod("GIN"),
+            onConfiguring: b => b.ConfigureWarnings(w => w.Ignore(RelationalEventId.AllIndexPropertiesNotMappedToAnyTable)));
 
         await using var context = contextFactory.CreateDbContext();
 
