@@ -4,6 +4,7 @@
     <MicrosoftExtensionsVersion>11.0.0-preview.6.26327.103</MicrosoftExtensionsVersion>
     <MicrosoftExtensionsConfigurationVersion>11.0.0-preview.6.26327.103</MicrosoftExtensionsConfigurationVersion>
     <NpgsqlVersion>10.0.3</NpgsqlVersion>
+    <XunitVersion>4.0.0-pre.128</XunitVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,10 +28,10 @@
     <PackageVersion Include="Npgsql.DependencyInjection" Version="$(NpgsqlVersion)" />
 
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.300" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
-    <PackageVersion Include="xunit.v3" Version="4.0.0-pre.108" />
-    <PackageVersion Include="xunit.v3.runner.inproc.console" Version="4.0.0-pre.108" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.0" />
+    <PackageVersion Include="xunit.v3" Version="$(XunitVersion)" />
+    <PackageVersion Include="xunit.v3.runner.inproc.console" Version="$(XunitVersion)" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0-pre.4" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.12.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.13.0" />
   </ItemGroup>
 </Project>
