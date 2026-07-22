@@ -1,1 +1,1 @@
-[assembly: CollectionBehavior(MaxParallelThreads = 4)]
+[assembly: Parallelization(MaxThreads = 4)]
