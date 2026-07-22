@@ -1,1 +1,1 @@
-[assembly: Parallelization(MaxThreads = 4)]
+[assembly: Xunit.v3.Parallelization(MaxThreads = 4)]
