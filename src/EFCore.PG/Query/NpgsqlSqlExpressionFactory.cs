@@ -721,7 +721,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             ApplyTypeMapping(likeExpression.Match, inferredTypeMapping),
             ApplyTypeMapping(likeExpression.Pattern, inferredTypeMapping),
             // The escape character must not inherit the match or pattern's value converter (#3888).
-            ApplyDefaultTypeMapping(likeExpression.EscapeChar),
+            likeExpression.EscapeChar is null ? null : ApplyDefaultTypeMapping(likeExpression.EscapeChar),
             _boolTypeMapping);
     }
 
@@ -734,7 +734,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             ApplyTypeMapping(ilikeExpression.Match, inferredTypeMapping),
             ApplyTypeMapping(ilikeExpression.Pattern, inferredTypeMapping),
             // The escape character must not inherit the match or pattern's value converter (#3888).
-            ApplyDefaultTypeMapping(ilikeExpression.EscapeChar),
+            ilikeExpression.EscapeChar is null ? null : ApplyDefaultTypeMapping(ilikeExpression.EscapeChar),
             _boolTypeMapping);
     }
 
