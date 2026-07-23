@@ -40,14 +40,14 @@ INSERT INTO "ZeroKey" VALUES (NULL)
     [ConditionalFact]
     public virtual async Task Like_with_implicit_escape_does_not_apply_value_converter()
     {
-        var contextFactory = await InitializeNonSharedTest<Context3888>(
+        var contextFactory = await InitializeAsync<Context3888>(
             seed: async context =>
             {
                 context.Entities.Add(new Context3888.Entity { Value = "ABC" });
                 await context.SaveChangesAsync();
             });
 
-        await using var context = contextFactory.CreateDbContext();
+        await using var context = contextFactory.CreateContext();
 
         var pattern = "%ABC%";
 
