@@ -394,6 +394,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             sqlExpression = sqlExpression switch
             {
                 SqlBinaryExpression e => ApplyTypeMappingOnSqlBinary(e, typeMapping),
+                LikeExpression e => ApplyTypeMappingOnLike(e),
 
                 // PostgreSQL-specific expression types
                 PgAnyExpression e => ApplyTypeMappingOnAny(e),
@@ -710,20 +711,30 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             array.TypeMapping);
     }
 
+    // The base implementation is private, so duplicate it here to keep the escape character's type mapping independent.
+    private SqlExpression ApplyTypeMappingOnLike(LikeExpression likeExpression)
+    {
+        var inferredTypeMapping = ExpressionExtensions.InferTypeMapping(likeExpression.Match, likeExpression.Pattern)
+            ?? _typeMappingSource.FindMapping(likeExpression.Match.Type, Dependencies.Model);
+
+        return new LikeExpression(
+            ApplyTypeMapping(likeExpression.Match, inferredTypeMapping),
+            ApplyTypeMapping(likeExpression.Pattern, inferredTypeMapping),
+            // The escape character must not inherit the match or pattern's value converter (#3888).
+            likeExpression.EscapeChar is null ? null : ApplyDefaultTypeMapping(likeExpression.EscapeChar),
+            _boolTypeMapping);
+    }
+
     private SqlExpression ApplyTypeMappingOnILike(PgILikeExpression ilikeExpression)
     {
-        var inferredTypeMapping = (ilikeExpression.EscapeChar is null
-                ? ExpressionExtensions.InferTypeMapping(
-                    ilikeExpression.Match, ilikeExpression.Pattern)
-                : ExpressionExtensions.InferTypeMapping(
-                    ilikeExpression.Match, ilikeExpression.Pattern,
-                    ilikeExpression.EscapeChar))
+        var inferredTypeMapping = ExpressionExtensions.InferTypeMapping(ilikeExpression.Match, ilikeExpression.Pattern)
             ?? _typeMappingSource.FindMapping(ilikeExpression.Match.Type, Dependencies.Model);
 
         return new PgILikeExpression(
             ApplyTypeMapping(ilikeExpression.Match, inferredTypeMapping),
             ApplyTypeMapping(ilikeExpression.Pattern, inferredTypeMapping),
-            ApplyTypeMapping(ilikeExpression.EscapeChar, inferredTypeMapping),
+            // The escape character must not inherit the match or pattern's value converter (#3888).
+            ilikeExpression.EscapeChar is null ? null : ApplyDefaultTypeMapping(ilikeExpression.EscapeChar),
             _boolTypeMapping);
     }
 
