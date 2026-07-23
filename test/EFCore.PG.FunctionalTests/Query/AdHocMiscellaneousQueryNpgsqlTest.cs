@@ -80,4 +80,57 @@ INSERT INTO "ZeroKey" VALUES (NULL)
                 => throw new NotSupportedException();
         }
     }
+
+    [ConditionalFact]
+    public virtual async Task Like_with_implicit_escape_does_not_apply_value_converter()
+    {
+        var contextFactory = await InitializeNonSharedTest<Context3888>(
+            seed: async context =>
+            {
+                context.Entities.Add(new Context3888.Entity { Value = "ABC" });
+                await context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateDbContext();
+
+        var pattern = "%ABC%";
+
+        Assert.Equal(1, await context.Entities.CountAsync(e => EF.Functions.Like(e.Value!, pattern)));
+        Assert.Equal(1, await context.Entities.CountAsync(e => EF.Functions.ILike(e.Value!, pattern)));
+
+        AssertSql(
+            """
+@pattern='%ABC%'
+
+SELECT count(*)::int
+FROM "Entities" AS e
+WHERE e."Value" LIKE @pattern ESCAPE ''
+""",
+            //
+            """
+@pattern='%ABC%'
+
+SELECT count(*)::int
+FROM "Entities" AS e
+WHERE e."Value" ILIKE @pattern ESCAPE ''
+""");
+    }
+
+    protected class Context3888(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<Entity> Entities { get; set; } = null!;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+            => modelBuilder.Entity<Entity>()
+                .Property(e => e.Value)
+                .HasConversion(
+                    value => string.IsNullOrWhiteSpace(value) ? null : value,
+                    value => value ?? string.Empty);
+
+        public class Entity
+        {
+            public int Id { get; set; }
+            public string? Value { get; set; }
+        }
+    }
 }
