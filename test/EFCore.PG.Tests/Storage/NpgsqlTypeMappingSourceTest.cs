@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text.Json;
@@ -262,6 +263,48 @@ public class NpgsqlTypeMappingSourceTest
     [Fact]
     public void Array_over_type_mapping_with_value_converter_by_store_type()
         => Array_over_type_mapping_with_value_converter(CreateTypeMappingSource().FindMapping("ltree[]"), typeof(List<LTree>));
+
+    [Theory]
+    [InlineData(typeof(LTree[]))]
+    [InlineData(typeof(List<LTree>))]
+    public void CreateParameter_with_value_converter_accepts_list(Type mappingType)
+    {
+        var mapping = CreateTypeMappingSource().FindMapping(mappingType)!;
+        Assert.NotNull(mapping.Converter);
+        var parameter = mapping.CreateParameter(
+            new NpgsqlCommand(),
+            "p",
+            new List<LTree> { new("foo"), new("bar") });
+        Assert.Equal(["foo", "bar"], Assert.IsType<string[]>(parameter.Value));
+    }
+
+    [Theory]
+    [InlineData(typeof(LTree[]))]
+    [InlineData(typeof(List<LTree>))]
+    public void CreateParameter_with_value_converter_accepts_immutable_list(Type mappingType)
+    {
+        var mapping = CreateTypeMappingSource().FindMapping(mappingType)!;
+        Assert.NotNull(mapping.Converter);
+        var parameter = mapping.CreateParameter(
+            new NpgsqlCommand(),
+            "p",
+            ImmutableList.Create(new LTree("foo"), new LTree("bar")));
+        Assert.Equal(["foo", "bar"], Assert.IsType<string[]>(parameter.Value));
+    }
+
+    [Theory]
+    [InlineData(typeof(LTree[]))]
+    [InlineData(typeof(List<LTree>))]
+    public void CreateParameter_with_value_converter_accepts_array(Type mappingType)
+    {
+        var mapping = CreateTypeMappingSource().FindMapping(mappingType)!;
+        Assert.NotNull(mapping.Converter);
+        var parameter = mapping.CreateParameter(
+            new NpgsqlCommand(),
+            "p",
+            new LTree[] { new("foo"), new("bar") });
+        Assert.Equal(["foo", "bar"], Assert.IsType<string[]>(parameter.Value));
+    }
 
     private void Array_over_type_mapping_with_value_converter(CoreTypeMapping mapping, Type expectedType)
     {

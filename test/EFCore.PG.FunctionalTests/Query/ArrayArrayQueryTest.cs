@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.EntityFrameworkCore.TestModels.Array;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 
@@ -866,6 +867,67 @@ WHERE ARRAY[5,6]::integer[] <@ s."IntArray"
     }
 
     #endregion Any/All
+
+    #region Intersect
+
+    [ConditionalFact]
+    public virtual async Task Intersect_parameter_list_over_value_converted_array()
+    {
+        List<SomeEnum> toFindList = [SomeEnum.One, SomeEnum.Three, SomeEnum.Eight];
+
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArrayOfEnum.Intersect(toFindList).Any()));
+
+        AssertSql(
+            """
+@toFindList={ 'One'
+'Three'
+'Eight' } (DbType = Object)
+
+SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."ValueConvertedArrayOfEnum" && @toFindList
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Intersect_parameter_immutable_list_over_value_converted_array()
+    {
+        ImmutableList<SomeEnum> toFindImmutableList = [SomeEnum.One, SomeEnum.Three, SomeEnum.Eight];
+
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArrayOfEnum.Intersect(toFindImmutableList).Any()));
+
+        AssertSql(
+            """
+@toFindImmutableList={ 'One'
+'Three'
+'Eight' } (DbType = Object)
+
+SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."ValueConvertedArrayOfEnum" && @toFindImmutableList
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Intersect_parameter_array_over_value_converted_array()
+    {
+        SomeEnum[] toFindArray = [SomeEnum.One, SomeEnum.Three, SomeEnum.Eight];
+
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedArrayOfEnum.Intersect(toFindArray).Any()));
+
+        AssertSql(
+            """
+@toFindArray={ 'One'
+'Three'
+'Eight' } (DbType = Object)
+
+SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."ValueConvertedArrayOfEnum" && @toFindArray
+""");
+    }
+
+    #endregion
 
     #region Other translations
 

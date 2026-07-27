@@ -232,22 +232,25 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
     {
         // In queries which compose non-server-correlated LINQ operators over an array parameter (e.g. Where(b => ids.Skip(1)...) we
         // get an enumerable parameter value that isn't an array/list - but those aren't supported at the Npgsql ADO level.
-        // Detect this here and evaluate the enumerable to get a fully materialized List.
-        // Note that when we have a value converter (e.g. for HashSet), we don't want to convert it to a List, since the value converter
-        // expects the original type.
+        // Detect this here and evaluate the enumerable to get a fully materialized TConcreteCollection (array or List).
+        // Note that when we have a value converter (e.g. for HashSet), we don't want to convert values that already match
+        // the converter's model type, since the value converter expects that original type.
+        // However, if the value's collection shape differs from the converter model type (e.g. List<MyId> vs MyId[] after
+        // type mapping inference for Intersect().Any() → &&), normalize to TConcreteCollection so Sanitize succeeds.
         // TODO: Make Npgsql support IList<> instead of only arrays and List<>
-        if (value is not null && Converter is null && !value.GetType().IsArrayOrGenericList())
+        if (value is not null
+            && ((Converter is null && !value.GetType().IsArrayOrGenericList())
+                || (Converter is not null && !Converter.ModelClrType.IsInstanceOfType(value))))
         {
-            switch (value)
+            var castedElements = value switch
             {
-                case IEnumerable<TElement> elements:
-                    value = elements.ToList();
-                    break;
+                IEnumerable<TElement> elements => elements,
+                IEnumerable elements => elements.Cast<TElement>(),
+                _ => throw new InvalidOperationException(
+                    $"Cannot create a parameter for {GetType().Name} from value of type '{value.GetType().Name}'")
+            };
 
-                case IEnumerable elements:
-                    value = elements.Cast<TElement>().ToList();
-                    break;
-            }
+            value = typeof(TConcreteCollection).IsArray ? castedElements.ToArray() : castedElements.ToList();
         }
 
         var param = base.CreateParameter(command, name, value, nullable, direction);
