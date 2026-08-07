@@ -933,6 +933,49 @@ WHERE s."ValueConvertedListOfEnum" && @toFindList
 """);
     }
 
+    [ConditionalFact]
+    public virtual async Task Intersect_parameter_hash_set_over_value_converted_list()
+    {
+        HashSet<SomeEnum> toFindHashSet = [SomeEnum.One, SomeEnum.Three, SomeEnum.Eight];
+
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedListOfEnum.Intersect(toFindHashSet).Any()));
+
+        AssertSql(
+            """
+@toFindHashSet={ 'One'
+'Three'
+'Eight' } (DbType = Object)
+
+SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."ValueConvertedListOfEnum" && @toFindHashSet
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Intersect_parameter_non_collection_enumerable_over_value_converted_list()
+    {
+        var toFindEnumerable = new List<SomeEnum>
+        {
+            SomeEnum.One,
+            SomeEnum.Three,
+            SomeEnum.Eight
+        }.Where(_ => true);
+
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedListOfEnum.Intersect(toFindEnumerable).Any()));
+
+        AssertSql(
+            """
+@toFindEnumerable={ 'One'
+'Three'
+'Eight' } (DbType = Object)
+
+SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."ValueConvertedListOfEnum" && @toFindEnumerable
+""");
+    }
+
     #endregion
 
     #region Other translations

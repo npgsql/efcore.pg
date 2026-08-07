@@ -265,45 +265,79 @@ public class NpgsqlTypeMappingSourceTest
         => Array_over_type_mapping_with_value_converter(CreateTypeMappingSource().FindMapping("ltree[]"), typeof(List<LTree>));
 
     [Theory]
-    [InlineData(typeof(LTree[]))]
-    [InlineData(typeof(List<LTree>))]
-    public void CreateParameter_with_value_converter_accepts_list(Type mappingType)
-    {
-        var mapping = CreateTypeMappingSource().FindMapping(mappingType)!;
-        Assert.NotNull(mapping.Converter);
-        var parameter = mapping.CreateParameter(
-            new NpgsqlCommand(),
-            "p",
-            new List<LTree> { new("foo"), new("bar") });
-        Assert.Equal(["foo", "bar"], Assert.IsType<string[]>(parameter.Value));
-    }
+    [InlineData(typeof(LTree[]), typeof(List<LTree>))]
+    [InlineData(typeof(List<LTree>), typeof(List<LTree>))]
+    [InlineData(typeof(HashSet<LTree>), typeof(List<LTree>))]
+    [InlineData(typeof(LTree[]), typeof(HashSet<LTree>))]
+    [InlineData(typeof(List<LTree>), typeof(HashSet<LTree>))]
+    [InlineData(typeof(HashSet<LTree>), typeof(HashSet<LTree>))]
+    public void CreateParameter_with_value_converter_accepts_mutable_collections(Type mappingType, Type valueType)
+        => CreateParameter_with_value_converter(
+            mappingType, Activator.CreateInstance(valueType, new LTree[] { new("foo"), new("bar") }));
 
     [Theory]
     [InlineData(typeof(LTree[]))]
     [InlineData(typeof(List<LTree>))]
+    [InlineData(typeof(HashSet<LTree>))]
     public void CreateParameter_with_value_converter_accepts_immutable_list(Type mappingType)
-    {
-        var mapping = CreateTypeMappingSource().FindMapping(mappingType)!;
-        Assert.NotNull(mapping.Converter);
-        var parameter = mapping.CreateParameter(
-            new NpgsqlCommand(),
-            "p",
-            ImmutableList.Create(new LTree("foo"), new LTree("bar")));
-        Assert.Equal(["foo", "bar"], Assert.IsType<string[]>(parameter.Value));
-    }
+        => CreateParameter_with_value_converter(mappingType, ImmutableList.Create(new LTree("foo"), new LTree("bar")));
 
     [Theory]
     [InlineData(typeof(LTree[]))]
     [InlineData(typeof(List<LTree>))]
+    [InlineData(typeof(HashSet<LTree>))]
     public void CreateParameter_with_value_converter_accepts_array(Type mappingType)
+        => CreateParameter_with_value_converter(mappingType, new LTree[] { new("foo"), new("bar") });
+
+    [Theory]
+    [InlineData(typeof(LTree[]))]
+    [InlineData(typeof(List<LTree>))]
+    [InlineData(typeof(HashSet<LTree>))]
+    public void CreateParameter_with_value_converter_accepts_non_collection_enumerable(Type mappingType)
+        => CreateParameter_with_value_converter(
+            mappingType, new List<LTree> { new("foo"), new("bar") }.Where(_ => true));
+
+    [Theory]
+    [InlineData(typeof(int[]), typeof(List<int>))]
+    [InlineData(typeof(List<int>), typeof(List<int>))]
+    [InlineData(typeof(HashSet<int>), typeof(List<int>))]
+    [InlineData(typeof(int[]), typeof(HashSet<int>))]
+    [InlineData(typeof(List<int>), typeof(HashSet<int>))]
+    [InlineData(typeof(HashSet<int>), typeof(HashSet<int>))]
+    public void CreateParameter_without_converter_accepts_mutable_collections(Type mappingType, Type valueType)
+        => CreateParameter_without_converter(
+            mappingType, Activator.CreateInstance(valueType, new[] { 1, 2 }));
+
+    [Theory]
+    [InlineData(typeof(int[]))]
+    [InlineData(typeof(List<int>))]
+    [InlineData(typeof(HashSet<int>))]
+    public void CreateParameter_without_converter_accepts_immutable_list(Type mappingType)
+        => CreateParameter_without_converter(mappingType, ImmutableList.Create(new[] { 1, 2 }));
+
+    [Theory]
+    [InlineData(typeof(int[]))]
+    [InlineData(typeof(List<int>))]
+    [InlineData(typeof(HashSet<int>))]
+    public void CreateParameter_without_converter_accepts_array(Type mappingType)
     {
         var mapping = CreateTypeMappingSource().FindMapping(mappingType)!;
+        Assert.Null(mapping.Converter);
+        var parameter = mapping.CreateParameter(new NpgsqlCommand(), "p", new[] { 1, 2 });
+        Assert.Equal(new[] { 1, 2 }, Assert.IsType<int[]>(parameter.Value));
+    }
+
+    [Fact]
+    public void CreateParameter_with_shape_only_converter_accepts_non_ilist_collection()
+    {
+        var mapping = CreateTypeMappingSource().FindMapping(typeof(IList<int>))!;
         Assert.NotNull(mapping.Converter);
-        var parameter = mapping.CreateParameter(
-            new NpgsqlCommand(),
-            "p",
-            new LTree[] { new("foo"), new("bar") });
-        Assert.Equal(["foo", "bar"], Assert.IsType<string[]>(parameter.Value));
+        Assert.Same(typeof(IList<int>), mapping.Converter.ModelClrType);
+        Assert.Same(typeof(int[]), mapping.Converter.ProviderClrType);
+        Assert.Null(mapping.ElementTypeMapping!.Converter);
+
+        var parameter = mapping.CreateParameter(new NpgsqlCommand(), "p", new HashSet<int> { 1, 2 });
+        Assert.Equivalent(new[] { 1, 2 }, Assert.IsType<int[]>(parameter.Value), strict: true);
     }
 
     private void Array_over_type_mapping_with_value_converter(CoreTypeMapping mapping, Type expectedType)
@@ -329,6 +363,22 @@ public class NpgsqlTypeMappingSourceTest
                     : new List<LTree> { new("foo"), new("bar") }),
             s => Assert.Equal("foo", s),
             s => Assert.Equal("bar", s));
+    }
+
+    private void CreateParameter_with_value_converter(Type mappingType, object value)
+    {
+        var mapping = CreateTypeMappingSource().FindMapping(mappingType)!;
+        Assert.NotNull(mapping.Converter);
+        var parameter = mapping.CreateParameter(new NpgsqlCommand(), "p", value);
+        Assert.Equivalent(new[] { "foo", "bar" }, Assert.IsType<string[]>(parameter.Value), strict: true);
+    }
+
+    private void CreateParameter_without_converter(Type mappingType, object value)
+    {
+        var mapping = CreateTypeMappingSource().FindMapping(mappingType)!;
+        Assert.Null(mapping.Converter);
+        var parameter = mapping.CreateParameter(new NpgsqlCommand(), "p", value);
+        Assert.Equivalent(new[] { 1, 2 }, Assert.IsType<List<int>>(parameter.Value), strict: true);
     }
 
     #endregion Array
