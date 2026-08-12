@@ -6,6 +6,39 @@ namespace Microsoft.EntityFrameworkCore.Query.Associations.ComplexJson;
 public class ComplexJsonProjectionNpgsqlTest(ComplexJsonNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
     : ComplexJsonProjectionRelationalTestBase<ComplexJsonNpgsqlFixture>(fixture, testOutputHelper)
 {
+    public override async Task Select_required_associate_duplicated(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.Select_required_associate_duplicated(queryTrackingBehavior);
+
+        AssertSql(
+            """
+SELECT r."RequiredAssociate", r."RequiredAssociate"
+FROM "RootEntity" AS r
+""");
+    }
+
+    public override async Task Select_required_associate_and_optional_associate(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.Select_required_associate_and_optional_associate(queryTrackingBehavior);
+
+        AssertSql(
+            """
+SELECT r."RequiredAssociate", r."OptionalAssociate"
+FROM "RootEntity" AS r
+""");
+    }
+
+    public override async Task Select_optional_associate_and_ints(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.Select_optional_associate_and_ints(queryTrackingBehavior);
+
+        AssertSql(
+            """
+SELECT r."OptionalAssociate", r."RequiredAssociate" -> 'Ints' AS "Ints"
+FROM "RootEntity" AS r
+""");
+    }
+
     public override async Task Select_root(QueryTrackingBehavior queryTrackingBehavior)
     {
         await base.Select_root(queryTrackingBehavior);

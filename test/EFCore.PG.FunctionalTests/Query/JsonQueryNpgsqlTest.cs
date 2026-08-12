@@ -11,6 +11,16 @@ public class JsonQueryNpgsqlTest : JsonQueryRelationalTestBase<JsonQueryNpgsqlTe
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
+    public override async Task Entity_including_collection_with_json_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Entity_including_collection_with_json_AsNoTrackingWithIdentityResolution(async);
+    }
+
+    public override async Task Entity_including_collection_with_json_and_separate_json_projection_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Entity_including_collection_with_json_and_separate_json_projection_AsNoTrackingWithIdentityResolution(async);
+    }
+
     public override async Task Basic_json_projection_owner_entity_NoTrackingWithIdentityResolution(bool async)
     {
         await base.Basic_json_projection_owner_entity_NoTrackingWithIdentityResolution(async);

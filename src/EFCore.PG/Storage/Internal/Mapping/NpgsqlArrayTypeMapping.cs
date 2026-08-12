@@ -48,6 +48,24 @@ public abstract class NpgsqlArrayTypeMapping : RelationalTypeMapping
             return (RelationalTypeMapping)elementTypeMapping;
         }
     }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public override object? GetDefaultProviderValue()
+    {
+        // The base implementation assumes any mapping with an element type mapping and a JsonValueReaderWriter stores its
+        // collection as a JSON string in the column, and returns "[]"; PostgreSQL arrays are natively-typed columns, so
+        // return an actual collection default instead (see https://github.com/dotnet/efcore/issues/38796).
+        var providerType = (Converter?.ProviderClrType ?? ClrType).UnwrapNullableType();
+
+        return providerType.IsArray
+            ? Array.CreateInstance(providerType.GetElementType()!, 0)
+            : providerType.GetDefaultValue();
+    }
 }
 
 /// <summary>

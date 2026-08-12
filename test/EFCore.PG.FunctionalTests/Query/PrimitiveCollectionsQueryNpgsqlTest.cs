@@ -12,6 +12,21 @@ public class PrimitiveCollectionsQueryNpgsqlTest : PrimitiveCollectionsQueryRela
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
+    public override async Task Inline_collection_SelectMany_with_unreferenced_collection_value()
+    {
+        await base.Inline_collection_SelectMany_with_unreferenced_collection_value();
+    }
+
+    public override async Task Min_on_MemoryExtensions()
+    {
+        await base.Min_on_MemoryExtensions();
+    }
+
+    public override async Task Max_on_MemoryExtensions()
+    {
+        await base.Max_on_MemoryExtensions();
+    }
+
     public override async Task Inline_collection_of_ints_Contains()
     {
         await base.Inline_collection_of_ints_Contains();

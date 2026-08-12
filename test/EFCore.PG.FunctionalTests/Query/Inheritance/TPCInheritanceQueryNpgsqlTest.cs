@@ -3,6 +3,80 @@ namespace Microsoft.EntityFrameworkCore.Query.Inheritance;
 public class TPCInheritanceQueryNpgsqlTest(TPCInheritanceQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
     : TPCInheritanceQueryTestBase<TPCInheritanceQueryNpgsqlFixture>(fixture, testOutputHelper)
 {
+    public override async Task Can_insert_update_delete()
+    {
+        await base.Can_insert_update_delete();
+
+        AssertSql(
+            """
+SELECT u."Id", u."CountryId", u."Name", u."Species", u."EagleId", u."IsFlightless", u."Group", u."FoundOn", u."Discriminator"
+FROM (
+    SELECT e."Id", e."CountryId", e."Name", e."Species", e."EagleId", e."IsFlightless", e."Group", NULL AS "FoundOn", 'Eagle' AS "Discriminator"
+    FROM "Eagle" AS e
+    UNION ALL
+    SELECT k."Id", k."CountryId", k."Name", k."Species", k."EagleId", k."IsFlightless", NULL AS "Group", k."FoundOn", 'Kiwi' AS "Discriminator"
+    FROM "Kiwi" AS k
+) AS u
+WHERE u."Species" = 'Aquila chrysaetos canadensis'
+LIMIT 2
+""",
+            //
+            """
+SELECT c."Id", c."Name"
+FROM "Countries" AS c
+WHERE c."Id" = 1
+LIMIT 2
+""",
+            //
+            """
+@p0='1'
+@p1=NULL (DbType = Int32)
+@p2='0'
+@p3='True'
+@p4='Little spotted kiwi'
+@p5='Apteryx owenii'
+
+INSERT INTO "Kiwi" ("CountryId", "EagleId", "FoundOn", "IsFlightless", "Name", "Species")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5)
+RETURNING "Id";
+""",
+            //
+            """
+SELECT k."Id", k."CountryId", k."Name", k."Species", k."EagleId", k."IsFlightless", k."FoundOn"
+FROM "Kiwi" AS k
+WHERE k."Species" LIKE '%owenii'
+LIMIT 2
+""",
+            //
+            """
+@p1='3'
+@p0='2' (Nullable = true)
+
+UPDATE "Kiwi" SET "EagleId" = @p0
+WHERE "Id" = @p1;
+""",
+            //
+            """
+SELECT k."Id", k."CountryId", k."Name", k."Species", k."EagleId", k."IsFlightless", k."FoundOn"
+FROM "Kiwi" AS k
+WHERE k."Species" LIKE '%owenii'
+LIMIT 2
+""",
+            //
+            """
+@p0='3'
+
+DELETE FROM "Kiwi"
+WHERE "Id" = @p0;
+""",
+            //
+            """
+SELECT count(*)::int
+FROM "Kiwi" AS k
+WHERE k."Species" LIKE '%owenii'
+""");
+    }
+
     public override async Task Byte_enum_value_constant_used_in_projection(bool async)
     {
         await base.Byte_enum_value_constant_used_in_projection(async);

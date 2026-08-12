@@ -8,6 +8,28 @@ public class AdHocPrecompiledQueryNpgsqlTest(NonSharedFixture fixture, ITestOutp
     protected override bool AlwaysPrintGeneratedSources
         => false;
 
+    public override async Task Invalid_identifier_json_property_name()
+    {
+        await base.Invalid_identifier_json_property_name();
+
+        AssertSql(
+            """
+SELECT e."Id", e."Nested"
+FROM "Entities" AS e
+""");
+    }
+
+    public override async Task Invalid_identifier_shadow_property_name()
+    {
+        await base.Invalid_identifier_shadow_property_name();
+
+        AssertSql(
+            """
+SELECT e."Id", e."NOT VALID !!!1"
+FROM "Entities" AS e
+""");
+    }
+
     public override async Task Index_no_evaluatability()
     {
         await base.Index_no_evaluatability();

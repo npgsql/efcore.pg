@@ -13,6 +13,41 @@ public class PrecompiledQueryNpgsqlTest(
 
     #region Expression types
 
+    public override async Task RuntimeConstantExpression()
+    {
+        await base.RuntimeConstantExpression();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+""");
+    }
+
+    public override async Task Materialize_entity_with_primitive_collection_mapped_to_column()
+    {
+        await base.Materialize_entity_with_primitive_collection_mapped_to_column();
+
+        AssertSql(
+            """
+SELECT e."Id", e."Tags"
+FROM "EntitiesWithPrimitiveCollection" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    public override async Task Project_primitive_collection_mapped_to_column()
+    {
+        await base.Project_primitive_collection_mapped_to_column();
+
+        AssertSql(
+            """
+SELECT e."Tags"
+FROM "EntitiesWithPrimitiveCollection" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
     public override async Task BinaryExpression()
     {
         await base.BinaryExpression();
@@ -2102,6 +2137,13 @@ FROM "Blogs" AS b
             var post23 = new Post { Id = 23, Title = "Post23", Blog = blog2 };
 
             context.Posts.AddRange(post11, post12, post21, post22, post23);
+
+            // On PostgreSQL, primitive collections are mapped to native array columns rather than JSON strings, so the
+            // base fixture's scenario of a column holding a JSON 'null' token doesn't exist; the closest equivalent is a
+            // SQL NULL, which the base test assertions cover.
+            context.EntitiesWithPrimitiveCollection.AddRange(
+                new EntityWithPrimitiveCollection { Id = 1, Tags = ["a", "b"] },
+                new EntityWithPrimitiveCollection { Id = 2, Tags = null });
             await context.SaveChangesAsync();
         }
 

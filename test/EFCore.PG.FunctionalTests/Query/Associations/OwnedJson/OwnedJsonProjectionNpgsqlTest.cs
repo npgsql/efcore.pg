@@ -6,6 +6,48 @@ namespace Microsoft.EntityFrameworkCore.Query.Associations.OwnedJson;
 public class OwnedJsonProjectionNpgsqlTest(OwnedJsonNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
     : OwnedJsonProjectionRelationalTestBase<OwnedJsonNpgsqlFixture>(fixture, testOutputHelper)
 {
+    public override async Task Select_required_associate_duplicated(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.Select_required_associate_duplicated(queryTrackingBehavior);
+
+        if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
+        {
+            AssertSql(
+            """
+SELECT r."RequiredAssociate", r."Id", r."RequiredAssociate"
+FROM "RootEntity" AS r
+""");
+        }
+    }
+
+    public override async Task Select_required_associate_and_optional_associate(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.Select_required_associate_and_optional_associate(queryTrackingBehavior);
+
+        if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
+        {
+            AssertSql(
+            """
+SELECT r."RequiredAssociate", r."Id", r."OptionalAssociate"
+FROM "RootEntity" AS r
+""");
+        }
+    }
+
+    public override async Task Select_optional_associate_and_ints(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.Select_optional_associate_and_ints(queryTrackingBehavior);
+
+        if (queryTrackingBehavior is not QueryTrackingBehavior.TrackAll)
+        {
+            AssertSql(
+            """
+SELECT r."OptionalAssociate", r."Id", r."RequiredAssociate" -> 'Ints'
+FROM "RootEntity" AS r
+""");
+        }
+    }
+
     public override async Task Select_root(QueryTrackingBehavior queryTrackingBehavior)
     {
         await base.Select_root(queryTrackingBehavior);
