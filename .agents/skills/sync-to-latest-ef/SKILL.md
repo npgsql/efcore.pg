@@ -20,7 +20,7 @@ We're going to sync the EF Core PostgreSQL provider (EFCore.PG) in this repo to 
 
 Build EFCore.PG and resolve any errors that are reported.
 
-The EF Core source code can be found in https://github.com/dotnet/efcore - you can explore that repo to understand what changes happened there from the last version the EFCore.PG used to the version we're upgrading towards. Focus especially on changes that occured before the current daily build referenced by EFCore.PG (before your change), since everything is still working correctly with it.
+The EF Core source code can be found in https://github.com/dotnet/efcore - you can explore that repo to understand what changes happened there from the last version the EFCore.PG used to the version we're upgrading towards. Focus especially on changes that occurred before the current daily build referenced by EFCore.PG (before your change), since everything is still working correctly with it.
 
 Generally try to align EFCore.PG to whatever practices and patterns are in use within EF Core itself.
 
