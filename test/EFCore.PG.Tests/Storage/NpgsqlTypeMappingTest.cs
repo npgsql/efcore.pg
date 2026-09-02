@@ -943,6 +943,15 @@ public class NpgsqlTypeMappingTest
         var snapshot = (JsonDocument)comparer.Snapshot(source);
         Assert.Same(source, snapshot);
         Assert.True(comparer.Equals(source, snapshot));
+        Assert.True(comparer.Equals(source, JsonDocument.Parse(json)));
+        json = """{"Age":25.0,"Name":"Joe"}""";
+        source = JsonDocument.Parse(json);
+        Assert.True(comparer.Equals(source, snapshot));
+        json = """{"Name":"Joe","Age":26}""";
+        source = JsonDocument.Parse(json);
+        Assert.False(comparer.Equals(source, snapshot));
+        Assert.False(comparer.Equals(source, null));
+        Assert.True(comparer.Equals(null, null));
     }
 
     [Fact]
@@ -954,7 +963,15 @@ public class NpgsqlTypeMappingTest
         var comparer = GetMapping(typeof(JsonElement)).Comparer;
         var snapshot = (JsonElement)comparer.Snapshot(source);
         Assert.True(comparer.Equals(source, snapshot));
-        Assert.False(comparer.Equals(source, JsonDocument.Parse(json).RootElement));
+        Assert.True(comparer.Equals(source, JsonDocument.Parse(json).RootElement));
+        json = """{"Age":25.0,"Name":"Joe"}""";
+        source = JsonDocument.Parse(json).RootElement;
+        Assert.True(comparer.Equals(source, snapshot));
+        json = """{"Name":"Joe","Age":26}""";
+        source = JsonDocument.Parse(json).RootElement;
+        Assert.False(comparer.Equals(source, snapshot));
+        Assert.False(comparer.Equals(source, new JsonElement()));
+        Assert.True(comparer.Equals(new JsonElement(), new JsonElement()));
     }
 
     private static readonly Customer SampleCustomer = new()
