@@ -33,5 +33,6 @@
     <PackageVersion Include="xunit.v3.runner.inproc.console" Version="$(XunitVersion)" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0-pre.5" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.13.0" />
+    <PackageVersion Include="SSH.NET" Version="2026.0.0" />
   </ItemGroup>
 </Project>
