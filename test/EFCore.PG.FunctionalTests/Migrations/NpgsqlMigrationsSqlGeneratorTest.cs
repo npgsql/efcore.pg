@@ -619,6 +619,43 @@ INTERLEAVE IN PARENT my_schema.my_parent (col_a, col_b);
 
 #pragma warning restore 618
 
+    [Fact]
+    public virtual void DropIndexOperation_concurrently()
+    {
+        Generate(
+            new DropIndexOperation
+            {
+                Name = "IX_People_Name",
+                Table = "People",
+                Schema = "dbo",
+                [NpgsqlAnnotationNames.CreatedConcurrently] = true
+            });
+
+        AssertSql(
+            """
+DROP INDEX CONCURRENTLY dbo."IX_People_Name";
+
+""");
+    }
+
+    [Fact]
+    public virtual void DropIndexOperation_not_concurrently()
+    {
+        Generate(
+            new DropIndexOperation
+            {
+                Name = "IX_People_Name",
+                Table = "People",
+                Schema = "dbo"
+            });
+
+        AssertSql(
+            """
+DROP INDEX dbo."IX_People_Name";
+
+""");
+    }
+
     protected override string GetGeometryCollectionStoreType()
         => "GEOMETRY(GEOMETRYCOLLECTION)";
 }
