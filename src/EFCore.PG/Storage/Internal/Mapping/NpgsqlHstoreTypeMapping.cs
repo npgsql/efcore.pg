@@ -66,28 +66,35 @@ public class NpgsqlHstoreTypeMapping : NpgsqlTypeMapping
     protected override string GenerateNonNullSqlLiteral(object value)
     {
         var sb = new StringBuilder("HSTORE '");
-        foreach (var kv in (IReadOnlyDictionary<string, string?>)value)
+
+        if (value is not IReadOnlyDictionary<string, string?> dict)
         {
-            sb.Append('"');
-            sb.Append(kv.Key); // TODO: Escape
-            sb.Append("\"=>");
-            if (kv.Value is null)
-            {
-                sb.Append("NULL");
-            }
-            else
-            {
-                sb.Append('"');
-                sb.Append(kv.Value); // TODO: Escape
-                sb.Append("\",");
-            }
+            throw new ArgumentException($"Expected a dictionary, but got {value.GetType()}", nameof(value));
         }
 
-        sb.Remove(sb.Length - 1, 1);
+        foreach (var kv in dict)
+        {
+            sb.Append(QuoteHStoreString(kv.Key));
+            sb.Append("=>");
+            sb.Append(kv.Value is null ? "NULL" : QuoteHStoreString(kv.Value));
+            sb.Append(',');
+        }
+
+        if (sb[^1] == ',')
+        {
+            sb.Remove(sb.Length - 1, 1);
+        }
 
         sb.Append('\'');
         return sb.ToString();
     }
+
+    // Quote string for use in an HStore literal.
+    // Escape \ as \\
+    // Escape " as \"
+    // Escape ' as ''
+    private static string QuoteHStoreString(string s)
+        => string.Concat("\"", s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("'", "''"), "\"");
 
     private static ValueComparer? GetComparer(Type clrType)
     {
