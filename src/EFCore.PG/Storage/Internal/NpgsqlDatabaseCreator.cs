@@ -161,7 +161,8 @@ WHERE
                     Name = connection.DbConnection.Database,
                     Template = designTimeModel.GetDatabaseTemplate(),
                     Collation = designTimeModel.GetCollation(),
-                    Tablespace = designTimeModel.GetTablespace()
+                    Tablespace = designTimeModel.GetTablespace(),
+                    Encoding = designTimeModel.GetEncoding(),
                 }
         ]);
     }
