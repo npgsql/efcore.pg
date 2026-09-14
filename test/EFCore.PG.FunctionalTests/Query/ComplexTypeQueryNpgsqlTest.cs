@@ -1004,7 +1004,18 @@ LEFT JOIN LATERAL (
     {
         await base.Same_complex_type_projected_twice_with_pushdown_as_part_of_another_projection(async);
 
-        AssertSql("");
+        AssertSql(
+            """
+SELECT c."Id", s."BillingAddress_AddressLine1", s."BillingAddress_AddressLine2", s."BillingAddress_Tags", s."BillingAddress_ZipCode", s."BillingAddress_Country_Code", s."BillingAddress_Country_FullName", s."BillingAddress_AddressLine10", s."BillingAddress_AddressLine20", s."BillingAddress_Tags0", s."BillingAddress_ZipCode0", s."BillingAddress_Country_Code0", s."BillingAddress_Country_FullName0", s.c
+FROM "Customer" AS c
+LEFT JOIN LATERAL (
+    SELECT c0."BillingAddress_AddressLine1", c0."BillingAddress_AddressLine2", c0."BillingAddress_Tags", c0."BillingAddress_ZipCode", c0."BillingAddress_Country_Code", c0."BillingAddress_Country_FullName", c1."BillingAddress_AddressLine1" AS "BillingAddress_AddressLine10", c1."BillingAddress_AddressLine2" AS "BillingAddress_AddressLine20", c1."BillingAddress_Tags" AS "BillingAddress_Tags0", c1."BillingAddress_ZipCode" AS "BillingAddress_ZipCode0", c1."BillingAddress_Country_Code" AS "BillingAddress_Country_Code0", c1."BillingAddress_Country_FullName" AS "BillingAddress_Country_FullName0", 1 AS c
+    FROM "Customer" AS c0
+    CROSS JOIN "Customer" AS c1
+    ORDER BY c0."Id" NULLS FIRST, c1."Id" DESC NULLS LAST
+    LIMIT 1
+) AS s ON TRUE
+""");
     }
 
     #region GroupBy
@@ -1135,6 +1146,283 @@ LEFT JOIN (
         LIMIT @p1
     ) AS c2
 ) AS c4 ON c3."Id" = c4."Id"
+""");
+    }
+
+    public override async Task Complex_type_equals_parameter_with_nested_types_with_property_of_same_name()
+    {
+        await base.Complex_type_equals_parameter_with_nested_types_with_property_of_same_name();
+
+        AssertSql(
+            """
+@entity_equality_container_Id='1' (Nullable = true)
+@entity_equality_container_Containee1_Id='2' (Nullable = true)
+@entity_equality_container_Containee2_Id='3' (Nullable = true)
+
+SELECT e."Id", e."ComplexContainer_Id", e."ComplexContainer_Containee1_Id", e."ComplexContainer_Containee2_Id"
+FROM "EntityType" AS e
+WHERE e."ComplexContainer_Id" = @entity_equality_container_Id AND e."ComplexContainer_Containee1_Id" = @entity_equality_container_Containee1_Id AND e."ComplexContainer_Containee2_Id" = @entity_equality_container_Containee2_Id
+LIMIT 2
+""");
+    }
+
+    public override async Task Projecting_complex_property_does_not_auto_include_owned_types()
+    {
+        await base.Projecting_complex_property_does_not_auto_include_owned_types();
+
+        AssertSql(
+            """
+SELECT e."Complex_Name", e."Complex_Number"
+FROM "EntityType" AS e
+""");
+    }
+
+    public override async Task Optional_complex_type_with_discriminator()
+    {
+        await base.Optional_complex_type_with_discriminator();
+
+        AssertSql(
+            """
+SELECT e."Id", e."AllOptionalsComplexType_Discriminator", e."AllOptionalsComplexType_OptionalProperty"
+FROM "EntityType" AS e
+WHERE e."AllOptionalsComplexType_Discriminator" IS NULL
+LIMIT 2
+""",
+            //
+            """
+@p2='3'
+@p0='AllOptionalsComplexType'
+@p1='New thing'
+
+UPDATE "EntityType" SET "AllOptionalsComplexType_Discriminator" = @p0, "AllOptionalsComplexType_OptionalProperty" = @p1
+WHERE "Id" = @p2;
+""",
+            //
+            """
+SELECT e."Id", e."AllOptionalsComplexType_Discriminator", e."AllOptionalsComplexType_OptionalProperty"
+FROM "EntityType" AS e
+""");
+    }
+
+    public override async Task Non_optional_complex_type_with_all_nullable_properties()
+    {
+        await base.Non_optional_complex_type_with_all_nullable_properties();
+
+        AssertSql(
+            """
+SELECT e."Id", e."NonOptionalComplexType_NullableDateTime", e."NonOptionalComplexType_NullableString"
+FROM "EntityType" AS e
+LIMIT 2
+""");
+    }
+
+    public override async Task Non_optional_complex_type_with_all_nullable_properties_via_left_join()
+    {
+        await base.Non_optional_complex_type_with_all_nullable_properties_via_left_join();
+
+        AssertSql(
+            """
+SELECT p0."Id", c."Id", c."ParentId", c."ComplexType_NullableDateTime", c."ComplexType_NullableString"
+FROM (
+    SELECT p."Id"
+    FROM "Parent" AS p
+    LIMIT 2
+) AS p0
+LEFT JOIN "Child" AS c ON p0."Id" = c."ParentId"
+ORDER BY p0."Id" NULLS FIRST
+""");
+    }
+
+    public override async Task Nullable_complex_type_with_discriminator_and_shadow_property()
+    {
+        await base.Nullable_complex_type_with_discriminator_and_shadow_property();
+
+        AssertSql(
+            """
+SELECT e."Id", e."CreatedBy", e."Prop_Discriminator", e."Prop_OptionalValue"
+FROM "EntityType" AS e
+""");
+    }
+
+    // As in the upstream provider tests, omit SQL baselines for roundtrips with randomly generated GUIDs.
+    public override Task Nullable_complex_type_with_discriminator_null_to_non_null_roundtrip()
+        => base.Nullable_complex_type_with_discriminator_null_to_non_null_roundtrip();
+
+    public override Task Nullable_complex_type_with_discriminator_non_null_to_null_roundtrip()
+        => base.Nullable_complex_type_with_discriminator_non_null_to_null_roundtrip();
+
+    public override Task Nullable_complex_type_with_discriminator_update_non_null_entity_roundtrip()
+        => base.Nullable_complex_type_with_discriminator_update_non_null_entity_roundtrip();
+
+    public override Task Nullable_complex_type_with_discriminator_set_to_different_value()
+        => base.Nullable_complex_type_with_discriminator_set_to_different_value();
+
+    public override Task Nullable_complex_type_with_discriminator_set_to_null()
+        => base.Nullable_complex_type_with_discriminator_set_to_null();
+
+    public override Task Nested_nullable_complex_type_with_discriminator_null_to_non_null_roundtrip()
+        => base.Nested_nullable_complex_type_with_discriminator_null_to_non_null_roundtrip();
+
+    public override Task Update_entity_with_nullable_complex_type_and_discriminator_does_not_throw()
+        => base.Update_entity_with_nullable_complex_type_and_discriminator_does_not_throw();
+
+    public override async Task Can_query_by_complex_type_property_with_index()
+    {
+        await base.Can_query_by_complex_type_property_with_index();
+
+        AssertSql(
+            """
+SELECT p."Id_Id", p."Address_City", p."Address_PostalCode"
+FROM "Person" AS p
+WHERE p."Address_City" = 'Seattle'
+LIMIT 2
+""");
+    }
+
+    public override async Task Can_update_entity_with_index_on_complex_type_property()
+    {
+        await base.Can_update_entity_with_index_on_complex_type_property();
+
+        AssertSql(
+            """
+SELECT p."Id_Id", p."Address_City", p."Address_PostalCode"
+FROM "Person" AS p
+LIMIT 2
+""",
+            //
+            """
+@p1='1'
+@p0='98102' (Nullable = false)
+
+UPDATE "Person" SET "Address_PostalCode" = @p0
+WHERE "Id_Id" = @p1;
+""",
+            //
+            """
+SELECT p."Id_Id", p."Address_City", p."Address_PostalCode"
+FROM "Person" AS p
+LIMIT 2
+""");
+    }
+
+    public override async Task Can_delete_entity_with_index_on_complex_type_property()
+    {
+        await base.Can_delete_entity_with_index_on_complex_type_property();
+
+        AssertSql(
+            """
+SELECT p."Id_Id", p."Address_City", p."Address_PostalCode"
+FROM "Person" AS p
+LIMIT 2
+""",
+            //
+            """
+@p0='1'
+
+DELETE FROM "Person"
+WHERE "Id_Id" = @p0;
+""",
+            //
+            """
+SELECT count(*)::int
+FROM "Person" AS p
+""");
+    }
+
+    public override async Task Can_query_by_alternate_key_on_complex_type_property()
+    {
+        await base.Can_query_by_alternate_key_on_complex_type_property();
+
+        AssertSql(
+            """
+SELECT p."Id_Id", p."Address_City", p."Address_PostalCode"
+FROM "Person" AS p
+WHERE p."Address_City" = 'Redmond'
+LIMIT 2
+""");
+    }
+
+    public override async Task Can_save_batch_swapping_alternate_key_values_on_complex_type_property()
+    {
+        await base.Can_save_batch_swapping_alternate_key_values_on_complex_type_property();
+
+        AssertSql(
+            """
+SELECT p."Id_Id", p."Address_City", p."Address_PostalCode"
+FROM "Person" AS p
+ORDER BY p."Id_Id" NULLS FIRST
+""",
+            //
+            """
+@p1='1'
+@p0='98103' (Nullable = false)
+@p3='2'
+@p2='98054' (Nullable = false)
+
+UPDATE "Person" SET "Address_PostalCode" = @p0
+WHERE "Id_Id" = @p1;
+UPDATE "Person" SET "Address_PostalCode" = @p2
+WHERE "Id_Id" = @p3;
+""",
+            //
+            """
+SELECT p."Id_Id", p."Address_City", p."Address_PostalCode"
+FROM "Person" AS p
+ORDER BY p."Id_Id" NULLS FIRST
+""");
+    }
+
+    public override async Task Complex_json_collection_inside_left_join_subquery()
+    {
+        await base.Complex_json_collection_inside_left_join_subquery();
+
+        AssertSql(
+            """
+SELECT p."Id", p."ChildId", c0."Id", c0."IsPublic", c0.c
+FROM "Parent" AS p
+LEFT JOIN (
+    SELECT c."Id", c."IsPublic", c."CareNeeds" AS c
+    FROM "Child" AS c
+    WHERE c."IsPublic"
+) AS c0 ON p."ChildId" = c0."Id"
+""");
+    }
+
+    public override async Task Select_TPC_base_with_ComplexType()
+    {
+        await base.Select_TPC_base_with_ComplexType();
+
+        AssertSql(
+            """
+SELECT t."Id", t."ChildProperty", NULL AS "ChildProperty1", t."PropertyInsideComplexThing", t."ChildComplexProperty_PropertyInsideComplexThing", NULL AS "ChildComplexProperty_PropertyInsideComplexThing1", 'TpcChild1' AS "Discriminator"
+FROM "TpcChild1" AS t
+UNION ALL
+SELECT t0."Id", NULL AS "ChildProperty", t0."ChildProperty" AS "ChildProperty1", t0."PropertyInsideComplexThing", NULL AS "ChildComplexProperty_PropertyInsideComplexThing", t0."ChildComplexProperty_PropertyInsideComplexThing" AS "ChildComplexProperty_PropertyInsideComplexThing1", 'TpcChild2' AS "Discriminator"
+FROM "TpcChild2" AS t0
+""");
+    }
+
+    public override async Task Complex_type_on_an_entity_mapped_to_view_and_table()
+    {
+        await base.Complex_type_on_an_entity_mapped_to_view_and_table();
+
+        AssertSql(
+            """
+SELECT b."Id", b."ComplexThing_Prop1", b."ComplexThing_Prop2"
+FROM "BlogsView" AS b
+LIMIT 2
+""");
+    }
+
+    public override async Task Complex_property_on_split_entity()
+    {
+        await base.Complex_property_on_split_entity();
+
+        AssertSql(
+            """
+SELECT h."Id", h."CreatedOn", h0."IsTestHook", h0."Weight", h."Number_Parsed", h."Number_Raw"
+FROM "Hook" AS h
+INNER JOIN "HookMetadata" AS h0 ON h."Id" = h0."HookId"
 """);
     }
 

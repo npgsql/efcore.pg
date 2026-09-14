@@ -25,7 +25,7 @@ public class NullSemanticsQueryNpgsqlTest : NullSemanticsQueryTestBase<NullSeman
 
         await AssertQueryScalar(
             async, ss => ss.Set<NullSemanticsEntity1>()
-                .Where(e => ValueTuple.Create(e.IntA, e.StringA).Equals(ValueTuple.Create(e.IntB, e.NullableStringB)))
+                .Where(e => ValueTuple.Create<int, string?>(e.IntA, e.StringA).Equals(ValueTuple.Create(e.IntB, e.NullableStringB)))
                 .Select(e => e.Id));
 
         await AssertQueryScalar(
@@ -109,7 +109,7 @@ WHERE (e."IntA", e."StringA") = (e."IntB", e."StringB") AND (e."NullableBoolA" =
 
         await AssertQueryScalar(
             async, ss => ss.Set<NullSemanticsEntity1>()
-                .Where(e => !ValueTuple.Create(e.IntA, e.StringA).Equals(ValueTuple.Create(e.IntB, e.NullableStringB)))
+                .Where(e => !ValueTuple.Create<int, string?>(e.IntA, e.StringA).Equals(ValueTuple.Create(e.IntB, e.NullableStringB)))
                 .Select(e => e.Id));
 
         await AssertQueryScalar(

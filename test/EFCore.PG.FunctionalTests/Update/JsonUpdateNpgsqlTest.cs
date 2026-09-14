@@ -2034,6 +2034,10 @@ LIMIT 2
         protected override ITestStoreFactory TestStoreFactory
             => NpgsqlTestStoreFactory.Instance;
 
+        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+            // The base fixture explicitly maps collection types which Npgsql must ignore below.
+            => base.AddOptions(builder).ConfigureWarnings(w => w.Ignore(CoreEventId.MappedPropertyIgnoredWarning));
+
         protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
         {
             base.ConfigureConventions(configurationBuilder);

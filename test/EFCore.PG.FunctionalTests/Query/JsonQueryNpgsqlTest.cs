@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.TestModels.JsonQuery;
+using Xunit.Sdk;
 
 namespace Microsoft.EntityFrameworkCore.Query;
 
@@ -2000,6 +2001,38 @@ ORDER BY e."Id" NULLS FIRST
 """);
     }
 
+    public override async Task Entity_including_collection_with_json_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Entity_including_collection_with_json_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT e."Id", e."Name", j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot"
+FROM "EntitiesBasic" AS e
+LEFT JOIN "JsonEntitiesBasic" AS j ON e."Id" = j."EntityBasicId"
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    public override async Task Entity_including_collection_with_json_and_separate_json_projection_AsNoTrackingWithIdentityResolution(bool async)
+    {
+        await base.Entity_including_collection_with_json_and_separate_json_projection_AsNoTrackingWithIdentityResolution(async);
+
+        AssertSql(
+            """
+SELECT e."Id", e."Name", j."Id", j."EntityBasicId", j."Name", j."OwnedCollectionRoot", j."OwnedReferenceRoot", j1.c, j1."Id"
+FROM "EntitiesBasic" AS e
+LEFT JOIN "JsonEntitiesBasic" AS j ON e."Id" = j."EntityBasicId"
+LEFT JOIN LATERAL (
+    SELECT j0."OwnedReferenceRoot" AS c, j0."Id"
+    FROM "JsonEntitiesBasic" AS j0
+    ORDER BY j0."Id" NULLS FIRST
+    LIMIT 1
+) AS j1 ON TRUE
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
     public override async Task Json_with_include_on_entity_collection_and_reference(bool async)
     {
         await base.Json_with_include_on_entity_collection_and_reference(async);
@@ -2688,6 +2721,447 @@ WHERE (CAST(j."Reference" ->> 'StringYNConvertedToBool' AS boolean)) = FALSE
 """);
     }
 
+    #region Non-shared test resources
+
+    // These tests seed non-UTC DateTimes, which PostgreSQL's timestamp with time zone does not support.
+    public override Task Project_root_with_missing_scalars(bool async)
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_root_with_missing_scalars(async));
+
+    public override Task Project_top_level_json_entity_with_missing_scalars(bool async)
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_top_level_json_entity_with_missing_scalars(async));
+
+    public override Task Project_nested_json_entity_with_missing_scalars(bool async)
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_nested_json_entity_with_missing_scalars(async));
+
+    public override Task Project_top_level_entity_with_null_value_required_scalars(bool async)
+        => Task.CompletedTask;
+
+    public override Task Project_root_entity_with_missing_required_navigation(bool async)
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_root_entity_with_missing_required_navigation(async));
+
+    public override Task Project_missing_required_navigation(bool async)
+        => Task.CompletedTask;
+
+    public override Task Project_root_entity_with_null_required_navigation(bool async)
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_root_entity_with_null_required_navigation(async));
+
+    public override Task Project_null_required_navigation(bool async)
+        => Task.CompletedTask;
+
+    public override Task Project_missing_required_scalar(bool async)
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_missing_required_scalar(async));
+
+    public override Task Project_null_required_scalar(bool async)
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_null_required_scalar(async));
+
+    public override async Task Optional_json_properties_materialized_as_null_when_the_element_in_json_is_not_present()
+    {
+        await base.Optional_json_properties_materialized_as_null_when_the_element_in_json_is_not_present();
+
+        AssertSql(
+            """
+SELECT e."Id", e."Collection", e."Reference"
+FROM "Entities" AS e
+WHERE e."Id" = 3
+LIMIT 2
+""");
+    }
+
+    public override async Task Can_project_nullable_json_property_when_the_element_in_json_is_not_present()
+    {
+        await base.Can_project_nullable_json_property_when_the_element_in_json_is_not_present();
+
+        AssertSql(
+            """
+SELECT CAST(e."Reference" ->> 'NullableScalar' AS integer)
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    protected override async Task Seed29219(DbContext ctx)
+    {
+        await base.Seed29219(ctx);
+
+        await ctx.Database.ExecuteSqlAsync(
+            $$"""
+INSERT INTO "Entities" ("Id", "Reference", "Collection")
+VALUES(3, '{ "NonNullableScalar" : 30 }', '[{ "NonNullableScalar" : 10001 }]')
+""");
+    }
+
+    public override async Task Accessing_missing_navigation_works()
+    {
+        await base.Accessing_missing_navigation_works();
+
+        AssertSql(
+            """
+SELECT e."Id", e."Json"
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    public override async Task Missing_navigation_works_with_deduplication(bool async)
+    {
+        await base.Missing_navigation_works_with_deduplication(async);
+
+        AssertSql(
+            """
+SELECT e."Id", e."Json", e."Json", e."Json" -> 'OptionalReference', e."Json" -> 'RequiredReference', e."Json" #> '{OptionalReference,Nested}', e."Json" #> '{RequiredReference,Nested}', e."Json" -> 'Collection'
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    protected override async Task Seed30028(DbContext ctx)
+    {
+        // complete
+        await ctx.Database.ExecuteSqlAsync(
+            $$$$"""
+INSERT INTO "Entities" ("Id", "Json")
+VALUES(
+1,
+'{"RootName":"e1","Collection":[{"BranchName":"e1 c1","Nested":{"LeafName":"e1 c1 l"}},{"BranchName":"e1 c2","Nested":{"LeafName":"e1 c2 l"}}],"OptionalReference":{"BranchName":"e1 or","Nested":{"LeafName":"e1 or l"}},"RequiredReference":{"BranchName":"e1 rr","Nested":{"LeafName":"e1 rr l"}}}')
+""");
+
+        // missing collection
+        await ctx.Database.ExecuteSqlAsync(
+            $$$$"""
+INSERT INTO "Entities" ("Id", "Json")
+VALUES(
+2,
+'{"RootName":"e2","OptionalReference":{"BranchName":"e2 or","Nested":{"LeafName":"e2 or l"}},"RequiredReference":{"BranchName":"e2 rr","Nested":{"LeafName":"e2 rr l"}}}')
+""");
+
+        // missing optional reference
+        await ctx.Database.ExecuteSqlAsync(
+            $$$$"""
+INSERT INTO "Entities" ("Id", "Json")
+VALUES(
+3,
+'{"RootName":"e3","Collection":[{"BranchName":"e3 c1","Nested":{"LeafName":"e3 c1 l"}},{"BranchName":"e3 c2","Nested":{"LeafName":"e3 c2 l"}}],"RequiredReference":{"BranchName":"e3 rr","Nested":{"LeafName":"e3 rr l"}}}')
+""");
+
+        // missing required reference
+        await ctx.Database.ExecuteSqlAsync(
+            $$$$"""
+INSERT INTO "Entities" ("Id", "Json")
+VALUES(
+4,
+'{"RootName":"e4","Collection":[{"BranchName":"e4 c1","Nested":{"LeafName":"e4 c1 l"}},{"BranchName":"e4 c2","Nested":{"LeafName":"e4 c2 l"}}],"OptionalReference":{"BranchName":"e4 or","Nested":{"LeafName":"e4 or l"}}}')
+""");
+    }
+
+    public override async Task Contains_on_nested_collection_with_init_only_navigation()
+    {
+        await base.Contains_on_nested_collection_with_init_only_navigation();
+
+        AssertSql(
+            """
+SELECT p."Id", p."Name", p."Visits"
+FROM "Pub" AS p
+WHERE (p."Visits" -> 'DaysVisited') @> to_jsonb(DATE '2023-01-01')
+LIMIT 1
+""");
+    }
+
+    public override async Task Project_json_with_no_properties()
+    {
+        await base.Project_json_with_no_properties();
+
+        AssertSql(
+            """
+SELECT e."Id", e."Empty", e."FieldOnly"
+FROM "Entity" AS e
+""");
+    }
+
+    public override async Task Query_with_nested_json_collection_mapped_to_private_field_via_IReadOnlyList()
+    {
+        await base.Query_with_nested_json_collection_mapped_to_private_field_via_IReadOnlyList();
+
+        AssertSql(
+            """
+SELECT r."Id", r."Rounds"
+FROM "Reviews" AS r
+""");
+    }
+
+    protected override async Task Seed33046(DbContext ctx)
+        => await ctx.Database.ExecuteSqlAsync(
+            $$"""
+INSERT INTO "Reviews" ("Rounds", "Id")
+VALUES('[{"RoundNumber":11,"SubRounds":[{"SubRoundNumber":111},{"SubRoundNumber":112}]}]', 1)
+""");
+
+    public override Task Project_entity_with_json_null_values()
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_entity_with_json_null_values());
+
+    public override Task Try_project_collection_but_JSON_is_entity()
+        => Assert.ThrowsAsync<ThrowsException>(() => base.Try_project_collection_but_JSON_is_entity());
+
+    public override Task Try_project_reference_but_JSON_is_collection()
+        => Assert.ThrowsAsync<ThrowsException>(() => base.Try_project_reference_but_JSON_is_collection());
+
+    public override async Task Project_json_array_of_primitives_on_reference()
+    {
+        await base.Project_json_array_of_primitives_on_reference();
+
+        AssertSql(
+            """
+SELECT m."Reference" -> 'IntArray' AS "IntArray", m."Reference" -> 'ListOfString' AS "ListOfString"
+FROM "MyEntity" AS m
+ORDER BY m."Id" NULLS FIRST
+""");
+    }
+
+    public override async Task Project_json_array_of_primitives_on_collection()
+    {
+        await base.Project_json_array_of_primitives_on_collection();
+
+        AssertSql(
+            """
+SELECT e."Collection" #> '{0,IntArray}' AS "IntArray", e."Collection" #> '{1,ListOfString}' AS "ListOfString"
+FROM "Entities" AS e
+ORDER BY e."Id"
+""");
+    }
+
+    public override async Task Project_element_of_json_array_of_primitives()
+    {
+        await base.Project_element_of_json_array_of_primitives();
+
+        AssertSql(
+            """
+SELECT CAST(m."Reference" #>> '{IntArray,0}' AS integer) AS "ArrayElement", m."Reference" #>> '{ListOfString,1}' AS "ListElement"
+FROM "MyEntity" AS m
+ORDER BY m."Id" NULLS FIRST
+""");
+    }
+
+    public override async Task Predicate_based_on_element_of_json_array_of_primitives1()
+    {
+        await base.Predicate_based_on_element_of_json_array_of_primitives1();
+
+        AssertSql(
+            """
+SELECT m."Id", m."Collection", m."Reference"
+FROM "MyEntity" AS m
+WHERE (CAST(m."Reference" #>> '{IntArray,0}' AS integer)) = 1
+""");
+    }
+
+    public override async Task Predicate_based_on_element_of_json_array_of_primitives2()
+    {
+        await base.Predicate_based_on_element_of_json_array_of_primitives2();
+
+        AssertSql(
+            """
+SELECT m."Id", m."Collection", m."Reference"
+FROM "MyEntity" AS m
+WHERE (m."Reference" #>> '{ListOfString,1}') = 'Bar'
+""");
+    }
+
+    public override async Task Predicate_based_on_element_of_json_array_of_primitives3()
+    {
+        await base.Predicate_based_on_element_of_json_array_of_primitives3();
+
+        AssertSql(
+            """
+SELECT m."Id", m."Collection", m."Reference"
+FROM "MyEntity" AS m
+WHERE (CAST(m."Reference" #>> '{IntArray,0}' AS integer)) = 1 OR (m."Reference" #>> '{ListOfString,1}') = 'Bar'
+ORDER BY m."Id" NULLS FIRST
+""");
+    }
+
+    public override async Task Junk_in_json_basic_tracking()
+    {
+        await base.Junk_in_json_basic_tracking();
+
+        AssertSql(
+            """
+SELECT e."Id", e."Collection", e."CollectionWithCtor", e."Reference", e."ReferenceWithCtor"
+FROM "Entities" AS e
+""");
+    }
+
+    public override async Task Junk_in_json_basic_no_tracking()
+    {
+        await base.Junk_in_json_basic_no_tracking();
+
+        AssertSql(
+            """
+SELECT e."Id", e."Collection", e."CollectionWithCtor", e."Reference", e."ReferenceWithCtor"
+FROM "Entities" AS e
+""");
+    }
+
+    protected override async Task SeedJunkInJson(DbContext ctx)
+        => await ctx.Database.ExecuteSqlAsync(
+            $$$"""
+INSERT INTO "Entities" ("Collection", "CollectionWithCtor", "Reference", "ReferenceWithCtor", "Id")
+VALUES(
+'[{"JunkReference":{"Something":"SomeValue" },"Name":"c11","JunkProperty1":50,"Number":11.5,"JunkCollection1":[],"JunkCollection2":[{"Foo":"junk value"}],"NestedCollection":[{"DoB":"2002-04-01T00:00:00","DummyProp":"Dummy value"},{"DoB":"2002-04-02T00:00:00","DummyReference":{"Foo":5}}],"NestedReference":{"DoB":"2002-03-01T00:00:00"}},{"Name":"c12","Number":12.5,"NestedCollection":[{"DoB":"2002-06-01T00:00:00"},{"DoB":"2002-06-02T00:00:00"}],"NestedDummy":59,"NestedReference":{"DoB":"2002-05-01T00:00:00"}}]',
+'[{"MyBool":true,"Name":"c11 ctor","JunkReference":{"Something":"SomeValue","JunkCollection":[{"Foo":"junk value"}]},"NestedCollection":[{"DoB":"2002-08-01T00:00:00"},{"DoB":"2002-08-02T00:00:00"}],"NestedReference":{"DoB":"2002-07-01T00:00:00"}},{"MyBool":false,"Name":"c12 ctor","NestedCollection":[{"DoB":"2002-10-01T00:00:00"},{"DoB":"2002-10-02T00:00:00"}],"JunkCollection":[{"Foo":"junk value"}],"NestedReference":{"DoB":"2002-09-01T00:00:00"}}]',
+'{"Name":"r1","JunkCollection":[{"Foo":"junk value"}],"JunkReference":{"Something":"SomeValue" },"Number":1.5,"NestedCollection":[{"DoB":"2000-02-01T00:00:00","JunkReference":{"Something":"SomeValue"}},{"DoB":"2000-02-02T00:00:00"}],"NestedReference":{"DoB":"2000-01-01T00:00:00"}}',
+'{"MyBool":true,"JunkCollection":[{"Foo":"junk value"}],"Name":"r1 ctor","JunkReference":{"Something":"SomeValue" },"NestedCollection":[{"DoB":"2001-02-01T00:00:00"},{"DoB":"2001-02-02T00:00:00"}],"NestedReference":{"JunkCollection":[{"Foo":"junk value"}],"DoB":"2001-01-01T00:00:00"}}',
+1)
+""");
+
+    public override async Task Tricky_buffering_basic()
+    {
+        await base.Tricky_buffering_basic();
+
+        AssertSql(
+            """
+SELECT e."Id", e."Reference"
+FROM "Entities" AS e
+""");
+    }
+
+    protected override async Task SeedTrickyBuffering(DbContext ctx)
+        => await ctx.Database.ExecuteSqlAsync(
+            $$$"""
+INSERT INTO "Entities" ("Reference", "Id")
+VALUES(
+'{"Name": "r1", "Number": 7, "JunkReference":{"Something": "SomeValue" }, "JunkCollection": [{"Foo": "junk value"}], "NestedReference": {"DoB": "2000-01-01T00:00:00Z"}, "NestedCollection": [{"DoB": "2000-02-01T00:00:00Z", "JunkReference": {"Something": "SomeValue"}}, {"DoB": "2000-02-02T00:00:00Z"}]}',1)
+""");
+
+    public override async Task Shadow_properties_basic_tracking()
+    {
+        await base.Shadow_properties_basic_tracking();
+
+        AssertSql(
+            """
+SELECT e."Id", e."Name", e."Collection", e."CollectionWithCtor", e."Reference", e."ReferenceWithCtor"
+FROM "Entities" AS e
+""");
+    }
+
+    public override async Task Shadow_properties_basic_no_tracking()
+    {
+        await base.Shadow_properties_basic_no_tracking();
+
+        AssertSql(
+            """
+SELECT e."Id", e."Name", e."Collection", e."CollectionWithCtor", e."Reference", e."ReferenceWithCtor"
+FROM "Entities" AS e
+""");
+    }
+
+    public override async Task Project_shadow_properties_from_json_entity()
+    {
+        await base.Project_shadow_properties_from_json_entity();
+
+        AssertSql(
+            """
+SELECT e."Reference" ->> 'ShadowString' AS "ShadowString", CAST(e."ReferenceWithCtor" ->> 'ShadowInt' AS integer) AS "ShadowInt"
+FROM "Entities" AS e
+""");
+    }
+
+    protected override async Task SeedShadowProperties(DbContext ctx)
+        => await ctx.Database.ExecuteSqlAsync(
+            $$"""
+INSERT INTO "Entities" ("Collection", "CollectionWithCtor", "Reference", "ReferenceWithCtor", "Id", "Name")
+VALUES(
+'[{"Name":"e1_c1","ShadowDouble":5.5},{"ShadowDouble":20.5,"Name":"e1_c2"}]',
+'[{"Name":"e1_c1 ctor","ShadowNullableByte":6},{"ShadowNullableByte":null,"Name":"e1_c2 ctor"}]',
+'{"Name":"e1_r", "ShadowString":"Foo"}',
+'{"ShadowInt":143,"Name":"e1_r ctor"}',
+1,
+'e1')
+""");
+
+    public override async Task Project_proxies_entity_with_json()
+    {
+        await base.Project_proxies_entity_with_json();
+
+        AssertSql(
+            """
+SELECT m."Id", m."Name", m."Collection", m."Reference"
+FROM "MyEntity" AS m
+""");
+    }
+
+    public override async Task Project_proxies_entity_with_json_with_primitive_collection()
+    {
+        await base.Project_proxies_entity_with_json_with_primitive_collection();
+
+        AssertSql(
+            """
+SELECT m."Id", m."Name", m."Collection", m."Reference"
+FROM "MyEntity" AS m
+ORDER BY m."Id" NULLS FIRST
+""");
+    }
+
+    public override async Task Not_ICollection_basic_projection()
+    {
+        await base.Not_ICollection_basic_projection();
+
+        AssertSql(
+            """
+SELECT e."Id", e."Json"
+FROM "Entities" AS e
+""");
+    }
+
+    protected override async Task SeedNotICollection(DbContext ctx)
+    {
+        await ctx.Database.ExecuteSqlAsync(
+            $$"""
+INSERT INTO "Entities" ("Json", "Id")
+VALUES(
+'{"Collection":[{"Bar":11,"Foo":"c11"},{"Bar":12,"Foo":"c12"},{"Bar":13,"Foo":"c13"}]}',
+1)
+""");
+
+        await ctx.Database.ExecuteSqlAsync(
+            $$"""
+INSERT INTO "Entities" ("Json", "Id")
+VALUES(
+'{"Collection":[{"Bar":21,"Foo":"c21"},{"Bar":22,"Foo":"c22"}]}',
+2)
+""");
+    }
+
+    // PostgreSQL's jsonb type does not allow the malformed JSON used by these tests.
+    public override async Task Bad_json_properties_duplicated_navigations(bool noTracking)
+    {
+        if (noTracking)
+        {
+            await Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_duplicated_navigations(noTracking: true));
+        }
+        else
+        {
+            await base.Bad_json_properties_duplicated_navigations(noTracking: false);
+        }
+    }
+
+    public override Task Bad_json_properties_duplicated_scalars(bool noTracking)
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_duplicated_scalars(noTracking));
+
+    public override Task Bad_json_properties_empty_navigations(bool noTracking)
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_empty_navigations(noTracking));
+
+    public override Task Bad_json_properties_empty_scalars(bool noTracking)
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Bad_json_properties_empty_scalars(noTracking));
+
+    public override Task Bad_json_properties_null_navigations(bool noTracking)
+        => Assert.ThrowsAsync<ThrowsAnyException>(() => base.Bad_json_properties_null_navigations(noTracking));
+
+    public override Task Bad_json_properties_null_scalars(bool noTracking)
+        => Assert.ThrowsAsync<ThrowsAnyException>(() => base.Bad_json_properties_null_scalars(noTracking));
+
+    protected override Task SeedBadJsonProperties(ContextBadJsonProperties ctx)
+        => throw new NotSupportedException("PostgreSQL stores JSON as jsonb, which doesn't allow badly-formed JSON");
+
+    #endregion
+
     public override async Task FromSql_on_entity_with_json_basic(bool async)
     {
         await base.FromSql_on_entity_with_json_basic(async);
@@ -3112,6 +3586,107 @@ FROM "JsonEntitiesBasic" AS j
 """);
     }
 
+    #region Non-shared relational test resources
+
+    public override Task Project_entity_with_optional_json_entity_owned_by_required_json()
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_entity_with_optional_json_entity_owned_by_required_json());
+
+    public override Task Project_required_json_entity()
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_required_json_entity());
+
+    public override Task Project_optional_json_entity_owned_by_required_json_entity()
+        => Assert.ThrowsAsync<ArgumentException>(() => base.Project_optional_json_entity_owned_by_required_json_entity());
+
+    public override async Task Entity_splitting_with_owned_json()
+    {
+        await base.Entity_splitting_with_owned_json();
+
+        AssertSql(
+            """
+SELECT m."Id", m."PropertyInMainTable", o."PropertyInOtherTable", m."Json"
+FROM "MyEntity" AS m
+INNER JOIN "OtherTable" AS o ON m."Id" = o."Id"
+LIMIT 2
+""");
+    }
+
+    public override async Task HasJsonPropertyName()
+    {
+        await base.HasJsonPropertyName();
+
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "Entities" AS e
+WHERE (e."Json" ->> 'string') = 'foo'
+""",
+            //
+            """
+SELECT count(*)::int
+FROM "Entities" AS e
+WHERE (CAST(e."Json" #>> '{nested,int}' AS integer)) = 1
+""",
+            //
+            """
+SELECT count(*)::int
+FROM "Entities" AS e
+WHERE EXISTS (
+    SELECT 1
+    FROM ROWS FROM (jsonb_to_recordset(e."Json" -> 'nested_collection') AS (int integer)) WITH ORDINALITY AS n
+    WHERE n.int = 2)
+""");
+    }
+
+    public override async Task SelectMany_over_primitive_collection_nested_in_complex_collection_inside_json_column()
+    {
+        await base.SelectMany_over_primitive_collection_nested_in_complex_collection_inside_json_column();
+
+        AssertSql(
+            """
+SELECT p.element::character varying(32)
+FROM "Cars" AS c
+JOIN LATERAL ROWS FROM (jsonb_to_recordset(c."CarConfiguration" -> 'optionPackages') AS (
+    "packageId" text,
+    "partNumbers" jsonb
+)) WITH ORDINALITY AS o ON TRUE
+JOIN LATERAL jsonb_array_elements_text(o."partNumbers") WITH ORDINALITY AS p(element) ON TRUE
+WHERE c."Vin" = '1FA6P8TH8J5123456' AND c."DealerId" = 'DEALER-001' AND o."packageId" = 'PKG-SPORT'
+""");
+    }
+
+    public override async Task Value_converter_equality_null_scalar()
+    {
+        await base.Value_converter_equality_null_scalar();
+
+        AssertSql(
+            """
+@entity_equality_complexType='{"IntToString":"\u003Cnull\u003E"}' (DbType = Object)
+
+SELECT count(*)::int
+FROM "Entities" AS e
+WHERE (e."Json") = @entity_equality_complexType
+""");
+    }
+
+    public override async Task Filter_on_complex_json_collection_on_entity_mapped_to_view()
+    {
+        await base.Filter_on_complex_json_collection_on_entity_mapped_to_view();
+
+        AssertSql(
+            """
+@r='3'
+
+SELECT p."Id", p."OrderIds"
+FROM "PersonOrdersView" AS p
+WHERE EXISTS (
+    SELECT 1
+    FROM ROWS FROM (jsonb_to_recordset(p."OrderIds") AS ("Value" integer)) WITH ORDINALITY AS o
+    WHERE o."Value" = @r)
+""");
+    }
+
+    #endregion
+
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());
@@ -3142,7 +3717,7 @@ FROM "JsonEntitiesBasic" AS j
 
                     Assert.Equal(ee.Id, aa.Id);
 
-                    AssertAllTypes(ee.Reference, aa.Reference);
+                    AssertAllTypes(ee.Reference!, aa.Reference!);
 
                     Assert.Equal(ee.Collection?.Count ?? 0, aa.Collection?.Count ?? 0);
                     for (var i = 0; i < ee.Collection!.Count; i++)
@@ -3288,7 +3863,7 @@ FROM "JsonEntitiesBasic" AS j
                 // Also chop sub-microsecond precision which PostgreSQL does not support.
                 foreach (var j in _expectedData.JsonEntitiesAllTypes)
                 {
-                    j.Reference.TestDateTimeOffset = new DateTimeOffset(
+                    j.Reference!.TestDateTimeOffset = new DateTimeOffset(
                         j.Reference.TestDateTimeOffset.Ticks
                         - (j.Reference.TestDateTimeOffset.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
 
@@ -3299,7 +3874,7 @@ FROM "JsonEntitiesBasic" AS j
                             TimeSpan.Zero);
                     }
 
-                    j.TestDateTimeOffsetCollection = j.TestDateTimeOffsetCollection.Select(
+                    j.TestDateTimeOffsetCollection = j.TestDateTimeOffsetCollection!.Select(
                         dto => new DateTimeOffset(dto.Ticks - (dto.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero)).ToList();
                 }
             }
@@ -3337,7 +3912,7 @@ FROM "JsonEntitiesBasic" AS j
 
             foreach (var j in jsonEntitiesAllTypes)
             {
-                j.Reference.TestDateTimeOffset = new DateTimeOffset(
+                j.Reference!.TestDateTimeOffset = new DateTimeOffset(
                     j.Reference.TestDateTimeOffset.Ticks - (j.Reference.TestDateTimeOffset.Ticks % (TimeSpan.TicksPerMillisecond / 1000)),
                     TimeSpan.Zero);
 
@@ -3347,7 +3922,7 @@ FROM "JsonEntitiesBasic" AS j
                         j2.TestDateTimeOffset.Ticks - (j2.TestDateTimeOffset.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero);
                 }
 
-                j.TestDateTimeOffsetCollection = j.TestDateTimeOffsetCollection.Select(
+                j.TestDateTimeOffsetCollection = j.TestDateTimeOffsetCollection!.Select(
                     dto => new DateTimeOffset(dto.Ticks - (dto.Ticks % (TimeSpan.TicksPerMillisecond / 1000)), TimeSpan.Zero)).ToList();
             }
 

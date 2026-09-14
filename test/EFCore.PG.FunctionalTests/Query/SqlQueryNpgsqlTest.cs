@@ -281,7 +281,7 @@ SELECT * FROM "Employees" WHERE "ReportsTo" = @p0 OR ("ReportsTo" IS NULL AND @p
 """);
     }
 
-    public override async Task<string?> SqlQueryRaw_queryable_with_parameters_and_closure(bool async)
+    public override async Task<string> SqlQueryRaw_queryable_with_parameters_and_closure(bool async)
     {
         var queryString = await base.SqlQueryRaw_queryable_with_parameters_and_closure(async);
 
@@ -297,7 +297,7 @@ FROM (
 WHERE m."ContactTitle" = @contactTitle
 """);
 
-        return null;
+        return queryString;
     }
 
     public override async Task SqlQueryRaw_queryable_simple_cache_key_includes_query_string(bool async)

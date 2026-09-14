@@ -25,6 +25,62 @@ CREATE TABLE "ZeroKey" ("Id" int);
 INSERT INTO "ZeroKey" VALUES (NULL)
 """);
 
+    protected override async Task Seed30915(Context30915 context)
+    {
+        context.Statuses.AddRange(
+            new Context30915.PickupStatus30915 { PickupStatusId = 1, Name = "Active" },
+            new Context30915.PickupStatus30915 { PickupStatusId = 2, Name = "NoRequests" },
+            new Context30915.PickupStatus30915 { PickupStatusId = 3, Name = "Busy" });
+
+        context.Requests.AddRange(
+            new Context30915.PickupRequest30915 { PickupStatusId = 1, Priority = 5 },
+            new Context30915.PickupRequest30915 { PickupStatusId = 1, Priority = null },
+            new Context30915.PickupRequest30915 { PickupStatusId = 3, Priority = 7 });
+
+        await context.SaveChangesAsync();
+    }
+
+    public override async Task Correlated_SelectMany_DefaultIfEmpty_whole_object()
+    {
+        var contextFactory = await InitializeNonSharedTest<Context30915>(seed: Seed30915);
+        using var context = contextFactory.CreateDbContext();
+
+        var query = from s in context.Statuses
+                    from countInfo in context.Requests
+                        .Where(r => r.PickupStatusId == s.PickupStatusId)
+                        .GroupBy(r => r.PickupStatusId, (k, els) => new { pickupStatusId = k, Count = els.Count() })
+                        .DefaultIfEmpty()
+                    orderby s.PickupStatusId
+                    select new { s.PickupStatusId, countInfo };
+
+        var result = await query.ToListAsync();
+
+        Assert.Equal(3, result.Count);
+        Assert.Equal(1, result[0].PickupStatusId);
+        Assert.NotNull(result[0].countInfo);
+        Assert.Equal(1, result[0].countInfo.pickupStatusId);
+        Assert.Equal(2, result[0].countInfo.Count);
+        Assert.Equal(2, result[1].PickupStatusId);
+        Assert.Null(result[1].countInfo);
+        Assert.Equal(3, result[2].PickupStatusId);
+        Assert.NotNull(result[2].countInfo);
+        Assert.Equal(3, result[2].countInfo.pickupStatusId);
+        Assert.Equal(1, result[2].countInfo.Count);
+
+        AssertSql(
+            """
+SELECT s."PickupStatusId", r0."pickupStatusId", r0."Count", r0.marker
+FROM "Statuses" AS s
+LEFT JOIN LATERAL (
+    SELECT r."PickupStatusId" AS "pickupStatusId", count(*)::int AS "Count", 1 AS marker
+    FROM "Requests" AS r
+    WHERE r."PickupStatusId" = s."PickupStatusId"
+    GROUP BY r."PickupStatusId"
+) AS r0 ON TRUE
+ORDER BY s."PickupStatusId" NULLS FIRST
+""");
+    }
+
     // Writes DateTime with Kind=Unspecified to timestamptz
     public override Task SelectMany_where_Select(bool async)
         => Task.CompletedTask;

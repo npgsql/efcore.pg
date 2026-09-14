@@ -42,7 +42,7 @@ WHERE (
         FROM "RelatedCollection" AS r1
         WHERE r."Id" = r1."RootEntityId" AND r1."String" = 'foo'
     ) AS u) = 4
-ORDER BY r."Id" NULLS FIRST, o."RootEntityId" NULLS FIRST, o0."AssociateTypeRootEntityId" NULLS FIRST, o1."AssociateTypeRootEntityId" NULLS FIRST, r2."RootEntityId" NULLS FIRST, r3."AssociateTypeRootEntityId" NULLS FIRST, r4."AssociateTypeRootEntityId" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."AssociateTypeRootEntityId0" NULLS FIRST, s."AssociateTypeId0" NULLS FIRST, s."AssociateTypeRootEntityId1" NULLS FIRST, s."AssociateTypeId1" NULLS FIRST, s."Id0" NULLS FIRST, o2."AssociateTypeRootEntityId" NULLS FIRST, o2."Id" NULLS FIRST, r9."AssociateTypeRootEntityId" NULLS FIRST
+ORDER BY r."Id" NULLS FIRST, o."RootEntityId" NULLS FIRST, o0."AssociateTypeRootEntityId" NULLS FIRST, o1."AssociateTypeRootEntityId" NULLS FIRST, r2."RootEntityId" NULLS FIRST, r3."AssociateTypeRootEntityId" NULLS FIRST, r4."AssociateTypeRootEntityId" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."AssociateTypeRootEntityId0" NULLS FIRST, s."AssociateTypeId0" NULLS FIRST, s."AssociateTypeRootEntityId1" NULLS FIRST, s."AssociateTypeId1" NULLS FIRST, s."Id0" NULLS FIRST, o2."AssociateTypeRootEntityId" NULLS FIRST, o2."Id" NULLS FIRST, r9."AssociateTypeRootEntityId" NULLS FIRST, r9."Id" NULLS FIRST
 """);
     }
 
@@ -107,7 +107,7 @@ WHERE (
         FROM "RequiredRelated_NestedCollection" AS r2
         WHERE r0."RootEntityId" = r2."AssociateTypeRootEntityId" AND r2."String" = 'foo'
     ) AS u) = 4
-ORDER BY r."Id" NULLS FIRST, r0."RootEntityId" NULLS FIRST, o."RootEntityId" NULLS FIRST, o0."AssociateTypeRootEntityId" NULLS FIRST, o1."AssociateTypeRootEntityId" NULLS FIRST, r3."AssociateTypeRootEntityId" NULLS FIRST, r4."AssociateTypeRootEntityId" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."AssociateTypeRootEntityId0" NULLS FIRST, s."AssociateTypeId0" NULLS FIRST, s."AssociateTypeRootEntityId1" NULLS FIRST, s."AssociateTypeId1" NULLS FIRST, s."Id0" NULLS FIRST, o2."AssociateTypeRootEntityId" NULLS FIRST, o2."Id" NULLS FIRST, r9."AssociateTypeRootEntityId" NULLS FIRST
+ORDER BY r."Id" NULLS FIRST, r0."RootEntityId" NULLS FIRST, o."RootEntityId" NULLS FIRST, o0."AssociateTypeRootEntityId" NULLS FIRST, o1."AssociateTypeRootEntityId" NULLS FIRST, r3."AssociateTypeRootEntityId" NULLS FIRST, r4."AssociateTypeRootEntityId" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."AssociateTypeRootEntityId0" NULLS FIRST, s."AssociateTypeId0" NULLS FIRST, s."AssociateTypeRootEntityId1" NULLS FIRST, s."AssociateTypeId1" NULLS FIRST, s."Id0" NULLS FIRST, o2."AssociateTypeRootEntityId" NULLS FIRST, o2."Id" NULLS FIRST, r9."AssociateTypeRootEntityId" NULLS FIRST, r9."Id" NULLS FIRST
 """);
     }
 

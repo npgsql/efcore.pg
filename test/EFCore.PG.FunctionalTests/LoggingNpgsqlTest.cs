@@ -59,7 +59,7 @@ public class LoggingNpgsqlTest : LoggingRelationalTestBase<NpgsqlDbContextOption
 
     protected override DbContextOptionsBuilder CreateOptionsBuilder(
         IServiceCollection services,
-        Action<RelationalDbContextOptionsBuilder<NpgsqlDbContextOptionsBuilder, NpgsqlOptionsExtension>> relationalAction)
+        Action<RelationalDbContextOptionsBuilder<NpgsqlDbContextOptionsBuilder, NpgsqlOptionsExtension>>? relationalAction)
         => new DbContextOptionsBuilder()
             .UseInternalServiceProvider(services.AddEntityFrameworkNpgsql().BuildServiceProvider())
             .UseNpgsql("Data Source=LoggingNpgsqlTest.db", relationalAction);
