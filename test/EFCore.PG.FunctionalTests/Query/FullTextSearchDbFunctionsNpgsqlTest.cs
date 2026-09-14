@@ -53,7 +53,7 @@ LIMIT 1
         using var context = CreateContext();
         var tsvector = context.Customers
             .OrderBy(c => c.CustomerID)
-            .Select(c => EF.Functions.ArrayToTsVector(new[] { c.CompanyName, c.Address }))
+            .Select(c => EF.Functions.ArrayToTsVector(new[] { c.CompanyName, c.Address! }))
             .First();
 
         Assert.Equal(NpgsqlTsVector.Parse("'Alfreds Futterkiste' 'Obere Str. 57'").ToString(), tsvector.ToString());
@@ -953,7 +953,7 @@ LIMIT 1
     {
         using var context = CreateContext();
         var count = context.Customers
-            .Count(c => EF.Functions.ToTsVector(c.ContactTitle).Matches(EF.Functions.ToTsQuery("owner")));
+            .Count(c => EF.Functions.ToTsVector(c.ContactTitle!).Matches(EF.Functions.ToTsQuery("owner")));
 
         Assert.True(count > 0);
     }
@@ -964,12 +964,12 @@ LIMIT 1
         using var context = CreateContext();
         var headline = context.Customers
             .Where(
-                c => EF.Functions.ToTsVector(c.ContactTitle)
+                c => EF.Functions.ToTsVector(c.ContactTitle!)
                     .SetWeight(NpgsqlTsVector.Lexeme.Weight.A)
                     .Matches(EF.Functions.ToTsQuery("accounting").ToPhrase(EF.Functions.ToTsQuery("manager"))))
             .Select(
                 c => EF.Functions.ToTsQuery("accounting").ToPhrase(EF.Functions.ToTsQuery("manager"))
-                    .GetResultHeadline(c.ContactTitle))
+                    .GetResultHeadline(c.ContactTitle!))
             .First();
 
         Assert.Equal("<b>Accounting</b> <b>Manager</b>", headline);
@@ -980,7 +980,7 @@ LIMIT 1
     {
         using var context = CreateContext();
         _ = context.Customers
-            .Select(x => EF.Functions.Unaccent(x.ContactName))
+            .Select(x => EF.Functions.Unaccent(x.ContactName!))
             .FirstOrDefault();
 
         AssertSql(
@@ -996,7 +996,7 @@ LIMIT 1
     {
         using var context = CreateContext();
         _ = context.Customers
-            .Select(x => EF.Functions.Unaccent("unaccent", x.ContactName))
+            .Select(x => EF.Functions.Unaccent("unaccent", x.ContactName!))
             .FirstOrDefault();
 
         AssertSql(
@@ -1013,7 +1013,7 @@ LIMIT 1
         using var context = CreateContext();
         var regDictionary = "unaccent";
         _ = context.Customers
-            .Select(x => EF.Functions.Unaccent(regDictionary, x.ContactName))
+            .Select(x => EF.Functions.Unaccent(regDictionary, x.ContactName!))
             .FirstOrDefault();
 
         AssertSql(
@@ -1032,7 +1032,7 @@ LIMIT 1
         using var context = CreateContext();
         _ = context.Customers
             .Count(
-                c => EF.Functions.ToTsVector(c.ContactTitle)
+                c => EF.Functions.ToTsVector(c.ContactTitle!)
                     .Matches(EF.Functions.ToTsQuery("owner").Or(EF.Functions.ToTsQuery("foo"))));
 
         AssertSql(

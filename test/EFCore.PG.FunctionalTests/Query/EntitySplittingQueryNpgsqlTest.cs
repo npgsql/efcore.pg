@@ -265,7 +265,7 @@ LEFT JOIN (
     INNER JOIN "OwnedCollectionExtras2" AS o0 ON o."EntityOneId" = o0."EntityOneId" AND o."Id" = o0."Id"
     INNER JOIN "OwnedCollectionExtras1" AS o1 ON o."EntityOneId" = o1."EntityOneId" AND o."Id" = o1."Id"
 ) AS s ON e."Id" = s."EntityOneId"
-ORDER BY e."Id" NULLS FIRST, s."EntityOneId" NULLS FIRST
+ORDER BY e."Id" NULLS FIRST, s."EntityOneId" NULLS FIRST, s."Id" NULLS FIRST
 """);
     }
 
@@ -308,7 +308,7 @@ FROM "EntityOne" AS e
 INNER JOIN "SplitEntityOnePart3" AS s ON e."Id" = s."Id"
 INNER JOIN "SplitEntityOnePart2" AS s0 ON e."Id" = s0."Id"
 LEFT JOIN "OwnedCollection" AS o ON e."Id" = o."EntityOneId"
-ORDER BY e."Id" NULLS FIRST, o."EntityOneId" NULLS FIRST
+ORDER BY e."Id" NULLS FIRST, o."EntityOneId" NULLS FIRST, o."Id" NULLS FIRST
 """);
     }
 
@@ -344,7 +344,7 @@ LEFT JOIN (
     INNER JOIN "OwnedCollectionExtras2" AS o0 ON o."EntityOneId" = o0."EntityOneId" AND o."Id" = o0."Id"
     INNER JOIN "OwnedCollectionExtras1" AS o1 ON o."EntityOneId" = o1."EntityOneId" AND o."Id" = o1."Id"
 ) AS s1 ON e."Id" = s1."EntityOneId"
-ORDER BY e."Id" NULLS FIRST, s1."EntityOneId" NULLS FIRST
+ORDER BY e."Id" NULLS FIRST, s1."EntityOneId" NULLS FIRST, s1."Id" NULLS FIRST
 """);
     }
 
@@ -799,7 +799,7 @@ LEFT JOIN (
     INNER JOIN "OwnedReferencePart4" AS o0 ON o."BaseEntityId" = o0."BaseEntityId" AND o."Id" = o0."Id"
     INNER JOIN "OwnedReferencePart3" AS o1 ON o."BaseEntityId" = o1."BaseEntityId" AND o."Id" = o1."Id"
 ) AS s ON b."Id" = s."BaseEntityId"
-ORDER BY b."Id" NULLS FIRST, s."BaseEntityId" NULLS FIRST
+ORDER BY b."Id" NULLS FIRST, s."BaseEntityId" NULLS FIRST, s."Id" NULLS FIRST
 """);
     }
 
@@ -824,7 +824,7 @@ LEFT JOIN (
     INNER JOIN "OwnedReferencePart4" AS o0 ON o."BaseEntityId" = o0."BaseEntityId" AND o."Id" = o0."Id"
     INNER JOIN "OwnedReferencePart3" AS o1 ON o."BaseEntityId" = o1."BaseEntityId" AND o."Id" = o1."Id"
 ) AS s0 ON b."Id" = s0."BaseEntityId"
-ORDER BY b."Id" NULLS FIRST, s0."BaseEntityId" NULLS FIRST
+ORDER BY b."Id" NULLS FIRST, s0."BaseEntityId" NULLS FIRST, s0."Id" NULLS FIRST
 """);
     }
 
@@ -854,7 +854,7 @@ LEFT JOIN (
     INNER JOIN "OwnedReferencePart4" AS o0 ON o."BaseEntityId" = o0."BaseEntityId" AND o."Id" = o0."Id"
     INNER JOIN "OwnedReferencePart3" AS o1 ON o."BaseEntityId" = o1."BaseEntityId" AND o."Id" = o1."Id"
 ) AS s0 ON u."Id" = s0."BaseEntityId"
-ORDER BY u."Id" NULLS FIRST, s0."BaseEntityId" NULLS FIRST
+ORDER BY u."Id" NULLS FIRST, s0."BaseEntityId" NULLS FIRST, s0."Id" NULLS FIRST
 """);
     }
 
@@ -872,7 +872,7 @@ LEFT JOIN (
     INNER JOIN "OwnedReferencePart4" AS o0 ON o."MiddleEntityId" = o0."MiddleEntityId" AND o."Id" = o0."Id"
     INNER JOIN "OwnedReferencePart3" AS o1 ON o."MiddleEntityId" = o1."MiddleEntityId" AND o."Id" = o1."Id"
 ) AS s ON b."Id" = s."MiddleEntityId"
-ORDER BY b."Id" NULLS FIRST, s."MiddleEntityId" NULLS FIRST
+ORDER BY b."Id" NULLS FIRST, s."MiddleEntityId" NULLS FIRST, s."Id" NULLS FIRST
 """);
     }
 
@@ -897,7 +897,7 @@ LEFT JOIN (
     INNER JOIN "OwnedReferencePart4" AS o0 ON o."MiddleEntityId" = o0."MiddleEntityId" AND o."Id" = o0."Id"
     INNER JOIN "OwnedReferencePart3" AS o1 ON o."MiddleEntityId" = o1."MiddleEntityId" AND o."Id" = o1."Id"
 ) AS s0 ON b."Id" = s0."MiddleEntityId"
-ORDER BY b."Id" NULLS FIRST, s0."MiddleEntityId" NULLS FIRST
+ORDER BY b."Id" NULLS FIRST, s0."MiddleEntityId" NULLS FIRST, s0."Id" NULLS FIRST
 """);
     }
 
@@ -927,7 +927,7 @@ LEFT JOIN (
     INNER JOIN "OwnedReferencePart4" AS o0 ON o."MiddleEntityId" = o0."MiddleEntityId" AND o."Id" = o0."Id"
     INNER JOIN "OwnedReferencePart3" AS o1 ON o."MiddleEntityId" = o1."MiddleEntityId" AND o."Id" = o1."Id"
 ) AS s0 ON u."Id" = s0."MiddleEntityId"
-ORDER BY u."Id" NULLS FIRST, s0."MiddleEntityId" NULLS FIRST
+ORDER BY u."Id" NULLS FIRST, s0."MiddleEntityId" NULLS FIRST, s0."Id" NULLS FIRST
 """);
     }
 
@@ -945,7 +945,7 @@ LEFT JOIN (
     INNER JOIN "OwnedReferencePart4" AS o0 ON o."LeafEntityId" = o0."LeafEntityId" AND o."Id" = o0."Id"
     INNER JOIN "OwnedReferencePart3" AS o1 ON o."LeafEntityId" = o1."LeafEntityId" AND o."Id" = o1."Id"
 ) AS s ON b."Id" = s."LeafEntityId"
-ORDER BY b."Id" NULLS FIRST, s."LeafEntityId" NULLS FIRST
+ORDER BY b."Id" NULLS FIRST, s."LeafEntityId" NULLS FIRST, s."Id" NULLS FIRST
 """);
     }
 
@@ -970,7 +970,7 @@ LEFT JOIN (
     INNER JOIN "OwnedReferencePart4" AS o0 ON o."LeafEntityId" = o0."LeafEntityId" AND o."Id" = o0."Id"
     INNER JOIN "OwnedReferencePart3" AS o1 ON o."LeafEntityId" = o1."LeafEntityId" AND o."Id" = o1."Id"
 ) AS s0 ON b."Id" = s0."LeafEntityId"
-ORDER BY b."Id" NULLS FIRST, s0."LeafEntityId" NULLS FIRST
+ORDER BY b."Id" NULLS FIRST, s0."LeafEntityId" NULLS FIRST, s0."Id" NULLS FIRST
 """);
     }
 
@@ -1000,7 +1000,23 @@ LEFT JOIN (
     INNER JOIN "OwnedReferencePart4" AS o0 ON o."LeafEntityId" = o0."LeafEntityId" AND o."Id" = o0."Id"
     INNER JOIN "OwnedReferencePart3" AS o1 ON o."LeafEntityId" = o1."LeafEntityId" AND o."Id" = o1."Id"
 ) AS s0 ON u."Id" = s0."LeafEntityId"
-ORDER BY u."Id" NULLS FIRST, s0."LeafEntityId" NULLS FIRST
+ORDER BY u."Id" NULLS FIRST, s0."LeafEntityId" NULLS FIRST, s0."Id" NULLS FIRST
+""");
+    }
+
+    public override async Task FromSql_on_split_entity_with_renamed_columns_uses_default_mappings(bool async)
+    {
+        await base.FromSql_on_split_entity_with_renamed_columns_uses_default_mappings(async);
+
+        AssertSql(
+            """
+SELECT m."Id", m."EntityThreeId", m."IntValue1", m."IntValue2", m."IntValue3", m."IntValue4", m."StringValue1", m."StringValue2", m."StringValue3", m."StringValue4"
+FROM (
+    SELECT "m".*, "s"."CustomStringValue3" AS "StringValue3", "s"."StringValue4", "s"."CustomIntValue3" AS "IntValue3", "s"."IntValue4"
+                  FROM "EntityOne" AS "m"
+                  INNER JOIN "SplitEntityOnePart" AS "s" ON "m"."Id" = "s"."Id"
+) AS m
+ORDER BY m."Id" NULLS FIRST
 """);
     }
 

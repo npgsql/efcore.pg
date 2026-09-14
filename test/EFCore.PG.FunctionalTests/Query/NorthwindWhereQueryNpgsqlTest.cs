@@ -41,7 +41,7 @@ public class NorthwindWhereQueryNpgsqlTest : NorthwindWhereQueryRelationalTestBa
     {
         await AssertQuery(
             async,
-            ss => ss.Set<Customer>().Where(c => new Tuple<string>(c.City).Equals(new Tuple<string>("London"))));
+            ss => ss.Set<Customer>().Where(c => new Tuple<string?>(c.City).Equals(new Tuple<string>("London"))));
 
         AssertSql(
             """
@@ -56,7 +56,7 @@ WHERE (c."City") = ('London')
         await AssertQuery(
             async,
             ss => ss.Set<Customer>().Where(
-                c => new Tuple<string, string>(c.City, c.Country).Equals(new Tuple<string, string>("Sao Paulo", "Brazil"))));
+                c => new Tuple<string?, string?>(c.City, c.Country).Equals(new Tuple<string, string>("Sao Paulo", "Brazil"))));
 
         AssertSql(
             """
@@ -71,7 +71,7 @@ WHERE (c."City", c."Country") = ('Sao Paulo', 'Brazil')
         await AssertQuery(
             async,
             ss => ss.Set<Customer>().Where(
-                c => !new Tuple<string, string>(c.City, c.Country).Equals(new Tuple<string, string>("Sao Paulo", "Brazil"))));
+                c => !new Tuple<string?, string?>(c.City, c.Country).Equals(new Tuple<string, string>("Sao Paulo", "Brazil"))));
 
         AssertSql(
             """
@@ -181,7 +181,7 @@ WHERE (c."City", c."CustomerID") > (@city1, 'OCEAN')
         _ = await ctx.Customers
             .Where(
                 c => EF.Functions.GreaterThan(
-                    new ValueTuple<string, string>(c.City, c.CustomerID),
+                    new ValueTuple<string?, string>(c.City, c.CustomerID),
                     new ValueTuple<string, string>(city1, "OCEAN")))
             .CountAsync();
 
@@ -263,7 +263,7 @@ WHERE (c."City", c."CustomerID") <= ('Buenos Aires', 'OCEAN')
         _ = await ctx.Customers
             .Where(
                 c => EF.Functions.GreaterThan(
-                    new ValueTuple<string, string>(c.City, c.CustomerID),
+                    new ValueTuple<string?, string>(c.City, c.CustomerID),
                     new ValueTuple<string, string>("Buenos Aires", "OCEAN")))
             .CountAsync();
 

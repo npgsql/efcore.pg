@@ -21,7 +21,7 @@ LEFT JOIN "OptionalRelated_NestedCollection" AS o ON CASE
 END = o."AssociateTypeRootEntityId"
 LEFT JOIN "RequiredRelated_NestedCollection" AS r2 ON r."Id" = r2."AssociateTypeRootEntityId"
 WHERE cardinality(r."RequiredAssociate_Ints") = 3
-ORDER BY r."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."Id0" NULLS FIRST, o."AssociateTypeRootEntityId" NULLS FIRST, o."Id" NULLS FIRST, r2."AssociateTypeRootEntityId" NULLS FIRST
+ORDER BY r."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."Id0" NULLS FIRST, o."AssociateTypeRootEntityId" NULLS FIRST, o."Id" NULLS FIRST, r2."AssociateTypeRootEntityId" NULLS FIRST, r2."Id" NULLS FIRST
 """);
     }
 
@@ -43,7 +43,7 @@ LEFT JOIN "OptionalRelated_NestedCollection" AS o ON CASE
 END = o."AssociateTypeRootEntityId"
 LEFT JOIN "RequiredRelated_NestedCollection" AS r2 ON r."Id" = r2."AssociateTypeRootEntityId"
 WHERE r."RequiredAssociate_Ints"[1] = 1
-ORDER BY r."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."Id0" NULLS FIRST, o."AssociateTypeRootEntityId" NULLS FIRST, o."Id" NULLS FIRST, r2."AssociateTypeRootEntityId" NULLS FIRST
+ORDER BY r."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."Id0" NULLS FIRST, o."AssociateTypeRootEntityId" NULLS FIRST, o."Id" NULLS FIRST, r2."AssociateTypeRootEntityId" NULLS FIRST, r2."Id" NULLS FIRST
 """);
     }
 
@@ -65,7 +65,7 @@ LEFT JOIN "OptionalRelated_NestedCollection" AS o ON CASE
 END = o."AssociateTypeRootEntityId"
 LEFT JOIN "RequiredRelated_NestedCollection" AS r2 ON r."Id" = r2."AssociateTypeRootEntityId"
 WHERE 3 = ANY (r."RequiredAssociate_Ints")
-ORDER BY r."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."Id0" NULLS FIRST, o."AssociateTypeRootEntityId" NULLS FIRST, o."Id" NULLS FIRST, r2."AssociateTypeRootEntityId" NULLS FIRST
+ORDER BY r."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."Id0" NULLS FIRST, o."AssociateTypeRootEntityId" NULLS FIRST, o."Id" NULLS FIRST, r2."AssociateTypeRootEntityId" NULLS FIRST, r2."Id" NULLS FIRST
 """);
     }
 
@@ -87,7 +87,7 @@ LEFT JOIN "OptionalRelated_NestedCollection" AS o ON CASE
 END = o."AssociateTypeRootEntityId"
 LEFT JOIN "RequiredRelated_NestedCollection" AS r2 ON r."Id" = r2."AssociateTypeRootEntityId"
 WHERE 2 = ANY (r."RequiredAssociate_Ints")
-ORDER BY r."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."Id0" NULLS FIRST, o."AssociateTypeRootEntityId" NULLS FIRST, o."Id" NULLS FIRST, r2."AssociateTypeRootEntityId" NULLS FIRST
+ORDER BY r."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."Id0" NULLS FIRST, o."AssociateTypeRootEntityId" NULLS FIRST, o."Id" NULLS FIRST, r2."AssociateTypeRootEntityId" NULLS FIRST, r2."Id" NULLS FIRST
 """);
     }
 
@@ -109,7 +109,7 @@ LEFT JOIN "OptionalRelated_NestedCollection" AS o ON CASE
 END = o."AssociateTypeRootEntityId"
 LEFT JOIN "RequiredRelated_NestedCollection" AS r2 ON r."Id" = r2."AssociateTypeRootEntityId"
 WHERE cardinality(r."RequiredAssociate_RequiredNestedAssociate_Ints") = 3
-ORDER BY r."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."Id0" NULLS FIRST, o."AssociateTypeRootEntityId" NULLS FIRST, o."Id" NULLS FIRST, r2."AssociateTypeRootEntityId" NULLS FIRST
+ORDER BY r."Id" NULLS FIRST, s."RootEntityId" NULLS FIRST, s."Id" NULLS FIRST, s."AssociateTypeRootEntityId" NULLS FIRST, s."AssociateTypeId" NULLS FIRST, s."Id0" NULLS FIRST, o."AssociateTypeRootEntityId" NULLS FIRST, o."Id" NULLS FIRST, r2."AssociateTypeRootEntityId" NULLS FIRST, r2."Id" NULLS FIRST
 """);
     }
 

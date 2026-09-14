@@ -20,7 +20,7 @@ public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpg
     public async Task String_starts_with_on_argument_with_escape_constant(bool async)
         => await AssertQuery(
             async,
-            ss => ss.Set<FunkyCustomer>().Where(c => c.FirstName.StartsWith("Some\\")),
+            ss => ss.Set<FunkyCustomer>().Where(c => c.FirstName!.StartsWith("Some\\")),
             ss => ss.Set<FunkyCustomer>().Where(c => c.FirstName != null && c.FirstName.StartsWith("Some\\")));
 
     [ConditionalTheory]
@@ -30,7 +30,7 @@ public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpg
         var param = "Some\\";
         await AssertQuery(
             async,
-            ss => ss.Set<FunkyCustomer>().Where(c => c.FirstName.StartsWith(param)),
+            ss => ss.Set<FunkyCustomer>().Where(c => c.FirstName!.StartsWith(param)),
             ss => ss.Set<FunkyCustomer>().Where(c => c.FirstName != null && c.FirstName.StartsWith(param)));
     }
 
@@ -39,7 +39,7 @@ public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpg
 
     public class FunkyDataQueryNpgsqlFixture : FunkyDataQueryFixtureBase, ITestSqlLoggerFactory
     {
-        private FunkyDataData? _expectedData;
+        private NpgsqlFunkyData? _expectedData;
 
         public TestSqlLoggerFactory TestSqlLoggerFactory
             => (TestSqlLoggerFactory)ListLoggerFactory;
@@ -55,31 +55,29 @@ public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpg
         }
 
         public override ISetSource GetExpectedData()
-        {
-            if (_expectedData is null)
-            {
-                _expectedData = (FunkyDataData)base.GetExpectedData();
-
-                var maxId = _expectedData.FunkyCustomers.Max(c => c.Id);
-
-                var mutableCustomersOhYeah = (List<FunkyCustomer>)_expectedData.FunkyCustomers;
-
-                mutableCustomersOhYeah.Add(
-                    new FunkyCustomer
-                    {
-                        Id = maxId + 1,
-                        FirstName = "Some\\Guy",
-                        LastName = null
-                    });
-            }
-
-            return _expectedData;
-        }
+            => _expectedData ??= new NpgsqlFunkyData();
 
         protected override async Task SeedAsync(FunkyDataContext context)
         {
             context.FunkyCustomers.AddRange(GetExpectedData().Set<FunkyCustomer>());
             await context.SaveChangesAsync();
+        }
+
+        private class NpgsqlFunkyData : ISetSource
+        {
+            private readonly IReadOnlyList<FunkyCustomer> _customers;
+
+            public NpgsqlFunkyData()
+            {
+                var customers = FunkyDataData.CreateFunkyCustomers();
+                _customers = [.. customers, new FunkyCustomer { Id = customers.Max(c => c.Id) + 1, FirstName = "Some\\Guy" }];
+            }
+
+            public IQueryable<TEntity> Set<TEntity>()
+                where TEntity : class
+                => typeof(TEntity) == typeof(FunkyCustomer)
+                    ? (IQueryable<TEntity>)_customers.AsQueryable()
+                    : throw new InvalidOperationException("Invalid entity type: " + typeof(TEntity));
         }
     }
 }

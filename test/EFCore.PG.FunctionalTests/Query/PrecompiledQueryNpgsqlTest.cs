@@ -267,6 +267,17 @@ WHERE b."Id"::smallint = 8
         AssertSql();
     }
 
+    public override async Task RuntimeConstantExpression()
+    {
+        await base.RuntimeConstantExpression();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Name", b."Json"
+FROM "Blogs" AS b
+""");
+    }
+
     #endregion Expression types
 
     #region Regular operators
@@ -2060,6 +2071,30 @@ FROM "Blogs" AS b
 """);
     }
 
+    public override async Task Materialize_entity_with_primitive_collection_mapped_to_column()
+    {
+        await base.Materialize_entity_with_primitive_collection_mapped_to_column();
+
+        AssertSql(
+            """
+SELECT e."Id", e."Tags"
+FROM "EntitiesWithPrimitiveCollection" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    public override async Task Project_primitive_collection_mapped_to_column()
+    {
+        await base.Project_primitive_collection_mapped_to_column();
+
+        AssertSql(
+            """
+SELECT e."Tags"
+FROM "EntitiesWithPrimitiveCollection" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());
@@ -2102,6 +2137,12 @@ FROM "Blogs" AS b
             var post23 = new Post { Id = 23, Title = "Post23", Blog = blog2 };
 
             context.Posts.AddRange(post11, post12, post21, post22, post23);
+
+            // Native arrays use SQL NULL rather than the JSON null token seeded by the base fixture.
+            context.EntitiesWithPrimitiveCollection.AddRange(
+                new EntityWithPrimitiveCollection { Id = 1, Tags = ["a", "b"] },
+                new EntityWithPrimitiveCollection { Id = 2, Tags = null });
+
             await context.SaveChangesAsync();
         }
 
