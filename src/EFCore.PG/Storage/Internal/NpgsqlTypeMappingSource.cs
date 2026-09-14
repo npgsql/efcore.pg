@@ -841,7 +841,14 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         EnumDefinition? enumDefinition;
         if (storeType is null)
         {
-            enumDefinition = _enumDefinitions.SingleOrDefault(m => m.ClrType == clrType);
+            var matches = _enumDefinitions.Where(m => m.ClrType == clrType).ToList();
+            if (matches.Count > 1)
+            {
+                throw new InvalidOperationException(
+                    $"Multiple enum definitions registered for CLR type '{clrType?.FullName}'. ");
+            }
+
+            enumDefinition = matches.FirstOrDefault();
 
             if (enumDefinition is null)
             {
