@@ -96,12 +96,12 @@ jobs:
           curl --fail --retry 5 --retry-all-errors -o pgsql.zip -L https://get.enterprisedb.com/postgresql/postgresql-${EDB_VERSION}-windows-x64-binaries.zip
           unzip pgsql.zip -x 'pgsql/include/**' 'pgsql/doc/**' 'pgsql/pgAdmin 4/**' 'pgsql/StackBuilder/**'
 
-          # Match Npgsql CI Docker image and stash one level up
-          cp $GITHUB_WORKSPACE/.build/{server.crt,server.key} pgsql
-
           # Start PostgreSQL
           pgsql/bin/initdb -D pgsql/PGDATA -E UTF8 -U postgres
-          pgsql/bin/pg_ctl -D pgsql/PGDATA -l logfile -o '-c max_connections=200 -c max_prepared_transactions=10 -c ssl=true -c ssl_cert_file=../server.crt -c ssl_key_file=../server.key' start
+          if ! pgsql/bin/pg_ctl -D pgsql/PGDATA -l logfile -o '-c max_connections=200 -c max_prepared_transactions=10' start; then
+            cat logfile
+            exit 1
+          fi
 
           # Configure test account
           pgsql/bin/psql -U postgres -c "CREATE ROLE npgsql_tests SUPERUSER LOGIN PASSWORD 'npgsql_tests'"
