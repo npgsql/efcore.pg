@@ -455,6 +455,29 @@ public class NpgsqlTypeMappingTest
             GetMapping("hstore").GenerateSqlLiteral(new Dictionary<string, string> { { "k1", "v1" }, { "k2", "v2" } }));
 
     [Fact]
+    public void GenerateSqlLiteral_returns_hstore_literal_when_first_value_is_null()
+        => Assert.Equal(
+            """HSTORE '"k1"=>NULL,"k2"=>"v2"'""",
+            GetMapping("hstore").GenerateSqlLiteral(new Dictionary<string, string> { { "k1", null }, { "k2", "v2" } }));
+
+    [Fact]
+    public void GenerateSqlLiteral_returns_hstore_literal_with_escaped_keys_and_values()
+        => Assert.Equal(
+            """HSTORE '"k\"1\""=>"v\"1\"","k\\2"=>"v\\2","k''3''"=>"v''3''"'""",
+            GetMapping("hstore").GenerateSqlLiteral(new Dictionary<string, string>
+            {
+                { "k\"1\"", "v\"1\"" },
+                { "k\\2", "v\\2" },
+                { "k'3'", "v'3'" }
+            }));
+
+    [Fact]
+    public void GenerateSqlLiteral_returns_hstore_literal_from_empty_dictionary()
+        => Assert.Equal(
+            "HSTORE ''",
+            GetMapping("hstore").GenerateSqlLiteral(new Dictionary<string, string>()));
+
+    [Fact]
     public void GenerateSqlLiteral_returns_BigInteger_literal()
     {
         var mapping = GetMapping(typeof(BigInteger));
