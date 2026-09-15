@@ -1491,14 +1491,21 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
 
-        builder
-            .Append("DROP INDEX ")
-            .Append(DelimitIdentifier(operation.Name, operation.Schema));
+        builder.Append("DROP INDEX ");
+
+        var concurrently = operation[NpgsqlAnnotationNames.CreatedConcurrently] as bool? == true;
+        if (concurrently)
+        {
+            builder.Append("CONCURRENTLY ");
+        }
+
+        builder.Append(DelimitIdentifier(operation.Name, operation.Schema));
 
         if (terminate)
         {
             builder.AppendLine(";");
-            EndStatement(builder);
+            // Concurrent indexes cannot be dropped within a transaction
+            EndStatement(builder, suppressTransaction: concurrently);
         }
     }
 

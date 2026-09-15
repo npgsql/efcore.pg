@@ -2020,6 +2020,24 @@ DROP SEQUENCE "People_Id_old_seq";
     }
 
     [Fact]
+    public virtual async Task Drop_index_concurrently()
+    {
+        await Test(
+            builder => builder.Entity(
+                "People", e =>
+                {
+                    e.Property<int>("Id");
+                    e.Property<int>("Age");
+                }),
+            builder => builder.Entity("People").HasIndex("Age")
+                .IsCreatedConcurrently(),
+            _ => { },
+            asserter: null); // No scaffolding for IsCreatedConcurrently
+
+        AssertSql("""DROP INDEX CONCURRENTLY "IX_People_Age";""");
+    }
+
+    [Fact]
     public virtual async Task Create_index_with_method()
     {
         await Test(
