@@ -191,6 +191,18 @@ jobs:
         with:
           global-json-file: global.json
 
+      - name: Verify release dependencies
+        shell: bash
+        run: |
+          # Do not let daily feeds or the build's package cache hide unpublished dependencies.
+          packages_dir=$(mktemp -d)
+          for project in src/*/*.csproj; do
+            dotnet restore "$project" \
+              --source https://api.nuget.org/v3/index.json \
+              --packages "$packages_dir" \
+              --no-http-cache
+          done
+
       - name: Pack
         run: dotnet pack --configuration Release --property:PackageOutputPath="$PWD/nupkgs" -p:ContinuousIntegrationBuild=true
 
