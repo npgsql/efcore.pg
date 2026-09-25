@@ -41,8 +41,27 @@ public class NpgsqlByteArrayMethodTranslator : IMethodCallTranslator
         Check.NotNull(method, nameof(method));
         Check.NotNull(arguments, nameof(arguments));
 
+        // bytea || bytea. Note that we return a byte[] (rather than the method's IEnumerable<byte>) so that further bytea
+        // operations (ToArray, Length...) can be composed on top.
+        if (method is { IsGenericMethod: true, Name: nameof(Enumerable.Concat) }
+            && method.DeclaringType == typeof(Enumerable)
+            && arguments is [var first, var second]
+            && (first.TypeMapping ?? second.TypeMapping) is NpgsqlByteArrayTypeMapping concatTypeMapping)
+        {
+            return _sqlExpressionFactory.Add(
+                _sqlExpressionFactory.ApplyTypeMapping(first, concatTypeMapping),
+                _sqlExpressionFactory.ApplyTypeMapping(second, concatTypeMapping),
+                concatTypeMapping);
+        }
+
         if (method.IsGenericMethod && arguments[0].TypeMapping is NpgsqlByteArrayTypeMapping typeMapping)
         {
+            // ToArray over bytea (e.g. after Concat) is a no-op
+            if (method is { Name: nameof(Enumerable.ToArray) } && method.DeclaringType == typeof(Enumerable))
+            {
+                return arguments[0];
+            }
+
             // Note: we only translate if the array argument is a column mapped to bytea. There are various other
             // cases (e.g. Where(b => new byte[] { 1, 2, 3 }.Contains(b.SomeByte))) where we prefer to translate via
             // regular PostgreSQL array logic.

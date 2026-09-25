@@ -118,7 +118,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         {
             // PostgreSQL has a special string concatenation operator: ||
             // We switch to it if the expression itself has type string, or if one of the sides has a string type mapping.
-            // Same for full-text search's TsVector, arrays.
+            // Same for full-text search's TsVector, arrays and bytea.
             ExpressionType.Add when
                 e.Type == typeof(string)
                 || e.Left.TypeMapping?.ClrType == typeof(string)
@@ -127,6 +127,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 || e.Left.TypeMapping?.ClrType == typeof(NpgsqlTsVector)
                 || e.Right.TypeMapping?.ClrType == typeof(NpgsqlTsVector)
                 || e.Left.TypeMapping is NpgsqlArrayTypeMapping && e.Right.TypeMapping is NpgsqlArrayTypeMapping
+                || e.Left.TypeMapping is NpgsqlByteArrayTypeMapping && e.Right.TypeMapping is NpgsqlByteArrayTypeMapping
                 => " || ",
 
             ExpressionType.And when e.Type == typeof(bool) => " AND ",
