@@ -34,6 +34,7 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
         var npgsqlOptions = contextOptions.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
         var supportsMultiranges = npgsqlOptions.PostgresVersion.AtLeast(14);
         var supportRegexCount = npgsqlOptions.PostgresVersion.AtLeast(15);
+        var supportsDaitchMokotoff = npgsqlOptions.PostgresVersion.AtLeast(16);
 
         var sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
         var typeMappingSource = (NpgsqlTypeMappingSource)dependencies.RelationalTypeMappingSource;
@@ -47,7 +48,7 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
                 new NpgsqlConvertTranslator(sqlExpressionFactory),
                 new NpgsqlDateTimeMethodTranslator(typeMappingSource, sqlExpressionFactory),
                 new NpgsqlFullTextSearchMethodTranslator(typeMappingSource, sqlExpressionFactory, model),
-                new NpgsqlFuzzyStringMatchMethodTranslator(typeMappingSource, sqlExpressionFactory),
+                new NpgsqlFuzzyStringMatchMethodTranslator(typeMappingSource, sqlExpressionFactory, supportsDaitchMokotoff),
                 new NpgsqlJsonDomTranslator(typeMappingSource, sqlExpressionFactory, model),
                 new NpgsqlJsonDbFunctionsTranslator(typeMappingSource, sqlExpressionFactory, model),
                 new NpgsqlJsonPocoTranslator(typeMappingSource, sqlExpressionFactory, model),

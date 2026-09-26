@@ -8,7 +8,8 @@
 /// </summary>
 public class NpgsqlFuzzyStringMatchMethodTranslator(
     IRelationalTypeMappingSource typeMappingSource,
-    NpgsqlSqlExpressionFactory sqlExpressionFactory) : IMethodCallTranslator
+    NpgsqlSqlExpressionFactory sqlExpressionFactory,
+    bool supportsDaitchMokotoff) : IMethodCallTranslator
 {
     private static readonly bool[][] TrueArrays =
     [
@@ -35,7 +36,8 @@ public class NpgsqlFuzzyStringMatchMethodTranslator(
 
         var function = method.Name switch
         {
-            nameof(NpgsqlFuzzyStringMatchDbFunctionsExtensions.FuzzyStringMatchDaitchMokotoff) => "daitch_mokotoff",
+            nameof(NpgsqlFuzzyStringMatchDbFunctionsExtensions.FuzzyStringMatchDaitchMokotoff) when supportsDaitchMokotoff
+                => "daitch_mokotoff",
             nameof(NpgsqlFuzzyStringMatchDbFunctionsExtensions.FuzzyStringMatchSoundex) => "soundex",
             nameof(NpgsqlFuzzyStringMatchDbFunctionsExtensions.FuzzyStringMatchDifference) => "difference",
             nameof(NpgsqlFuzzyStringMatchDbFunctionsExtensions.FuzzyStringMatchLevenshtein) => "levenshtein",

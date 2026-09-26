@@ -14,12 +14,13 @@ public static class NpgsqlFuzzyStringMatchDbFunctionsExtensions
     /// <summary>
     ///     Returns the Daitch-Mokotoff Soundex codes for a string.
     /// </summary>
+    /// <returns>The soundex codes, or <see langword="null" /> if the input contains no encodable characters.</returns>
     /// <remarks>
     ///     The method call is translated to <c>daitch_mokotoff(text)</c>.
     ///     Requires PostgreSQL 16 or later and the fuzzystrmatch extension.
     ///     See https://www.postgresql.org/docs/current/fuzzystrmatch.html.
     /// </remarks>
-    public static string[] FuzzyStringMatchDaitchMokotoff(this DbFunctions _, string text)
+    public static string[]? FuzzyStringMatchDaitchMokotoff(this DbFunctions _, string text)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(FuzzyStringMatchDaitchMokotoff)));
 
     /// <summary>
