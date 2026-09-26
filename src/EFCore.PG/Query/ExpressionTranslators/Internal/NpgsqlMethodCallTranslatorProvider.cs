@@ -47,7 +47,7 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
                 new NpgsqlConvertTranslator(sqlExpressionFactory),
                 new NpgsqlDateTimeMethodTranslator(typeMappingSource, sqlExpressionFactory),
                 new NpgsqlFullTextSearchMethodTranslator(typeMappingSource, sqlExpressionFactory, model),
-                new NpgsqlFuzzyStringMatchMethodTranslator(sqlExpressionFactory),
+                new NpgsqlFuzzyStringMatchMethodTranslator(typeMappingSource, sqlExpressionFactory),
                 new NpgsqlJsonDomTranslator(typeMappingSource, sqlExpressionFactory, model),
                 new NpgsqlJsonDbFunctionsTranslator(typeMappingSource, sqlExpressionFactory, model),
                 new NpgsqlJsonPocoTranslator(typeMappingSource, sqlExpressionFactory, model),

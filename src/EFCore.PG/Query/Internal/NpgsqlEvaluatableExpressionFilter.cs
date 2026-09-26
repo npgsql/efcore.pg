@@ -47,6 +47,7 @@ public class NpgsqlEvaluatableExpressionFilter : RelationalEvaluatableExpression
                     || declaringType == typeof(NpgsqlDbFunctionsExtensions)
                     || declaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions)
                     || declaringType == typeof(NpgsqlFullTextSearchLinqExtensions)
+                    || declaringType == typeof(NpgsqlFuzzyStringMatchDbFunctionsExtensions)
                     || declaringType == typeof(NpgsqlNetworkDbFunctionsExtensions)
                     || declaringType == typeof(NpgsqlJsonDbFunctionsExtensions)
                     || declaringType == typeof(NpgsqlRangeDbFunctionsExtensions)
