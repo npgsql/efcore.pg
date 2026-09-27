@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 #pragma warning disable EF8001 // ToJson on owned entities is obsolete
 
 namespace Microsoft.EntityFrameworkCore.Query;
@@ -74,6 +76,57 @@ WHERE (CAST(e."JsonEntity" ->> 'Interval' AS interval)) = INTERVAL '2 02:03:04.1
 LIMIT 2
 """);
         }
+    }
+
+    [ConditionalTheory]
+    [InlineData("jsonb")]
+    [InlineData("json")]
+    public virtual async Task Byte_array_mapped_to_json_column(string storeType)
+    {
+        var contextFactory = await InitializeNonSharedTest<ByteArrayJsonDbContext>(
+            onModelCreating: mb => mb.Entity<ByteArrayJsonEntity>().Property(e => e.Json).HasColumnType(storeType),
+            seed: async context =>
+            {
+                context.Entities.Add(new ByteArrayJsonEntity { Id = 1, Json = """{"Foo":"Bar"}"""u8.ToArray() });
+                await context.SaveChangesAsync();
+
+                // Simulate a JSON document which wasn't written via EF
+                await context.Database.ExecuteSqlRawAsync("""INSERT INTO "Entities" ("Id", "Json") VALUES (2, '{{"Foo":"Baz"}}')""");
+            });
+
+        using var context = contextFactory.CreateDbContext();
+
+        // The byte array must be written as the raw UTF-8 JSON document, and not as a JSON array of byte values
+        Assert.Equal(
+            "Bar",
+            await context.Database.SqlQueryRaw<string>("""SELECT "Json" ->> 'Foo' AS "Value" FROM "Entities" WHERE "Id" = 1""")
+                .SingleAsync());
+
+        var entities = await context.Entities.OrderBy(e => e.Id).ToListAsync();
+
+        Assert.Collection(
+            entities,
+            e => Assert.Equal("Bar", JsonDocument.Parse(e.Json).RootElement.GetProperty("Foo").GetString()),
+            e => Assert.Equal("Baz", JsonDocument.Parse(e.Json).RootElement.GetProperty("Foo").GetString()));
+
+        entities[1].Json = """{"Foo":"Qux"}"""u8.ToArray();
+        await context.SaveChangesAsync();
+
+        Assert.Equal(
+            "Qux",
+            await context.Database.SqlQueryRaw<string>("""SELECT "Json" ->> 'Foo' AS "Value" FROM "Entities" WHERE "Id" = 2""")
+                .SingleAsync());
+    }
+
+    protected class ByteArrayJsonDbContext(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<ByteArrayJsonEntity> Entities { get; set; }
+    }
+
+    public class ByteArrayJsonEntity
+    {
+        public int Id { get; set; }
+        public byte[] Json { get; set; }
     }
 
     protected class TypesDbContext(DbContextOptions options) : DbContext(options)
