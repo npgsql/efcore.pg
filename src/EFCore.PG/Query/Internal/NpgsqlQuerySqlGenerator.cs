@@ -979,7 +979,9 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         // PG regexps are single-line by default
         if (options == RegexOptions.Singleline)
         {
+            Sql.Append("(");
             Visit(expression.Pattern);
+            Sql.Append(")");
             return expression;
         }
 
