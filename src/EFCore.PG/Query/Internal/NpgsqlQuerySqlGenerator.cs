@@ -1011,9 +1011,9 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
         if (constantPattern is null)
         {
-            Sql.Append("' || ");
+            Sql.Append("' || (");
             Visit(expression.Pattern);
-            Sql.Append(")");
+            Sql.Append("))");
         }
         else
         {
