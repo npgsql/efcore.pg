@@ -908,8 +908,19 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     protected virtual Expression VisitRegexMatch(PgRegexMatchExpression expression)
     {
         var options = expression.Options;
+        var requiresParentheses = RequiresParentheses(expression, expression.Match);
+
+        if (requiresParentheses)
+        {
+            Sql.Append("(");
+        }
 
         Visit(expression.Match);
+
+        if (requiresParentheses)
+        {
+            Sql.Append(")");
+        }
 
         if (options.HasFlag(RegexOptions.IgnoreCase))
         {
@@ -921,10 +932,24 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             Sql.Append(" ~ ");
         }
 
+        // Regex matching and concatenation have the same precedence, including after the option prefix below.
+        requiresParentheses = RequiresParentheses(expression, expression.Pattern);
+
         // PG regexps are single-line by default
         if (options == RegexOptions.Singleline)
         {
+            if (requiresParentheses)
+            {
+                Sql.Append("(");
+            }
+
             Visit(expression.Pattern);
+
+            if (requiresParentheses)
+            {
+                Sql.Append(")");
+            }
+
             return expression;
         }
 
@@ -957,7 +982,19 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         if (constantPattern is null)
         {
             Sql.Append("' || ");
+
+            if (requiresParentheses)
+            {
+                Sql.Append("(");
+            }
+
             Visit(expression.Pattern);
+
+            if (requiresParentheses)
+            {
+                Sql.Append(")");
+            }
+
             Sql.Append(")");
         }
         else
@@ -1421,6 +1458,13 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 return true;
             }
 
+            case PgJsonTraversalExpression when outerExpression is not SqlUnaryExpression { OperatorType: ExpressionType.Convert }:
+            {
+                return !TryGetOperatorInfo(outerExpression, out var outerPrecedence, out _)
+                    || !TryGetOperatorInfo(innerExpression, out var innerPrecedence, out _)
+                    || outerPrecedence >= innerPrecedence;
+            }
+
             case PgUnknownBinaryExpression:
                 return true;
 
@@ -1448,6 +1492,9 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 ExpressionType.Multiply => (1200, true),
                 ExpressionType.Divide => (1200, false),
                 ExpressionType.Modulo => (1200, false),
+
+                // String, array and tsvector concatenation
+                ExpressionType.Add when GetOperator(sqlBinaryExpression) == " || " => (1000, true),
 
                 // Addition, subtraction (binary)
                 ExpressionType.Add => (1100, true),
@@ -1490,7 +1537,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
             // There's an "any other operator" category in the PG operator precedence table, we assign that a numeric value of 1000.
             // TODO: Some operators here may be associative
-            PgBinaryExpression => (1000, false),
+            PgBinaryExpression or PgRegexMatchExpression => (1000, false),
 
             CollateExpression => (1000, false),
             AtTimeZoneExpression => (1100, false),
@@ -1498,7 +1545,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             PgJsonTraversalExpression => (1000, false),
             PgArrayIndexExpression => (1500, false),
             PgAllExpression or PgAnyExpression => (800, false),
-            LikeExpression or PgILikeExpression or PgRegexMatchExpression => (900, false),
+            LikeExpression or PgILikeExpression => (900, false),
 
             _ => default,
         };
