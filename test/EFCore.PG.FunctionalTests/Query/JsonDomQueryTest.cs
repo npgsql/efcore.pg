@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.EntityFrameworkCore.Query;
 
@@ -512,7 +513,7 @@ WHERE '{"Name": "Joe", "Age": 25}' <@ j."CustomerElement"
             """
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."CustomerElement" -> 'Statistics' ? 'Visits'
+WHERE (j."CustomerElement" -> 'Statistics') ? 'Visits'
 """);
     }
 
@@ -529,7 +530,7 @@ WHERE j."CustomerElement" -> 'Statistics' ? 'Visits'
             """
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."CustomerElement" -> 'Statistics' ?| ARRAY['foo','Visits']::text[]
+WHERE (j."CustomerElement" -> 'Statistics') ?| ARRAY['foo','Visits']::text[]
 """);
     }
 
@@ -546,7 +547,7 @@ WHERE j."CustomerElement" -> 'Statistics' ?| ARRAY['foo','Visits']::text[]
             """
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."CustomerElement" -> 'Statistics' ?& ARRAY['foo','Visits']::text[]
+WHERE (j."CustomerElement" -> 'Statistics') ?& ARRAY['foo','Visits']::text[]
 """);
     }
 
@@ -585,6 +586,110 @@ WHERE json_typeof(j."CustomerElement" #> '{Statistics,Visits}') = 'number'
     }
 
     #endregion Functions
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Regex_with_json_pattern(bool jsonb)
+    {
+        using var ctx = CreateContext();
+
+        var query = jsonb
+            ? ctx.JsonbEntities.Select(e => new { e.Id, e.CustomerElement })
+            : ctx.JsonEntities.Select(e => new { e.Id, e.CustomerElement });
+
+        var ids = query.Where(e => Regex.IsMatch("Joe", e.CustomerElement.GetProperty("Name").GetString()!))
+            .Select(e => e.Id)
+            .ToList();
+
+        Assert.Equal([1], ids);
+        AssertSql(
+            $"""
+SELECT j."Id"
+FROM "{(jsonb ? "JsonbEntities" : "JsonEntities")}" AS j
+WHERE 'Joe' ~ ('(?p)' || (j."CustomerElement" ->> 'Name'))
+""");
+    }
+
+    [Theory]
+    [InlineData(RegexOptions.Singleline, false, "~ (j.\"CustomerElement\" ->> 'Name')")]
+    [InlineData(RegexOptions.IgnoreCase, false, "~* ('(?p)' || (j.\"CustomerElement\" ->> 'Name'))")]
+    [InlineData(RegexOptions.Singleline | RegexOptions.IgnoreCase, false, "~* (j.\"CustomerElement\" ->> 'Name')")]
+    [InlineData(RegexOptions.None, true, "!~ ('(?p)' || (j.\"CustomerElement\" ->> 'Name'))")]
+    [InlineData(RegexOptions.Singleline, true, "!~ (j.\"CustomerElement\" ->> 'Name')")]
+    [InlineData(RegexOptions.IgnoreCase, true, "!~* ('(?p)' || (j.\"CustomerElement\" ->> 'Name'))")]
+    [InlineData(RegexOptions.Singleline | RegexOptions.IgnoreCase, true, "!~* (j.\"CustomerElement\" ->> 'Name')")]
+    public void Regex_with_json_pattern_options(RegexOptions options, bool negated, string expectedOperatorAndPattern)
+    {
+        using var ctx = CreateContext();
+
+        var query = ctx.JsonbEntities.Where(e => e.Id == 1);
+        var matches = options switch
+        {
+            RegexOptions.None
+                => query.Select(e => Regex.IsMatch("Joe", e.CustomerElement.GetProperty("Name").GetString()!)),
+            RegexOptions.Singleline
+                => query.Select(e => Regex.IsMatch("Joe", e.CustomerElement.GetProperty("Name").GetString()!, RegexOptions.Singleline)),
+            RegexOptions.IgnoreCase
+                => query.Select(e => Regex.IsMatch("Joe", e.CustomerElement.GetProperty("Name").GetString()!, RegexOptions.IgnoreCase)),
+            RegexOptions.Singleline | RegexOptions.IgnoreCase
+                => query.Select(e => Regex.IsMatch(
+                    "Joe", e.CustomerElement.GetProperty("Name").GetString()!, RegexOptions.Singleline | RegexOptions.IgnoreCase)),
+            _ => throw new ArgumentOutOfRangeException(nameof(options))
+        };
+        var result = (negated ? matches.Select(m => !m) : matches).Single();
+
+        Assert.Equal(!negated, result);
+        AssertSql(
+            $"""
+SELECT 'Joe' {expectedOperatorAndPattern}
+FROM "JsonbEntities" AS j
+WHERE j."Id" = 1
+LIMIT 2
+""");
+    }
+
+    [Fact]
+    public void Regex_with_json_input()
+    {
+        using var ctx = CreateContext();
+
+        var ids = ctx.JsonbEntities
+            .Where(e => Regex.IsMatch(e.CustomerElement.GetProperty("Name").GetString()!, "^J"))
+            .Select(e => e.Id)
+            .ToList();
+
+        Assert.Equal([1], ids);
+        AssertSql(
+            """
+SELECT j."Id"
+FROM "JsonbEntities" AS j
+WHERE (j."CustomerElement" ->> 'Name') ~ '(?p)^J'
+""");
+    }
+
+    [Fact]
+    public void Regex_with_nested_json_operands()
+    {
+        using var ctx = CreateContext();
+
+        var ids = ctx.JsonbEntities
+            .Where(e => Regex.IsMatch(
+                e.CustomerElement.GetProperty("VariousTypes").GetProperty("String").GetString()!,
+                e.CustomerElement.GetProperty("VariousTypes").GetProperty("String").GetString()!))
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
+            .ToList();
+
+        Assert.Equal([1, 2], ids);
+        AssertSql(
+            """
+SELECT j."Id"
+FROM "JsonbEntities" AS j
+WHERE (j."CustomerElement" #>> '{VariousTypes,String}') ~ ('(?p)' || (j."CustomerElement" #>> '{VariousTypes,String}'))
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
 
     #region Support
 
