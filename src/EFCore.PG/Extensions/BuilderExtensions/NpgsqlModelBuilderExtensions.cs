@@ -126,6 +126,29 @@ public static class NpgsqlModelBuilderExtensions
     #region Identity
 
     /// <summary>
+    ///     Configures the model to not use any Npgsql-specific value generation strategy for properties
+    ///     marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. This disables all
+    ///     automatic identity generation, serial columns, sequences, and hi-lo patterns; all identity
+    ///     values must be provided by the application.
+    /// </summary>
+    /// <param name="modelBuilder">The model builder.</param>
+    /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+    public static ModelBuilder UseNoIdentityGeneration(this ModelBuilder modelBuilder)
+    {
+        Check.NotNull(modelBuilder, nameof(modelBuilder));
+
+        var model = modelBuilder.Model;
+
+        model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.None);
+        model.SetSequenceNameSuffix(null);
+        model.SetSequenceSchema(null);
+        model.SetHiLoSequenceName(null);
+        model.SetHiLoSequenceSchema(null);
+
+        return modelBuilder;
+    }
+
+    /// <summary>
     ///     <para>
     ///         Configures the model to use the PostgreSQL IDENTITY feature to generate values for properties
     ///         marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. Values for these

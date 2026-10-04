@@ -9,19 +9,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 ///     or were configured to use a <see cref="NpgsqlValueGenerationStrategy" />.
 ///     It also configures properties as <see cref="ValueGenerated.OnAddOrUpdate" /> if they were configured as computed columns.
 /// </summary>
-public class NpgsqlValueGenerationConvention : RelationalValueGenerationConvention
+public class NpgsqlValueGenerationConvention(
+    ProviderConventionSetBuilderDependencies dependencies,
+    RelationalConventionSetBuilderDependencies relationalDependencies)
+    : RelationalValueGenerationConvention(dependencies, relationalDependencies)
 {
-    /// <summary>
-    ///     Creates a new instance of <see cref="NpgsqlValueGenerationConvention" />.
-    /// </summary>
-    /// <param name="dependencies">Parameter object containing dependencies for this convention.</param>
-    /// <param name="relationalDependencies">Parameter object containing relational dependencies for this convention.</param>
-    public NpgsqlValueGenerationConvention(
-        ProviderConventionSetBuilderDependencies dependencies,
-        RelationalConventionSetBuilderDependencies relationalDependencies)
-        : base(dependencies, relationalDependencies)
-    {
-    }
 
     /// <summary>
     ///     Called after an annotation is changed on a property.
@@ -88,7 +80,9 @@ public class NpgsqlValueGenerationConvention : RelationalValueGenerationConventi
     /// <param name="storeObject"> The identifier of the store object. </param>
     /// <returns>The store value generation strategy to set for the given property.</returns>
     public static new ValueGenerated? GetValueGenerated(IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
-        => RelationalValueGenerationConvention.GetValueGenerated(property, storeObject)
+        => ShouldSuppressValueGeneration(property, storeObject)
+            ? GetNonStrategyValueGenerated(property, storeObject)
+            : RelationalValueGenerationConvention.GetValueGenerated(property, storeObject)
             ?? (property.GetValueGenerationStrategy(storeObject) != NpgsqlValueGenerationStrategy.None
                 ? ValueGenerated.OnAdd
                 : null);
@@ -97,8 +91,31 @@ public class NpgsqlValueGenerationConvention : RelationalValueGenerationConventi
         IReadOnlyProperty property,
         in StoreObjectIdentifier storeObject,
         ITypeMappingSource typeMappingSource)
-        => RelationalValueGenerationConvention.GetValueGenerated(property, storeObject)
-            ?? (property.GetValueGenerationStrategy(storeObject, typeMappingSource) != NpgsqlValueGenerationStrategy.None
+            => ShouldSuppressValueGeneration(property, storeObject)
+                ? GetNonStrategyValueGenerated(property, storeObject)
+                : RelationalValueGenerationConvention.GetValueGenerated(property, storeObject)
+                ?? (property.GetValueGenerationStrategy(storeObject, typeMappingSource) != NpgsqlValueGenerationStrategy.None
+                    ? ValueGenerated.OnAdd
+                    : null);
+
+    /// <summary>
+    ///     Returns whether <see cref="ValueGenerated.OnAdd" /> should be suppressed for the given property because the
+    ///     model has been configured with <see cref="NpgsqlValueGenerationStrategy.None" /> and the property has no
+    ///     explicit value generation strategy override.
+    /// </summary>
+    private static bool ShouldSuppressValueGeneration(IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+        => property.DeclaringType.Model.GetValueGenerationStrategy() is NpgsqlValueGenerationStrategy.None
+            && property.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy) is null
+            && property.FindOverrides(storeObject)?.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy) is null;
+
+    /// <summary>
+    ///     Returns value generation based on non-strategy sources (default values, computed columns) when
+    ///     the Npgsql value generation strategy has been suppressed.
+    /// </summary>
+    private static ValueGenerated? GetNonStrategyValueGenerated(IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+        => property.GetComputedColumnSql(storeObject) is not null
+            ? ValueGenerated.OnAddOrUpdate
+            : property.TryGetDefaultValue(storeObject, out _) || property.GetDefaultValueSql(storeObject) is not null
                 ? ValueGenerated.OnAdd
-                : null);
+                : null;
 }
