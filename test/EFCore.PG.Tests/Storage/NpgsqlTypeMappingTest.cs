@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Numerics;
+using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Design.Internal;
 using Microsoft.EntityFrameworkCore.Storage.Json;
@@ -245,6 +247,35 @@ public class NpgsqlTypeMappingTest
         Assert.Equal("INTERVAL '3 04:05:06'", mapping.GenerateSqlLiteral(new TimeSpan(3, 4, 5, 6)));
         Assert.Equal("INTERVAL '04:05:06'", mapping.GenerateSqlLiteral(new TimeSpan(4, 5, 6)));
         Assert.Equal("INTERVAL '-3 04:05:06.007'", mapping.GenerateSqlLiteral(new TimeSpan(-3, -4, -5, -6, -7)));
+        Assert.Equal(
+            "INTERVAL '3 04:05:06'", mapping.GenerateSqlLiteral(
+                new TimeSpan(3, 4, 5, 6)
+                    .Add(TimeSpan.FromTicks(3))));
+    }
+
+    [Theory]
+    [InlineData("00:00:00", "00:00:00")]
+    [InlineData("12:23:23.801885", "12:23:23.801885")]
+    [InlineData("00:23:00.0000003", "00:23:00")]
+    [InlineData("00:00:00.0000001", "00:00:00")]
+    [InlineData("00:00:00.0000009", "00:00:00")]
+    [InlineData("00:00:00.000001", "00:00:00.000001")]
+    [InlineData("00:00:00.0000013", "00:00:00.000001")]
+    [InlineData("-00:00:00.0000001", "00:00:00")]
+    [InlineData("-00:00:00.0000009", "00:00:00")]
+    [InlineData("-00:00:00.000001", "-00:00:00.000001")]
+    public void TimeSpan_json(string timeSpanString, string json)
+    {
+        var readerWriter = GetMapping(typeof(TimeSpan)).JsonValueReaderWriter!;
+
+        var timeSpan = TimeSpan.Parse(timeSpanString, CultureInfo.InvariantCulture);
+        var actualJson = readerWriter.ToJsonString(timeSpan)[1..^1];
+        Assert.Equal(json, actualJson);
+
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes($"\"{json}\"")), null);
+        readerManager.MoveNext();
+        var actualTimeSpan = readerWriter.FromJson(ref readerManager, existingObject: null);
+        Assert.Equal(TimeSpan.Parse(json, CultureInfo.InvariantCulture), actualTimeSpan);
     }
 
     #endregion Date/Time
