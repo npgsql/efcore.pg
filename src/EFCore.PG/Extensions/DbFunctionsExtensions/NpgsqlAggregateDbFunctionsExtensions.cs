@@ -55,6 +55,24 @@ public static class NpgsqlAggregateDbFunctionsExtensions
     public static TimeSpan? Average(this DbFunctions _, IEnumerable<TimeSpan> input)
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Average)));
 
+    /// <summary>
+    ///     Returns true if all non-null input values are true, otherwise false. Corresponds to the PostgreSQL <c>bool_and</c> aggregate function.
+    /// </summary>
+    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
+    /// <param name="input">The input values to be AND'ed together.</param>
+    /// <seealso href="https://www.postgresql.org/docs/current/functions-aggregate.html">PostgreSQL documentation for aggregate functions.</seealso>
+    public static bool BoolAnd(this DbFunctions _, IEnumerable<bool> input)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(BoolAnd)));
+
+    /// <summary>
+    ///     Returns true if any non-null input value is true, otherwise false. Corresponds to the PostgreSQL <c>bool_or</c> aggregate function.
+    /// </summary>
+    /// <param name="_">The <see cref="DbFunctions" /> instance.</param>
+    /// <param name="input">The input values to be OR'ed together.</param>
+    /// <seealso href="https://www.postgresql.org/docs/current/functions-aggregate.html">PostgreSQL documentation for aggregate functions.</seealso>
+    public static bool BoolOr(this DbFunctions _, IEnumerable<bool> input)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(BoolOr)));
+
     // See additional range aggregate functions in NpgsqlRangeDbfunctionsExtensions
 
     #region JsonObjectAgg
