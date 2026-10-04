@@ -23,6 +23,62 @@ public class FuzzyStringMatchQueryNpgsqlTest : IClassFixture<FuzzyStringMatchQue
     #region FunctionTests
 
     [Fact]
+    [MinimumPostgresVersion(16, 0)]
+    public async Task FuzzyStringMatchDaitchMokotoff()
+    {
+        await using var context = CreateContext();
+        var results = await context.FuzzyStringMatchTestEntities
+            .Select(x => EF.Functions.FuzzyStringMatchDaitchMokotoff(x.Text))
+            .ToArrayAsync();
+
+        Assert.Equal(9, results.Length);
+        Assert.All(results, result => Assert.Equal(new[] { "463543" }, result));
+
+        AssertSql(
+            """
+SELECT daitch_mokotoff(f."Text")
+FROM "FuzzyStringMatchTestEntities" AS f
+""");
+    }
+
+    [Theory]
+    [InlineData("George", new[] { "595000" })]
+    [InlineData("John", new[] { "160000", "460000" })]
+    [InlineData("", null)]
+    [InlineData(null, null)]
+    [MinimumPostgresVersion(16, 0)]
+    public async Task FuzzyStringMatchDaitchMokotoff_parameter(string? text, string[]? expected)
+    {
+        await using var context = CreateContext();
+        var results = await context.FuzzyStringMatchTestEntities
+            .Select(x => EF.Functions.FuzzyStringMatchDaitchMokotoff(text!))
+            .ToArrayAsync();
+
+        Assert.Equal(9, results.Length);
+        Assert.All(results, result => Assert.Equal(expected, result));
+
+        AssertContainsSql(text is null ? "daitch_mokotoff(NULL)" : "daitch_mokotoff(@text)");
+    }
+
+    [Fact]
+    [MinimumPostgresVersion(16, 0)]
+    public async Task FuzzyStringMatchDaitchMokotoff_null_result()
+    {
+        await using var context = CreateContext();
+        var count = await context.FuzzyStringMatchTestEntities
+            .CountAsync(x => EF.Functions.FuzzyStringMatchDaitchMokotoff(x.Text.Substring(0, 0)) == null);
+
+        Assert.Equal(9, count);
+
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "FuzzyStringMatchTestEntities" AS f
+WHERE daitch_mokotoff(substring(f."Text", 1, 0)) IS NULL
+""");
+    }
+
+    [Fact]
     public void FuzzyStringMatchSoundex()
     {
         using var context = CreateContext();

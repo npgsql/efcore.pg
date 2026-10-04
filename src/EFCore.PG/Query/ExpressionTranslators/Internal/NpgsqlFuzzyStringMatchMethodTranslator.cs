@@ -6,7 +6,10 @@
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlFuzzyStringMatchMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory) : IMethodCallTranslator
+public class NpgsqlFuzzyStringMatchMethodTranslator(
+    IRelationalTypeMappingSource typeMappingSource,
+    NpgsqlSqlExpressionFactory sqlExpressionFactory,
+    bool supportsDaitchMokotoff) : IMethodCallTranslator
 {
     private static readonly bool[][] TrueArrays =
     [
@@ -33,6 +36,8 @@ public class NpgsqlFuzzyStringMatchMethodTranslator(NpgsqlSqlExpressionFactory s
 
         var function = method.Name switch
         {
+            nameof(NpgsqlFuzzyStringMatchDbFunctionsExtensions.FuzzyStringMatchDaitchMokotoff) when supportsDaitchMokotoff
+                => "daitch_mokotoff",
             nameof(NpgsqlFuzzyStringMatchDbFunctionsExtensions.FuzzyStringMatchSoundex) => "soundex",
             nameof(NpgsqlFuzzyStringMatchDbFunctionsExtensions.FuzzyStringMatchDifference) => "difference",
             nameof(NpgsqlFuzzyStringMatchDbFunctionsExtensions.FuzzyStringMatchLevenshtein) => "levenshtein",
@@ -49,7 +54,9 @@ public class NpgsqlFuzzyStringMatchMethodTranslator(NpgsqlSqlExpressionFactory s
                 function,
                 arguments.Skip(1),
                 nullable: true,
-                argumentsPropagateNullability: TrueArrays[arguments.Count - 1],
-                method.ReturnType);
+                // daitch_mokotoff can return NULL for non-null inputs such as the empty string.
+                argumentsPropagateNullability: function == "daitch_mokotoff" ? [false] : TrueArrays[arguments.Count - 1],
+                method.ReturnType,
+                typeMappingSource.FindMapping(method.ReturnType));
     }
 }
