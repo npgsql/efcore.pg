@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore.TestModels.JsonQuery;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
@@ -3003,6 +3004,22 @@ FROM (
 ) AS m
 WHERE m."Discriminator" = 'JsonEntityInheritanceDerived'
 ORDER BY m."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_with_json_operands(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<JsonEntityBasic>()
+                .Select(e => Regex.IsMatch(e.OwnedReferenceRoot.Name, e.OwnedReferenceRoot.Name)));
+
+        AssertSql(
+            """
+SELECT (j."OwnedReferenceRoot" ->> 'Name') ~ ('(?p)' || (j."OwnedReferenceRoot" ->> 'Name'))
+FROM "JsonEntitiesBasic" AS j
 """);
     }
 
