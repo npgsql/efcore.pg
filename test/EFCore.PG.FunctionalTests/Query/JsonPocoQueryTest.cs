@@ -620,7 +620,7 @@ WHERE @someJson <@ j."Customer"
             """
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."Customer" -> 'Statistics' ? 'Visits'
+WHERE (j."Customer" -> 'Statistics') ? 'Visits'
 """);
     }
 
@@ -637,7 +637,7 @@ WHERE j."Customer" -> 'Statistics' ? 'Visits'
             """
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."Customer" -> 'Statistics' ?| ARRAY['foo','Visits']::text[]
+WHERE (j."Customer" -> 'Statistics') ?| ARRAY['foo','Visits']::text[]
 """);
     }
 
@@ -654,7 +654,7 @@ WHERE j."Customer" -> 'Statistics' ?| ARRAY['foo','Visits']::text[]
             """
 SELECT count(*)::int
 FROM "JsonbEntities" AS j
-WHERE j."Customer" -> 'Statistics' ?& ARRAY['foo','Visits']::text[]
+WHERE (j."Customer" -> 'Statistics') ?& ARRAY['foo','Visits']::text[]
 """);
     }
 

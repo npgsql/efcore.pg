@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore.TestModels.JsonQuery;
 using Xunit.Sdk;
 
@@ -3686,6 +3687,22 @@ WHERE EXISTS (
     }
 
     #endregion
+
+    [Theory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Regex_with_json_operands(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<JsonEntityBasic>()
+                .Select(e => Regex.IsMatch(e.OwnedReferenceRoot.Name, e.OwnedReferenceRoot.Name)));
+
+        AssertSql(
+            """
+SELECT (j."OwnedReferenceRoot" ->> 'Name') ~ ('(?p)' || (j."OwnedReferenceRoot" ->> 'Name'))
+FROM "JsonEntitiesBasic" AS j
+""");
+    }
 
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
