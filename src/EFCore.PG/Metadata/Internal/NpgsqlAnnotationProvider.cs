@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
@@ -112,7 +113,13 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
             yield return new Annotation(
                 NpgsqlAnnotationNames.TsVectorProperties,
                 valueGeneratedProperty.GetTsVectorProperties()!
-                    .Select(p2 => valueGeneratedProperty.DeclaringType.FindProperty(p2)!.GetColumnName(tableIdentifier))
+                    .Select(p2 => valueGeneratedProperty.DeclaringType.FindProperty(p2)?.GetColumnName(tableIdentifier)
+                        ?? (valueGeneratedProperty.DeclaringType as IReadOnlyEntityType)?.FindNavigation(p2)?.TargetEntityType
+                        .GetContainerColumnName(tableIdentifier)
+                        ?? valueGeneratedProperty.DeclaringType.FindComplexProperty(p2)?.ComplexType.GetContainerColumnName(tableIdentifier)
+                        ?? throw new InvalidOperationException(
+                            NpgsqlStrings.TsVectorIncludedPropertyNotFound(valueGeneratedProperty.DeclaringType.DisplayName(), p2))
+                    )
                     .ToArray());
         }
 

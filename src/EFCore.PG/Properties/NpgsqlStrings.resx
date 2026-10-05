@@ -268,4 +268,7 @@
   <data name="WithoutOverlapsRequiresRangeType" xml:space="preserve">
     <value>WITHOUT OVERLAPS on {keyOrIndexName} in entity type '{entityType}' requires the last column to be a PostgreSQL range type (e.g. daterange, tsrange, tstzrange), but property '{property}' has type '{propertyType}'.</value>
   </data>
+  <data name="TsVectorIncludedPropertyNotFound" xml:space="preserve">
+    <value>Could not find property, navigation or complex property '{property}' on entity type '{entityType}' for generated tsvector column</value>
+  </data>
 </root>

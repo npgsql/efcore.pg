@@ -3194,6 +3194,28 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
     }
 
     [Fact]
+    public virtual async Task Add_column_generated_tsvector_over_json_owned_navigation()
+    {
+        await Test(
+            builder =>
+            {
+                builder.Entity("People").OwnsOne("JsonOwned", "JsonOwned").ToJson();
+            },
+            _ => { },
+            builder => builder.Entity("People").Property<NpgsqlTsVector>("SearchColumn")
+                .IsGeneratedTsVectorColumn("english", "JsonOwned"),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var column = Assert.Single(table.Columns, c => c.Name == "SearchColumn");
+                Assert.Equal("tsvector", column.StoreType);
+            });
+
+        AssertSql(
+            """ALTER TABLE "People" ADD "SearchColumn" tsvector GENERATED ALWAYS AS (jsonb_to_tsvector('english', coalesce("JsonOwned", '{}'), '"all"')) STORED;""");
+    }
+
+    [Fact]
     public virtual async Task Alter_column_generated_tsvector_change_config()
     {
         await Test(
