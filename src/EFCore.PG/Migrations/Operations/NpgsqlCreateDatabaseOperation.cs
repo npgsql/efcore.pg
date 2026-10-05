@@ -23,4 +23,9 @@ public class NpgsqlCreateDatabaseOperation : DatabaseOperation
     ///     The PostgreSQL tablespace in which to create the database.
     /// </summary>
     public virtual string? Tablespace { get; set; }
+
+    /// <summary>
+    ///     The PostgreSQL encoding to use for the database.
+    /// </summary>
+    public virtual string? Encoding { get; set; }
 }
