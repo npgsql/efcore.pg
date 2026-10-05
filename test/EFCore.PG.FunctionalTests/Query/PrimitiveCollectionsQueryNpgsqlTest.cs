@@ -2546,9 +2546,29 @@ WHERE NOT (p."NullableWrappedId" = ANY (@values) AND p."NullableWrappedId" = ANY
 """);
     }
 
-    public override Task Parameter_collection_of_structs_Contains_nullable_struct_with_nullable_comparer()
-        => Assert.ThrowsAnyAsync<TargetInvocationException>(
-            () => base.Parameter_collection_of_structs_Contains_nullable_struct_with_nullable_comparer());
+    public override async Task Parameter_collection_of_structs_Contains_nullable_struct_with_nullable_comparer()
+    {
+        await base.Parameter_collection_of_structs_Contains_nullable_struct_with_nullable_comparer();
+
+        AssertSql(
+            """
+@values={ '22'
+'33' } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."NullableWrappedIdWithNullableComparer" = ANY (@values) OR (p."NullableWrappedIdWithNullableComparer" IS NULL AND array_position(@values, NULL) IS NOT NULL)
+""",
+            //
+            """
+@values={ '11'
+'44' } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE NOT (p."NullableWrappedId" = ANY (@values) AND p."NullableWrappedId" = ANY (@values) IS NOT NULL) AND (p."NullableWrappedId" IS NOT NULL OR array_position(@values, NULL) IS NULL)
+""");
+    }
 
     public override async Task Parameter_collection_of_nullable_structs_Contains_struct()
     {

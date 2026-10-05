@@ -115,6 +115,18 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
             {
                 providerElementType = providerElementType.MakeNullable();
             }
+            else if (elementConverter.ConvertFromProviderExpression.ReturnType.IsNullableValueType()
+                && elementConverter.ConvertFromProviderExpression.ReturnType.UnwrapNullableType().IsAssignableFrom(elementType))
+            {
+                var converterType = typeof(CastingConverter<,>).MakeGenericType(
+                    elementType,
+                    elementType.MakeNullable());
+
+                var converterTypeInstance = (ValueConverter)Activator.CreateInstance(
+                    converterType)!;
+
+                elementConverter = converterTypeInstance.ComposeWith(elementConverter);
+            }
 
             converter = (ValueConverter)Activator.CreateInstance(
                 typeof(NpgsqlArrayConverter<,,>).MakeGenericType(
