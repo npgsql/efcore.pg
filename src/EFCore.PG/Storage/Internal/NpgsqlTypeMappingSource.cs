@@ -745,6 +745,13 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             // However, when scalar collections are nested inside a JSON document, they obviously have to be JSON-mapped.
             // In addition, at least in theory users may decide to map to JSON instead of array even outside JSON documents.
             case "jsonb" or "json" when modelClrType is not null:
+                // byte[] mapped to json/jsonb represents the raw UTF-8 JSON document (as supported by Npgsql), rather than a primitive
+                // collection of bytes; return null to let the calling code in FindBaseMapping return an NpgsqlJsonTypeMapping.
+                if (modelClrType == typeof(byte[]) && elementMapping is null)
+                {
+                    return null;
+                }
+
                 var mapping = base.FindCollectionMapping(
                     new RelationalTypeMappingInfo(
                         modelClrType, (RelationalTypeMapping?)elementMapping, storeTypeName: storeType, storeTypeNameBase: storeType),
