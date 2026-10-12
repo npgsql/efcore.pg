@@ -316,37 +316,41 @@ public class NpgsqlDateTimeMethodTranslator(
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments)
     {
-        if (method.DeclaringType == typeof(TimeZoneInfo) && method.Name == nameof(TimeZoneInfo.ConvertTimeBySystemTimeZoneId)
-            && arguments is [var convertDateTime, var timeZoneId]
-            && convertDateTime.Type == typeof(DateTime))
+        if (method.DeclaringType != typeof(TimeZoneInfo))
         {
-            var typeMapping = convertDateTime.TypeMapping;
-            if (typeMapping is null
-                || (typeMapping.StoreType != "timestamp with time zone" && typeMapping.StoreType != "timestamptz"))
-            {
-                throw new InvalidOperationException(
-                    "TimeZoneInfo.ConvertTimeBySystemTimeZoneId is only supported on columns with type 'timestamp with time zone'");
-            }
-
-            return _sqlExpressionFactory.AtTimeZone(convertDateTime, timeZoneId, typeof(DateTime), _timestampMapping);
+            return null;
         }
 
-        if (method.DeclaringType == typeof(TimeZoneInfo) && method.Name == nameof(TimeZoneInfo.ConvertTimeToUtc)
-            && arguments is [var utcDateTime]
-            && utcDateTime.Type == typeof(DateTime))
+        return (method.Name, arguments) switch
         {
-            var typeMapping = utcDateTime.TypeMapping;
-            if (typeMapping is null
-                || (typeMapping.StoreType != "timestamp without time zone" && typeMapping.StoreType != "timestamp"))
-            {
-                throw new InvalidOperationException(
-                    "TimeZoneInfo.ConvertTimeToUtc) is only supported on columns with type 'timestamp without time zone'");
-            }
+            (nameof(TimeZoneInfo.ConvertTimeBySystemTimeZoneId), [var convertDateTime, var timeZoneId])
+                when convertDateTime.Type == typeof(DateTime)
+                => convertDateTime.TypeMapping?.StoreType is "timestamp with time zone" or "timestamptz"
+                    ? _sqlExpressionFactory.AtTimeZone(convertDateTime, timeZoneId, typeof(DateTime), _timestampMapping)
+                    : throw new InvalidOperationException(
+                        "TimeZoneInfo.ConvertTimeBySystemTimeZoneId is only supported on columns with type 'timestamp with time zone'"),
 
-            return _sqlExpressionFactory.Convert(utcDateTime, utcDateTime.Type, _timestampTzMapping);
-        }
+            // As with the two-parameter overload, return a timestamp even when the destination is UTC.
+            (nameof(TimeZoneInfo.ConvertTimeBySystemTimeZoneId), [var sourceDateTime, var sourceTimeZoneId, var destinationTimeZoneId])
+                when sourceDateTime.Type == typeof(DateTime)
+                => sourceDateTime.TypeMapping?.StoreTypeNameBase is "timestamp without time zone" or "timestamp"
+                    ? _sqlExpressionFactory.AtTimeZone(
+                        _sqlExpressionFactory.AtTimeZone(sourceDateTime, sourceTimeZoneId, typeof(DateTime), _timestampTzMapping),
+                        destinationTimeZoneId,
+                        typeof(DateTime),
+                        _timestampMapping)
+                    : throw new InvalidOperationException(
+                        "TimeZoneInfo.ConvertTimeBySystemTimeZoneId is only supported on columns with type 'timestamp without time zone'"),
 
-        return null;
+            (nameof(TimeZoneInfo.ConvertTimeToUtc), [var utcDateTime])
+                when utcDateTime.Type == typeof(DateTime)
+                => utcDateTime.TypeMapping?.StoreType is "timestamp without time zone" or "timestamp"
+                    ? _sqlExpressionFactory.Convert(utcDateTime, utcDateTime.Type, _timestampTzMapping)
+                    : throw new InvalidOperationException(
+                        "TimeZoneInfo.ConvertTimeToUtc is only supported on columns with type 'timestamp without time zone'"),
+
+            _ => null
+        };
     }
 
     private SqlExpression? CreateIntervalExpression(SqlExpression intervalNum, string datePart)

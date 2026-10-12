@@ -733,6 +733,140 @@ WHERE e."TimestamptzDateTime" AT TIME ZONE 'Europe/Berlin' = TIMESTAMP '1998-04-
                     == new DateTime(1998, 4, 12, 15, 26, 38)).ToListAsync());
     }
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Where_ConvertTimeBySystemTimeZoneId_with_source_time_zone_on_DateTime_timestamp_column(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>().Where(
+                e => TimeZoneInfo.ConvertTimeBySystemTimeZoneId(e.TimestampDateTime, "Europe/Berlin", "UTC")
+                    == new DateTime(1998, 4, 12, 13, 26, 38)),
+            expectedQuery: ss => ss.Set<Entity>().Where(
+                e => TimeZoneInfo.ConvertTimeBySystemTimeZoneId(
+                        DateTime.SpecifyKind(e.TimestampDateTime, DateTimeKind.Unspecified), "Europe/Berlin", "UTC")
+                    == new DateTime(1998, 4, 12, 13, 26, 38)));
+
+        AssertSql(
+            """
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE (e."TimestampDateTime" AT TIME ZONE 'Europe/Berlin') AT TIME ZONE 'UTC' = TIMESTAMP '1998-04-12T13:26:38'
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task ConvertTimeBySystemTimeZoneId_with_source_time_zone_and_SpecifyKind_to_utc(bool async)
+    {
+        await using var ctx = CreateContext();
+
+        var query = ctx.Entities.Where(e => e.Id == 1)
+            .Select(e => DateTime.SpecifyKind(
+                TimeZoneInfo.ConvertTimeBySystemTimeZoneId(e.TimestampDateTime, "Europe/Berlin", "UTC"), DateTimeKind.Utc));
+
+        var result = async ? await query.SingleAsync() : query.Single();
+
+        Assert.Equal(new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc), result);
+        Assert.Equal(DateTimeKind.Utc, result.Kind);
+
+        AssertSql(
+            """
+SELECT ((e."TimestampDateTime" AT TIME ZONE 'Europe/Berlin') AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
+FROM "Entities" AS e
+WHERE e."Id" = 1
+LIMIT 2
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task ConvertTimeBySystemTimeZoneId_with_source_and_destination_time_zone_parameters(bool async)
+    {
+        await using var ctx = CreateContext();
+
+        var sourceTimeZoneId = "Europe/Berlin";
+        var destinationTimeZoneId = "Asia/Tokyo";
+        var query = ctx.Entities.Where(e => e.Id == 1)
+            .Select(e => TimeZoneInfo.ConvertTimeBySystemTimeZoneId(e.TimestampDateTime, sourceTimeZoneId, destinationTimeZoneId));
+
+        var result = async ? await query.SingleAsync() : query.Single();
+
+        Assert.Equal(new DateTime(1998, 4, 12, 22, 26, 38), result);
+        Assert.Equal(DateTimeKind.Unspecified, result.Kind);
+
+        AssertSql(
+            """
+@sourceTimeZoneId='Europe/Berlin'
+@destinationTimeZoneId='Asia/Tokyo'
+
+SELECT (e."TimestampDateTime" AT TIME ZONE @sourceTimeZoneId) AT TIME ZONE @destinationTimeZoneId
+FROM "Entities" AS e
+WHERE e."Id" = 1
+LIMIT 2
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task ConvertTimeBySystemTimeZoneId_with_source_and_destination_time_zone_columns(bool async)
+    {
+        await using var ctx = CreateContext();
+
+        var query = ctx.Database.SqlQueryRaw<TimeZoneConversion>(
+                """
+SELECT * FROM (VALUES
+    (1, TIMESTAMP '1998-04-12T15:26:38', 'Europe/Berlin', 'UTC'),
+    (2, TIMESTAMP '1998-04-12T15:26:38', 'America/New_York', 'Asia/Tokyo')
+) AS v("Id", "LocalTimestamp", "SourceTimeZoneId", "DestinationTimeZoneId")
+""")
+            .OrderBy(e => e.Id)
+            .Select(e => TimeZoneInfo.ConvertTimeBySystemTimeZoneId(e.LocalTimestamp, e.SourceTimeZoneId, e.DestinationTimeZoneId));
+
+        var results = async ? await query.ToListAsync() : query.ToList();
+
+        Assert.Equal([new DateTime(1998, 4, 12, 13, 26, 38), new DateTime(1998, 4, 13, 4, 26, 38)], results);
+        Assert.All(results, result => Assert.Equal(DateTimeKind.Unspecified, result.Kind));
+
+        AssertSql(
+            """
+SELECT (m."LocalTimestamp" AT TIME ZONE m."SourceTimeZoneId") AT TIME ZONE m."DestinationTimeZoneId"
+FROM (
+    SELECT * FROM (VALUES
+        (1, TIMESTAMP '1998-04-12T15:26:38', 'Europe/Berlin', 'UTC'),
+        (2, TIMESTAMP '1998-04-12T15:26:38', 'America/New_York', 'Asia/Tokyo')
+    ) AS v("Id", "LocalTimestamp", "SourceTimeZoneId", "DestinationTimeZoneId")
+) AS m
+ORDER BY m."Id" NULLS FIRST
+""");
+    }
+
+    [ConditionalFact]
+    public void Where_ConvertTimeBySystemTimeZoneId_with_source_time_zone_fails_on_DateTime_timestamptz_column()
+    {
+        using var ctx = CreateContext();
+
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => ctx.Entities.Where(
+                e => TimeZoneInfo.ConvertTimeBySystemTimeZoneId(e.TimestamptzDateTime, "UTC", "Europe/Berlin")
+                    == new DateTime(1998, 4, 12, 15, 26, 38)).ToQueryString());
+
+        Assert.Equal(
+            "TimeZoneInfo.ConvertTimeBySystemTimeZoneId is only supported on columns with type 'timestamp without time zone'",
+            exception.Message);
+    }
+
+    [ConditionalFact]
+    public void Where_ConvertTimeBySystemTimeZoneId_fails_on_DateTimeOffset_column()
+    {
+        using var ctx = CreateContext();
+
+        Assert.Throws<InvalidOperationException>(
+            () => ctx.Entities.Where(
+                e => TimeZoneInfo.ConvertTimeBySystemTimeZoneId(e.TimestampDateTimeOffset, "Europe/Berlin")
+                    == new DateTimeOffset(1998, 4, 12, 15, 26, 38, TimeSpan.FromHours(2))).ToQueryString());
+    }
+
     [ConditionalFact]
     public virtual async Task Where_ConvertTimeToUtc_on_DateTime_timestamp_column()
     {
@@ -986,6 +1120,18 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
 
         [Column(TypeName = "tsrange")]
         public NpgsqlRange<DateTime> TimestampDateTimeRange { get; set; }
+    }
+
+    private class TimeZoneConversion
+    {
+        public int Id { get; set; }
+
+        [Column(TypeName = "timestamp(6) without time zone")]
+        public DateTime LocalTimestamp { get; set; }
+
+        public string SourceTimeZoneId { get; set; } = null!;
+
+        public string DestinationTimeZoneId { get; set; } = null!;
     }
 
     public class TimestampQueryFixture : QueryFixtureBase<TimestampQueryContext>, ITestSqlLoggerFactory
