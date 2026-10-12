@@ -231,6 +231,48 @@ GROUP BY m."Id"
 """);
     }
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task GroupBy_Property_Select_BoolAnd_over_Bool(bool async)
+    {
+        await AssertQueryScalar(
+            async,
+            ss => ss.Set<Mission>()
+                .GroupBy(o => o.CodeName)
+                .Select(g => EF.Functions.BoolAnd(g.Select(o => o.Id == 1))),
+            ss => ss.Set<Mission>()
+                .GroupBy(o => o.CodeName)
+                .Select(g => g.All(o => o.Id == 1)));
+
+        AssertSql(
+            """
+SELECT bool_and(m."Id" = 1)
+FROM "Missions" AS m
+GROUP BY m."CodeName"
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task GroupBy_Property_Select_BoolOr_over_Bool(bool async)
+    {
+        await AssertQueryScalar(
+            async,
+            ss => ss.Set<Mission>()
+                .GroupBy(o => o.CodeName)
+                .Select(g => EF.Functions.BoolOr(g.Select(o => o.Id == 1))),
+            ss => ss.Set<Mission>()
+                .GroupBy(o => o.CodeName)
+                .Select(g => g.Any(o => o.Id == 1)));
+
+        AssertSql(
+            """
+SELECT bool_or(m."Id" = 1)
+FROM "Missions" AS m
+GROUP BY m."CodeName"
+""");
+    }
+
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 }
