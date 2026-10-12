@@ -68,6 +68,19 @@ TABLESPACE "MyTablespace";
 """);
     }
 
+    [Fact]
+    public virtual void CreateDatabaseOperation_with_encoding()
+    {
+        Generate(new NpgsqlCreateDatabaseOperation { Name = "Northwind", Encoding = "UTF8" });
+
+        AssertSql(
+            """
+CREATE DATABASE "Northwind"
+ENCODING "UTF8";
+
+""");
+    }
+
     #endregion
 
     public override void AddColumnOperation_without_column_type()
