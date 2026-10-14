@@ -10,11 +10,10 @@ public class AdHocQueryFiltersQueryNpgsqlTest : AdHocQueryFiltersQueryRelational
     [ConditionalTheory, MemberData(nameof(IsAsyncData))]
     public virtual async Task Row_value_projection_over_filtered_navigation(bool async)
     {
-#pragma warning disable CS0618 // Type or member is obsolete
-        NpgsqlConnection.GlobalTypeMapper.EnableRecordsAsTuples();
-#pragma warning restore CS0618 // Type or member is obsolete
-
         var contextFactory = await InitializeAsync<Context3933>(
+            onConfiguring: options => options.UseNpgsql(
+                NpgsqlTestStore.CreateConnectionString(StoreName),
+                o => o.ConfigureDataSource(b => b.EnableRecordsAsTuples())),
             seed: async context =>
             {
                 context.Orders.Add(new Context3933.Order
