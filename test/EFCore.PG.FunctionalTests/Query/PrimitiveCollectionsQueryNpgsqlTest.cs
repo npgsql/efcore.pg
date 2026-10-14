@@ -742,6 +742,47 @@ WHERE @__ints_0[p."Int" + 1] = 1
 """);
     }
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Column_collection_Last(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.Last() == 10),
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => (c.Ints.Length >= 1 ? c.Ints.Last() : -1) == 10));
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE (
+    SELECT i.value
+    FROM unnest(p."Ints") WITH ORDINALITY AS i(value)
+    ORDER BY i.ordinality DESC NULLS LAST
+    LIMIT 1) = 10
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task Column_collection_LastOrDefault(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.LastOrDefault() == 10));
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE COALESCE((
+    SELECT i.value
+    FROM unnest(p."Ints") WITH ORDINALITY AS i(value)
+    ORDER BY i.ordinality DESC NULLS LAST
+    LIMIT 1), 0) = 10
+""");
+    }
+
     public override async Task Column_collection_ElementAt(bool async)
     {
         await base.Column_collection_ElementAt(async);
