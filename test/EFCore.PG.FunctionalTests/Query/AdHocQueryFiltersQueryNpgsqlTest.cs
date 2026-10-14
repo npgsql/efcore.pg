@@ -36,10 +36,6 @@ GROUP BY d."GroupId"
     [ConditionalTheory, MemberData(nameof(IsAsyncData))]
     public virtual async Task Row_value_projection_over_filtered_navigation(bool async)
     {
-#pragma warning disable CS0618 // Type or member is obsolete
-        NpgsqlConnection.GlobalTypeMapper.EnableRecordsAsTuples();
-#pragma warning restore CS0618 // Type or member is obsolete
-
         var contextFactory = await InitializeNonSharedTest<Context3933>(
             seed: async context =>
             {
@@ -60,7 +56,10 @@ GROUP BY d."GroupId"
                     ]
                 });
                 await context.SaveChangesAsync();
-            });
+            },
+            onConfiguring: options => options.UseNpgsql(
+                NpgsqlTestStore.CreateConnectionString(NonSharedStoreName),
+                o => o.ConfigureDataSource(b => b.EnableRecordsAsTuples())));
 
         await using var context = contextFactory.CreateDbContext();
 
