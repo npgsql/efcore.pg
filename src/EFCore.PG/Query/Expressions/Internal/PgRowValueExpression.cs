@@ -57,7 +57,7 @@ public class PgRowValueExpression : SqlExpression, IEquatable<PgRowValueExpressi
             }
         }
 
-        return newRowValues is null ? this : new PgRowValueExpression(newRowValues, Type);
+        return newRowValues is null ? this : new PgRowValueExpression(newRowValues, Type, TypeMapping);
     }
 
     /// <summary>
@@ -67,7 +67,7 @@ public class PgRowValueExpression : SqlExpression, IEquatable<PgRowValueExpressi
     public virtual PgRowValueExpression Update(IReadOnlyList<SqlExpression> values)
         => values.Count == Values.Count && values.Zip(Values, (x, y) => (x, y)).All(tup => tup.x == tup.y)
             ? this
-            : new PgRowValueExpression(values, Type);
+            : new PgRowValueExpression(values, Type, TypeMapping);
 
     /// <inheritdoc />
     public override Expression Quote()
