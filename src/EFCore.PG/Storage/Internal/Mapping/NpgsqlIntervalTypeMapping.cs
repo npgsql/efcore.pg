@@ -90,9 +90,15 @@ public class NpgsqlIntervalTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public static string FormatTimeSpanAsInterval(TimeSpan ts)
-        => ts.ToString(
+    {
+        // PostgreSQL intervals have microsecond precision, but TimeSpan has 100ns tick precision. Truncate the sub-microsecond part,
+        // otherwise a value with only sub-microsecond ticks gets formatted with a trailing decimal separator (e.g. 00:23:00.).
+        ts = new TimeSpan(ts.Ticks - ts.Ticks % TimeSpan.TicksPerMicrosecond);
+
+        return ts.ToString(
             $@"{(ts < TimeSpan.Zero ? "\\-" : "")}{(ts.Days == 0 ? "" : "d\\ ")}hh\:mm\:ss{(ts.Ticks % 10000000 == 0 ? "" : "\\.FFFFFF")}",
             CultureInfo.InvariantCulture);
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
