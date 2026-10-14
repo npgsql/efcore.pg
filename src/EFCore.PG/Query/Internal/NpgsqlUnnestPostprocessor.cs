@@ -44,12 +44,17 @@ public class NpgsqlUnnestPostprocessor : ExpressionVisitor
 
                     // Find any unnest table which does not have any references to its ordinality column in the projection or orderings
                     // (this is where they may appear); if found, remove the ordinality column from the unnest call.
-                    // Note that if the ordinality column is the first ordering, we can still remove it, since unnest already returns
-                    // ordered results.
+                    // Note that if the ordinality column is the first ordering and it is ascending, we can still remove it, since
+                    // unnest already returns ordered results in ascending ordinality order. Descending ordinality ordering must be
+                    // kept (along with WITH ORDINALITY), otherwise Last()/LastOrDefault() incorrectly returns the first element
+                    // (see https://github.com/npgsql/efcore.pg/issues/3909).
                     if (unwrappedTable is PgUnnestExpression unnest
                         && !selectExpression.Orderings.Skip(1).Select(o => o.Expression)
                             .Concat(selectExpression.Projection.Select(p => p.Expression))
-                            .Any(IsOrdinalityColumn))
+                            .Any(IsOrdinalityColumn)
+                        && (orderings.Count == 0
+                            || !IsOrdinalityColumn(orderings[0].Expression)
+                            || orderings[0].IsAscending))
                     {
                         if (newTables is null)
                         {
@@ -74,6 +79,10 @@ public class NpgsqlUnnestPostprocessor : ExpressionVisitor
                         {
                             orderings = orderings.Skip(1).ToList();
                         }
+                    }
+                    else if (newTables is not null)
+                    {
+                        newTables[i] = table;
                     }
 
                     bool IsOrdinalityColumn(SqlExpression expression)
