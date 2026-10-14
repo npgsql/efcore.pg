@@ -1186,7 +1186,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         {
             switch (expression)
             {
-                case PgUnnestExpression unnestExpression
+                case PgUnnestExpression { Array.TypeMapping: null } unnestExpression
                     when TryGetInferredTypeMapping(unnestExpression, unnestExpression.ColumnName, out var elementTypeMapping):
                 {
                     var collectionTypeMapping = _typeMappingSource.FindMapping(unnestExpression.Array.Type, Model, elementTypeMapping);
