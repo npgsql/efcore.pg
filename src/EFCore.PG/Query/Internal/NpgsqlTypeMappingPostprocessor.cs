@@ -41,7 +41,7 @@ public class NpgsqlTypeMappingPostprocessor : RelationalTypeMappingPostprocessor
     {
         switch (expression)
         {
-            case PgUnnestExpression unnestExpression
+            case PgUnnestExpression { Array.TypeMapping: null } unnestExpression
                 when TryGetInferredTypeMapping(unnestExpression.Alias, unnestExpression.ColumnName, out var elementTypeMapping):
             {
                 var collectionTypeMapping = _typeMappingSource.FindMapping(unnestExpression.Array.Type, _model, elementTypeMapping);
