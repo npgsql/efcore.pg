@@ -83,6 +83,45 @@ public class NpgsqlArrayValueConverterTest
         Assert.Equal([1, 2], converter.ConvertFromProviderExpression.Compile()(["1", "2"]));
     }
 
+    [ConditionalFact]
+    public void Can_convert_object_arrays_through_an_element_converter()
+    {
+        var elementConverter = new ValueConverter<int, long>(v => v, v => checked((int)v));
+        var converter = new NpgsqlArrayConverter<object[], object[], long[]>(elementConverter);
+
+        var toProvider = (Func<object[], long[]>)converter.ConvertToProviderExpression.Compile();
+        Assert.Equal([1L, 2L], toProvider([1, 2]));
+        Assert.Null(toProvider(null));
+
+        var fromProvider = (Func<long[], object[]>)converter.ConvertFromProviderExpression.Compile();
+        Assert.Equal(new object[] { 1, 2 }, fromProvider([1L, 2L]));
+        Assert.Null(fromProvider(null));
+    }
+
+    [ConditionalFact]
+    public void Can_convert_object_lists_through_an_element_converter()
+    {
+        var elementConverter = new ValueConverter<int, long>(v => v, v => checked((int)v));
+        var converter = new NpgsqlArrayConverter<List<object>, List<object>, long[]>(elementConverter);
+
+        var toProvider = (Func<List<object>, long[]>)converter.ConvertToProviderExpression.Compile();
+        Assert.Equal([1L, 2L], toProvider([1, 2]));
+
+        var fromProvider = (Func<long[], List<object>>)converter.ConvertFromProviderExpression.Compile();
+        Assert.Equal(new List<object> { 1, 2 }, fromProvider([1L, 2L]));
+    }
+
+    [ConditionalFact]
+    public void Rejects_an_element_converter_whose_type_does_not_match_the_array()
+    {
+        var elementConverter = new ValueConverter<int, long>(v => v, v => checked((int)v));
+
+        var exception = Assert.Throws<ArgumentException>(
+            () => new NpgsqlArrayConverter<long[], long[], long[]>(elementConverter));
+
+        Assert.Contains("doesn't match", exception.Message);
+    }
+
     private enum Beatles
     {
         John = 7,
