@@ -112,6 +112,68 @@ public class NpgsqlArrayValueConverterTest
     }
 
     [ConditionalFact]
+    public void Can_convert_object_arrays_through_a_string_element_converter()
+    {
+        var elementConverter = new ValueConverter<int, string>(v => v.ToString(), v => int.Parse(v));
+        var converter = new NpgsqlArrayConverter<object[], object[], string[]>(elementConverter);
+
+        var toProvider = (Func<object[], string[]>)converter.ConvertToProviderExpression.Compile();
+        Assert.Equal(new string[] { "1", null, "2" }, toProvider(new object[] { 1, null, 2 }));
+
+        var fromProvider = (Func<string[], object[]>)converter.ConvertFromProviderExpression.Compile();
+        Assert.Equal(new object[] { 1, null, 2 }, fromProvider(new string[] { "1", null, "2" }));
+    }
+
+    [ConditionalFact]
+    public void Can_convert_object_lists_through_a_string_element_converter()
+    {
+        var elementConverter = new ValueConverter<int, string>(v => v.ToString(), v => int.Parse(v));
+        var converter = new NpgsqlArrayConverter<List<object>, List<object>, string[]>(elementConverter);
+
+        var toProvider = (Func<List<object>, string[]>)converter.ConvertToProviderExpression.Compile();
+        Assert.Equal(new string[] { "1", null, "2" }, toProvider(new List<object> { 1, null, 2 }));
+
+        var fromProvider = (Func<string[], List<object>>)converter.ConvertFromProviderExpression.Compile();
+        Assert.Equal(new List<object> { 1, null, 2 }, fromProvider(new string[] { "1", null, "2" }));
+    }
+
+    [ConditionalFact]
+    public void Can_convert_object_arrays_through_a_string_to_string_converter()
+    {
+        var elementConverter = new ValueConverter<string, string>(v => v, v => v);
+        var converter = new NpgsqlArrayConverter<object[], object[], string[]>(elementConverter);
+
+        var toProvider = (Func<object[], string[]>)converter.ConvertToProviderExpression.Compile();
+        Assert.Equal(new string[] { "a", null }, toProvider(new object[] { "a", null }));
+    }
+
+    [ConditionalFact]
+    public void Can_preserve_null_elements_in_object_arrays()
+    {
+        var elementConverter = new ValueConverter<int, long>(v => v, v => checked((int)v));
+        var converter = new NpgsqlArrayConverter<object[], object[], long?[]>(elementConverter);
+
+        var toProvider = (Func<object[], long?[]>)converter.ConvertToProviderExpression.Compile();
+        Assert.Equal(new long?[] { null, 2L }, toProvider(new object[] { null, 2 }));
+
+        var fromProvider = (Func<long?[], object[]>)converter.ConvertFromProviderExpression.Compile();
+        Assert.Equal(new object[] { null, 2 }, fromProvider(new long?[] { null, 2L }));
+    }
+
+    [ConditionalFact]
+    public void Can_preserve_null_elements_in_object_lists()
+    {
+        var elementConverter = new ValueConverter<int, long>(v => v, v => checked((int)v));
+        var converter = new NpgsqlArrayConverter<List<object>, List<object>, long?[]>(elementConverter);
+
+        var toProvider = (Func<List<object>, long?[]>)converter.ConvertToProviderExpression.Compile();
+        Assert.Equal(new long?[] { null, 2L }, toProvider(new List<object> { null, 2 }));
+
+        var fromProvider = (Func<long?[], List<object>>)converter.ConvertFromProviderExpression.Compile();
+        Assert.Equal(new List<object> { null, 2 }, fromProvider(new long?[] { null, 2L }));
+    }
+
+    [ConditionalFact]
     public void Rejects_an_element_converter_whose_type_does_not_match_the_array()
     {
         var elementConverter = new ValueConverter<int, long>(v => v, v => checked((int)v));
