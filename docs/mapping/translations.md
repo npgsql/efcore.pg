@@ -234,12 +234,13 @@ EF.Functions.TrigramsStrictWordSimilarityDistanceInverted(s1, s2) | s1 &lt;-&gt;
 
 ## Fuzzy string match functions
 
-The below translations provide functionality for determining similarities and distance between strings, using the [`pg_trgm`](https://www.postgresql.org/docs/current/pgtrgm.html) extension which is bundled with standard PostgreSQL distributions.
+The below translations provide functionality for determining similarities and distance between strings, using the [`fuzzystrmatch`](https://www.postgresql.org/docs/current/fuzzystrmatch.html) extension which is bundled with standard PostgreSQL distributions.
 
-.NET                                                                                                   | SQL
------------------------------------------------------------------------------------------------------- | --------------------
+.NET                                                                                                   | SQL                  | Notes
+------------------------------------------------------------------------------------------------------ | -------------------- | -----
 EF.Functions.FuzzyStringMatchSoundex(text)                                                             | [soundex(text)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-SOUNDEX)
 EF.Functions.FuzzyStringMatchDifference(source, target)                                                | [difference(source, target)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-SOUNDEX)
+EF.Functions.FuzzyStringMatchDaitchMokotoff(text)                                                       | [daitch_mokotoff(text)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-DAITCH-MOKOTOFF) | Added in 11.0. Requires PostgreSQL 16+
 EF.Functions.FuzzyStringMatchLevenshtein(source, target)                                               | [levenshtein(source, target)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-LEVENSHTEIN)
 EF.Functions.FuzzyStringMatchLevenshtein(source, target, ins_cost, del_cost, sub_cost)                 | [levenshtein(source, target, ins_cost, del_cost, sub_cost)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-LEVENSHTEIN)
 EF.Functions.FuzzyStringMatchLevenshteinLessEqual(source, target, max_d)                               | [levenshtein(source, target, max_d)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-LEVENSHTEIN)
@@ -247,6 +248,8 @@ EF.Functions.FuzzyStringMatchLevenshteinLessEqual(source, target, ins_cost, del_
 EF.Functions.FuzzyStringMatchMetaphone(text, max_output_length)                                        | [metaphone(text, max_output_length)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-METAPHONE)
 EF.Functions.FuzzyStringMatchDoubleMetaphone(text)                                                     | [dmetaphone(text)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-METAPHONE)
 EF.Functions.FuzzyStringMatchDoubleMetaphoneAlt(text)                                                  | [dmetaphone_alt(text)](https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-METAPHONE)
+
+`FuzzyStringMatchDaitchMokotoff` returns `string[]?`, with `null` possible for inputs without encodable characters, including empty strings. Projection and array indexing are supported, but composing `Contains`, `Any`, `Intersect(...).Any()`, or `.Length` on the result is not currently translated ([dotnet/efcore#35980](https://github.com/dotnet/efcore/issues/35980)).
 
 ## LTree functions
 
