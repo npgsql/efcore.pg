@@ -540,6 +540,47 @@ DROP SEQUENCE "Person_Id_old_seq";
 """);
     }
 
+    [Theory]
+    [InlineData(false, MigrationsSqlGenerationOptions.Default)]
+    [InlineData(false, MigrationsSqlGenerationOptions.Idempotent)]
+    [InlineData(true, MigrationsSqlGenerationOptions.Default)]
+    [InlineData(true, MigrationsSqlGenerationOptions.Script)]
+    [InlineData(true, MigrationsSqlGenerationOptions.Script | MigrationsSqlGenerationOptions.NoTransactions)]
+    public void Create_index_with_concurrent_creation(bool concurrently, MigrationsSqlGenerationOptions options)
+    {
+        Generate(
+            new CreateIndexOperation
+            {
+                Name = "IX_People_Age",
+                Table = "People",
+                Columns = ["Age"],
+                [NpgsqlAnnotationNames.CreatedConcurrently] = concurrently
+            },
+            options);
+
+        AssertSql($"""CREATE INDEX{(concurrently ? " CONCURRENTLY" : "")} "IX_People_Age" ON "People" ("Age");""");
+    }
+
+    [Theory]
+    [InlineData(MigrationsSqlGenerationOptions.Idempotent)]
+    [InlineData(MigrationsSqlGenerationOptions.Idempotent | MigrationsSqlGenerationOptions.Script)]
+    [InlineData(MigrationsSqlGenerationOptions.Idempotent | MigrationsSqlGenerationOptions.Script | MigrationsSqlGenerationOptions.NoTransactions)]
+    public void Create_index_concurrently_idempotent_throws(MigrationsSqlGenerationOptions options)
+        => Assert.Equal(
+            "Cannot generate an idempotent migration script for index 'IX_People_Age' because "
+            + "PostgreSQL does not allow CREATE INDEX CONCURRENTLY inside the PL/pgSQL DO blocks used to check migration history. "
+            + "Generate a non-idempotent script, or apply migrations using 'dotnet ef database update' or a migration bundle.",
+            Assert.Throws<NotSupportedException>(
+                () => Generate(
+                    new CreateIndexOperation
+                    {
+                        Name = "IX_People_Age",
+                        Table = "People",
+                        Columns = ["Age"],
+                        [NpgsqlAnnotationNames.CreatedConcurrently] = true
+                    },
+                    options)).Message);
+
     #region CockroachDB interleave-in-parent
 
     // Note that we don't run tests against actual CockroachDB instances, so these are unit tests asserting on SQL
