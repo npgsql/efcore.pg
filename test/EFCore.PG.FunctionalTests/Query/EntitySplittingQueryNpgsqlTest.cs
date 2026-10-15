@@ -773,6 +773,18 @@ ORDER BY u."Id" NULLS FIRST, s0."MiddleEntityId" NULLS FIRST
         AssertSql();
     }
 
+    public override async Task Compare_split_entity_to_null(bool async)
+    {
+        await base.Compare_split_entity_to_null(async);
+
+        AssertSql(
+            """
+SELECT e."Id", e."EntityThreeId", e."IntValue1", e."IntValue2", s."IntValue3", e."IntValue4", e."StringValue1", e."StringValue2", e."StringValue3", e."StringValue4"
+FROM "EntityOne" AS e
+INNER JOIN "SplitEntityOnePart" AS s ON e."Id" = s."Id"
+""");
+    }
+
     protected override ITestStoreFactory TestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 }

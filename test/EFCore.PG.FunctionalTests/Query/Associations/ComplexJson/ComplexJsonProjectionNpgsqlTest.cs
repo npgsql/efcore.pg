@@ -317,6 +317,24 @@ LEFT JOIN LATERAL (
 """);
     }
 
+    public override async Task Select_subquery_FirstOrDefault_complex_collection(QueryTrackingBehavior queryTrackingBehavior)
+    {
+        await base.Select_subquery_FirstOrDefault_complex_collection(queryTrackingBehavior);
+
+        AssertSql(
+            """
+SELECT r1.c, r1.c0
+FROM "RootEntity" AS r
+LEFT JOIN LATERAL (
+    SELECT r0."AssociateCollection" AS c, 1 AS c0
+    FROM "RootEntity" AS r0
+    ORDER BY r0."Id" NULLS FIRST
+    LIMIT 1
+) AS r1 ON TRUE
+ORDER BY r."Id" NULLS FIRST
+""");
+    }
+
     #endregion Subquery
 
     #region Value types
