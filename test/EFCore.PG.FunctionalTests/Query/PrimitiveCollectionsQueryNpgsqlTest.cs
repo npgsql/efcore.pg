@@ -926,11 +926,11 @@ WHERE (
 
         AssertSql(
             """
-@__ints_0={ '11', '111' } (DbType = Object)
+@__p_0={ '11', '111' } (DbType = Object)
 
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
 FROM "PrimitiveCollectionsEntity" AS p
-WHERE cardinality(@__ints_0 || p."Ints") = 2
+WHERE cardinality(@__p_0 || p."Ints") = 2
 """);
     }
 
@@ -1443,6 +1443,30 @@ WHERE CASE
     WHEN p."Int" = ANY (@__ints_1) THEN 'one'
     ELSE 'two'
 END = ANY (@__strings_0)
+""");
+    }
+
+    public override async Task Contains_on_Enumerable(bool async)
+    {
+        await base.Contains_on_Enumerable(async);
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Int" IN (10, 999)
+""");
+    }
+
+    public override async Task Contains_on_MemoryExtensions(bool async)
+    {
+        await base.Contains_on_MemoryExtensions(async);
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Int" IN (10, 999)
 """);
     }
 
