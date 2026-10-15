@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
-    <EFCoreVersion>[9.0.14,10.0.0)</EFCoreVersion>
-    <MicrosoftExtensionsVersion>9.0.14</MicrosoftExtensionsVersion>
+    <EFCoreVersion>[9.0.21,10.0.0)</EFCoreVersion>
+    <MicrosoftExtensionsVersion>9.0.21</MicrosoftExtensionsVersion>
     <NpgsqlVersion>9.0.5</NpgsqlVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -17,12 +17,12 @@
     <PackageVersion Include="Npgsql.NodaTime" Version="$(NpgsqlVersion)" />
     <PackageVersion Include="Npgsql.NetTopologySuite" Version="$(NpgsqlVersion)" />
     <PackageVersion Include="Npgsql.DependencyInjection" Version="$(NpgsqlVersion)" />
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.200" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.402" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.core" Version="2.9.3" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
-    <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.1" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
+    <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.5" />
   </ItemGroup>
 </Project>
