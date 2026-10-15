@@ -63,6 +63,26 @@ public class NpgsqlArrayValueConverterTest
         Assert.Null(converter(null));
     }
 
+    [ConditionalFact]
+    public void Can_convert_non_nullable_arrays_with_nullable_element_converter()
+    {
+        var converter = new NpgsqlArrayConverter<int[], int[], string[]>(
+            new ValueConverter<int?, string>(v => v.HasValue ? v.Value.ToString() : null, v => v == null ? null : int.Parse(v)));
+
+        Assert.Equal(new[] { "1", "2" }, converter.ConvertToProviderExpression.Compile()(new[] { 1, 2 }));
+        Assert.Equal(new[] { 1, 2 }, converter.ConvertFromProviderExpression.Compile()(new[] { "1", "2" }));
+    }
+
+    [ConditionalFact]
+    public void Can_convert_non_nullable_lists_with_nullable_element_converter()
+    {
+        var converter = new NpgsqlArrayConverter<List<int>, List<int>, string[]>(
+            new ValueConverter<int?, string>(v => v.HasValue ? v.Value.ToString() : null, v => v == null ? null : int.Parse(v)));
+
+        Assert.Equal(new[] { "1", "2" }, converter.ConvertToProviderExpression.Compile()(new List<int> { 1, 2 }));
+        Assert.Equal(new[] { 1, 2 }, converter.ConvertFromProviderExpression.Compile()(new[] { "1", "2" }));
+    }
+
     private enum Beatles
     {
         John = 7,

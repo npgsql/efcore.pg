@@ -82,27 +82,23 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
             throw new ArgumentException("Both TInput and TOutput must be arrays or IList<T>");
         }
 
-        // elementConversionExpression is always over non-nullable value types. If the array is over nullable types,
-        // we need to sanitize via an external null check.
-        if (elementConversionExpression is not null && inputElementType.IsNullableType() && outputElementType.IsNullableType())
+        if (elementConversionExpression is not null)
         {
-            // p => p is null ? null : elementConversionExpression(p)
-            var p = Parameter(inputElementType, "foo");
-            elementConversionExpression = Lambda(
-                Condition(
+            // The collection element types and the converter's types may differ in nullability.
+            var p = Parameter(inputElementType, "p");
+            Expression converted = Convert(
+                Invoke(elementConversionExpression, Convert(p, elementConversionExpression.Parameters[0].Type)),
+                outputElementType);
+
+            if (inputElementType.IsNullableType() && outputElementType.IsNullableType())
+            {
+                converted = Condition(
                     Equal(p, Constant(null, inputElementType)),
                     Constant(null, outputElementType),
-                    Convert(
-                        Invoke(
-                            elementConversionExpression,
-                            // The user-provided conversion lambda typically accepts non-nullable (value) types, with EF Core doing the
-                            // null-sanitization and conversion to non-nullable; do this here unless the user-provided lambda happens to
-                            // accept a nullable value type parameter.
-                            elementConversionExpression.Parameters[0].Type.IsNullableType()
-                                ? p
-                                : Convert(p, inputElementType.UnwrapNullableType())),
-                        outputElementType)),
-                p);
+                    converted);
+            }
+
+            elementConversionExpression = Lambda(converted, p);
         }
 
         var input = Parameter(typeof(TInput), "value");
