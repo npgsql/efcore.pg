@@ -324,7 +324,7 @@ public class NpgsqlDateTimeMethodTranslator(
         return (method.Name, arguments) switch
         {
             (nameof(TimeZoneInfo.ConvertTimeBySystemTimeZoneId), [var convertDateTime, var timeZoneId])
-                when convertDateTime.Type == typeof(DateTime)
+                when method.ReturnType == typeof(DateTime)
                 => convertDateTime.TypeMapping?.StoreType is "timestamp with time zone" or "timestamptz"
                     ? _sqlExpressionFactory.AtTimeZone(convertDateTime, timeZoneId, typeof(DateTime), _timestampMapping)
                     : throw new InvalidOperationException(
