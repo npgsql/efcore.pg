@@ -1,9 +1,70 @@
-﻿using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 public class NpgsqlBuilderExtensionsTest
 {
+    [Fact]
+    public void Can_disable_identity_generation()
+    {
+        var modelBuilder = CreateConventionModelBuilder();
+        modelBuilder.Entity("Before").Property<int>("Id");
+
+        Assert.Same(modelBuilder, modelBuilder.UseNoIdentityGeneration());
+
+        modelBuilder.Entity("After").Property<int>("Id");
+        var model = modelBuilder.FinalizeModel();
+
+        Assert.Equal(NpgsqlValueGenerationStrategy.None, model.GetValueGenerationStrategy());
+        foreach (var entityType in model.GetEntityTypes())
+        {
+            var property = entityType.FindProperty("Id");
+            Assert.Equal(NpgsqlValueGenerationStrategy.None, property.GetValueGenerationStrategy());
+            Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Disabling_identity_generation_clears_sequence_options(bool useHiLo)
+    {
+        var modelBuilder = CreateConventionModelBuilder();
+        if (useHiLo)
+        {
+            modelBuilder.UseHiLo("HiLoSequence", "HiLoSchema");
+        }
+        else
+        {
+            modelBuilder.UseKeySequences("SequenceSuffix", "SequenceSchema");
+        }
+
+        var model = modelBuilder.UseNoIdentityGeneration().Model;
+
+        Assert.Equal(NpgsqlValueGenerationStrategy.None, model.GetValueGenerationStrategy());
+        Assert.Null(model.FindAnnotation(NpgsqlAnnotationNames.SequenceNameSuffix));
+        Assert.Null(model.FindAnnotation(NpgsqlAnnotationNames.SequenceSchema));
+        Assert.Null(model.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceName));
+        Assert.Null(model.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema));
+    }
+
+    [Fact]
+    public void Disabling_identity_generation_preserves_explicit_property_strategies()
+    {
+        var modelBuilder = CreateConventionModelBuilder();
+        var entityBuilder = modelBuilder.Entity("Post");
+        entityBuilder.Property<int>("Id").UseIdentityAlwaysColumn();
+
+        modelBuilder.UseNoIdentityGeneration();
+
+        entityBuilder.Property<int>("OtherId").UseSerialColumn();
+        var entityType = modelBuilder.FinalizeModel().FindEntityType("Post");
+
+        Assert.Equal(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn, entityType.FindProperty("Id").GetValueGenerationStrategy());
+        Assert.Equal(NpgsqlValueGenerationStrategy.SerialColumn, entityType.FindProperty("OtherId").GetValueGenerationStrategy());
+    }
+
     [Fact]
     public void CockroachDbInterleaveInParent()
     {
