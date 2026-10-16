@@ -90,6 +90,7 @@ public static class NpgsqlServiceCollectionExtensions
         new EntityFrameworkNpgsqlServicesBuilder(serviceCollection)
             .TryAdd<LoggingDefinitions, NpgsqlLoggingDefinitions>()
             .TryAdd<IDatabaseProvider, DatabaseProvider<NpgsqlOptionsExtension>>()
+            .TryAdd<IDatabase, NpgsqlDatabase>()
             .TryAdd<IValueGeneratorCache>(p => p.GetRequiredService<INpgsqlValueGeneratorCache>())
             .TryAdd<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
             .TryAdd<ISqlGenerationHelper, NpgsqlSqlGenerationHelper>()
