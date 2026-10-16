@@ -110,8 +110,10 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
         {
             var providerElementType = elementConverter.ProviderClrType;
 
-            // Nullability has been unwrapped on the element converter's provider CLR type, so add it back here if needed
-            if (elementType.IsNullableValueType())
+            // Nullability has been unwrapped on the element converter's provider CLR type, so add it back here if needed.
+            // object can contain null, and a value-type provider element cannot store that null unless it is nullable.
+            if (elementType.IsNullableValueType()
+                || (elementType.UnwrapNullableType() == typeof(object) && providerElementType.IsValueType))
             {
                 providerElementType = providerElementType.MakeNullable();
             }
@@ -132,20 +134,26 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
         var comparer = typeof(TCollection).IsArray && typeof(TCollection).GetArrayRank() > 1
             ? null // TODO: Value comparer for multidimensional arrays
             : (ValueComparer?)Activator.CreateInstance(
-                elementType.IsNullableValueType() || elementMapping.Comparer.Type.IsNullableValueType()
+                elementType.IsNullableValueType()
+                    || (elementType.IsValueType && elementMapping.Comparer.Type.IsNullableValueType())
                     ? typeof(ListOfNullableValueTypesComparer<,>)
                         .MakeGenericType(typeof(TConcreteCollection), elementType.UnwrapNullableType())
                     : elementType.IsValueType
                         ? typeof(ListOfValueTypesComparer<,>).MakeGenericType(typeof(TConcreteCollection), elementType)
                         : typeof(ListOfReferenceTypesComparer<,>).MakeGenericType(typeof(TConcreteCollection), elementType),
-                elementMapping.Comparer.ToNullableComparer(elementType)!);
+                // ComposeConversion adapts a value comparer to object. Typed elements keep ToNullableComparer.
+                elementType.UnwrapNullableType() == typeof(object)
+                    ? elementMapping.Comparer.ComposeConversion(elementType)!
+                    : elementMapping.Comparer.ToNullableComparer(elementType)!);
 #pragma warning restore EF1001
 
         var elementJsonReaderWriter = elementMapping.JsonValueReaderWriter;
 
         if (elementJsonReaderWriter is not null)
         {
-            if (!typeof(TElement).UnwrapNullableType().IsAssignableTo(elementJsonReaderWriter.ValueType))
+            // object[] is a valid wider element type over a converted value (for example int stored as bigint).
+            if (typeof(TElement).UnwrapNullableType() != typeof(object)
+                && !typeof(TElement).UnwrapNullableType().IsAssignableTo(elementJsonReaderWriter.ValueType))
             {
                 throw new InvalidOperationException(
                     $"When building an array mapping over '{typeof(TElement).Name}', the JsonValueReaderWriter for element mapping '{elementMapping.GetType().Name}' is incorrect ('{elementJsonReaderWriter.ValueType.Name}' instead of '{typeof(TElement).UnwrapNullableType()}', the JsonValueReaderWriter is '{elementJsonReaderWriter.GetType().Name}').");

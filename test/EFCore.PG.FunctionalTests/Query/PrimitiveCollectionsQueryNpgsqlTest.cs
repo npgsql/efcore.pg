@@ -574,6 +574,46 @@ WHERE p."Enum" = ANY (@enums_Values)
 """);
     }
 
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public virtual async Task Parameter_collection_of_objects_with_value_converter_Contains(bool useList)
+    {
+        if (useList)
+        {
+            List<object?> values = [null, new WrappedId(22)];
+
+            await AssertQuery(ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => values.Contains(c.WrappedId)));
+            await AssertQuery(ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => values.Contains(c.NullableWrappedId)));
+        }
+        else
+        {
+            object?[] values = [null, new WrappedId(22)];
+
+            await AssertQuery(ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => values.Contains(c.WrappedId)));
+            await AssertQuery(ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => values.Contains(c.NullableWrappedId)));
+        }
+
+        AssertSql(
+            """
+@values={ NULL
+'22' } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."WrappedId" = ANY (@values)
+""",
+            //
+            """
+@values={ NULL
+'22' } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."NullableWrappedId" = ANY (@values) OR (p."NullableWrappedId" IS NULL AND array_position(@values, NULL) IS NOT NULL)
+""");
+    }
+
     public override async Task Parameter_collection_ImmutableArray_of_ints_Contains_int()
     {
         await base.Parameter_collection_ImmutableArray_of_ints_Contains_int();
