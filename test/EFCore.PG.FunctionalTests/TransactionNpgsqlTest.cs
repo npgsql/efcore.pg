@@ -1,5 +1,4 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Microsoft.EntityFrameworkCore;
 
@@ -18,7 +17,7 @@ public class TransactionNpgsqlTest(TransactionNpgsqlTest.TransactionNpgsqlFixtur
                     .UseNpgsql(
                         TestStore.ConnectionString,
                         b => b.ApplyConfiguration()
-                            .ExecutionStrategy(c => new NpgsqlExecutionStrategy(c))
+                            .ExecutionStrategy(c => new NonRetryingExecutionStrategy(c))
                             .ReverseNullOrdering()))
             .UseInternalServiceProvider(Fixture.ServiceProvider);
 
@@ -94,7 +93,7 @@ public class TransactionNpgsqlTest(TransactionNpgsqlTest.TransactionNpgsqlFixtur
         {
             new NpgsqlDbContextOptionsBuilder(
                     base.AddOptions(builder))
-                .ExecutionStrategy(c => new NpgsqlExecutionStrategy(c));
+                .ExecutionStrategy(c => new NonRetryingExecutionStrategy(c));
             return builder;
         }
     }
