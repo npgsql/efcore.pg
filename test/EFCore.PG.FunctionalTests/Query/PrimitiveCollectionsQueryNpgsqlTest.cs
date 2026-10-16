@@ -2221,6 +2221,18 @@ WHERE p."Ints"[:2] = @expected
         AssertSql();
     }
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task SequenceEqual_after_Reverse(bool async)
+    {
+        var expected = new[] { 10, 1 };
+        await AssertTranslationFailed(() => AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(e => Enumerable.SequenceEqual(e.Ints.AsQueryable().Reverse(), expected))));
+
+        AssertSql();
+    }
+
     #endregion SequenceEqual
 
     public override async Task Column_collection_equality_parameter_collection()

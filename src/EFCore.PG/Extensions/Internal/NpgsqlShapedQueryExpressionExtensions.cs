@@ -61,7 +61,8 @@ public static class NpgsqlShapedQueryExpressionExtensions
             // themselves), we can no longer simply index into the original array.
             && (ignoreOrderings
                 || select.Orderings is []
-                || (select.Orderings is [{ Expression: ColumnExpression { Name: "ordinality", TableAlias: var orderingTableAlias } }]
+                || (select.Orderings is
+                    [{ Expression: ColumnExpression { Name: "ordinality", TableAlias: var orderingTableAlias }, IsAscending: true }]
                     && orderingTableAlias == unnest.Alias))
             && IsPostgresArray(a)
             && TryGetProjectedColumn(source, out var column)
