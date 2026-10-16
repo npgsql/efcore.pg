@@ -13,6 +13,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 /// </summary>
 public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
 {
+    private static readonly JsonDocumentComparer JsonDocumentComparerInstance = new();
+    private static readonly JsonElementComparer JsonElementComparerInstance = new();
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -29,11 +32,14 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
     /// </summary>
     public NpgsqlJsonTypeMapping(string storeType, Type clrType, CoreTypeMapping? elementTypeMapping = null)
         : base(
-            storeType,
-            clrType,
-            storeType == "jsonb" ? NpgsqlDbType.Jsonb : NpgsqlDbType.Json,
-            jsonValueReaderWriter: clrType == typeof(string) ? JsonStringReaderWriter.Instance : null,
-            elementTypeMapping: elementTypeMapping)
+            new RelationalTypeMappingParameters(
+                new CoreTypeMappingParameters(
+                    clrType,
+                    comparer: GetComparer(clrType),
+                    jsonValueReaderWriter: clrType == typeof(string) ? JsonStringReaderWriter.Instance : null,
+                    elementMapping: elementTypeMapping),
+                storeType),
+            storeType == "jsonb" ? NpgsqlDbType.Jsonb : NpgsqlDbType.Json)
     {
         if (storeType != "json" && storeType != "jsonb")
         {
@@ -135,4 +141,33 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
 
     private static readonly MethodInfo ParseMethod =
         typeof(JsonDocument).GetMethod(nameof(JsonDocument.Parse), [typeof(string), typeof(JsonDocumentOptions)])!;
+
+    private static ValueComparer? GetComparer(Type clrType)
+    {
+        if (clrType == typeof(JsonDocument))
+        {
+            return JsonDocumentComparerInstance;
+        }
+
+        if (clrType == typeof(JsonElement))
+        {
+            return JsonElementComparerInstance;
+        }
+
+        return null;
+    }
+
+    private sealed class JsonDocumentComparer() : ValueComparer<JsonDocument>(
+        (a, b) => a == null ? b == null : b != null && JsonElement.DeepEquals(a.RootElement, b.RootElement),
+        o => o.GetHashCode(),
+        // Disposing the original JsonDocument will throw when it's later compared against the snapshot
+        o => o);
+
+    private sealed class JsonElementComparer() : ValueComparer<JsonElement>(
+        (a, b) => a.ValueKind == JsonValueKind.Undefined
+            ? b.ValueKind == JsonValueKind.Undefined
+            : b.ValueKind != JsonValueKind.Undefined && JsonElement.DeepEquals(a, b),
+        // JsonElement.GetHashCode() has inefficient runtime-provided implementation
+        o => 0,
+        o => o);
 }
