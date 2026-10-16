@@ -5,6 +5,8 @@ namespace Microsoft.EntityFrameworkCore.Query.Translations;
 [MinimumPostgresVersion(14, 0)] // Multiranges were introduced in PostgreSQL 14
 public class MultirangeTranslationsTest : IClassFixture<MultirangeTranslationsTest.MultirangeQueryNpgsqlFixture>
 {
+    private static readonly NpgsqlRange<int>[] _intersectRanges = [new(0, true, 6, false), new(1, true, 2, false)];
+
     private MultirangeQueryNpgsqlFixture Fixture { get; }
 
     // ReSharper disable once UnusedParameter.Local
@@ -482,6 +484,61 @@ SELECT t."Id", t."DateOnlyDateMultirange", t."DateTimeDateMultirange", t."Decima
 FROM "TestEntities" AS t
 WHERE t."IntMultirange" * @multirange = '{[0,1], [9,10]}'::int4multirange
 LIMIT 2
+""");
+    }
+
+    [ConditionalFact]
+    public void Enumerable_Intersect_static_readonly_collection_Any()
+    {
+        using var context = CreateContext();
+
+        var ids = context.TestEntities
+            .Where(x => Enumerable.Intersect(x.IntMultirange, _intersectRanges).Any())
+            .Select(x => x.Id)
+            .ToList();
+
+        Assert.Equal([1], ids);
+
+        AssertSql(
+            """
+SELECT t."Id"
+FROM "TestEntities" AS t
+WHERE EXISTS (
+    SELECT 1
+    FROM (
+        SELECT i.value
+        FROM unnest(t."IntMultirange") AS i(value)
+        INTERSECT
+        VALUES ('[0,6)'::int4range::int4range), ('[1,2)'::int4range)
+    ) AS i0)
+""");
+    }
+
+    [ConditionalFact]
+    public void Enumerable_Intersect_static_readonly_collection_Any_reversed()
+    {
+        using var context = CreateContext();
+
+        var ids = context.TestEntities
+            .Where(x => Enumerable.Intersect(_intersectRanges, x.IntMultirange).Any())
+            .Select(x => x.Id)
+            .ToList();
+
+        Assert.Equal([1], ids);
+
+        AssertSql(
+            """
+SELECT t."Id"
+FROM "TestEntities" AS t
+WHERE EXISTS (
+    SELECT 1
+    FROM (
+        SELECT v."Value"
+        FROM (VALUES ('[0,6)'::int4range::int4range), ('[1,2)'::int4range)) AS v("Value")
+        INTERSECT
+        SELECT i.value AS "Value"
+        FROM unnest(t."IntMultirange") AS i(value)
+    ) AS i0)
 """);
     }
 

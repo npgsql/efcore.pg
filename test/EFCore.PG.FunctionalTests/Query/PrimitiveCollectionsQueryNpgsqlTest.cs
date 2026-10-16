@@ -2025,6 +2025,30 @@ WHERE EXISTS (
     }
 
     [ConditionalFact]
+    public virtual async Task Column_collection_Intersect_inline_collection_Where_Any()
+    {
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>()
+                .Where(c => c.Ints.Intersect(new[] { 11, 12 }).Where(i => i > 1000).Any()),
+            assertEmpty: true);
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE EXISTS (
+    SELECT 1
+    FROM (
+        SELECT i.value
+        FROM unnest(p."Ints") AS i(value)
+        INTERSECT
+        VALUES (11::int), (12)
+    ) AS i0
+    WHERE i0.value > 1000)
+""");
+    }
+
+    [ConditionalFact]
     public virtual async Task Column_collection_Intersect_projected_inline_collection_Any()
     {
         await AssertQuery(

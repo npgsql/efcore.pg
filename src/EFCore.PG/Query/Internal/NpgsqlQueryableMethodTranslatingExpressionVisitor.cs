@@ -653,6 +653,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         } source2
                     }
                 ],
+                Predicate: null,
                 GroupBy: [],
                 Having: null,
                 IsDistinct: false,
@@ -662,10 +663,10 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             && projectedColumn1.TableAlias == table1.Alias
             && projectedColumn2.TableAlias == table2.Alias
             // Unlike INTERSECT, array overlap doesn't match null elements.
-            && (table1 is PgUnnestExpression { Array: var array1 }
+            && (table1 is PgUnnestExpression { Array: { TypeMapping: not NpgsqlMultirangeTypeMapping } array1 }
                 || (projectedColumn1 is { Name: "Value", IsNullable: false }
                     && source1.TryConvertToArray(out array1, ignoreOrderings: true)))
-            && (table2 is PgUnnestExpression { Array: var array2 }
+            && (table2 is PgUnnestExpression { Array: { TypeMapping: not NpgsqlMultirangeTypeMapping } array2 }
                 || (projectedColumn2 is { Name: "Value", IsNullable: false }
                     && source2.TryConvertToArray(out array2, ignoreOrderings: true))))
         {
