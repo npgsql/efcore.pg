@@ -476,6 +476,45 @@ WHERE s."NullableEnumConvertedToString" = ANY (@__array_0) OR (s."NullableEnumCo
 """);
     }
 
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Object_collection_Contains_nullable_value_converted_column(bool useList)
+    {
+        await using var context = CreateContext();
+        await using var transaction = await context.Database.BeginTransactionAsync();
+
+        var entity = await context.SomeEntities.SingleAsync(e => e.Id == 1);
+        entity.NullableEnumConvertedToString = null;
+        await context.SaveChangesAsync();
+        Fixture.TestSqlLoggerFactory.Clear();
+
+        IQueryable<ArrayEntity> query;
+        if (useList)
+        {
+            List<object> values = [null, SomeEnum.Two];
+            query = context.SomeEntities.Where(e => values.Contains(e.NullableEnumConvertedToString));
+        }
+        else
+        {
+            object[] values = [null, SomeEnum.Two];
+            query = context.SomeEntities.Where(e => values.Contains(e.NullableEnumConvertedToString));
+        }
+
+        var ids = await query.OrderBy(e => e.Id).Select(e => e.Id).ToArrayAsync();
+        Assert.Equal([1, 2], ids);
+
+        AssertSql(
+            """
+@__values_0={ NULL, 'Two' } (DbType = Object)
+
+SELECT s."Id"
+FROM "SomeEntities" AS s
+WHERE s."NullableEnumConvertedToString" = ANY (@__values_0) OR (s."NullableEnumConvertedToString" IS NULL AND array_position(@__values_0, NULL) IS NOT NULL)
+ORDER BY s."Id" NULLS FIRST
+""");
+    }
+
     public override async Task Array_param_Contains_value_converted_column_nullable_enum_to_string_with_non_nullable_lambda(bool async)
     {
         var array = new SomeEnum?[] { SomeEnum.Two, SomeEnum.Three };
