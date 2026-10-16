@@ -141,6 +141,33 @@ public class NpgsqlModelValidator(
     {
         base.ValidateIndex(index, logger);
 
+        if (index.CollectionIndices is { } collectionIndices)
+        {
+            for (var i = 0; i < collectionIndices.Count; i++)
+            {
+                if (collectionIndices[i] is not { } positions)
+                {
+                    continue;
+                }
+
+                // A collection-valued key indexes the array itself, not each array element.
+                var traversedPositions = index.Properties[i] is IComplexProperty { IsCollection: true }
+                    ? positions.Take(positions.Count - 1)
+                    : positions;
+                if (traversedPositions.Any(p => p is null))
+                {
+                    throw new InvalidOperationException(NpgsqlStrings.JsonIndexAllElementsNotSupported);
+                }
+            }
+        }
+
+        if (index.GetTsVectorConfig() is not null
+            && (index.Properties.Any(p => p.DeclaringType is IComplexType complexType && complexType.IsMappedToJson())
+                || index.CollectionIndices?.Any(indices => indices?.Any(i => i.HasValue) == true) == true))
+        {
+            throw new InvalidOperationException(NpgsqlStrings.JsonIndexTsVectorNotSupported);
+        }
+
         var includeProperties = index.GetIncludeProperties();
         if (includeProperties?.Count > 0)
         {

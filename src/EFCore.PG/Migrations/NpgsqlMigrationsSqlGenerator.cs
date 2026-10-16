@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
@@ -25,6 +26,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 {
     private IReadOnlyList<MigrationOperation> _operations = null!;
     private readonly RelationalTypeMapping _stringTypeMapping;
+    private readonly IQuerySqlGeneratorFactory _querySqlGeneratorFactory;
 
     /// <summary>
     ///     The backend version to target.
@@ -36,12 +38,15 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     /// </summary>
     /// <param name="dependencies">Parameter object containing dependencies for this service.</param>
     /// <param name="npgsqlSingletonOptions">The singleton options to use.</param>
+    /// <param name="querySqlGeneratorFactory">The SQL generator used to render JSON extraction expressions.</param>
     public NpgsqlMigrationsSqlGenerator(
         MigrationsSqlGeneratorDependencies dependencies,
-        INpgsqlSingletonOptions npgsqlSingletonOptions)
+        INpgsqlSingletonOptions npgsqlSingletonOptions,
+        IQuerySqlGeneratorFactory querySqlGeneratorFactory)
         : base(dependencies)
     {
         _postgresVersion = npgsqlSingletonOptions.PostgresVersion;
+        _querySqlGeneratorFactory = querySqlGeneratorFactory;
         _stringTypeMapping = dependencies.TypeMappingSource.GetMapping(typeof(string))
             ?? throw new InvalidOperationException("No string type mapping found");
     }
@@ -939,7 +944,15 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             builder.Append(" USING ").Append(method);
         }
 
-        var indexColumns = GetIndexColumns(operation);
+        var jsonIndex = operation[RelationalAnnotationNames.JsonIndex] as RelationalJsonIndex
+            ?? model?.GetRelationalModel().FindTable(operation.Table, operation.Schema)?
+                .Indexes.FirstOrDefault(i => i.Name == operation.Name)?[RelationalAnnotationNames.JsonIndex] as RelationalJsonIndex;
+        if (jsonIndex is null && operation[NpgsqlAnnotationNames.JsonIndexTypes] is not null)
+        {
+            throw new InvalidOperationException(NpgsqlStrings.JsonIndexMetadataMissing(operation.Name));
+        }
+
+        var indexColumns = GetIndexColumns(operation, jsonIndex);
 
         var columnsExpression = operation[NpgsqlAnnotationNames.TsVectorConfig] is string tsVectorConfig
             ? ColumnsToTsVector(operation.Name, indexColumns.Select(i => i.Name), tsVectorConfig, model, operation.Schema, operation.Table)
@@ -2275,7 +2288,14 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 builder.Append(", ");
             }
 
-            builder.Append(DelimitIdentifier(column.Name));
+            if (column.Expression is { } expression)
+            {
+                builder.Append('(').Append(expression).Append(')');
+            }
+            else
+            {
+                builder.Append(DelimitIdentifier(column.Name));
+            }
 
             if (!string.IsNullOrEmpty(column.Collation))
             {
@@ -2400,7 +2420,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         return false;
     }
 
-    private static IndexColumn[] GetIndexColumns(CreateIndexOperation operation)
+    /// <summary>
+    ///     Builds index keys using facets from <paramref name="operation"/>. When supplied, <paramref name="jsonIndex"/>
+    ///     defines the keys and extraction expressions instead of the operation's deduplicated container columns.
+    /// </summary>
+    private IndexColumn[] GetIndexColumns(CreateIndexOperation operation, RelationalJsonIndex? jsonIndex)
     {
         var collations = operation[RelationalAnnotationNames.Collation] as string[];
 
@@ -2412,11 +2436,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
         var nullSortOrders = operation[NpgsqlAnnotationNames.IndexNullSortOrder] as NullSortOrder[];
 
-        var columns = new IndexColumn[operation.Columns.Length];
+        var columns = new IndexColumn[jsonIndex?.Elements.Count ?? operation.Columns.Length];
 
         for (var i = 0; i < columns.Length; i++)
         {
-            var name = operation.Columns[i];
+            var name = jsonIndex?.Elements[i].ContainingColumn.Name ?? operation.Columns[i];
             var @operator = i < operators?.Length ? operators[i] : null;
             var collation = i < collations?.Length ? collations[i] : null;
             var isColumnDescending = isDescendingValues is not null
@@ -2424,19 +2448,63 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 : i < legacySortOrders?.Length && legacySortOrders[i] == SortOrder.Descending;
             var nullSortOrder = i < nullSortOrders?.Length ? nullSortOrders[i] : NullSortOrder.Unspecified;
 
-            columns[i] = new IndexColumn(name, @operator, collation, isColumnDescending, nullSortOrder);
+            columns[i] = new IndexColumn(
+                name, @operator, collation, isColumnDescending, nullSortOrder,
+                jsonIndex is null ? null : GenerateJsonIndexExpression(jsonIndex, i));
         }
 
         return columns;
     }
 
-    private readonly struct IndexColumn(string name, string? @operator, string? collation, bool isDescending, NullSortOrder nullSortOrder)
+    private string? GenerateJsonIndexExpression(RelationalJsonIndex jsonIndex, int index)
+    {
+        var element = jsonIndex.Elements[index];
+        var indices = jsonIndex.CollectionIndices?[index];
+        var collectionIndex = 0;
+        List<PathSegment> path = [];
+        foreach (var segment in element.Path)
+        {
+            path.Add(
+                segment.IsArray
+                    ? new PathSegment(
+                        new SqlConstantExpression(
+                            indices![collectionIndex++]!.Value, Dependencies.TypeMappingSource.GetMapping(typeof(int))))
+                    : new PathSegment(segment.PropertyName!));
+        }
+
+        if (element is IRelationalJsonArray array
+            && indices?.Count > collectionIndex
+            && indices[collectionIndex] is int arrayIndex)
+        {
+            path.Add(
+                new PathSegment(
+                    new SqlConstantExpression(
+                        arrayIndex, Dependencies.TypeMappingSource.GetMapping(typeof(int)))));
+            element = array.ElementType;
+        }
+
+        if (path.Count == 0)
+        {
+            return null;
+        }
+
+        var typeMapping = element.StoreTypeMapping ?? element.ContainingColumn.StoreTypeMapping!;
+        var expression = new JsonScalarExpression(
+            new SqlFragmentExpression(DelimitIdentifier(element.ContainingColumn.Name)),
+            path, typeMapping.ClrType, typeMapping, element.IsNullable);
+
+        return _querySqlGeneratorFactory.Create().GetCommand(expression).CommandText;
+    }
+
+    private readonly struct IndexColumn(
+        string name, string? @operator, string? collation, bool isDescending, NullSortOrder nullSortOrder, string? expression)
     {
         public string Name { get; } = name;
         public string? Operator { get; } = @operator;
         public string? Collation { get; } = collation;
         public bool IsDescending { get; } = isDescending;
         public NullSortOrder NullSortOrder { get; } = nullSortOrder;
+        public string? Expression { get; } = expression;
     }
 
     #endregion

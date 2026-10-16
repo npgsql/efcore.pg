@@ -141,6 +141,26 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
         // Model validation ensures that these facets are the same on all mapped indexes
         var modelIndex = index.MappedIndexes.First();
 
+        foreach (var annotation in base.For(index, designTime))
+        {
+            // TODO: Remove the whole-document exclusion after consuming https://github.com/dotnet/efcore/pull/39089.
+            // EF 11 RC2 cannot scaffold Relational:JsonIndex; excluding it preserves existing whole-document scaffolding.
+            if (annotation.Value is RelationalJsonIndex jsonIndex
+                && (jsonIndex.Elements.Any(e => e.Path.Count > 0)
+                    || jsonIndex.CollectionIndices?.Any(indices => indices?.Any(i => i.HasValue) == true) == true))
+            {
+                yield return annotation;
+
+                // JSON paths alone don't capture changes to the casts used by PostgreSQL expression indexes.
+                yield return new Annotation(
+                    NpgsqlAnnotationNames.JsonIndexTypes,
+                    jsonIndex.Elements.Select(
+                            e => e.StoreTypeMapping?.StoreType
+                                ?? e.ContainingColumn.StoreTypeMapping!.StoreType)
+                        .ToArray());
+            }
+        }
+
         if (modelIndex.GetCollation() is { } collation)
         {
             yield return new Annotation(RelationalAnnotationNames.Collation, collation);

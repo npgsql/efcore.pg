@@ -580,6 +580,386 @@ DROP SEQUENCE "Person_Id_old_seq";
                     },
                     options)).Message);
 
+    #region JSON indexes
+
+    [Theory]
+    [InlineData("Details.Slug", """("Details" ->> 'Slug')""")]
+    [InlineData("Details.Rating", """(CAST("Details" ->> 'Rating' AS integer))""")]
+    [InlineData("Details.Enabled", """(CAST("Details" ->> 'Enabled' AS boolean))""")]
+    [InlineData("Details.Token", """(CAST("Details" ->> 'Token' AS uuid))""")]
+    [InlineData("Details.Bytes", """(decode("Details" ->> 'Bytes', 'base64'))""")]
+    [InlineData("Details.Tags", """("Details" -> 'Tags')""")]
+    [InlineData("Details.Nested", """("Details" -> 'Nested')""")]
+    [InlineData("Details.Nested.Value", """("Details" #>> '{Nested,Value}')""")]
+    [InlineData("Details.Nested.Number", """(CAST("Details" #>> '{Nested,Number}' AS integer))""")]
+    public void Create_json_member_index(string property, string expression)
+    {
+        Generate(
+            b =>
+            {
+                BuildJsonIndexModel(b);
+                b.Entity<JsonIndexBlog>().HasIndex(property).HasDatabaseName("IX_Json");
+            },
+            new CreateIndexOperation { Name = "IX_Json", Table = "Blogs", Columns = ["Details"] });
+
+        AssertSql($"""CREATE INDEX "IX_Json" ON "Blogs" ({expression});""");
+    }
+
+    [Fact]
+    public void Create_json_member_index_with_mapped_names()
+    {
+        Generate(
+            b =>
+            {
+                BuildJsonIndexModel(b);
+                var json = b.Entity<JsonIndexBlog>().ComplexProperty(e => e.Details);
+                json.ComplexProperty(e => e.Nested).HasJsonPropertyName("odd,key");
+                json.ComplexProperty(e => e.Nested).Property(e => e.Value).HasJsonPropertyName("v'alue");
+                b.Entity<JsonIndexBlog>().HasIndex(e => e.Details.Nested.Value).HasDatabaseName("IX_Json");
+            },
+            new CreateIndexOperation { Name = "IX_Json", Table = "Blogs", Columns = ["Details"] });
+
+        AssertSql("""CREATE INDEX "IX_Json" ON "Blogs" (("Details" #>> ARRAY['odd,key','v''alue']::text[]));""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Create_json_member_composite_index(bool descending)
+    {
+        Generate(
+            b =>
+            {
+                BuildJsonIndexModel(b);
+                var index = b.Entity<JsonIndexBlog>().HasIndex(e => new { e.Details.Slug, e.Details.Rating })
+                    .HasDatabaseName("IX_Json");
+                if (descending)
+                {
+                    index.IsDescending();
+                }
+            },
+            new CreateIndexOperation
+            {
+                Name = "IX_Json",
+                Table = "Blogs",
+                Columns = ["Details"],
+                IsDescending = descending ? [] : null
+            });
+
+        var direction = descending ? " DESC" : "";
+        AssertSql(
+            $"""CREATE INDEX "IX_Json" ON "Blogs" (("Details" ->> 'Slug'){direction}, (CAST("Details" ->> 'Rating' AS integer)){direction});""");
+    }
+
+    [Fact]
+    public void Create_json_member_index_with_options()
+    {
+        Generate(
+            b =>
+            {
+                BuildJsonIndexModel(b);
+                b.Entity<JsonIndexBlog>().HasIndex(e => e.Details.Slug).HasDatabaseName("IX_Json");
+            },
+            new CreateIndexOperation
+            {
+                Name = "IX_Json",
+                Table = "Blogs",
+                Columns = ["Details"],
+                IsUnique = true,
+                IsDescending = [true],
+                Filter = "\"Id\" > 0",
+                [NpgsqlAnnotationNames.CreatedConcurrently] = true,
+                [NpgsqlAnnotationNames.IndexOperators] = new[] { "text_ops" },
+                [RelationalAnnotationNames.Collation] = new[] { "C" },
+                [NpgsqlAnnotationNames.IndexNullSortOrder] = new[] { NullSortOrder.NullsLast },
+                [NpgsqlAnnotationNames.IndexInclude] = new[] { "Id" },
+                [NpgsqlAnnotationNames.NullsDistinct] = false
+            });
+
+        AssertSql(
+            """CREATE UNIQUE INDEX CONCURRENTLY "IX_Json" ON "Blogs" (("Details" ->> 'Slug') COLLATE "C" text_ops DESC NULLS LAST) INCLUDE ("Id") NULLS NOT DISTINCT WHERE "Id" > 0;""");
+    }
+
+    [Fact]
+    public void Create_json_member_composite_index_with_per_key_options()
+    {
+        Generate(
+            b =>
+            {
+                BuildJsonIndexModel(b);
+                b.Entity<JsonIndexBlog>().HasIndex(e => new { e.Details.Slug, e.Details.Rating }).HasDatabaseName("IX_Json");
+            },
+            new CreateIndexOperation
+            {
+                Name = "IX_Json",
+                Table = "Blogs",
+                Columns = ["Details"],
+                [RelationalAnnotationNames.Collation] = new[] { "C", null! },
+                [NpgsqlAnnotationNames.IndexOperators] = new[] { "text_pattern_ops", "int4_ops" },
+                [NpgsqlAnnotationNames.IndexNullSortOrder] = new[] { NullSortOrder.NullsLast, NullSortOrder.NullsFirst }
+            });
+
+        AssertSql(
+            """CREATE INDEX "IX_Json" ON "Blogs" (("Details" ->> 'Slug') COLLATE "C" text_pattern_ops NULLS LAST, (CAST("Details" ->> 'Rating' AS integer)) int4_ops NULLS FIRST);""");
+    }
+
+    [Theory]
+    [InlineData("Details", "\"Details\"")]
+    [InlineData("Details.Tags", """("Details" -> 'Tags')""")]
+    [InlineData("Details.Nested", """("Details" -> 'Nested')""")]
+    public void Create_json_gin_index(string property, string expression)
+    {
+        Generate(
+            b =>
+            {
+                BuildJsonIndexModel(b);
+                b.Entity<JsonIndexBlog>().HasIndex(property).HasDatabaseName("IX_Json").HasMethod("gin");
+            },
+            new CreateIndexOperation
+            {
+                Name = "IX_Json",
+                Table = "Blogs",
+                Columns = ["Details"],
+                [NpgsqlAnnotationNames.IndexMethod] = "gin",
+                [NpgsqlAnnotationNames.IndexOperators] = new[] { "jsonb_path_ops" }
+            });
+
+        AssertSql($"""CREATE INDEX "IX_Json" ON "Blogs" USING gin ({expression} jsonb_path_ops);""");
+    }
+
+    [Theory]
+    [InlineData("json")]
+    [InlineData("jsonb")]
+    public void Create_json_member_index_with_container_type(string storeType)
+    {
+        Generate(
+            b =>
+            {
+                BuildJsonIndexModel(b);
+                b.Entity<JsonIndexBlog>().ComplexProperty(e => e.Details).HasColumnType(storeType);
+                b.Entity<JsonIndexBlog>().HasIndex(e => e.Details.Slug).HasDatabaseName("IX_Json");
+            },
+            new CreateIndexOperation { Name = "IX_Json", Table = "Blogs", Columns = ["Details"] });
+
+        AssertSql("""CREATE INDEX "IX_Json" ON "Blogs" (("Details" ->> 'Slug'));""");
+    }
+
+    [Theory]
+    [InlineData("Details.Items[1].Value", """("Details" #>> '{Items,1,Value}')""")]
+    [InlineData("Details.Items[1].Number", """(CAST("Details" #>> '{Items,1,Number}' AS integer))""")]
+    [InlineData("Details.Items[1]", """("Details" #> '{Items,1}')""")]
+    public void Create_json_index_with_fixed_collection_position(string property, string expression)
+    {
+        Generate(
+            b =>
+            {
+                BuildJsonIndexModel(b);
+                b.Entity<JsonIndexBlog>().HasIndex(property).HasDatabaseName("IX_Json");
+            },
+            new CreateIndexOperation { Name = "IX_Json", Table = "Blogs", Columns = ["Details"] });
+
+        AssertSql($"""CREATE INDEX "IX_Json" ON "Blogs" ({expression});""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Json_member_index_uses_operation_or_target_model_metadata(bool removeAnnotation)
+    {
+        using var context = new JsonIndexContext(b => b.Entity<JsonIndexBlog>().HasIndex(e => e.Details.Rating));
+        var model = context.GetService<IDesignTimeModel>().Model;
+        var operation = Assert.Single(
+            context.GetService<IMigrationsModelDiffer>().GetDifferences(null, model.GetRelationalModel())
+                .OfType<CreateIndexOperation>());
+        Assert.NotNull(operation[RelationalAnnotationNames.JsonIndex]);
+        if (removeAnnotation)
+        {
+            operation.RemoveAnnotation(RelationalAnnotationNames.JsonIndex);
+        }
+
+        var command = Assert.Single(context.GetService<IMigrationsSqlGenerator>().Generate([operation], model));
+        Assert.Equal(
+            """CREATE INDEX "IX_Blogs_Details_Rating" ON "Blogs" ((CAST("Details" ->> 'Rating' AS integer)));""",
+            command.CommandText.TrimEnd());
+        Assert.Contains(
+            """CAST(b."Details" ->> 'Rating' AS integer)""",
+            context.Set<JsonIndexBlog>().Where(b => b.Details.Rating > 0).ToQueryString());
+    }
+
+    [Fact]
+    public void Json_member_index_without_metadata_does_not_fall_back_to_document_index()
+        => Assert.Equal(
+            "Cannot generate SQL for JSON member index 'IX_Json' without its JSON index metadata. Supply the migration target model.",
+            Assert.Throws<InvalidOperationException>(
+                () => Generate(
+                    new CreateIndexOperation
+                    {
+                        Name = "IX_Json",
+                        Table = "Blogs",
+                        Columns = ["Details"],
+                        [NpgsqlAnnotationNames.JsonIndexTypes] = new[] { "integer" }
+                    })).Message);
+
+    [ConditionalFact]
+    public async Task Json_member_index_enforces_uniqueness()
+    {
+        await using var store = await NpgsqlTestStore.CreateInitializedAsync("JsonMemberIndexUniqueness");
+        await using var context = new JsonIndexContext(
+            b => b.Entity<JsonIndexBlog>().HasIndex(e => e.Details.Slug).IsUnique(), store.ConnectionString);
+        await context.Database.EnsureCreatedAsync();
+
+        context.Add(new JsonIndexBlog { Details = new JsonIndexDetails { Slug = "same", Rating = 1 } });
+        await context.SaveChangesAsync();
+        context.Add(new JsonIndexBlog { Details = new JsonIndexDetails { Slug = "same", Rating = 2 } });
+        var exception = await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());
+        Assert.Equal(PostgresErrorCodes.UniqueViolation, Assert.IsType<PostgresException>(exception.InnerException).SqlState);
+
+        context.ChangeTracker.Clear();
+        context.AddRange(
+            new JsonIndexBlog { Details = new JsonIndexDetails { Slug = null, Rating = 3 } },
+            new JsonIndexBlog { Details = new JsonIndexDetails { Slug = null, Rating = 4 } });
+        await context.SaveChangesAsync();
+        Assert.Equal(3, await context.Set<JsonIndexBlog>().CountAsync());
+    }
+
+    [ConditionalTheory]
+    [InlineData("json")]
+    [InlineData("jsonb")]
+    public async Task Json_member_indexes_support_queries(string storeType)
+    {
+        await using var store = await NpgsqlTestStore.CreateInitializedAsync("JsonMemberIndexTypes_" + storeType);
+        await using var context = new JsonIndexContext(
+            b =>
+            {
+                var blog = b.Entity<JsonIndexBlog>();
+                blog.ComplexProperty(e => e.Details).HasColumnType(storeType);
+                blog.HasIndex(e => e.Details.Rating);
+                blog.HasIndex(e => e.Details.Token);
+                blog.HasIndex(e => e.Details.Bytes);
+                blog.HasIndex(e => e.Details.Nested.Value);
+                blog.HasIndex(e => e.Details.Items[1].Number);
+                if (storeType == "jsonb")
+                {
+                    blog.HasIndex(e => e.Details.Tags).HasMethod("gin").HasOperators("jsonb_path_ops");
+                    blog.HasIndex(e => e.Details.Nested).HasMethod("gin");
+                    blog.HasIndex(e => e.Details.Items).HasMethod("gin");
+                }
+            },
+            store.ConnectionString);
+        await context.Database.EnsureCreatedAsync();
+
+        var token = Guid.NewGuid();
+        byte[] bytes = [1, 2, 3];
+        var blog = new JsonIndexBlog
+        {
+            Details = new JsonIndexDetails
+            {
+                Rating = 42,
+                Token = token,
+                Bytes = bytes,
+                Tags = ["tag"],
+                Nested = new JsonIndexNested { Value = "nested" },
+                Items = [new JsonIndexNested(), new JsonIndexNested { Number = 7 }]
+            }
+        };
+        context.Add(blog);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        Assert.Equal(
+            blog.Id,
+            await context.Set<JsonIndexBlog>()
+                .Where(b => b.Details.Rating == 42 && b.Details.Token == token && b.Details.Bytes == bytes
+                    && b.Details.Nested.Value == "nested" && b.Details.Items[1].Number == 7)
+                .Select(b => b.Id).SingleAsync());
+        if (storeType == "jsonb")
+        {
+            Assert.Equal(
+                blog.Id,
+                await context.Set<JsonIndexBlog>().Where(b => EF.Functions.JsonContains(b.Details.Tags, "[\"tag\"]"))
+                    .Select(b => b.Id).SingleAsync());
+        }
+    }
+
+    [ConditionalFact]
+    public async Task Json_member_index_migrations_up_and_down()
+    {
+        await using var store = await NpgsqlTestStore.CreateInitializedAsync("JsonMemberIndexMigrations");
+        await using var source = new JsonIndexContext(
+            b => b.Entity<JsonIndexBlog>().HasIndex(e => e.Details.Slug).HasDatabaseName("IX_Json"), store.ConnectionString);
+        await using var target = new JsonIndexContext(
+            b => b.Entity<JsonIndexBlog>().HasIndex(e => e.Details.Rating).HasDatabaseName("IX_Json"), store.ConnectionString);
+        await source.Database.EnsureCreatedAsync();
+
+        (JsonIndexContext Source, JsonIndexContext Target)[] steps = [(source, target), (target, source)];
+        foreach (var (from, to) in steps)
+        {
+            var model = to.GetService<IDesignTimeModel>().Model;
+            var operations = to.GetService<IMigrationsModelDiffer>().GetDifferences(
+                from.GetService<IDesignTimeModel>().Model.GetRelationalModel(), model.GetRelationalModel());
+            Assert.Collection(operations, o => Assert.IsType<DropIndexOperation>(o), o => Assert.IsType<CreateIndexOperation>(o));
+            Assert.IsType<CreateIndexOperation>(operations[1]).RemoveAnnotation(RelationalAnnotationNames.JsonIndex);
+            var sql = string.Concat(to.GetService<IMigrationsSqlGenerator>().Generate(operations, model).Select(c => c.CommandText));
+            await to.Database.ExecuteSqlRawAsync(sql);
+            var definition = await to.Database.SqlQueryRaw<string>(
+                    """SELECT indexdef AS "Value" FROM pg_indexes WHERE indexname = 'IX_Json'""")
+                .SingleAsync();
+            Assert.Contains(ReferenceEquals(to, target) ? "Rating" : "Slug", definition);
+        }
+    }
+
+    private static void BuildJsonIndexModel(ModelBuilder builder)
+        => builder.Entity<JsonIndexBlog>(
+            b =>
+            {
+                b.ToTable("Blogs");
+                b.ComplexProperty(
+                    e => e.Details, d =>
+                    {
+                        d.ToJson();
+                        d.ComplexProperty(e => e.Nested);
+                        d.ComplexCollection(e => e.Items);
+                    });
+            });
+
+    private class JsonIndexContext(Action<ModelBuilder> configureModel, string? connectionString = null) : DbContext
+    {
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+            => optionsBuilder.UseNpgsql(connectionString).EnableServiceProviderCaching(false);
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            BuildJsonIndexModel(modelBuilder);
+            configureModel(modelBuilder);
+        }
+    }
+
+    private class JsonIndexBlog
+    {
+        public int Id { get; set; }
+        public JsonIndexDetails Details { get; set; } = new();
+    }
+
+    private class JsonIndexDetails
+    {
+        public string? Slug { get; set; }
+        public int Rating { get; set; }
+        public bool Enabled { get; set; }
+        public Guid Token { get; set; }
+        public byte[] Bytes { get; set; } = [];
+        public List<string> Tags { get; set; } = [];
+        public JsonIndexNested Nested { get; set; } = new();
+        public List<JsonIndexNested> Items { get; set; } = [];
+    }
+
+    private class JsonIndexNested
+    {
+        public string Value { get; set; } = "";
+        public int Number { get; set; }
+    }
+
+    #endregion JSON indexes
+
     #region CockroachDB interleave-in-parent
 
     // Note that we don't run tests against actual CockroachDB instances, so these are unit tests asserting on SQL

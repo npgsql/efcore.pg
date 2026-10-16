@@ -129,6 +129,11 @@ public static class NpgsqlAnnotationNames
     public const string TsVectorProperties = Prefix + "TsVectorProperties";
 
     /// <summary>
+    ///     The store types of the selected JSON index elements, used to detect expression type changes in migrations.
+    /// </summary>
+    public const string JsonIndexTypes = Prefix + "JsonIndexTypes";
+
+    /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
