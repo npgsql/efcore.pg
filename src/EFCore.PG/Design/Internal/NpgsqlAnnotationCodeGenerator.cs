@@ -52,6 +52,10 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns), typeof(ModelBuilder));
 
+    private static readonly MethodInfo ModelUseNoIdentityGenerationMethodInfo
+        = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
+            nameof(NpgsqlModelBuilderExtensions.UseNoIdentityGeneration), typeof(ModelBuilder));
+
     private static readonly MethodInfo ModelUseHiLoMethodInfo
         = typeof(NpgsqlModelBuilderExtensions).GetRequiredRuntimeMethod(
             nameof(NpgsqlModelBuilderExtensions.UseHiLo), typeof(ModelBuilder), typeof(string), typeof(string));
@@ -393,8 +397,10 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
                     });
             }
             case NpgsqlValueGenerationStrategy.None:
-                return new MethodCallCodeFragment(
-                    ModelHasAnnotationMethodInfo, NpgsqlAnnotationNames.ValueGenerationStrategy, NpgsqlValueGenerationStrategy.None);
+                return onModel
+                    ? new MethodCallCodeFragment(ModelUseNoIdentityGenerationMethodInfo)
+                    : new MethodCallCodeFragment(
+                        ModelHasAnnotationMethodInfo, NpgsqlAnnotationNames.ValueGenerationStrategy, NpgsqlValueGenerationStrategy.None);
 
             default:
                 throw new ArgumentOutOfRangeException(strategy.ToString());

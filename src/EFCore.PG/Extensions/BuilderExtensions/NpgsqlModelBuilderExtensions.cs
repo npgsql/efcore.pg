@@ -196,6 +196,33 @@ public static class NpgsqlModelBuilderExtensions
         => modelBuilder.UseIdentityByDefaultColumns();
 
     /// <summary>
+    ///     <para>
+    ///         Configures the model to use no PostgreSQL-specific value generation strategy by default.
+    ///         Properties with an explicitly configured strategy are not affected.
+    ///     </para>
+    ///     <para>
+    ///         This does not disable EF value generation or remove database defaults or computed expressions.
+    ///         Use <see cref="PropertyBuilder.ValueGeneratedNever" /> to disable value generation for individual properties.
+    ///     </para>
+    /// </summary>
+    /// <param name="modelBuilder">The model builder.</param>
+    /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+    public static ModelBuilder UseNoIdentityGeneration(this ModelBuilder modelBuilder)
+    {
+        Check.NotNull(modelBuilder, nameof(modelBuilder));
+
+        var model = modelBuilder.Model;
+
+        model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.None);
+        model.SetSequenceNameSuffix(null);
+        model.SetSequenceSchema(null);
+        model.SetHiLoSequenceName(null);
+        model.SetHiLoSequenceSchema(null);
+
+        return modelBuilder;
+    }
+
+    /// <summary>
     ///     Configures the value generation strategy for the key property, when targeting PostgreSQL.
     /// </summary>
     /// <param name="modelBuilder">The builder for the property being configured.</param>
