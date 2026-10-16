@@ -25,6 +25,52 @@ public class TemporalConstraintNodaTimeTest(NonSharedFixture fixture)
             new DateInterval(new LocalDate(2025, 1, 1), new LocalDate(2025, 6, 30)),
             new DateInterval(new LocalDate(2025, 7, 1), new LocalDate(2025, 12, 31)));
 
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Converted_range_keys(bool temporal)
+    {
+        var contextFactory = await InitializeNonSharedTest<DbContext>(
+            onModelCreating: modelBuilder =>
+            {
+                modelBuilder.Entity<Room<long>>(b =>
+                {
+                    b.ToTable("IntervalRooms");
+                    b.HasKey(r => new { r.Id, r.Validity }).WithoutOverlaps(temporal);
+                    b.Property(r => r.Validity)
+                        .HasConversion(
+                            v => new Interval(Instant.FromUnixTimeSeconds(v), Instant.FromUnixTimeSeconds(v + 1)),
+                            v => v.Start.ToUnixTimeSeconds())
+                        .ValueGeneratedNever();
+                });
+
+                modelBuilder.Entity<Room<int>>(b =>
+                {
+                    b.ToTable("DateIntervalRooms");
+                    b.HasKey(r => new { r.Id, r.Validity }).WithoutOverlaps(temporal);
+                    b.Property(r => r.Validity)
+                        .HasConversion(
+                            v => new DateInterval(new LocalDate(2025, 1, 1).PlusDays(v), new LocalDate(2025, 1, 1).PlusDays(v)),
+                            v => v.Start.DayOfYear - 1)
+                        .ValueGeneratedNever();
+                });
+            },
+            onConfiguring: b => new NpgsqlDbContextOptionsBuilder(b).SetPostgresVersion(18, 0).UseNodaTime(),
+            addServices: s => s.AddEntityFrameworkNpgsqlNodaTime());
+
+        await using var context = contextFactory.CreateDbContext();
+        context.AddRange(
+            new Room<long> { Validity = 2, Name = "Second" },
+            new Room<long> { Validity = 1, Name = "First" },
+            new Room<int> { Validity = 2, Name = "Second" },
+            new Room<int> { Validity = 1, Name = "First" });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        Assert.Equal([1L, 2L], await context.Set<Room<long>>().OrderBy(r => r.Validity).Select(r => r.Validity).ToListAsync());
+        Assert.Equal([1, 2], await context.Set<Room<int>>().OrderBy(r => r.Validity).Select(r => r.Validity).ToListAsync());
+    }
+
     private async Task TemporalConstraints<T>(T firstPeriod, T secondPeriod)
     {
         var contextFactory = await InitializeNonSharedTest<TemporalContext<T>>(
