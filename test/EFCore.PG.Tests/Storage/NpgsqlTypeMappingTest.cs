@@ -894,6 +894,35 @@ public class NpgsqlTypeMappingTest
 
     #region Json
 
+    [Theory]
+    [InlineData("json")]
+    [InlineData("jsonb")]
+    public void Structural_json_reader_reuses_stream_buffer(string storeType)
+    {
+        const string value = "h\u00e9llo";
+        var json = $"{{\"value\":\"{value}\"}}";
+        var expression = GetMapping(typeof(JsonTypePlaceholder), storeType)
+            .CustomizeDataReaderExpression(Expression.Constant(json));
+        using var stream = Expression.Lambda<Func<MemoryStream>>(expression).Compile()();
+
+        Assert.True(stream.TryGetBuffer(out var buffer));
+        Assert.Equal(Encoding.UTF8.GetBytes(json), buffer.ToArray());
+        Assert.Equal(0, stream.Position);
+
+        var reader = new JsonReaderData(stream).CreateReader();
+        Assert.True(reader.IsFinalBlock);
+        Assert.True(reader.Read());
+        Assert.Equal(JsonTokenType.StartObject, reader.TokenType);
+        Assert.True(reader.Read());
+        Assert.Equal("value", reader.GetString());
+        Assert.True(reader.Read());
+        Assert.Equal(value, reader.GetString());
+        Assert.True(buffer.AsSpan().Overlaps(reader.ValueSpan));
+        Assert.True(reader.Read());
+        Assert.Equal(JsonTokenType.EndObject, reader.TokenType);
+        Assert.False(reader.Read());
+    }
+
     [Fact]
     public void GenerateSqlLiteral_returns_jsonb_string_literal()
         => Assert.Equal("""'{"a":1}'""", GetMapping("jsonb").GenerateSqlLiteral("""{"a":1}"""));
