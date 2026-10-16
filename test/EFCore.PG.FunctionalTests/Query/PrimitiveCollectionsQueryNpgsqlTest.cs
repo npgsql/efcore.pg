@@ -2000,6 +2000,48 @@ WHERE p."Ints" && ARRAY[11,12]::integer[]
     }
 
     [ConditionalFact]
+    public virtual async Task Inline_collection_Intersect_static_readonly_collection_Any()
+    {
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>()
+                .Select(c => new { c.Id, Result = new[] { c.Int }.Intersect(_intersectValues).Any() }));
+
+        AssertSql(
+            """
+SELECT p."Id", EXISTS (
+    SELECT 1
+    FROM (
+        SELECT v."Value"
+        FROM (VALUES (p."Int")) AS v("Value")
+        INTERSECT
+        VALUES (11::int), (12)
+    ) AS i) AS "Result"
+FROM "PrimitiveCollectionsEntity" AS p
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Static_readonly_collection_Intersect_inline_collection_Any()
+    {
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>()
+                .Select(c => new { c.Id, Result = _intersectValues.Intersect(new[] { c.Int }).Any() }));
+
+        AssertSql(
+            """
+SELECT p."Id", EXISTS (
+    SELECT 1
+    FROM (
+        SELECT v."Value"
+        FROM (VALUES (11::int), (12)) AS v("Value")
+        INTERSECT
+        VALUES (p."Int")
+    ) AS i) AS "Result"
+FROM "PrimitiveCollectionsEntity" AS p
+""");
+    }
+
+    [ConditionalFact]
     public virtual async Task Column_collection_Intersect_filtered_inline_collection_Any()
     {
         await AssertQuery(

@@ -668,7 +668,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                     && source1.TryConvertToArray(out array1, ignoreOrderings: true)))
             && (table2 is PgUnnestExpression { Array: { TypeMapping: not NpgsqlMultirangeTypeMapping } array2 }
                 || (projectedColumn2 is { Name: "Value", IsNullable: false }
-                    && source2.TryConvertToArray(out array2, ignoreOrderings: true))))
+                    && source2.TryConvertToArray(out array2, ignoreOrderings: true)))
+            && (array1.TypeMapping is not null || array2.TypeMapping is not null))
         {
             return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.Overlaps(array1, array2));
         }
