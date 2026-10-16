@@ -194,7 +194,8 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
                 NpgsqlAnnotationNames.IndexInclude,
                 includeProperties
 #pragma warning disable EF1001 // Internal EF Core API usage.
-                    .Select(p => RelationalModel.FindPropertyByPath(modelIndex.DeclaringEntityType, p)!.GetColumnName(tableIdentifier))
+                    .Select(p => (modelIndex.DeclaringEntityType.FindProperty(p)
+                        ?? RelationalModel.FindPropertyByPath(modelIndex.DeclaringEntityType, p))!.GetColumnName(tableIdentifier))
 #pragma warning restore EF1001 // Internal EF Core API usage.
                     .ToArray());
         }

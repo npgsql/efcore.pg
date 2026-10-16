@@ -71,6 +71,86 @@ public class IndexIncludeTest
             GenerateIndexSql(context, model));
     }
 
+    [Fact]
+    public void Collection_columns_can_be_included()
+    {
+        using var context = new IncludeContext(
+            b => b.HasIndex(e => e.Name).IncludeProperties(e => new { e.Tags, e.Scores }));
+        var model = context.GetService<IDesignTimeModel>().Model;
+
+        Assert.Equal(
+            """CREATE INDEX "IX_Customers_Name" ON "Customers" ("Name") INCLUDE ("Tags", "Scores");""",
+            GenerateIndexSql(context, model));
+    }
+
+    [Fact]
+    public void Collection_traversals_cannot_be_included()
+    {
+        var index = new ModelBuilder().Entity<Customer>().HasIndex(e => e.Name);
+
+        Assert.Throws<ArgumentException>(() => index.IncludeProperties(e => e.Tags[0]));
+        Assert.Throws<ArgumentException>(() => index.IncludeProperties(e => e.Scores[0]));
+        Assert.Throws<ArgumentException>(() => index.IncludeProperties(e => e.Tags.Select(t => t)));
+        Assert.Throws<ArgumentException>(() => index.IncludeProperties(e => new { e.Name, Tag = e.Tags[0] }));
+    }
+
+    [Theory]
+    [InlineData("Legacy.Code")]
+    [InlineData("Address.PostalCode")]
+    public void Literal_dotted_property_name_can_be_included(string name)
+    {
+        using var context = new IncludeContext(
+            b =>
+            {
+                b.IndexerProperty<string>(name).HasColumnName("legacy_code");
+                b.HasIndex(e => e.Name).IncludeProperties(name);
+            });
+        var model = context.GetService<IDesignTimeModel>().Model;
+
+        Assert.Equal(
+            """CREATE INDEX "IX_Customers_Name" ON "Customers" ("Name") INCLUDE (legacy_code);""",
+            GenerateIndexSql(context, model));
+    }
+
+    [Fact]
+    public void Literal_dotted_index_key_cannot_also_be_included()
+    {
+        using var context = new IncludeContext(
+            b =>
+            {
+                var property = b.IndexerProperty<string>("Legacy.Code").Metadata;
+                b.Metadata.AddIndex([property]).SetIncludeProperties(["Legacy.Code"]);
+            });
+
+        Assert.Equal(
+            NpgsqlStrings.IncludePropertyInIndex(nameof(Customer), "Legacy.Code"),
+            Assert.Throws<InvalidOperationException>(() => context.Model).Message);
+    }
+
+    [Fact]
+    public void Literal_dotted_shared_index_include_columns_are_compared()
+    {
+        using var source = new IncludeContext(
+            b =>
+            {
+                b.IndexerProperty<string>("Legacy.Code").HasColumnName("postal_code");
+                b.HasIndex(e => e.Name).IncludeProperties("Legacy.Code");
+            });
+        using var target = new IncludeContext(b => b.HasIndex(e => e.Name).IncludeProperties(e => e.Address.PostalCode));
+        var sourceIndex = Assert.Single(source.GetService<IDesignTimeModel>().Model.FindEntityType(typeof(Customer)).GetIndexes());
+        var targetIndex = Assert.Single(target.GetService<IDesignTimeModel>().Model.FindEntityType(typeof(Customer)).GetIndexes());
+        var table = StoreObjectIdentifier.Table("Customers");
+
+        Assert.True(sourceIndex.AreCompatibleForNpgsql(targetIndex, table, shouldThrow: true));
+
+        using var different = new IncludeContext(b => b.HasIndex(e => e.Name).IncludeProperties(e => e.BillingAddress.PostalCode));
+        var differentIndex = Assert.Single(different.GetService<IDesignTimeModel>().Model.FindEntityType(typeof(Customer)).GetIndexes());
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => sourceIndex.AreCompatibleForNpgsql(differentIndex, table, shouldThrow: true));
+        Assert.Contains("'postal_code'", exception.Message);
+        Assert.Contains("'BillingAddress_PostalCode'", exception.Message);
+    }
+
     [Theory]
     [InlineData("Missing")]
     [InlineData("Address.Missing")]
@@ -198,10 +278,20 @@ public class IndexIncludeTest
 
     private class Customer
     {
+        private readonly Dictionary<string, object> _values = [];
+
+        public object this[string name]
+        {
+            get => _values[name];
+            set => _values[name] = value;
+        }
+
         public int Id { get; set; }
         public string Name { get; set; }
         public Address Address { get; set; }
         public Address BillingAddress { get; set; }
+        public int[] Tags { get; set; }
+        public List<int> Scores { get; set; }
     }
 
     private class Address

@@ -175,7 +175,8 @@ public class NpgsqlModelValidator(
             foreach (var includeProperty in includeProperties)
             {
 #pragma warning disable EF1001 // Internal EF Core API usage.
-                var property = RelationalModel.FindPropertyByPath(index.DeclaringEntityType, includeProperty);
+                var property = index.DeclaringEntityType.FindProperty(includeProperty)
+                    ?? RelationalModel.FindPropertyByPath(index.DeclaringEntityType, includeProperty);
 #pragma warning restore EF1001 // Internal EF Core API usage.
                 if (property is null)
                 {
@@ -204,7 +205,9 @@ public class NpgsqlModelValidator(
 
 #pragma warning disable EF1001 // Internal EF Core API usage.
             var inIndex = includeProperties
-                .FirstOrDefault(i => index.Properties.Any(p => p == RelationalModel.FindPropertyByPath(index.DeclaringEntityType, i)));
+                .FirstOrDefault(i => index.Properties.Any(
+                    p => p == (index.DeclaringEntityType.FindProperty(i)
+                        ?? RelationalModel.FindPropertyByPath(index.DeclaringEntityType, i))));
 #pragma warning restore EF1001 // Internal EF Core API usage.
 
             if (inIndex is not null)

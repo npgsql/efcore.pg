@@ -86,10 +86,12 @@ public static class NpgsqlIndexExtensions
         static bool SameColumnNames(IReadOnlyIndex index, IReadOnlyIndex duplicateIndex, StoreObjectIdentifier storeObject)
 #pragma warning disable EF1001 // Internal EF Core API usage.
             => index.GetIncludeProperties()!.Select(
-                    p => RelationalModel.FindPropertyByPath(index.DeclaringEntityType, p)!.GetColumnName(storeObject))
+                    p => (index.DeclaringEntityType.FindProperty(p)
+                        ?? RelationalModel.FindPropertyByPath(index.DeclaringEntityType, p))!.GetColumnName(storeObject))
                 .SequenceEqual(
                     duplicateIndex.GetIncludeProperties()!.Select(
-                        p => RelationalModel.FindPropertyByPath(duplicateIndex.DeclaringEntityType, p)!.GetColumnName(storeObject)));
+                        p => (duplicateIndex.DeclaringEntityType.FindProperty(p)
+                            ?? RelationalModel.FindPropertyByPath(duplicateIndex.DeclaringEntityType, p))!.GetColumnName(storeObject)));
 #pragma warning restore EF1001 // Internal EF Core API usage.
     }
 
@@ -101,7 +103,8 @@ public static class NpgsqlIndexExtensions
                 "', '",
                 index.GetIncludeProperties()!.Select(
 #pragma warning disable EF1001 // Internal EF Core API usage.
-                    p => RelationalModel.FindPropertyByPath(index.DeclaringEntityType, p)
+                    p => (index.DeclaringEntityType.FindProperty(p)
+                        ?? RelationalModel.FindPropertyByPath(index.DeclaringEntityType, p))
                         ?.GetColumnName(storeObject)))
 #pragma warning restore EF1001 // Internal EF Core API usage.
             + "'}";

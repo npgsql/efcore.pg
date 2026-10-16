@@ -543,7 +543,7 @@ public static class NpgsqlIndexBuilderExtensions
     ///     </para>
     ///     <para>
     ///         Scalar properties in flattened complex types can be included with member paths
-    ///         (<c>customer => customer.Address.PostalCode</c>). JSON member paths are not supported.
+    ///         (<c>customer => customer.Address.PostalCode</c>). JSON member paths and collection traversals are not supported.
     ///     </para>
     /// </param>
     /// <returns>A builder to further configure the index.</returns>
@@ -555,8 +555,14 @@ public static class NpgsqlIndexBuilderExtensions
         Check.NotNull(includeExpression, nameof(includeExpression));
 
 #pragma warning disable EF1001 // Internal EF Core API usage.
+        var (members, _, collectionIndices) = includeExpression.MatchComplexMemberAccessList(nameof(includeExpression));
+        if (collectionIndices is not null)
+        {
+            throw new ArgumentException(CoreStrings.InvalidMembersExpression(includeExpression), nameof(includeExpression));
+        }
+
         indexBuilder.IncludeProperties(
-            includeExpression.GetMemberAccessChainList()
+            members
                 .Select(chain => string.Join(".", chain.Select(EntityFrameworkMemberInfoExtensions.GetSimpleMemberName)))
                 .ToArray());
 #pragma warning restore EF1001 // Internal EF Core API usage.
