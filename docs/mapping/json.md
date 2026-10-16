@@ -284,5 +284,57 @@ EF.Functions.JsonTypeof(e.Customer.Age)                                         
 
 ## Indexing JSON columns
 
+Choose an index based on the operators used by your queries: targeted B-tree expression indexes support comparisons on extracted scalar values, while GIN indexes support matching containment, key-existence and JSON-path predicates over `jsonb` values.
+
+### Indexing members with ToJson
+
 > [!NOTE]
-> A section on indices will be added. In the meantime consult the PostgreSQL documentation and other guides on the Internet.
+> Indexing JSON members was introduced in EF 11.
+
+You can use the existing `HasIndex` APIs to index members of complex types mapped with `ToJson()`. Using the Customer model above:
+
+```csharp
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Customer>(b =>
+    {
+        b.ComplexProperty(c => c.Details, d => d.ToJson());
+
+        b.HasIndex(c => c.Details.Name).IsUnique();
+        b.HasIndex(c => new { c.Details.Name, c.Details.Age });
+        b.HasIndex(c => c.Details.Orders[0].Price);
+    });
+}
+```
+
+By default, these produce B-tree expression indexes over the selected members, not indexes over the entire JSON document. The expressions extract values with the same conversions as LINQ queries; for example, `Name` is extracted as text, while `Age` is cast to an integer. These indexes can support equality and range comparisons, ordering, and uniqueness where applicable.
+
+Nested paths, configured JSON property names, fixed collection positions (such as `Orders[0].Price`) and array values themselves are supported. Composite member indexes must refer to the same JSON column. Existing index options, such as sort order and the [PostgreSQL-specific index configuration](../modeling/indexes.md), also apply.
+
+The following limitations apply:
+
+* Wildcard traversal to descendants of all collection elements is not supported; selecting a fixed position does not index that member in every element.
+* EF does not allow combining JSON member keys with regular column keys or members from multiple JSON columns, or creating unique indexes over entire JSON complex objects.
+* Nested JSON member indexes cannot be combined with `IsTsVectorExpressionIndex`.
+* PostgreSQL requires index expressions to be `IMMUTABLE`. Some native date/time and enum casts are not immutable, so PostgreSQL rejects indexes whose expressions require those casts.
+
+### GIN indexes
+
+Whole-document GIN indexes remain supported as before. You can also explicitly select GIN for an array or subdocument within a `jsonb` column:
+
+```csharp
+modelBuilder.Entity<Customer>()
+    .HasIndex(c => c.Details)
+    .HasMethod("gin");
+
+modelBuilder.Entity<Customer>()
+    .HasIndex(c => c.Details.Orders)
+    .HasMethod("gin")
+    .HasOperators("jsonb_path_ops");
+```
+
+A whole-document GIN index can cover predicates on many properties, while a targeted index covers a selected expression. Queries must use matching expressions and operators: a GIN index on the document does not accelerate ordinary comparisons on extracted scalars, such as `c.Details.Age > 18`. Similarly, an index on `Details.Orders` serves supported predicates on that array, not arbitrary comparisons on each order's `Price`.
+
+The default `jsonb_ops` GIN operator class supports containment, key-existence and JSON-path operators. The alternative `jsonb_path_ops` supports containment and JSON-path operators, but not key-existence operators (`?`, `?|`, `?&`). A document-wide GIN index is not necessarily smaller or cheaper to maintain than targeted B-tree indexes; choose based on your queries and workload.
+
+See [PostgreSQL's JSON indexing documentation](https://www.postgresql.org/docs/current/datatype-json.html#JSON-INDEXING) for details on supported operators and index tradeoffs.
