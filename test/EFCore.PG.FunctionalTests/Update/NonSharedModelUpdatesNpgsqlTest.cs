@@ -97,6 +97,78 @@ public class NonSharedModelUpdatesNpgsqlTest(NonSharedFixture fixture) : NonShar
     }
 
     [ConditionalTheory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task Serialization_failure_during_automatic_commit_throws_concurrency_exception(bool async, bool retrying)
+    {
+        var interceptor = new SuppressingConcurrencyInterceptor();
+        var contextFactory = await InitializeNonSharedTest<DbContext>(
+            onModelCreating: mb => mb.Entity<Blog>(),
+            onConfiguring: b =>
+            {
+                var npgsqlOptions = new NpgsqlDbContextOptionsBuilder(b).MaxBatchSize(1);
+                if (retrying)
+                {
+                    npgsqlOptions.EnableRetryOnFailure(0);
+                }
+                else
+                {
+                    npgsqlOptions.ExecutionStrategy(d => new NonRetryingExecutionStrategy(d));
+                }
+
+                b.AddInterceptors(interceptor);
+            },
+            shouldLogCategory: category => category == DbLoggerCategory.Update.Name
+                || category == DbLoggerCategory.Database.Transaction.Name);
+
+        await using var context = contextFactory.CreateDbContext();
+        context.Database.AutoTransactionBehavior = AutoTransactionBehavior.Always;
+        await context.Database.ExecuteSqlRawAsync(
+            StoreExceptionFunction + """
+
+CREATE CONSTRAINT TRIGGER raise_store_exception AFTER INSERT ON "Blog"
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW EXECUTE FUNCTION raise_store_exception();
+""");
+
+        try
+        {
+            var unrelated = new Blog { Name = "Before" };
+            var conflicting = new Blog { Name = PostgresErrorCodes.SerializationFailure };
+            context.AddRange(unrelated, conflicting);
+
+            var exception = async
+                ? await Assert.ThrowsAnyAsync<Exception>(() => context.SaveChangesAsync())
+                : Assert.ThrowsAny<Exception>(() => context.SaveChanges());
+
+            var concurrencyException = Assert.IsType<DbUpdateConcurrencyException>(
+                retrying ? Assert.IsType<RetryLimitExceededException>(exception).InnerException : exception);
+            Assert.Equal(
+                PostgresErrorCodes.SerializationFailure,
+                Assert.IsType<PostgresException>(concurrencyException.InnerException).SqlState);
+            Assert.Equal(2, concurrencyException.Entries.Count);
+            Assert.Contains(concurrencyException.Entries, e => e.Entity == unrelated);
+            Assert.Contains(concurrencyException.Entries, e => e.Entity == conflicting);
+            Assert.Same(concurrencyException, interceptor.Exception);
+            Assert.Equal(1, interceptor.InvocationCount);
+
+            var log = ((TestSqlLoggerFactory)ListLoggerFactory).Log;
+            Assert.Single(log, e => e.Id == CoreEventId.OptimisticConcurrencyException);
+            Assert.Contains(log, e => e.Id == RelationalEventId.TransactionError);
+            Assert.Equal(EntityState.Added, context.Entry(unrelated).State);
+            Assert.Equal(EntityState.Added, context.Entry(conflicting).State);
+            Assert.Null(context.Database.CurrentTransaction);
+            Assert.Empty(await context.Set<Blog>().AsNoTracking().ToListAsync());
+        }
+        finally
+        {
+            await context.Database.ExecuteSqlRawAsync("DROP FUNCTION raise_store_exception() CASCADE");
+        }
+    }
+
+    [ConditionalTheory]
     [InlineData(false, PostgresErrorCodes.SerializationFailure, 1)]
     [InlineData(true, PostgresErrorCodes.SerializationFailure, 1)]
     [InlineData(false, PostgresErrorCodes.DeadlockDetected, 1)]
@@ -138,6 +210,7 @@ public class NonSharedModelUpdatesNpgsqlTest(NonSharedFixture fixture) : NonShar
 
             Assert.Equal(sqlState, Assert.IsType<PostgresException>(exception.InnerException).SqlState);
             Assert.Same(exception, interceptor.Exception);
+            Assert.Equal(1, interceptor.InvocationCount);
             Assert.Equal(EntityState.Added, context.Entry(unrelated).State);
             Assert.Equal(EntityState.Added, context.Entry(conflicting).State);
             Assert.Equal(EntityState.Unchanged, context.Entry(previouslySaved).State);
@@ -157,9 +230,12 @@ public class NonSharedModelUpdatesNpgsqlTest(NonSharedFixture fixture) : NonShar
     {
         public DbUpdateConcurrencyException? Exception { get; private set; }
 
+        public int InvocationCount { get; private set; }
+
         public override InterceptionResult ThrowingConcurrencyException(ConcurrencyExceptionEventData eventData, InterceptionResult result)
         {
             Exception = eventData.Exception;
+            InvocationCount++;
             return InterceptionResult.Suppress();
         }
 
@@ -170,7 +246,7 @@ public class NonSharedModelUpdatesNpgsqlTest(NonSharedFixture fixture) : NonShar
             => new(ThrowingConcurrencyException(eventData, result));
     }
 
-    private const string StoreExceptionTrigger = """
+    private const string StoreExceptionFunction = """
 CREATE FUNCTION raise_store_exception() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
     IF NEW."Name" <> 'Before' THEN
@@ -179,6 +255,10 @@ BEGIN
     RETURN NEW;
 END;
 $$;
+""";
+
+    private const string StoreExceptionTrigger = StoreExceptionFunction + """
+
 CREATE TRIGGER raise_store_exception AFTER INSERT ON "Blog"
 FOR EACH ROW EXECUTE FUNCTION raise_store_exception();
 """;
