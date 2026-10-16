@@ -570,18 +570,9 @@ public class NpgsqlDatabaseCreatorTest
     protected static IExecutionStrategy GetExecutionStrategy(NpgsqlTestStore testStore)
         => new BloggingContext(testStore).GetService<IExecutionStrategyFactory>().Create();
 
-    // ReSharper disable once ClassNeverInstantiated.Local
-    private class TestNpgsqlExecutionStrategyFactory(ExecutionStrategyDependencies dependencies)
-        : NpgsqlExecutionStrategyFactory(dependencies)
-    {
-        protected override IExecutionStrategy CreateDefaultStrategy(ExecutionStrategyDependencies dependencies)
-            => new NonRetryingExecutionStrategy(dependencies);
-    }
-
     private static IServiceProvider CreateServiceProvider()
         => new ServiceCollection()
             .AddEntityFrameworkNpgsql()
-            .AddScoped<IExecutionStrategyFactory, TestNpgsqlExecutionStrategyFactory>()
             .AddScoped<IRelationalDatabaseCreator, TestDatabaseCreator>()
             .BuildServiceProvider();
 

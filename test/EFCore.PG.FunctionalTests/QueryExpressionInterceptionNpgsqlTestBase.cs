@@ -1,5 +1,4 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Microsoft.EntityFrameworkCore;
 
@@ -20,7 +19,7 @@ public abstract class QueryExpressionInterceptionNpgsqlTestBase(
         public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
         {
             new NpgsqlDbContextOptionsBuilder(base.AddOptions(builder))
-                .ExecutionStrategy(d => new NpgsqlExecutionStrategy(d));
+                .ExecutionStrategy(d => new NonRetryingExecutionStrategy(d));
             return builder;
         }
     }

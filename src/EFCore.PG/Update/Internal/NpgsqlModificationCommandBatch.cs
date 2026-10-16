@@ -53,6 +53,59 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
         base.AddParameter(columnModification);
     }
 
+    /// <inheritdoc />
+    public override void Execute(IRelationalConnection connection)
+    {
+        // TODO: Replace these Execute/ExecuteAsync overrides with an EF hook to normalize store exceptions directly:
+        // https://github.com/dotnet/efcore/issues/33068
+        try
+        {
+            base.Execute(connection);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.SerializationFailure or PostgresErrorCodes.DeadlockDetected
+        } postgresException)
+        {
+#pragma warning disable EF1001 // Internal EF Core API usage.
+            var entries = ex.Entries.Select(e => e.GetInfrastructure()).ToArray();
+#pragma warning restore EF1001
+            var exception = new DbUpdateConcurrencyException(ex.Message, postgresException, entries);
+
+            Dependencies.UpdateLogger.OptimisticConcurrencyException(
+                Dependencies.CurrentContext.Context, entries, exception, createEventData: null);
+
+            // Store failures abort the transaction and cannot be suppressed: BatchExecutor must roll back the savepoint.
+            throw exception;
+        }
+    }
+
+    /// <inheritdoc />
+    public override async Task ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await base.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.SerializationFailure or PostgresErrorCodes.DeadlockDetected
+        } postgresException)
+        {
+#pragma warning disable EF1001 // Internal EF Core API usage.
+            var entries = ex.Entries.Select(e => e.GetInfrastructure()).ToArray();
+#pragma warning restore EF1001
+            var exception = new DbUpdateConcurrencyException(ex.Message, postgresException, entries);
+
+            await Dependencies.UpdateLogger.OptimisticConcurrencyExceptionAsync(
+                    Dependencies.CurrentContext.Context, entries, exception, createEventData: null, cancellationToken)
+                .ConfigureAwait(false);
+
+            // Store failures abort the transaction and cannot be suppressed: BatchExecutor must roll back the savepoint.
+            throw exception;
+        }
+    }
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in

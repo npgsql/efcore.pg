@@ -20,6 +20,29 @@ public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.Executi
     protected ExecutionStrategyFixture Fixture { get; }
 
     [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Default_strategy_does_not_wrap_transient_exceptions(bool async)
+    {
+        using var context = new DbContext(new DbContextOptionsBuilder().UseNpgsql(Fixture.TestStore.ConnectionString).Options);
+        var strategy = context.Database.CreateExecutionStrategy();
+        Assert.IsType<NonRetryingExecutionStrategy>(strategy);
+
+        var postgresException = new PostgresException("Serialization failure", "ERROR", "ERROR", PostgresErrorCodes.SerializationFailure);
+        var updateException = new DbUpdateException("SaveChanges failure", postgresException);
+
+        Exception[] exceptions = [postgresException, updateException, new TimeoutException()];
+        foreach (var exception in exceptions)
+        {
+            var thrown = async
+                ? await Assert.ThrowsAnyAsync<Exception>(() => strategy.ExecuteAsync(() => Task.FromException(exception)))
+                : Assert.ThrowsAny<Exception>(() => strategy.Execute(() => throw exception));
+
+            Assert.Same(exception, thrown);
+        }
+    }
+
+    [ConditionalTheory]
     [MemberData(nameof(DataGenerator.GetBoolCombinations), 1, MemberType = typeof(DataGenerator))]
     public void Handles_commit_failure(bool realFailure)
     {
