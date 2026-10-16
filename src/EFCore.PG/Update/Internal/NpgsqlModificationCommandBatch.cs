@@ -72,11 +72,11 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
 #pragma warning restore EF1001
             var exception = new DbUpdateConcurrencyException(ex.Message, postgresException, entries);
 
-            if (!Dependencies.UpdateLogger.OptimisticConcurrencyException(
-                    Dependencies.CurrentContext.Context, entries, exception, createEventData: null).IsSuppressed)
-            {
-                throw exception;
-            }
+            Dependencies.UpdateLogger.OptimisticConcurrencyException(
+                Dependencies.CurrentContext.Context, entries, exception, createEventData: null);
+
+            // Store failures abort the transaction and cannot be suppressed: BatchExecutor must roll back the savepoint.
+            throw exception;
         }
     }
 
@@ -97,12 +97,12 @@ public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
 #pragma warning restore EF1001
             var exception = new DbUpdateConcurrencyException(ex.Message, postgresException, entries);
 
-            if (!(await Dependencies.UpdateLogger.OptimisticConcurrencyExceptionAsync(
-                        Dependencies.CurrentContext.Context, entries, exception, createEventData: null, cancellationToken)
-                    .ConfigureAwait(false)).IsSuppressed)
-            {
-                throw exception;
-            }
+            await Dependencies.UpdateLogger.OptimisticConcurrencyExceptionAsync(
+                    Dependencies.CurrentContext.Context, entries, exception, createEventData: null, cancellationToken)
+                .ConfigureAwait(false);
+
+            // Store failures abort the transaction and cannot be suppressed: BatchExecutor must roll back the savepoint.
+            throw exception;
         }
     }
 

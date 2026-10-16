@@ -59,19 +59,7 @@ public class NonSharedModelUpdatesNpgsqlTest(NonSharedFixture fixture) : NonShar
             shouldLogCategory: category => category == DbLoggerCategory.Update.Name);
 
         await using var context = contextFactory.CreateDbContext();
-        await context.Database.ExecuteSqlRawAsync(
-            """
-CREATE FUNCTION raise_store_exception() RETURNS trigger LANGUAGE plpgsql AS $$
-BEGIN
-    IF NEW."Name" <> 'Before' THEN
-        RAISE EXCEPTION 'Store failure' USING ERRCODE = NEW."Name";
-    END IF;
-    RETURN NEW;
-END;
-$$;
-CREATE TRIGGER raise_store_exception AFTER INSERT ON "Blog"
-FOR EACH ROW EXECUTE FUNCTION raise_store_exception();
-""");
+        await context.Database.ExecuteSqlRawAsync(StoreExceptionTrigger);
 
         try
         {
@@ -107,4 +95,91 @@ FOR EACH ROW EXECUTE FUNCTION raise_store_exception();
             await context.Database.ExecuteSqlRawAsync("DROP FUNCTION raise_store_exception() CASCADE");
         }
     }
+
+    [ConditionalTheory]
+    [InlineData(false, PostgresErrorCodes.SerializationFailure, 1)]
+    [InlineData(true, PostgresErrorCodes.SerializationFailure, 1)]
+    [InlineData(false, PostgresErrorCodes.DeadlockDetected, 1)]
+    [InlineData(true, PostgresErrorCodes.DeadlockDetected, 1)]
+    [InlineData(false, PostgresErrorCodes.SerializationFailure, 1000)]
+    [InlineData(true, PostgresErrorCodes.SerializationFailure, 1000)]
+    [InlineData(false, PostgresErrorCodes.DeadlockDetected, 1000)]
+    [InlineData(true, PostgresErrorCodes.DeadlockDetected, 1000)]
+    public async Task Suppressing_store_concurrency_exception_does_not_bypass_rollback(bool async, string sqlState, int maxBatchSize)
+    {
+        var interceptor = new SuppressingConcurrencyInterceptor();
+        var contextFactory = await InitializeNonSharedTest<DbContext>(
+            onModelCreating: mb => mb.Entity<Blog>(),
+            onConfiguring: b =>
+            {
+                new NpgsqlDbContextOptionsBuilder(b)
+                    .ExecutionStrategy(d => new NonRetryingExecutionStrategy(d))
+                    .MaxBatchSize(maxBatchSize);
+                b.AddInterceptors(interceptor);
+            });
+
+        await using var context = contextFactory.CreateDbContext();
+        await context.Database.ExecuteSqlRawAsync(StoreExceptionTrigger);
+
+        try
+        {
+            await using var transaction = await context.Database.BeginTransactionAsync();
+            var previouslySaved = new Blog { Name = "Before" };
+            context.Add(previouslySaved);
+            await context.SaveChangesAsync();
+
+            var unrelated = new Blog { Name = "Before" };
+            var conflicting = new Blog { Name = sqlState };
+            context.AddRange(unrelated, conflicting);
+
+            var exception = async
+                ? await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => context.SaveChangesAsync())
+                : Assert.Throws<DbUpdateConcurrencyException>(() => context.SaveChanges());
+
+            Assert.Equal(sqlState, Assert.IsType<PostgresException>(exception.InnerException).SqlState);
+            Assert.Same(exception, interceptor.Exception);
+            Assert.Equal(EntityState.Added, context.Entry(unrelated).State);
+            Assert.Equal(EntityState.Added, context.Entry(conflicting).State);
+            Assert.Equal(EntityState.Unchanged, context.Entry(previouslySaved).State);
+
+            await transaction.CommitAsync();
+
+            var persisted = await context.Set<Blog>().AsNoTracking().SingleAsync();
+            Assert.Equal(previouslySaved.Id, persisted.Id);
+        }
+        finally
+        {
+            await context.Database.ExecuteSqlRawAsync("DROP FUNCTION raise_store_exception() CASCADE");
+        }
+    }
+
+    private class SuppressingConcurrencyInterceptor : SaveChangesInterceptor
+    {
+        public DbUpdateConcurrencyException? Exception { get; private set; }
+
+        public override InterceptionResult ThrowingConcurrencyException(ConcurrencyExceptionEventData eventData, InterceptionResult result)
+        {
+            Exception = eventData.Exception;
+            return InterceptionResult.Suppress();
+        }
+
+        public override ValueTask<InterceptionResult> ThrowingConcurrencyExceptionAsync(
+            ConcurrencyExceptionEventData eventData,
+            InterceptionResult result,
+            CancellationToken cancellationToken = default)
+            => new(ThrowingConcurrencyException(eventData, result));
+    }
+
+    private const string StoreExceptionTrigger = """
+CREATE FUNCTION raise_store_exception() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    IF NEW."Name" <> 'Before' THEN
+        RAISE EXCEPTION 'Store failure' USING ERRCODE = NEW."Name";
+    END IF;
+    RETURN NEW;
+END;
+$$;
+CREATE TRIGGER raise_store_exception AFTER INSERT ON "Blog"
+FOR EACH ROW EXECUTE FUNCTION raise_store_exception();
+""";
 }
