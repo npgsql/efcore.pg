@@ -17,7 +17,12 @@ public static class NpgsqlIndexBuilderExtensions
     ///     The PostgreSQL index method to be used. Null selects the default (currently btree).
     /// </summary>
     /// <remarks>
+    ///     JSON member indexes apply the method to the extracted member, not its containing document.
+    ///     The default B-tree method supports scalar comparisons, ordering and uniqueness; use GIN explicitly
+    ///     for suitable jsonb containment and existence queries.
+    ///     <para>
     ///     http://www.postgresql.org/docs/current/static/sql-createindex.html
+    ///     </para>
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="method">The name of the index.</param>
@@ -38,7 +43,12 @@ public static class NpgsqlIndexBuilderExtensions
     ///     The PostgreSQL index method to be used. Null selects the default (currently btree).
     /// </summary>
     /// <remarks>
+    ///     JSON member indexes apply the method to the extracted member, not its containing document.
+    ///     The default B-tree method supports scalar comparisons, ordering and uniqueness; use GIN explicitly
+    ///     for suitable jsonb containment and existence queries.
+    ///     <para>
     ///     http://www.postgresql.org/docs/current/static/sql-createindex.html
+    ///     </para>
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="method">The name of the index.</param>

@@ -156,6 +156,15 @@
   <data name="InvalidTableToIncludeInScaffolding" xml:space="preserve">
     <value>The specified table '{table}' is not valid. Specify tables using the format '[schema].[table]'.</value>
   </data>
+  <data name="JsonIndexAllElementsNotSupported" xml:space="preserve">
+    <value>PostgreSQL expression indexes cannot traverse all elements of a JSON collection. Index the collection itself or select a fixed collection position instead.</value>
+  </data>
+  <data name="JsonIndexMetadataMissing" xml:space="preserve">
+    <value>Cannot generate SQL for JSON member index '{indexName}' without its JSON index metadata. Supply the migration target model.</value>
+  </data>
+  <data name="JsonIndexTsVectorNotSupported" xml:space="preserve">
+    <value>Combining a JSON member index with IsTsVectorExpressionIndex is not supported.</value>
+  </data>
   <data name="LogEnumColumnSkipped" xml:space="preserve">
     <value>Enum column '{name}' cannot be scaffolded, define a CLR enum type and add the property manually.</value>
     <comment>Warning NpgsqlEventId.EnumColumnSkippedWarning string</comment>

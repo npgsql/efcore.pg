@@ -126,6 +126,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
                 table);
 
         /// <summary>
+        ///     PostgreSQL expression indexes cannot traverse all elements of a JSON collection. Index the collection itself or select a fixed collection position instead.
+        /// </summary>
+        public static string JsonIndexAllElementsNotSupported
+            => GetString("JsonIndexAllElementsNotSupported");
+
+        /// <summary>
+        ///     Cannot generate SQL for JSON member index '{indexName}' without its JSON index metadata. Supply the migration target model.
+        /// </summary>
+        public static string JsonIndexMetadataMissing(object? indexName)
+            => string.Format(
+                GetString("JsonIndexMetadataMissing", nameof(indexName)),
+                indexName);
+
+        /// <summary>
+        ///     Combining a JSON member index with IsTsVectorExpressionIndex is not supported.
+        /// </summary>
+        public static string JsonIndexTsVectorNotSupported
+            => GetString("JsonIndexTsVectorNotSupported");
+
+        /// <summary>
         ///     The property '{property}' on entity type '{entityType}' is configured to use 'SequenceHiLo' value generator, which is only intended for keys. If this was intentional configure an alternate key on the property, otherwise call 'ValueGeneratedNever' or configure store generation for this property.
         /// </summary>
         public static string NonKeyValueGeneration(object? property, object? entityType)
