@@ -5,6 +5,8 @@ namespace Microsoft.EntityFrameworkCore.Query;
 public class PrimitiveCollectionsQueryNpgsqlTest : PrimitiveCollectionsQueryRelationalTestBase<
     PrimitiveCollectionsQueryNpgsqlTest.PrimitiveCollectionsQueryNpgsqlFixture>
 {
+    private static readonly List<int> _intersectValues = [11, 12];
+
     public PrimitiveCollectionsQueryNpgsqlTest(PrimitiveCollectionsQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
@@ -1955,6 +1957,138 @@ WHERE (
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
 FROM "PrimitiveCollectionsEntity" AS p
 WHERE p."Ints" && @ints
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Intersect_static_readonly_collection_Any()
+    {
+        await AssertQuery(ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.Intersect(_intersectValues).Any()));
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Ints" && ARRAY[11,12]::integer[]
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Static_readonly_collection_Intersect_column_collection_Any()
+    {
+        await AssertQuery(ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => _intersectValues.Intersect(c.Ints).Any()));
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE ARRAY[11,12]::integer[] && p."Ints"
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Intersect_inline_collection_Any()
+    {
+        await AssertQuery(ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.Intersect(new[] { 11, 12 }).Any()));
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Ints" && ARRAY[11,12]::integer[]
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Intersect_filtered_inline_collection_Any()
+    {
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>()
+                .Where(c => c.Ints.Intersect(new[] { 11, 12 }.Where(i => i > c.Int)).Any()),
+            assertEmpty: true);
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE EXISTS (
+    SELECT 1
+    FROM (
+        SELECT i.value
+        FROM unnest(p."Ints") AS i(value)
+        INTERSECT
+        SELECT v."Value" AS value
+        FROM (VALUES (11::int), (12)) AS v("Value")
+        WHERE v."Value" > p."Int"
+    ) AS i0)
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Intersect_projected_inline_collection_Any()
+    {
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>()
+                .Where(c => c.Ints.Intersect(new[] { 10, 11 }.Select(i => i + c.Int)).Any()),
+            assertEmpty: true);
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE EXISTS (
+    SELECT 1
+    FROM (
+        SELECT i.value
+        FROM unnest(p."Ints") AS i(value)
+        INTERSECT
+        SELECT v."Value" + p."Int" AS value
+        FROM (VALUES (10::int), (11)) AS v("Value")
+    ) AS i0)
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Projected_column_collection_Intersect_inline_collection_Any()
+    {
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>()
+                .Where(c => c.Ints.Select(i => i + 1000).Intersect(new[] { 11, 12 }).Any()),
+            assertEmpty: true);
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE EXISTS (
+    SELECT 1
+    FROM (
+        SELECT i.value + 1000 AS c
+        FROM unnest(p."Ints") AS i(value)
+        INTERSECT
+        VALUES (11::int), (12)
+    ) AS i0)
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Intersect_inline_collection_with_null_Any()
+    {
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.NullableInts.Intersect(new int?[] { null, 999 }).Any()));
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE EXISTS (
+    SELECT 1
+    FROM (
+        SELECT n.value
+        FROM unnest(p."NullableInts") AS n(value)
+        INTERSECT
+        VALUES (NULL::int), (999)
+    ) AS i)
 """);
     }
 

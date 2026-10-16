@@ -4,6 +4,8 @@ namespace Microsoft.EntityFrameworkCore.Query;
 
 public class ArrayListQueryTest : QueryTestBase<ArrayListQueryTest.ArrayListQueryFixture>
 {
+    private static readonly List<SomeEnum> _intersectValues = [SomeEnum.Eight];
+
     public ArrayListQueryTest(ArrayListQueryFixture fixture, ITestOutputHelper testOutputHelper)
         : base(fixture)
     {
@@ -855,6 +857,20 @@ WHERE s."IntList" && @ints
 SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
 FROM "SomeEntities" AS s
 WHERE s."ValueConvertedListOfEnum" && @array
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Intersect_Any_with_static_readonly_list_and_element_converter()
+    {
+        await AssertQuery(
+            ss => ss.Set<ArrayEntity>().Where(e => e.ValueConvertedListOfEnum.Intersect(_intersectValues).Any()));
+
+        AssertSql(
+            """
+SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE s."ValueConvertedListOfEnum" && ARRAY['Eight']::text[]
 """);
     }
 

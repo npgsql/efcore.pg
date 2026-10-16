@@ -163,8 +163,25 @@ public static class NpgsqlShapedQueryExpressionExtensions
         [NotNullWhen(true)] out SqlExpression? array,
         bool ignoreOrderings = false,
         bool ignorePredicate = false)
+        => TryConvertToArray(source.QueryExpression as SelectExpression, out array, ignoreOrderings, ignorePredicate);
+
+    /// <summary>
+    ///     If the given <paramref name="source" /> wraps a <see cref="ValuesExpression" /> without any additional clauses (e.g. filter,
+    ///     ordering...), converts that to a <see cref="NewArrayExpression" /> and returns that.
+    /// </summary>
+    /// <remarks>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </remarks>
+    public static bool TryConvertToArray(
+        this SelectExpression? source,
+        [NotNullWhen(true)] out SqlExpression? array,
+        bool ignoreOrderings = false,
+        bool ignorePredicate = false)
     {
-        if (source.QueryExpression is SelectExpression
+        if (source is
             {
                 Tables: [ValuesExpression { ColumnNames: ["_ord", "Value"], RowValues.Count: > 0 } valuesExpression],
                 GroupBy: [],
