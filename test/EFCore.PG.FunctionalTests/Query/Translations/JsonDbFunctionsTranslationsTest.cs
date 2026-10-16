@@ -1,0 +1,372 @@
+#pragma warning disable EF8001 // ToJson on owned entities is obsolete
+
+namespace Microsoft.EntityFrameworkCore.Query.Translations;
+
+public class JsonDbFunctionsTranslationsTest(NonSharedFixture fixture) : NonSharedModelTestBase(fixture), IClassFixture<NonSharedFixture>
+{
+    protected override string NonSharedStoreName
+        => "JsonDbFunctionsTranslationsTest";
+
+    protected override ITestStoreFactory NonSharedTestStoreFactory
+        => NpgsqlTestStoreFactory.Instance;
+
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task JsonContains(bool owned)
+    {
+        var contextFactory = await Initialize(owned);
+        await using var context = contextFactory.CreateDbContext();
+        var json = """{"Value": 1}""";
+
+        var result = await context.Entities.Where(
+                e => EF.Functions.JsonContains(e.Document, """{"Name": "Joe"}""")
+                    && EF.Functions.JsonContains(e.Document.Details, json)
+                    && EF.Functions.JsonContains(e.Document.Items[0], json)
+                    && EF.Functions.JsonContains(e.Document.Details, e.Document.Items[0])
+                    && EF.Functions.JsonContains(e.Document.Items, """[{"Value": 1}]"""))
+            .Select(e => e.Id).ToListAsync();
+
+        Assert.Equal([1], result);
+        AssertSql(
+            """
+@json='{"Value": 1}' (DbType = Object)
+
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE e."Document" @> '{"Name": "Joe"}' AND (e."Document" -> 'Details') @> @json AND (e."Document" #> '{Items,0}') @> @json AND (e."Document" -> 'Details') @> (e."Document" #> '{Items,0}') AND (e."Document" -> 'Items') @> '[{"Value": 1}]'
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task JsonContained(bool owned)
+    {
+        var contextFactory = await Initialize(owned);
+        await using var context = contextFactory.CreateDbContext();
+        var json = """{"Value": 1}""";
+
+        var result = await context.Entities.Where(
+                e => EF.Functions.JsonContained("""{"Name": "Joe"}""", e.Document)
+                    && EF.Functions.JsonContained(e.Document.Details, json)
+                    && EF.Functions.JsonContained(json, e.Document.Items[0])
+                    && EF.Functions.JsonContained(e.Document.Items[0], e.Document.Details))
+            .Select(e => e.Id).ToListAsync();
+
+        Assert.Equal([1], result);
+        AssertSql(
+            """
+@json='{"Value": 1}' (DbType = Object)
+
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE '{"Name": "Joe"}' <@ e."Document" AND (e."Document" -> 'Details') <@ @json AND @json <@ (e."Document" #> '{Items,0}') AND (e."Document" #> '{Items,0}') <@ (e."Document" -> 'Details')
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task JsonExists(bool owned)
+    {
+        var contextFactory = await Initialize(owned);
+        await using var context = contextFactory.CreateDbContext();
+
+        var result = await context.Entities
+            .Where(e => EF.Functions.JsonExists(e.Document, "Details") && EF.Functions.JsonExists(e.Document.Details, "Value"))
+            .Select(e => e.Id).ToListAsync();
+
+        Assert.Equal([1, 2], result.Order());
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE e."Document" ? 'Details' AND (e."Document" -> 'Details') ? 'Value'
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task JsonExistAny(bool owned)
+    {
+        var contextFactory = await Initialize(owned);
+        await using var context = contextFactory.CreateDbContext();
+
+        var result = await context.Entities.Where(
+                e => EF.Functions.JsonExistAny(e.Document, "Missing", "Details")
+                    && EF.Functions.JsonExistAny(e.Document.Details, "Missing", "Value"))
+            .Select(e => e.Id).ToListAsync();
+
+        Assert.Equal([1, 2], result.Order());
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE e."Document" ?| ARRAY['Missing','Details']::text[] AND (e."Document" -> 'Details') ?| ARRAY['Missing','Value']::text[]
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task JsonExistAll(bool owned)
+    {
+        var contextFactory = await Initialize(owned);
+        await using var context = contextFactory.CreateDbContext();
+
+        var result = await context.Entities.Where(
+                e => EF.Functions.JsonExistAll(e.Document, "Name", "Details")
+                    && !EF.Functions.JsonExistAll(e.Document.Details, "Missing", "Value"))
+            .Select(e => e.Id).ToListAsync();
+
+        Assert.Equal([1, 2], result.Order());
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE e."Document" ?& ARRAY['Name','Details']::text[] AND NOT ((e."Document" -> 'Details') ?& ARRAY['Missing','Value']::text[])
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Json_existence_with_modeled_key(bool owned)
+    {
+        var contextFactory = await Initialize(owned);
+        await using var context = contextFactory.CreateDbContext();
+
+        var result = await context.Entities.Where(
+                e => !EF.Functions.JsonExists(e.Document, e.Document.Name)
+                    && EF.Functions.JsonExistAny(e.Document, e.Document.Name, "Name")
+                    && !EF.Functions.JsonExistAll(e.Document, e.Document.Name, "Name"))
+            .Select(e => e.Id).ToListAsync();
+
+        Assert.Equal([1, 2], result.Order());
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE NOT (e."Document" ? (e."Document" ->> 'Name')) AND e."Document" ?| ARRAY[e."Document" ->> 'Name','Name']::text[] AND NOT (e."Document" ?& ARRAY[e."Document" ->> 'Name','Name']::text[])
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Json_existence_with_modeled_key_collection(bool owned)
+    {
+        var contextFactory = await Initialize(owned);
+        await using var context = contextFactory.CreateDbContext();
+
+        var result = await context.Entities.Where(
+                e => EF.Functions.JsonExistAny(e.Document, e.Document.Keys)
+                    && EF.Functions.JsonExistAll(e.Document, e.Document.Keys)
+                    && !EF.Functions.JsonExistAny(e.Document, e.Document.EmptyKeys)
+                    && EF.Functions.JsonExistAll(e.Document, e.Document.EmptyKeys))
+            .Select(e => e.Id).ToListAsync();
+
+        Assert.Equal([1], result);
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE e."Document" ?| CASE
+    WHEN jsonb_typeof(e."Document" -> 'Keys') = 'null' THEN NULL
+    ELSE (
+        SELECT COALESCE(array_agg(k.key), ARRAY[]::text[])
+        FROM jsonb_array_elements_text(e."Document" -> 'Keys') AS k(key))
+END AND e."Document" ?& CASE
+    WHEN jsonb_typeof(e."Document" -> 'Keys') = 'null' THEN NULL
+    ELSE (
+        SELECT COALESCE(array_agg(k0.key), ARRAY[]::text[])
+        FROM jsonb_array_elements_text(e."Document" -> 'Keys') AS k0(key))
+END AND NOT (e."Document" ?| CASE
+    WHEN jsonb_typeof(e."Document" -> 'EmptyKeys') = 'null' THEN NULL
+    ELSE (
+        SELECT COALESCE(array_agg(k1.key), ARRAY[]::text[])
+        FROM jsonb_array_elements_text(e."Document" -> 'EmptyKeys') AS k1(key))
+END) AND e."Document" ?& CASE
+    WHEN jsonb_typeof(e."Document" -> 'EmptyKeys') = 'null' THEN NULL
+    ELSE (
+        SELECT COALESCE(array_agg(k2.key), ARRAY[]::text[])
+        FROM jsonb_array_elements_text(e."Document" -> 'EmptyKeys') AS k2(key))
+END
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Json_existence_with_null_modeled_key_collection(bool owned)
+    {
+        var contextFactory = await Initialize(owned);
+        await using var context = contextFactory.CreateDbContext();
+        // Row 1 contains JSON null; the missing property in row 2 extracts SQL NULL.
+        await context.Database.ExecuteSqlRawAsync(
+            """UPDATE "Entities" SET "Document" = "Document" - 'NullableKeys' WHERE "Id" = 2""");
+        ((TestSqlLoggerFactory)ListLoggerFactory).Clear();
+
+        bool? nullResult = null;
+        var result = await context.Entities.Where(
+                e => (bool?)EF.Functions.JsonExistAny(e.Document, e.Document.NullableKeys!) == nullResult
+                    && (bool?)EF.Functions.JsonExistAll(e.Document, e.Document.NullableKeys!) == nullResult)
+            .Select(e => e.Id).ToListAsync();
+
+        Assert.Equal([1, 2], result.Order());
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE e."Document" ?| CASE
+    WHEN (e."Document" -> 'NullableKeys') IS NULL OR jsonb_typeof(e."Document" -> 'NullableKeys') = 'null' THEN NULL
+    ELSE (
+        SELECT COALESCE(array_agg(k.key), ARRAY[]::text[])
+        FROM jsonb_array_elements_text(e."Document" -> 'NullableKeys') AS k(key))
+END IS NULL AND e."Document" ?& CASE
+    WHEN (e."Document" -> 'NullableKeys') IS NULL OR jsonb_typeof(e."Document" -> 'NullableKeys') = 'null' THEN NULL
+    ELSE (
+        SELECT COALESCE(array_agg(k0.key), ARRAY[]::text[])
+        FROM jsonb_array_elements_text(e."Document" -> 'NullableKeys') AS k0(key))
+END IS NULL
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(false, "jsonb")]
+    [InlineData(true, "jsonb")]
+    [InlineData(false, "json")]
+    [InlineData(true, "json")]
+    public async Task JsonTypeof(bool owned, string storeType)
+    {
+        var contextFactory = await Initialize(owned, storeType);
+        await using var context = contextFactory.CreateDbContext();
+
+        var result = await context.Entities.Where(
+                e => EF.Functions.JsonTypeof(e.Document) == "object"
+                    && EF.Functions.JsonTypeof(e.Document.Details) == "object"
+                    && EF.Functions.JsonTypeof(e.Document.Items) == "array"
+                    && EF.Functions.JsonTypeof(e.Document.Details.Value) == "number"
+                    && EF.Functions.JsonTypeof(e.Document.Items[5]) == null)
+            .Select(e => e.Id).ToListAsync();
+
+        Assert.Equal([1, 2], result.Order());
+        AssertSql(
+            $$"""
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE {{storeType}}_typeof(e."Document") = 'object' AND {{storeType}}_typeof(e."Document" -> 'Details') = 'object' AND {{storeType}}_typeof(e."Document" -> 'Items') = 'array' AND {{storeType}}_typeof(e."Document" #> '{Details,Value}') = 'number' AND (e."Document" #> '{Items,5}') IS NULL
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Jsonb_only_functions_reject_json(bool owned)
+    {
+        var contextFactory = await Initialize(owned, "json");
+        await using var context = contextFactory.CreateDbContext();
+
+        Expression<Func<JsonEntity, bool>>[] predicates =
+        [
+            e => EF.Functions.JsonContains(e.Document, "{}"),
+            e => EF.Functions.JsonContained("{}", e.Document.Details),
+            e => EF.Functions.JsonExists(e.Document, "Name"),
+            e => EF.Functions.JsonExistAny(e.Document.Details, "Value"),
+            e => EF.Functions.JsonExistAll(e.Document, "Name")
+        ];
+
+        foreach (var predicate in predicates)
+        {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => context.Entities.Where(predicate).ToListAsync());
+            Assert.Equal("JSON methods on EF.Functions only support the jsonb type, not json.", exception.Message);
+        }
+
+        AssertSql();
+    }
+
+    private Task<ContextFactory<JsonFunctionsContext>> Initialize(bool owned, string storeType = "jsonb")
+        => InitializeNonSharedTest<JsonFunctionsContext>(
+            onModelCreating: modelBuilder =>
+            {
+                if (owned)
+                {
+                    modelBuilder.Entity<JsonEntity>().OwnsOne(
+                        e => e.Document, b =>
+                        {
+                            b.ToJson().HasColumnType(storeType);
+                            b.OwnsOne(d => d.Details);
+                            b.OwnsMany(d => d.Items);
+                        });
+                }
+                else
+                {
+                    modelBuilder.Entity<JsonEntity>().ComplexProperty(
+                        e => e.Document, b =>
+                        {
+                            b.ToJson().HasColumnType(storeType);
+                            b.ComplexProperty(d => d.Details);
+                            b.ComplexCollection(d => d.Items);
+                        });
+                }
+            },
+            onConfiguring: options => options.ConfigureWarnings(w => w.Ignore(RelationalEventId.OwnedEntityMappedToJsonCollectionWarning)),
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new JsonEntity
+                    {
+                        Id = 1,
+                        Document = new Document
+                        {
+                            Name = "Joe",
+                            Details = new Details { Value = 1 },
+                            Items = [new Details { Value = 1 }],
+                            Keys = ["Name", "Details"]
+                        }
+                    },
+                    new JsonEntity
+                    {
+                        Id = 2,
+                        Document = new Document
+                        {
+                            Name = "Moe",
+                            Details = new Details { Value = 2 },
+                            Items = [new Details { Value = 2 }],
+                            Keys = ["Missing"]
+                        }
+                    });
+                await context.SaveChangesAsync();
+            });
+
+    private class JsonFunctionsContext(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<JsonEntity> Entities => Set<JsonEntity>();
+    }
+
+    private class JsonEntity
+    {
+        public int Id { get; set; }
+        public required Document Document { get; set; }
+    }
+
+    private class Document
+    {
+        public required string Name { get; set; }
+        public required Details Details { get; set; }
+        public required List<Details> Items { get; set; }
+        public required string[] Keys { get; set; }
+        public string[] EmptyKeys { get; set; } = [];
+        public string[]? NullableKeys { get; set; }
+    }
+
+    private class Details
+    {
+        public int Value { get; set; }
+    }
+
+    private void AssertSql(params string[] expected)
+        => ((TestSqlLoggerFactory)ListLoggerFactory).AssertBaseline(expected);
+}

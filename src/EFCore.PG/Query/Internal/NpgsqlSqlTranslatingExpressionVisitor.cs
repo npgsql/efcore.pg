@@ -355,15 +355,105 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 typeof(double));
         }
 
+        var declaringType = method.DeclaringType;
+        var @object = methodCallExpression.Object;
+        var arguments = methodCallExpression.Arguments;
+
+        // Modeled JSON arguments aren't scalar SQL expressions, so they can't be handled by the normal method translation path.
+        if (declaringType == typeof(NpgsqlJsonDbFunctionsExtensions))
+        {
+            var translatedArguments = new SqlExpression[arguments.Count];
+            for (var i = 0; i < arguments.Count; i++)
+            {
+                var argument = arguments[i];
+#pragma warning disable EF1001 // TranslateProjection() is pubternal
+                var projection = argument is MaterializeCollectionNavigationExpression
+                    {
+                        Subquery: MethodCallExpression { Method: var asQueryable, Arguments: [var collection] }
+                    }
+                    && asQueryable.IsGenericMethod
+                    && asQueryable.GetGenericMethodDefinition() == QueryableMethods.AsQueryable
+                        ? Visit(collection)
+                        : TranslateProjection(argument, applyDefaultTypeMapping: false);
+#pragma warning restore EF1001
+
+                var jsonQuery = projection switch
+                {
+                    JsonQueryExpression query => query,
+                    RelationalStructuralTypeShaperExpression { ValueBufferExpression: JsonQueryExpression query } => query,
+                    CollectionResultExpression { QueryExpression: JsonQueryExpression query } => query,
+                    _ => null
+                };
+
+                var translatedArgument = jsonQuery switch
+                {
+                    { Path.Count: 0 } => jsonQuery.JsonColumn,
+                    not null => new JsonScalarExpression(
+                        jsonQuery.JsonColumn, jsonQuery.Path, jsonQuery.Type, jsonQuery.JsonColumn.TypeMapping!, jsonQuery.IsNullable),
+                    null => projection as SqlExpression
+                };
+
+                if (translatedArgument is null)
+                {
+                    return QueryCompilationContext.NotTranslatedExpression;
+                }
+
+                if (i == 2
+                    && method.Name is nameof(NpgsqlJsonDbFunctionsExtensions.JsonExistAny) or nameof(NpgsqlJsonDbFunctionsExtensions.JsonExistAll)
+                    && translatedArgument.TypeMapping is NpgsqlJsonTypeMapping { ElementTypeMapping: not null } jsonMapping)
+                {
+                    var sqlAliasManager = ((RelationalQueryCompilationContext)_queryCompilationContext).SqlAliasManager;
+                    var tableAlias = sqlAliasManager.GenerateTableAlias("k");
+                    var keys = new PgTableValuedFunctionExpression(
+                        tableAlias,
+                        jsonMapping.IsJsonb ? "jsonb_array_elements_text" : "json_array_elements_text",
+                        [translatedArgument],
+                        columnInfos: [new("key")],
+                        withOrdinality: false);
+                    var arrayMapping = _typeMappingSource.FindMapping(typeof(string[]))!;
+                    var aggregate = _sqlExpressionFactory.Function(
+                        "array_agg",
+                        [new ColumnExpression("key", tableAlias, typeof(string), _typeMappingSource.FindMapping(typeof(string)), nullable: true)],
+                        nullable: true,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        typeof(string[]),
+                        arrayMapping);
+                    // array_agg returns NULL for empty input, but ?| and ?& need an empty array in that case.
+#pragma warning disable EF1001 // SelectExpression constructors are pubternal
+                    var select = new SelectExpression(
+                        [keys],
+                        _sqlExpressionFactory.Coalesce(aggregate, _sqlExpressionFactory.NewArray([], typeof(string[]), arrayMapping)),
+                        [],
+                        sqlAliasManager);
+#pragma warning restore EF1001
+                    select.ApplyProjection();
+                    var jsonType = _sqlExpressionFactory.Function(
+                        jsonMapping.IsJsonb ? "jsonb_typeof" : "json_typeof",
+                        [translatedArgument],
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(string));
+                    var nullKeys = _sqlExpressionFactory.OrElse(
+                        _sqlExpressionFactory.IsNull(translatedArgument),
+                        _sqlExpressionFactory.Equal(jsonType, _sqlExpressionFactory.Constant("null")));
+                    translatedArgument = _sqlExpressionFactory.Case(
+                        [new CaseWhenClause(nullKeys, _sqlExpressionFactory.Constant(null, typeof(string[]), arrayMapping))],
+                        new ScalarSubqueryExpression(select));
+                }
+
+                translatedArguments[i] = translatedArgument;
+            }
+
+            return Dependencies.MethodCallTranslatorProvider.Translate(
+                    Dependencies.Model, null, method, translatedArguments, _queryCompilationContext.Logger)
+                ?? QueryCompilationContext.NotTranslatedExpression;
+        }
+
         if (base.VisitMethodCall(methodCallExpression) is var translation
             && translation != QueryCompilationContext.NotTranslatedExpression)
         {
             return translation;
         }
-
-        var declaringType = method.DeclaringType;
-        var @object = methodCallExpression.Object;
-        var arguments = methodCallExpression.Arguments;
 
         switch (method.Name)
         {
