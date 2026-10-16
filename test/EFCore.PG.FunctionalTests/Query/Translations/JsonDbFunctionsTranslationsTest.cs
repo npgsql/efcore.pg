@@ -1,11 +1,11 @@
 #pragma warning disable EF8001 // ToJson on owned entities is obsolete
 
-namespace Microsoft.EntityFrameworkCore.Query;
+namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
-public class JsonDbFunctionsTest(NonSharedFixture fixture) : NonSharedModelTestBase(fixture), IClassFixture<NonSharedFixture>
+public class JsonDbFunctionsTranslationsTest(NonSharedFixture fixture) : NonSharedModelTestBase(fixture), IClassFixture<NonSharedFixture>
 {
     protected override string NonSharedStoreName
-        => "JsonDbFunctionsTest";
+        => "JsonDbFunctionsTranslationsTest";
 
     protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
