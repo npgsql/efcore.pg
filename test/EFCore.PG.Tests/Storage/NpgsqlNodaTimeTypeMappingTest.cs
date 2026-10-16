@@ -253,6 +253,37 @@ public class NpgsqlNodaTimeTypeMappingTest
     }
 
     [Fact]
+    public void Interval_current_value_comparer()
+    {
+        var comparer = ((INpgsqlRangeTypeMapping)GetMapping(typeof(Interval))).CreateCurrentValueComparer(typeof(Interval));
+        var start = Instant.FromUtc(2025, 1, 1, 0, 0);
+        var middle = Instant.FromUtc(2025, 6, 1, 0, 0);
+        var end = Instant.FromUtc(2025, 12, 1, 0, 0);
+        object[] intervals =
+        [
+            null,
+            new Interval(null, middle),
+            new Interval(null, end),
+            new Interval(null, null),
+            new Interval(start, middle),
+            new Interval(start, end),
+            new Interval(start, null),
+            new Interval(middle, end),
+            new Interval(middle, null)
+        ];
+
+        for (var i = 0; i < intervals.Length; i++)
+        {
+            for (var j = 0; j < intervals.Length; j++)
+            {
+                Assert.Equal(Math.Sign(i.CompareTo(j)), Math.Sign(comparer.Compare(intervals[i], intervals[j])));
+            }
+        }
+
+        Assert.Equal(0, comparer.Compare(new Interval(start, end), new Interval(start, end)));
+    }
+
+    [Fact]
     public void GenerateSqlLiteral_returns_tstzrange_Interval_literal()
     {
         var mapping = (IntervalRangeMapping)GetMapping("tstzrange");
@@ -483,6 +514,32 @@ public class NpgsqlNodaTimeTypeMappingTest
     {
         Assert.Equal("daterange", GetMapping(typeof(DateInterval)).StoreType);
         Assert.Same(typeof(DateInterval), GetMapping("daterange").ClrType);
+    }
+
+    [Fact]
+    public void DateInterval_current_value_comparer()
+    {
+        var comparer = ((INpgsqlRangeTypeMapping)GetMapping(typeof(DateInterval))).CreateCurrentValueComparer(typeof(DateInterval));
+        var start = new LocalDate(2025, 1, 1);
+        var middle = new LocalDate(2025, 6, 1);
+        var end = new LocalDate(2025, 12, 1);
+        object[] intervals =
+        [
+            null,
+            new DateInterval(start, middle),
+            new DateInterval(start, end),
+            new DateInterval(middle, end)
+        ];
+
+        for (var i = 0; i < intervals.Length; i++)
+        {
+            for (var j = 0; j < intervals.Length; j++)
+            {
+                Assert.Equal(Math.Sign(i.CompareTo(j)), Math.Sign(comparer.Compare(intervals[i], intervals[j])));
+            }
+        }
+
+        Assert.Equal(0, comparer.Compare(new DateInterval(start, end), new DateInterval(start, end)));
     }
 
     [Fact]

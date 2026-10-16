@@ -1,6 +1,8 @@
-﻿using System.Data.Common;
+﻿using System.Collections;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using Npgsql.EntityFrameworkCore.PostgreSQL.ChangeTracking.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
@@ -10,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 /// <remarks>
 ///     See: https://www.postgresql.org/docs/current/static/rangetypes.html
 /// </remarks>
-public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
+public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping, INpgsqlRangeTypeMapping
 {
     private PropertyInfo? _isEmptyProperty;
     private PropertyInfo? _lowerProperty;
@@ -43,6 +45,12 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     ///     <see cref="NpgsqlParameter.DataTypeName" /> instead.
     /// </summary>
     public virtual string? UnquotedStoreType { get; init; }
+
+    /// <inheritdoc />
+    public virtual IComparer? CreateCurrentValueComparer(Type clrType)
+        => clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(NpgsqlRange<>)
+            ? new NpgsqlRangeCurrentValueComparer(clrType)
+            : null;
 
     /// <summary>
     ///     Constructs an instance of the <see cref="NpgsqlRangeTypeMapping" /> class for a built-in range type which has a

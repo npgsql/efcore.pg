@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.ChangeTracking.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -114,18 +113,19 @@ public class NpgsqlPostgresModelFinalizingConvention(
     }
 
     /// <summary>
-    ///     Pre-sets the current value comparer for range key/FK properties, since <see cref="NpgsqlRange{T}" /> doesn't
-    ///     implement <see cref="IComparable" /> and the default <see cref="CurrentValueComparerFactory" /> would reject it.
+    ///     Pre-sets the current value comparer for range key/FK properties, since range types don't implement
+    ///     <see cref="IComparable" /> and the default <see cref="CurrentValueComparerFactory" /> would reject them.
     /// </summary>
     protected virtual void SetRangeCurrentValueComparer(IConventionProperty property, RelationalTypeMapping typeMapping)
     {
         if ((property.IsKey() || property.IsForeignKey())
-            && typeMapping is NpgsqlRangeTypeMapping
+            && typeMapping is INpgsqlRangeTypeMapping rangeTypeMapping
+            && rangeTypeMapping.CreateCurrentValueComparer(property.ClrType.UnwrapNullableType()) is { } comparer
             && property is PropertyBase propertyBase)
         {
 #pragma warning disable EF1001 // Internal EF Core API usage.
             propertyBase.SetCurrentValueComparer(
-                new EntryCurrentValueComparer((IProperty)property, new NpgsqlRangeCurrentValueComparer(property.ClrType)));
+                new EntryCurrentValueComparer((IProperty)property, comparer));
 #pragma warning restore EF1001 // Internal EF Core API usage.
         }
     }

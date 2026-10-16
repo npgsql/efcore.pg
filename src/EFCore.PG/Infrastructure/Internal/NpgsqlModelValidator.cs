@@ -328,7 +328,7 @@ public class NpgsqlModelValidator(
         var lastProperty = key.Properties[^1];
         var typeMapping = lastProperty.FindTypeMapping();
 
-        if (typeMapping is not NpgsqlRangeTypeMapping)
+        if (typeMapping is not INpgsqlRangeTypeMapping)
         {
             throw new InvalidOperationException(
                 NpgsqlStrings.WithoutOverlapsRequiresRangeType(
@@ -369,7 +369,7 @@ public class NpgsqlModelValidator(
         var lastProperty = foreignKey.Properties[^1];
         var typeMapping = lastProperty.FindTypeMapping();
 
-        if (typeMapping is not NpgsqlRangeTypeMapping)
+        if (typeMapping is not INpgsqlRangeTypeMapping)
         {
             throw new InvalidOperationException(
                 NpgsqlStrings.PeriodRequiresRangeType(
