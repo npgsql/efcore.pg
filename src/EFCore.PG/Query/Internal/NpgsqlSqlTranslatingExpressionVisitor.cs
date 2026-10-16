@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -39,6 +40,14 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
 
     // Note: This is the PostgreSQL default and does not need to be explicitly specified
     private const char LikeEscapeChar = '\\';
+
+    /// <inheritdoc />
+    protected override Expression VisitExtension(Expression extensionExpression)
+        // A collection query over an array may still represent a scalar PostgreSQL array, e.g. after Skip/Take.
+        => extensionExpression is ShapedQueryExpression { ResultCardinality: ResultCardinality.Enumerable } shapedQueryExpression
+            && shapedQueryExpression.TryExtractArray(out var array)
+                ? array
+                : base.VisitExtension(extensionExpression);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

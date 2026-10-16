@@ -2221,10 +2221,219 @@ WHERE cardinality(@ints1 || p."Ints" || @ints2) = 4
 
     public override async Task Column_collection_Concat_parameter_collection_equality_inline_collection()
     {
-        await base.Column_collection_Concat_parameter_collection_equality_inline_collection();
+        var ints = new[] { 1, 10 };
+
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.Concat(ints) == new[] { 1, 11, 111, 1, 10 }),
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.Concat(ints).SequenceEqual(new[] { 1, 11, 111, 1, 10 })));
+
+        AssertSql(
+            """
+@ints={ '1'
+'10' } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Ints" || @ints = ARRAY[1,11,111,1,10]::integer[]
+""");
+    }
+
+    #region SequenceEqual
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task SequenceEqual_after_Take(bool async)
+    {
+        var expected = new[] { 1, 11 };
+        await AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(e => e.Ints.Take(2).SequenceEqual(expected)).Select(e => e.Id));
+
+        AssertSql(
+            """
+@expected={ '1'
+'11' } (DbType = Object)
+
+SELECT p."Id"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Ints"[:2] = @expected
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task SequenceEqual_after_Take_with_parameter(bool async)
+    {
+        var count = 2;
+        var expected = new[] { 1, 11 };
+        await AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(e => e.Ints.Take(count).SequenceEqual(expected)).Select(e => e.Id));
+
+        AssertSql(
+            """
+@count='2'
+@expected={ '1'
+'11' } (DbType = Object)
+
+SELECT p."Id"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Ints"[:@count] = @expected
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task SequenceEqual_after_Skip(bool async)
+    {
+        var expected = new[] { 10 };
+        await AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(e => e.Ints.Skip(1).SequenceEqual(expected)).Select(e => e.Id));
+
+        AssertSql(
+            """
+@expected={ '10' } (DbType = Object)
+
+SELECT p."Id"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Ints"[2:] = @expected
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task SequenceEqual_after_Skip_Take(bool async)
+    {
+        var expected = new[] { 11, 111 };
+        await AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(e => e.Ints.Skip(1).Take(2).SequenceEqual(expected)).Select(e => e.Id));
+
+        AssertSql(
+            """
+@expected={ '11'
+'111' } (DbType = Object)
+
+SELECT p."Id"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Ints"[2:3] = @expected
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task SequenceEqual_with_Take_on_second_argument(bool async)
+    {
+        var expected = new[] { 1, 11 };
+        await AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(e => expected.SequenceEqual(e.Ints.Take(2))).Select(e => e.Id));
+
+        AssertSql(
+            """
+@expected={ '1'
+'11' } (DbType = Object)
+
+SELECT p."Id"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE @expected = p."Ints"[:2]
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task SequenceEqual_with_Take_on_both_arguments(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>()
+                .Where(e => e.Ints.Take(2).SequenceEqual(e.Ints.Take(3)))
+                .Select(e => e.Id));
+
+        AssertSql(
+            """
+SELECT p."Id"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Ints"[:2] = p."Ints"[:3]
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task SequenceEqual_after_Take_over_nullable(bool async)
+    {
+        var expected = new int?[] { 1, 11, null };
+        await AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(e => e.NullableInts.Take(3).SequenceEqual(expected))
+                .Select(e => e.Id));
+
+        AssertSql(
+            """
+@expected={ '1'
+'11'
+NULL } (DbType = Object)
+
+SELECT p."Id"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."NullableInts"[:3] = @expected
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task SequenceEqual_after_Take_with_list(bool async)
+    {
+        List<int> expected = [1, 11];
+        await AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(e => e.Ints.ToList().Take(2).SequenceEqual(expected)).Select(e => e.Id));
+
+        AssertSql(
+            """
+@expected={ '1'
+'11' } (DbType = Object)
+
+SELECT p."Id"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Ints"[:2] = @expected
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task SequenceEqual_does_not_ignore_query_operators(bool async)
+    {
+        var expected = new[] { 1, 10 };
+        await AssertTranslationFailed(() => AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(e => e.Ints.Where(i => i > 3).SequenceEqual(expected))));
+
+        await AssertTranslationFailed(() => AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(e => e.Ints.OrderByDescending(i => i).SequenceEqual(expected))));
+
+        await AssertTranslationFailed(() => AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(e => e.Ints.Select(i => e.Id).SequenceEqual(expected))));
 
         AssertSql();
     }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task SequenceEqual_after_Reverse(bool async)
+    {
+        var expected = new[] { 10, 1 };
+        await AssertTranslationFailed(() => AssertQuery(
+            async,
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(e => Enumerable.SequenceEqual(e.Ints.AsQueryable().Reverse(), expected))));
+
+        AssertSql();
+    }
+
+    #endregion SequenceEqual
 
     public override async Task Column_collection_equality_parameter_collection()
     {
@@ -2274,9 +2483,16 @@ WHERE p."Ints" = ARRAY[@i,@j]::integer[]
 
     public override async Task Column_collection_Where_equality_inline_collection()
     {
-        await base.Column_collection_Where_equality_inline_collection();
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.Where(i => i != 11) == new[] { 1, 111 }),
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.Where(i => i != 11).SequenceEqual(new[] { 1, 111 })));
 
-        AssertSql();
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE array_remove(p."Ints", 11) = ARRAY[1,111]::integer[]
+""");
     }
 
     public override async Task Parameter_collection_in_subquery_Union_column_collection_as_compiled_query()
