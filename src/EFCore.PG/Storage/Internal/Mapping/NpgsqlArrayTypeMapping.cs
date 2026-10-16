@@ -110,8 +110,10 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
         {
             var providerElementType = elementConverter.ProviderClrType;
 
-            // Nullability has been unwrapped on the element converter's provider CLR type, so add it back here if needed
-            if (elementType.IsNullableValueType())
+            // Nullability has been unwrapped on the element converter's provider CLR type, so add it back here if needed.
+            // object can contain null, and a value-type provider element cannot store that null unless it is nullable.
+            if (elementType.IsNullableValueType()
+                || (elementType.UnwrapNullableType() == typeof(object) && providerElementType.IsValueType))
             {
                 providerElementType = providerElementType.MakeNullable();
             }
@@ -141,10 +143,17 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
 #pragma warning restore EF1001
 
         var elementJsonReaderWriter = elementMapping.JsonValueReaderWriter;
-        if (elementJsonReaderWriter is not null && !typeof(TElement).UnwrapNullableType().IsAssignableTo(elementJsonReaderWriter.ValueType))
+        if (elementJsonReaderWriter is not null)
         {
-            throw new InvalidOperationException(
-                $"When building an array mapping over '{typeof(TElement).Name}', the JsonValueReaderWriter for element mapping '{elementMapping.GetType().Name}' is incorrect ('{elementJsonReaderWriter.ValueType.GetType().Name}' instead of '{typeof(TElement).UnwrapNullableType()}', the JsonValueReaderWriter is '{elementJsonReaderWriter.GetType().Name}').");
+            if (typeof(TElement) == typeof(object))
+            {
+                elementJsonReaderWriter = new JsonCastValueReaderWriter<object>(elementJsonReaderWriter);
+            }
+            else if (!typeof(TElement).UnwrapNullableType().IsAssignableTo(elementJsonReaderWriter.ValueType))
+            {
+                throw new InvalidOperationException(
+                    $"When building an array mapping over '{typeof(TElement).Name}', the JsonValueReaderWriter for element mapping '{elementMapping.GetType().Name}' is incorrect ('{elementJsonReaderWriter.ValueType.GetType().Name}' instead of '{typeof(TElement).UnwrapNullableType()}', the JsonValueReaderWriter is '{elementJsonReaderWriter.GetType().Name}').");
+            }
         }
 
         // If there's no JsonValueReaderWriter on the element, we also don't set one on its array (this is for rare edge cases such as

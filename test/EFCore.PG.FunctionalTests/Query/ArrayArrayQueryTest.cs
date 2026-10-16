@@ -426,6 +426,48 @@ WHERE s."Byte" = ANY (@__values_0)
 """);
     }
 
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public virtual async Task Parameter_collection_of_objects_with_value_converter_Contains(bool useList)
+    {
+        if (useList)
+        {
+            List<object> values = [null, SomeEnum.One];
+
+            await AssertQuery(
+                async: true, ss => ss.Set<ArrayEntity>().Where(c => values.Contains(c.EnumConvertedToInt)).Select(c => c.Id));
+            await AssertQuery(
+                async: true, ss => ss.Set<ArrayEntity>().Where(c => values.Contains(c.NullableEnumConvertedToString)).Select(c => c.Id));
+        }
+        else
+        {
+            object[] values = [null, SomeEnum.One];
+
+            await AssertQuery(
+                async: true, ss => ss.Set<ArrayEntity>().Where(c => values.Contains(c.EnumConvertedToInt)).Select(c => c.Id));
+            await AssertQuery(
+                async: true, ss => ss.Set<ArrayEntity>().Where(c => values.Contains(c.NullableEnumConvertedToString)).Select(c => c.Id));
+        }
+
+        AssertSql(
+            """
+@__values_0={ NULL, '-1' } (DbType = Object)
+
+SELECT s."Id"
+FROM "SomeEntities" AS s
+WHERE s."EnumConvertedToInt" = ANY (@__values_0)
+""",
+            //
+            """
+@__values_0={ NULL, 'One' } (DbType = Object)
+
+SELECT s."Id"
+FROM "SomeEntities" AS s
+WHERE s."NullableEnumConvertedToString" = ANY (@__values_0) OR (s."NullableEnumConvertedToString" IS NULL AND array_position(@__values_0, NULL) IS NOT NULL)
+""");
+    }
+
     public override async Task Array_param_Contains_value_converted_column_enum_to_int(bool async)
     {
         var array = new[] { SomeEnum.Two, SomeEnum.Three };
