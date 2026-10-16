@@ -193,7 +193,9 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
             yield return new Annotation(
                 NpgsqlAnnotationNames.IndexInclude,
                 includeProperties
-                    .Select(p => modelIndex.DeclaringEntityType.FindProperty(p)!.GetColumnName(tableIdentifier))
+#pragma warning disable EF1001 // Internal EF Core API usage.
+                    .Select(p => RelationalModel.FindPropertyByPath(modelIndex.DeclaringEntityType, p)!.GetColumnName(tableIdentifier))
+#pragma warning restore EF1001 // Internal EF Core API usage.
                     .ToArray());
         }
 

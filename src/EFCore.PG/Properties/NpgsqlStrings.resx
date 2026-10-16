@@ -150,6 +150,9 @@
   <data name="IncludePropertyInIndex" xml:space="preserve">
     <value>Include property '{entityType}.{property}' is already included in the index</value>
   </data>
+  <data name="IncludePropertyMappedToJson" xml:space="preserve">
+    <value>Include property '{entityType}.{property}' is mapped to JSON. PostgreSQL INCLUDE requires columns, not JSON member expressions.</value>
+  </data>
   <data name="IncludePropertyNotFound" xml:space="preserve">
     <value>Include property '{entityType}.{property}' not found</value>
   </data>

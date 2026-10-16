@@ -110,6 +110,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
                 entityType, property);
 
         /// <summary>
+        ///     Include property '{entityType}.{property}' is mapped to JSON. PostgreSQL INCLUDE requires columns, not JSON member expressions.
+        /// </summary>
+        public static string IncludePropertyMappedToJson(object? entityType, object? property)
+            => string.Format(
+                GetString("IncludePropertyMappedToJson", nameof(entityType), nameof(property)),
+                entityType, property);
+
+        /// <summary>
         ///     Include property '{entityType}.{property}' not found
         /// </summary>
         public static string IncludePropertyNotFound(object? entityType, object? property)

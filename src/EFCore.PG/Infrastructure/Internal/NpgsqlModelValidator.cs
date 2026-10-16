@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -171,13 +172,22 @@ public class NpgsqlModelValidator(
         var includeProperties = index.GetIncludeProperties();
         if (includeProperties?.Count > 0)
         {
-            var notFound = includeProperties
-                .FirstOrDefault(i => index.DeclaringEntityType.FindProperty(i) is null);
-
-            if (notFound is not null)
+            foreach (var includeProperty in includeProperties)
             {
-                throw new InvalidOperationException(
-                    NpgsqlStrings.IncludePropertyNotFound(index.DeclaringEntityType.DisplayName(), notFound));
+#pragma warning disable EF1001 // Internal EF Core API usage.
+                var property = RelationalModel.FindPropertyByPath(index.DeclaringEntityType, includeProperty);
+#pragma warning restore EF1001 // Internal EF Core API usage.
+                if (property is null)
+                {
+                    throw new InvalidOperationException(
+                        NpgsqlStrings.IncludePropertyNotFound(index.DeclaringEntityType.DisplayName(), includeProperty));
+                }
+
+                if (property.DeclaringType.IsMappedToJson())
+                {
+                    throw new InvalidOperationException(
+                        NpgsqlStrings.IncludePropertyMappedToJson(index.DeclaringEntityType.DisplayName(), includeProperty));
+                }
             }
 
             var duplicate = includeProperties
@@ -192,8 +202,10 @@ public class NpgsqlModelValidator(
                     NpgsqlStrings.IncludePropertyDuplicated(index.DeclaringEntityType.DisplayName(), duplicate));
             }
 
+#pragma warning disable EF1001 // Internal EF Core API usage.
             var inIndex = includeProperties
-                .FirstOrDefault(i => index.Properties.Any(p => i == p.Name));
+                .FirstOrDefault(i => index.Properties.Any(p => p == RelationalModel.FindPropertyByPath(index.DeclaringEntityType, i)));
+#pragma warning restore EF1001 // Internal EF Core API usage.
 
             if (inIndex is not null)
             {
