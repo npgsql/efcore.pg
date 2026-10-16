@@ -601,7 +601,7 @@ public static class NpgsqlIndexBuilderExtensions
     ///     updates, or deletes on the table; whereas a standard index build locks out writes (but not reads) on the table until it's done.
     /// </summary>
     /// <remarks>
-    ///     <para>Concurrent index creation is not supported in idempotent migration scripts.</para>
+    ///     <para>Concurrent index creation and removal are not supported in idempotent migration scripts.</para>
     ///     https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
@@ -621,7 +621,7 @@ public static class NpgsqlIndexBuilderExtensions
     ///     updates, or deletes on the table; whereas a standard index build locks out writes (but not reads) on the table until it's done.
     /// </summary>
     /// <remarks>
-    ///     <para>Concurrent index creation is not supported in idempotent migration scripts.</para>
+    ///     <para>Concurrent index creation and removal are not supported in idempotent migration scripts.</para>
     ///     https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
@@ -637,7 +637,7 @@ public static class NpgsqlIndexBuilderExtensions
     ///     updates, or deletes on the table; whereas a standard index build locks out writes (but not reads) on the table until it's done.
     /// </summary>
     /// <remarks>
-    ///     <para>Concurrent index creation is not supported in idempotent migration scripts.</para>
+    ///     <para>Concurrent index creation and removal are not supported in idempotent migration scripts.</para>
     ///     https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>

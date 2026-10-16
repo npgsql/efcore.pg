@@ -1512,14 +1512,29 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
 
-        builder
-            .Append("DROP INDEX ")
-            .Append(DelimitIdentifier(operation.Name, operation.Schema));
+        builder.Append("DROP INDEX ");
+
+        var concurrently = operation[NpgsqlAnnotationNames.CreatedConcurrently] as bool? == true;
+        if (concurrently)
+        {
+            if (Options.HasFlag(MigrationsSqlGenerationOptions.Idempotent))
+            {
+                throw new NotSupportedException(
+                    $"Cannot generate an idempotent migration script for index '{operation.Name}' because "
+                    + "PostgreSQL does not allow DROP INDEX CONCURRENTLY inside the PL/pgSQL DO blocks used to check migration history. "
+                    + "Generate a non-idempotent script, or apply migrations using 'dotnet ef database update' or a migration bundle.");
+            }
+
+            builder.Append("CONCURRENTLY ");
+        }
+
+        builder.Append(DelimitIdentifier(operation.Name, operation.Schema));
 
         if (terminate)
         {
             builder.AppendLine(";");
-            EndStatement(builder);
+            // Concurrent indexes cannot be dropped within a transaction
+            EndStatement(builder, suppressTransaction: concurrently);
         }
     }
 

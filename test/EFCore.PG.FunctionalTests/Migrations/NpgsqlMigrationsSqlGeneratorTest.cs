@@ -1040,6 +1040,73 @@ INTERLEAVE IN PARENT my_schema.my_parent (col_a, col_b);
 
 #pragma warning restore 618
 
+    [Theory]
+    [InlineData(MigrationsSqlGenerationOptions.Default)]
+    [InlineData(MigrationsSqlGenerationOptions.Script)]
+    [InlineData(MigrationsSqlGenerationOptions.Script | MigrationsSqlGenerationOptions.NoTransactions)]
+    public virtual void DropIndexOperation_concurrently(MigrationsSqlGenerationOptions options)
+    {
+        Generate(
+            new DropIndexOperation
+            {
+                Name = "IX_People_Name",
+                Table = "People",
+                Schema = "dbo",
+                [NpgsqlAnnotationNames.CreatedConcurrently] = true
+            },
+            options);
+
+        AssertSql(
+            """
+DROP INDEX CONCURRENTLY dbo."IX_People_Name";
+
+""");
+    }
+
+    [Theory]
+    [InlineData(null, MigrationsSqlGenerationOptions.Default)]
+    [InlineData(null, MigrationsSqlGenerationOptions.Idempotent)]
+    [InlineData(false, MigrationsSqlGenerationOptions.Default)]
+    [InlineData(false, MigrationsSqlGenerationOptions.Idempotent)]
+    public virtual void DropIndexOperation_not_concurrently(bool? concurrently, MigrationsSqlGenerationOptions options)
+    {
+        Generate(
+            new DropIndexOperation
+            {
+                Name = "IX_People_Name",
+                Table = "People",
+                Schema = "dbo",
+                [NpgsqlAnnotationNames.CreatedConcurrently] = concurrently
+            },
+            options);
+
+        AssertSql(
+            """
+DROP INDEX dbo."IX_People_Name";
+
+""");
+    }
+
+    [Theory]
+    [InlineData(MigrationsSqlGenerationOptions.Idempotent)]
+    [InlineData(MigrationsSqlGenerationOptions.Idempotent | MigrationsSqlGenerationOptions.Script)]
+    [InlineData(MigrationsSqlGenerationOptions.Idempotent | MigrationsSqlGenerationOptions.Script | MigrationsSqlGenerationOptions.NoTransactions)]
+    public void DropIndexOperation_concurrently_idempotent_throws(MigrationsSqlGenerationOptions options)
+        => Assert.Equal(
+            "Cannot generate an idempotent migration script for index 'IX_People_Name' because "
+            + "PostgreSQL does not allow DROP INDEX CONCURRENTLY inside the PL/pgSQL DO blocks used to check migration history. "
+            + "Generate a non-idempotent script, or apply migrations using 'dotnet ef database update' or a migration bundle.",
+            Assert.Throws<NotSupportedException>(
+                () => Generate(
+                    new DropIndexOperation
+                    {
+                        Name = "IX_People_Name",
+                        Table = "People",
+                        Schema = "dbo",
+                        [NpgsqlAnnotationNames.CreatedConcurrently] = true
+                    },
+                    options)).Message);
+
     protected override string GetGeometryCollectionStoreType()
         => "GEOMETRY(GEOMETRYCOLLECTION)";
 }
