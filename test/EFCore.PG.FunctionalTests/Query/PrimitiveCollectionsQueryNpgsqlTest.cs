@@ -528,6 +528,36 @@ WHERE p."Enum" = ANY (@__enums_0)
 """);
     }
 
+    [ConditionalTheory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public virtual async Task Parameter_collection_of_objects_with_value_converter_Contains(bool async, bool useList)
+    {
+        if (useList)
+        {
+            List<object> values = [null, MyEnum.Value1];
+
+            await AssertQuery(async, ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => values.Contains(c.Enum)));
+        }
+        else
+        {
+            object[] values = [null, MyEnum.Value1];
+
+            await AssertQuery(async, ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => values.Contains(c.Enum)));
+        }
+
+        AssertSql(
+            """
+@__values_0={ NULL, '0' } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."String", p."Strings"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE p."Enum" = ANY (@__values_0)
+""");
+    }
+
     public override async Task Parameter_collection_ImmutableArray_of_ints_Contains_int(bool async)
     {
         await base.Parameter_collection_ImmutableArray_of_ints_Contains_int(async);

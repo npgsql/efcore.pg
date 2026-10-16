@@ -46,7 +46,7 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
 
         if (elementConverter is not null)
         {
-            if (modelElementType.UnwrapNullableType() != elementConverter.ModelClrType.UnwrapNullableType())
+            if (!ElementTypeMatches(modelElementType, elementConverter.ModelClrType))
             {
                 throw new ArgumentException(
                     $"The element's value converter model type ({elementConverter.ModelClrType}), doesn't match the array's ({modelElementType})");
@@ -299,6 +299,11 @@ public class NpgsqlArrayConverter<TModelCollection, TConcreteModelCollection, TP
 
         return Lambda<Func<TInput, TOutput>>(body, input);
     }
+
+    // object is a valid wider element type (e.g. object[] with an int converter). Other mismatches stay rejected.
+    private static bool ElementTypeMatches(Type collectionElementType, Type converterClrType)
+        => collectionElementType.UnwrapNullableType() == converterClrType.UnwrapNullableType()
+            || collectionElementType.UnwrapNullableType() == typeof(object);
 
     private static Expression ForLoop(
         ParameterExpression loopVar,
