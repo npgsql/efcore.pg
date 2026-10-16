@@ -17,9 +17,8 @@ public class NpgsqlBuilderExtensionsTest
         var model = modelBuilder.FinalizeModel();
 
         Assert.Equal(NpgsqlValueGenerationStrategy.None, model.GetValueGenerationStrategy());
-        foreach (var entityType in model.GetEntityTypes())
+        foreach (var property in model.GetEntityTypes().Select(entityType => entityType.FindProperty("Id")))
         {
-            var property = entityType.FindProperty("Id");
             Assert.Equal(NpgsqlValueGenerationStrategy.None, property.GetValueGenerationStrategy());
             Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
         }
