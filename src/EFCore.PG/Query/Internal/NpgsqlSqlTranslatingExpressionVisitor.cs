@@ -355,12 +355,6 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 typeof(double));
         }
 
-        if (base.VisitMethodCall(methodCallExpression) is var translation
-            && translation != QueryCompilationContext.NotTranslatedExpression)
-        {
-            return translation;
-        }
-
         var declaringType = method.DeclaringType;
         var @object = methodCallExpression.Object;
         var arguments = methodCallExpression.Arguments;
@@ -404,12 +398,50 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                     return QueryCompilationContext.NotTranslatedExpression;
                 }
 
+                if (i == 2
+                    && method.Name is nameof(NpgsqlJsonDbFunctionsExtensions.JsonExistAny) or nameof(NpgsqlJsonDbFunctionsExtensions.JsonExistAll)
+                    && translatedArgument.TypeMapping is NpgsqlJsonTypeMapping { ElementTypeMapping: not null } jsonMapping)
+                {
+                    var sqlAliasManager = ((RelationalQueryCompilationContext)_queryCompilationContext).SqlAliasManager;
+                    var tableAlias = sqlAliasManager.GenerateTableAlias("k");
+                    var keys = new PgTableValuedFunctionExpression(
+                        tableAlias,
+                        jsonMapping.IsJsonb ? "jsonb_array_elements_text" : "json_array_elements_text",
+                        [translatedArgument],
+                        columnInfos: [new("key")],
+                        withOrdinality: false);
+                    var arrayMapping = _typeMappingSource.FindMapping(typeof(string[]))!;
+                    var aggregate = _sqlExpressionFactory.Function(
+                        "array_agg",
+                        [new ColumnExpression("key", tableAlias, typeof(string), _typeMappingSource.FindMapping(typeof(string)), nullable: true)],
+                        nullable: true,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        typeof(string[]),
+                        arrayMapping);
+                    // array_agg returns NULL for empty input, but ?| and ?& need an empty array in that case.
+#pragma warning disable EF1001 // SelectExpression constructors are pubternal
+                    var select = new SelectExpression(
+                        [keys],
+                        _sqlExpressionFactory.Coalesce(aggregate, _sqlExpressionFactory.NewArray([], typeof(string[]), arrayMapping)),
+                        [],
+                        sqlAliasManager);
+#pragma warning restore EF1001
+                    select.ApplyProjection();
+                    translatedArgument = new ScalarSubqueryExpression(select);
+                }
+
                 translatedArguments[i] = translatedArgument;
             }
 
             return Dependencies.MethodCallTranslatorProvider.Translate(
                     Dependencies.Model, null, method, translatedArguments, _queryCompilationContext.Logger)
                 ?? QueryCompilationContext.NotTranslatedExpression;
+        }
+
+        if (base.VisitMethodCall(methodCallExpression) is var translation
+            && translation != QueryCompilationContext.NotTranslatedExpression)
+        {
+            return translation;
         }
 
         switch (method.Name)

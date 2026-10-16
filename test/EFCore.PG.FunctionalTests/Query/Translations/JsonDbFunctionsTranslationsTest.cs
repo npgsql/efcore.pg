@@ -154,6 +154,38 @@ WHERE NOT (e."Document" ? (e."Document" ->> 'Name')) AND e."Document" ?| ARRAY[e
     }
 
     [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Json_existence_with_modeled_key_collection(bool owned)
+    {
+        var contextFactory = await Initialize(owned);
+        await using var context = contextFactory.CreateDbContext();
+
+        var result = await context.Entities.Where(
+                e => EF.Functions.JsonExistAny(e.Document, e.Document.Keys)
+                    && EF.Functions.JsonExistAll(e.Document, e.Document.Keys)
+                    && !EF.Functions.JsonExistAny(e.Document, e.Document.EmptyKeys)
+                    && EF.Functions.JsonExistAll(e.Document, e.Document.EmptyKeys))
+            .Select(e => e.Id).ToListAsync();
+
+        Assert.Equal([1], result);
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE e."Document" ?| (
+    SELECT COALESCE(array_agg(k.key), ARRAY[]::text[])
+    FROM jsonb_array_elements_text(e."Document" -> 'Keys') AS k(key)) AND e."Document" ?& (
+    SELECT COALESCE(array_agg(k0.key), ARRAY[]::text[])
+    FROM jsonb_array_elements_text(e."Document" -> 'Keys') AS k0(key)) AND NOT (e."Document" ?| (
+    SELECT COALESCE(array_agg(k1.key), ARRAY[]::text[])
+    FROM jsonb_array_elements_text(e."Document" -> 'EmptyKeys') AS k1(key))) AND e."Document" ?& (
+    SELECT COALESCE(array_agg(k2.key), ARRAY[]::text[])
+    FROM jsonb_array_elements_text(e."Document" -> 'EmptyKeys') AS k2(key))
+""");
+    }
+
+    [ConditionalTheory]
     [InlineData(false, "jsonb")]
     [InlineData(true, "jsonb")]
     [InlineData(false, "json")]
@@ -238,12 +270,24 @@ WHERE {{storeType}}_typeof(e."Document") = 'object' AND {{storeType}}_typeof(e."
                     new JsonEntity
                     {
                         Id = 1,
-                        Document = new Document { Name = "Joe", Details = new Details { Value = 1 }, Items = [new Details { Value = 1 }] }
+                        Document = new Document
+                        {
+                            Name = "Joe",
+                            Details = new Details { Value = 1 },
+                            Items = [new Details { Value = 1 }],
+                            Keys = ["Name", "Details"]
+                        }
                     },
                     new JsonEntity
                     {
                         Id = 2,
-                        Document = new Document { Name = "Moe", Details = new Details { Value = 2 }, Items = [new Details { Value = 2 }] }
+                        Document = new Document
+                        {
+                            Name = "Moe",
+                            Details = new Details { Value = 2 },
+                            Items = [new Details { Value = 2 }],
+                            Keys = ["Missing"]
+                        }
                     });
                 await context.SaveChangesAsync();
             });
@@ -264,6 +308,8 @@ WHERE {{storeType}}_typeof(e."Document") = 'object' AND {{storeType}}_typeof(e."
         public required string Name { get; set; }
         public required Details Details { get; set; }
         public required List<Details> Items { get; set; }
+        public required string[] Keys { get; set; }
+        public string[] EmptyKeys { get; set; } = [];
     }
 
     private class Details
