@@ -118,6 +118,40 @@ LIMIT 2
                 .SingleAsync());
     }
 
+    [ConditionalTheory]
+    [InlineData("jsonb")]
+    [InlineData("json")]
+    public virtual async Task Json_aggregate_over_byte_values(string storeType)
+    {
+        var contextFactory = await InitializeNonSharedTest<ByteAggregateDbContext>(
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new ByteAggregateEntity { Id = 1, GroupId = 1, Value = 2 },
+                    new ByteAggregateEntity { Id = 2, GroupId = 1, Value = 1 });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+
+        // json_agg/jsonb_agg return a JSON array, so the byte[] result must contain the aggregated values, and not the raw UTF-8 bytes
+        // of the JSON array text (as with a byte[] property mapped to json/jsonb above)
+        var groups = context.Entities.GroupBy(e => e.GroupId);
+        var values = storeType == "jsonb"
+            ? await groups.Select(g => EF.Functions.JsonbAgg(g.Select(e => e.Value).OrderBy(v => v))).SingleAsync()
+            : await groups.Select(g => EF.Functions.JsonAgg(g.Select(e => e.Value).OrderBy(v => v))).SingleAsync();
+
+        Assert.Equal(new byte[] { 1, 2 }, values);
+
+        AssertSql(
+            $"""
+SELECT {storeType}_agg(e."Value" ORDER BY e."Value" NULLS FIRST)
+FROM "Entities" AS e
+GROUP BY e."GroupId"
+LIMIT 2
+""");
+    }
+
     protected class ByteArrayJsonDbContext(DbContextOptions options) : DbContext(options)
     {
         public DbSet<ByteArrayJsonEntity> Entities { get; set; }
@@ -127,6 +161,18 @@ LIMIT 2
     {
         public int Id { get; set; }
         public byte[] Json { get; set; }
+    }
+
+    protected class ByteAggregateDbContext(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<ByteAggregateEntity> Entities { get; set; }
+    }
+
+    public class ByteAggregateEntity
+    {
+        public int Id { get; set; }
+        public int GroupId { get; set; }
+        public byte Value { get; set; }
     }
 
     protected class TypesDbContext(DbContextOptions options) : DbContext(options)
