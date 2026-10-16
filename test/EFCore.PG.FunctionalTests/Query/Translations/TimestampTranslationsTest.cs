@@ -722,6 +722,24 @@ WHERE e."TimestamptzDateTime" AT TIME ZONE 'Europe/Berlin' = TIMESTAMP '1998-04-
 """);
     }
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Where_ConvertTimeBySystemTimeZoneId_on_DateTimeOffset_UtcDateTime(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>().Where(
+                e => TimeZoneInfo.ConvertTimeBySystemTimeZoneId(e.TimestampDateTimeOffset.UtcDateTime, "Europe/Berlin")
+                    == new DateTime(1998, 4, 12, 15, 26, 38)));
+
+        AssertSql(
+            """
+SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
+FROM "Entities" AS e
+WHERE e."TimestampDateTimeOffset" AT TIME ZONE 'Europe/Berlin' = TIMESTAMP '1998-04-12T15:26:38'
+""");
+    }
+
     [ConditionalFact]
     public virtual async Task Where_ConvertTimeBySystemTimeZoneId_fails_on_DateTime_timestamp_column()
     {
