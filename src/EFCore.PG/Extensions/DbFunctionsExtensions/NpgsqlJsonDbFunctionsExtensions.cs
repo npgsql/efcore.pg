@@ -5,6 +5,7 @@ namespace Microsoft.EntityFrameworkCore;
 
 /// <summary>
 ///     Provides methods for supporting translation to PostgreSQL JSON operators and functions.
+///     JSON arguments can also be complex properties or owned entities mapped with <c>ToJson()</c>, including nested JSON values.
 /// </summary>
 public static class NpgsqlJsonDbFunctionsExtensions
 {

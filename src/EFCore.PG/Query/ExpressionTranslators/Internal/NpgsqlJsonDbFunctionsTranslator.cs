@@ -57,13 +57,17 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
             // This means they come wrapped in a convert node, which we need to remove.
             // Convert nodes may also come from wrapping JsonTraversalExpressions generated through POCO traversal.
             .Select(RemoveConvert)
-            // If a function is invoked over a JSON traversal expression, that expression may come with
-            // returnText: true (i.e. operator ->> and not ->). Since the functions below require a json object and
-            // not text, we transform it.
-            .Select(a => a is PgJsonTraversalExpression traversal ? WithReturnsText(traversal, false) : a)
+            // JSON functions require JSON fragments, rather than extracting their values as text or other scalar types.
+            .Select(a => a switch
+            {
+                PgJsonTraversalExpression traversal => WithReturnsText(traversal, false),
+                JsonScalarExpression scalar => new JsonScalarExpression(
+                    scalar.Json, scalar.Path, scalar.Type, scalar.Json.TypeMapping!, scalar.IsNullable),
+                _ => a
+            })
             .ToArray();
 
-        if (!args.Any(a => a.TypeMapping is NpgsqlJsonTypeMapping || a is PgJsonTraversalExpression))
+        if (!args.Any(a => a.TypeMapping is NpgsqlJsonTypeMapping or NpgsqlStructuralJsonTypeMapping || a is PgJsonTraversalExpression))
         {
             throw new InvalidOperationException("The EF JSON methods require a JSON parameter and none was found.");
         }
@@ -71,7 +75,7 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
         if (method.Name == nameof(NpgsqlJsonDbFunctionsExtensions.JsonTypeof))
         {
             return _sqlExpressionFactory.Function(
-                ((NpgsqlJsonTypeMapping)args[0].TypeMapping!).IsJsonb ? "jsonb_typeof" : "json_typeof",
+                args[0].TypeMapping!.StoreType == "jsonb" ? "jsonb_typeof" : "json_typeof",
                 [args[0]],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
@@ -79,7 +83,7 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
         }
 
         // The following are jsonb-only, not support on json
-        if (args.Any(a => a.TypeMapping is NpgsqlJsonTypeMapping { IsJsonb: false }))
+        if (args.Any(a => a.TypeMapping is { StoreType: "json" }))
         {
             throw new InvalidOperationException("JSON methods on EF.Functions only support the jsonb type, not json.");
         }

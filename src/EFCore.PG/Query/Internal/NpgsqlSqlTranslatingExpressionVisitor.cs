@@ -365,6 +365,59 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         var @object = methodCallExpression.Object;
         var arguments = methodCallExpression.Arguments;
 
+        // Modeled JSON arguments aren't scalar SQL expressions, so they can't be handled by the normal method translation path.
+        if (declaringType == typeof(NpgsqlJsonDbFunctionsExtensions))
+        {
+            var translatedArguments = new SqlExpression[arguments.Count];
+            for (var i = 0; i < arguments.Count; i++)
+            {
+                var argument = arguments[i];
+                Expression? projection;
+                if (argument is MaterializeCollectionNavigationExpression
+                    {
+                        Subquery: MethodCallExpression { Method: var asQueryable, Arguments: [var collection] }
+                    }
+                    && asQueryable.IsGenericMethod
+                    && asQueryable.GetGenericMethodDefinition() == QueryableMethods.AsQueryable)
+                {
+                    projection = Visit(collection);
+                }
+                else
+                {
+#pragma warning disable EF1001 // TranslateProjection() is pubternal
+                    projection = TranslateProjection(argument, applyDefaultTypeMapping: false);
+#pragma warning restore EF1001
+                }
+
+                var jsonQuery = projection switch
+                {
+                    JsonQueryExpression query => query,
+                    RelationalStructuralTypeShaperExpression { ValueBufferExpression: JsonQueryExpression query } => query,
+                    CollectionResultExpression { QueryExpression: JsonQueryExpression query } => query,
+                    _ => null
+                };
+
+                var translatedArgument = jsonQuery switch
+                {
+                    { Path.Count: 0 } => jsonQuery.JsonColumn,
+                    not null => new JsonScalarExpression(
+                        jsonQuery.JsonColumn, jsonQuery.Path, jsonQuery.Type, jsonQuery.JsonColumn.TypeMapping!, jsonQuery.IsNullable),
+                    null => projection as SqlExpression
+                };
+
+                if (translatedArgument is null)
+                {
+                    return QueryCompilationContext.NotTranslatedExpression;
+                }
+
+                translatedArguments[i] = translatedArgument;
+            }
+
+            return Dependencies.MethodCallTranslatorProvider.Translate(
+                    Dependencies.Model, null, method, translatedArguments, _queryCompilationContext.Logger)
+                ?? QueryCompilationContext.NotTranslatedExpression;
+        }
+
         switch (method.Name)
         {
             // Pattern-match: cube.ToSubset(indexes)
