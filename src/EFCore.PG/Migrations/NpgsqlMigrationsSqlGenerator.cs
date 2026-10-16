@@ -1504,6 +1504,14 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         var concurrently = operation[NpgsqlAnnotationNames.CreatedConcurrently] as bool? == true;
         if (concurrently)
         {
+            if (Options.HasFlag(MigrationsSqlGenerationOptions.Idempotent))
+            {
+                throw new NotSupportedException(
+                    $"Cannot generate an idempotent migration script for index '{operation.Name}' because "
+                    + "PostgreSQL does not allow DROP INDEX CONCURRENTLY inside the PL/pgSQL DO blocks used to check migration history. "
+                    + "Generate a non-idempotent script, or apply migrations using 'dotnet ef database update' or a migration bundle.");
+            }
+
             builder.Append("CONCURRENTLY ");
         }
 
