@@ -71,6 +71,56 @@ public class TemporalConstraintNodaTimeTest(NonSharedFixture fixture)
         Assert.Equal([1, 2], await context.Set<Room<int>>().OrderBy(r => r.Validity).Select(r => r.Validity).ToListAsync());
     }
 
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Converted_NpgsqlRange_keys(bool crossType)
+    {
+        var contextFactory = await InitializeNonSharedTest<DbContext>(
+            onModelCreating: modelBuilder =>
+            {
+                modelBuilder.Entity<Room<NpgsqlRange<int>>>(b =>
+                {
+                    b.HasKey(r => new { r.Id, r.Validity }).WithoutOverlaps();
+                    var property = b.Property(r => r.Validity);
+
+                    if (crossType)
+                    {
+                        property.HasConversion(
+                            v => new NpgsqlRange<long>(v.LowerBound, v.LowerBoundIsInclusive, v.UpperBound, v.UpperBoundIsInclusive),
+                            v => new NpgsqlRange<int>((int)v.LowerBound, v.LowerBoundIsInclusive, (int)v.UpperBound, v.UpperBoundIsInclusive));
+                    }
+                    else
+                    {
+                        property.HasConversion(
+                            v => new NpgsqlRange<int>(v.LowerBound, true, v.UpperBound, false),
+                            v => v);
+                    }
+                });
+            },
+            onConfiguring: b => new NpgsqlDbContextOptionsBuilder(b).SetPostgresVersion(18, 0));
+
+        await using var context = contextFactory.CreateDbContext();
+        context.AddRange(
+            new Room<NpgsqlRange<int>> { Id = 1, Validity = new NpgsqlRange<int>(3, true, 4, false), Name = "Second" },
+            new Room<NpgsqlRange<int>> { Id = 1, Validity = new NpgsqlRange<int>(1, true, 2, false), Name = "First" });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var rooms = await context.Set<Room<NpgsqlRange<int>>>().OrderBy(r => r.Validity).ToListAsync();
+        Assert.Equal(["First", "Second"], rooms.Select(r => r.Name));
+
+        foreach (var room in rooms)
+        {
+            room.Name = "Updated";
+        }
+
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        Assert.All(await context.Set<Room<NpgsqlRange<int>>>().ToListAsync(), r => Assert.Equal("Updated", r.Name));
+    }
+
     private async Task TemporalConstraints<T>(T firstPeriod, T secondPeriod)
     {
         var contextFactory = await InitializeNonSharedTest<TemporalContext<T>>(

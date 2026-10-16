@@ -30,27 +30,29 @@ public class IntervalRangeMapping : NpgsqlTypeMapping, INpgsqlRangeTypeMapping
     public static IntervalRangeMapping Default { get; } = new();
 
     /// <inheritdoc />
-    public virtual IComparer CreateCurrentValueComparer()
-        => Comparer<Interval>.Create((x, y) =>
-        {
-            var startComparison = (x.HasStart, y.HasStart) switch
+    public virtual IComparer? CreateCurrentValueComparer(Type clrType)
+        => clrType == typeof(Interval)
+            ? Comparer<Interval>.Create((x, y) =>
             {
-                (true, true) => x.Start.CompareTo(y.Start),
-                (false, false) => 0,
-                (false, true) => -1,
-                (true, false) => 1
-            };
-
-            return startComparison != 0
-                ? startComparison
-                : (x.HasEnd, y.HasEnd) switch
+                var startComparison = (x.HasStart, y.HasStart) switch
                 {
-                    (true, true) => x.End.CompareTo(y.End),
+                    (true, true) => x.Start.CompareTo(y.Start),
                     (false, false) => 0,
-                    (false, true) => 1,
-                    (true, false) => -1
+                    (false, true) => -1,
+                    (true, false) => 1
                 };
-        });
+
+                return startComparison != 0
+                    ? startComparison
+                    : (x.HasEnd, y.HasEnd) switch
+                    {
+                        (true, true) => x.End.CompareTo(y.End),
+                        (false, false) => 0,
+                        (false, true) => 1,
+                        (true, false) => -1
+                    };
+            })
+            : null;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

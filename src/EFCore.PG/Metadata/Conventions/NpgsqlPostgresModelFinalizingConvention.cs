@@ -113,18 +113,19 @@ public class NpgsqlPostgresModelFinalizingConvention(
     }
 
     /// <summary>
-    ///     Pre-sets the current value comparer for unconverted range key/FK properties, since range types don't implement
+    ///     Pre-sets the current value comparer for range key/FK properties, since range types don't implement
     ///     <see cref="IComparable" /> and the default <see cref="CurrentValueComparerFactory" /> would reject them.
     /// </summary>
     protected virtual void SetRangeCurrentValueComparer(IConventionProperty property, RelationalTypeMapping typeMapping)
     {
         if ((property.IsKey() || property.IsForeignKey())
-            && typeMapping is { Converter: null } and INpgsqlRangeTypeMapping rangeTypeMapping
+            && typeMapping is INpgsqlRangeTypeMapping rangeTypeMapping
+            && rangeTypeMapping.CreateCurrentValueComparer(property.ClrType.UnwrapNullableType()) is { } comparer
             && property is PropertyBase propertyBase)
         {
 #pragma warning disable EF1001 // Internal EF Core API usage.
             propertyBase.SetCurrentValueComparer(
-                new EntryCurrentValueComparer((IProperty)property, rangeTypeMapping.CreateCurrentValueComparer()));
+                new EntryCurrentValueComparer((IProperty)property, comparer));
 #pragma warning restore EF1001 // Internal EF Core API usage.
         }
     }

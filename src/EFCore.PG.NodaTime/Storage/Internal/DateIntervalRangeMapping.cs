@@ -28,12 +28,14 @@ public class DateIntervalRangeMapping : NpgsqlTypeMapping, INpgsqlRangeTypeMappi
     public static DateIntervalRangeMapping Default { get; } = new();
 
     /// <inheritdoc />
-    public virtual IComparer CreateCurrentValueComparer()
-        => Comparer<DateInterval>.Create((x, y) =>
-        {
-            var startComparison = x.Start.CompareTo(y.Start);
-            return startComparison != 0 ? startComparison : x.End.CompareTo(y.End);
-        });
+    public virtual IComparer? CreateCurrentValueComparer(Type clrType)
+        => clrType == typeof(DateInterval)
+            ? Comparer<DateInterval>.Create((x, y) =>
+            {
+                var startComparison = x.Start.CompareTo(y.Start);
+                return startComparison != 0 ? startComparison : x.End.CompareTo(y.End);
+            })
+            : null;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

@@ -47,8 +47,10 @@ public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping, INpgsqlRangeTypeMapping
     public virtual string? UnquotedStoreType { get; init; }
 
     /// <inheritdoc />
-    public virtual IComparer CreateCurrentValueComparer()
-        => new NpgsqlRangeCurrentValueComparer(ClrType);
+    public virtual IComparer? CreateCurrentValueComparer(Type clrType)
+        => clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(NpgsqlRange<>)
+            ? new NpgsqlRangeCurrentValueComparer(clrType)
+            : null;
 
     /// <summary>
     ///     Constructs an instance of the <see cref="NpgsqlRangeTypeMapping" /> class for a built-in range type which has a

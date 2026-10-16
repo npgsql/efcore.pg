@@ -255,7 +255,7 @@ public class NpgsqlNodaTimeTypeMappingTest
     [Fact]
     public void Interval_current_value_comparer()
     {
-        var comparer = ((INpgsqlRangeTypeMapping)GetMapping(typeof(Interval))).CreateCurrentValueComparer();
+        var comparer = ((INpgsqlRangeTypeMapping)GetMapping(typeof(Interval))).CreateCurrentValueComparer(typeof(Interval));
         var start = Instant.FromUtc(2025, 1, 1, 0, 0);
         var middle = Instant.FromUtc(2025, 6, 1, 0, 0);
         var end = Instant.FromUtc(2025, 12, 1, 0, 0);
@@ -519,7 +519,7 @@ public class NpgsqlNodaTimeTypeMappingTest
     [Fact]
     public void DateInterval_current_value_comparer()
     {
-        var comparer = ((INpgsqlRangeTypeMapping)GetMapping(typeof(DateInterval))).CreateCurrentValueComparer();
+        var comparer = ((INpgsqlRangeTypeMapping)GetMapping(typeof(DateInterval))).CreateCurrentValueComparer(typeof(DateInterval));
         var start = new LocalDate(2025, 1, 1);
         var middle = new LocalDate(2025, 6, 1);
         var end = new LocalDate(2025, 12, 1);

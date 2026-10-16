@@ -78,11 +78,12 @@ public class NpgsqlRuntimeModelConvention(
         // provide a custom CurrentValueComparer for the runtime model. Without this, the update pipeline's
         // ModificationCommandComparer would fail when trying to sort commands by key values.
         if ((property.IsKey() || property.IsForeignKey())
-            && property.FindTypeMapping() is { Converter: null } and INpgsqlRangeTypeMapping rangeTypeMapping)
+            && property.FindTypeMapping() is INpgsqlRangeTypeMapping rangeTypeMapping
+            && rangeTypeMapping.CreateCurrentValueComparer(property.ClrType.UnwrapNullableType()) is { } comparer)
         {
 #pragma warning disable EF1001 // Internal EF Core API usage.
             runtimeProperty.SetCurrentValueComparer(
-                new EntryCurrentValueComparer(runtimeProperty, rangeTypeMapping.CreateCurrentValueComparer()));
+                new EntryCurrentValueComparer(runtimeProperty, comparer));
 #pragma warning restore EF1001 // Internal EF Core API usage.
         }
 
