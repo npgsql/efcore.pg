@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.ChangeTracking.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
@@ -75,15 +74,15 @@ public class NpgsqlRuntimeModelConvention(
     {
         base.ProcessPropertyAnnotations(annotations, property, runtimeProperty, runtime);
 
-        // NpgsqlRange<T> doesn't implement IComparable (ranges are only partially ordered), so we must
+        // Range types don't implement IComparable (ranges are only partially ordered), so we must
         // provide a custom CurrentValueComparer for the runtime model. Without this, the update pipeline's
         // ModificationCommandComparer would fail when trying to sort commands by key values.
         if ((property.IsKey() || property.IsForeignKey())
-            && property.FindTypeMapping() is NpgsqlRangeTypeMapping)
+            && property.FindTypeMapping() is INpgsqlRangeTypeMapping rangeTypeMapping)
         {
 #pragma warning disable EF1001 // Internal EF Core API usage.
             runtimeProperty.SetCurrentValueComparer(
-                new EntryCurrentValueComparer(runtimeProperty, new NpgsqlRangeCurrentValueComparer(property.ClrType)));
+                new EntryCurrentValueComparer(runtimeProperty, rangeTypeMapping.CreateCurrentValueComparer()));
 #pragma warning restore EF1001 // Internal EF Core API usage.
         }
 

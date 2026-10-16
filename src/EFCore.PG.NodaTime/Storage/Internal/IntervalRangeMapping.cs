@@ -1,5 +1,4 @@
-
-
+using System.Collections;
 using System.Text;
 using NodaTime.Text;
 // ReSharper disable once CheckNamespace
@@ -14,7 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class IntervalRangeMapping : NpgsqlTypeMapping
+public class IntervalRangeMapping : NpgsqlTypeMapping, INpgsqlRangeTypeMapping
 {
     private static readonly ConstructorInfo _constructor =
         typeof(Interval).GetConstructor([typeof(Instant), typeof(Instant)])!;
@@ -29,6 +28,29 @@ public class IntervalRangeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public static IntervalRangeMapping Default { get; } = new();
+
+    /// <inheritdoc />
+    public virtual IComparer CreateCurrentValueComparer()
+        => Comparer<Interval>.Create((x, y) =>
+        {
+            var startComparison = (x.HasStart, y.HasStart) switch
+            {
+                (true, true) => x.Start.CompareTo(y.Start),
+                (false, false) => 0,
+                (false, true) => -1,
+                (true, false) => 1
+            };
+
+            return startComparison != 0
+                ? startComparison
+                : (x.HasEnd, y.HasEnd) switch
+                {
+                    (true, true) => x.End.CompareTo(y.End),
+                    (false, false) => 0,
+                    (false, true) => 1,
+                    (true, false) => -1
+                };
+        });
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
