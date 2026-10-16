@@ -64,7 +64,9 @@ public static class NpgsqlShapedQueryExpressionExtensions
                 || (select.Orderings is [{ Expression: ColumnExpression { Name: "ordinality", TableAlias: var orderingTableAlias } }]
                     && orderingTableAlias == unnest.Alias))
             && IsPostgresArray(a)
-            && TryGetProjectedColumn(source, out var column))
+            && TryGetProjectedColumn(source, out var column)
+            && column.TableAlias == unnest.Alias
+            && column.Name == unnest.ColumnName)
         {
             array = a;
             projectedColumn = column;
