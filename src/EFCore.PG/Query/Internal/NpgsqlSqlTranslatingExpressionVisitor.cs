@@ -427,7 +427,18 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                         sqlAliasManager);
 #pragma warning restore EF1001
                     select.ApplyProjection();
-                    translatedArgument = new ScalarSubqueryExpression(select);
+                    var jsonType = _sqlExpressionFactory.Function(
+                        jsonMapping.IsJsonb ? "jsonb_typeof" : "json_typeof",
+                        [translatedArgument],
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(string));
+                    var nullKeys = _sqlExpressionFactory.OrElse(
+                        _sqlExpressionFactory.IsNull(translatedArgument),
+                        _sqlExpressionFactory.Equal(jsonType, _sqlExpressionFactory.Constant("null")));
+                    translatedArgument = _sqlExpressionFactory.Case(
+                        [new CaseWhenClause(nullKeys, _sqlExpressionFactory.Constant(null, typeof(string[]), arrayMapping))],
+                        new ScalarSubqueryExpression(select));
                 }
 
                 translatedArguments[i] = translatedArgument;

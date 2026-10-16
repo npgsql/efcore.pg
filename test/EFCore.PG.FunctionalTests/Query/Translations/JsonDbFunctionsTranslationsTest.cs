@@ -173,15 +173,64 @@ WHERE NOT (e."Document" ? (e."Document" ->> 'Name')) AND e."Document" ?| ARRAY[e
             """
 SELECT e."Id"
 FROM "Entities" AS e
-WHERE e."Document" ?| (
-    SELECT COALESCE(array_agg(k.key), ARRAY[]::text[])
-    FROM jsonb_array_elements_text(e."Document" -> 'Keys') AS k(key)) AND e."Document" ?& (
-    SELECT COALESCE(array_agg(k0.key), ARRAY[]::text[])
-    FROM jsonb_array_elements_text(e."Document" -> 'Keys') AS k0(key)) AND NOT (e."Document" ?| (
-    SELECT COALESCE(array_agg(k1.key), ARRAY[]::text[])
-    FROM jsonb_array_elements_text(e."Document" -> 'EmptyKeys') AS k1(key))) AND e."Document" ?& (
-    SELECT COALESCE(array_agg(k2.key), ARRAY[]::text[])
-    FROM jsonb_array_elements_text(e."Document" -> 'EmptyKeys') AS k2(key))
+WHERE e."Document" ?| CASE
+    WHEN jsonb_typeof(e."Document" -> 'Keys') = 'null' THEN NULL
+    ELSE (
+        SELECT COALESCE(array_agg(k.key), ARRAY[]::text[])
+        FROM jsonb_array_elements_text(e."Document" -> 'Keys') AS k(key))
+END AND e."Document" ?& CASE
+    WHEN jsonb_typeof(e."Document" -> 'Keys') = 'null' THEN NULL
+    ELSE (
+        SELECT COALESCE(array_agg(k0.key), ARRAY[]::text[])
+        FROM jsonb_array_elements_text(e."Document" -> 'Keys') AS k0(key))
+END AND NOT (e."Document" ?| CASE
+    WHEN jsonb_typeof(e."Document" -> 'EmptyKeys') = 'null' THEN NULL
+    ELSE (
+        SELECT COALESCE(array_agg(k1.key), ARRAY[]::text[])
+        FROM jsonb_array_elements_text(e."Document" -> 'EmptyKeys') AS k1(key))
+END) AND e."Document" ?& CASE
+    WHEN jsonb_typeof(e."Document" -> 'EmptyKeys') = 'null' THEN NULL
+    ELSE (
+        SELECT COALESCE(array_agg(k2.key), ARRAY[]::text[])
+        FROM jsonb_array_elements_text(e."Document" -> 'EmptyKeys') AS k2(key))
+END
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Json_existence_with_null_modeled_key_collection(bool owned)
+    {
+        var contextFactory = await Initialize(owned);
+        await using var context = contextFactory.CreateDbContext();
+        // Row 1 contains JSON null; the missing property in row 2 extracts SQL NULL.
+        await context.Database.ExecuteSqlRawAsync(
+            """UPDATE "Entities" SET "Document" = "Document" - 'NullableKeys' WHERE "Id" = 2""");
+        ((TestSqlLoggerFactory)ListLoggerFactory).Clear();
+
+        bool? nullResult = null;
+        var result = await context.Entities.Where(
+                e => (bool?)EF.Functions.JsonExistAny(e.Document, e.Document.NullableKeys!) == nullResult
+                    && (bool?)EF.Functions.JsonExistAll(e.Document, e.Document.NullableKeys!) == nullResult)
+            .Select(e => e.Id).ToListAsync();
+
+        Assert.Equal([1, 2], result.Order());
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE e."Document" ?| CASE
+    WHEN (e."Document" -> 'NullableKeys') IS NULL OR jsonb_typeof(e."Document" -> 'NullableKeys') = 'null' THEN NULL
+    ELSE (
+        SELECT COALESCE(array_agg(k.key), ARRAY[]::text[])
+        FROM jsonb_array_elements_text(e."Document" -> 'NullableKeys') AS k(key))
+END IS NULL AND e."Document" ?& CASE
+    WHEN (e."Document" -> 'NullableKeys') IS NULL OR jsonb_typeof(e."Document" -> 'NullableKeys') = 'null' THEN NULL
+    ELSE (
+        SELECT COALESCE(array_agg(k0.key), ARRAY[]::text[])
+        FROM jsonb_array_elements_text(e."Document" -> 'NullableKeys') AS k0(key))
+END IS NULL
 """);
     }
 
@@ -310,6 +359,7 @@ WHERE {{storeType}}_typeof(e."Document") = 'object' AND {{storeType}}_typeof(e."
         public required List<Details> Items { get; set; }
         public required string[] Keys { get; set; }
         public string[] EmptyKeys { get; set; } = [];
+        public string[]? NullableKeys { get; set; }
     }
 
     private class Details
