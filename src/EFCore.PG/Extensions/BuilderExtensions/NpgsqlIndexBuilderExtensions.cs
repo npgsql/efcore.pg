@@ -1,4 +1,5 @@
 using System.Collections;
+using Microsoft.EntityFrameworkCore.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
@@ -476,7 +477,11 @@ public static class NpgsqlIndexBuilderExtensions
     ///     This clause specifies a list of columns which will be included as a non-key part in the index.
     /// </summary>
     /// <remarks>
+    ///     Property names can be dotted paths to scalar properties in flattened complex types.
+    ///     JSON member paths are not supported.
+    ///     <para>
     ///     https://www.postgresql.org/docs/current/sql-createindex.html
+    ///     </para>
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="propertyNames">An array of property names to be used in INCLUDE clause.</param>
@@ -498,7 +503,11 @@ public static class NpgsqlIndexBuilderExtensions
     ///     This clause specifies a list of columns which will be included as a non-key part in the index.
     /// </summary>
     /// <remarks>
+    ///     Property names can be dotted paths to scalar properties in flattened complex types.
+    ///     JSON member paths are not supported.
+    ///     <para>
     ///     https://www.postgresql.org/docs/current/sql-createindex.html
+    ///     </para>
     /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="propertyNames">An array of property names to be used in INCLUDE clause.</param>
@@ -532,6 +541,10 @@ public static class NpgsqlIndexBuilderExtensions
     ///         If multiple properties are to be included then specify an anonymous type including the
     ///         properties (<c>post => new { post.Title, post.BlogId }</c>).
     ///     </para>
+    ///     <para>
+    ///         Scalar properties in flattened complex types can be included with member paths
+    ///         (<c>customer => customer.Address.PostalCode</c>). JSON member paths and collection traversals are not supported.
+    ///     </para>
     /// </param>
     /// <returns>A builder to further configure the index.</returns>
     public static IndexBuilder<TEntity> IncludeProperties<TEntity>(
@@ -541,7 +554,18 @@ public static class NpgsqlIndexBuilderExtensions
         Check.NotNull(indexBuilder, nameof(indexBuilder));
         Check.NotNull(includeExpression, nameof(includeExpression));
 
-        indexBuilder.IncludeProperties(includeExpression.GetPropertyAccessList().Select(x => x.Name).ToArray());
+#pragma warning disable EF1001 // Internal EF Core API usage.
+        var (members, _, collectionIndices) = includeExpression.MatchComplexMemberAccessList(nameof(includeExpression));
+        if (collectionIndices is not null)
+        {
+            throw new ArgumentException(CoreStrings.InvalidMembersExpression(includeExpression), nameof(includeExpression));
+        }
+
+        indexBuilder.IncludeProperties(
+            members
+                .Select(chain => string.Join(".", chain.Select(EntityFrameworkMemberInfoExtensions.GetSimpleMemberName)))
+                .ToArray());
+#pragma warning restore EF1001 // Internal EF Core API usage.
 
         return indexBuilder;
     }
