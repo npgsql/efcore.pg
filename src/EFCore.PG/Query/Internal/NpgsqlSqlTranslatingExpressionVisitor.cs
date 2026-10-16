@@ -372,22 +372,16 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             for (var i = 0; i < arguments.Count; i++)
             {
                 var argument = arguments[i];
-                Expression? projection;
-                if (argument is MaterializeCollectionNavigationExpression
+#pragma warning disable EF1001 // TranslateProjection() is pubternal
+                var projection = argument is MaterializeCollectionNavigationExpression
                     {
                         Subquery: MethodCallExpression { Method: var asQueryable, Arguments: [var collection] }
                     }
                     && asQueryable.IsGenericMethod
-                    && asQueryable.GetGenericMethodDefinition() == QueryableMethods.AsQueryable)
-                {
-                    projection = Visit(collection);
-                }
-                else
-                {
-#pragma warning disable EF1001 // TranslateProjection() is pubternal
-                    projection = TranslateProjection(argument, applyDefaultTypeMapping: false);
+                    && asQueryable.GetGenericMethodDefinition() == QueryableMethods.AsQueryable
+                        ? Visit(collection)
+                        : TranslateProjection(argument, applyDefaultTypeMapping: false);
 #pragma warning restore EF1001
-                }
 
                 var jsonQuery = projection switch
                 {

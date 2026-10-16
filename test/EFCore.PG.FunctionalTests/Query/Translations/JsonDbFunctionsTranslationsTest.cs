@@ -131,6 +131,29 @@ WHERE e."Document" ?& ARRAY['Name','Details']::text[] AND NOT ((e."Document" -> 
     }
 
     [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Json_existence_with_modeled_key(bool owned)
+    {
+        var contextFactory = await Initialize(owned);
+        await using var context = contextFactory.CreateDbContext();
+
+        var result = await context.Entities.Where(
+                e => !EF.Functions.JsonExists(e.Document, e.Document.Name)
+                    && EF.Functions.JsonExistAny(e.Document, e.Document.Name, "Name")
+                    && !EF.Functions.JsonExistAll(e.Document, e.Document.Name, "Name"))
+            .Select(e => e.Id).ToListAsync();
+
+        Assert.Equal([1, 2], result.Order());
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE NOT (e."Document" ? (e."Document" ->> 'Name')) AND e."Document" ?| ARRAY[e."Document" ->> 'Name','Name']::text[] AND NOT (e."Document" ?& ARRAY[e."Document" ->> 'Name','Name']::text[])
+""");
+    }
+
+    [ConditionalTheory]
     [InlineData(false, "jsonb")]
     [InlineData(true, "jsonb")]
     [InlineData(false, "json")]

@@ -57,14 +57,17 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
             // This means they come wrapped in a convert node, which we need to remove.
             // Convert nodes may also come from wrapping JsonTraversalExpressions generated through POCO traversal.
             .Select(RemoveConvert)
-            // JSON functions require JSON fragments, rather than extracting their values as text or other scalar types.
-            .Select(a => a switch
-            {
-                PgJsonTraversalExpression traversal => WithReturnsText(traversal, false),
-                JsonScalarExpression scalar => new JsonScalarExpression(
-                    scalar.Json, scalar.Path, scalar.Type, scalar.Json.TypeMapping!, scalar.IsNullable),
-                _ => a
-            })
+            // Only JSON operands require fragments; existence keys must remain text or text arrays.
+            .Select((a, i) => i == 0 || method.Name is nameof(NpgsqlJsonDbFunctionsExtensions.JsonContains)
+                    or nameof(NpgsqlJsonDbFunctionsExtensions.JsonContained)
+                ? a switch
+                {
+                    PgJsonTraversalExpression traversal => WithReturnsText(traversal, false),
+                    JsonScalarExpression scalar => new JsonScalarExpression(
+                        scalar.Json, scalar.Path, scalar.Type, scalar.Json.TypeMapping!, scalar.IsNullable),
+                    _ => a
+                }
+                : a)
             .ToArray();
 
         if (!args.Any(a => a.TypeMapping is NpgsqlJsonTypeMapping or NpgsqlStructuralJsonTypeMapping || a is PgJsonTraversalExpression))
