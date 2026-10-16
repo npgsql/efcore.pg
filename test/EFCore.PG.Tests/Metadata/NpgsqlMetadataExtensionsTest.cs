@@ -514,6 +514,23 @@ public class NpgsqlMetadataExtensionsTest
         Assert.Equal("R", property.FindHiLoSequence().Schema);
     }
 
+    [ConditionalFact]
+    public void Can_get_ts_vector_properties_from_read_only_list()
+    {
+        var modelBuilder = GetModelBuilder();
+
+        var property = modelBuilder.Entity<Blog>()
+            .Property(x => x.SearchVector)
+            .HasColumnType("tsvector")
+            .Metadata;
+
+        property.SetTsVectorProperties(["Title"]);
+
+        Assert.Equal(
+            new[] { "Title" },
+            property.GetTsVectorProperties());
+    }
+
     private static ModelBuilder GetModelBuilder()
         => NpgsqlTestHelpers.Instance.CreateConventionBuilder();
 
@@ -532,5 +549,11 @@ public class NpgsqlMetadataExtensionsTest
     {
         public int OrderId { get; set; }
         public int CustomerId { get; set; }
+    }
+
+    private class Blog
+    {
+        public string Title { get; set; } = "";
+        public NpgsqlTsVector SearchVector { get; set; }
     }
 }
